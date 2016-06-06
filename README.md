@@ -1,7 +1,7 @@
 Mojito 
 ====
 [![Project Status](http://opensource.box.com/badges/active.svg)](http://opensource.box.com/badges)
-[![Build Status](http://pod4101-overmind01.pod.box.net:8080/buildStatus/icon?job=LocalizationPlatform/MergeToReact)](http://pod4101-overmind01.pod.box.net:8080/job/LocalizationPlatform/job/MergedToReact/)
+[![Build Status](https://travis-ci.com/box/mojito.svg?token=NJfRzR9V36ATPDsJtEkR&branch=master)](https://travis-ci.com/box/mojito)
 
 Mojito is an automation platform that enables continuous localization.  It fits naturally into various continous integration pipeline, has a simple workbench and a powerful command line to translating, pushing and pulling translated strings.  
 
