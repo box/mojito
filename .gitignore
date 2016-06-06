@@ -3,7 +3,6 @@
 application.pid
 .idea/
 /target/
-application-websecurityprod.properties
 /restclient/target/
 /test-common/target/
 *.iml
