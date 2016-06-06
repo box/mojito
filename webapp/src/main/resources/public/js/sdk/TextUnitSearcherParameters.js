@@ -1,0 +1,81 @@
+/**
+ * Defines the search parameters for the TextUnitClient.
+ *
+ * It uses a filter logic. The dataset will be filtered down as more criteria are defined in this object.
+ */
+export default
+class TextUnitSearcherParameters {
+
+    constructor() {
+        this.params = {};
+
+        this.ALL = 'ALL';
+        this.TRANSLATED = 'TRANSLATED';
+        this.NEEDS_TRANSLATION = 'NEEDS_TRANSLATION';
+        this.NEEDS_REVIEW = 'NEEDS_REVIEW';
+        this.REJECTED = 'REJECTED';
+
+        this.USED = 'USED';
+        this.UNUSED = 'UNUSED';
+    }
+
+    /**
+     * @param repositoryIds - Array of repository IDs that must be sent as part of the search criteria
+     * @returns {TextUnitSearcherParameters}
+     */
+    repositoryIds(repositoryIds) {
+        this.params.repositoryIds = repositoryIds;
+        return this;
+    }
+
+    localeTags(localeTags) {
+        this.params.localeTags = localeTags;
+        return this;
+    }
+
+    name(name) {
+        this.params.name = name;
+        return this;
+    }
+
+    source(source) {
+        this.params.source = source;
+        return this;
+    }
+
+    target(target) {
+        this.params.target = target;
+        return this;
+    }
+
+    searchType(searchType) {
+        this.params.searchType = searchType;
+        return this;
+    }
+
+    usedFilter(usedFilter) {
+        this.params.usedFilter = usedFilter;
+        return this;
+    }
+
+    statusFilter(statusFilter) {
+        this.params.statusFilter = statusFilter;
+        return this;
+    }
+
+    limit(limit) {
+        this.params.limit = limit;
+        return this;
+    }
+
+    offset(offset) {
+        this.params.offset = offset;
+        return this;
+    }
+
+    getParams() {
+        return this.params;
+    }
+}
+;
+

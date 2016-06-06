@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>run</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-classpath %classpath com.box.l10n.mojito.RestartableApplication --spring.config.location=file:///Users/jaurambault/.l10n/config/webapp/ --spring.profiles.active=jaurambault,createDemoData</exec.args>
+                <exec.executable>java</exec.executable>
+            </properties>
+        </action>
+        <action>
+            <actionName>debug</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath com.box.l10n.mojito.RestartableApplication --spring.config.location=file:///Users/jaurambault/.l10n/config/webapp/ --spring.profiles.active=jaurambault,createDemoData</exec.args>
+                <exec.executable>java</exec.executable>
+                <jpda.listen>true</jpda.listen>
+            </properties>
+        </action>
+        <action>
+            <actionName>profile</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-classpath %classpath com.box.l10n.mojito.RestartableApplication --spring.config.location=file:///Users/jaurambault/.l10n/config/webapp/ --spring.profiles.active=jaurambault,createDemoData</exec.args>
+                <exec.executable>java</exec.executable>
+            </properties>
+        </action>
+        <action>
+            <actionName>test.single</actionName>
+            <packagings>
+                <packaging>*</packaging>
+            </packagings>
+            <goals>
+                <goal>test-compile</goal>
+                <goal>surefire:test</goal>
+            </goals>
+            <properties>
+                <test>${packageClassName}</test>
+                <argLine>-Ddebug -Dspring.config.location=file:///Users/jaurambault/.l10n/config/webapp/ -Dspring.profiles.active=jaurambault,test</argLine>
+            </properties>
+        </action>
+        <action>
+            <actionName>CUSTOM-Debug Test project</actionName>
+            <displayName>Debug Test project</displayName>
+            <goals>
+                <goal>test</goal>
+            </goals>
+            <properties>
+                <forkMode>once</forkMode>
+                <maven.surefire.debug>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address}</maven.surefire.debug>
+                <jpda.listen>true</jpda.listen>
+            </properties>
+        </action>
+    </actions>

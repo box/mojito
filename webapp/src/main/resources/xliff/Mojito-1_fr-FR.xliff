@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
+<file original="en.properties" source-language="en" target-language="fr-fr" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<body>
+<trans-unit id="" resname="header.workbench">
+<source xml:lang="en">Workbench</source>
+<target xml:lang="fr-fr">Éditeur</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="header.repositories">
+<source xml:lang="en">Repositories</source>
+<target xml:lang="fr-fr">Répertoires</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the repositories page","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.name">
+<source xml:lang="en">Name</source>
+<target xml:lang="fr-fr">Nom</target>
+<note>{"sourceComment":" Name column in the table header used to display a list of repositories","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.description">
+<source xml:lang="en">Description</source>
+<target xml:lang="fr-fr">Description</target>
+<note>{"sourceComment":" Description column in the table header used to display a list of repositories","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.status">
+<source xml:lang="en">Status</source>
+<target xml:lang="fr-fr">Status</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.translated">
+<source xml:lang="en">Translated</source>
+<target xml:lang="fr-fr">Traduit</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.review">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Needs Review} other{# Needs Review}}</source>
+<target xml:lang="fr-fr">{numberOfNeedsReview, plural, =0{Aucnune à revoir} other{# à revoir}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.rejected">
+<source xml:lang="en">{numberOfRejected, plural, =0 {None Rejected} other{# Rejected}}</source>
+<target xml:lang="fr-fr">{numberOfRejected, plural, =0{Aucune rejetée} =1{1 rejetée} other{# rejetées}}</target>
+<note>{"sourceComment":" Label to show the number of rejected text units","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.ok">
+<source xml:lang="en">Ok</source>
+<target xml:lang="fr-fr">Ok</target>
+<note>{"sourceComment":" Label to show ok - meaning that everything is fine","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.placeholder">
+<source xml:lang="en">Search term...</source>
+<target xml:lang="fr-fr">Terme à recherche ...</target>
+<note>{"sourceComment":"Label used as placeholder for the search input field of the SearchPanelWithFilters widget","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.stringId">
+<source xml:lang="en">String ID</source>
+<target xml:lang="fr-fr">String ID</target>
+<note>{"sourceComment":" Search filter option \"string id\"","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.source">
+<source xml:lang="en">Source</source>
+<target xml:lang="fr-fr">Source</target>
+<note>{"sourceComment":" Search filter option \"source\"","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.target">
+<source xml:lang="en">Target</source>
+<target xml:lang="fr-fr">Cible</target>
+<note>{"sourceComment":" Search filter option \"target\"","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.exact">
+<source xml:lang="en">Exact</source>
+<target xml:lang="fr-fr">Exacte</target>
+<note>{"sourceComment":" Search filter option to search for strings that matche exactly the search critera","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.contains">
+<source xml:lang="en">Contains</source>
+<target xml:lang="fr-fr">Contient</target>
+<note>{"sourceComment":" Search filter option to search for strings that contains the search critera","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.ilike">
+<source xml:lang="en">ILike</source>
+<target xml:lang="fr-fr">ILike</target>
+<note>{"sourceComment":" Search filter option to search for strings that matches a ilike SQL style expression","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchAttribute">
+<source xml:lang="en">Attribute</source>
+<target xml:lang="fr-fr">Attribut</target>
+<note>{"sourceComment":" Header shown before the list of attributes (string id, source, target) the search can be perform on","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchType">
+<source xml:lang="en">Type</source>
+<target xml:lang="fr-fr">Type</target>
+<note>{"sourceComment":" Header shown before the list of search type (exact, contains, ilike) that can be performed","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.title">
+<source xml:lang="en">Filter by</source>
+<target xml:lang="fr-fr">Filtrer par</target>
+<note>{"sourceComment":" Title of the status dropdown in the workbench to filter results","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.used">
+<source xml:lang="en">Used</source>
+<target xml:lang="fr-fr">Utilisé</target>
+<note>{"sourceComment":" Search filter option \"used\" used in the status dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.translated">
+<source xml:lang="en">Translated</source>
+<target xml:lang="fr-fr">Traduit</target>
+<note>{"sourceComment":" Search filter option \"translated\" used in the status dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.needsReview">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="fr-fr">A revoir</target>
+<note>{"sourceComment":" Search filter option \"needs review\" used in the status dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.rejected">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="fr-fr">Rejetée</target>
+<note>{"sourceComment":" Search filter option \"Not rejected\" used in the status dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.yes">
+<source xml:lang="en">Yes</source>
+<target xml:lang="fr-fr">Oui</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is active","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.no">
+<source xml:lang="en">No</source>
+<target xml:lang="fr-fr">Non</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is inactive","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.pagination.isLoading">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="fr-fr">Chargement ...</target>
+<note>{"sourceComment":"label displayed alternately if the \"loading\" image used during pagination is not available","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.profile">
+<source xml:lang="en">My Profile</source>
+<target xml:lang="fr-fr">Mon profil</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's profile","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.preferences">
+<source xml:lang="en">My Preferences</source>
+<target xml:lang="fr-fr">Mes Préférences</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's preferences","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.logout">
+<source xml:lang="en">Logout</source>
+<target xml:lang="fr-fr">Déconnexion</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to logout","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="label.save">
+<source xml:lang="en">Save</source>
+<target xml:lang="fr-fr">Enregistrer</target>
+<note>{"sourceComment":"Save label to be used on buttons, labels etc","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="label.delete">
+<source xml:lang="en">Delete</source>
+<target xml:lang="fr-fr">Supprimer</target>
+<note>{"sourceComment":"Delete label to be used on buttons","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="label.cancel">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="fr-fr">Annuler</target>
+<note>{"sourceComment":"Cancel label to be used on buttons, labels etc","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder">
+<source xml:lang="en">Enter a new translation ...</source>
+<target xml:lang="fr-fr">Entrez une nouvelle traduction ...</target>
+<note>{"sourceComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.unused">
+<source xml:lang="en">Unused</source>
+<target xml:lang="fr-fr">Inutilisé</target>
+<note>{"sourceComment":"Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.notIncludedInLocalizedFile">
+<source xml:lang="en">Not included in localized file</source>
+<target xml:lang="fr-fr">Non inclus dans le fichier localisé</target>
+<note>{"sourceComment":"Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation">
+<source xml:lang="en">Enter new translation...</source>
+<target xml:lang="fr-fr">Entrer une nouvelle traduction ...</target>
+<note>{"sourceComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.review">
+<source xml:lang="en">Review</source>
+<target xml:lang="fr-fr">Revoir</target>
+<note>{"sourceComment":"Label for the Review button on the workbench toolbar","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.numberOfSelectedTextUnits">
+<source xml:lang="en">{numberOfSelectedTextUnits, plural, =0 {None selected} other{# selected}}</source>
+<target xml:lang="fr-fr">{numberOfSelectedTextUnits, plural, =0{Aucune sélectionnée} =1{1 sélectionnée} other{# sélectionnées}}</target>
+<note>{"sourceComment":" Label displayed as the title of the dropdown in the workbench toolbar to indicate the number of selected text units in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.selectAllInPage">
+<source xml:lang="en">Select all in page</source>
+<target xml:lang="fr-fr">Tout sélectionner dans la page</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to select all textunits in the current page","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAllInPage">
+<source xml:lang="en">Clear all in page</source>
+<target xml:lang="fr-fr">Tout desélectionner dans la page</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits in the current page","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAll">
+<source xml:lang="en">Clear all</source>
+<target xml:lang="fr-fr">Tout desélectionner</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits across all pages in the search results","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.rejected">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="fr-fr">Rejetée</target>
+<note>{"sourceComment":"Label for the Review button on the modal in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.accepted">
+<source xml:lang="en">Accepted</source>
+<target xml:lang="fr-fr">Acceptée</target>
+<note>{"sourceComment":"Button label used for primary action \"removeReview\" on modal dialog","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.needsReview">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="fr-fr">A revoir</target>
+<note>{"sourceComment":"Button label used for the Needs Review button on the textunit review modal","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.title">
+<source xml:lang="en">Review selected translations</source>
+<target xml:lang="fr-fr">Revoir les traductions choisies</target>
+<note>{"sourceComment":"Label displayed as the title of the modal popup when user clicks on a textunit action","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentLabel">
+<source xml:lang="en">Comment</source>
+<target xml:lang="fr-fr">Commentaire</target>
+<note>{"sourceComment":"Label for the text unit comment on the textunit review modal","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentPlaceholder">
+<source xml:lang="en">Enter comment</source>
+<target xml:lang="fr-fr">Entrez un commentaire</target>
+<note>{"sourceComment":"Placeholder for the textarea on the textunit review modal","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.deletemodal.title">
+<source xml:lang="en">Confirm delete</source>
+<target xml:lang="fr-fr">Confirmer la suppression</target>
+<note>{"sourceComment":"Label displayed in the header of the modal popup when user clicks on delete textunit action","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnits.bulk.deleteMessage">
+<source xml:lang="en">Are you sure you want to delete the selected text units?</source>
+<target xml:lang="fr-fr">Êtes-vous sûr de vouloir supprimer les unités de texte sélectionnées?</target>
+<note>{"sourceComment":"Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.save.failed">
+<source xml:lang="en">There was an error saving the translation.</source>
+<target xml:lang="fr-fr">Il y a eu une économie de la traduction erreur.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when saving a textunit fails","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.delete.failed">
+<source xml:lang="en">There was an error deleting the translation.</source>
+<target xml:lang="fr-fr">Il y a eu une erreur lors de la suppréssion la traduction.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when deleting a textunit fails","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.placeholder">
+<source xml:lang="en">Choose Repositories</source>
+<target xml:lang="fr-fr">Répertoires ...</target>
+<note>{"sourceComment":"Label displayed on the repositories dropdown in the workbench when no repositories are selected","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.filterPlaceholder">
+<source xml:lang="en">Repository Name...</source>
+<target xml:lang="fr-fr">Nom du répertoire ...</target>
+<note>{"sourceComment":"Label displayed in the search box of the repositories dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales ... } =1{1 locale selected} other{# locales selected}}</source>
+<target xml:lang="fr-fr">{numberOfSelectedLocales, plural, =0{Locales ... } =1{1 locale sélectionnée} other{# locales sélectionnées}}</target>
+<note>{"sourceComment":"Label displayed on the locales dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.filterPlaceholder">
+<source xml:lang="en">Locale Name...</source>
+<target xml:lang="fr-fr">Nom de la locale ...</target>
+<note>{"sourceComment":"Label displayed in the search box of the locales dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.query.failed">
+<source xml:lang="en">There was an error querying the server</source>
+<target xml:lang="fr-fr">Il ya eu une erreur interrogeant le serveur</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when the search query fails","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.logout">
+<source xml:lang="en">You have been logged out.</source>
+<target xml:lang="fr-fr">Vous avez été déconnecté.</target>
+<note>{"sourceComment":"Login form log out message","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.error">
+<source xml:lang="en">Invalid username and password.</source>
+<target xml:lang="fr-fr">Nom d'utilisateur et mot de passe invalide.</target>
+<note>{"sourceComment":"Login form error message","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title">
+<source xml:lang="en">Welcome back, please log in</source>
+<target xml:lang="fr-fr">Bienvenue à nouveau, s'il vous plaît connectez-vous</target>
+<note>{"sourceComment":"Login form title","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.login">
+<source xml:lang="en">Log in</source>
+<target xml:lang="fr-fr">Connexion</target>
+<note>{"sourceComment":"Login form log in button","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.username">
+<source xml:lang="en">username</source>
+<target xml:lang="fr-fr">nom d'utilisateur</target>
+<note>{"sourceComment":"Login form username input field place holder","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.password">
+<source xml:lang="en">password</source>
+<target xml:lang="fr-fr">mot de passe</target>
+<note>{"sourceComment":"Login form password input field place holder","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.title">
+<source xml:lang="en">That caused an error</source>
+<target xml:lang="fr-fr">Cela a provoqué une erreur</target>
+<note>{"sourceComment":" Label shown on the ErrorModal when saving a textunit fails","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.review">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</source>
+<target xml:lang="fr-fr">{numberOfNeedsReview, plural, =0 {Aucune à revoir} other{# à revoir}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.numNew">
+<source xml:lang="en">{numberOfNew, plural, =0 {None New} other{# New}}</source>
+<target xml:lang="fr-fr">{numberOfNew, plural, =0 {Aucune nouvelle} 1={1 nouvelle} other{# nouvelles}}</target>
+<note>{"sourceComment":" Label to show the number of new","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.localeStats">
+<source xml:lang="en">Locale Statistics</source>
+<target xml:lang="fr-fr">Statistiques par locale</target>
+<note>{"sourceComment":" Label for a table to show stats for each locale","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.close">
+<source xml:lang="en">Close</source>
+<target xml:lang="fr-fr">Fermer</target>
+<note>{"sourceComment":" Button to close the locale stats","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.btn.text">
+<source xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</source>
+<target xml:lang="fr-fr">{numberOfSelectedRepositories, plural, =0{Répertoires} =1{1 répertoire} other{# répertoires}}</target>
+<note>{"sourceComment":"Label displayed on the repositories dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</source>
+<target xml:lang="fr-fr">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</target>
+<note>{"sourceComment":"Label displayed on the locales dropdown in the workbench","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+<trans-unit id="" resname="localeselector.title">
+<source xml:lang="en">Select Mojito locale</source>
+<target xml:lang="fr-fr">Sélectionnez la locale pour Mojito</target>
+<note>{"sourceComment":" Title shown in the modal to select the locale for the whole Mojito app","targetComment":null,"reviewNeeded":false,"includedInLocalizedFile":true,"variantComments":[]}</note>
+</trans-unit>
+</body>
+</file>
+</xliff>

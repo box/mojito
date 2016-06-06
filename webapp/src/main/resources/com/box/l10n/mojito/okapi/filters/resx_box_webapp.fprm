@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<its:rules xmlns:its="http://www.w3.org/2005/11/its"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:itsx="http://www.w3.org/2008/12/its-extensions"
+ xmlns:okp="okapi-framework:xmlfilter-options"
+ its:translate="no" version="1.0">
+
+<!-- This is a set of rules to process .ResX files. Be aware that any text in Base64 entries
+like text items declared in a list box, will not be processed using this method.
+These rules can also be used on simple .resx files that have just string entries.  -->
+  
+ <its:translateRule selector="/root" translate="no"/>
+ <its:translateRule selector="//data[not(@type) and not(starts-with(@name, '&gt;'))]/value[text()]" translate="yes" itsx:idValue="../@name"/>
+ <its:translateRule selector="//data[@mimetype]/value" translate="no"/>
+ <its:translateRule selector="//data[substring(@name, string-length(@name) - string-length('.Name')+1)='.Name']/value" translate="no"/>
+ <its:translateRule selector="//data[@name='$this.Text']/value[text()]" translate="yes" itsx:idValue="../@name"/>
+ 
+ <!-- Localization notes -->
+ <its:locNoteRule locNoteType="description"
+  locNotePointer="../comment" selector="//data[not(@type) and not(starts-with(@name, '&gt;') or starts-with(@name, '$'))]/value[text()]"/>
+ <okp:options escapeQuotes="no"/>
+ <okp:codeFinder useCodeFinder="yes">#v1
+count.i=1
+rule0=(?&lt;!\\)\{[^}]+?\}
+ </okp:codeFinder>
+</its:rules>

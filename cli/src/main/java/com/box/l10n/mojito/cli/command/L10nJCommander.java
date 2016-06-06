@@ -1,0 +1,219 @@
+package com.box.l10n.mojito.cli.command;
+
+import com.beust.jcommander.JCommander;
+import com.box.l10n.mojito.cli.ConsoleWriter;
+import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
+import com.google.common.base.Strings;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+import org.fusesource.jansi.Ansi;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.web.client.ResourceAccessException;
+
+/**
+ * Wrapper around {@link JCommander} to provide CLI parsing, {@link Command}
+ * registration and dispatching.
+ *
+ * <p>
+ * Note the use of a wrapper {@link #jCommander} to allow multiple sub-sequent
+ * {@link #run(java.lang.String[])}. See also {@link #createJCommanderForRun() }
+ *
+ * @author jaurambault
+ */
+@Configurable
+public class L10nJCommander {
+
+    /**
+     * logger
+     */
+    static Logger logger = LoggerFactory.getLogger(L10nJCommander.class);
+
+    @Autowired
+    ConsoleWriter consoleWriter;
+
+    @Autowired
+    ApplicationContext applicationContext;
+
+    @Autowired
+    MainCommand mainCommand;
+
+    @Autowired
+    AuthenticatedRestTemplate authenticatedRestTemplate;
+
+    boolean systemExitEnabled = true;
+
+    /**
+     * Wrapped {@link JCommander} that is re-created for each call of
+     * {@link #run}.
+     */
+    JCommander jCommander;
+
+    /**
+     * Gets a {@link Command} for a given command name.
+     *
+     * @param parsedCommandName command name (null is treated as an empty
+     * string, ie. maps to the {@link MainCommand)
+     * @return {@link Command} for the given name or the main command.
+     */
+    public Command getCommand(String parsedCommandName) {
+        return (Command) jCommander.getCommands().get(Strings.nullToEmpty(parsedCommandName)).getObjects().get(0);
+    }
+
+    /**
+     * Gets a {@link Command} for a given type.
+     *
+     * @param <T> type of the command
+     * @param clazz class of the command
+     * @return the command
+     */
+    public <T extends Command> T getCommand(Class<T> clazz) {
+
+        T command = null;
+
+        for (JCommander value : jCommander.getCommands().values()) {
+            T candidate = (T) value.getObjects().get(0);
+            if (candidate.getClass().isAssignableFrom(clazz)) {
+                command = candidate;
+            }
+        }
+
+        return command;
+    }
+
+    @PostConstruct
+    public void init() {
+        createJCommanderForRun();
+    }
+
+    public void run(String... args) {
+
+        Exception parsingException = null;
+
+        try {
+            logger.debug("Parse arguments");
+            jCommander.parse(args);
+        } catch (Exception e) {
+            parsingException = e;
+            logger.debug("Parsing failed", e);
+        }
+
+        String parsedCommand = jCommander.getParsedCommand();
+
+        if (parsingException != null) {
+            logger.debug("Parsing failed, show help");
+            printErrorMessage(parsingException.getMessage());
+
+            if (parsedCommand == null) {
+                usage();
+            } else {
+                usage(parsedCommand);
+            }
+        } else {
+            logger.debug("Execute commands for parsed command: {}", parsedCommand);
+            Command command = getCommand(parsedCommand);
+
+            try {
+                command.run();
+            } catch (SessionAuthenticationException ae) {
+                printErrorMessage("Invalid username or password");
+                exitWithError();
+            } catch (CommandException ce) {
+                printErrorMessage(ce.getMessage());
+                logger.error("Exit with error for command: " + command.getName(), ce);
+                exitWithError();
+            } catch (ResourceAccessException rae) {
+                String msg = "Is a server running on: " + authenticatedRestTemplate.getURIForResource("") + "?";
+                printErrorMessage(msg);
+                logger.error(msg, rae);
+                exitWithError();
+            } catch (Throwable t) {
+                printErrorMessage("Unexpected error, see logs for more information");
+                logger.error("Unexpected error", t);
+                exitWithError();
+            }
+        }
+    }
+
+    /**
+     * Display the usage in the appLogger (instead of System.out).
+     */
+    public void usage() {
+        StringBuilder stringBuilder = new StringBuilder();
+        jCommander.usage(stringBuilder, "");
+        consoleWriter.a(stringBuilder).println();
+    }
+
+    /**
+     * Display the command usage in the appLogger (instead of System.out).
+     *
+     * @param commandName the command name
+     */
+    public void usage(String commandName) {
+        StringBuilder stringBuilder = new StringBuilder();
+        jCommander.usage(commandName, stringBuilder, "");
+        consoleWriter.a(stringBuilder).println();
+    }
+
+    /**
+     * Creates a {@link JCommander} instance for a single run (sub-sequent
+     * parsing are not supported but required for testing).
+     */
+    public void createJCommanderForRun() {
+        logger.debug("Create JCommander instance");
+        jCommander = new JCommander();
+        //TODO(P1) not sure we want to do that but this allows spring conf to be passed easily
+        jCommander.setAcceptUnknownOptions(true);
+
+        logger.debug("Initialize the JCommander instance");
+        jCommander.setProgramName("l10n");
+
+        logger.debug("Set the main command for version/help directly on the JCommander");
+        jCommander.addObject(mainCommand);
+
+        logger.debug("Register Commands retreived using Spring");
+        for (Command command : applicationContext.getBeansOfType(Command.class).values()) {
+
+            Map<String, JCommander> commands = jCommander.getCommands();
+
+            for (String name : command.getNames()) {
+                if (commands.keySet().contains(name)) {
+                    throw new RuntimeException("There must be only one module with name: " + name);
+                }
+            }
+
+            jCommander.addCommand(command);
+        }
+    }
+
+    public void exitWithError() {
+
+        if (isSystemExitEnabled()) {
+            System.exit(1);
+        } else {
+            logger.info("System exit disabled");
+        }
+    }
+
+    /**
+     * Prints the error message with ANSI escape codee.
+     *
+     * @param errorMsg the error message
+     */
+    private void printErrorMessage(String errorMsg) {
+        consoleWriter.newLine().fg(Ansi.Color.RED).a(errorMsg).println(2);
+    }
+
+    public boolean isSystemExitEnabled() {
+        return systemExitEnabled;
+    }
+
+    public void setSystemExitEnabled(boolean systemExitEnabled) {
+        this.systemExitEnabled = systemExitEnabled;
+    }
+
+}

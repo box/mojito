@@ -1,0 +1,706 @@
+package com.box.l10n.mojito.service.drop;
+
+import com.box.l10n.mojito.boxsdk.BoxSDKServiceException;
+import com.box.l10n.mojito.entity.Drop;
+import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TranslationKit;
+import com.box.l10n.mojito.okapi.XliffState;
+import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_IMPORTED_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
+import com.box.l10n.mojito.service.drop.exporter.DropExporterException;
+import com.box.l10n.mojito.service.drop.exporter.DropExporterService;
+import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporter;
+import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporterConfig;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskExecutionException;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.TMTestData;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
+import com.box.l10n.mojito.service.tm.search.StatusFilter;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.box.l10n.mojito.service.translationkit.TranslationKitRepository;
+import com.box.l10n.mojito.test.TestIdWatcher;
+import com.box.l10n.mojito.test.XliffUtils;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * @author jaurambault
+ */
+public class DropServiceTest extends ServiceTestBase {
+
+    static Logger logger = LoggerFactory.getLogger(DropServiceTest.class);
+
+    @Autowired
+    DropService dropService;
+
+    @Autowired
+    DropRepository dropRepository;
+
+    @Autowired
+    RepositoryRepository repositoryRepository;
+
+    @Autowired
+    RepositoryService repositoryService;
+
+    @Autowired
+    PollableTaskService pollableTaskService;
+
+    @Autowired
+    DropExporterService dropExporterService;
+
+    @Autowired
+    TextUnitSearcher textUnitSearcher;
+
+    @Autowired
+    TranslationKitRepository translationKitRepository;
+
+    @Autowired
+    TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
+
+    @Autowired
+    TMService tmService;
+
+    @Rule
+    public TestIdWatcher testIdWatcher = new TestIdWatcher();
+
+    @Test
+    public void testCreateDrop() {
+        Repository repository = new Repository();
+        repository.setName(testIdWatcher.getEntityName("testCreateDrop"));
+        repository = repositoryRepository.save(repository);
+
+        Drop createDrop = dropService.createDrop(repository);
+        assertEquals(createDrop.getRepository().getId(), repository.getId());
+        assertNotNull(createDrop.getCreatedByUser());
+    }
+
+    @Test
+    public void forTranslation() throws Exception {
+
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+        bcp47Tags.add("ko-KR");
+        bcp47Tags.add("ja-JP");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box");
+        Drop drop = startExportProcess.get();
+        localizeDropFiles(drop, 1);
+
+        logger.debug("Import drop");
+        PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+
+        logger.debug("Check everything is now translated");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 0);
+        checkImportedFilesContent(drop, 1);
+        checkTranslationKitStatistics(drop);
+
+        logger.debug("Perform a third import drop with changes (must be able to re-import as many time as wanted)");
+        localizeDropFiles(drop, 2);
+        PollableFuture startImportDrop3 = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        pollableTaskService.waitForPollableTask(startImportDrop3.getPollableTask().getId(), 60000L);
+
+        logger.debug("Check everything is now translated");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 0);
+
+        checkImportedFilesContent(drop, 2);
+        checkTranslationKitStatistics(drop);
+    }
+
+    @Test
+    public void forTranslationWithTranslationAddedAfterExport() throws Exception {
+
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+        bcp47Tags.add("ko-KR");
+        bcp47Tags.add("ja-JP");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box");
+        Drop drop = startExportProcess.get();
+        localizeDropFiles(drop, 1);
+
+        logger.debug("Translate one of the entry, will check later that this string wasn't overriden");
+
+        TMTextUnitVariant translationAddedAfterTheImport = tmService.addCurrentTMTextUnitVariant(
+                tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
+                tmTestData.frFR.getId(),
+                "string added while the drop is translated");
+
+        logger.debug("Import drop");
+        PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+
+        logger.debug("Check everything is now translated");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 0);
+
+        checkImportedFilesContent(drop, 1);
+
+        checkTranslationKitStatistics(drop);
+
+        logger.debug("Perform a second import drop (must be able to re-import as many time as wanted)");
+        PollableFuture startImportDrop2 = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        pollableTaskService.waitForPollableTask(startImportDrop2.getPollableTask().getId(), 60000L);
+
+        logger.debug("Check that the current translation is the one that was added after the export and before the import and not coming from the TK");
+        TMTextUnitCurrentVariant currentTranslation = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(
+                tmTestData.frFR.getId(),
+                tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId());
+
+        assertEquals("The translation that has been added between the export and import must be kept", translationAddedAfterTheImport.getId(), currentTranslation.getTmTextUnitVariant().getId());
+    }
+
+    @Test
+    public void forReview() throws Exception {
+
+        Repository repository = createDataForReview();
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+        bcp47Tags.add("ko-KR");
+        bcp47Tags.add("ja-JP");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+        exportDropConfig.setType(TranslationKit.Type.REVIEW);
+
+        logger.debug("Check inital number of needs review");
+        checkNumberOfNeedsReviewTextUnit(repository, bcp47Tags, 1);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box");
+        Drop drop = startExportProcess.get();
+
+        reviewDropFiles(drop);
+
+        logger.debug("Import drop");
+        PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+
+        logger.debug("Check everything is now translated");
+        checkNumberOfNeedsReviewTextUnit(repository, bcp47Tags, 0);
+
+        checkImportedFilesForReviewContent(drop);
+    }
+
+    @Transactional
+    Repository createDataForReview() {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+        Repository repository = tmTestData.repository;
+        logger.debug("Mark on translated string as need review");
+        tmService.addTMTextUnitCurrentVariant(
+                tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
+                tmTestData.addCurrentTMTextUnitVariant1FrFR.getLocale().getId(),
+                tmTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
+                null,
+                TMTextUnitVariant.Status.REVIEW_NEEDED);
+        return repository;
+    }
+
+    @Test
+    public void allWithSeverError() throws Exception {
+
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("it-IT");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box");
+        Drop drop = startExportProcess.get();
+        localizeDropFiles(drop, 1);
+
+        logger.debug("Import drop");
+        PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        try {
+            pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+            fail();
+        } catch (PollableTaskException pte) {
+            PollableTask importPollableTask = pollableTaskService.getPollableTask(startImportDrop.getPollableTask().getId());
+
+            PollableTask next = importPollableTask.getSubTasks().iterator().next();
+            assertTrue(next.getErrorMessage().contains("Unexpected close tag"));
+        }
+
+    }
+
+    public void checkNumberOfUntranslatedTextUnit(Repository repository, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.UNTRANSLATED);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setLocaleTags(bcp47Tags);
+
+        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(expectedNumberOfUnstranslated, search.size());
+    }
+
+    public void checkNumberOfNeedsReviewTextUnit(Repository repository, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.REVIEW_NEEDED);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setLocaleTags(bcp47Tags);
+
+        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(expectedNumberOfUnstranslated, search.size());
+    }
+
+    public void localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException, IOException {
+
+        logger.debug("Localize files in a drop for testing");
+
+        FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
+        FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
+
+        File[] sourceFiles = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME).toFile().listFiles();
+
+        for (File sourceFile : sourceFiles) {
+
+            String localizedContent = Files.toString(sourceFile, Charsets.UTF_8);
+
+            if (sourceFile.getName().startsWith("ko-KR")) {
+                logger.debug("For the Korean file, don't translate but add a corrupted text unit (invalid id) at the end");
+                localizedContent = localizedContent.replaceAll("</body>",
+                        "<trans-unit id=\"badid\" resname=\"TEST2\" xml:space=\"preserve\">\n"
+                        + "<source xml:lang=\"en\">Content2</source>\n"
+                        + "<target xml:lang=\"ko-kr\">Import Drop" + round + " - Content2 ko-kr</target>\n"
+                        + "</trans-unit>\n"
+                        + "</body>");
+            } else if (sourceFile.getName().startsWith("it-IT")) {
+                logger.debug("For the Italien file, don't translate but add a corrupted xml");
+                localizedContent = localizedContent.replaceAll("</body>", "</bod");
+            } else {
+                localizedContent = XliffUtils.localizeTarget(localizedContent, "Import Drop" + round);
+            }
+
+            //TODO(P1) this logic is being dupplicated everywhere maybe it should go back into the config or service.
+            Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
+            Files.write(localizedContent, localizedFolderPath.toFile(), Charsets.UTF_8);
+        }
+    }
+
+    public void reviewDropFiles(Drop drop) throws DropExporterException, BoxSDKServiceException, IOException {
+
+        logger.debug("Review files in a drop for testing");
+
+        FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
+        FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
+
+        File[] sourceFiles = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME).toFile().listFiles();
+
+        for (File sourceFile : sourceFiles) {
+
+            String reviewedContent = Files.toString(sourceFile, Charsets.UTF_8);
+            reviewedContent = XliffUtils.replaceTargetState(reviewedContent, XliffState.SIGNED_OFF.toString());
+
+            //TODO(P1) this logic is being dupplicated everywhere maybe it should go back into the config or service.
+            Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
+            Files.write(reviewedContent, localizedFolderPath.toFile(), Charsets.UTF_8);
+        }
+    }
+
+    public void checkImportedFilesContent(Drop drop, int round) throws BoxSDKServiceException, DropExporterException, IOException {
+
+        logger.debug("Check imported files contains text unit variant ids");
+
+        FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
+        FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
+
+        File[] importedFiles = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_IMPORTED_FILES_NAME).toFile().listFiles();
+
+        for (File importedFile : importedFiles) {
+
+            if (!importedFile.getName().endsWith("xliff")) {
+                continue;
+            }
+
+            String importedContent = Files.toString(importedFile, Charsets.UTF_8);
+            checkImportedFilesContent(importedFile.getName(), importedContent, round);
+        }
+    }
+
+    public void checkImportedFilesContent(String filename, String importedContent, int round) {
+        if (filename.startsWith("fr-FR")) {
+            
+            logger.debug(importedContent);
+            
+            String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
+            logger.debug(xliffWithoutIds);
+            
+            assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                    + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                    + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"fr-fr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                    + "<body>\n"
+                    + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
+                    + "<source xml:lang=\"en\">Content2</source>\n"
+                    + "<target xml:lang=\"fr-fr\" state=\"needs-review-translation\">Import Drop" + round + " - Content2 fr-fr</target>\n"
+                    + "<note>Comment2</note>\n"
+                    + "<note annotates=\"target\" from=\"automation\">OK\n"
+                    + "[INFO] tuv id: replaced-id</note>\n"
+                    + "</trans-unit>\n"
+                    + "</body>\n"
+                    + "</file>\n"
+                    + "</xliff>\n", xliffWithoutIds);
+            
+        } else if (filename.startsWith("ko-KR")) {
+            
+            logger.debug(importedContent);
+            
+            String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
+            logger.info(xliffWithoutIds);
+            
+            if (round == 1) {
+                assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-kr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<body>\n"
+                        + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
+                        + "<source xml:lang=\"en\">Content2</source>\n"
+                        + "<target xml:lang=\"ko-kr\" state=\"needs-review-translation\">Content2</target>\n"
+                        + "<note>Comment2</note>\n"
+                        + "<note annotates=\"target\" from=\"automation\">NEEDS REVIEW\n"
+                        + "[INFO] tuv id: replaced-id\n"
+                        + "[WARNING] Translation is the same as the source.\n"
+                        + "[INFO] Translation is the same as the source.</note>\n"
+                        + "</trans-unit>\n"
+                        + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
+                        + "<source xml:lang=\"en\">Content2</source>\n"
+                        + "<target xml:lang=\"ko-kr\" state=\"needs-translation\">Import Drop" + round + " - Content2 ko-kr</target>\n"
+                        + "<note annotates=\"target\" from=\"automation\">MUST REVIEW\n"
+                        + "[ERROR] Text unit for id: badid, Skipping it...</note>\n"
+                        + "</trans-unit>\n"
+                        + "</body>\n"
+                        + "</file>\n"
+                        + "</xliff>\n", xliffWithoutIds);
+            } else {
+                assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-kr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<body>\n"
+                        + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
+                        + "<source xml:lang=\"en\">Content2</source>\n"
+                        + "<target xml:lang=\"ko-kr\" state=\"needs-review-translation\">Content2</target>\n"
+                        + "<note>Comment2</note>\n"
+                        + "<note annotates=\"target\" from=\"automation\">NEEDS REVIEW\n"
+                        + "[INFO] tuv id: replaced-id\n"
+                        + "[WARNING] Translation is the same as the source.\n"
+                        + "[INFO] Translation is the same as the source.\n"
+                        + "[WARNING] Translation is the same as the source.\n"
+                        + "[INFO] Translation is the same as the source.</note>\n"
+                        + "</trans-unit>\n"
+                        + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
+                        + "<source xml:lang=\"en\">Content2</source>\n"
+                        + "<target xml:lang=\"ko-kr\" state=\"needs-translation\">Import Drop2 - Content2 ko-kr</target>\n"
+                        + "<note annotates=\"target\" from=\"automation\">MUST REVIEW\n"
+                        + "[ERROR] Text unit for id: badid, Skipping it...</note>\n"
+                        + "</trans-unit>\n"
+                        + "</body>\n"
+                        + "</file>\n"
+                        + "</xliff>\n", xliffWithoutIds);
+            }
+
+        } else {
+            
+            logger.debug(importedContent);
+            
+            String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
+            logger.debug(xliffWithoutIds);
+            
+            assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                    + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                    + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ja-jp\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                    + "<body>\n"
+                    + "<trans-unit id=\"replaced-id\" resname=\"zuora_error_message_verify_state_province\" xml:space=\"preserve\">\n"
+                    + "<source xml:lang=\"en\">Please enter a valid state, region or province</source>\n"
+                    + "<target xml:lang=\"ja-jp\" state=\"needs-review-translation\">Import Drop" + round + " - Please enter a valid state, region or province ja-jp</target>\n"
+                    + "<note>Comment1</note>\n"
+                    + "<note annotates=\"target\" from=\"automation\">OK\n"
+                    + "[INFO] tuv id: replaced-id</note>\n"
+                    + "</trans-unit>\n"
+                    + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
+                    + "<source xml:lang=\"en\">Content2</source>\n"
+                    + "<target xml:lang=\"ja-jp\" state=\"needs-review-translation\">Import Drop" + round + " - Content2 ja-jp</target>\n"
+                    + "<note>Comment2</note>\n"
+                    + "<note annotates=\"target\" from=\"automation\">OK\n"
+                    + "[INFO] tuv id: replaced-id</note>\n"
+                    + "</trans-unit>\n"
+                    + "</body>\n"
+                    + "</file>\n"
+                    + "</xliff>\n", xliffWithoutIds);
+        }
+    }
+
+    public void checkImportedFilesForReviewContent(Drop drop) throws DropExporterException, BoxSDKServiceException, IOException {
+        logger.debug("Check imported files contains text unit variant ids");
+
+        FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
+        FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
+
+        File[] importedFiles = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_IMPORTED_FILES_NAME).toFile().listFiles();
+
+        for (File importedFile : importedFiles) {
+
+            if (!importedFile.getName().endsWith("xliff")) {
+                continue;
+            }
+
+            String importedContent = Files.toString(importedFile, Charsets.UTF_8);
+
+            if (importedFile.getName().startsWith("fr-FR")) {
+
+                logger.debug(importedContent);
+
+                String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
+                logger.debug(xliffWithoutIds);
+
+                assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"fr-fr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<body>\n"
+                        + "<trans-unit id=\"replaced-id\" resname=\"zuora_error_message_verify_state_province\" xml:space=\"preserve\">\n"
+                        + "<source xml:lang=\"en\">Please enter a valid state, region or province</source>\n"
+                        + "<target xml:lang=\"fr-fr\" state=\"final\">Veuillez indiquer un état, une région ou une province valide.</target>\n"
+                        + "<note>Comment1</note>\n"
+                        + "<note annotates=\"target\" from=\"automation\">OK\n"
+                        + "[INFO] tuv id: replaced-id</note>\n"
+                        + "</trans-unit>\n"
+                        + "</body>\n"
+                        + "</file>\n"
+                        + "</xliff>\n"
+                        + "", xliffWithoutIds);
+            } else if (importedFile.getName().startsWith("ko-KR")) {
+
+                logger.debug(importedContent);
+
+                String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
+                logger.debug(xliffWithoutIds);
+
+                assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-kr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<body>\n"
+                        + "</body>\n"
+                        + "</file>\n"
+                        + "</xliff>\n"
+                        + "", xliffWithoutIds);
+
+            } else {
+
+                logger.debug(importedContent);
+
+                String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
+                logger.debug(xliffWithoutIds);
+
+                assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ja-jp\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<body>\n"
+                        + "</body>\n"
+                        + "</file>\n"
+                        + "</xliff>\n"
+                        + "", xliffWithoutIds);
+            }
+        }
+    }
+
+    @Transactional
+    public void checkTranslationKitStatistics(Drop drop) throws BoxSDKServiceException, DropExporterException {
+
+        logger.debug("Check statistics");
+        Drop d = dropRepository.findOne(drop.getId());
+
+        for (TranslationKit tk : d.getTranslationKits()) {
+
+            assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), tk.getNumTranslationKitUnits(), tk.getNumTranslatedTranslationKitUnits());
+
+            if (tk.getLocale().getBcp47Tag().equals("ko-KR")) {
+                assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 1, tk.getNotFoundTextUnitIds().size());
+                assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 1, tk.getNumSourceEqualsTarget());
+            } else {
+                assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 0, tk.getNotFoundTextUnitIds().size());
+                assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 0, tk.getNumSourceEqualsTarget());
+            }
+        }
+    }
+
+    @Test
+    public void testGetDropFolderName() {
+        assertEquals("Week 30 (Tuesday) - 26 August 2014 - 19:11:40", dropService.getDropName(new Date(1409105500533L)));
+
+        Calendar cal = Calendar.getInstance();
+        cal.set(2013, 0, 1, 0, 0, 0);
+
+        assertEquals("Week 48 (Tuesday) - 01 January 2013 - 00:00:00", dropService.getDropName(cal.getTime()));
+
+        cal.set(Calendar.WEEK_OF_YEAR, 6);
+        assertEquals("Week 1 (Tuesday) - 05 February 2013 - 00:00:00", dropService.getDropName(cal.getTime()));
+    }
+
+    @Test
+    public void testCancelDrop() throws DropExporterException, InterruptedException, ExecutionException, CancelDropException {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 1);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box");
+        Drop drop = startExportProcess.get();
+
+        PollableFuture<Drop> dropPollableFuture = dropService.cancelDrop(drop.getId(), PollableTask.INJECT_CURRENT_TASK);
+        PollableTask cancelDropPollableTask = dropPollableFuture.getPollableTask();
+
+        logger.debug("Wait for cancellation to finish");
+        pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 600000L);
+
+        Drop canceledDrop = dropPollableFuture.get();
+        Assert.assertTrue("Drop should be canceled", canceledDrop.getCanceled());
+    }
+
+    @Test(expected = PollableTaskExecutionException.class)
+    public void testCancelDropException() throws DropExporterException, ExecutionException, InterruptedException, CancelDropException {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 1);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        Drop drop = startExportProcess.get();
+        PollableFuture<Drop> dropPollableFuture = dropService.cancelDrop(drop.getId(), PollableTask.INJECT_CURRENT_TASK);
+        PollableTask cancelDropPollableTask = dropPollableFuture.getPollableTask();
+
+        logger.debug("Wait for cancellation to finish");
+        pollableTaskService.waitForPollableTask(cancelDropPollableTask.getId(), 600000L);
+    }
+}

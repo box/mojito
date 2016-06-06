@@ -1,0 +1,606 @@
+$brand-font-weight: 400;
+
+/** Overriding bootstrap default vars */
+$brand-primary: #559745;
+$brand-success: lighten($brand-primary, 0.5%);
+$brand-info: #004b85;
+$brand-warning: #f1aa1e;
+$brand-danger: #a62c38;
+$link-color: $brand-primary;
+$input-border-focus: $brand-primary;
+$headings-font-weight: $brand-font-weight;
+$form-group-margin-bottom: 3px;
+$btn-font-weight: $brand-font-weight;
+$border-radius-base: 3px;
+$border-radius-large: 4px;
+$border-radius-small: 2px;
+$modal-backdrop-bg: #fff;
+$modal-backdrop-opacity: 0.9;
+
+@import "../../../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+
+body {
+  font-weight: $brand-font-weight;
+}
+
+h4 {
+  color: #777;
+  font-weight: 300;
+}
+
+button, .btn {
+  @include form-control-focus;
+}
+
+.navbar-default {
+  border-color: #559745;
+  border-top: 0;
+  background-color: white;
+  border-left: 0;
+  border-right: 0;
+}
+
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+  color: $brand-primary;
+  background-color: transparent;
+}
+
+/**
+ * LABEL
+ */
+.label {
+  background-color: #fff;
+  border: 1px solid $gray-base;
+  color: $gray-base;
+  font-weight: 200;
+  border-radius: 2px;
+}
+
+.label-primary {
+  border: 1px solid $brand-primary;
+  color: $brand-primary;
+}
+
+.label-success {
+  border: 1px solid $brand-success;
+  color: $brand-success;
+}
+
+.label-info {
+  border: 1px solid $brand-info;
+  color: $brand-info;
+}
+
+.label-warning {
+  border: 1px solid $brand-warning;
+  color: $brand-warning;
+}
+
+.label-danger {
+  border: 1px solid $brand-danger;
+  color: $brand-danger;
+}
+
+.label.clickable:hover {
+  background-color: darken($gray-base, 15%);
+  color: white;
+}
+
+.label.label-success.clickable:hover {
+  background-color: darken($brand-success, 15%);
+}
+
+.label.label-info.clickable:hover {
+  background-color: darken($brand-info, 15%);
+}
+
+.label.label-warning.clickable:hover {
+  background-color: darken($brand-warning, 15%);
+}
+
+.label.label-danger.clickable:hover {
+  background-color: darken($brand-danger, 15%);
+}
+
+a.label-container:hover {
+  text-decoration: none !important;
+}
+
+/** TABLE */
+.table > thead > tr > th, .table > thead > tr > td {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.table > tbody > tr > th, .table > tbody > tr > td {
+  color: $gray;
+  border-top: 1px solid $gray-lighter;
+}
+
+.table > tbody > tr:first-child > th, .table > tbody > tr:first-child > td {
+  border-top: 0px;
+}
+
+.table > thead > tr > th {
+  border-bottom: 1px solid $gray-lighter;
+}
+
+.dropdown-menu {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/** MODAL */
+.modal-content {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/** emphasis */
+.em {
+  font-style: italic;
+}
+
+/** margin left extra small */
+.mlxs {
+  margin-left: 5px;
+}
+
+/** margin right extra small */
+.mrxs {
+  margin-right: 5px;
+}
+
+/** margin bottom extra small */
+.mbxs {
+  margin-bottom: 5px;
+}
+
+/** margin top extra small */
+.mtxs {
+  margin-top: 5px;
+}
+
+/** margin left small */
+.mls {
+  margin-left: 10px;
+}
+
+/** margin right small */
+.mrs {
+  margin-right: 10px;
+}
+
+/** margin bottom small */
+.mbs {
+  margin-bottom: 10px;
+}
+
+/** margin top small */
+.mts {
+  margin-top: 10px;
+}
+
+/** margin left medium */
+.mlm {
+  margin-left: 15px;
+}
+
+/** margin right medium */
+.mrm {
+  margin-right: 15px;
+}
+
+/** margin bottom meidum */
+.mbm {
+  margin-bottom: 15px;
+}
+
+/** margin bottom medium */
+.mtm {
+  margin-top: 15px;
+}
+
+/** margin left large */
+.mll {
+  margin-left: 20px;
+}
+
+/** margin right large */
+.mrl {
+  margin-right: 20px;
+}
+
+/** margin bottom large */
+.mbl {
+  margin-bottom: 20px;
+}
+
+/** margin top large */
+.mtl {
+  margin-top: 20px;
+}
+
+/** padding bottom medium */
+.pbm {
+  padding-bottom: 15px;
+}
+
+/** padding top medium */
+.ptm {
+  padding-top: 15px;
+}
+
+/** padding right medium */
+.prm {
+  padding-right: 15px;
+}
+
+.ptl {
+  padding-top: 20px;
+}
+
+.pbl {
+  padding-bottom: 20px;
+}
+
+.pll {
+  padding-left: 20px;
+}
+
+.prl {
+  padding-right: 20px;
+}
+
+/** padding left medium */
+.plm {
+  padding-left: 15px;
+}
+
+/** padding bottom small */
+.pbs {
+  padding-bottom: 5px;
+}
+
+/** padding top small */
+.pts {
+  padding-top: 5px;
+}
+
+/** padding right small */
+.prs {
+  padding-right: 5px;
+}
+
+/** padding left small */
+.pls {
+  padding-left: 5px;
+}
+
+/** padding left x-large */
+.plx {
+  padding-left: 30px;
+}
+
+.align-rtl {
+  direction: rtl;
+}
+
+.align-start {
+  text-align: left;
+  text-align: start; /* Experimental, IE10+ */
+}
+
+.align-end {
+  text-align: right;
+  text-align: end; /* Experimental, IE10+ */
+}
+
+.align-center {
+  text-align: center;
+}
+
+.color-info {
+  color: $brand-info;
+}
+
+.color-gray-light {
+  color: #777;
+}
+
+.color-gray-light2 {
+  color: #D1D0CE;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.split-left {
+  width: 70%;
+}
+
+.split-right {
+  width: 30%;
+}
+
+/**
+ * WORKBENCH
+ */
+
+/* override  bootstrap css so that status dropdown options do not wrap in the workbench */
+div.statusDropdown {
+  min-width: 200px;
+}
+
+.textunit {
+  position: initial;
+  border-bottom: 1px solid #CCCCCC;
+  border-left: 2px solid #FFFFFF;
+  outline: none;
+}
+
+.textunit:hover {
+  background: rgba($brand-primary, 0.03);;
+}
+
+div.textunit.textunit-selected {
+  background-color: rgba($brand-primary, 0.1);;
+}
+
+div.textunit.textunit-active {
+  border-left: 2px solid $brand-primary;
+}
+
+div.textunit label {
+  font-weight: normal;
+  margin-left: 10px;
+}
+
+.textunit-string {
+  width: 90%;
+}
+
+.textunit-string.textunit-target {
+  cursor: pointer;
+}
+
+.textunit-actionbar {
+  position: absolute;
+  right: 0;
+}
+
+div.textunit div.targetstring-container {
+  float: left;
+  width: 90%;
+}
+
+div.targetstring-container textarea {
+  max-width: 100%;
+  outline: invert;
+}
+
+/**
+ * LOGIN
+ */
+.login-container {
+  padding-top: 200px;
+  font-weight: $brand-font-weight;
+}
+
+.login-logo-container {
+  width: 391px;
+}
+
+.login-form-container {
+  width: 391px;
+}
+
+.login-container .form-control {
+  height: 50px;
+}
+
+/**
+ * REPOSITORY
+ */
+.repo-name {
+  word-break: break-all;
+  word-wrap: break-word;
+  width: 300px;
+}
+
+.repo-description {
+  width: 300px;
+}
+
+.repo-active {
+  border: 1px solid $brand-primary;
+}
+
+.repo-active td .progress {
+  margin: 20px 0 !important;
+  transition: margin 0.2s;
+}
+
+.repo-blurred td {
+  opacity: 0.8;
+}
+
+.repo-blurred td .progress-bar {
+  opacity: 0.3;
+}
+
+.repo-table {
+  margin-left: 8px;
+  transition: width 0.2s;
+}
+
+.repo-table > thead > tr > th, .repo-table > tbody > tr > th, .repo-table > tfoot > tr > th, .repo-table > thead > tr > td, .repo-table > tbody > tr > td, .repo-table > tfoot > tr > td {
+  vertical-align: middle;
+}
+
+.repo-table td .progress {
+  margin: 10px 0;
+  transition: margin 0.2s;
+}
+
+.repo-table td.progress-cell:hover {
+  opacity: 0.9;
+}
+
+.repo-table .status-label-container {
+  display: inline-block;
+}
+
+.repo-table a {
+  color: #444;
+}
+
+.repo-table .zero-progress-bar span {
+  margin-left: 10px;
+  color: #999;
+}
+
+/**
+ * REPOSITORY STATS
+ */
+.repo-stats-panel {
+  height: 100%;
+  position: fixed;
+  right: 0;
+  top: 51px;
+  border: 1px solid #DADEDD;
+  background: white;
+  animation-duration: 0.2s;
+  animation-delay: 0s;
+  display: flex;
+  flex-direction: column;
+}
+
+.repo-stats-table-container {
+  flex: 1 1;
+  overflow: scroll;
+}
+
+.repo-stats-table {
+  width: 100%;
+  border-bottom: 1px solid #DADEDD;
+}
+
+.repo-stats-table > tbody > tr > td {
+  vertical-align: middle;
+}
+
+.repo-stats-table .progress {
+  margin: 10px 0;
+}
+
+.repo-stats-panel .title {
+  height: 37px;
+}
+
+.repo-stats-panel .title h4 {
+  display: inline;
+  line-height: 1.9em;
+  margin-left: 7px;
+}
+
+.repo-stats-panel .close {
+  float: right;
+  margin-top: 3px;
+  margin-right: 10px;
+}
+
+@media (max-width: 780px) {
+  .repo-stats-panel {
+    display: none;
+  }
+
+  .repo-table {
+    width: 100%;
+  }
+}
+
+/**
+ * Bootstrap CSS makes text in all labels bold. Apply this class to get the default label rendered by the browser.
+ */
+.default-label {
+  font-weight: normal;
+}
+
+label.current-pageNumber {
+  width: 17px;
+  text-align: center;
+}
+
+.textunits-container {
+  position: absolute;
+  top: 170px;
+  bottom: 0px;
+  width: 98%;
+  overflow-y: auto;
+}
+
+.textunit-toolbar-clear {
+  clear: both;
+}
+
+@media (max-width: 780px) {
+  .textunits-container {
+    top: 320px;
+  }
+}
+
+.drop-table > thead > tr > th, .drop-table > tbody > tr > th, .drop-table > tfoot > tr > th, .drop-table > thead > tr > td, .drop-table > tbody > tr > td, .drop-table > tfoot > tr > td {
+  line-height: 2.7;
+}
+
+.drop-table > tbody > tr > td {
+  position: relative;
+}
+
+.drop-table .btn-toolbar {
+  position: absolute;
+  right: 10px;
+  display: inline-block;
+  visibility: hidden;
+}
+
+.drop-table > tbody > tr:hover .btn-toolbar {
+  visibility: visible;
+}
+
+.drop-title-bar {
+  position: relative;
+}
+
+.drop-title-bar .title {
+  float: left;
+}
+
+.drop-title-bar .new-request-button {
+  position: absolute;
+  right: 0;
+}
+
+.drop-alert {
+  width: 50%;
+  position: absolute;
+  top: -10px;
+  left: 25%;
+}
+
+.drop-alert .alert {
+  display: inline-block;
+}
+
+
+@media (max-width: 780px) {
+  .drop-alert {
+    top: -80px;
+    left: 5%;
+  }
+}
+
+.drop-pagination {
+  float: left;
+}
+

@@ -1,0 +1,2 @@
+l10n pull -r Notes -lm "da:da-DK,de:de-DE,es:es-ES,fi:fi-FI,fr:fr-FR,it:it-IT,ja:ja-JP,ko:ko-KR,nb:nb-NO,nl:nl-NL,pl:pl-PL,pt:pt-BR,ru:ru-RU,sv:sv-SE,tr:tr-TR,zh-cn:zh-CN,zh-tw:zh-TW"
+l10n pull -r MBox -lm "da:da-DK,de:de-DE,en-AU:en-AU,en-CA:en-CA,en-GB:en-GB,es:es-ES,fi:fi-FI,fr:fr-FR,fr-CA:fr-CA,it:it-IT,ja:ja-JP,ko:ko-KR,nb:nb-NO,nl:nl-NL,pl:pl-PL,pt:pt-BR,ru:ru-RU,sv:sv-SE,tr:tr-TR,zh-cn:zh-CN,zh-tw:zh-TW"

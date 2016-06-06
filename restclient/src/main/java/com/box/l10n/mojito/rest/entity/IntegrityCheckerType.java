@@ -1,0 +1,13 @@
+package com.box.l10n.mojito.rest.entity;
+
+/**
+ * Mirrors: com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType
+ *
+ * @author wyau
+ */
+public enum IntegrityCheckerType {
+
+    MESSAGE_FORMAT,
+    PRINTF_LIKE,
+    COMPOSITE_FORMAT;
+}

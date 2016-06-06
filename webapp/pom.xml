@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mojito-webapp</artifactId>
+    <version>0.32-SNAPSHOT</version>
+    <name>Mojito - Webapp</name>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>com.box.l10n.mojito</groupId>
+        <artifactId>mojito-parent</artifactId>
+        <version>0.32-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <start-class>com.box.l10n.mojito.Application</start-class>
+        <frontend.maven.plugin.version>0.0.26</frontend.maven.plugin.version>
+        <node.version>v0.12.6</node.version>
+        <npm.version>2.12.1</npm.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mustache</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-rest-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.hateoas</groupId>
+            <artifactId>spring-hateoas</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-ldap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-aspects</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.server</groupId>
+            <artifactId>apacheds-server-jndi</artifactId>
+            <version>1.5.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-envers</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.pnowy.nc</groupId>
+            <artifactId>nativeCriteria-core</artifactId>
+            <version>1.4</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache-core</artifactId>
+            <version>2.6.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.box</groupId>
+            <artifactId>box-java-sdk</artifactId>
+            <version>2.1.1</version>
+        </dependency>
+
+        <dependency>
+            <artifactId>icu4j</artifactId>
+            <groupId>com.ibm.icu</groupId>
+            <version>53.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.cybozu.labs</groupId>
+            <artifactId>langdetect</artifactId>
+            <version>1.1-20120112</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.box.l10n.mojito</groupId>
+            <artifactId>mojito-restclient</artifactId>
+            <version>0.32-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.box.l10n.mojito</groupId>
+            <artifactId>mojito-test-common</artifactId>
+            <version>0.32-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Joda Time -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time-hibernate</artifactId>
+            <version>${hibernate.joda-time.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-joda</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jadira.usertype</groupId>
+            <artifactId>usertype.core</artifactId>
+            <version>${usertype.core.version}</version>
+        </dependency>
+        <!-- Joda Time -->
+
+        <!-- Okapi -->
+        <dependency>
+            <groupId>net.sf.okapi</groupId>
+            <artifactId>okapi-core</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.okapi.filters</groupId>
+            <artifactId>okapi-filter-table</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.okapi.filters</groupId>
+            <artifactId>okapi-filter-xliff</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.okapi.filters</groupId>
+            <artifactId>okapi-filter-properties</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.okapi.filters</groupId>
+            <artifactId>okapi-filter-regex</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.okapi.filters</groupId>
+            <artifactId>okapi-filter-its</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.okapi.steps</groupId>
+            <artifactId>okapi-step-common</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.okapi.steps</groupId>
+            <artifactId>okapi-step-qualitycheck</artifactId>
+            <version>${okapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.sf.okapi.logbind</groupId>
+                    <artifactId>build-log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- TODO(P1) to be removed? -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+        </dependency>
+        <!-- TODO(P1) to be removed? -->
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
+                <artifactId>maven-processor-plugin</artifactId>
+                <version>2.0.5</version>
+                <executions>
+                    <execution>
+                        <id>process</id>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <processors>
+                                <processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
+                            </processors>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.hibernate</groupId>
+                        <artifactId>hibernate-jpamodelgen</artifactId>
+                        <version>${hibernate.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>aspectj-maven-plugin</artifactId>
+                <version>1.7</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjrt</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjtools</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <showWeaveInfo>false</showWeaveInfo>
+                    <deprecation>true</deprecation>
+                    <complianceLevel>${java.version}</complianceLevel>
+                    <weaveDependencies>
+
+                    </weaveDependencies>
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-aspects</artifactId>
+                        </aspectLibrary>
+                        <aspectLibrary>
+                            <groupId>org.springframework.security</groupId>
+                            <artifactId>spring-security-aspects</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>                               
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.2.201409121644</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <!--<destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>-->
+                            <!--
+                                Sets the name of the property containing the settings
+                                for JaCoCo runtime agent.
+                            -->
+                            <propertyName>surefireArgLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <!--<dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>-->
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Sets the VM argument line used when unit tests are run. -->
+                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
+                        -Dspring.profiles.active=${user.name},test -Xmx1024m -XX:MaxPermSize=256m
+                    </argLine>
+                 
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+               
+                    <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
+               
+                    <!-- Use this to run specific sequence of test to replicate issues-->                   
+                    <!--                    <includes>
+                        <include>**/DropServiceBoxTest.java</include>
+                        <include>**/DropServiceTest.java</include>
+                    </includes>-->
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <configuration>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                </configuration>
+            </plugin>
+            
+        </plugins>
+    </build>
+
+
+    <profiles>
+        <profile>
+            <id>frontend</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>${frontend.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>install node and npm</id>
+                                <goals>
+                                    <goal>install-node-and-npm</goal>
+                                </goals>
+                                <configuration>
+                                    <nodeVersion>${node.version}</nodeVersion>
+                                    <npmVersion>${npm.version}</npmVersion>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm install</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>--userconfig=${basedir}/.npmrc install</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm build-rb</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <arguments>run build-rb</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>npm build</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <phase>compile</phase>
+                                <configuration>
+                                    <arguments>run build</arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>grunt build</id>
+                                <goals>
+                                    <goal>grunt</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>--no-color --force</arguments>
+                                </configuration>
+                            </execution>
+
+                            <!--disable for now, because it requires Chrome and doesn't run on the CI-->
+                            <!--<execution>-->
+                            <!--<id>mocha tests</id>-->
+                            <!--<goals>-->
+                            <!--<goal>npm</goal>-->
+                            <!--</goals>-->
+                            <!--<phase>test</phase>-->
+                            <!--<configuration>-->
+                            <!--<arguments>run tests</arguments>-->
+                            <!--</configuration>-->
+                            <!--</execution>-->
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        
+        <!-- Work around for compilation issue with aspectj. See:
+        https://github.com/spring-projects/spring-boot/issues/4847 
+        http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
+        Need the profile to disable this logic while running springboot:run, see 
+        npm run start-dev
+        -->
+        <profile>
+            <id>springbootconfigprocessor</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-configuration-processor</artifactId>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${maven.compiler.version}</version>
+                        <configuration>
+                            <proc>none</proc>
+                        </configuration>                
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <repository>
+            <id>okapi</id>
+            <name>okapi</name>
+            <url>http://repository-okapi.forge.cloudbees.com/release/</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+
+</project>
