@@ -629,8 +629,6 @@ public class DropServiceTest extends ServiceTestBase {
 
     @Test
     public void testGetDropFolderName() {
-        assertEquals("Week 30 (Tuesday) - 26 August 2014 - 19:11:40", dropService.getDropName(new Date(1409105500533L)));
-
         Calendar cal = Calendar.getInstance();
         cal.set(2013, 0, 1, 0, 0, 0);
 

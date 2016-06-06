@@ -70,7 +70,7 @@
     "watch-js2": "nodemon --watch src/main/resources/public/js/ --exec 'browserify -t -e src/main/resources/public/js/app.js > target/classes/public/js/bundle.min.js'",
     "watch-rb": "mojito-rb-gen -w -s src/main/resources/properties/ -o target/classes/public/intl/ -t js -n",
     "build-rb": "mojito-rb-gen -s src/main/resources/properties/ -o target/classes/public/intl/ -t js -n",
-    "build": "browserify -t -e src/main/resources/public/js/app.js | uglifyjs -cm > target/classes/public/js/bundle.min.js",
+    "build": "set -eo pipefail && browserify -t -e src/main/resources/public/js/app.js | uglifyjs -cm > target/classes/public/js/bundle.min.js",
     "tests": "./node_modules/karma/bin/karma start --singleRun=true",
     "mojito-tm-import": "java -jar ../cli/target/mojito-cli-*.jar tm-import -r Mojito -s src/main/resources/xliff/",
     "mojito-tm-import-clean": "rm src/main/resources/xliff/Mojito-1.xliff; npm run mojito-push; npm run mojito-tm-import; npm run mojito-tm-export",

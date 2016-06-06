@@ -10,6 +10,7 @@ import com.box.l10n.mojito.test.TestIdWatcher;
 import java.io.File;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -79,9 +80,12 @@ public class FileSystemDropExporterTest extends ServiceTestBase {
 
     @Test
     public void testGetSourceFileName() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(2013, 0, 1, 0, 0, 0);
+        
         BoxDropExporter boxDropExporter = new BoxDropExporter();
-        String res = boxDropExporter.getSourceFileName(new Date(1409105500533L), "fre");
-        assertEquals("fre_08-26-14.xliff", res);
+        String res = boxDropExporter.getSourceFileName(cal.getTime(), "fre");
+        assertEquals("fre_01-01-13.xliff", res);
     }
 
 }
