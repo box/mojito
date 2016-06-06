@@ -69,11 +69,7 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
         </dependency>  
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>   
+         
     </dependencies>
 
     <build>
@@ -158,5 +154,40 @@
         </plugins>
         
     </build>
+    
+    
+    <profiles>
+         <!-- Work around for compilation issue with aspectj. See:
+        https://github.com/spring-projects/spring-boot/issues/4847 
+        http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
+        Need the profile to disable this logic while running springboot:run, see 
+        npm run start-dev
+        -->
+        <profile>
+            <id>springbootconfigprocessor</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-configuration-processor</artifactId>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${maven.compiler.version}</version>
+                        <configuration>
+                            <proc>none</proc>
+                        </configuration>                
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
