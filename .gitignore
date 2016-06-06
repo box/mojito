@@ -16,3 +16,5 @@ npm-debug.log
 /cli/nbproject/
 /webapp/nbproject/
 /webapp/Demo/
+*.releaseBackup
+release.properties

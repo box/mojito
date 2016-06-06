@@ -74,7 +74,7 @@
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
                     <releaseProfiles>release</releaseProfiles>
-                    <scmCommentPrefix xml:space="preserve">L10N RELEASE: </scmCommentPrefix>
+                    <scmCommentPrefix xml:space="preserve">MOJITO RELEASE: </scmCommentPrefix>
                 </configuration>
             </plugin>
         </plugins>

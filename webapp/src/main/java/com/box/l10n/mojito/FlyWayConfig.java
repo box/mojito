@@ -50,4 +50,13 @@ public class FlyWayConfig {
 
         return strategy;
     }
+
+    public boolean isClean() {
+        return clean;
+    }
+
+    public void setClean(boolean clean) {
+        this.clean = clean;
+    }
+
 }
