@@ -2,11 +2,9 @@ package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
 import com.box.l10n.mojito.service.asset.AssetRepository;
-import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;

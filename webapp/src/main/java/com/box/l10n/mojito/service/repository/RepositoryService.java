@@ -8,7 +8,6 @@ import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
-import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import java.util.HashMap;
@@ -19,7 +18,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

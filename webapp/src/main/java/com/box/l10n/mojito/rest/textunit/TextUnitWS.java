@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.rest.textunit;
 
-import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;

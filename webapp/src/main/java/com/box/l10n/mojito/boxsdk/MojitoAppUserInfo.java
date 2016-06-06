@@ -1,7 +1,5 @@
 package com.box.l10n.mojito.boxsdk;
 
-import javax.persistence.Column;
-
 /**
  * @author wyau
  */
