@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public interface CredentialProvider {
 
-    public String getUsername();
+    String getUsername();
 
-    public String getPassword();
+    String getPassword();
 }

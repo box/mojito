@@ -37,7 +37,7 @@ public interface DropExporter {
     /**
      * @return the {@link DropExporterType} implemented by this instance.
      */
-    public DropExporterType getDropExporterType();
+    DropExporterType getDropExporterType();
 
     /**
      * Gets a string that contains the instance configuration.
@@ -54,7 +54,7 @@ public interface DropExporter {
      *
      * @return the exporter configuration as a String
      */
-    public String getConfig();
+    String getConfig();
 
     /**
      * Sets the filter configuration to initialize the instance.
@@ -65,7 +65,7 @@ public interface DropExporter {
      * the filter has already been initialized and the config cannot be changed.
      * @throws DropExporterException if an error occurred when exporting the file
      */
-    public void setConfig(String config) throws DropExporterException, AlreadyInitializedExporterException;
+    void setConfig(String config) throws DropExporterException, AlreadyInitializedExporterException;
 
     /**
      * Initialize the DropExporter (for example, an implementation could prepare
@@ -84,7 +84,7 @@ public interface DropExporter {
      * @param dropName name of the drop
      * @throws DropExporterException if an error occurred when exporting the file
      */
-    public void init(String dropGroupName, String dropName) throws DropExporterException;
+    void init(String dropGroupName, String dropName) throws DropExporterException;
 
     /**
      * Exports a source file via the {@link DropExporter}. The file content is assumed
@@ -94,7 +94,7 @@ public interface DropExporter {
      * @param fileContent file content in XLIFF unicode-normalized in NFC
      * @throws DropExporterException if an error occurred when exporting the file
      */
-    public void exportSourceFile(String bcp47tag, String fileContent) throws DropExporterException;
+    void exportSourceFile(String bcp47tag, String fileContent) throws DropExporterException;
 
     /**
      * Exports an "imported" file (a localized file that was imported and that
@@ -106,7 +106,7 @@ public interface DropExporter {
      * @param comment a comment related to the imported file
      * @throws DropExporterException
      */
-    public void exportImportedFile(String filename, String fileContent, String comment) throws DropExporterException;
+    void exportImportedFile(String filename, String fileContent, String comment) throws DropExporterException;
     
     /**
      * Adds a comment to a file 
@@ -115,7 +115,7 @@ public interface DropExporter {
      * @param comment the comment to be added
      * @throws DropExporterException 
      */
-    public void addCommentToFile(String fileId, String comment) throws DropExporterException;
+    void addCommentToFile(String fileId, String comment) throws DropExporterException;
 
     /**
      * Returns an {@link DropImporter} to read localized files corresponding to
@@ -123,12 +123,12 @@ public interface DropExporter {
      *
      * @return
      */
-    public DropImporter getDropImporter();
+    DropImporter getDropImporter();
 
     /**
      * Deletes all resources that were created while exporting the {@link Drop}
      *
      * @throws DropExporterException if an error occurred when exporting the file
      */
-    public void deleteDrop() throws DropExporterException;
+    void deleteDrop() throws DropExporterException;
 }

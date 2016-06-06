@@ -22,7 +22,7 @@ public interface DropImporter {
      * @param dropFile drop file for which the content should be downloaded
      * @throws DropImporterException
      */
-    public void downloadFileContent(DropFile dropFile) throws DropImporterException;
+    void downloadFileContent(DropFile dropFile) throws DropImporterException;
 
     /**
      * Gets the list of files that can be imported.
@@ -30,6 +30,6 @@ public interface DropImporter {
      * @return
      * @throws DropImporterException
      */
-    public List<DropFile> getFiles() throws DropImporterException;
+    List<DropFile> getFiles() throws DropImporterException;
 
 }

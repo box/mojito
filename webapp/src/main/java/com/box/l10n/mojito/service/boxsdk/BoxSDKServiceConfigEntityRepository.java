@@ -11,7 +11,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface BoxSDKServiceConfigEntityRepository extends JpaRepository<BoxSDKServiceConfigEntity, Long>, JpaSpecificationExecutor<BoxSDKServiceConfigEntity> {
 
-    public BoxSDKServiceConfigEntity findFirstByOrderByIdAsc();
+    BoxSDKServiceConfigEntity findFirstByOrderByIdAsc();
 
-    public BoxSDKServiceConfigEntity deleteFirstByOrderByIdAsc();
+    BoxSDKServiceConfigEntity deleteFirstByOrderByIdAsc();
 }

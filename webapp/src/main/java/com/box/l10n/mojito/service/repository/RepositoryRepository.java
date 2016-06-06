@@ -12,6 +12,6 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
  */
 @RepositoryRestResource(exported = false)
 public interface RepositoryRepository extends JpaRepository<Repository, Long>, JpaSpecificationExecutor<Repository> {
-    public Repository findByName(@Param("name") String name);
-    public List<Repository> findByDeletedFalseOrderByNameAsc();
+    Repository findByName(@Param("name") String name);
+    List<Repository> findByDeletedFalseOrderByNameAsc();
 }

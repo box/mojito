@@ -36,5 +36,5 @@ public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Lo
             + "where map.asset_text_unit_id is NULL and atu.asset_extraction_id = ?1")
     List<AssetTextUnit> getUnmappedAssetTextUnits(Long assetExtractionId);
 
-    public void deleteByAssetExtractionId(Long assetExtractionId);
+    void deleteByAssetExtractionId(Long assetExtractionId);
 }

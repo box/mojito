@@ -14,6 +14,6 @@ public interface WaitForPollableTaskListener {
      *
      * @param pollableTask the {@link PollableTask} that was just retrieved
      */
-    public void afterPoll(PollableTask pollableTask);
+    void afterPoll(PollableTask pollableTask);
 
 }

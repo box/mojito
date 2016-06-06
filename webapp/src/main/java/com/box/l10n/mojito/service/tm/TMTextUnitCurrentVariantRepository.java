@@ -11,10 +11,10 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface TMTextUnitCurrentVariantRepository extends JpaRepository<TMTextUnitCurrentVariant, Long> {
 
-    public TMTextUnitCurrentVariant findByLocale_IdAndTmTextUnit_Id(Long localeId, Long tmTextUnitId);
+    TMTextUnitCurrentVariant findByLocale_IdAndTmTextUnit_Id(Long localeId, Long tmTextUnitId);
 
-    public List<TMTextUnitCurrentVariant> findByTmTextUnit_Id(Long tmTextUnitId);
+    List<TMTextUnitCurrentVariant> findByTmTextUnit_Id(Long tmTextUnitId);
 
-    public List<TMTextUnitCurrentVariant> findByTmTextUnit_Tm_IdAndLocale_Id(Long tmId, Long localeId);
+    List<TMTextUnitCurrentVariant> findByTmTextUnit_Tm_IdAndLocale_Id(Long tmId, Long localeId);
 
 }

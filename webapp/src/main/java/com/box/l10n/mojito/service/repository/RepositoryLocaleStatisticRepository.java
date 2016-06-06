@@ -12,6 +12,6 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface RepositoryLocaleStatisticRepository extends JpaRepository<RepositoryLocaleStatistic, Long>, JpaSpecificationExecutor<Repository> {
 
-    public RepositoryLocaleStatistic findByRepositoryStatisticIdAndLocaleId(Long repositoryStatisticId, Long localeId);
+    RepositoryLocaleStatistic findByRepositoryStatisticIdAndLocaleId(Long repositoryStatisticId, Long localeId);
 
 }

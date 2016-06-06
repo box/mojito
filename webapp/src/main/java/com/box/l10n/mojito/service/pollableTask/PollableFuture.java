@@ -25,7 +25,7 @@ public interface PollableFuture<T> {
      * @throws InterruptedException
      * @throws ExecutionException
      */
-    public T get() throws InterruptedException, ExecutionException;
+    T get() throws InterruptedException, ExecutionException;
 
     /**
      * See {@link Future#get() }
@@ -37,7 +37,7 @@ public interface PollableFuture<T> {
      * @throws ExecutionException
      * @throws TimeoutException
      */
-    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+    T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
 
     /**
      * Gets the {@link PollableTask} that contains information about the
@@ -45,5 +45,5 @@ public interface PollableFuture<T> {
      *
      * @return
      */
-    public PollableTask getPollableTask();
+    PollableTask getPollableTask();
 }

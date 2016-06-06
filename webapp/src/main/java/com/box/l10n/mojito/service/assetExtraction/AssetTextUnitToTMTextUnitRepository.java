@@ -10,6 +10,6 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface AssetTextUnitToTMTextUnitRepository extends JpaRepository<AssetTextUnitToTMTextUnit, Long> {
 
-    public void deleteByAssetExtractionId(Long assetExtractionId);
+    void deleteByAssetExtractionId(Long assetExtractionId);
 
 }

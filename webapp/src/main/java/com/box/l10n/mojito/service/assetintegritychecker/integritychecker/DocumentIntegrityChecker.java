@@ -9,7 +9,7 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
  */
 public interface DocumentIntegrityChecker {
 
-    public boolean supportsExtension(String documentExtension);
+    boolean supportsExtension(String documentExtension);
 
-    public void check(String content) throws IntegrityCheckException;
+    void check(String content) throws IntegrityCheckException;
 }

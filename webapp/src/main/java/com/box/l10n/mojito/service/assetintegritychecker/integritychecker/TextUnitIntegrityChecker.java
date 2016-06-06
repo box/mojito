@@ -5,5 +5,5 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
  */
 public interface TextUnitIntegrityChecker {
 
-    public void check(String sourceContent, String targetContent) throws IntegrityCheckException;
+    void check(String sourceContent, String targetContent) throws IntegrityCheckException;
 }

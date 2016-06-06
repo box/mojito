@@ -12,8 +12,8 @@ import java.util.List;
 @RepositoryRestResource(exported = false)
 public interface TMTextUnitVariantCommentRepository extends JpaRepository<TMTextUnitVariantComment, Long> {
 
-    public List<TMTextUnitVariantComment> findAllByTmTextUnitVariant_id(Long tmTextUnitVariantId);
+    List<TMTextUnitVariantComment> findAllByTmTextUnitVariant_id(Long tmTextUnitVariantId);
 
-    public List<TMTextUnitVariantComment> findByTmTextUnitVariantIdIn(List<Long> tmTextUnitVariantIds);
+    List<TMTextUnitVariantComment> findByTmTextUnitVariantIdIn(List<Long> tmTextUnitVariantIds);
 
 }
