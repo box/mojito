@@ -12,10 +12,10 @@ Mojito is an automation platform that enables continuous localization.  It fits 
 - Uses previous translations to support refactoring (basic leveraging - no fuzzy)
 - Generates XLIFFs - files that translators know how to use
 
-## [Getting Started](https://gitenterprise.inside-box.net/pages/Box/l10n/getting-started/) TODO UPDATE LINK
+## [Getting Started](http://opensource.box.com/mojito/docs/guides/getting-started/)
 For instruction to jump start
 
-## [Full Documentation](https://gitenterprise.inside-box.net/pages/Box/l10n/documentation/) TODO UPDATE LINK
+## [Full Documentation](http://opensource.box.com/mojito/docs/) TODO UPDATE LINK
 For full documentation, examples, and other information.
 
 ## Support
