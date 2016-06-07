@@ -94,12 +94,13 @@
 .site-banner {
   width: 100%;
   background: lighten($brand-color, 10%);
-  height: 300px;
+  height: 340px;
   color: white;
 
   .title {
-    font-size: 50px;
-    padding-top: 50px;
+    font-size: 70px;
+    padding-top: 40px;
+    font-weight: 500;
   }
 
   .tag-line {
@@ -111,14 +112,15 @@
   .btn {
     margin: 20px 5px;
     border-radius: 5px;
-    border: 0;
-    background: $button-color;
+    border: 1px solid;
+    background: #F78F4E;
     box-shadow: none;
     color: white;
-    font-size: 16px;
-    padding: 10px 20px 10px 20px;
+    font-size: 20px;
+    padding: 15px 30px;
     text-decoration: none;
     cursor: pointer;
+    font-weight: 500;
   }
 
   .btn:hover {
