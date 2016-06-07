@@ -15,7 +15,7 @@ Mojito is an automation platform that enables continuous localization.  It fits 
 ## [Getting Started](http://opensource.box.com/mojito/docs/guides/getting-started/)
 For instruction to jump start
 
-## [Full Documentation](http://opensource.box.com/mojito/docs/) TODO UPDATE LINK
+## [Full Documentation](http://opensource.box.com/mojito/docs/)
 For full documentation, examples, and other information.
 
 ## Support
