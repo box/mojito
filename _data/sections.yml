@@ -1,0 +1,36 @@
+- class: "section-1"
+  title: "Continuous Localization"
+  description: "News strings in the code <br> flows into Mojito, gets translated,<br> then flows back into the code.<br> All automated."
+  screenshotContent: "<img src=\"images/screenshot-cl.png\" class=\"screenshot-cl\">"
+
+- class: "section-2"
+  flipped: true
+  title: "Continous Integration"
+  description: "A natural fit into various CI pipeline<br>"
+  screenshotContent: '<div class="ci-logo-group"><span><img src="images/ci-buildbot.png" class="ci-logo"></span>
+      <span><img src="images/ci-jenkins.png"  class="ci-logo"></span>
+      <span><img src="images/ci-strider.png"  class="ci-logo"></span>
+      <span><img src="images/ci-travis.png"  class="ci-logo"></span></div>'
+      
+- class: "section-3"
+  type: "vertical"
+  title: "Simple User Interface"
+  description: "Do simple things with the Interface...blablabla"
+  screenshotContent: "<img src=\"images/screenshot-workbench.png\" class=\"screenshot-workbench\">"
+  
+- class: "section-4"
+  title: "Powerful Command Line"
+  description: "Do powerful things with the CLI<br>..blablabla"
+  screenshotContent: "<img src=\"images/screenshot-cli.png\" class=\"screenshot-cli\">"
+  
+- class: "section-5"
+  title: "And more..."
+  description: "
+Extract (push) strings to be translated<br><br>
+Pull translated strings<br><br>
+Includes quality checks of the translated content (placeholder validation, etc)<br><br>
+Uses previous translations to support refactoring (basic leveraging - no fuzzy)<br><br>
+Relies on Okapi, file format support http://www.opentag.com/okapi/wiki/index.php?title=Filters<br><br>
+Generates XLIFFs - files that translators know how to use
+"
+  screenshotContent: ""

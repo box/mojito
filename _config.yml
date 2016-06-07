@@ -1,0 +1,21 @@
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog, values
+# which you are expected to set up once and rarely need to edit after that.
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'jekyll serve'. If you change this file, please restart the server process.
+
+# Site settings
+title: Mojito
+email: oss@box.com
+description: > # this means to ignore newlines until "baseurl:"
+  An Autmation Platform that Enables Continuous Localization
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "http://opensource.box.com/mojito" # the base hostname & protocol for your site
+github_username:  mojito
+# Build settings
+markdown: kramdown
+exclude: ["node_modules/", "webapp/"]
+collections:
+  docs:
+    output: true

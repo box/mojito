@@ -1,0 +1,59 @@
+.section {
+ height: 300px; 
+  padding: 10px 0;
+  
+  .description {
+    
+  }
+  
+  .screenshot {
+    background-size: contain;
+    display: inline-block;
+  }  
+}
+
+.screenshot-cl {
+  background: url('/images/screenshot-cl.png');
+  width: 400px;
+  height: 150px;
+}
+
+.screenshot-cl {
+  background: url('/images/screenshot-workbench.png');
+  width: 400px;
+}
+
+.screenshot-cli {
+  background: url('/images/screenshot-cli.png');
+  width: 400px;
+}
+
+.ci-logo-group {
+  width: 400px;
+  height: 100px;
+}
+
+.ci-logo {
+  width: 150px;  
+}
+
+.section-1 {
+  background-color: rgba($grey-color, 0.0);
+  height: 250px;
+}
+
+.section-2 {
+  background-color: rgba($grey-color, 0.1);
+}
+
+.section-3 {
+  background-color: rgba($grey-color, 0.0);
+  height: 550px;
+}
+
+.section-4 {
+  background-color: rgba($grey-color, 0.2);
+  height: 550px;
+}
+  
+

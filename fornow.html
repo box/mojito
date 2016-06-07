@@ -1,0 +1,15 @@
+---
+layout: default
+banner: true
+---
+{% for section in site.data.sections %}
+  {% if section.type == 'vertical' %}
+    {% include section-vertical.html sectionClass=section.class sectionTitle=section.title sectionDescription= section.description screenshotContent=section.screenshotContent flipped=section.flipped %}
+
+  {% else %}
+    {% include section.html sectionClass=section.class sectionTitle=section.title sectionDescription= section.description screenshotContent=section.screenshotContent flipped=section.flipped %}
+  {% endif %}
+  
+{% endfor %}
+
+
