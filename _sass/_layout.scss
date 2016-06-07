@@ -93,7 +93,7 @@
 
 .site-banner {
   width: 100%;
-  background: lighten($brand-color, 20%);
+  background: lighten($brand-color, 10%);
   height: 300px;
   color: white;
 
@@ -106,19 +106,23 @@
     text-transform: uppercase;
   }
 
+  $button-color: #ff8336;
+
   .btn {
     margin: 20px 5px;
     border-radius: 5px;
-    border: 3px solid white;
-    background: transparent;
+    border: 0;
+    background: $button-color;
+    box-shadow: none;
     color: white;
     font-size: 16px;
     padding: 10px 20px 10px 20px;
     text-decoration: none;
+    cursor: pointer;
   }
 
   .btn:hover {
-    background: lighten($brand-color, 30%);
+    background: darken($button-color, 10%);
   }
 }
 
