@@ -100,7 +100,7 @@ a {
     font-weight: $base-font-weight;
 
     &:visited {
-        color: darken($brand-color, 15%);
+        color: lighten($brand-color, 15%);
     }
 
     &:hover {

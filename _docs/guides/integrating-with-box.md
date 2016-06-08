@@ -38,11 +38,19 @@ For more detailed info about the configuring Box Platform, click [here](https://
 
 To authenticate the API key, you must create public/private key pair.  You would have created them in [Step 2](#configure-the-application-for-box-platform) above.  **Box** will store the public key and you will give **Mojito** the private key.
 
->Note that Box documentation shows steps to create the key with `openssl genrsa -aes256 -out private_key.pem 2048`.
-If Oracle JDK is used to run Mojito, this will require `JCE` to be installed
+>Note that Box documentation shows steps to create the key with the following:
+>
+>`openssl genrsa -aes256 -out private_key.pem 2048`.
+>
+>If Oracle JDK is used to run Mojito, this will require **JCE** to be installed
 (for JDK7 see [here](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html))
-else an exception like this will be thrown `Caused by: java.security.InvalidKeyException: Illegal key size`.
-An alternative is to generate the key with `openssl genrsa -aes128 -out private_key.pem 2048`
+Otherwise, an exception like the folllowing will be thrown:
+>
+>`Caused by: java.security.InvalidKeyException: Illegal key size`.
+>
+>An alternative is to generate the key with the following:
+>
+>`openssl genrsa -aes128 -out private_key.pem 2048`
 
 
 ### Fill in the required Box Client Configurations in Mojito
