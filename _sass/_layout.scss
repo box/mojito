@@ -278,10 +278,12 @@
     }
 }
 
+$table-of-content-width: 250px;
+
 .table-of-content {
   position: absolute;
-  left: 80px;
-  width: 300px;
+  left: 100px;
+  width: $table-of-content-width;
 }
 
 .table-of-content.affix-top  {
@@ -318,6 +320,12 @@
 
 
 // TODO
+@include media-query($on-laptop-big+$table-of-content-width) {
+  .table-of-content {
+    left: 20px;
+  }
+}
+
 @include media-query($on-laptop-big) {
     .table-of-content {
       display: none;

@@ -34,7 +34,11 @@ h1, h2, h3, h4, h5, h6,
 p, blockquote, pre,
 ul, ol, dl, figure,
 %vertical-rhythm {
-    margin-bottom: $spacing-unit / 2;
+  margin-bottom: $spacing-unit / 2;
+}
+
+h1:not(:nth-child(1)), h2:not(:nth-child(1)), h3:not(:nth-child(1)), h4:not(:nth-child(1)), h5:not(:nth-child(1)), h6:not(:nth-child(1)) {
+  margin-top: $spacing-unit;
 }
 
 
