@@ -9,18 +9,17 @@ permalink: /docs/guides/integrating-with-box/
 Adding Box Platform Integration will allow project requests to be sent to the cloud.  This is a great way to exchange translation files with vendors.  When a translation request is made, XLIFFs will be sent to a Box folder where translation vendors can start their process.  When they've completed the translations, Mojito will see the updated translation and import new changes.
 
 
-
-###Sign up a free Box Developer Account
+### Sign up a free Box Developer Account
 
 Sign up [here](https://app.box.com/signup/o/default_developer_offer).
 
 In order to add Box integration, you must first have a Box Developer account. You'll use the Box Developer account to get an API key by creating a new **Application**. Mojito will use this API key to interact with Box on your behalf.  A Free account gives access to 1 Application, 25 App Users, 50 GB Storage.  This should be plenty for most usages.  For more info about different plans, [click here](https://developers.box.com/box-platform-pricing/)
 
 
-###Create a new Application
+### Create a new Application
 Click [here](https://app.box.com/developers/services/edit/) to create one.  An **Application** is the primary way your API to identify itself.
 
-###Configure the Application for Box Platform
+### Configure the Application for Box Platform
 
 Mojito will use the **App User** to interact with the **Box Content API**.  It will do things like create folders, upload translation requests, download translated content.  A Mojito **App User** is  created initially for the **enterprise** that you have granted access to your **Application** for.
 
@@ -35,7 +34,7 @@ This is done by the following steps:
 For more detailed info about the configuring Box Platform, click [here](https://docs.box.com/docs/configuring-box-platform)
 
 
-###Note about the Public/Private key
+### Note about the Public/Private key
 
 To authenticate the API key, you must create public/private keypair.  You would have created them in [Step 2](#configure-the-application-for-box-platform) above.  **Box** will store the public key and you will give **Mojito** the private key.
 
@@ -46,8 +45,8 @@ else an exception like this will be thrown `Caused by: java.security.InvalidKeyE
 An alternative is to generate the key with `openssl genrsa -aes128 -out private_key.pem 2048`
 
 
-###Fill in the required Box Client Configurations in Mojito
+### Fill in the required Box Client Configurations in Mojito
 
 Navigate to `/settings/box` and fill in the form.
 
-TODO screenshot here
+TODO screenshot here.
