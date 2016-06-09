@@ -13,7 +13,7 @@ public enum IntegrityCheckerType {
 
     String className;
 
-    private IntegrityCheckerType(String className) {
+    IntegrityCheckerType(String className) {
         this.className = className;
     }
 

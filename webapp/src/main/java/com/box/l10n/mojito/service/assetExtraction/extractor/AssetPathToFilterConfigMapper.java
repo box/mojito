@@ -47,7 +47,7 @@ public class AssetPathToFilterConfigMapper {
         private String configId;
         private Set<String> supportedExtensions = new HashSet<>();
 
-        private AssetFilterType(String configId, String... supportedExtensions) {
+        AssetFilterType(String configId, String... supportedExtensions) {
             this.configId = configId;
             this.supportedExtensions.addAll(Arrays.asList(supportedExtensions));
         }

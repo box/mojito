@@ -41,7 +41,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
      * NEW is text unit that don't translation yet in the TM.
      *
      */
-    public static enum Status {
+    public enum Status {
 
         /**
          * Indicates that translation is needed for that text unit and locale.

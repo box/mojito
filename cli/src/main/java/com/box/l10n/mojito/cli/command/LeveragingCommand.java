@@ -48,7 +48,7 @@ public class LeveragingCommand extends Command {
     @Override
     public void execute() throws CommandException {
 
-        consoleWriter.newLine().a("Coply TM from repository: ").fg(Color.CYAN).a(sourceRepositoryParam).
+        consoleWriter.newLine().a("Copy TM from repository: ").fg(Color.CYAN).a(sourceRepositoryParam).
                 reset().a(" into repository: ").fg(Color.CYAN).a(targetRepositoryParam).println(2);
 
         Repository sourceRepository = commandHelper.findRepositoryByName(sourceRepositoryParam);

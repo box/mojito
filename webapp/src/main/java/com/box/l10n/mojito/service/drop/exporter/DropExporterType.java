@@ -15,7 +15,7 @@ public enum DropExporterType {
 
     String className;
 
-    private DropExporterType(String className) {
+    DropExporterType(String className) {
         this.className = className;
     }
 

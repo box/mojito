@@ -17,7 +17,7 @@ public enum FileTypes {
     
     Class<? extends FileType> clazz;
 
-    private FileTypes(Class<? extends FileType> clazz) {
+    FileTypes(Class<? extends FileType> clazz) {
         this.clazz = clazz;
     }
   

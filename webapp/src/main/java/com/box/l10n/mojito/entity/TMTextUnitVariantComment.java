@@ -31,13 +31,13 @@ public class TMTextUnitVariantComment extends AuditableEntity {
     /**
      * Types of comment
      */
-    public static enum Type {
+    public enum Type {
         LEVERAGING,
         INTEGRITY_CHECK,
         QUALITY_CHECK
     }
 
-    public static enum Severity {
+    public enum Severity {
 
         /**
          * Provides information that doesn't require reviews.

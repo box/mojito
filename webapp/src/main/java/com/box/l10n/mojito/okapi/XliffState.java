@@ -17,7 +17,7 @@ public enum XliffState {
 
     String value;
 
-    private XliffState(String value) {
+    XliffState(String value) {
         this.value = value;
     }
 
