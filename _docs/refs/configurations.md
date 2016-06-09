@@ -125,19 +125,7 @@ If you want to authenticate the user running CLI on command-line, update the fol
 
 ## Box Platform Integration
 
-1. Create a Box Developer Account if you don't already have one: https://developers.box.com/box-platform-pricing/
-    - The Free account gives access to 1 Application, 25 App Users, 50 GB Storage
-2. Create a new Application and choose the Content API: https://box-content.readme.io/docs/how-to-get-an-api-key
-3. Enable App Auth and App Users for your Application following the steps here: https://box-content.readme.io/docs/box-platform
-4. Configure App Auth with a Public Key: https://box-content.readme.io/v2.0/docs/app-auth#section-submitting-the-public-key
-    - Note that Box documentation creates the key with `openssl genrsa -aes256 -out private_key.pem 2048`.
-If using Oracle JDK this will require `JCE` to be installed
-(for JDK7 see [here](http://www.oracle.com/technetwork/java/javase/downloads/jce-7-download-432124.html))
-else an exception like this will be thrown `Caused by: java.security.InvalidKeyException: Illegal key size`.
-An alternative is to generate the key with `openssl genrsa -aes128 -out private_key.pem 2048`
-5. Fill in the required Box Client Configurations at /settings/box
-
-### Test Configurations
+### Custom Configurations
 All `l10n.boxclient.*` configurations are required for `BoxSDK` Tests to run.
 
     l10n.boxclient.clientId={REQUIRED_FOR_TEST}
@@ -147,9 +135,13 @@ All `l10n.boxclient.*` configurations are required for `BoxSDK` Tests to run.
     l10n.boxclient.privateKeyPassword={REQUIRED_FOR_TEST}
     l10n.boxclient.enterpriseId={REQUIRED_FOR_TEST}
     l10n.boxclient.appUserId={REQUIRED_FOR_TEST}
+
     l10n.boxclient.rootFolderId={REQUIRED_FOR_TEST}
     l10n.boxclient.dropsFolderId={REQUIRED_FOR_TEST}
 
+
+- `l10n.boxclient.rootFolderId` corresponds to the `Mojito` folder
+- `l10n.boxclient.dropsFolderId` corresponds to the `Project Requests` folder.
 
 ### Box App User
 1. A default Box App User is created when the Box Client Configurations are set.
@@ -166,8 +158,6 @@ All `l10n.boxclient.*` configurations are required for `BoxSDK` Tests to run.
 
    Tips: Access the Box Account as the Admin of the enterprise using the credentials for the Box Developer Account you created.
 
-3. `l10n.boxclient.rootFolderId` corresponds to the `Mojito` folder
-4. `l10n.boxclient.dropsFolderId` corresponds to the `Project Requests` folder.
 
 
 

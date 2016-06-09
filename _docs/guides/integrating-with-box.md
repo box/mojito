@@ -57,4 +57,25 @@ Otherwise, an exception like the folllowing will be thrown:
 
 Navigate to `/settings/box` and fill in the form.
 
+- `Client Id`: This is provided to in the **Application** settings page on Box (https://app.box.com/developers/services/edit/<###>)
+- `Client Secret`: This is provided to in the **Application** settings page on Box (https://app.box.com/developers/services/edit/<###>)
+- `Enterprise Id`: This is the [enterprse that was granted access](#configure-the-application-for-box-platform) for when you were configuring the **Application**
+- `Public Key Id`: This is provided after setting up [App Auth](#configure-the-application-for-box-platform)
+- `Private Key`: This is the key that correspond to the Public Key that was provided to Box
+
 ![Box Integration Settings](./images/box-settings.png)
+
+### Bootstrapping Mojito Folder Structure
+
+By default, Mojito will create the skeleton folder structure it will use after the configurations are provided.  A `Mojito` folder containging the folder structure will be created in the root folder of the **App User** account.
+
+![Box Mojito Folder](./images/box-mojito-folder.png)
+
+### Sharing the Mojito Folder with Vendors
+Most of the time, the content of this folder will be used to exchange translations project requests / files with vendors.  At this time, Mojito does not have vendor management features.
+
+To customize sharing of this folder to individuals, log into the **Box Developer Account** (Or the **Enterprise** Admin user for which you provided the **Enterprise ID**), navigate to the **Admin Console** ([https://app.box.com/master](https://app.box.com/master)), and follow instructions [here](https://community.box.com/t5/For-Admins/How-Do-I-Share-Files-And-Folders-From-The-Admin-Console/ta-p/211) to share with collaborators.
+
+### Configuration in Properties
+For more information about custom configuration, see [Configurations#box-platform-integration]({{ site.github.url }}/docs/refs/configurations/#box-platform-integration)
+
