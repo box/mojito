@@ -1,10 +1,14 @@
-package com.box.l10n.mojito.service.repository;
+package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
+import com.box.l10n.mojito.entity.UpdateStatistics;
 import com.box.l10n.mojito.service.locale.LocaleRepository;
+import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.repository.RepositoryService;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import org.joda.time.DateTime;
@@ -48,6 +52,9 @@ public class RepositoryStatisticService {
     @Autowired
     EntityManager entityManager;
 
+    @Autowired
+    UpdateStatisticsRepository updateStatisticsRepository;
+
     /**
      * Updates the {@link RepositoryStatistic} of a given repository.
      *
@@ -85,10 +92,12 @@ public class RepositoryStatisticService {
     }
 
     /**
-     * Updates the {@link RepositoryLocaleStatistic} for a given locale and repository.
+     * Updates the {@link RepositoryLocaleStatistic} for a given locale and
+     * repository.
      *
      * @param repositoryLocale the repository locale
-     * @param repositoryStatistic the parent entity that old the repository statistics
+     * @param repositoryStatistic the parent entity that old the repository
+     * statistics
      */
     void updateLocaleStatistics(RepositoryLocale repositoryLocale, RepositoryStatistic repositoryStatistic) {
 
@@ -151,6 +160,14 @@ public class RepositoryStatisticService {
         repositoryLocaleStatistic.setLocale(repositoryLocale.getLocale());
 
         return repositoryLocaleStatistic;
+    }
+
+    @Transactional
+    public void setRepositoryStatsOutOfDate(Long repositoryId) {
+        UpdateStatistics updateStatistics = new UpdateStatistics();
+        updateStatistics.setRepository(repositoryRepository.findOne(repositoryId));
+        updateStatistics.setTimeToUpdate(DateTime.now());
+        updateStatisticsRepository.save(updateStatistics);
     }
 
 }

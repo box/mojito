@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.repository;
 
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
