@@ -57,4 +57,4 @@ Otherwise, an exception like the folllowing will be thrown:
 
 Navigate to `/settings/box` and fill in the form.
 
-TODO screenshot here.
+![Box Integration Settings](./images/box-settings.png)
