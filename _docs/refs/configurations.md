@@ -143,6 +143,11 @@ All `l10n.boxclient.*` configurations are required for `BoxSDK` Tests to run.
 - `l10n.boxclient.rootFolderId` corresponds to the `Mojito` folder
 - `l10n.boxclient.dropsFolderId` corresponds to the `Project Requests` folder.
 
+You can also optionally use it in production by setting the following configuration:
+
+    l10n.boxclient.useConfigsFromProperties=true
+
+
 ### Box App User
 1. A default Box App User is created when the Box Client Configurations are set.
 2. Mojito will create the following folder structure under the App User's root folder.
