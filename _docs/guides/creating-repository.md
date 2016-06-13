@@ -15,10 +15,10 @@ In this guide, we use `mojito-cli` to create a repository in Mojito.  Repository
 This creates a repository with name `MyRepo` with description `Project A`.
 
 
-It is configured with locales `de-DE es-ES fr-FR ja-JP`.  These locales are used to create translation requests to translators and to generate localized resource files.  For more information about locales, see ![Managing Locales]({{ site.github.url }}/docs/guides/managing-locales/).
+It is configured with locales `de-DE es-ES fr-FR ja-JP`.  These locales are used to create translation requests to translators and to generate localized resource files.  For more information about locales, see [Managing Locales]({{ site.github.url }}/docs/guides/managing-locales/).
 
 
-The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` or `resx` extensions.  Integrity checkers are used to validate placeholders in translations.  See ![Integrity Checkers]({{ site.github.url }}/docs/guides/integrity-checkers/) for more information.
+The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` or `resx` extensions.  Integrity checkers are used to validate placeholders in translations.  See [Integrity Checkers]({{ site.github.url }}/docs/guides/integrity-checkers/) for more information.
 
 
 You can now see the repository `MyRepo` in the Webapp.
