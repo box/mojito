@@ -6,11 +6,11 @@ permalink: /docs/refs/mojito-locales/
 ---
 
 
-## Mojito Locales |
+## Mojito Locales
 
-
-| Language Code | Name                                            |
-|:-------------:|-------------------------------------------------|
+|:-------------:|:-------------------------------------------------:|
+| Tag           | Name                                              |
+|:-------------:|:--------------------------------------------------|
 | af-ZA	        | Afrikaans (South Africa) |
 | ar-AE	        | Arabic (U.A.E.) |
 | ar-BH	        | Arabic (Bahrain) |
