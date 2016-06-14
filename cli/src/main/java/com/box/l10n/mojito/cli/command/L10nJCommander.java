@@ -5,6 +5,7 @@ import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.base.Strings;
 import java.util.Map;
+import java.util.TreeMap;
 import javax.annotation.PostConstruct;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -45,6 +46,8 @@ public class L10nJCommander {
     @Autowired
     AuthenticatedRestTemplate authenticatedRestTemplate;
 
+    static final String PROGRAM_NAME = "mojito";
+
     boolean systemExitEnabled = true;
 
     /**
@@ -54,14 +57,21 @@ public class L10nJCommander {
     JCommander jCommander;
 
     /**
-     * Gets a {@link Command} for a given command name.
+     * Map of commands keyed by their first name (by convention it should be the
+     * long name).
+     */
+    Map<String, Command> commands = new TreeMap<>();
+
+    /**
+     * Gets a {@link Command} for a given command name. The name must be the
+     * first name specified for the command, see {@link Command#getName() }.
      *
      * @param parsedCommandName command name (null is treated as an empty
      * string, ie. maps to the {@link MainCommand)
      * @return {@link Command} for the given name or the main command.
      */
     public Command getCommand(String parsedCommandName) {
-        return (Command) jCommander.getCommands().get(Strings.nullToEmpty(parsedCommandName)).getObjects().get(0);
+        return commands.get(Strings.nullToEmpty(parsedCommandName));
     }
 
     /**
@@ -75,10 +85,9 @@ public class L10nJCommander {
 
         T command = null;
 
-        for (JCommander value : jCommander.getCommands().values()) {
-            T candidate = (T) value.getObjects().get(0);
+        for (Command candidate : commands.values()) {
             if (candidate.getClass().isAssignableFrom(clazz)) {
-                command = candidate;
+                command = (T) candidate;
             }
         }
 
@@ -143,9 +152,19 @@ public class L10nJCommander {
      * Display the usage in the appLogger (instead of System.out).
      */
     public void usage() {
-        StringBuilder stringBuilder = new StringBuilder();
-        jCommander.usage(stringBuilder, "");
-        consoleWriter.a(stringBuilder).println();
+
+        consoleWriter.a("Usage: ").a(PROGRAM_NAME).fg(Ansi.Color.CYAN).a(" <command>").reset().a(" [options]").println(2);
+        consoleWriter.a("Commands:").println();
+
+        for (Command command : commands.values()) {
+
+            if (!command.getName().isEmpty()) {
+                String paddedCommandName = Strings.padStart(command.getName(), 20, ' ');
+                consoleWriter.fg(Ansi.Color.CYAN).a(paddedCommandName).reset().a(" ").a(command.getDescription()).println();
+            }
+        }
+
+        consoleWriter.newLine().a("Get help for a specific command: mojito <command> -h").println(2);
     }
 
     /**
@@ -166,11 +185,11 @@ public class L10nJCommander {
     public void createJCommanderForRun() {
         logger.debug("Create JCommander instance");
         jCommander = new JCommander();
-        //TODO(P1) not sure we want to do that but this allows spring conf to be passed easily
+
         jCommander.setAcceptUnknownOptions(true);
 
         logger.debug("Initialize the JCommander instance");
-        jCommander.setProgramName("l10n");
+        jCommander.setProgramName(PROGRAM_NAME);
 
         logger.debug("Set the main command for version/help directly on the JCommander");
         jCommander.addObject(mainCommand);
@@ -178,14 +197,15 @@ public class L10nJCommander {
         logger.debug("Register Commands retreived using Spring");
         for (Command command : applicationContext.getBeansOfType(Command.class).values()) {
 
-            Map<String, JCommander> commands = jCommander.getCommands();
+            Map<String, JCommander> jCommands = jCommander.getCommands();
 
             for (String name : command.getNames()) {
-                if (commands.keySet().contains(name)) {
+                if (jCommands.keySet().contains(name)) {
                     throw new RuntimeException("There must be only one module with name: " + name);
                 }
             }
 
+            commands.put(command.getName(), command);
             jCommander.addCommand(command);
         }
     }
