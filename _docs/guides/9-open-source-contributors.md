@@ -21,7 +21,7 @@ permalink: /docs/guides/open-source-contributors/
 
 Mojito should be running on [http://localhost:8080/login](http://localhost:8080/login).  You can login with admin/admin.
 
-Mojito is running with in-memory HSQL DB.  When you restart Mojito, all data is reset.  You can configure Mojito to run with MySQL.  See [Mojito Database Configuration](https://gitenterprise.inside-box.net/Box/l10n/wiki/2.-Configurations#database-configuration) for more information.
+Mojito is running with in-memory HSQL DB.  When you restart Mojito, all data is reset.  You can configure Mojito to run with MySQL.  See [Database Configuration]({{ site.github.url }}/docs/refs/configurations/#database-configuration) for more information.
 
 ## Add Demo Data in Mojito
 Make sure Mojito is up and running.
