@@ -13,7 +13,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +38,6 @@ public class RepoCreateCommandTest extends CLITestBase {
     @Autowired
     RepositoryService repositoryService;
 
-    @Transactional
     @Test
     public void testCreateTestRepo() throws Exception {
         String testRepoName = testIdWatcher.getEntityName("repository");
@@ -114,7 +112,6 @@ public class RepoCreateCommandTest extends CLITestBase {
         }
     }
 
-    @Transactional
     @Test
     public void testCreateTestRepoWithIntegrityCheck() throws Exception {
         String testRepoName = testIdWatcher.getEntityName("repository");
@@ -125,7 +122,6 @@ public class RepoCreateCommandTest extends CLITestBase {
         assertCreatedRepositoryHas6Locales(testRepoName, testDescription, true);
     }
 
-    @Transactional
     @Test
     public void testCreateTestRepoWithWebAppLocalesCorrectlyCreated() throws Exception {
         String testRepoName = testIdWatcher.getEntityName("repository");
@@ -260,7 +256,6 @@ public class RepoCreateCommandTest extends CLITestBase {
         assertTrue("Conflict because the repository has already been created", outputCapture.toString().contains(COMMAND_ERROR_MESSAGE));
     }
 
-    @Transactional
     @Test
     @Ignore("we don't support multilevel hierarechy yet with cycle check.  Running test will result in: java.lang.IllegalArgumentException: Parent locale: en-CA doesn't exist in repository")
     public void testCreateTestRepoWithMultiLevelHiererchyAcrossTwoChains() throws Exception {

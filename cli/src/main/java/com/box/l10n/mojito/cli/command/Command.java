@@ -46,14 +46,33 @@ public abstract class Command {
     }
 
     /**
+     * Gets the {@link Parameters} annotation from the command.
+     * 
+     * @return  the {@link Parameters} annotation
+     */
+    Parameters getParameters() {
+        Parameters parameters = this.getClass().getAnnotation(Parameters.class);
+        Preconditions.checkNotNull(parameters, "There must be @Parameters on the Command class: " + this.getClass());
+        return parameters;
+    }
+
+    /**
+     * Gets the command description from the {@link Parameters} annotation.
+     * 
+     * @return the command description 
+     */
+    public String getDescription() {
+        return getParameters().commandDescription();
+    }
+
+    /**
      * Gets the names of this command (should be long name first followed by
      * short name).
      *
      * @return list of command names
      */
     public List<String> getNames() {
-        Parameters parameters = this.getClass().getAnnotation(Parameters.class);
-        Preconditions.checkNotNull(parameters, "There must be @Parameters on the Command class: " + this.getClass());
+        Parameters parameters = getParameters();
         String[] commandNames = parameters.commandNames();
         return Arrays.asList(commandNames);
     }
