@@ -43,7 +43,7 @@ Create user `${DB_USERNAME}` with `${DB_PASSWORD}`
 
     mysql> CREATE USER '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
 
-Create database `${DB_NAME}` and give `${DB_USERNAME}` full access to l10n database
+Create database `${DB_NAME}` and give `${DB_USERNAME}` full access to the database
 
     mysql> CREATE DATABASE IF NOT EXISTS ${DB_NAME};
     mysql> GRANT ALL ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
@@ -70,7 +70,7 @@ The default server configuration of Mojito to run on port 8080.
 
 ### Database Authentication
 
-The default user authentication setting in Mojito is to use database.  User information is stored in database.  Mojito initially is set up with one default user `admin/admn`.  You can override the default user settings.  These values are only respected on initial bootstrapping.
+The default user authentication setting in Mojito is to use database.  User information is stored in database.  Mojito initially is set up with one default user `admin/admin`.  You can override the default user settings.  These values are only respected on initial bootstrapping.
 
     l10n.security.authenticationType=DATABASE
     l10n.bootstrap.defaultUser.username=admin
@@ -85,7 +85,7 @@ With database authentication, Mojito users can be added, updated (with new passw
     mojito user-update --username ${USERNAME} --password
 
     # delete user
-    mojito user-delete --username ${USERNAME}
+    mojito user-delete --username ${USERNAME}   
 
 ### LDAP Authentication
 

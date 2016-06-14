@@ -5,29 +5,23 @@ categories: guides
 permalink: /docs/guides/getting-started/
 ---
 
-For this guide, we use `brew` to install Mojito Webapp and CLI.
+For this guide, we use [Brew](http://brew.sh/) to install Mojito Webapp and CLI.
 
-## Setup and install
-
+### Setup and install
 
     brew tap box/mojito
     brew install mojito-cli
     brew install mojito-webapp
 
-
-
-## Start the Webapp
+### Start the Webapp
 
     mojito-webapp
-
 
 To start the server on [http://localhost:8080](http://localhost:8080), log in with `admin/admin`.
 
 ![start webapp](./images/start-webapp.gif)
 
-
-## Create a demo repository
-
+### Create a demo repository
 
     mojito demo-create -n Demo1
 
@@ -37,9 +31,7 @@ local directory `Demo1`.
 
 ![create demo repository](./images/create-demo.gif)
 
-
-
-## Generate the localized files
+### Generate the localized files
 
     cd Demo1
     mojito pull -r Demo1
@@ -49,31 +41,25 @@ file with `cat demo_fr-FR.properties`.
 
 ![create demo repository](./images/generate-localized.gif)
 
-
-
-## Add a new string
+### Add a new string
 
     printf "\nFOR_DEMO=Add a string for the demo" >> demo.properties
     mojito push -r Demo1
-
 
 Add a new string with ID: `FOR_DEMO` and english: `Add a string for the demo`
 into the resource bundle. `push` the modified bundle to the server.
 
 ![add new string](./images/add-string.gif)
 
-
-## Translate
+### Translate
 
 Check in the Webapp that the string was added and is untranslated. Add a translation.
 
 ![translate](./images/translate.gif)
 
-
-## Generate new localized files
+### Generate new localized files
 
     mojito pull -r Demo1
-
 
 Finally, generate the updated localized files and check that the new
 translation is present.
