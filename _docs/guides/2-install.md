@@ -51,7 +51,7 @@ The following JVM options might be useful to run the Webapp: `-XX:MaxPermSize=12
 The default setup comes with `HSQL` in-memory database, database authentication and runs on port `8080`.
 For production, `MySQL` should be setup. It is also possible to use [LDAP](/docs/guides/ldap-authentication) for authentication.
 
-On the first Webapp startup, a user: `admin/admin` is created. This can be customized with configuration, see [Manage Users](/docs/guides/manage-users/#bootstraping). 
+On the first Webapp startup, a user: `admin/admin` is created. This can be customized with configuration, see [Manage Users]({{ site.github.url }}/docs/guides/manage-users/#bootstraping). 
 
 ### Server port
 
