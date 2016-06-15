@@ -8,7 +8,7 @@ class TextUnitStore {
 
     constructor() {
         /** @type {TextUnitError[]} */
-        this.errorsKeyedByTmTextUnitId = [];
+        this.errorsKeyedByTextUnitKey = [];
 
         this.bindActions(WorkbenchActions);
 
@@ -99,7 +99,7 @@ class TextUnitStore {
      * @param {TextUnit} textUnit
      */
     resetErrorState(textUnit) {
-        delete this.errorsKeyedByTmTextUnitId[textUnit.getTmTextUnitId()];
+        delete this.errorsKeyedByTextUnitKey[textUnit.getTextUnitKey()];
     }
 
     /**
@@ -117,7 +117,7 @@ class TextUnitStore {
      * @param {TextUnitError} textUnitError
      */
     setErrorState(textUnitError) {
-        this.errorsKeyedByTmTextUnitId[textUnitError.textUnit.getTmTextUnitId()] = textUnitError;
+        this.errorsKeyedByTextUnitKey[textUnitError.textUnit.getTextUnitKey()] = textUnitError;
     }
 
     /**
@@ -160,11 +160,11 @@ class TextUnitStore {
 
     /**
      *
-     * @param {Number} tmTextUnitId
+     * @param {TextUnit} textUnit
      * @return {TextUnitError}
      */
-    static getError(tmTextUnitId) {
-        return this.getState().errorsKeyedByTmTextUnitId[tmTextUnitId];
+    static getError(textUnit) {
+        return this.getState().errorsKeyedByTextUnitKey[textUnit.getTextUnitKey()];
     }
 }
 
