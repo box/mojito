@@ -69,7 +69,7 @@ let TextUnit = React.createClass({
     },
 
     onTextUnitStoreUpdated() {
-        let error = TextUnitStore.getError(this.props.textUnit.getTmTextUnitId());
+        let error = TextUnitStore.getError(this.props.textUnit);
         if (error) {
             this.setState({"isErrorAlertShown": true, "error": error});
         } else {
