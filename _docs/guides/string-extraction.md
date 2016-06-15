@@ -13,7 +13,7 @@ For Mojito supported source resource files, see [Mojito Supported File Formats](
 
 ## Push
 
-Let's say we have the following source resource file `en.properties`
+Let's say we have the following source resource file `strings.properties` in the current working directory.
 
 ```properties
 # Greeting from Main UI
@@ -26,7 +26,7 @@ bye = Goodbye.  Have a nice day!
     mojito push -r MyRepo
     
 
-This extracts the two strings from the source resource file assuming that `en.properties` exists in the current working directory.  The two strings are now visible in Mojito and ready to be translated in locales configured in the repository.
+This extracts the two strings from the source resource file and stores them in `MyRepo` repository.  The two strings are now visible in Mojito and ready to be translated in locales configured in the repository.
 
 
 ![Repository Statistics](./images/repository-statistics.png)
@@ -42,31 +42,41 @@ This extracts the two strings from the source resource file assuming that `en.pr
     mojito push -r MyRepo -s /home/explicitPath/ProjectA
     
 
-By default, Mojito searches source resource files from current working directory and its sub-directories.  If you have your source resource file in a specific directory, you can use `-s` parameter to telll Mojito where to find source resource files.  The above example extracts strings `en.properties` from `ProjectA` directory using relative path and explicit path.
-
-
-## Overriding Source Locale
-
-    mojito push -r MyRepo -sl fr-FR
-    
-
-By default, Mojito uses `en` as source locale.  Mojito uses soure locale to identity source resource files from localized resource files.  For example, if you have `en.properties` and `fr-FR.properties` in your working directory, `en.properties` is used as source resource file by default and `fr-FR.properties` is considered as localized resource file. The above example overrides the default source locale and use `fr-FR` as source locale using `-sl` parameter.
+By default, Mojito searches source resource files from current working directory and its sub-directories.  If you have your source resource file in a specific directory, you can use `-s` parameter to telll Mojito where to find source resource files.  The above example extracts strings `strings.properties` from `ProjectA` directory using relative path and explicit path.
 
 
 ## Specific Source File Type
 
-    mojito push -r MyRepo -ft Properties
+    mojito push -r MyRepo -ft PROPERTIES
     
 
 Mojito processes all supported source resource files in the working directory by default.  If your working directory has many types of source resource files and if you want to only process specific type, you can use `-ft` parameter.  The above example only extracts strings from Java Properties file. 
 
+Available file types are `XLIFF`, `MAC_STRING`, `ANDROID_STRINGS`, `PROPERTIES`, `PROPERTIES_NOBASENAME`, `RESW`, `RESX`.  The difference between `PROPERTIES` and `PROPERTIES_NOBASENAME` is that the source resource file of `PROPERTIES_NOBASENAME` has source locale name as the file name. For example, `strings.properties` vs. `en.properties`.
+
+
+## Overriding Source Locale
+
+    mojito push -r MyRepo -sl en-US -ft PROPERTIES_NOBASENAME
+    
+
+By default, Mojito uses `en` as source locale.  Mojito uses soure locale to identity source resource files from localized resource files.  For example, if you have `en.properties` and `en-US.properties` in your working directory, `en.properties` is used as source resource file by default and `en-US.properties` is considered as localized resource file. The above example overrides the default source locale and use `en-US` as source locale using `-sl` parameter.  You must use `-sl` parameter with `-ft` parameter.
+
 
 ## Specific Source File Regex
+
+Let's say you have the following source resource files in working directory.
+
+    release-1.1.xliff
+    release-1.2.xliff
+    release-2.1.xliff
+
+You can use regular expression to filter source resource files to push.  The following example only processes release-1 related files using `-sr` parameter for regular expression.
 
     mojito push -r MyRepo -sr "^(release-1).*$"
     
 
-You can also use regex to filter source resource files to push.  For example, if you have `release-1.1.xliff`, `release-1.2.xliff` and `release-2.1.xliff` in your working directory and want to only process release-1 related files, use `-sr` parameter to specify regular expression accordingly.
+
 
 
 
