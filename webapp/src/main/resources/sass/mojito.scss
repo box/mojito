@@ -357,6 +357,12 @@ div.textunit label {
 
 .textunit-string {
   width: 90%;
+  white-space: pre-wrap; 
+}
+
+.textunit-returnline {
+    color: $brand-primary;
+    font-size: 10px;
 }
 
 .textunit-string.textunit-target {

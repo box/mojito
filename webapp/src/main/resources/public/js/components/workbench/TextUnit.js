@@ -511,6 +511,29 @@ let TextUnit = React.createClass({
             );
         }
     },
+    
+    /**
+     * render the source. If the source ends with a retrun line remove and 
+     * render a return line symbol so that the user as a clue about the trailing
+     * return line.
+     */
+    renderSource() {
+        
+        let source = this.props.textUnit.getSource();
+        let optionalReturnLineSymbol = "";
+        
+        if (source.endsWith("\n")) {
+            source = source.substring(0, source.length - 1); 
+            optionalReturnLineSymbol = (
+                    <span className="textunit-returnline"> ↵</span> 
+            );
+        }
+        
+        return (
+            <div className="plx pts textunit-string">{source}{optionalReturnLineSymbol}
+            </div>
+        );
+    },
 
     render() {
         // TODO: Must show which repository a string belongs to when multiple repositories are selected
@@ -546,7 +569,7 @@ let TextUnit = React.createClass({
                         <Row className='show-grid'>
                             <Col md={6}>
                                 <Row>
-                                    <div className="plx pts textunit-string">{this.props.textUnit.getSource()}</div>
+                                   {this.renderSource()}                                                               
                                     <div className="plx em color-gray-light2">{this.props.textUnit.getComment()}</div>
                                 </Row>
                             </Col>
