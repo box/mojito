@@ -28,6 +28,7 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 import javax.persistence.EntityManager;
@@ -425,6 +426,8 @@ public class TMService {
 
         logger.debug("Add TMTextUnitVariant for tmId: {} locale id: {}, content: {}", tmTextUnitId, localeId, content);
 
+        Preconditions.checkNotNull(content, "content must not be null when adding a TMTextUnitVariant");
+        
         TMTextUnit tmTextUnit = entityManager.getReference(TMTextUnit.class, tmTextUnitId);
         Locale locale = entityManager.getReference(Locale.class, localeId);
 
