@@ -72,7 +72,8 @@ class TextUnitStore {
     onDeleteTextUnits(textUnits) {
         console.log("TextUnitStore::onDeleteTextUnits");
         textUnits.forEach(textUnit => {
-            if (textUnit.getTarget()) {
+            // NOTE: specifically check for null b'c target can be an empty string "" which should still be deleted
+            if (textUnit.getTarget() !== null) {
                 this.getInstance().deleteTextUnit(textUnit);
             }
         });
