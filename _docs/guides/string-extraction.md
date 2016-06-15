@@ -11,7 +11,7 @@ In this guide, we use `mojito-cli` to extract strings from source resource file.
 For Mojito supported source resource files, see [Mojito Supported File Formats]({{ site.github.url }}/docs/refs/mojito-file-formats/).
 
 
-## Push
+### Push
 
 Let's say we have the following source resource file `strings.properties` in the current working directory.
 
@@ -35,7 +35,7 @@ This extracts the two strings from the source resource file and stores them in `
 ![Workbench](./images/workbench.png)
 
 
-## Overriding Source Directory
+### Overriding Source Directory
 
     mojito push -r MyRepo -s relativePath/ProjectA
     
@@ -45,7 +45,7 @@ This extracts the two strings from the source resource file and stores them in `
 By default, Mojito searches source resource files from current working directory and its sub-directories.  If you have your source resource file in a specific directory, you can use `-s` parameter to telll Mojito where to find source resource files.  The above example extracts strings `strings.properties` from `ProjectA` directory using relative path and explicit path.
 
 
-## Specific Source File Type
+### Specific Source File Type
 
     mojito push -r MyRepo -ft PROPERTIES
     
@@ -55,7 +55,7 @@ Mojito processes all supported source resource files in the working directory by
 Available file types are `XLIFF`, `MAC_STRING`, `ANDROID_STRINGS`, `PROPERTIES`, `PROPERTIES_NOBASENAME`, `RESW`, `RESX`.  The difference between `PROPERTIES` and `PROPERTIES_NOBASENAME` is that the source resource file of `PROPERTIES_NOBASENAME` has source locale name as the file name. For example, `strings.properties` vs. `en.properties`.
 
 
-## Overriding Source Locale
+### Overriding Source Locale
 
     mojito push -r MyRepo -sl en-US -ft PROPERTIES_NOBASENAME
     
@@ -63,7 +63,7 @@ Available file types are `XLIFF`, `MAC_STRING`, `ANDROID_STRINGS`, `PROPERTIES`,
 By default, Mojito uses `en` as source locale.  Mojito uses soure locale to identity source resource files from localized resource files.  For example, if you have `en.properties` and `en-US.properties` in your working directory, `en.properties` is used as source resource file by default and `en-US.properties` is considered as localized resource file. The above example overrides the default source locale and use `en-US` as source locale using `-sl` parameter.  You must use `-sl` parameter with `-ft` parameter.
 
 
-## Specific Source File Regex
+### Specific Source File Regex
 
 Let's say you have the following source resource files in working directory.
 

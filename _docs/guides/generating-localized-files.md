@@ -7,7 +7,7 @@ permalink: /docs/guides/generating-localized-files/
 
 In this guide, we use `mojito-cli` to generate localized resource files.  Translations in the repository are used to generate localized resource files.  This process is called `pull` in Mojito because translations are "pulled" from Mojito to generate localized resource files.
 
-## Pull
+### Pull
 
 Let's say we have the following source resource file `strings.properties` in the current working directory.
 
@@ -55,7 +55,7 @@ bye = Goodbye.  Have a nice day!
 ```
 
 
-## Locale Mapping
+### Locale Mapping
 
     mojito pull -r MyRepo -lm "de:de-DE,es:es-ES,fr:fr-FR,ja:ja-JP"
 
@@ -71,7 +71,7 @@ In the above example `MyRepo` has four locales `de-DE es-ES fr-FR ja-JP` and use
 
 
 
-## Overriding Source and Target Directory
+### Overriding Source and Target Directory
 
     mojito pull -r MyRepo -s relativeSource -t relativeTarget
     
@@ -82,7 +82,7 @@ By default, Mojito searches source resource files from current working directory
 
 
 
-## Specific Source File Type
+### Specific Source File Type
 
     mojito pull -r MyRepo -ft PROPERTIES
     
@@ -93,7 +93,7 @@ Available file types are `XLIFF`, `MAC_STRING`, `ANDROID_STRINGS`, `PROPERTIES`,
 
 
 
-## Overriding Source Locale
+### Overriding Source Locale
 
     mojito pull -r MyRepo -sl en-US -ft PROPERTIES_NOBASENAME
     
@@ -102,7 +102,7 @@ By default, Mojito uses `en` as source locale.  Mojito uses soure locale to iden
 
 
 
-## Specific Source File Regex
+### Specific Source File Regex
 
 Let's say you have the following source resource files in working directory.
 

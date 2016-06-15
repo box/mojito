@@ -8,7 +8,7 @@ permalink: /docs/guides/creating-repository/
 In this guide, we use `mojito-cli` to create a repository in Mojito.  Repository is a container for strings and their translations.  It also stores localization configurations such as locales and integrity checkers.
 
 
-## Creating Repository
+### Creating Repository
 
     mojito repo-create -n MyRepo -d "Project A" -l de-DE es-ES fr-FR ja-JP
     
@@ -26,7 +26,7 @@ You can now see the repository `MyRepo` in the Webapp.
 
 
 
-## Creating Repository with Integrity Checker
+### Creating Repository with Integrity Checker
 
     mojito repo-create -n MyRepo -it resw:COMPOSITE_FORMAT,resx:COMPOSITE_FORMAT -d "Project A" -l de-DE es-ES fr-FR ja-JP
     
@@ -38,7 +38,7 @@ The repository is configured to use `COMPOSITE_FORMAT` integrity checker for fil
 
 
 
-## Updating Locales in Repository
+### Updating Locales in Repository
 
     mojito repo-update -n MyRepo -l es-ES fr-FR ja-JP zh-CN zh-TW
     
@@ -46,7 +46,7 @@ The repository is configured to use `COMPOSITE_FORMAT` integrity checker for fil
 This updates locales for the repository to `es-ES fr-FR ja-JP zh-CN zh-TW`.
 
 
-## Renaming Repository
+### Renaming Repository
 
     mojito repo-update -n MyRepo -nn ProjectA
     
@@ -54,7 +54,7 @@ This updates locales for the repository to `es-ES fr-FR ja-JP zh-CN zh-TW`.
 This updates the name of the repository from `MyRepo` to `ProjectA`.
 
 
-## Deleting Repository
+### Deleting Repository
 
     mojito repo-delete -n MyRepo
     
