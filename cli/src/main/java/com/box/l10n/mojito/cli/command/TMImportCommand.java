@@ -74,12 +74,12 @@ public class TMImportCommand extends Command {
         FileType fileType = new XliffFileType();
         
         if (!skipSourceImportParam) {
-            for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, null)) {
+            for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, null, null)) {
                 doImportFileMatch(sourceFileMatch);
             }
         }
 
-        for (FileMatch targetFileMatch : commandHelper.getTargetFileMatches(commandDirectories, fileType, null)) {
+        for (FileMatch targetFileMatch : commandHelper.getTargetFileMatches(commandDirectories, fileType, null, null)) {
             doImportFileMatch(targetFileMatch);
         }
 

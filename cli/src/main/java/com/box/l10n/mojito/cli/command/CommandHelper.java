@@ -43,25 +43,25 @@ public class CommandHelper {
      * Supported BOM
      */
     private final ByteOrderMark[] boms = {ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE};
-
+    
     @Autowired
     RepositoryClient repositoryClient;
-
+    
     @Autowired
     PollableTaskClient pollableTaskClient;
-
+    
     @Autowired
     CommandWaitForPollableTaskListener commandWaitForPollableTaskListener;
-
+    
     @Autowired
     ConsoleWriter consoleWriter;
-    
+
     /**
      * @param repositoryName Name of repository
      * @return
      */
     public Repository findRepositoryByName(String repositoryName) throws CommandException {
-
+        
         try {
             return repositoryClient.getRepositoryByName(repositoryName);
         } catch (RestClientException e) {
@@ -75,13 +75,18 @@ public class CommandHelper {
      *
      * @param commandDirectories
      * @param fileType
+     * @param sourceLocale
      * @param sourcePathFilterRegex
      * @return
      * @throws CommandException
      */
-    public ArrayList<FileMatch> getSourceFileMatches(CommandDirectories commandDirectories, FileType fileType, String sourcePathFilterRegex) throws CommandException {
+    public ArrayList<FileMatch> getSourceFileMatches(
+            CommandDirectories commandDirectories,
+            FileType fileType,
+            String sourceLocale,
+            String sourcePathFilterRegex) throws CommandException {
         logger.debug("Search for source asset to be localized");
-        FileFinder fileFinder = getFileFinder(commandDirectories, fileType, sourcePathFilterRegex);
+        FileFinder fileFinder = getFileFinder(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
         return fileFinder.getSources();
     }
 
@@ -95,9 +100,9 @@ public class CommandHelper {
      * @return
      * @throws CommandException
      */
-    public ArrayList<FileMatch> getTargetFileMatches(CommandDirectories commandDirectories, FileType fileType, String sourcePathFilterRegex) throws CommandException {
+    public ArrayList<FileMatch> getTargetFileMatches(CommandDirectories commandDirectories, FileType fileType, String sourceLocale, String sourcePathFilterRegex) throws CommandException {
         logger.debug("Search for target assets that are already localized");
-        FileFinder fileFinder = getFileFinder(commandDirectories, fileType, sourcePathFilterRegex);
+        FileFinder fileFinder = getFileFinder(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
         return fileFinder.getTargets();
     }
 
@@ -106,26 +111,33 @@ public class CommandHelper {
      *
      * @param commandDirectories
      * @param fileType
+     * @param sourceLocale
      * @param sourcePathFilterRegex
      * @return
      * @throws CommandException
      */
-    protected FileFinder getFileFinder(CommandDirectories commandDirectories, FileType fileType, String sourcePathFilterRegex) throws CommandException {
+    protected FileFinder getFileFinder(CommandDirectories commandDirectories, FileType fileType, String sourceLocale, String sourcePathFilterRegex) throws CommandException {
         FileFinder fileFinder = new FileFinder();
         fileFinder.setSourceDirectory(commandDirectories.getSourceDirectoryPath());
         fileFinder.setTargetDirectory(commandDirectories.getTargetDirectoryPath());
         fileFinder.setSourcePathFilterRegex(sourcePathFilterRegex);
-
+        
         if (fileType != null) {
             fileFinder.setFileTypes(fileType);
         }
-
+        
+        if (!Strings.isNullOrEmpty(sourceLocale)) {
+            for (FileType fileTypeForUpdate : fileFinder.getFileTypes()) {
+                fileTypeForUpdate.getLocaleType().setSourceLocale(sourceLocale);
+            }
+        }
+        
         try {
             fileFinder.find();
         } catch (FileFinderException e) {
             throw new CommandException(e.getMessage(), e);
         }
-
+        
         return fileFinder;
     }
 
@@ -198,21 +210,14 @@ public class CommandHelper {
      * @throws com.box.l10n.mojito.cli.command.CommandException
      */
     public void waitForPollableTask(Long pollableId) throws CommandException {
-
+        
         consoleWriter.newLine().a("Running, task id: ").fg(Ansi.Color.MAGENTA).a(pollableId).a(" ").println();
-
+        
         try {
             pollableTaskClient.waitForPollableTask(pollableId, PollableTaskClient.NO_TIMEOUT, commandWaitForPollableTaskListener);
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }
     }
-
-    public void initializeFileType(FileType fileType, String sourceLocale) {
-
-        if (!Strings.isNullOrEmpty(sourceLocale)) {
-            fileType.getLocaleType().setSourceLocale(sourceLocale);
-        }
-    }
-
+    
 }
