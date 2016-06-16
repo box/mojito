@@ -51,7 +51,7 @@ public class FileFinder {
      * Regular expression to filter source paths
      */
     private String sourcePathFilterRegex;
-    
+
     /**
      * The result of the search
      */
@@ -70,7 +70,7 @@ public class FileFinder {
         fileTypes.add(new AndroidStringsFileType());
         fileTypes.add(new MacStringsFileType());
         fileTypes.add(new ReswFileType());
-        fileTypes.add(new ResxFileType());       
+        fileTypes.add(new ResxFileType());
     }
 
     public Path getSourceDirectory() {
@@ -182,6 +182,10 @@ public class FileFinder {
 
     private List<FileMatch> getSourceMatcheCandidates(FileType fileType) throws FileFinderException {
 
+        if (!sourceDirectory.toFile().isDirectory()) {
+            throw new FileFinderException("Invalid source directory: " + sourceDirectory.toString());
+        }
+
         SourceFileVisitor sourceFileVisitor = new SourceFileVisitor(fileType, sourceDirectory, sourcePathFilterRegex);
 
         try {
@@ -194,6 +198,10 @@ public class FileFinder {
     }
 
     private List<FileMatch> getTargetMatcheCandidates(FileType fileType) throws FileFinderException {
+
+        if (!targetDirectory.toFile().isDirectory()) {
+            throw new FileFinderException("Invalid target directory: " + targetDirectory.toString());
+        }
 
         TargetFileVisitor targetFileVisitor = new TargetFileVisitor(fileType, targetDirectory);
 
@@ -213,21 +221,21 @@ public class FileFinder {
      * @param sourceMatchCandidates list of source matches
      * @param targetMatchCandidates list of target match candidates
      * @return the filtered target matches
-     * 
+     *
      */
     private List<FileMatch> filterTargetMatchesWithoutSourceMatches(List<FileMatch> sourceMatchCandidates, List<FileMatch> targetMatchCandidates) {
 
         List<FileMatch> filteredTargetMatchCandidates = new ArrayList<>();
-        
+
         List<String> sourceFilenames = getSourceFilenames(sourceMatchCandidates);
 
         for (FileMatch targetMatchCandidate : targetMatchCandidates) {
-            if(sourceFilenames.contains(targetMatchCandidate.getSourcePath())) {
+            if (sourceFilenames.contains(targetMatchCandidate.getSourcePath())) {
                 filteredTargetMatchCandidates.add(targetMatchCandidate);
             }
         }
-        
-        return filteredTargetMatchCandidates;       
+
+        return filteredTargetMatchCandidates;
     }
 
     /**

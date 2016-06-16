@@ -68,11 +68,11 @@ class SourceFileVisitor extends SimpleFileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-        if (exc instanceof AccessDeniedException) {
+    public FileVisitResult visitFileFailed(Path file, IOException ioe) throws IOException {
+        if (ioe instanceof AccessDeniedException) {
             logger.error(file + ": cannot access directory");
         } else {
-            throw new RuntimeException("Cannot find files", exc);
+            throw ioe;
         }
         return CONTINUE;
     }
