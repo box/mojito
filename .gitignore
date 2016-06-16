@@ -17,3 +17,4 @@ npm-debug.log
 /webapp/Demo/
 *.releaseBackup
 release.properties
+**/nb-configuration.xml
