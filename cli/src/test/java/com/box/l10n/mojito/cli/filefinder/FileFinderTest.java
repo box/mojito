@@ -10,9 +10,11 @@ import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
 import com.box.l10n.mojito.test.IOTestBase;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import org.junit.Test;
@@ -75,7 +77,7 @@ public class FileFinderTest extends IOTestBase {
     public void findPropertiesNoBasenameEnUs() throws IOException, FileFinderException {
         PropertiesNoBasenameFileType propertiesNoBasenameFileType = new PropertiesNoBasenameFileType();
         propertiesNoBasenameFileType.getLocaleType().setSourceLocale("en-US");
-        
+
         FileFinder fileFinder = initFileFinder(false, propertiesNoBasenameFileType);
 
         ArrayList<FileMatch> sources = fileFinder.getSources();
@@ -260,7 +262,7 @@ public class FileFinderTest extends IOTestBase {
         assertEquals(getInputResourcesTestDir().toString() + "/sub2/Localization/Resources.fr.resx", itTargets.next().getPath().toString());
         assertFalse(itTargets.hasNext());
     }
-    
+
     @Test
     public void findMacStrings() throws IOException, FileFinderException {
         FileFinder fileFinder = initFileFinder(false, new MacStringsFileType());
@@ -347,15 +349,42 @@ public class FileFinderTest extends IOTestBase {
         assertFalse(itTargets.hasNext());
     }
 
+    @Test
+    public void findBadSourceDirectory() throws IOException, FileFinderException {
+        FileFinder fileFinder = new FileFinder();
+        fileFinder.setSourceDirectory(Paths.get("something_that_doesnt_exist"));
+
+        try {
+            fileFinder.find();
+            Assert.fail("An exception must thrown when an invalid source directory is provided");
+        } catch (FileFinderException ffe) {
+            assertEquals(ffe.getMessage(), "Invalid source directory: something_that_doesnt_exist");
+        }
+    }
+
+    @Test
+    public void findBadTargetDirectory() throws IOException, FileFinderException {
+        FileFinder fileFinder = new FileFinder();
+        fileFinder.setSourceDirectory(getInputResourcesTestDir().toPath());
+        fileFinder.setTargetDirectory(Paths.get("something_that_doesnt_exist"));
+
+        try {
+            fileFinder.find();
+            Assert.fail("An exception must thrown when an invalid target directory is provided");
+        } catch (FileFinderException ffe) {
+            assertEquals(ffe.getMessage(), "Invalid target directory: something_that_doesnt_exist");
+        }
+    }
+
     FileFinder initFileFinder(boolean targetSameAsSourceDirectory, FileType... fileTypes) throws FileFinderException {
         return initFileFinder(targetSameAsSourceDirectory, null, fileTypes);
     }
-    
+
     FileFinder initFileFinder(boolean targetSameAsSourceDirectory, String sourcePathFilterRegex, FileType... fileTypes) throws FileFinderException {
 
         FileFinder fileFinder = new FileFinder();
         fileFinder.setSourcePathFilterRegex(sourcePathFilterRegex);
-        
+
         if (targetSameAsSourceDirectory) {
             fileFinder.setSourceDirectory(getInputResourcesTestDir().toPath());
             fileFinder.setTargetDirectory(fileFinder.getSourceDirectory());

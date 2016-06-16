@@ -123,7 +123,7 @@ public class CommandHelper {
         try {
             fileFinder.find();
         } catch (FileFinderException e) {
-            throw new CommandException("Cannot scan directory", e);
+            throw new CommandException(e.getMessage(), e);
         }
 
         return fileFinder;
