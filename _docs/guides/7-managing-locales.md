@@ -10,9 +10,9 @@ In this guide, let's go over locales in Mojito in detail.  Every repository is c
 
 We use `mojito-cli` to configure locales in a repository.  Locales can be configured when you create and update repository in Mojito with `-l` parameter.
 
-    mojito repo-create -n MyRepo -d "Project A" -l de-DE es-ES fr-FR ja-JP
+    mojito repo-create -n MyRepo -l de-DE es-ES fr-FR ja-JP -d "Project A" 
 
-    mojito repo-update -n MyRepo -l es-ES fr-FR ja-JP zh-CN zh-TW
+    mojito repo-update -n MyRepo -l de-DE es-ES fr-FR ja-JP
 
 
 Mojito requires that the locale name follows BCP 47 syntax with region subtag, in the form of language-region.  See [Mojito Locales]({{ site.github.url }}/docs/refs/mojito-locales/) for the complete list of available locales in Mojito.

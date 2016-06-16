@@ -6,14 +6,14 @@ permalink: /docs/refs/mojito-file-formats/
 ---
 
 
-| Format            | Source Resource File                   |
-|:------------------|:---------------------------------------|
-| Android Strings   | res/values/strings.xml                 |
-| iOS/Mac Strings   | Localizable.strings, InfoPList.strings |
-| Java Properties   | *.properties                           |
-| RESW              | *.resw                                 |
-| RESX              | *.resx                                 |
-| XLIFF             | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
+| Format                             | Source Resource File                   |
+|:-----------------------------------|:---------------------------------------|
+| Android Strings &nbsp;&nbsp;&nbsp; | res/values/strings.xml                 |
+| iOS/Mac Strings                    | Localizable.strings, InfoPList.strings |
+| Java Properties                    | *.properties                           |
+| RESW                               | *.resw                                 |
+| RESX                               | *.resx                                 |
+| XLIFF                              | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
 
 
 ## Android Strings Example
