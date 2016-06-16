@@ -26,7 +26,7 @@ You can override the default user settings. These values are only respected on i
 ### Add new user
 
     mojito user-create  
-        --username ${USERNAME} --password 
+        --username ${USERNAME}
         --surname ${SURNAME}
         --given-name ${GIVEN_NAME} 
         --common-name ${COMMON_NAME}
