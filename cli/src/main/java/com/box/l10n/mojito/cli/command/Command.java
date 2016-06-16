@@ -13,7 +13,7 @@ import java.util.List;
  */
 public abstract class Command {
 
-    @Parameter(names = {"--help", "-h"}, help = true)
+    @Parameter(names = {"--help", "-h"}, help = true, description = "Show help")
     private boolean help;
 
     /**

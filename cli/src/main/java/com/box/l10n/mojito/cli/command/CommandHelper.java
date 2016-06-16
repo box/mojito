@@ -43,7 +43,7 @@ public class CommandHelper {
      * Supported BOM
      */
     private final ByteOrderMark[] boms = {ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE};
-    
+
     @Autowired
     RepositoryClient repositoryClient;
 
@@ -55,7 +55,7 @@ public class CommandHelper {
 
     @Autowired
     ConsoleWriter consoleWriter;
-
+    
     /**
      * @param repositoryName Name of repository
      * @return
@@ -151,7 +151,7 @@ public class CommandHelper {
             throw new CommandException("Cannot get file content for path: " + path.toString(), e);
         }
     }
-    
+
     /**
      * Writes the content into a file using same format as source file
      *
@@ -174,7 +174,7 @@ public class CommandHelper {
             throw new CommandException("Cannot write file content in path: " + path.toString(), e);
         }
     }
-    
+
     /**
      * Writes the content into a file in UTF8
      *

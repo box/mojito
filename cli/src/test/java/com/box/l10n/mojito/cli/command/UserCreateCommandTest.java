@@ -3,6 +3,8 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.internal.DefaultConsole;
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.Console;
+import static com.box.l10n.mojito.cli.command.UserUpdateCommandTest.logger;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
@@ -73,30 +75,26 @@ public class UserCreateCommandTest extends CLITestBase {
         String surname = "Mojito";
         String givenName = "Test";
         String commonName = "Test Mojito " + username;
-        
-        logger.debug("Mocking the console input for password");
-        DefaultConsole mockConsole = mock(DefaultConsole.class);
-        when(mockConsole.readPassword(false)).thenAnswer(new Answer<char[]>() {
+              
+          logger.debug("Mocking the console input for password");
+        Console mockConsole = mock(Console.class);
+        when(mockConsole.readPassword()).thenAnswer(new Answer<String>() {
             @Override
-            public char[] answer(InvocationOnMock invocation) throws Throwable {
-                return "test".toCharArray();
+            public String answer(InvocationOnMock invocation) throws Throwable {
+                return "test";
             }
         });
         
-        Mockito.doCallRealMethod().when(mockConsole).print(anyString());
-        Mockito.doCallRealMethod().when(mockConsole).println(anyString());
         L10nJCommander l10nJCommander = getL10nJCommander();
         UserCreateCommand userCreateCommand = l10nJCommander.getCommand(UserCreateCommand.class);
-        JCommander jCommander = l10nJCommander.jCommander;
-        Field console = jCommander.getClass().getDeclaredField("m_console");
-        console.setAccessible(true);
-        console.set(jCommander, mockConsole);
+        userCreateCommand.console = mockConsole;
+        
         
         logger.debug("Creating user with username: {}", username);
         if (role == null) {
-            l10nJCommander.run("user-create", Param.USERNAME_SHORT, username, Param.PASSWORD_SHORT, Param.SURNAME_SHORT, surname, Param.GIVEN_NAME_SHORT, givenName, Param.COMMON_NAME_SHORT, commonName);
+            l10nJCommander.run("user-create", Param.USERNAME_SHORT, username, Param.SURNAME_SHORT, surname, Param.GIVEN_NAME_SHORT, givenName, Param.COMMON_NAME_SHORT, commonName);
         } else {
-            l10nJCommander.run("user-create", Param.USERNAME_SHORT, username, Param.PASSWORD_SHORT, Param.ROLE_SHORT, role, Param.SURNAME_SHORT, surname, Param.GIVEN_NAME_SHORT, givenName, Param.COMMON_NAME_SHORT, commonName);
+            l10nJCommander.run("user-create", Param.USERNAME_SHORT, username, Param.ROLE_SHORT, role, Param.SURNAME_SHORT, surname, Param.GIVEN_NAME_SHORT, givenName, Param.COMMON_NAME_SHORT, commonName);
         }
         
         assertTrue(outputCapture.toString().contains("created --> user: "));
