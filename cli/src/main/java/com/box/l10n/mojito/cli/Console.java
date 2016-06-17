@@ -72,4 +72,15 @@ public class Console {
         }
     }
 
+    /**
+     * Reads a password from the system console.
+     *
+     * @return the password
+     * @throws CommandException if system console is not available
+     */
+    public String readPassword() throws CommandException {
+        char[] readPassword = getSystemConsole().readPassword();
+        return new String(readPassword);
+    }
+
 }

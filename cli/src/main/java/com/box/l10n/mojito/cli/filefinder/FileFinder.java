@@ -97,6 +97,10 @@ public class FileFinder {
         this.sourcePathFilterRegex = sourcePathFilterRegex;
     }
 
+    public List<FileType> getFileTypes() {
+        return fileTypes;
+    }
+
     /**
      * Sets the types of file to search for
      *

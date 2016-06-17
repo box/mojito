@@ -59,10 +59,10 @@ public class Param {
     public static final String USERNAME_LONG = "--username";
     public static final String USERNAME_SHORT = "-un";
     public static final String USERNAME_DESCRIPTION = "Username of user";
-    
+ 
     public static final String PASSWORD_LONG = "--password";
     public static final String PASSWORD_SHORT = "-pw";
-    public static final String PASSWORD_DESCRIPTION = "Password";
+    public static final String PASSWORD_DESCRIPTION = "Prompt for user password";
     
     public static final String SURNAME_LONG = "--surname";
     public static final String SURNAME_SHORT = "-sn";

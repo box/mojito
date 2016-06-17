@@ -89,12 +89,10 @@ public class PullCommand extends Command {
                 
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
-        commandHelper.initializeFileType(fileType, sourceLocale);
-        
         setRepositoryLocalesWithoutRootLocale(repository);
         setLocaleMapping(localeMappingParam);
         
-        for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourcePathFilterRegex)) {
+        for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
 
             consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
 

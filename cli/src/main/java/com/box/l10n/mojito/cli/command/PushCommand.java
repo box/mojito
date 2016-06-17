@@ -72,14 +72,12 @@ public class PushCommand extends Command {
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam);
 
-        commandHelper.initializeFileType(fileType, sourceLocale);
-
         consoleWriter.newLine().a("Push assets to repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
 
-        ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourcePathFilterRegex);
+        ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
         Set<Long> usedAssetIds = new HashSet<>();
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {

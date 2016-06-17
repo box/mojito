@@ -1,20 +1,16 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.internal.DefaultConsole;
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.Console;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
-import java.lang.reflect.Field;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-import static org.mockito.Matchers.anyString;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.mockito.invocation.InvocationOnMock;
@@ -96,27 +92,21 @@ public class UserUpdateCommandTest extends CLITestBase {
         User user = createTestUserUsingUserService(username, null);
         
         logger.debug("Mocking the console input for password");
-        DefaultConsole mockConsole = mock(DefaultConsole.class);
-        when(mockConsole.readPassword(false)).thenAnswer(new Answer<char[]>() {
+        Console mockConsole = mock(Console.class);
+        when(mockConsole.readPassword()).thenAnswer(new Answer<String>() {
             @Override
-            public char[] answer(InvocationOnMock invocation) throws Throwable {
-                return "test".toCharArray();
+            public String answer(InvocationOnMock invocation) throws Throwable {
+                return "test";
             }
         });
         
-        Mockito.doCallRealMethod().when(mockConsole).print(anyString());
-        Mockito.doCallRealMethod().when(mockConsole).println(anyString());
         L10nJCommander l10nJCommander = getL10nJCommander();
-        UserCreateCommand userCreateCommand = l10nJCommander.getCommand(UserCreateCommand.class);
-        JCommander jCommander = l10nJCommander.jCommander;
-        Field console = jCommander.getClass().getDeclaredField("m_console");
-        console.setAccessible(true);
-        console.set(jCommander, mockConsole);
+        UserUpdateCommand userUpdateCommand = l10nJCommander.getCommand(UserUpdateCommand.class);
+        userUpdateCommand.console = mockConsole;
         
         l10nJCommander.run(
                 "user-update",
-                Param.USERNAME_SHORT, user.getUsername(),
-                Param.PASSWORD_SHORT
+                Param.USERNAME_SHORT, user.getUsername()
         );
         assertTrue(outputCapture.toString().contains("updated --> user: "));
         
