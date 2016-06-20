@@ -4,7 +4,6 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
-import com.box.l10n.mojito.entity.UpdateStatistics;
 import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -51,9 +50,9 @@ public class RepositoryStatisticService {
 
     @Autowired
     EntityManager entityManager;
-
+    
     @Autowired
-    UpdateStatisticsRepository updateStatisticsRepository;
+    RepositoryStatisticsUpdatedReactor repositoryStatisticsUpdatedReactor;
 
     /**
      * Updates the {@link RepositoryStatistic} of a given repository.
@@ -162,12 +161,7 @@ public class RepositoryStatisticService {
         return repositoryLocaleStatistic;
     }
 
-    @Transactional
-    public void setRepositoryStatsOutOfDate(Long repositoryId) {
-        UpdateStatistics updateStatistics = new UpdateStatistics();
-        updateStatistics.setRepository(repositoryRepository.findOne(repositoryId));
-        updateStatistics.setTimeToUpdate(DateTime.now());
-        updateStatisticsRepository.save(updateStatistics);
+    public void generateRepositoryStatsOutOfDateEvent(Long repositoryId) {
+        repositoryStatisticsUpdatedReactor.generateEvent(repositoryId);
     }
-
 }

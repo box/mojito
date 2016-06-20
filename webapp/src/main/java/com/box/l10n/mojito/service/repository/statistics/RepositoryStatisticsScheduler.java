@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,11 +61,7 @@ public class RepositoryStatisticsScheduler {
     @Scheduled(fixedDelay = 1000)
     public void updateStatisticsForAllReposiotries() {
         for (Long repositoryId : updateStatisticsRepository.findRepositoryIds()) {
-            try {
-                updateRepositoryStatistics(repositoryId);
-            } catch (JpaSystemException ex) {
-                logger.debug("There was error updating statistics for repository " + repositoryId);
-            }
+            updateRepositoryStatistics(repositoryId);
         }
     }
 

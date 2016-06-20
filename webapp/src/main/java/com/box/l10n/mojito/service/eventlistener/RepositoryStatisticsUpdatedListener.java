@@ -20,9 +20,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Sets repository statistics outdated when the events that requires
- * repository statistics to re-compute occurs.
- * 
+ * Sets repository statistics outdated when the events that requires repository
+ * statistics to re-compute occurs.
+ *
  * @author jyi
  */
 @Component
@@ -51,7 +51,7 @@ public class RepositoryStatisticsUpdatedListener implements PostInsertEventListe
             logger.debug("Repository statistics is outdated because string/translation is added");
         }
 
-        setRepositoryStatistis(repository);
+        setRepositoryStatistisOutOfDate(repository);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class RepositoryStatisticsUpdatedListener implements PostInsertEventListe
             logger.debug("Repository statistics is outdated because asset is updated");
         }
 
-        setRepositoryStatistis(repository);
+        setRepositoryStatistisOutOfDate(repository);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class RepositoryStatisticsUpdatedListener implements PostInsertEventListe
             logger.debug("Repository statistics is outdated because translation is deleted");
         }
 
-        setRepositoryStatistis(repository);
+        setRepositoryStatistisOutOfDate(repository);
     }
 
     @Override
@@ -93,9 +93,9 @@ public class RepositoryStatisticsUpdatedListener implements PostInsertEventListe
         return false;
     }
 
-    private void setRepositoryStatistis(Repository repository) {
+    private void setRepositoryStatistisOutOfDate(Repository repository) {
         if (repository != null) {
-            repositoryStatisticService.setRepositoryStatsOutOfDate(repository.getId());
+            repositoryStatisticService.generateRepositoryStatsOutOfDateEvent(repository.getId());
         }
     }
 }
