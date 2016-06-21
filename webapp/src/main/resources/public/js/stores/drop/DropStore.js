@@ -7,19 +7,15 @@ import DropDataSource from "./DropDataSource";
 class DropStore {
 
     constructor() {
+        /** @type {Drop[]} */
+        this.drops = [];
 
-        /** @type {Drop} */
-        this.onGoingDrops = [];
         /** @type {Number} */
-        this.onGoingCurrentPageNumber;
+        this.currentPageNumber = 0;
+
         /** @type {Boolean} */
-        this.noMoreOnGoingRequestResults;  
-        /** @type {Drop} */
-        this.importedDrops = [];
-        /** @type {Number} */
-        this.importedCurrentPageNumber;
-        /** @type {Boolean} */
-        this.hasMoreImportedRequestResults;
+        this.hasMoreDrops = true;
+
 
         this.bindActions(DropActions);
 
@@ -37,9 +33,9 @@ class DropStore {
      * @param {PageRequestResults} pageRequestResults
      */
     onGetAllInProcessSuccess(pageRequestResults) {
-        this.onGoingDrops = pageRequestResults.results;
-        this.onGoingCurrentPageNumber = pageRequestResults.currentPageNumber;
-        this.hasMoreOnGoingRequestResults = pageRequestResults.hasMoreResults;
+        this.drops = pageRequestResults.results;
+        this.currentPageNumber = pageRequestResults.currentPageNumber;
+        this.hasMoreDrops = pageRequestResults.hasMoreResults;
     }
 
     /**
@@ -53,9 +49,9 @@ class DropStore {
      * @param {PageRequestResults} pageRequestResults
      */
     onGetAllImportedSuccess(pageRequestResults) {
-        this.importedDrops = pageRequestResults.results;
-        this.importedCurrentPageNumber = pageRequestResults.currentPageNumber;
-        this.hasMoreImportedRequestResults = pageRequestResults.hasMoreResults;
+        this.drops = pageRequestResults.results;
+        this.currentPageNumber = pageRequestResults.currentPageNumber;
+        this.hasMoreDrops = pageRequestResults.hasMoreResults;
     }
     
     /**
