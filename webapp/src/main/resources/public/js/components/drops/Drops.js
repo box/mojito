@@ -62,7 +62,16 @@ let Drops = React.createClass({
     componentDidMount() {
         RepositoryActions.getAllRepositories();
         
-        switch (this.state.filter) {
+        this.fetchDrops(this.state.filter);
+    },
+
+    /**
+     * Fetch drops from action given the fitler status.
+     *
+     * @param {Drops.FILTER} filter
+     */
+    fetchDrops(filter) {
+        switch (filter) {
             case Drops.FILTER.IN_PROGRESS:
                 DropActions.getAllInProcess(this.getCurrentPageRequestParam(this.state.currentPageNumber));
                 break;
@@ -128,8 +137,7 @@ let Drops = React.createClass({
         }
 
         this.delayedRequestTimeout = setTimeout(() => {
-            DropActions.getAllInProcess(this.getCurrentPageRequestParam(this.state.currentPageNumber));
-            DropActions.getAllImported(this.getCurrentPageRequestParam(this.state.currentPageNumber));
+            this.fetchDrops(this.state.filter);
         }, delay);
     },
 
@@ -271,11 +279,25 @@ let Drops = React.createClass({
                 break;
             case Drops.FILTER.ALL:
                 result = this.getIntlMessage("drops.all");
+                break;
             default:
                 throw new Error("Unknown filter option");
         }
 
         return result;
+    },
+
+    /**
+     *
+     * @param {Drops.FILTER} eventKey
+     * @param {Object} event
+     */
+    filterDropDownOnSelect(eventKey, event) {
+        this.setState({
+            "filter": eventKey
+        });
+
+        this.fetchDrops(eventKey);
     },
 
     getDropTable() {
@@ -290,10 +312,10 @@ let Drops = React.createClass({
                     {this.getAlert()}
                     {this.getNewRequestButton()}
                     {this.showPagination()}
-                    <DropdownButton title={this.getFilterTitle()} className="pull-right mrm mlm"  bsSize="small">
-                        <MenuItem eventKey="1">{this.getIntlMessage("drops.inProgress")}</MenuItem>
-                        <MenuItem eventKey="2">{this.getIntlMessage("drops.completed")}</MenuItem>
-                        <MenuItem eventKey="2">{this.getIntlMessage("drops.all")}</MenuItem>
+                    <DropdownButton title={this.getFilterTitle()} className="pull-right mrm mlm"  bsSize="small" onSelect={this.filterDropDownOnSelect}>
+                        <MenuItem eventKey={Drops.FILTER.IN_PROGRESS}>{this.getIntlMessage("drops.inProgress")}</MenuItem>
+                        <MenuItem eventKey={Drops.FILTER.COMPLETED}>{this.getIntlMessage("drops.completed")}</MenuItem>
+                        <MenuItem eventKey={Drops.FILTER.ALL}>{this.getIntlMessage("drops.all")}</MenuItem>
                     </DropdownButton>
                 </div>
                 <Table className={tableClass}>
