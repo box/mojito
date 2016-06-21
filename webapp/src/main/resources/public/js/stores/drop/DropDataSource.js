@@ -24,6 +24,16 @@ const DropDataSource = {
         error: DropActions.getAllImportedError
     },
 
+    getAll: {
+        remote(dropStoreState, pageRequestParams) {
+            return DropClient.getDrops(null, null, pageRequestParams.page, pageRequestParams.size).then(function (results) {
+                return new PageRequestResults(results, pageRequestParams.page, results.length == pageRequestParams.size);
+            });
+        },
+        success: DropActions.getAllSuccess,
+        error: DropActions.getAllError
+    },
+
     createNewRequest: {
         remote(dropStoreState, exportDropConfig) {
             return DropClient.exportDrop(exportDropConfig).then(function (results) {

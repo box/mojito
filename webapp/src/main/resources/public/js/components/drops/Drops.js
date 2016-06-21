@@ -62,24 +62,25 @@ let Drops = React.createClass({
     componentDidMount() {
         RepositoryActions.getAllRepositories();
         
-        this.fetchDrops(this.state.filter);
+        this.fetchDrops(this.state.filter, this.state.currentPageNumber);
     },
 
     /**
      * Fetch drops from action given the fitler status.
      *
      * @param {Drops.FILTER} filter
+     * @param {Number} currentPageNumber
      */
-    fetchDrops(filter) {
+    fetchDrops(filter, currentPageNumber) {
         switch (filter) {
             case Drops.FILTER.IN_PROGRESS:
-                DropActions.getAllInProcess(this.getCurrentPageRequestParam(this.state.currentPageNumber));
+                DropActions.getAllInProcess(this.getCurrentPageRequestParam(currentPageNumber));
                 break;
             case Drops.FILTER.COMPLETED:
-                DropActions.getAllImported(this.getCurrentPageRequestParam(this.state.currentPageNumber));
+                DropActions.getAllImported(this.getCurrentPageRequestParam(currentPageNumber));
                 break;
             case Drops.FILTER.ALL:
-                // TODO
+                DropActions.getAll(this.getCurrentPageRequestParam(currentPageNumber));
                 break;
         }
     },
@@ -137,7 +138,7 @@ let Drops = React.createClass({
         }
 
         this.delayedRequestTimeout = setTimeout(() => {
-            this.fetchDrops(this.state.filter);
+            this.fetchDrops(this.state.filter, this.state.currentPageNumber);
         }, delay);
     },
 
@@ -294,10 +295,11 @@ let Drops = React.createClass({
      */
     filterDropDownOnSelect(eventKey, event) {
         this.setState({
-            "filter": eventKey
+            "filter": eventKey,
+            "currentPageNumber": 0
         });
 
-        this.fetchDrops(eventKey);
+        this.fetchDrops(eventKey, 0);
     },
 
     getDropTable() {

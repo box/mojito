@@ -53,6 +53,22 @@ class DropStore {
         this.currentPageNumber = pageRequestResults.currentPageNumber;
         this.hasMoreDrops = pageRequestResults.hasMoreResults;
     }
+
+    /**
+     * @param {PageRequestParams} pageRequestParams
+     */
+    onGetAll(pageRequestParams) {
+        this.getInstance().getAll(pageRequestParams);     
+    }
+
+    /**
+     * @param {PageRequestResults} pageRequestResults
+     */
+    onGetAllSuccess(pageRequestResults) {
+        this.drops = pageRequestResults.results;
+        this.currentPageNumber = pageRequestResults.currentPageNumber;
+        this.hasMoreDrops = pageRequestResults.hasMoreResults;
+    }
     
     /**
      * @param {ExportDropConfig} exportDropConfig
