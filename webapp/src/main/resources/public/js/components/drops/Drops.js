@@ -305,7 +305,15 @@ let Drops = React.createClass({
     getDropTable() {
         let tableClass = "drop-table";
         let rows = this.state.drops
-            .filter(drop => drop.status !== Drop.STATUS_TYPE.CANCELED)
+            .filter(drop => {
+                let toKeep = true;
+
+                if (this.state.filter !== Drops.FILTER.ALL) {
+                    toKeep = drop.status !== Drop.STATUS_TYPE.CANCELED;
+                }
+
+                return toKeep;
+            })
             .map(this.getTableRow);
 
         return (
