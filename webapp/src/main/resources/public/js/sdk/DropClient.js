@@ -5,8 +5,8 @@ import ExportDropConfig from './drop/ExportDropConfig';
 class DropClient extends BaseClient {
 
     /**
-     * @param {int} repoId
-     * @param {boolean} isImported
+     * @param {int|null} repoId
+     * @param {boolean|null} isImported
      * @param {int} page starts at index 0
      * @param {int} size
      * @return {*}

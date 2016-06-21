@@ -1,8 +1,7 @@
 import React from "react";
-import {Alert, Button, ButtonGroup, ButtonToolbar, OverlayTrigger, Table, Tooltip} from "react-bootstrap";
-import {IntlMixin, FormattedDate} from 'react-intl';
+import {Alert, Button, ButtonGroup, ButtonToolbar, DropdownButton, MenuItem, OverlayTrigger, Table, Tooltip} from "react-bootstrap";
+import {IntlMixin, FormattedDate} from "react-intl";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-
 import PageRequestParams from "../../sdk/PageRequestParams";
 import CancelDropConfig from "../../sdk/drop/CancelDropConfig";
 import Drop from "../../sdk/drop/Drop";
@@ -11,7 +10,6 @@ import DropStore from "../../stores/drop/DropStore";
 import ImportDropConfig from "../../sdk/drop/ImportDropConfig";
 import NewDropModal from "./NewDropModal";
 import RepositoryActions from "../../actions/RepositoryActions";
-import RepositoryStore from "../../stores/RepositoryStore";
 
 let Drops = React.createClass({
     mixins: [IntlMixin, FluxyMixin],
@@ -28,28 +26,24 @@ let Drops = React.createClass({
     getInitialState() {
         return {
             /** @type {Drop[]} */
-            "ongoingDrops": [],
-            /** @type {Drop[]} */
-            "importedDrops": [],
+            "drops": [],
+            /** @type {Drops.FILTER} */
+            "filter": Drops.FILTER.IN_PROGRESS,
+            /** @type {Number} */
+            "currentPageNumber": 0,
             /** @type {Boolean} */
-            "isImportedShown": false,
+            "hasMoreDrops": false,
+
             /** @type {Boolean} */
             "isAlertShown": false,
             /** @type {String} */
             "alertMessage": null,
             /** @type {Boolean} */
-            "isNewDropModalShown": false,          
+            "isNewDropModalShown": false,
+
             /** pagination related attributes  */
             /** @type {Number} */
             "pageSize": 10,
-            /** @type {Number} */
-            "onGoingCurrentPageNumber": 0,
-            /** @type {Boolean} */
-            "hasMoreOnGoingRequestResults": false,
-            /** @type {Number} */
-            "importedCurrentPageNumber": 0,
-            /** @type {Boolean} */
-            "hasMoreImportedRequestResults": false
         };
     },
     
@@ -67,8 +61,28 @@ let Drops = React.createClass({
     
     componentDidMount() {
         RepositoryActions.getAllRepositories();
-        DropActions.getAllInProcess(this.getCurrentPageRequestParam(this.state.onGoingCurrentPageNumber)); 
-        DropActions.getAllImported(this.getCurrentPageRequestParam(this.state.importedCurrentPageNumber)); 
+        
+        this.fetchDrops(this.state.filter, this.state.currentPageNumber);
+    },
+
+    /**
+     * Fetch drops from action given the fitler status.
+     *
+     * @param {Drops.FILTER} filter
+     * @param {Number} currentPageNumber
+     */
+    fetchDrops(filter, currentPageNumber) {
+        switch (filter) {
+            case Drops.FILTER.IN_PROGRESS:
+                DropActions.getAllInProcess(this.getCurrentPageRequestParam(currentPageNumber));
+                break;
+            case Drops.FILTER.COMPLETED:
+                DropActions.getAllImported(this.getCurrentPageRequestParam(currentPageNumber));
+                break;
+            case Drops.FILTER.ALL:
+                DropActions.getAll(this.getCurrentPageRequestParam(currentPageNumber));
+                break;
+        }
     },
 
     componentWillUnmount() {
@@ -80,11 +94,11 @@ let Drops = React.createClass({
      */
     onDropStoreUpdated(dropStore) {
 
-        let newReqs = dropStore.onGoingDrops;
+        let drops = dropStore.drops;
 
-        for (let newReq of newReqs) {
-            if (newReq.status == Drop.STATUS_TYPE.SENDING ||
-                newReq.status == Drop.STATUS_TYPE.IMPORTING) {
+        for (let drop of drops) {
+            if (drop.status == Drop.STATUS_TYPE.SENDING ||
+                drop.status == Drop.STATUS_TYPE.IMPORTING) {
                 // Because it's sending, we'll probably get a change of status soon, so let's make a new request again.
                 this.delayGetNewRequests();
                 break;
@@ -92,12 +106,8 @@ let Drops = React.createClass({
         }
 
         this.setState({
-            "ongoingDrops": dropStore.onGoingDrops,
-            "importedDrops": dropStore.importedDrops,       
-            "onGoingCurrentPageNumber": dropStore.onGoingCurrentPageNumber,
-            "hasMoreOnGoingRequestResults": dropStore.hasMoreOnGoingRequestResults,
-            "importedCurrentPageNumber": dropStore.importedCurrentPageNumber,
-            "hasMoreImportedRequestResults": dropStore.hasMoreImportedRequestResults
+            "drops": drops,
+            "hasMoreDrops": dropStore.hasMoreDrops
         });
     },
 
@@ -128,8 +138,7 @@ let Drops = React.createClass({
         }
 
         this.delayedRequestTimeout = setTimeout(() => {
-            DropActions.getAllInProcess(this.getCurrentPageRequestParam(this.state.onGoingCurrentPageNumber)); 
-            DropActions.getAllImported(this.getCurrentPageRequestParam(this.state.importedCurrentPageNumber)); 
+            this.fetchDrops(this.state.filter, this.state.currentPageNumber);
         }, delay);
     },
 
@@ -259,55 +268,65 @@ let Drops = React.createClass({
         );
     },
 
-    /**
-     * Table for the imported drops
-     * @return {JSX}
-     */
-    getImportedTable() {
+    getFilterTitle() {
         let result;
 
-        if (this.state.isImportedShown) {
-            let tableClass = "drop-table imported-drop-table";
-            let rows = this.state.importedDrops
-                .filter(drop => drop.status !== Drop.STATUS_TYPE.CANCELED)
-                .map(this.getTableRow);
-
-            result = (
-                <div>
-                    <div className="drop-title-bar">
-                        <h4 className="mrl title">{this.getIntlMessage("drops.importedRequests.title")}</h4>
-                        {this.showImportedPagination()}
-                    </div>
-                    <Table className={tableClass}>
-                        {this.getTableHeader()}
-                        <tbody>
-                        {rows}
-                        </tbody>
-                    </Table>
-                </div>
-            );
+        switch (this.state.filter) {
+            case Drops.FILTER.IN_PROGRESS:
+                result = this.getIntlMessage("drops.inProgress");
+                break;
+            case Drops.FILTER.COMPLETED:
+                result = this.getIntlMessage("drops.completed");
+                break;
+            case Drops.FILTER.ALL:
+                result = this.getIntlMessage("drops.all");
+                break;
+            default:
+                throw new Error("Unknown filter option");
         }
 
         return result;
     },
 
     /**
-     * Table for the on going drops
-     * @return {JSX}
+     *
+     * @param {Drops.FILTER} eventKey
+     * @param {Object} event
      */
-    getOnGoingTable() {
-        let tableClass = "drop-table ongoing-drop-table";
-        let rows = this.state.ongoingDrops
-            .filter(drop => drop.status !== Drop.STATUS_TYPE.CANCELED)
+    filterDropDownOnSelect(eventKey, event) {
+        this.setState({
+            "filter": eventKey,
+            "currentPageNumber": 0
+        });
+
+        this.fetchDrops(eventKey, 0);
+    },
+
+    getDropTable() {
+        let tableClass = "drop-table";
+        let rows = this.state.drops
+            .filter(drop => {
+                let toKeep = true;
+
+                if (this.state.filter !== Drops.FILTER.ALL) {
+                    toKeep = drop.status !== Drop.STATUS_TYPE.CANCELED;
+                }
+
+                return toKeep;
+            })
             .map(this.getTableRow);
 
         return (
             <div>
                 <div className="drop-title-bar">
-                    <h4 className="mrl title">{this.getIntlMessage("drops.ongoingRequests.title")}</h4>
-                    {this.showOnGoingPagination()}
                     {this.getAlert()}
                     {this.getNewRequestButton()}
+                    {this.showPagination()}
+                    <DropdownButton title={this.getFilterTitle()} className="pull-right mrm mlm"  bsSize="small" onSelect={this.filterDropDownOnSelect}>
+                        <MenuItem eventKey={Drops.FILTER.IN_PROGRESS}>{this.getIntlMessage("drops.inProgress")}</MenuItem>
+                        <MenuItem eventKey={Drops.FILTER.COMPLETED}>{this.getIntlMessage("drops.completed")}</MenuItem>
+                        <MenuItem eventKey={Drops.FILTER.ALL}>{this.getIntlMessage("drops.all")}</MenuItem>
+                    </DropdownButton>
                 </div>
                 <Table className={tableClass}>
                     {this.getTableHeader()}
@@ -318,44 +337,13 @@ let Drops = React.createClass({
             </div>
         );
     },
-
-    /**
-     * @param {Boolean} isGoingToShow True to show Imported. False to hide
-     */
-    onClickShowHideImportedLink(isGoingToShow) {
-        this.setState({
-            isImportedShown: isGoingToShow
-        });
-    },
-
-    /**
-     * Link to show or hide imported drops
-     * @return {XML}
-     */
-    getShowHideImportedLink() {
-        let linkButton;
-
-        if (this.state.isImportedShown) {
-            linkButton = (<Button bsStyle="link" className="pull-right"
-                                  onClick={this.onClickShowHideImportedLink.bind(this, false)}>
-                {this.getIntlMessage("drops.hideImported.link")}
-            </Button>);
-        } else {
-            linkButton = (<Button bsStyle="link" className="pull-right"
-                                  onClick={this.onClickShowHideImportedLink.bind(this, true)}>
-                {this.getIntlMessage("drops.showImported.link")}
-            </Button>);
-        }
-
-        return (<div>{linkButton}</div>);
-    },
     
     /**
      * @return {JSX}
      */
     getNewRequestButton() {
         return (
-            <div>
+            <div className="pull-right mrm mlm">
                 <Button bsStyle="primary" bsSize="small" className="new-request-button"
                         onClick={this.onClickNewRequest}>
                     {this.getIntlMessage("drops.newRequest.btn")}
@@ -429,66 +417,33 @@ let Drops = React.createClass({
         return alert;
     },
 
-    onFetchPreviousOnGoingPageClicked() {
+    onFetchPreviousPageClicked() {
         
-        if (this.state.onGoingCurrentPageNumber > 0) {
-            DropActions.getAllInProcess(this.getPreviousPageRequestParam(this.state.onGoingCurrentPageNumber));  
+        if (this.state.currentPageNumber > 0) {
+            DropActions.getAllInProcess(this.getPreviousPageRequestParam(this.state.currentPageNumber));
         }      
     },
     
-    onFetchNextOnGoingPageClicked() {
+    onFetchNextPageClicked() {
 
-        if (this.state.hasMoreOnGoingRequestResults) {
-            DropActions.getAllInProcess(this.getNextPageRequestParam(this.state.onGoingCurrentPageNumber)); 
-        }
-    },    
-    
-    onFetchPreviousImportedPageClicked() {
-
-        if (this.state.importedCurrentPageNumber > 0) {
-            DropActions.getAllImported(this.getPreviousPageRequestParam(this.state.importedCurrentPageNumber)); 
+        if (this.state.hasMoreDrops) {
+            DropActions.getAllInProcess(this.getNextPageRequestParam(this.state.currentPageNumber));
         }
     },
     
-    onFetchNextImportedPageClicked() {
-
-        if (this.state.hasMoreImportedRequestResults) {
-            DropActions.getAllImported(this.getNextPageRequestParam(this.state.importedCurrentPageNumber));
-        }
-    },
-    
-    showOnGoingPagination() {
-        let previousPageButtonDisabled = this.state.onGoingCurrentPageNumber == 0;
-        let nextPageButtonDisabled = !this.state.hasMoreOnGoingRequestResults;
-        let currentPageNumber = typeof this.state.onGoingCurrentPageNumber === "undefined" ? 0 : this.state.onGoingCurrentPageNumber;
+    showPagination() {
+        let previousPageButtonDisabled = this.state.currentPageNumber == 0;
+        let nextPageButtonDisabled = !this.state.hasMoreDrops;
+        let currentPageNumber = this.state.currentPageNumber;
         return (
-            <div className="drop-pagination">
-                <Button bsSize="small" className="mts mbs" disabled={previousPageButtonDisabled} onClick={this.onFetchPreviousOnGoingPageClicked}>
+            <div className="drop-pagination pull-right mrm mlm">
+                <Button bsSize="small" disabled={previousPageButtonDisabled} onClick={this.onFetchPreviousPageClicked}>
                     <span className="glyphicon glyphicon-chevron-left"></span>
                 </Button>
                 <label className="mls mrs default-label current-pageNumber">
                     {currentPageNumber + 1}
                 </label>
-                <Button bsSize="small" className="mts mbs" disabled={nextPageButtonDisabled} onClick={this.onFetchNextOnGoingPageClicked}>
-                    <span className="glyphicon glyphicon-chevron-right"></span>
-                </Button>
-            </div>
-        );
-    },
-    
-    showImportedPagination() {
-        let previousPageButtonDisabled = this.state.importedCurrentPageNumber == 0;
-        let nextPageButtonDisabled = !this.state.hasMoreImportedRequestResults;
-        let currentPageNumber = typeof this.state.importedCurrentPageNumber === "undefined" ? 0 : this.state.importedCurrentPageNumber;
-        return (
-            <div className="drop-pagination">
-                <Button bsSize="small" className="mts mbs" disabled={previousPageButtonDisabled} onClick={this.onFetchPreviousImportedPageClicked}>
-                    <span className="glyphicon glyphicon-chevron-left"></span>
-                </Button>
-                <label className="mls mrs default-label current-pageNumber">
-                    {currentPageNumber + 1}
-                </label>
-                <Button bsSize="small" className="mts mbs" disabled={nextPageButtonDisabled} onClick={this.onFetchNextImportedPageClicked}>
+                <Button bsSize="small" disabled={nextPageButtonDisabled} onClick={this.onFetchNextPageClicked}>
                     <span className="glyphicon glyphicon-chevron-right"></span>
                 </Button>
             </div>
@@ -498,14 +453,19 @@ let Drops = React.createClass({
     render() {
         return (
             <div>
-                {this.getOnGoingTable()}
-                {this.getShowHideImportedLink()}
-                {this.getImportedTable()}
+                {this.getDropTable()}
                 {this.getNewRequestModal()}
             </div>
         );
     }
 
 });
+
+/** @typedef {Drops.FILTER} Pseudo filter for UI display purpose */
+Drops.FILTER = {
+    "IN_PROGRESS": Symbol(),
+    "COMPLETED": Symbol(),
+    "ALL": Symbol()
+};
 
 export default Drops;
