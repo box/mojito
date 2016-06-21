@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.UpdateStatistics;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import java.util.concurrent.TimeUnit;
@@ -75,9 +76,12 @@ public class RepositoryStatisticsUpdatedReactor {
 
     @Transactional
     public void setRepositoryStatsOutOfDate(Long repositoryId) {
-        UpdateStatistics updateStatistics = new UpdateStatistics();
-        updateStatistics.setRepository(repositoryRepository.findOne(repositoryId));
-        updateStatistics.setTimeToUpdate(DateTime.now());
-        updateStatisticsRepository.save(updateStatistics);
+        Repository repository = repositoryRepository.findOne(repositoryId);
+        if (repository != null) {
+            UpdateStatistics updateStatistics = new UpdateStatistics();
+            updateStatistics.setRepository(repository);
+            updateStatistics.setTimeToUpdate(DateTime.now());
+            updateStatisticsRepository.save(updateStatistics);
+        }
     }
 }

@@ -127,6 +127,11 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-envers</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-hibernate4</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>com.github.pnowy.nc</groupId>

@@ -7,12 +7,12 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
+import org.hibernate.event.spi.PostCommitInsertEventListener;
+import org.hibernate.event.spi.PostCommitUpdateEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.event.spi.PostInsertEvent;
-import org.hibernate.event.spi.PostInsertEventListener;
 import org.hibernate.event.spi.PostUpdateEvent;
-import org.hibernate.event.spi.PostUpdateEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * @author jyi
  */
 @Component
-public class RepositoryStatisticsUpdatedListener implements PostInsertEventListener, PostUpdateEventListener, PostDeleteEventListener {
+public class RepositoryStatisticsUpdatedListener implements PostCommitInsertEventListener, PostCommitUpdateEventListener, PostCommitDeleteEventListener {
 
     /**
      * logger
@@ -44,6 +44,10 @@ public class RepositoryStatisticsUpdatedListener implements PostInsertEventListe
             RepositoryLocale repositoryLocale = (RepositoryLocale) event.getEntity();
             repository = repositoryLocale.getRepository();
             logger.debug("Repository statistics is outdated because locale is added");
+        } else if (event.getEntity() instanceof Asset) {
+            Asset asset = (Asset) event.getEntity();
+            repository = asset.getRepository();
+            logger.debug("Repository statistics is outdated because asset is added");
         } else if (event.getEntity() instanceof TMTextUnitVariant) {
             TMTextUnitVariant tmTextUnitVariant = (TMTextUnitVariant) event.getEntity();
             TMTextUnit tmTextUnit = tmTextUnitVariant.getTmTextUnit();
@@ -90,12 +94,24 @@ public class RepositoryStatisticsUpdatedListener implements PostInsertEventListe
 
     @Override
     public boolean requiresPostCommitHanding(EntityPersister event) {
-        return false;
+        return true;
     }
 
     private void setRepositoryStatistisOutOfDate(Repository repository) {
         if (repository != null) {
             repositoryStatisticService.generateRepositoryStatsOutOfDateEvent(repository.getId());
         }
+    }
+
+    @Override
+    public void onPostDeleteCommitFailed(PostDeleteEvent pde) {
+    }
+
+    @Override
+    public void onPostInsertCommitFailed(PostInsertEvent pie) {
+    }
+
+    @Override
+    public void onPostUpdateCommitFailed(PostUpdateEvent pue) {
     }
 }

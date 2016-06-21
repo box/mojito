@@ -56,7 +56,7 @@ public class Repository extends AuditableEntity {
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @Basic(optional = false)
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__REPOSITORY_STATISTIC__ID"))
     RepositoryStatistic repositoryStatistic;

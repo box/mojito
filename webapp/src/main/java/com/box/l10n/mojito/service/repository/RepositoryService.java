@@ -1,24 +1,30 @@
 package com.box.l10n.mojito.service.repository;
 
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
 import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.entity.TM;
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -643,6 +649,22 @@ public class RepositoryService {
         }
 
         logger.debug("Updated repository with name: {}", repository.getName());
+    }
+
+    @Transactional
+    public List<Repository> getAllRepositoriesWithStatistics(String repositoryName) {
+
+        List<Repository> repositories = repositoryRepository.findAll(
+                where(ifParamNotNull(nameEquals(repositoryName)))
+                .and(deletedEquals(false)),
+                new Sort(Sort.Direction.ASC, "name")
+        );
+
+        for (Repository repository : repositories) {
+            repository.setRepositoryStatistic(repositoryStatisticRepository.findOne(repository.getRepositoryStatistic().getId()));
+        }
+
+        return repositories;
     }
 
 }

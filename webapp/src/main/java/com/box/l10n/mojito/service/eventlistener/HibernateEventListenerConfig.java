@@ -28,9 +28,9 @@ public class HibernateEventListenerConfig {
         EntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();
         SessionFactoryImpl sf = emf.getSessionFactory();
         EventListenerRegistry registry = (EventListenerRegistry)sf.getServiceRegistry().getService(EventListenerRegistry.class);
-        registry.getEventListenerGroup(EventType.POST_INSERT).appendListener(repositoryStatisticsUpdatedListener);
-        registry.getEventListenerGroup(EventType.POST_UPDATE).appendListener(repositoryStatisticsUpdatedListener);
-        registry.getEventListenerGroup(EventType.POST_DELETE).appendListener(repositoryStatisticsUpdatedListener);
+        registry.getEventListenerGroup(EventType.POST_COMMIT_INSERT).appendListener(repositoryStatisticsUpdatedListener);
+        registry.getEventListenerGroup(EventType.POST_COMMIT_UPDATE).appendListener(repositoryStatisticsUpdatedListener);
+        registry.getEventListenerGroup(EventType.POST_COMMIT_DELETE).appendListener(repositoryStatisticsUpdatedListener);
     }
     
 }

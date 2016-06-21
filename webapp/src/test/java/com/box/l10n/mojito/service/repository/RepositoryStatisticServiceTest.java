@@ -1,23 +1,25 @@
 package com.box.l10n.mojito.service.repository;
 
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import com.google.common.collect.Lists;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  *
@@ -39,9 +41,16 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
     @Autowired
     TMService tmService;
 
+    @Autowired
+    RepositoryStatisticRepository repositoryStatisticRepository;
+
+    @Autowired
+    RepositoryLocaleStatisticRepository repositoryLocaleStatisticRepository;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
+    @Transactional
     @Test
     public void testUpdateStatistics() throws Exception {
 
@@ -51,16 +60,20 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         repositoryStatisticService.updateStatistics(tmTestData.repository.getId());
 
         Repository repository = repositoryRepository.findOne(tmTestData.repository.getId());
+        RepositoryStatistic repositoryStatistic = repositoryStatisticRepository.findOne(repository.getRepositoryStatistic().getId());
+        Map<String, RepositoryLocaleStatistic> repositoryLocaleStatistics = new HashMap<>();
+        for (RepositoryLocaleStatistic repositoryLocaleStatistic : repositoryLocaleStatisticRepository.findByRepositoryStatisticId(repositoryStatistic.getId())) {
+            repositoryLocaleStatistics.put(repositoryLocaleStatistic.getLocale().getBcp47Tag(), repositoryLocaleStatistic);
+        }
 
-        checkTextUnitCounts(repository.getRepositoryStatistic());
-
-        ArrayList<RepositoryLocaleStatistic> repositoryLocaleStatistics = Lists.newArrayList(repository.getRepositoryStatistic().getRepositoryLocaleStatistics());
+        checkTextUnitCounts(repositoryStatistic);
 
         int i = 0;
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get(i++), "fr-FR", 1, 1, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get(i++), "fr-CA", 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get(i++), "ja-JP", 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get(i++), "ko-KR", 1, 1, 0, 0);
+
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-CA"), "fr-CA", 0, 0, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-FR"), "fr-FR", 1, 1, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ja-JP"), "ja-JP", 0, 0, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ko-KR"), "ko-KR", 1, 1, 0, 0);
     }
 
     @Transactional
