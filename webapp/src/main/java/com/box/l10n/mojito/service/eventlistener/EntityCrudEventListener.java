@@ -29,12 +29,12 @@ import org.springframework.stereotype.Component;
  * @author jyi
  */
 @Component
-public class RepositoryStatisticsUpdatedListener implements PostCommitInsertEventListener, PostCommitUpdateEventListener, PostCommitDeleteEventListener {
+public class EntityCrudEventListener implements PostCommitInsertEventListener, PostCommitUpdateEventListener, PostCommitDeleteEventListener {
 
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(RepositoryStatisticsUpdatedListener.class);
+    static Logger logger = LoggerFactory.getLogger(EntityCrudEventListener.class);
 
     @Autowired
     RepositoryStatisticService repositoryStatisticService;

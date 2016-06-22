@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.RepositoryStatistic;
-import com.box.l10n.mojito.entity.UpdateStatistics;
+import com.box.l10n.mojito.entity.StatisticsSchedule;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
@@ -49,7 +49,7 @@ public class RepositoryStatisticsScheduler {
     AssetRepository assetRepository;
 
     @Autowired
-    UpdateStatisticsRepository updateStatisticsRepository;
+    StatisticsScheduleRepository statisticsScheduleRepository;
 
     /**
      * Every second, the scheduler looks into
@@ -60,19 +60,19 @@ public class RepositoryStatisticsScheduler {
      */
     @Scheduled(fixedDelay = 1000)
     public void updateStatisticsForAllReposiotries() {
-        for (Long repositoryId : updateStatisticsRepository.findRepositoryIds()) {
+        for (Long repositoryId : statisticsScheduleRepository.findRepositoryIds()) {
             updateRepositoryStatistics(repositoryId);
         }
     }
 
     @Transactional
     private void updateRepositoryStatistics(Long repositoryId) {
-        List<UpdateStatistics> updateStatisticsList = updateStatisticsRepository.findByRepositoryIdAndTimeToUpdateBefore(repositoryId, DateTime.now());
-        if (!updateStatisticsList.isEmpty()) {
-            UpdateStatistics updateStatistics = updateStatisticsList.get(0);
+        List<StatisticsSchedule> statisticsScheduleList = statisticsScheduleRepository.findByRepositoryIdAndTimeToUpdateBefore(repositoryId, DateTime.now());
+        if (!statisticsScheduleList.isEmpty()) {
+            StatisticsSchedule updateStatistics = statisticsScheduleList.get(0);
             logger.info("Translation stats outdated for repository: {}, re-compute", updateStatistics.getRepository().getName());
             repositoryStatisticService.updateStatistics(updateStatistics.getRepository().getId());
-            updateStatisticsRepository.delete(updateStatisticsList);
+            statisticsScheduleRepository.delete(statisticsScheduleList);
         }
     }
 

@@ -21,16 +21,16 @@ public class HibernateEventListenerConfig {
     LocalContainerEntityManagerFactoryBean lcemfb;
     
     @Autowired
-    RepositoryStatisticsUpdatedListener repositoryStatisticsUpdatedListener;
+    EntityCrudEventListener entityCrudEventListener;
 
     @PostConstruct
     public void registerListeners() {
         EntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();
         SessionFactoryImpl sf = emf.getSessionFactory();
         EventListenerRegistry registry = (EventListenerRegistry)sf.getServiceRegistry().getService(EventListenerRegistry.class);
-        registry.getEventListenerGroup(EventType.POST_COMMIT_INSERT).appendListener(repositoryStatisticsUpdatedListener);
-        registry.getEventListenerGroup(EventType.POST_COMMIT_UPDATE).appendListener(repositoryStatisticsUpdatedListener);
-        registry.getEventListenerGroup(EventType.POST_COMMIT_DELETE).appendListener(repositoryStatisticsUpdatedListener);
+        registry.getEventListenerGroup(EventType.POST_COMMIT_INSERT).appendListener(entityCrudEventListener);
+        registry.getEventListenerGroup(EventType.POST_COMMIT_UPDATE).appendListener(entityCrudEventListener);
+        registry.getEventListenerGroup(EventType.POST_COMMIT_DELETE).appendListener(entityCrudEventListener);
     }
     
 }

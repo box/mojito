@@ -17,15 +17,15 @@ import org.joda.time.DateTime;
  */
 @Entity
 @Table(
-        name = "update_statistics",
+        name = "statistics_schedule",
         indexes = {
-            @Index(name = "I__UPDATE_STATISTICS__REPOSITORY_ID", columnList = "repository_id", unique = false)
+            @Index(name = "I__STATISTICS_SCHEDULE__REPOSITORY_ID", columnList = "repository_id", unique = false)
         }
 )
-public class UpdateStatistics extends BaseEntity {
+public class StatisticsSchedule extends BaseEntity {
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__UPDATE_STATISTICS__REPOSITORY_ID"))
+    @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__STATISTICS_SCHEDULE__REPOSITORY_ID"))
     private Repository repository;
 
     @Column(name = "time_to_update")

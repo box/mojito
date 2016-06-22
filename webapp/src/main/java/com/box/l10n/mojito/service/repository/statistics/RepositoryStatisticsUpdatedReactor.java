@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.UpdateStatistics;
+import com.box.l10n.mojito.entity.StatisticsSchedule;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
@@ -39,7 +39,7 @@ public class RepositoryStatisticsUpdatedReactor {
     RepositoryRepository repositoryRepository;
     
     @Autowired
-    UpdateStatisticsRepository updateStatisticsRepository;
+    StatisticsScheduleRepository statisticsScheduleRepository;
 
     private Processor<Long, Long> processor;
     
@@ -61,7 +61,7 @@ public class RepositoryStatisticsUpdatedReactor {
                                 setRepositoryStatsOutOfDate(repositoryId);
                             }
                         });
-                    }
+                    }     
                 });
     }       
 
@@ -78,10 +78,10 @@ public class RepositoryStatisticsUpdatedReactor {
     public void setRepositoryStatsOutOfDate(Long repositoryId) {
         Repository repository = repositoryRepository.findOne(repositoryId);
         if (repository != null) {
-            UpdateStatistics updateStatistics = new UpdateStatistics();
-            updateStatistics.setRepository(repository);
-            updateStatistics.setTimeToUpdate(DateTime.now());
-            updateStatisticsRepository.save(updateStatistics);
+            StatisticsSchedule statisticsSchedule = new StatisticsSchedule();
+            statisticsSchedule.setRepository(repository);
+            statisticsSchedule.setTimeToUpdate(DateTime.now().plusSeconds(1));
+            statisticsScheduleRepository.save(statisticsSchedule);
         }
     }
 }
