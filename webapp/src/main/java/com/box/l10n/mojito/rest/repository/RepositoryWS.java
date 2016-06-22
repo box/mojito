@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.rest.repository;
 
 import com.box.l10n.mojito.entity.Repository;
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
@@ -8,10 +10,13 @@ import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.List;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,7 +73,11 @@ public class RepositoryWS {
     @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public List<Repository> getRepositories(@RequestParam(value = "name", required = false) String repositoryName) {
-        return repositoryService.getAllRepositoriesWithStatistics(repositoryName);
+        return repositoryRepository.findAll(
+                where(ifParamNotNull(nameEquals(repositoryName)))
+                .and(deletedEquals(false)),
+                new Sort(Sort.Direction.ASC, "name")
+        );
     }
 
     /**

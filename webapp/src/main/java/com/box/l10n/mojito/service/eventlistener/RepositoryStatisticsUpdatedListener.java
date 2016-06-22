@@ -7,6 +7,9 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsUpdatedReactor;
+import com.google.common.collect.Sets;
+import java.util.Set;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostCommitInsertEventListener;
 import org.hibernate.event.spi.PostCommitUpdateEventListener;
@@ -36,20 +39,22 @@ public class RepositoryStatisticsUpdatedListener implements PostCommitInsertEven
     @Autowired
     RepositoryStatisticService repositoryStatisticService;
 
+    @Autowired
+    RepositoryStatisticsUpdatedReactor repositoryStatisticsUpdatedReactor;
+
+    private static final Set<String> ENTITY_NAMES = Sets.newHashSet(RepositoryLocale.class.getName(), Asset.class.getName(), TMTextUnitVariant.class.getName(), TMTextUnitCurrentVariant.class.getName());
+
     @Override
     public void onPostInsert(PostInsertEvent event) {
         Repository repository = null;
+        Object entity = event.getEntity();
 
-        if (event.getEntity() instanceof RepositoryLocale) {
-            RepositoryLocale repositoryLocale = (RepositoryLocale) event.getEntity();
+        if (entity instanceof RepositoryLocale) {
+            RepositoryLocale repositoryLocale = (RepositoryLocale) entity;
             repository = repositoryLocale.getRepository();
             logger.debug("Repository statistics is outdated because locale is added");
-        } else if (event.getEntity() instanceof Asset) {
-            Asset asset = (Asset) event.getEntity();
-            repository = asset.getRepository();
-            logger.debug("Repository statistics is outdated because asset is added");
-        } else if (event.getEntity() instanceof TMTextUnitVariant) {
-            TMTextUnitVariant tmTextUnitVariant = (TMTextUnitVariant) event.getEntity();
+        } else if (entity instanceof TMTextUnitVariant) {
+            TMTextUnitVariant tmTextUnitVariant = (TMTextUnitVariant) entity;
             TMTextUnit tmTextUnit = tmTextUnitVariant.getTmTextUnit();
             repository = tmTextUnit.getAsset().getRepository();
             logger.debug("Repository statistics is outdated because string/translation is added");
@@ -61,15 +66,16 @@ public class RepositoryStatisticsUpdatedListener implements PostCommitInsertEven
     @Override
     public void onPostUpdate(PostUpdateEvent event) {
         Repository repository = null;
+        Object entity = event.getEntity();
 
-        if (event.getEntity() instanceof RepositoryLocale) {
-            RepositoryLocale repositoryLocale = (RepositoryLocale) event.getEntity();
+        if (entity instanceof RepositoryLocale) {
+            RepositoryLocale repositoryLocale = (RepositoryLocale) entity;
             repository = repositoryLocale.getRepository();
             logger.debug("Repository statistics is outdated because locale is updated");
-        } else if (event.getEntity() instanceof Asset) {
-            Asset asset = (Asset) event.getEntity();
+        } else if (entity instanceof Asset) {
+            Asset asset = (Asset) entity;
             repository = asset.getRepository();
-            logger.debug("Repository statistics is outdated because asset is updated");
+            logger.info("+++ Repository statistics is outdated because asset is updated");
         }
 
         setRepositoryStatistisOutOfDate(repository);
@@ -78,13 +84,14 @@ public class RepositoryStatisticsUpdatedListener implements PostCommitInsertEven
     @Override
     public void onPostDelete(PostDeleteEvent event) {
         Repository repository = null;
+        Object entity = event.getEntity();
 
-        if (event.getEntity() instanceof RepositoryLocale) {
-            RepositoryLocale repositoryLocale = (RepositoryLocale) event.getEntity();
+        if (entity instanceof RepositoryLocale) {
+            RepositoryLocale repositoryLocale = (RepositoryLocale) entity;
             repository = repositoryLocale.getRepository();
             logger.debug("Repository statistics is outdated because locale is deleted");
-        } else if (event.getEntity() instanceof TMTextUnitCurrentVariant) {
-            TMTextUnitCurrentVariant tmTextUnitCurrentVariant = (TMTextUnitCurrentVariant) event.getEntity();
+        } else if (entity instanceof TMTextUnitCurrentVariant) {
+            TMTextUnitCurrentVariant tmTextUnitCurrentVariant = (TMTextUnitCurrentVariant) entity;
             repository = tmTextUnitCurrentVariant.getTmTextUnit().getAsset().getRepository();
             logger.debug("Repository statistics is outdated because translation is deleted");
         }
@@ -92,19 +99,16 @@ public class RepositoryStatisticsUpdatedListener implements PostCommitInsertEven
         setRepositoryStatistisOutOfDate(repository);
     }
 
-    @Override
-    public boolean requiresPostCommitHanding(EntityPersister event) {
-        return true;
-    }
-
     private void setRepositoryStatistisOutOfDate(Repository repository) {
         if (repository != null) {
-            repositoryStatisticService.generateRepositoryStatsOutOfDateEvent(repository.getId());
+            repositoryStatisticsUpdatedReactor.generateEvent(repository.getId());
         }
     }
 
     @Override
-    public void onPostDeleteCommitFailed(PostDeleteEvent pde) {
+    public boolean requiresPostCommitHanding(EntityPersister ep) {
+        String entityName = ep.getEntityName();
+        return ENTITY_NAMES.contains(entityName);
     }
 
     @Override
@@ -114,4 +118,9 @@ public class RepositoryStatisticsUpdatedListener implements PostCommitInsertEven
     @Override
     public void onPostUpdateCommitFailed(PostUpdateEvent pue) {
     }
+
+    @Override
+    public void onPostDeleteCommitFailed(PostDeleteEvent pde) {
+    }
+
 }

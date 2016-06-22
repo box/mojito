@@ -50,9 +50,6 @@ public class RepositoryStatisticService {
 
     @Autowired
     EntityManager entityManager;
-    
-    @Autowired
-    RepositoryStatisticsUpdatedReactor repositoryStatisticsUpdatedReactor;
 
     /**
      * Updates the {@link RepositoryStatistic} of a given repository.
@@ -161,7 +158,4 @@ public class RepositoryStatisticService {
         return repositoryLocaleStatistic;
     }
 
-    public void generateRepositoryStatsOutOfDateEvent(Long repositoryId) {
-        repositoryStatisticsUpdatedReactor.generateEvent(repositoryId);
-    }
 }
