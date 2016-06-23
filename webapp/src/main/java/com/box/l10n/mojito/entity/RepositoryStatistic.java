@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonView;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.ColumnResult;
@@ -68,11 +70,13 @@ public class RepositoryStatistic extends AuditableEntity {
     /**
      * The number of used text units in the repository
      */
+    @JsonView(View.RepositorySummary.class)
     private Long usedTextUnitCount = 0L;
 
     /**
      * The word count of used text units
      */
+    @JsonView(View.RepositorySummary.class)
     private Long usedTextUnitWordCount = 0L;
 
     /**
@@ -90,6 +94,7 @@ public class RepositoryStatistic extends AuditableEntity {
      */
     private Long uncommentedTextUnitCount = 0L;
 
+    @JsonView(View.RepositorySummary.class)
     @JsonManagedReference
     @OneToMany(mappedBy = "repositoryStatistic", fetch = FetchType.EAGER)
     @OrderBy(value = "locale")

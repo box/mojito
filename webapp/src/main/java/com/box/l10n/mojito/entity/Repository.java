@@ -49,6 +49,7 @@ public class Repository extends AuditableEntity {
     @JsonView(View.IdAndName.class)
     private String name;
 
+    @JsonView(View.RepositorySummary.class)
     @Column(name = "description")
     private String description;
 
@@ -56,10 +57,12 @@ public class Repository extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     private DropExporterType dropExporterType;
 
+    @JsonView(View.RepositorySummary.class)
     @JsonManagedReference
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
 
+    @JsonView(View.RepositorySummary.class)
     @OneToOne(fetch = FetchType.LAZY)
     @Basic(optional = false)
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__REPOSITORY_STATISTIC__ID"))

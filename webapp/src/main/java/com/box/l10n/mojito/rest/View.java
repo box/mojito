@@ -27,4 +27,8 @@ public class View {
      * This is used to get drop entity with minimum fields for summary
      */
     public interface DropSummary extends IdAndNameAndCreated, LocaleSummary, PollableSummary {}
+    /**
+     * This is used to get repository entity with minimum fields for summary
+     */
+    public interface RepositorySummary extends IdAndNameAndCreated, LocaleSummary {}
 }
