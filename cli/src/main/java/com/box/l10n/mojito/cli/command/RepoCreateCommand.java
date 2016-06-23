@@ -31,7 +31,7 @@ public class RepoCreateCommand extends RepoCommand {
     @Parameter(names = {Param.REPOSITORY_NAME_LONG, Param.REPOSITORY_NAME_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_NAME_DESCRIPTION)
     String nameParam;
 
-    @Parameter(names = {Param.REPOSITORY_DESCRIPTION_LONG, Param.REPOSITORY_DESCRIPTION_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION_DESCRIPTION)
+    @Parameter(names = {Param.REPOSITORY_DESCRIPTION_LONG, Param.REPOSITORY_DESCRIPTION_SHORT}, arity = 1, required = false, description = Param.REPOSITORY_DESCRIPTION_DESCRIPTION)
     String descriptionParam;
 
     /**
