@@ -18,6 +18,8 @@ import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -31,6 +33,8 @@ import org.springframework.data.annotation.CreatedBy;
  * @author aloison
  */
 @Entity
+@NamedEntityGraph(name = "Repository.statistics",
+  attributeNodes = @NamedAttributeNode("repositoryStatistic"))
 @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 @Table(name = "repository",
         indexes = {
@@ -56,7 +60,7 @@ public class Repository extends AuditableEntity {
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @Basic(optional = false)
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__REPOSITORY_STATISTIC__ID"))
     RepositoryStatistic repositoryStatistic;

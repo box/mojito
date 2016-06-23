@@ -9,6 +9,7 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -586,7 +587,6 @@ public class RepositoryService {
      * logical delete.
      *
      * @param repository
-     * @throws java.lang.NoSuchFieldException
      */
     @Transactional
     public void deleteRepository(Repository repository) {

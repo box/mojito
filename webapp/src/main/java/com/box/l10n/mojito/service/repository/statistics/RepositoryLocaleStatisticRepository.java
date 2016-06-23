@@ -1,7 +1,8 @@
-package com.box.l10n.mojito.service.repository;
+package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -14,4 +15,5 @@ public interface RepositoryLocaleStatisticRepository extends JpaRepository<Repos
 
     RepositoryLocaleStatistic findByRepositoryStatisticIdAndLocaleId(Long repositoryStatisticId, Long localeId);
 
+    Set<RepositoryLocaleStatistic> findByRepositoryStatisticId(Long repositoryStatisticId);
 }

@@ -13,6 +13,7 @@ import com.box.l10n.mojito.service.tm.TMImportService;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.List;
 import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import static org.springframework.data.jpa.domain.Specifications.where;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author wyau

@@ -51,7 +51,8 @@ import org.hibernate.annotations.NamedNativeQuery;
                 + "   inner join repository_locale rl on (rl.locale_id = tuv.locale_id and rl.repository_id = a.repository_id) "
                 + "where "
                 + "   map.id is not null "
-                + "   and map.asset_extraction_id = a.last_successful_asset_extraction_id"
+                + "   and map.asset_extraction_id = a.last_successful_asset_extraction_id "
+                + "   and a.deleted = false "
                 + "   and rl.id = ?1 ",
                 resultSetMapping = "RepositoryLocaleStatistic.computeLocaleStatistics"
         )

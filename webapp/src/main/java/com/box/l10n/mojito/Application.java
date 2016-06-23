@@ -2,6 +2,8 @@ package com.box.l10n.mojito;
 
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.system.ApplicationPidFileWriter;
@@ -18,7 +20,6 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import java.io.IOException;
 
 @Configuration
 @ComponentScan(basePackageClasses = Application.class)
@@ -67,6 +68,7 @@ public class Application {
         jomfb.setAutoDetectFields(false);
         jomfb.setIndentOutput(shouldIndentJacksonOutput);
         jomfb.afterPropertiesSet();
+        jomfb.getObject().registerModule(new Hibernate4Module());
 
         mjhmc.setObjectMapper(jomfb.getObject());
         return mjhmc;
