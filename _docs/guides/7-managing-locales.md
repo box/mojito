@@ -10,7 +10,7 @@ In this guide, let's go over locales in Mojito in detail.  Every repository is c
 
 We use `mojito-cli` to configure locales in a repository.  Locales can be configured when you create and update repository in Mojito with `-l` parameter.
 
-    mojito repo-create -n MyRepo -l de-DE es-ES fr-FR ja-JP -d "Project A" 
+    mojito repo-create -n MyRepo -l de-DE es-ES fr-FR ja-JP
 
     mojito repo-update -n MyRepo -l de-DE es-ES fr-FR ja-JP
 
@@ -38,7 +38,7 @@ The above example adds English in United Kingdome (en-GB) to `MyRepo` repository
 If the language is the same but the region is different, majority of the translations can be shared.  For example, French in Switzerland (fr-CH) can share translations of French in France (fr-FR).  In such case, you can set up locale inheritance so that translations of parent locale can be re-used as translations of child locale.  The translation request only includes parent locales.
 
 ```bash
-    mojito repo-update -n MyRepo -l "(fr-CH)->fr-FR" es-ES fr-FR ja-JP zh-CN zh-TW
+    mojito repo-update -n MyRepo -l "(fr-CH)->fr-FR" fr-FR ja-JP zh-CN zh-TW
 ```
 
 The above example makes French in Switzerland (fr-CH) the child locale of French in Franch (fr-FR).

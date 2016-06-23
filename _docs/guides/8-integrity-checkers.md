@@ -8,12 +8,12 @@ permalink: /docs/guides/integrity-checkers/
 In this guide, let's go over the integrity checkers in Mojito in detail.  Integrity checkers perform checks on the translations against the source strings and reject the translations with errors.  This prevents translations with errors from being used in localized resource files which can lead to build faiilure or errors in application.
 
 
-We use `mojito-cli` to configure integrity checkers in a repository.  Integrity checkers can be configured when you create and update repository in Mojito with `-it` parameter.  You can set integrity checker for each file extension of resource files.
+We use `mojito-cli` to configure integrity checkers in a repository.  Integrity checkers can be configured when you create and update repository in Mojito with `-it` parameter.  You can set integrity checker for each file extension of resource files.  For example, `-it resw:COMPOSITE_FORMAT,xlf:PRINTF_LIKE`.
 
 ```bash
-    mojito repo-create -n MyRepo -it "properties:MESSAGE_FORMAT" -l de-DE es-ES fr-FR ja-JP -d "Project A"
+    mojito repo-create -n MyRepo -it "properties:MESSAGE_FORMAT" -l de-DE es-ES
     
-    mojito repo-update -n MyRepo -it "properties:MESSAGE_FORMAT" -l de-DE es-ES fr-FR ja-JP
+    mojito repo-update -n MyRepo -it "properties:MESSAGE_FORMAT" -l de-DE es-ES
 ```
 
 ### Available Integrity Checkers
