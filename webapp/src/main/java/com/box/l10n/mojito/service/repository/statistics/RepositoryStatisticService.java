@@ -50,7 +50,7 @@ public class RepositoryStatisticService {
 
     @Autowired
     EntityManager entityManager;
-
+   
     /**
      * Updates the {@link RepositoryStatistic} of a given repository.
      *
@@ -75,16 +75,18 @@ public class RepositoryStatisticService {
         repositoryStatistic.setUsedTextUnitCount(newRepositoryStatistics.getUsedTextUnitCount());
         repositoryStatistic.setUsedTextUnitWordCount(newRepositoryStatistics.getUsedTextUnitWordCount());
         repositoryStatistic.setUnusedTextUnitCount(newRepositoryStatistics.getUnusedTextUnitCount());
-        repositoryStatistic.setUsedTextUnitWordCount(newRepositoryStatistics.getUnusedTextUnitWordCount());
+        repositoryStatistic.setUnusedTextUnitWordCount(newRepositoryStatistics.getUnusedTextUnitWordCount());
         //TODO(P1) This should be updated by spring but it's not, needs review
         repositoryStatistic.setLastModifiedDate(DateTime.now());
 
         repositoryStatisticRepository.save(repositoryStatistic);
-
+      
         logger.debug("Update locale statistics");
         for (RepositoryLocale repositoryLocale : repositoryService.getRepositoryLocalesWithoutRootLocale(repository)) {
             updateLocaleStatistics(repositoryLocale, repositoryStatistic);
         }
+        
+        logger.debug("Stats updated"); 
     }
 
     /**
@@ -111,9 +113,13 @@ public class RepositoryStatisticService {
         RepositoryLocaleStatistic newRepositoryLocaleStatistic = computeLocaleStatistics(repositoryLocale.getId());
 
         repositoryLocaleStatistic.setIncludeInFileCount(newRepositoryLocaleStatistic.getIncludeInFileCount());
+        repositoryLocaleStatistic.setIncludeInFileWordCount(newRepositoryLocaleStatistic.getIncludeInFileWordCount());
         repositoryLocaleStatistic.setReviewNeededCount(newRepositoryLocaleStatistic.getReviewNeededCount());
+        repositoryLocaleStatistic.setReviewNeededWordCount(newRepositoryLocaleStatistic.getReviewNeededWordCount());
         repositoryLocaleStatistic.setTranslatedCount(newRepositoryLocaleStatistic.getTranslatedCount());
+        repositoryLocaleStatistic.setTranslatedWordCount(newRepositoryLocaleStatistic.getTranslatedWordCount());
         repositoryLocaleStatistic.setTranslationNeededCount(newRepositoryLocaleStatistic.getTranslationNeededCount());
+        repositoryLocaleStatistic.setTranslationNeededWordCount(newRepositoryLocaleStatistic.getTranslationNeededWordCount());
 
         repositoryLocaleStatisticRepository.save(repositoryLocaleStatistic);
     }

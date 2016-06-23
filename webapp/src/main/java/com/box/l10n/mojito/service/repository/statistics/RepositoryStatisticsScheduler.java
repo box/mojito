@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author jaurambault
  */
-//TODO(P0) this profile was actually removed! hence this is running on CI
 @Profile("!disablescheduling")
 @Component
 public class RepositoryStatisticsScheduler {

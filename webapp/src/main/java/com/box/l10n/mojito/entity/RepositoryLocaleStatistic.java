@@ -27,22 +27,29 @@ import org.hibernate.annotations.NamedNativeQuery;
                     targetClass = RepositoryLocaleStatistic.class,
                     columns = {
                         @ColumnResult(name = "translated_count", type = Long.class),
+                        @ColumnResult(name = "translated_word_count", type = Long.class),
                         @ColumnResult(name = "translation_needed_count", type = Long.class),
+                        @ColumnResult(name = "translation_needed_word_count", type = Long.class),
                         @ColumnResult(name = "review_needed_count", type = Long.class),
-                        @ColumnResult(name = "included_in_localized_file_count", type = Long.class)
+                        @ColumnResult(name = "review_needed_word_count", type = Long.class),
+                        @ColumnResult(name = "included_in_localized_file_count", type = Long.class),
+                        @ColumnResult(name = "included_in_localized_file_word_count", type = Long.class)
                     }
             )
         }
 )
 @NamedNativeQueries(
-        //TODO(P1) Need to add word count
         @NamedNativeQuery(name = "RepositoryLocaleStatistic.computeLocaleStatistics",
                 query
                 = "select "
                 + "   coalesce(count(*), 0) as translated_count, "
+                + "   coalesce(sum(tu.word_count), 0) as translated_word_count, "
                 + "   coalesce(sum(case when (tuv.status = 'TRANSLATION_NEEDED') then 1 else 0 end), 0) as translation_needed_count, "
+                + "   coalesce(sum(case when (tuv.status = 'TRANSLATION_NEEDED') then tu.word_count else 0 end), 0) as translation_needed_word_count, "
                 + "   coalesce(sum(case when (tuv.status = 'REVIEW_NEEDED'     ) then 1 else 0 end), 0) as review_needed_count, "
-                + "   coalesce(sum(case when tuv.included_in_localized_file      then 1 else 0 end), 0) as included_in_localized_file_count "
+                + "   coalesce(sum(case when (tuv.status = 'REVIEW_NEEDED'     ) then tu.word_count else 0 end), 0) as review_needed_word_count, "
+                + "   coalesce(sum(case when tuv.included_in_localized_file      then 1 else 0 end), 0) as included_in_localized_file_count, "
+                + "   coalesce(sum(case when tuv.included_in_localized_file      then tu.word_count else 0 end), 0) as included_in_localized_file_word_count "
                 + "from tm_text_unit tu "
                 + "   inner join asset a on a.id = tu.asset_id "
                 + "   left outer join asset_text_unit_to_tm_text_unit map on tu.id = map.tm_text_unit_id "
@@ -74,10 +81,21 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     private Long translatedCount = 0L;
 
     /**
+     * Word count of translated text unit (includes needs review and rejected)
+     */
+    private Long translatedWordCount = 0L;
+
+    /**
      * Number of text unit with status
      * {@link TMTextUnitVariant.Status#TRANSLATION_NEEDED}
      */
     private Long translationNeededCount = 0L;
+
+    /**
+     * Word count of text unit with status
+     * {@link TMTextUnitVariant.Status#TRANSLATION_NEEDED}
+     */
+    private Long translationNeededWordCount = 0L;
 
     /**
      * Number of translations with status
@@ -86,18 +104,42 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     private Long reviewNeededCount = 0L;
 
     /**
+     * Word count of translations with status
+     * {@link TMTextUnitVariant.Status#REVIEW_NEEDED}
+     */
+    private Long reviewNeededWordCount = 0L;
+
+    /**
      * Number of translations that are included in files
      */
     private Long includeInFileCount = 0L;
 
+    /**
+     * Word count of translations that are included in files
+     */
+    private Long includeInFileWordCount = 0L;
+
     public RepositoryLocaleStatistic() {
     }
 
-    public RepositoryLocaleStatistic(Long translatedCount, Long translationNeededCount, Long reviewNeededCount, Long includeInFileCount) {
+    public RepositoryLocaleStatistic(
+            Long translatedCount,
+            Long translatedWordCount,
+            Long translationNeededCount,
+            Long translationNeededWordCount,
+            Long reviewNeededCount,
+            Long reviewNeededWordCount,
+            Long includeInFileCount,
+            Long includeInFileWordCount) {
+
         this.translatedCount = translatedCount;
+        this.translatedWordCount = translatedWordCount;
         this.translationNeededCount = translationNeededCount;
+        this.translationNeededWordCount = translationNeededWordCount;
         this.reviewNeededCount = reviewNeededCount;
+        this.reviewNeededWordCount = reviewNeededWordCount;
         this.includeInFileCount = includeInFileCount;
+        this.includeInFileWordCount = includeInFileWordCount;
     }
 
     @JsonIgnore
@@ -148,8 +190,6 @@ public class RepositoryLocaleStatistic extends BaseEntity {
         this.translatedCount = translatedCount;
     }
 
-    
-    
     /**
      * @return the reviewNeededCount
      */
@@ -190,6 +230,38 @@ public class RepositoryLocaleStatistic extends BaseEntity {
      */
     public void setTranslationNeededCount(Long translationNeededCount) {
         this.translationNeededCount = translationNeededCount;
+    }
+
+    public Long getTranslatedWordCount() {
+        return translatedWordCount;
+    }
+
+    public void setTranslatedWordCount(Long translatedWordCount) {
+        this.translatedWordCount = translatedWordCount;
+    }
+
+    public Long getTranslationNeededWordCount() {
+        return translationNeededWordCount;
+    }
+
+    public void setTranslationNeededWordCount(Long translationNeededWordCount) {
+        this.translationNeededWordCount = translationNeededWordCount;
+    }
+
+    public Long getReviewNeededWordCount() {
+        return reviewNeededWordCount;
+    }
+
+    public void setReviewNeededWordCount(Long reviewNeededWordCount) {
+        this.reviewNeededWordCount = reviewNeededWordCount;
+    }
+
+    public Long getIncludeInFileWordCount() {
+        return includeInFileWordCount;
+    }
+
+    public void setIncludeInFileWordCount(Long includeInFileWordCount) {
+        this.includeInFileWordCount = includeInFileWordCount;
     }
 
 }
