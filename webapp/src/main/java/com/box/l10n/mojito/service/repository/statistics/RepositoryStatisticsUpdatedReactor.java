@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.repository.statistics;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.StatisticsSchedule;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.google.common.collect.Sets;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import org.joda.time.DateTime;
@@ -46,23 +48,15 @@ public class RepositoryStatisticsUpdatedReactor {
     @PostConstruct
     private void createProcessor() {
         processor = RingBufferProcessor.create();
-
         Stream stream = Streams.wrap(processor);
-        stream.window(1, TimeUnit.SECONDS)
-                .consume(new Consumer<Stream>() {
-
-                    @Override
-                    public void accept(Stream s) {
-
-                        s.distinct().consume(new Consumer<Long>() {
-
-                            @Override
-                            public void accept(Long repositoryId) {
-                                setRepositoryStatsOutOfDate(repositoryId);
-                            }
-                        });
-                    }     
-                });
+        stream.buffer(1, TimeUnit.SECONDS).consume(new Consumer<List<Long>>() {
+            @Override
+            public void accept(List<Long> repositoryIds) {
+                for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
+                    setRepositoryStatsOutOfDate(repositoryId);
+                }
+            }
+        });
     }       
 
     /**
@@ -80,7 +74,7 @@ public class RepositoryStatisticsUpdatedReactor {
         if (repository != null) {
             StatisticsSchedule statisticsSchedule = new StatisticsSchedule();
             statisticsSchedule.setRepository(repository);
-            statisticsSchedule.setTimeToUpdate(DateTime.now().plusSeconds(1));
+            statisticsSchedule.setTimeToUpdate(DateTime.now());
             statisticsScheduleRepository.save(statisticsSchedule);
         }
     }

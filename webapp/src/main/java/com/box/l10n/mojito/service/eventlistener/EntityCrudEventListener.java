@@ -75,7 +75,7 @@ public class EntityCrudEventListener implements PostCommitInsertEventListener, P
         } else if (entity instanceof Asset) {
             Asset asset = (Asset) entity;
             repository = asset.getRepository();
-            logger.info("+++ Repository statistics is outdated because asset is updated");
+            logger.debug("Repository statistics is outdated because asset is updated");
         }
 
         setRepositoryStatistisOutOfDate(repository);
