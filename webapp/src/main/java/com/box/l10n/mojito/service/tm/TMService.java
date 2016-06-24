@@ -23,7 +23,6 @@ import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
-import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.UnescapeStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
@@ -556,8 +555,6 @@ public class TMService {
         driver.addStep(new RawDocumentToFilterEventsStep(new XLIFFFilter()));
 
         driver.addStep(getConfiguredQualityStep());
-        //TODO(P0) Should we remove this?
-        driver.addStep(new UnescapeStep());
         IntegrityCheckStep integrityCheckStep = new IntegrityCheckStep();
         driver.addStep(integrityCheckStep);
 
