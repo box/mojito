@@ -21,6 +21,7 @@ import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
+import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -87,6 +88,9 @@ public class TMService {
 
     @Autowired
     XliffUtils xliffUtils;
+    
+    @Autowired
+    WordCountService wordCountService;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -133,9 +137,11 @@ public class TMService {
         tmTextUnit.setContent(content);
         tmTextUnit.setComment(comment);
         tmTextUnit.setMd5(computeTMTextUnitMD5(name, content, comment));
+        //TODO(P1) Compute word count for english, root locale is hard coded is {@link RepositoryService}
+        tmTextUnit.setWordCount(wordCountService.getEnglishWordCount(content));
         tmTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         tmTextUnit.setCreatedDate(createdDate);
-
+        
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
         logger.trace("TMTextUnit saved");
 

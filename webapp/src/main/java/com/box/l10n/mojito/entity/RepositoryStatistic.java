@@ -45,14 +45,13 @@ import org.springframework.data.annotation.CreatedBy;
         }
 )
 @NamedNativeQueries(
-        //TODO(P1) Need to add word count
         @NamedNativeQuery(name = "RepositoryStatistic.computeBaseStatistics",
                 query
                 = "select "
                 + "   coalesce(sum(case when map.id is not null and a.deleted = false then 1 else 0 end), 0) as usedTextUnitCount, "
-                + "   0 as usedTextUnitWordCount, "
+                + "   coalesce(sum(case when map.id is not null and a.deleted = false then tu.word_count else 0 end), 0) as usedTextUnitWordCount, "
                 + "   coalesce(sum(case when map.id is null or a.deleted = true then 1 else 0 end), 0) as unusedTextUnitCount, "
-                + "   0 as unusedTextUnitWordCount, "
+                + "   coalesce(sum(case when map.id is null or a.deleted = true then tu.word_count else 0 end), 0) as unusedTextUnitWordCount, "
                 + "   coalesce(sum(case when (map.id is not null and tu.comment is null) then 1 else 0 end), 0) as uncommentedTextUnitCount "
                 + " "
                 + "from tm_text_unit tu "
@@ -107,7 +106,7 @@ public class RepositoryStatistic extends AuditableEntity {
     public void setCreatedByUser(User createdByUser) {
         this.createdByUser = createdByUser;
     }
- 
+
     public RepositoryStatistic() {
     }
 
