@@ -8,11 +8,6 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +17,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class RepoCreateCommandTest extends CLITestBase {
 
@@ -68,7 +68,7 @@ public class RepoCreateCommandTest extends CLITestBase {
 
         if (hasIntegrityChecker) {
             args.add(RepoCreateCommand.INTEGRITY_CHECK_SHORT_PARAM);
-            args.add("properties:MESSAGE_FORMAT");
+            args.add("properties:MESSAGE_FORMAT,properties:TRAILING_WHITESPACE");
         }
 
         getL10nJCommander().run(args.toArray(new String[args.size()]));
@@ -103,11 +103,13 @@ public class RepoCreateCommandTest extends CLITestBase {
 
         if (expectIntegrityChecker) {
             logger.debug("Asserting 1 integrity checker");
-            assertEquals(1, repository.getAssetIntegrityCheckers().size());
+            assertEquals(2, repository.getAssetIntegrityCheckers().size());
 
-            AssetIntegrityChecker assetIntegrityChecker = repository.getAssetIntegrityCheckers().iterator().next();
-            assertEquals("properties", assetIntegrityChecker.getAssetExtension());
-            assertEquals(IntegrityCheckerType.MESSAGE_FORMAT, assetIntegrityChecker.getIntegrityCheckerType());
+            for (AssetIntegrityChecker assetIntegrityChecker : repository.getAssetIntegrityCheckers()) {
+                assertEquals("properties", assetIntegrityChecker.getAssetExtension());
+                assertTrue(IntegrityCheckerType.MESSAGE_FORMAT == assetIntegrityChecker.getIntegrityCheckerType()
+                        || IntegrityCheckerType.TRAILING_WHITESPACE == assetIntegrityChecker.getIntegrityCheckerType());
+            }
 
         }
     }
