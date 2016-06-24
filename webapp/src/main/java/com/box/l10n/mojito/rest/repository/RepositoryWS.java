@@ -67,15 +67,29 @@ public class RepositoryWS {
     }
 
     /**
-     * Gets all the repositories matching the given params
+     * Gets all undeleted repositories with @{link View.RepositorySummary}
      *
-     * @param repositoryName To filer on the name. Can be {@code null}
      * @return List of {@link Repository}s
      */
     @JsonView(View.RepositorySummary.class)
     @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public List<Repository> getRepositories(@RequestParam(value = "name", required = false) String repositoryName) {
+    public List<Repository> getRepositories() {
+        return repositoryRepository.findAll(
+                where(deletedEquals(false)),
+                new Sort(Sort.Direction.ASC, "name")
+        );
+    }
+
+    /**
+     * Gets repository matching the given name
+     *
+     * @param repositoryName To filer on the name. Can be {@code null}
+     * @return List of {@link Repository}s
+     */
+    @RequestMapping(value = "/api/repositories", params = "name", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public List<Repository> getRepositories(@RequestParam(value = "name", required = true) String repositoryName) {
         return repositoryRepository.findAll(
                 where(ifParamNotNull(nameEquals(repositoryName)))
                 .and(deletedEquals(false)),

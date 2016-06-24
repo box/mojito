@@ -135,7 +135,6 @@ public class RepositoryWSTest extends WSTestBase {
         assertEquals(expectedRepository.getDescription(), actualRepository.getDescription());
         assertTrue(actualRepository.getRepositoryLocales().size() > 0);
         assertEquals(expectedRepository.getRepositoryLocales().size(), actualRepository.getRepositoryLocales().size());
-        assertEquals(expectedRepository.getDeleted(), actualRepository.getDeleted());
         
         ArrayList<Locale> actualLocales = new ArrayList<>();
         for (com.box.l10n.mojito.rest.entity.RepositoryLocale repositoryLocale : actualRepository.getRepositoryLocales()) {
