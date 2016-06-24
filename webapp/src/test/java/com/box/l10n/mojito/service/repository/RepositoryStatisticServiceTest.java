@@ -69,11 +69,10 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         checkTextUnitCounts(repositoryStatistic);
 
         int i = 0;
-
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-CA"), "fr-CA", 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-FR"), "fr-FR", 1, 1, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ja-JP"), "ja-JP", 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ko-KR"), "ko-KR", 1, 1, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-FR"), "fr-FR", 1, 8, 1, 8, 0, 0, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-CA"), "fr-CA", 0, 0, 0, 0, 0, 0, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ja-JP"), "ja-JP", 0, 0, 0, 0, 0, 0, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ko-KR"), "ko-KR", 1, 8, 1, 8, 0, 0, 0, 0);
     }
 
     @Transactional
@@ -89,9 +88,9 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
 
     private void checkTextUnitCounts(RepositoryStatistic repositoryStatistic) {
         assertEquals(2L, (long) repositoryStatistic.getUsedTextUnitCount());
-        assertEquals(0L, (long) repositoryStatistic.getUsedTextUnitWordCount());
+        assertEquals(9L, (long) repositoryStatistic.getUsedTextUnitWordCount());
         assertEquals(1L, (long) repositoryStatistic.getUnusedTextUnitCount());
-        assertEquals(0L, (long) repositoryStatistic.getUnusedTextUnitWordCount());
+        assertEquals(1L, (long) repositoryStatistic.getUnusedTextUnitWordCount());
     }
 
     @Transactional
@@ -121,23 +120,31 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR.getId());
         RepositoryLocaleStatistic repositoryLocaleStatisticKoKR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleKoKR.getId());
 
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 0, 1, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticKoKR, "ko-KR", 1, 1, 0, 1);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 0, 0, 1, 8, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticKoKR, "ko-KR", 1, 8, 1, 8, 0, 0, 1, 8);
     }
 
     private void checkRepositoryLocaleStatistic(
             RepositoryLocaleStatistic repositoryLocaleStatistic,
             String expectedBcp47tag,
             long expectedTranslatedCount,
+            long expectedTranslatedWordCount,
             long expectedIncludeInFileCount,
+            long expectedIncludeInFileWordCount,
             long reviewNeededCount,
-            long expectedTranslationNeededCount) {
+            long reviewNeededWordCount,
+            long expectedTranslationNeededCount,
+            long expectedTranslationNeededWordCount) {
 
         assertEquals(expectedBcp47tag, repositoryLocaleStatistic.getLocale().getBcp47Tag());
         assertEquals(expectedTranslatedCount, (long) repositoryLocaleStatistic.getTranslatedCount());
+        assertEquals(expectedTranslatedWordCount, (long) repositoryLocaleStatistic.getTranslatedWordCount());
         assertEquals(expectedIncludeInFileCount, (long) repositoryLocaleStatistic.getIncludeInFileCount());
+        assertEquals(expectedIncludeInFileWordCount, (long) repositoryLocaleStatistic.getIncludeInFileWordCount());
         assertEquals(reviewNeededCount, (long) repositoryLocaleStatistic.getReviewNeededCount());
+        assertEquals(reviewNeededWordCount, (long) repositoryLocaleStatistic.getReviewNeededWordCount());
         assertEquals(expectedTranslationNeededCount, (long) repositoryLocaleStatistic.getTranslationNeededCount());
+        assertEquals(expectedTranslationNeededWordCount, (long) repositoryLocaleStatistic.getTranslationNeededWordCount());
     }
 
 }

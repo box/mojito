@@ -53,6 +53,9 @@ public class TMTextUnit extends SettableAuditableEntity {
     @Column(name = "comment", length = Integer.MAX_VALUE)
     private String comment;
 
+    @Column(name = "word_count")
+    private Integer wordCount;
+
     @Basic(optional = false)
     @ManyToOne
     @JoinColumn(name = "tm_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT__TM__ID"))
@@ -122,6 +125,14 @@ public class TMTextUnit extends SettableAuditableEntity {
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public Integer getWordCount() {
+        return wordCount;
+    }
+
+    public void setWordCount(Integer wordCount) {
+        this.wordCount = wordCount;
     }
 
     public TM getTm() {
