@@ -20,7 +20,7 @@ public class TrailingWhitespaceIntegrityChecker extends RegexIntegrityChecker {
     
     @Override
     public String getRegex() {
-        return "(.+)(\\S)(\\s+$)";
+        return "(\\s+$)";
     }
 
     @Override
@@ -54,7 +54,7 @@ public class TrailingWhitespaceIntegrityChecker extends RegexIntegrityChecker {
             Matcher matcher = getPattern().matcher(string);
 
             if (matcher.find()) {
-                trailingWhiteSpaces = matcher.group(3);
+                trailingWhiteSpaces = matcher.group(1);
             }
         }
 
