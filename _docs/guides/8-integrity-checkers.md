@@ -18,13 +18,13 @@ We use `mojito-cli` to configure integrity checkers in a repository.  Integrity 
 
 ### Available Integrity Checkers
 
-| Integrity Checker                   | Recommended File Extensions&nbsp;&nbsp;&nbsp; | File Format                       |
-|:------------------------------------|:----------------------------------------------|:----------------------------------|
-| COMPOSITE_FORMAT &nbsp;&nbsp;&nbsp; | resw, resx                                    | RESW, RESX                        |
-| MESSAGE_FORMAT                      | properties                                    | Java Properties                   |
-| PRINTF_LIKE                         | xml, strings,                                 | Android Strings, iOS/Mac Strings, |
-|                                     | xlf, xliff, sdlxliff, mxliff                  | XLIFF                             |
-
+| Integrity Checker                      | Recommended File Extensions&nbsp;&nbsp;&nbsp; | File Format                          |
+|:---------------------------------------|:----------------------------------------------|:-------------------------------------|
+| COMPOSITE_FORMAT                       | resw, resx                                    | RESW, RESX                           |
+| MESSAGE_FORMAT                         | properties                                    | Java Properties                      |
+| PRINTF_LIKE                            | xml, strings,                                 | Android Strings, iOS/Mac Strings,    |
+|                                        | xlf, xliff, sdlxliff, mxliff                  | XLIFF                                |
+| TRAILING_WHITESPACE &nbsp;&nbsp;&nbsp; |                                               |                                      |
 
 
 ### Composite Format Integrity Checker
@@ -62,7 +62,7 @@ Missing curly braces or translating elements within the curly braces also cause 
 
 ### Printf-Like Integrity Checker
 
-Printf-like integrity checker validates that the placeholders in the source string in the source string exists in the translation.  The placeholders are in the form of printf specifiers.  
+Printf-like integrity checker validates that the placeholders in the source string exists in the translation.  The placeholders are in the form of printf specifiers.  
 
 The translation gets rejected if any placeholder in the source string is missing in the translation or the specifier is modified.  There can be multiple placeholders in the source string.  The order of the placeholders can change in the translation. 
 
@@ -71,6 +71,23 @@ The translation gets rejected if any placeholder in the source string is missing
 | Hello %@!                                | ¡Hola %@!                       | OK      |
 | %1 files and %2 folders                  | %1 fichiers et dossiers         | FAIL    |
 | %1$d files and %2$d folders &nbsp;&nbsp; | %1$d fichiers et %2$s dossiers  | FAIL    |
+
+
+
+
+### Trailing Whitespace Integrity Checker
+
+Trailing whitespace integrity checker validates that the trailing whitespaces in the source string exists in the translation.  
+
+The translation gets rejected if any traingling whitespaces in the source string is missing in the translation.  
+
+| Source String                                    | Translation                                         | Checker |
+|:-------------------------------------------------|:----------------------------------------------------|:-------:|
+| Hello %@![space][newline]                        | ¡Hola %@![space][newline]                           | OK      |
+| %1$d files and %2$d folders[space]               | %1$d fichiers et %2$s dossiers                      | FAIL    |
+| %1$d files and %2$d folders[newline]&nbsp;&nbsp; | %1$d fichiers et %2$s dossiers                      | FAIL    |
+| %1 files and %2 folders[space][newline]          | %1 fichiers et dossiers[newline][space]&nbsp;&nbsp; | FAIL    |
+
 
 
 
