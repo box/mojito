@@ -1,7 +1,9 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 import javax.persistence.ColumnResult;
 import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
@@ -71,6 +73,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE_STATISTIC__REPOSITORY__ID"))
     private RepositoryStatistic repositoryStatistic;
 
+    @JsonView(View.LocaleSummary.class)
     @ManyToOne
     @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE_STATISTIC__LOCALE__ID"), nullable = false)
     private Locale locale;
@@ -78,6 +81,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     /**
      * Number of translated text unit (includes needs review and rejected)
      */
+    @JsonView(View.RepositorySummary.class)
     private Long translatedCount = 0L;
 
     /**
@@ -89,6 +93,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
      * Number of text unit with status
      * {@link TMTextUnitVariant.Status#TRANSLATION_NEEDED}
      */
+    @JsonView(View.RepositorySummary.class)
     private Long translationNeededCount = 0L;
 
     /**
@@ -101,6 +106,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
      * Number of translations with status
      * {@link TMTextUnitVariant.Status#REVIEW_NEEDED}
      */
+    @JsonView(View.RepositorySummary.class)
     private Long reviewNeededCount = 0L;
 
     /**
@@ -112,6 +118,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     /**
      * Number of translations that are included in files
      */
+    @JsonView(View.RepositorySummary.class)
     private Long includeInFileCount = 0L;
 
     /**

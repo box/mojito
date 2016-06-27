@@ -1,9 +1,9 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
+import com.fasterxml.jackson.annotation.JsonView;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -11,6 +11,8 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
 
 /**
  * Entity that describes a locale associated to a repository.
@@ -32,6 +34,7 @@ public class RepositoryLocale extends BaseEntity {
     @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE__REPOSITORY__ID"), nullable = false)
     private Repository repository;
 
+    @JsonView(View.LocaleSummary.class)
     @ManyToOne
     @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE__LOCALE__ID"), nullable = false)
     private Locale locale;
@@ -48,6 +51,7 @@ public class RepositoryLocale extends BaseEntity {
      * translation.
      *
      */
+    @JsonView(View.LocaleSummary.class)
     @Column(name = "to_be_fully_translated")
     private boolean toBeFullyTranslated = true;
 

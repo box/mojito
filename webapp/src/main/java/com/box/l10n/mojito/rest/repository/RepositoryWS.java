@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.repository;
 
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.rest.View;
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
 import com.box.l10n.mojito.service.NormalizationUtils;
@@ -11,6 +12,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+import com.fasterxml.jackson.annotation.JsonView;
 import java.util.List;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -65,14 +67,29 @@ public class RepositoryWS {
     }
 
     /**
-     * Gets all the repositories matching the given params
+     * Gets all undeleted repositories with @{link View.RepositorySummary}
+     *
+     * @return List of {@link Repository}s
+     */
+    @JsonView(View.RepositorySummary.class)
+    @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
+    @ResponseStatus(HttpStatus.OK)
+    public List<Repository> getRepositories() {
+        return repositoryRepository.findAll(
+                where(deletedEquals(false)),
+                new Sort(Sort.Direction.ASC, "name")
+        );
+    }
+
+    /**
+     * Gets repository matching the given name
      *
      * @param repositoryName To filer on the name. Can be {@code null}
      * @return List of {@link Repository}s
      */
-    @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/repositories", params = "name", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
-    public List<Repository> getRepositories(@RequestParam(value = "name", required = false) String repositoryName) {
+    public List<Repository> getRepositories(@RequestParam(value = "name", required = true) String repositoryName) {
         return repositoryRepository.findAll(
                 where(ifParamNotNull(nameEquals(repositoryName)))
                 .and(deletedEquals(false)),
