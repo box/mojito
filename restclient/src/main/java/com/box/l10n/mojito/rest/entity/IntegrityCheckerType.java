@@ -9,5 +9,6 @@ public enum IntegrityCheckerType {
 
     MESSAGE_FORMAT,
     PRINTF_LIKE,
-    COMPOSITE_FORMAT;
+    COMPOSITE_FORMAT,
+    TRAILING_WHITESPACE;
 }

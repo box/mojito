@@ -14,7 +14,7 @@ public interface AssetIntegrityCheckerRepository extends JpaRepository<AssetInte
 
     Set<AssetIntegrityChecker> findByRepository(Repository repository);
 
-    AssetIntegrityChecker findByRepositoryAndAssetExtension(Repository repository, String assetExtension);
+    Set<AssetIntegrityChecker> findByRepositoryAndAssetExtension(Repository repository, String assetExtension);
 
     void deleteByRepository(Repository repository);
 }

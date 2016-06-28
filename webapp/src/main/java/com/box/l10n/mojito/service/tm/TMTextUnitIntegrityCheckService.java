@@ -6,10 +6,11 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
+import java.util.Set;
 import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author wyau
@@ -41,12 +42,14 @@ public class TMTextUnitIntegrityCheckService {
         TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
         Asset asset = tmTextUnit.getAsset();
 
-        TextUnitIntegrityChecker textUnitChecker = integrityCheckerFactory.getTextUnitChecker(asset);
+        Set<TextUnitIntegrityChecker> textUnitCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);
 
-        if (textUnitChecker != null) {
-            textUnitChecker.check(tmTextUnit.getContent(), contentToCheck);
-        } else {
+        if (textUnitCheckers.isEmpty()) {
             logger.debug("No designated checker for this asset.  Nothing to do");
+        } else {
+            for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
+                textUnitChecker.check(tmTextUnit.getContent(), contentToCheck);
+            }
         }
     }
 }

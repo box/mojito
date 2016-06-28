@@ -7,6 +7,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
@@ -37,7 +38,7 @@ public class IntegrityCheckStep extends BasePipelineStep {
     @Autowired
     IntegrityCheckerFactory integrityCheckerFactory;
 
-    Map<Long, TextUnitIntegrityChecker> textUnitIntegrityCheckerMap = new HashMap<>();
+    Map<Long, Set<TextUnitIntegrityChecker>> textUnitIntegrityCheckerMap = new HashMap<>();
 
     private LocaleId targetLocale;
     private RawDocument rawDocument;
@@ -101,9 +102,9 @@ public class IntegrityCheckStep extends BasePipelineStep {
                 logger.debug("Check integrity of text unit");
 
                 try {
-                    TextUnitIntegrityChecker textUnitIntegrityChecker = getTextUnitIntegrityChecker(asset);
+                    Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = getTextUnitIntegrityCheckers(asset);
 
-                    if (textUnitIntegrityChecker != null) {
+                    for (TextUnitIntegrityChecker textUnitIntegrityChecker : textUnitIntegrityCheckers) {
                         textUnitIntegrityChecker.check(textUnit.getSource().toString(), target.toString());
                     }
                 } catch (IntegrityCheckException e) {
@@ -125,15 +126,15 @@ public class IntegrityCheckStep extends BasePipelineStep {
      * @param asset
      * @return The created or cached TextUnitIntegrityChecker for the given asset
      */
-    private TextUnitIntegrityChecker getTextUnitIntegrityChecker(Asset asset) {
+    private Set<TextUnitIntegrityChecker> getTextUnitIntegrityCheckers(Asset asset) {
 
-        TextUnitIntegrityChecker checker = textUnitIntegrityCheckerMap.get(asset.getId());
+        Set<TextUnitIntegrityChecker> checkers = textUnitIntegrityCheckerMap.get(asset.getId());
         
-        if (checker == null) {
-            checker = integrityCheckerFactory.getTextUnitChecker(asset);
-            textUnitIntegrityCheckerMap.put(asset.getId(), checker);
+        if (checkers == null) {
+            checkers = integrityCheckerFactory.getTextUnitCheckers(asset);
+            textUnitIntegrityCheckerMap.put(asset.getId(), checkers);
         }
 
-        return checker;
+        return checkers;
     }
 }

@@ -5,13 +5,15 @@ import com.box.l10n.mojito.entity.AssetIntegrityChecker;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.annotation.PostConstruct;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author wyau
@@ -55,20 +57,20 @@ public class IntegrityCheckerFactory {
      * @return Instance of {@link TextUnitIntegrityChecker}, depending on the given asset
      * @throws IntegrityCheckerInstantiationException if unable to create an instance of the integrity checker
      */
-    public TextUnitIntegrityChecker getTextUnitChecker(Asset asset) {
+    public Set<TextUnitIntegrityChecker> getTextUnitCheckers(Asset asset) {
 
         Repository repository = asset.getRepository();
         String assetExtension = FilenameUtils.getExtension(asset.getPath());
 
-        AssetIntegrityChecker assetIntegrityChecker = assetIntegrityCheckerRepository.findByRepositoryAndAssetExtension(repository, assetExtension);
-        TextUnitIntegrityChecker textUnitIntegrityChecker = null;
+        Set<AssetIntegrityChecker> assetIntegrityCheckers = assetIntegrityCheckerRepository.findByRepositoryAndAssetExtension(repository, assetExtension);
+        Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
 
-        if (assetIntegrityChecker != null) {
+        for (AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckers) {
             String className = assetIntegrityChecker.getIntegrityCheckerType().getClassName();
-            textUnitIntegrityChecker = createInstanceForClassName(className);
+            textUnitIntegrityCheckers.add(createInstanceForClassName(className));
         }
 
-        return textUnitIntegrityChecker;
+        return textUnitIntegrityCheckers;
     }
 
     /**

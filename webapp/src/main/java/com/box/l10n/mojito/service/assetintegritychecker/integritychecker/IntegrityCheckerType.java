@@ -9,7 +9,8 @@ public enum IntegrityCheckerType {
 
     MESSAGE_FORMAT(MessageFormatIntegrityChecker.class.getName()),
     PRINTF_LIKE(PrintfLikeIntegrityChecker.class.getName()),
-    COMPOSITE_FORMAT(CompositeFormatIntegrityChecker.class.getName());
+    COMPOSITE_FORMAT(CompositeFormatIntegrityChecker.class.getName()),
+    TRAILING_WHITESPACE(TrailingWhitespaceIntegrityChecker.class.getName());
 
     String className;
 

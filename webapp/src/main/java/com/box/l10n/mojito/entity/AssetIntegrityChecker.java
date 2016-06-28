@@ -3,8 +3,6 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import javax.persistence.Basic;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -14,6 +12,8 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
 
 /**
  * Entity that assign an integrity check for a type of asset.
@@ -25,7 +25,7 @@ import javax.persistence.Table;
 @Table(
     name = "asset_integrity_checker",
     indexes = {
-        @Index(name = "UK__ASSET_INTEGRITY_CHECKER__REPOSITORY_ID__ASSET_EXTENSION", columnList = "repository_id, asset_extension", unique = true)
+        @Index(name = "I__ASSET_INTEGRITY_CHECKER__REPOSITORY_ID__ASSET_EXTENSION", columnList = "repository_id, asset_extension", unique = false)
     }
 )
 public class AssetIntegrityChecker extends BaseEntity {
