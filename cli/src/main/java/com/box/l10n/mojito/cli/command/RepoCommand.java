@@ -19,8 +19,8 @@ public abstract class RepoCommand extends Command {
     protected static final String INTEGRITY_CHECK_LONG_PARAM = "--integrity-check";
     protected static final String INTEGRITY_CHECK_SHORT_PARAM = "-it";
     protected static final String INTEGRITY_CHECK_DESCRIPTION
-            = "Integrity Checker by File Extension, comma seperated format: \"FILE_EXTENSION_1:CHECKER_TYPE_1,FILE_EXTENSION_2:CHECKER_TYPE_2\"\n"
-            + "Available Checker types: MESSAGE_FORMAT, PRINTF_LIKE, COMPOSITE_FORMAT, TRAILING_WHITESPACE\n"
+            = "Integrity Checker by File Extension, comma seperated format: \"FILE_EXTENSION_1:CHECKER_TYPE_1,FILE_EXTENSION_2:CHECKER_TYPE_2\"\n       "
+            + "Available Checker types: MESSAGE_FORMAT, PRINTF_LIKE, SIMPLE_PRINTF_LIKE, COMPOSITE_FORMAT, TRAILING_WHITESPACE\n       "
             + "For examples: \"properties:MESSAGE_FORMAT,xliff:PRINTF_LIKE\"";
 
     @Autowired
