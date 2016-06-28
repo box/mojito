@@ -83,7 +83,6 @@ public class SimplePrintfLikeIntegrityCheckerTest {
         }
     }
 
-    // MOJI-122
     @Test
     public void testWebappPlaceholderWithoutSpaces1() throws SimplePrintfLikeIntegrityCheckerException {
 
@@ -93,7 +92,6 @@ public class SimplePrintfLikeIntegrityCheckerTest {
         checker.check(source, target);
     }
 
-    // MOJI-122
     @Test
     public void testWebappPlaceholderWithoutSpaces2() throws SimplePrintfLikeIntegrityCheckerException {
 
