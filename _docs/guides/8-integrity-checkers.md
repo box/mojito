@@ -23,7 +23,7 @@ We use `mojito-cli` to configure integrity checkers in a repository.  Integrity 
 | COMPOSITE_FORMAT                       | resw, resx                                    | RESW, RESX                           |
 | MESSAGE_FORMAT                         | properties                                    | Java Properties                      |
 | PRINTF_LIKE                            | xml, strings,                                 | Android Strings, iOS/Mac Strings,    |
-|                                        | xlf, xliff, sdlxliff, mxliff                  | XLIFF                                |
+| SIMPLE_PRINTF_LIKE                     |                                               |                                      |
 | TRAILING_WHITESPACE &nbsp;&nbsp;&nbsp; |                                               |                                      |
 
 
@@ -69,8 +69,25 @@ The translation gets rejected if any placeholder in the source string is missing
 | Source String                            | Translation                     | Checker |
 |:-----------------------------------------|:--------------------------------|:-------:|
 | Hello %@!                                | ¡Hola %@!                       | OK      |
-| %1 files and %2 folders                  | %1 fichiers et dossiers         | FAIL    |
+| %1$s of %2$s                             | %2$s의 %1$s                      | OK      |
+| %1$d files and %2$d folders              | %1$d fichiers et dossiers       | FAIL    |
 | %1$d files and %2$d folders &nbsp;&nbsp; | %1$d fichiers et %2$s dossiers  | FAIL    |
+
+
+
+
+### Simple Printf-Like Integrity Checker
+
+Simple Printf-like integrity checker validates that the placeholders in the source string exists in the translation.  The placeholders are in the form of `%{number}`, for example, %1, %2, %3, etc.
+
+The translation gets rejected if any placeholder in the source string is missing in the translation.  There can be multiple placeholders in the source string.  The order of the placeholders can change in the translation.
+
+| Source String                        | Translation                     | Checker |
+|:-------------------------------------|:--------------------------------|:-------:|
+| Hello %1!                            | ¡Hola %1!                       | OK      |
+| %1 of %2                             | %2의 %1                          | OK      |
+| %1 files and %2 folders              | %1 fichiers et dossiers         | FAIL    |
+| %1 files and %2 folders &nbsp;&nbsp; | fichiers et %2 dossiers         | FAIL    |
 
 
 
