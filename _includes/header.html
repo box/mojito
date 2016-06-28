@@ -19,9 +19,19 @@
           {% endif %}
         {% endfor %}
         <a class="page-link" href="https://github.com/box/mojito">GitHub</a>
+        <input type="text" id="algolia-doc-search" >
       </div>
     </nav>
 
   </div>
 
 </header>
+
+<!-- at the end of the BODY -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script>
+<script type="text/javascript"> docsearch({
+apiKey: 'bedffa81eeaf678861a2046ab3fc054b',
+indexName: 'boxmojito',
+inputSelector: '#algolia-doc-search'
+});
+</script>
