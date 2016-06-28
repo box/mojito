@@ -45,6 +45,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author jaurambault
@@ -396,14 +401,12 @@ public class TMServiceTest extends ServiceTestBase {
         tmService.addTMTextUnitCurrentVariant(tmTextUnit3.getId(), locale.getId(), "!?!?!?!?!", null, TMTextUnitVariant.Status.REVIEW_NEEDED, false);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
-        LocalizedAsset localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null);
-
-        assertEquals("fr-FR", localizedAsset.getBcp47Tag());
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
                 removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
-                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset.getContent())
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
         );
     }
 
@@ -429,14 +432,12 @@ public class TMServiceTest extends ServiceTestBase {
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
 
         String outputBcp47tag = "fr-FR";
-        LocalizedAsset localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag);
-
-        assertEquals(outputBcp47tag, localizedAsset.getBcp47Tag());
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(outputBcp47tag, tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
                 removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
-                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset.getContent())
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
         );
     }
 
@@ -674,9 +675,9 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        LocalizedAsset localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
-        logger.debug("localized=\n{}", localizedAsset.getContent());
-        assertEquals(assetContent, localizedAsset.getContent());
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(assetContent, localizedAsset);
     }
     
     /**
@@ -724,9 +725,9 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        LocalizedAsset localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
-        logger.debug("localized=\n{}", localizedAsset.getContent());
-        assertEquals(assetContent, localizedAsset.getContent());
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(assetContent, localizedAsset);
     }
     
     /**
@@ -771,8 +772,8 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        LocalizedAsset localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
-        logger.debug("localized=\n{}", localizedAsset.getContent());
-        assertEquals(assetContent, localizedAsset.getContent());
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(assetContent, localizedAsset);
     }
 }

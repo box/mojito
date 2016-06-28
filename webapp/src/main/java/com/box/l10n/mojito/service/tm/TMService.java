@@ -88,7 +88,7 @@ public class TMService {
 
     @Autowired
     XliffUtils xliffUtils;
-    
+
     @Autowired
     WordCountService wordCountService;
 
@@ -141,7 +141,7 @@ public class TMService {
         tmTextUnit.setWordCount(wordCountService.getEnglishWordCount(content));
         tmTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         tmTextUnit.setCreatedDate(createdDate);
-        
+
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
         logger.trace("TMTextUnit saved");
 
@@ -432,7 +432,7 @@ public class TMService {
         logger.debug("Add TMTextUnitVariant for tmId: {} locale id: {}, content: {}", tmTextUnitId, localeId, content);
 
         Preconditions.checkNotNull(content, "content must not be null when adding a TMTextUnitVariant");
-        
+
         TMTextUnit tmTextUnit = entityManager.getReference(TMTextUnit.class, tmTextUnitId);
         Locale locale = entityManager.getReference(Locale.class, localeId);
 
@@ -491,7 +491,7 @@ public class TMService {
     public String computeTMTextUnitMD5(String name, String content, String comment) {
         return DigestUtils.md5Hex(name + content + comment);
     }
-    
+
     /**
      * Parses the XLIFF (from a translation kit) content and extract the
      * new/changed variants. Then updates the TM with these new variants.
@@ -509,7 +509,7 @@ public class TMService {
 
         return updateTMWithXliff(xliffContent, importStatus, new ImportTranslationsWithTranslationKitStep());
     }
-    
+
     public UpdateTMWithXLIFFResult updateTMWithXLIFFById(
             String xliffContent,
             TMTextUnitVariant.Status importStatus) throws OkapiBadFilterInputException {
@@ -681,19 +681,19 @@ public class TMService {
      *
      * @return the localized asset
      */
-    public LocalizedAsset generateLocalized(
+    public String generateLocalized(
             Asset asset,
             String content,
             RepositoryLocale repositoryLocale,
             String outputBcp47tag) {
 
-        LocalizedAsset localizedAsset = new LocalizedAsset();
+        String bcp47Tag;
 
         if (outputBcp47tag == null) {
-            localizedAsset.setBcp47Tag(repositoryLocale.getLocale().getBcp47Tag());
+            bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
         } else {
             logger.debug("An output bcp47 tag: {} is specified (won't use the default tag (from the repository locale)", outputBcp47tag);
-            localizedAsset.setBcp47Tag(outputBcp47tag);
+            bcp47Tag = outputBcp47tag;
         }
 
         logger.debug("Configuring pipeline for localized XLIFF generation");
@@ -710,7 +710,7 @@ public class TMService {
         FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
         driver.addStep(filterEventsToInMemoryRawDocumentStep);
 
-        LocaleId targetLocaleId = LocaleId.fromBCP47(localizedAsset.getBcp47Tag());
+        LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
 
         //TODO(P1) see assetExtractor comments
@@ -724,9 +724,7 @@ public class TMService {
         driver.processBatch();
 
         String localizedContent = filterEventsToInMemoryRawDocumentStep.getOutput(rawDocument);
-
-        localizedAsset.setContent(localizedContent);
-
-        return localizedAsset;
+        
+        return localizedContent;
     }
 }

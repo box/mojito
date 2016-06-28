@@ -3,10 +3,10 @@ package com.box.l10n.mojito.rest.client;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.Locale;
-import com.box.l10n.mojito.rest.entity.LocalizedAsset;
+import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
-import com.google.common.base.Strings;
+import com.box.l10n.mojito.rest.entity.XliffExportBody;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,20 +67,19 @@ public class AssetClient extends BaseClient {
      * repository locale. 
      * @return the localized asset content
      */
-    public LocalizedAsset getLocalizedAssetForContent(Long assetId, Long localeId, String content, String outputBcp47tag) {
+    public LocalizedAssetBody getLocalizedAssetForContent(Long assetId, Long localeId, String content, String outputBcp47tag) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromPath(getBasePathForResource(assetId, "localized", localeId));
 
-        if (!Strings.isNullOrEmpty(outputBcp47tag)) {
-            uriBuilder.queryParam("outputBcp47tag", outputBcp47tag);
-        }
-
-        return authenticatedRestTemplate.postForObject(
-                uriBuilder.toUriString(),
-                content,
-                LocalizedAsset.class);
+        LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
+        localizedAssetBody.setContent(content);
+        localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
+        
+        return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
+                localizedAssetBody,
+                LocalizedAssetBody.class);
     }
 
     /**
@@ -175,7 +174,7 @@ public class AssetClient extends BaseClient {
                 .fromPath(xliffExportBasePath)
                 .queryParam("bcp47tag", bcp47tag);
 
-        return authenticatedRestTemplate.getForObject(uriBuilder.toUriString(), String.class);
+        return authenticatedRestTemplate.getForObject(uriBuilder.toUriString(), XliffExportBody.class).getContent();
     }
 
     /**

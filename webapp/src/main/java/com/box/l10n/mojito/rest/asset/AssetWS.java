@@ -13,7 +13,6 @@ import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
-import com.box.l10n.mojito.service.tm.LocalizedAsset;
 import com.box.l10n.mojito.service.tm.TMService;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.List;
@@ -118,29 +117,33 @@ public class AssetWS {
      *
      * @param assetId {@link Asset#id}
      * @param localeId {@link Locale#id}
-     * @param outputBcp47tag Optional, can be null. Allows to generate the file
-     * for a bcp47 tag that is different from the repository locale (which is
-     * still used to fetch the translations). This can be used to generate a
-     * file with tag "fr" even if the translations are stored with fr-FR
-     * repository locale.
-     * @param content content to be localized (similar to the asset content
-     * stored in TMS)
-     * @return the localized payload as a {@link LocalizedAsset}
+     * @param localizedAssetBody the payload to be localized with optional
+     * parameters
+     * @return the localized payload as a {@link LocalizedAssetBody}
      */
     @RequestMapping(value = "/api/assets/{assetId}/localized/{localeId}", method = RequestMethod.POST)
-    public LocalizedAsset getLocalizedAssetForContent(
+    public LocalizedAssetBody getLocalizedAssetForContent(
             @PathVariable("assetId") long assetId,
             @PathVariable("localeId") long localeId,
-            @RequestParam(value = "outputBcp47tag", required = false) String outputBcp47tag,
-            @RequestBody String content) {
+            @RequestBody LocalizedAssetBody localizedAssetBody) {
 
         logger.debug("Localizing content payload with asset id = {}, and locale id = {}", assetId, localeId);
 
         Asset asset = assetRepository.getOne(assetId);
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
 
-        String normalizedContent = NormalizationUtils.normalize(content);
-        return tmService.generateLocalized(asset, normalizedContent, repositoryLocale, outputBcp47tag);
+        String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
+
+        String generateLocalized = tmService.generateLocalized(asset, normalizedContent, repositoryLocale, localizedAssetBody.getOutputBcp47tag());
+        localizedAssetBody.setContent(generateLocalized);
+
+        if (localizedAssetBody.getOutputBcp47tag() != null) {
+            localizedAssetBody.setBcp47Tag(localizedAssetBody.getOutputBcp47tag());
+        } else {
+            localizedAssetBody.setBcp47Tag(repositoryLocale.getLocale().getBcp47Tag());
+        }
+
+        return localizedAssetBody;
     }
 
     /**
@@ -153,22 +156,22 @@ public class AssetWS {
      */
     @RequestMapping(method = RequestMethod.GET, value = "/api/assets/{assetId}/xliffExport")
     @ResponseStatus(HttpStatus.OK)
-    public String xliffExport(@PathVariable("assetId") long assetId, @RequestParam("bcp47tag") String bcp47tag) {
+    public XliffExportBody xliffExport(@PathVariable("assetId") long assetId, @RequestParam("bcp47tag") String bcp47tag) {
         String content = tmService.exportAssetAsXLIFF(assetId, bcp47tag);
         String normalizedContent = NormalizationUtils.normalize(content);
-        return normalizedContent;
+        return new XliffExportBody(normalizedContent);
     }
-    
+
     /**
      * Deletes one {@link Asset} by the {@link Asset#id}
      *
      * @param assetId
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/api/assets/{assetId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteAssetById(@PathVariable Long assetId) {    
+    public ResponseEntity deleteAssetById(@PathVariable Long assetId) {
         logger.info("Deleting asset [{}]", assetId);
-        
+
         ResponseEntity result;
         Asset asset = assetRepository.findOne(assetId);
 
@@ -181,31 +184,30 @@ public class AssetWS {
 
         return result;
     }
-    
+
     /**
      * Deletes multiple {@link Asset} by the list of {@link Asset#id}
-     * 
+     *
      * @param ids
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.DELETE)
     public ResponseEntity deleteAssets(@RequestBody Set<Long> ids) {
         logger.info("Deleting assets: {}", ids.toString());
-        
         assetService.deleteAssets(ids);
         return new ResponseEntity(HttpStatus.OK);
     }
 
     /**
      * Returns list of {@link Asset#id} for a given {@link Repository}
-     * 
+     *
      * @param repositoryId
      * @param deleted
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/api/assets/ids", method = RequestMethod.GET)
     public Set<Long> getAssetIds(@RequestParam(value = "repositoryId", required = true) Long repositoryId,
-                                 @RequestParam(value = "deleted", required = false) Boolean deleted) {
+            @RequestParam(value = "deleted", required = false) Boolean deleted) {
         if (deleted == null) {
             return assetRepository.findIdByRepositoryId(repositoryId);
         } else {

@@ -9,7 +9,7 @@ import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.LocalizedAsset;
+import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.base.Splitter;
@@ -119,7 +119,7 @@ public class PullCommand extends Command {
         logger.debug("Generate localized files (without locale mapping)");
 
         for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale.values()) {
-            LocalizedAsset localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, null);
+            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, null);
             writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
         }
     }
@@ -140,7 +140,7 @@ public class PullCommand extends Command {
         for (Map.Entry<String, String> localeMapping : localeMappings.entrySet()) {
             String outputBcp47tag = localeMapping.getKey();
             RepositoryLocale repositoryLocale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
-            LocalizedAsset localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag);
+            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag);
             writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
         }
     }
@@ -185,7 +185,7 @@ public class PullCommand extends Command {
         return repositoryLocalesWithoutRootLocale;
     }
 
-    void writeLocalizedAssetToTargetDirectory(LocalizedAsset localizedAsset, FileMatch sourceFileMatch) throws CommandException {
+    void writeLocalizedAssetToTargetDirectory(LocalizedAssetBody localizedAsset, FileMatch sourceFileMatch) throws CommandException {
 
         Path targetPath = commandDirectories.getTargetDirectoryPath().resolve(sourceFileMatch.getTargetPath(localizedAsset.getBcp47Tag()));
 
@@ -196,14 +196,14 @@ public class PullCommand extends Command {
         consoleWriter.a(" --> ").fg(Color.MAGENTA).a(relativeTargetFilePath.toString()).println();
     }
 
-    LocalizedAsset getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag) throws CommandException {
+    LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag) throws CommandException {
         consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
 
         try {
             logger.debug("Getting the asset for path: {} and locale: {}", sourceFileMatch.getSourcePath(), repositoryLocale.getLocale().getBcp47Tag());
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(sourceFileMatch.getSourcePath(), repository.getId());
 
-            LocalizedAsset localizedAsset = assetClient.getLocalizedAssetForContent(
+            LocalizedAssetBody localizedAsset = assetClient.getLocalizedAssetForContent(
                     assetByPathAndRepositoryId.getId(),
                     repositoryLocale.getLocale().getId(),
                     commandHelper.getFileContent(sourceFileMatch.getPath()),
