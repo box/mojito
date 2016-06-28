@@ -98,8 +98,9 @@ public class RepositoryWS {
     }
 
     /**
-     * Creates a new {@link Repository}.  Will return {@link HttpStatus#CREATED} if all is successful.
-     * Will return {@link HttpStatus#CONFLICT} if there's already a repository with the same name.
+     * Creates a new {@link Repository}. Will return {@link HttpStatus#CREATED}
+     * if all is successful. Will return {@link HttpStatus#CONFLICT} if there's
+     * already a repository with the same name.
      *
      * @param repository
      * @return
@@ -130,25 +131,22 @@ public class RepositoryWS {
      * Imports an entire {@link Repository} given an XLIFF
      *
      * @param repositoryId
-     * @param exportedXliffContent
-     * @param updateTM indicates if the TM should be updated or if the translation
-     * can be imported assuming that there is no translation yet. 
+     * @param importRepositoryBody
      * @return
      */
     @RequestMapping(value = "/api/repositories/{repositoryId}/xliffImport", method = RequestMethod.POST)
-    public ResponseEntity importRepo(
-            @PathVariable Long repositoryId, 
-            @RequestBody String exportedXliffContent, 
-            @RequestParam(value="updateTM", required = false, defaultValue = "false") boolean updateTM) {
-       
+    public ResponseEntity importRepository(
+            @PathVariable Long repositoryId,
+            @RequestBody ImportRepositoryBody importRepositoryBody) {
+
         logger.info("Importing for repo: [{}]", repositoryId);
- 
+
         try {
-            String normalizedContent = NormalizationUtils.normalize(exportedXliffContent);
+            String normalizedContent = NormalizationUtils.normalize(importRepositoryBody.getXliffContent());
             tmImportService.importXLIFF(
                     repositoryRepository.getOne(repositoryId),
-                    normalizedContent, 
-                    updateTM);
+                    normalizedContent,
+                    importRepositoryBody.isUpdateTM());
 
             return new ResponseEntity(HttpStatus.CREATED);
         } catch (RuntimeException exception) {
@@ -157,49 +155,51 @@ public class RepositoryWS {
             return new ResponseEntity(msg, HttpStatus.CONFLICT);
         }
     }
-    
+
+
     /**
      * Deletes the repository by the {@link Repository#id}
      *
      * @param repositoryId
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteRepositoryById(@PathVariable Long repositoryId) {    
+    public ResponseEntity deleteRepositoryById(@PathVariable Long repositoryId) {
         logger.info("Deleting repository [{}]", repositoryId);
         ResponseEntity result;
         Repository repository = repositoryRepository.findOne(repositoryId);
- 
-            if (repository != null) {
-                repositoryService.deleteRepository(repository);
-                result = new ResponseEntity(HttpStatus.OK);
-            } else {
-                result = new ResponseEntity(HttpStatus.NOT_FOUND);
-            }
+
+        if (repository != null) {
+            repositoryService.deleteRepository(repository);
+            result = new ResponseEntity(HttpStatus.OK);
+        } else {
+            result = new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
 
         return result;
     }
-    
+
     /**
      * Updates repository by the {@link Repository#id}
-     * 
+     *
      * @param repositoryId
      * @param repository
-     * @return 
+     * @return
      */
+    //TODO(P0) same this is a partial update, PATCH?
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PUT)
     public ResponseEntity updateRepository(@PathVariable Long repositoryId,
-                                           @RequestBody Repository repository) {
+            @RequestBody Repository repository) {
         logger.info("Updating repository [{}]", repositoryId);
         ResponseEntity result;
         Repository repoToUpdate = repositoryRepository.findOne(repositoryId);
 
         try {
             if (repoToUpdate != null) {
-                repositoryService.updateRepository(repoToUpdate, 
-                        repository.getName(), 
-                        repository.getDescription(), 
-                        repository.getRepositoryLocales(), 
+                repositoryService.updateRepository(repoToUpdate,
+                        repository.getName(),
+                        repository.getDescription(),
+                        repository.getRepositoryLocales(),
                         repository.getAssetIntegrityCheckers());
                 result = new ResponseEntity(HttpStatus.OK);
             } else {
@@ -208,9 +208,9 @@ public class RepositoryWS {
         } catch (RepositoryLocaleCreationException | RepositoryNameAlreadyUsedException exception) {
             logger.debug("Can't update repository", exception);
             result = new ResponseEntity<>(HttpStatus.CONFLICT);
-        } 
+        }
 
         return result;
     }
-    
+
 }
