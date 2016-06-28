@@ -19,95 +19,22 @@ public class PrintfLikeIntegrityCheckerTest {
     public void testGetPlaceholder() throws PrintfLikeIntegrityCheckerException {
 
         PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
-        String string = "%1 %1$ld개 파일과 %2$@개 폴더가 있습니다 %d %1$-04d %1$04d %2$.2ld %345 %6";
+        String string = "%1$ld개 파일과 %2$@개 폴더가 있습니다 %d %1$-04d %1$04d %2$.2ld";
 
         Set<String> placeholders = checker.getPlaceholders(string);
 
         Set<String> expected = new HashSet<>();
-        expected.add("%1");
         expected.add("%1$ld");
         expected.add("%2$@");
         expected.add("%d");
         expected.add("%1$-04d");
         expected.add("%1$04d");
         expected.add("%2$.2ld");
-        expected.add("%345");
-        expected.add("%6");
 
         logger.debug("expected: {}", expected);
         logger.debug("actual: {}", placeholders);
 
         assertEquals(expected, placeholders);
-    }
-    
-    @Test
-    public void testPlaceholderCheckWorks() throws PrintfLikeIntegrityCheckerException {
-
-        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
-        String source = "There are %1 files and %2 folders";
-        String target = "Il y a %1 fichiers et %2 dossiers";
-
-        checker.check(source, target);
-    }
-
-    @Test
-    public void testPlaceholderAndTranslationCheckWorks() throws PrintfLikeIntegrityCheckerException {
-
-        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
-        String source = "There are %1 files and %2 folders";
-        String target = "%1개 파일과 %2개 폴더가 있습니다";
-
-        checker.check(source, target);
-    }
-
-    @Test
-    public void testTranslationAndPlaceholderCheckWorks() throws PrintfLikeIntegrityCheckerException {
-
-        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
-        String source = "%1 file, %2 folder";
-        String target = "파일%1, 폴더%2";
-
-        checker.check(source, target);
-    }
-
-    @Test
-    public void testPlaceholderCheckWorksWithDifferentOrder() throws PrintfLikeIntegrityCheckerException {
-
-        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
-        String source = "There are %1 files and %2 folders";
-        String target = "Il y a %2 dossiers et %1 fichiers";
-
-        checker.check(source, target);
-    }
-
-    @Test
-    public void testPlaceholderCheckFailsIfDifferentPlaceholdersCount() throws PrintfLikeIntegrityCheckerException {
-
-        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
-        String source = "There are %1 files and %2 folders";
-        String target = "Il y a %1 fichiers";
-
-        try {
-            checker.check(source, target);
-            fail("PrintfLikeIntegrityCheckerException must be thrown");
-        } catch (PrintfLikeIntegrityCheckerException e) {
-            assertEquals(e.getMessage(), "Placeholders in source and target are different");
-        }
-    }
-
-    @Test
-    public void testPlaceholderCheckFailsIfSamePlaceholdersCountButSomeRepeatedOrMissing() throws PrintfLikeIntegrityCheckerException {
-
-        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
-        String source = "There are %1 files and %2 folders";
-        String target = "Il y a %1 fichiers et %1 dossiers";
-
-        try {
-            checker.check(source, target);
-            fail("PrintfLikeIntegrityCheckerException must be thrown");
-        } catch (PrintfLikeIntegrityCheckerException e) {
-            assertEquals(e.getMessage(), "Placeholders in source and target are different");
-        }
     }
 
     @Test
@@ -319,4 +246,30 @@ public class PrintfLikeIntegrityCheckerTest {
             assertEquals(e.getMessage(), "Placeholders in source and target are different");
         }
     }
+
+    @Test
+    public void testSpecifierWithRemovedSpace() throws PrintfLikeIntegrityCheckerException {
+
+        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
+        String source = "%1$s of %2$s GB";
+        String target = "%1$s/%2$sGB";
+
+        checker.check(source, target);
+    }
+
+    @Test
+    public void testIncorrectlyModifiedSpecifier() throws PrintfLikeIntegrityCheckerException {
+
+        PrintfLikeIntegrityChecker checker = new PrintfLikeIntegrityChecker();
+        String source = "%1.1f GB";
+        String target = "%1,1f Go";
+
+        try {
+            checker.check(source, target);
+            fail("PrintfLikeIntegrityCheckerException must be thrown");
+        } catch (PrintfLikeIntegrityCheckerException e) {
+            assertEquals(e.getMessage(), "Placeholders in source and target are different");
+        }
+    }
+
 }
