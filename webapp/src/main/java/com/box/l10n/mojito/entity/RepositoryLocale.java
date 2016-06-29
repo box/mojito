@@ -76,6 +76,7 @@ public class RepositoryLocale extends BaseEntity {
      *         fr-FR   fr-CA
      * <code>
      */
+    @JsonView(View.RepositorySummary.class)
     @ManyToOne
     @JoinColumn(name = "parent_locale", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE__PARENT_LOCALE__ID"))
     private RepositoryLocale parentLocale;

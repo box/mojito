@@ -63,7 +63,7 @@ public class Repository extends AuditableEntity {
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
 
     @JsonView(View.RepositorySummary.class)
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne
     @Basic(optional = false)
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__REPOSITORY_STATISTIC__ID"))
     RepositoryStatistic repositoryStatistic;

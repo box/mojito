@@ -2,7 +2,6 @@ package com.box.l10n.mojito;
 
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -68,7 +67,6 @@ public class Application {
         jomfb.setAutoDetectFields(false);
         jomfb.setIndentOutput(shouldIndentJacksonOutput);
         jomfb.afterPropertiesSet();
-        jomfb.getObject().registerModule(new Hibernate4Module());
 
         mjhmc.setObjectMapper(jomfb.getObject());
         return mjhmc;
