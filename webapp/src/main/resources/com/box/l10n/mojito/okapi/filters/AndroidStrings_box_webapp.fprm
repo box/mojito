@@ -8,18 +8,21 @@
  <its:withinTextRule selector="//string/descendant::*|//item/descendant::*" withinText="yes"/> 
  
  <its:translateRule selector="resources//string[text()]" translate="yes" />
+ <its:translateRule selector="resources/string[@translatable='false']" translate="no" />
  <its:translateRule selector="resources//string//xliff:g" translate="no"/>
  <its:idValueRule selector="resources//string" idValue="@name"/>
  <its:locNoteRule selector="resources//string" locNoteType="description" locNotePointer="@description"/>
  <its:preserveSpaceRule selector="resources//string" space="preserve"/>
 
  <its:translateRule selector="resources//string-array//item[text()]" translate="yes" />
+ <its:translateRule selector="resources/string-array[@translatable='false']" translate="no" />
  <its:translateRule selector="resources//string-array//item//xliff:g" translate="no"/>
  <its:idValueRule selector="resources//string-array//item" idValue="concat(../@name, '_', count(preceding-sibling::*))"/>
  <its:locNoteRule selector="resources//string-array//item" locNoteType="description" locNotePointer="../@description"/>
  <its:preserveSpaceRule selector="resources//string-array//item" space="preserve"/>
  
  <its:translateRule selector="resources//plurals//item[text()]" translate="yes" />
+ <its:translateRule selector="resources/plurals[@translatable='false']" translate="no" />
  <its:translateRule selector="resources//plurals//item//xliff:g" translate="no"/> 
  <its:idValueRule selector="resources//plurals//item" idValue="concat(../@name, '_', @quantity)"/>
  <its:locNoteRule selector="resources//plurals//item" locNoteType="description" locNotePointer="../@description"/>

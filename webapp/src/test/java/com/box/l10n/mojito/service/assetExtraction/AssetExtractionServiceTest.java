@@ -419,4 +419,30 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("thisline \n nextline", assetTextUnits.get(1).getContent());
         assertEquals(" Test newline ", assetTextUnits.get(1).getComment());
     }
+
+    @Test
+    public void testAndroidStringsWithNotTranslatable() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <string name=\"Test\">You must test your changes</string>\n"
+                + "  <string name=\"Test_translatable\" translatable=\"true\">This is translatable</string>\n"
+                + "  <string name=\"Test_not_translatable\" translatable=\"false\">This is not translatable</string>\n"
+                + "</resources>";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 2 text units", 2, assetTextUnits.size());
+        assertEquals("Test", assetTextUnits.get(0).getName());
+        assertEquals("You must test your changes", assetTextUnits.get(0).getContent());
+        assertEquals("Test_translatable", assetTextUnits.get(1).getName());
+        assertEquals("This is translatable", assetTextUnits.get(1).getContent());
+
+    }
 }
