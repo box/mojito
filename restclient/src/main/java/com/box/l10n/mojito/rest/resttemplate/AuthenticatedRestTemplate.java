@@ -357,19 +357,19 @@ public class AuthenticatedRestTemplate {
     }
     
     /**
-     * Delegate, see {@link RestTemplate#put(String, Object)
+     * Perform a PATCH request, see {@link RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, java.lang.Class, java.util.Map) 
      * }
      *
      * @param resourcePath resource path transformed into final URI by this instance
      * @param request
      * @throws RestClientException
      */
-    public void put(String resourcePath, Object request) throws RestClientException {
-        restTemplate.put(getURIForResource(resourcePath), request);
+    public void patch(String resourcePath, Object request) throws RestClientException {
+        restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.PATCH, new HttpEntity<>(request), Void.class);
     }
     
     /**
-     * Delegate, see {@link RestTemplate#put(String, Object)
+     * Perform a PATCH request, see {@link RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, java.lang.Class, java.util.Map) 
      * }
      *
      * @param resourcePath resource path transformed into final URI by this instance
@@ -377,8 +377,8 @@ public class AuthenticatedRestTemplate {
      * @param uriVariables
      * @throws RestClientException
      */
-    public void put(String resourcePath, Object request, Map<String, ?> uriVariables) throws RestClientException {
-        restTemplate.put(getURIForResource(resourcePath, uriVariables), request);
+    public void patch(String resourcePath, Object request, Map<String, ?> uriVariables) throws RestClientException {
+        restTemplate.exchange(getURIForResource(resourcePath, uriVariables), HttpMethod.PATCH, new HttpEntity<>(request), Void.class);
     }
     
     @VisibleForTesting

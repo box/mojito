@@ -186,8 +186,7 @@ public class RepositoryWS {
      * @param repository
      * @return
      */
-    //TODO(P0) same this is a partial update, PATCH?
-    @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PATCH)
     public ResponseEntity updateRepository(@PathVariable Long repositoryId,
             @RequestBody Repository repository) {
         logger.info("Updating repository [{}]", repositoryId);

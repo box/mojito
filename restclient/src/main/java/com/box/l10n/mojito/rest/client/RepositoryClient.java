@@ -173,7 +173,7 @@ public class RepositoryClient extends BaseClient {
         repository.setRepositoryLocales(repositoryLocales);
         repository.setIntegrityCheckers(integrityCheckers);
 
-        authenticatedRestTemplate.put(getBasePathForResource(repository.getId()), repository);
+        authenticatedRestTemplate.patch(getBasePathForResource(repository.getId()), repository);
 
     }
 

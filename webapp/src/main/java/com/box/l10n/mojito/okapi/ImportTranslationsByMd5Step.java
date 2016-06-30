@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * coming from a translation kit to import by MD5 instead of using text unit ids
  * and translation kit id.
  *
- * TODO(P0) Review, this assume only 1 asset is in the repository, or if
+ * TODO(P1) Review, this assume only 1 asset is in the repository, or if
  * multiple it will arbitrarily take the first md5 matches to import
  * translations.
  *
