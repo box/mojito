@@ -204,7 +204,7 @@ let Drops = React.createClass({
                 break;
         }
 
-        let wordCount = (drop.translationKits.length > 0) ? drop.translationKits[0].wordCount : "";
+        let wordCount = this.getWordCountsForAllTranslationKits(drop.translationKits);
 
         return (
             <tr className="">
@@ -216,6 +216,20 @@ let Drops = React.createClass({
                 <td>{status}</td>
             </tr>
         );
+    },
+
+    /**
+     *
+     * @param {TranslationKit[]} translationKits
+     */
+    getWordCountsForAllTranslationKits(translationKits) {
+        let wordCount = 0;
+
+        translationKits.forEach((tk) => {
+            wordCount += tk.wordCount;
+        });
+
+        return wordCount;
     },
 
     /**
