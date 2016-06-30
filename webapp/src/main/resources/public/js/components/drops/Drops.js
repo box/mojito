@@ -204,13 +204,15 @@ let Drops = React.createClass({
                 break;
         }
 
+        let wordCount = (drop.translationKits.length > 0) ? drop.translationKits[0].wordCount : "";
+
         return (
             <tr className="">
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
-                <td>{drop.translationKits[0].wordCount}</td>
-                <td>{drop.createdByUser.getDisplayName()}</td>
-                <td><FormattedDate value={drop.createdDate} day="numeric" month="long" year="numeric"/></td>
                 <td>{drop.repository.name}</td>
+                <td>{wordCount}</td>
+                <td><FormattedDate value={drop.createdDate} day="numeric" month="long" year="numeric"/></td>
+                <td>{drop.createdByUser.getDisplayName()}</td>
                 <td>{status}</td>
             </tr>
         );
@@ -260,10 +262,10 @@ let Drops = React.createClass({
             <thead>
             <tr>
                 <th>{this.getIntlMessage("drops.tableHeader.name")}</th>
-                <th className="col-md-1">{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
-                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdBy")}</th>
-                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdDate")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.repository")}</th>
+                <th className="col-md-1">{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
+                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdDate")}</th>
+                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdBy")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.status")}</th>
             </tr>
             </thead>
