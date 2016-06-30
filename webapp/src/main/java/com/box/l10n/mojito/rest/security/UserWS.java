@@ -114,7 +114,7 @@ public class UserWS {
      * @param user
      * @return 
      */
-    @RequestMapping(value = "/api/users/{userId}", method = RequestMethod.PUT)
+    @RequestMapping(value = "/api/users/{userId}", method = RequestMethod.PATCH)
     public ResponseEntity updateUserByUserId(@PathVariable Long userId, @RequestBody User user) {
         logger.info("Updating user [{}]", userId);
         ResponseEntity result;

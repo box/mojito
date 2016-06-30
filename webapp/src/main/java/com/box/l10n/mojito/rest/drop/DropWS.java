@@ -76,7 +76,7 @@ public class DropWS {
             @RequestParam(value = "repositoryId", required = false) Long repositoryId,
             @RequestParam(value = "imported", required = false) Boolean importedFilter,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) throws Exception {
-        
+
         return dropRepository.findAll(where(
                 ifParamNotNull(repositoryIdEquals(repositoryId))).and(
                 ifParamNotNull(isImported(importedFilter))
@@ -167,36 +167,30 @@ public class DropWS {
      * maybe it should be refactor/merged into tm-import function. In any case
      * it should be pollable
      *
-     * @param repositoryId repository in which to import the XILFF
-     * @param xliffContent The content of the localized XLIFF TODO(P1) Use BCP47
-     * tag instead of Locale object?
-     * @param isTranslationKit if the content is from a {@link TranslationKit}
-     * @param importStatus specific status to use when importing translation
-     *
+     * @param importXliffBody 
      * @return the imported XLIFF with information for each text unit about the
      * import process.
      *
      * @throws Exception
      */
     @RequestMapping(method = RequestMethod.POST, value = "/api/drops/importXliff")
-    public String importXliff(
-            @RequestParam(value = "repositoryId") Long repositoryId,
-            @RequestParam(value = "isTranslationKit", defaultValue = "true", required = false) Boolean isTranslationKit,
-            @RequestParam(value = "importStatus", required = false) TMTextUnitVariant.Status importStatus,
-            @RequestBody String xliffContent) throws Exception {
+    public ImportXliffBody importXliff(@RequestBody ImportXliffBody importXliffBody) throws Exception {
 
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findOne(importXliffBody.getRepositoryId());
 
-        String normalizedContent = NormalizationUtils.normalize(xliffContent);
+        String normalizedContent = NormalizationUtils.normalize(importXliffBody.getXliffContent());
+        
         UpdateTMWithXLIFFResult updateTMWithLocalizedXLIFF;
 
-        if (isTranslationKit) {
-            updateTMWithLocalizedXLIFF = tmService.updateTMWithTranslationKitXLIFF(normalizedContent, importStatus);
+        if (importXliffBody.isTranslationKit()) {
+            updateTMWithLocalizedXLIFF = tmService.updateTMWithTranslationKitXLIFF(normalizedContent, importXliffBody.getImportStatus());
         } else {
-            updateTMWithLocalizedXLIFF = tmService.updateTMWithXLIFFByMd5(normalizedContent, importStatus, repository);
+            updateTMWithLocalizedXLIFF = tmService.updateTMWithXLIFFByMd5(normalizedContent, importXliffBody.getImportStatus(), repository);
         }
 
-        return updateTMWithLocalizedXLIFF.getXliffContent();
+        importXliffBody.setXliffContent(updateTMWithLocalizedXLIFF.getXliffContent());
+        
+        return importXliffBody; 
     }
 
 }

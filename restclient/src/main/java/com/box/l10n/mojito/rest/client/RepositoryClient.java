@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
+import com.box.l10n.mojito.rest.entity.ImportRepositoryBody;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
@@ -123,11 +124,12 @@ public class RepositoryClient extends BaseClient {
 
         String pathToImport = getBasePathForResource(repositoryId, "xliffImport");
         
-        Map<String, String> params = new HashMap<>();
-        params.put("updateTM", Boolean.toString(updateTM));
+        ImportRepositoryBody importRepositoryBody = new ImportRepositoryBody();
+        importRepositoryBody.setXliffContent(exportedXliffContent);
+        importRepositoryBody.setUpdateTM(updateTM);
 
         try {
-            authenticatedRestTemplate.postForEntity(pathToImport, exportedXliffContent, String.class, params);
+            authenticatedRestTemplate.postForEntity(pathToImport, importRepositoryBody, Void.class);
 
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
@@ -171,7 +173,7 @@ public class RepositoryClient extends BaseClient {
         repository.setRepositoryLocales(repositoryLocales);
         repository.setIntegrityCheckers(integrityCheckers);
 
-        authenticatedRestTemplate.put(getBasePathForResource(repository.getId()), repository);
+        authenticatedRestTemplate.patch(getBasePathForResource(repository.getId()), repository);
 
     }
 

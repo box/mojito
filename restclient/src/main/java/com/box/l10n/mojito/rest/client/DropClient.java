@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.client;
 import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.ExportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
+import com.box.l10n.mojito.rest.entity.ImportXliffBody;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -138,30 +139,24 @@ public class DropClient extends BaseClient {
      *
      * @return the Imported XLIFF
      */
-    public String importXiff(String xliffContent, Long repositoryId, Boolean isTranslationKit, ImportDropConfig.Status importStatus) {
+    public String importXiff(String xliffContent, Long repositoryId, boolean isTranslationKit, ImportDropConfig.Status importStatus) {
 
         String importXliffPath = UriComponentsBuilder
                 .fromPath(getBasePathForEntity())
                 .pathSegment("importXliff")
                 .toUriString();
 
-        Map<String, String> params = new HashMap<>();
-        
-        params.put("repositoryId", Preconditions.checkNotNull(repositoryId).toString());
+        ImportXliffBody importXliffBody = new ImportXliffBody();
 
-        if (isTranslationKit != null) {
-            params.put("isTranslationKit", isTranslationKit.toString());
-        }
-
-        if (importStatus != null) {
-            params.put("importStatus", importStatus.toString());
-        }
+        importXliffBody.setRepositoryId(Preconditions.checkNotNull(repositoryId));
+        importXliffBody.setTranslationKit(isTranslationKit);
+        importXliffBody.setImportStatus(importStatus);
+        importXliffBody.setXliffContent(xliffContent);
 
         return authenticatedRestTemplate.postForObject(
                 importXliffPath,
-                xliffContent,
-                String.class,
-                params);
+                importXliffBody,
+                ImportXliffBody.class).getXliffContent();
     }
 
 }

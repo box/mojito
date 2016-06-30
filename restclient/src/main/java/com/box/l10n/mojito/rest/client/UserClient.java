@@ -141,7 +141,7 @@ public class UserClient extends BaseClient {
             }
             user.setAuthorities(authorities);
 
-            authenticatedRestTemplate.put(getBasePathForResource(user.getId()), user);
+            authenticatedRestTemplate.patch(getBasePathForResource(user.getId()), user);
         }
     }
     
