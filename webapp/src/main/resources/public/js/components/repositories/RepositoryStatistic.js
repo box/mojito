@@ -122,8 +122,8 @@ let RepositoryStatistics = React.createClass({
 
         let ui = "";
 
-        let numberOfNeedsTranslation = usedTextUnitCount - repositoryLocaleStatistic.includeInFileCount + repositoryLocaleStatistic.translationNeededCount;
-        let numberOfWordNeedsTranslation = usedTextUnitWordCount - repositoryLocaleStatistic.includeInFileWordCount + repositoryLocaleStatistic.translationNeededWordCount;
+        let numberOfNeedsTranslation = repositoryLocaleStatistic.translationNeededCount;
+        let numberOfWordNeedsTranslation = repositoryLocaleStatistic.translationNeededWordCount;
 
         if (numberOfNeedsTranslation > 0) {
             ui = (

@@ -143,7 +143,7 @@ let RepositoryRow = React.createClass({
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfNeedsTranslation += repoStats.usedTextUnitCount - repoLocaleStat.includeInFileCount + repoLocaleStat.translationNeededCount;
+                numberOfNeedsTranslation += repoLocaleStat.translationNeededCount;
             }
         });
 
@@ -165,7 +165,7 @@ let RepositoryRow = React.createClass({
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfWordNeedsTranslation += (repoStats.usedTextUnitWordCount - repoLocaleStat.includeInFileWordCount + repoLocaleStat.translationNeededWordCount);
+                numberOfWordNeedsTranslation += repoLocaleStat.translationNeededWordCount;
             }
         });
 
