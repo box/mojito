@@ -207,6 +207,7 @@ let Drops = React.createClass({
         return (
             <tr className="">
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
+                <td>{drop.translationKits[0].wordCount}</td>
                 <td>{drop.createdByUser.getDisplayName()}</td>
                 <td><FormattedDate value={drop.createdDate} day="numeric" month="long" year="numeric"/></td>
                 <td>{drop.repository.name}</td>
@@ -259,6 +260,7 @@ let Drops = React.createClass({
             <thead>
             <tr>
                 <th>{this.getIntlMessage("drops.tableHeader.name")}</th>
+                <th className="col-md-1">{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdBy")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdDate")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.repository")}</th>
