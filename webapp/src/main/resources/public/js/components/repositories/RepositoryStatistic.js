@@ -1,4 +1,5 @@
 import $ from "jquery";
+import _ from "lodash";
 import React from "react";
 import {Table, ProgressBar, Button, Label} from "react-bootstrap";
 import {History, Link} from "react-router";
@@ -24,53 +25,142 @@ let RepositoryStatistics = React.createClass({
         let repoStat = repo.repositoryStatistic;
         let repositoryLocaleStatistics = repoStat.repositoryLocaleStatistics;
 
-        // compensate for not fully translated
-        let result = "";
-        result = repositoryLocaleStatistics.map(repoLocaleStat => {
+        let toBeFullyTranslatedBcp47Tags = RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId);
+
+        let rows = repositoryLocaleStatistics.map(repoLocaleStat => {
             let bcp47Tag = repoLocaleStat.locale.bcp47Tag;
-            let percent = repoStat.usedTextUnitCount == 0 ? 0 : repoLocaleStat.translatedCount / repoStat.usedTextUnitCount * 100;
-            return this.getLocaleStatisticRow(bcp47Tag, percent);
+            let isFullyTranslated = toBeFullyTranslatedBcp47Tags.indexOf(bcp47Tag) !== -1;
+
+            return this.getLocaleStatisticRow(bcp47Tag, isFullyTranslated, repoStat.usedTextUnitCount, repoStat.usedTextUnitWordCount, repoLocaleStat);
         });
 
-        return result;
+
+        return rows;
     },
 
     /**
      * Update the Workbench search params to load strings that needs to be translated for a given locale
      *
-     * @param {number} repoId
+     * @param {string} bcp47Tag
      */
     updateSearchParamsForLocale(bcp47Tag) {
 
         WorkbenchActions.searchParamsChanged({
-                  "changedParam": SearchConstants.UPDATE_ALL,
-                  "repoIds": [this.props.repoId],
-                  "bcp47Tags": [bcp47Tag],
-                  "status": SearchParamsStore.STATUS.FOR_TRANSLATION});
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": [this.props.repoId],
+            "bcp47Tags": [bcp47Tag],
+            "status": SearchParamsStore.STATUS.ALL
+        });
     },
 
     /**
+     * Update the Workbench search params to load the for translation view for the selected repo
      *
      * @param {string} bcp47Tag
-     * @param {number} percent out of 100
+     */
+    updateSearchParamsForNeedsTranslation(bcp47Tag) {
+
+        let repoId = this.props.repoId;
+
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": [repoId],
+            "bcp47Tags": [bcp47Tag],
+            "status": SearchParamsStore.STATUS.FOR_TRANSLATION
+        });
+    },
+
+    /**
+     * Update the Workbench search params to load the neeeds review view for the selected repo
+     *
+     * @param {string} bcp47Tag
+     */
+    updateSearchParamsForNeedsReview(bcp47Tag) {
+
+        let repoId = this.props.repoId;
+
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": [repoId],
+            "bcp47Tags": [bcp47Tag],
+            "status": SearchParamsStore.STATUS.REVIEW_NEEDED
+        });
+    },
+
+
+    /**
+     * @param {string} bcp47Tag
+     * @param {RepositoryLocaleStatistic}
      * @return {XML}
      */
-    getLocaleStatisticRow(bcp47Tag, percent) {
-        let progressLabel = <FormattedNumber value={(percent / 100).toFixed(3)} style="percent" />;
+    getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic) {
+
+        let ui = "";
+
+        let numberOfNeedsReview = repositoryLocaleStatistic.reviewNeededCount;
+        let numberOfWordNeedsReview = repositoryLocaleStatistic.reviewNeededWordCount;
+
+        if (numberOfNeedsReview > 0) {
+            ui = (
+                    <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, bcp47Tag)} to='/workbench'>
+                        <span className="repo-counts">{numberOfNeedsReview}</span> ({numberOfWordNeedsReview})
+                    </Link>
+            );
+        }
+
+        return ui;
+    },
+
+    /**
+     * @param {string} bcp47Tag
+     * @param {number}
+     * @param {number}
+     * @param {RepositoryLocaleStatistic}
+     * @return {XML}
+     */
+    getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic) {
+
+        let ui = "";
+
+        let numberOfNeedsTranslation = usedTextUnitCount - repositoryLocaleStatistic.includeInFileCount + repositoryLocaleStatistic.translationNeededCount;
+        let numberOfWordNeedsTranslation = usedTextUnitWordCount - repositoryLocaleStatistic.includeInFileWordCount + repositoryLocaleStatistic.translationNeededWordCount;
+
+        if (numberOfNeedsTranslation > 0) {
+            ui = (
+                    <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, bcp47Tag)} to='/workbench'>
+                        <span className="repo-counts">{numberOfNeedsTranslation}</span> ({numberOfWordNeedsTranslation})
+                    </Link>);
+        }
+
+        return ui;
+    },
+
+    /**
+     * @param {string} bcp47Tag
+     * @param {boolean}
+     * @param {number}
+     * @param {number}
+     * @param {RepositoryLocaleStatistic}
+     * @return {XML}
+     */
+    getLocaleStatisticRow(bcp47Tag, isFullyTranslated, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic) {
+
+        let rowClassName = "";
+
+        if (!isFullyTranslated) {
+            rowClassName = "repo-stats-row-blured";
+        }
 
         return (
-            <tr>
-                <td className="col-md-6">
-                    <div>
-                        <Link onClick={this.updateSearchParamsForLocale.bind(this, bcp47Tag)} to='/workbench'>{Locales.getDisplayName(bcp47Tag)}</Link>
-                    </div>
-                </td>
-                <td>
-                    <div>
-                        <ProgressBar now={percent} label={progressLabel} />
-                    </div>
-                </td>
-            </tr>
+                <tr className={rowClassName}>
+                    <td>
+                        <div>
+                            <Link onClick={this.updateSearchParamsForLocale.bind(this, bcp47Tag)} to='/workbench'>{Locales.getDisplayName(bcp47Tag)}</Link>
+                        </div>
+                    </td>
+                    <td>{this.getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic)}</td>
+                    <td>{this.getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic)}</td>
+                </tr>
         );
     },
 
@@ -81,30 +171,36 @@ let RepositoryStatistics = React.createClass({
         this.props.onCloseBegin();
 
         $(this.refs.statsContainer.getDOMNode())
-            .removeClass("slideInRight")
-            .addClass("slideOutRight")
-            .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", () => {
-                this.props.onClose();
-            });
+                .removeClass("slideInRight")
+                .addClass("slideOutRight")
+                .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", () => {
+                    this.props.onClose();
+                });
     },
 
     render: function () {
         let className = "repo-stats-panel animated slideInRight " + this.props.className;
 
         return (
-            <div className={className} ref="statsContainer">
-                <div className="title">
-                    <h4>{this.getIntlMessage("repositories.localeStats.localeStats")}</h4>
-                    <Button className="close" onClick={this.onClickClose}>×</Button>
-                </div>
-                <div className="repo-stats-table-container">
-                    <Table className="repo-stats-table animated fadeInRight">
-                        <tbody>
+                <div className={className} ref="statsContainer">
+                    <div className="title">
+                        <Button className="close" onClick={this.onClickClose}>×</Button>
+                    </div>
+                    <div className="repo-stats-table-container">
+                        <Table className="repo-stats-table animated fadeInRight">
+                            <thead>
+                            <tr>
+                                <th>Locales</th>
+                                <th>{this.getIntlMessage('repositories.table.header.needsTranslation')}</th>
+                                <th>{this.getIntlMessage('repositories.table.header.needsReview')}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
                             {this.getLocaleStatistics()}
-                        </tbody>
-                    </Table>
+                            </tbody>
+                        </Table>
+                    </div>
                 </div>
-            </div>
 
         );
     }

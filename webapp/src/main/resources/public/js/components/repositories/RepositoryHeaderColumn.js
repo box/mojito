@@ -9,7 +9,7 @@ let RepositoryHeaderColumn = React.createClass({
 
     render: function () {
         return (
-            <th className={this.props.className}>{this.getIntlMessage(this.props.columnNameMessageId)}</th>
+            <th className={this.props.className}>{this.props.columnNameMessageId ? this.getIntlMessage(this.props.columnNameMessageId) : ""}</th>
         );
     }
     // TODO: add sort L&F capability.

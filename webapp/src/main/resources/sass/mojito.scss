@@ -16,6 +16,8 @@ $border-radius-large: 4px;
 $border-radius-small: 2px;
 $modal-backdrop-bg: #fff;
 $modal-backdrop-opacity: 0.9;
+$color-gray-light: #CCC;
+$color-white: #FFF;
 
 @import "../../../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 
@@ -24,7 +26,7 @@ body {
 }
 
 h4 {
-  color: #777;
+  color: $gray-light;
   font-weight: 300;
 }
 
@@ -33,9 +35,9 @@ button, .btn {
 }
 
 .navbar-default {
-  border-color: #559745;
+  border-color: $brand-primary;
   border-top: 0;
-  background-color: white;
+  background-color: $color-white;
   border-left: 0;
   border-right: 0;
 }
@@ -49,7 +51,7 @@ button, .btn {
  * LABEL
  */
 .label {
-  background-color: #fff;
+  background-color: $color-white;
   border: 1px solid $gray-base;
   color: $gray-base;
   font-weight: 200;
@@ -83,7 +85,7 @@ button, .btn {
 
 .label.clickable:hover {
   background-color: darken($gray-base, 15%);
-  color: white;
+  color: $color-white;
 }
 
 .label.label-success.clickable:hover {
@@ -303,11 +305,11 @@ a.label-container:hover {
 }
 
 .color-gray-light {
-  color: #777;
+  color: $gray-light;
 }
 
 .color-gray-light2 {
-  color: #D1D0CE;
+  color: $color-gray-light;
 }
 
 .clickable {
@@ -315,11 +317,11 @@ a.label-container:hover {
 }
 
 .split-left {
-  width: 70%;
+  width: 60%;
 }
 
 .split-right {
-  width: 30%;
+  width: 40%;
 }
 
 /**
@@ -333,8 +335,8 @@ div.statusDropdown {
 
 .textunit {
   position: initial;
-  border-bottom: 1px solid #CCCCCC;
-  border-left: 2px solid #FFFFFF;
+  border-bottom: 1px solid $color-gray-light;
+  border-left: 2px solid $color-white;
   outline: none;
 }
 
@@ -413,56 +415,40 @@ div.targetstring-container textarea {
   width: 300px;
 }
 
-.repo-description {
-  width: 300px;
+.repo-counts {
+  color: $brand-primary;
+  font-weight: bold;
 }
 
 .repo-active {
   border: 1px solid $brand-primary;
 }
 
-.repo-active td .progress {
-  margin: 20px 0 !important;
+.repo-show-locales-button {
   transition: margin 0.2s;
+  color: $brand-primary;
+  float: right;
+}
+
+.repo-show-locales-button:hover {
+  opacity: 0.9;
 }
 
 .repo-blurred td {
-  opacity: 0.8;
-}
-
-.repo-blurred td .progress-bar {
-  opacity: 0.3;
+  opacity: 0.5;
 }
 
 .repo-table {
   margin-left: 8px;
-  transition: width 0.2s;
+  transition: width 1.0s;
 }
 
 .repo-table > thead > tr > th, .repo-table > tbody > tr > th, .repo-table > tfoot > tr > th, .repo-table > thead > tr > td, .repo-table > tbody > tr > td, .repo-table > tfoot > tr > td {
   vertical-align: middle;
 }
 
-.repo-table td .progress {
-  margin: 10px 0;
-  transition: margin 0.2s;
-}
-
-.repo-table td.progress-cell:hover {
-  opacity: 0.9;
-}
-
-.repo-table .status-label-container {
-  display: inline-block;
-}
-
 .repo-table a {
-  color: #444;
-}
-
-.repo-table .zero-progress-bar span {
-  margin-left: 10px;
-  color: #999;
+  color: $gray-dark;
 }
 
 /**
@@ -473,9 +459,8 @@ div.targetstring-container textarea {
   position: fixed;
   right: 0;
   top: 51px;
-  border: 1px solid #DADEDD;
-  background: white;
-  animation-duration: 0.2s;
+  border: 1px solid $color-gray-light;
+  background: $color-white;
   animation-delay: 0s;
   display: flex;
   flex-direction: column;
@@ -488,19 +473,19 @@ div.targetstring-container textarea {
 
 .repo-stats-table {
   width: 100%;
-  border-bottom: 1px solid #DADEDD;
+  border-bottom: 1px solid $color-gray-light;
 }
 
 .repo-stats-table > tbody > tr > td {
   vertical-align: middle;
 }
 
-.repo-stats-table .progress {
-  margin: 10px 0;
+.repo-stats-table a {
+   color: $gray-dark;
 }
 
-.repo-stats-panel .title {
-  height: 37px;
+.repo-stats-row-blured {
+  opacity: 0.5;
 }
 
 .repo-stats-panel .title h4 {

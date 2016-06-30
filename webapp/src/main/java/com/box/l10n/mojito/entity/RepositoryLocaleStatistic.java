@@ -67,7 +67,7 @@ import org.hibernate.annotations.NamedNativeQuery;
         )
 )
 public class RepositoryLocaleStatistic extends BaseEntity {
-
+     
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE_STATISTIC__REPOSITORY__ID"))
@@ -87,6 +87,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     /**
      * Word count of translated text unit (includes needs review and rejected)
      */
+    @JsonView(View.RepositorySummary.class)
     private Long translatedWordCount = 0L;
 
     /**
@@ -100,6 +101,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
      * Word count of text unit with status
      * {@link TMTextUnitVariant.Status#TRANSLATION_NEEDED}
      */
+    @JsonView(View.RepositorySummary.class)
     private Long translationNeededWordCount = 0L;
 
     /**
@@ -113,6 +115,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
      * Word count of translations with status
      * {@link TMTextUnitVariant.Status#REVIEW_NEEDED}
      */
+    @JsonView(View.RepositorySummary.class)
     private Long reviewNeededWordCount = 0L;
 
     /**
@@ -124,6 +127,7 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     /**
      * Word count of translations that are included in files
      */
+    @JsonView(View.RepositorySummary.class)
     private Long includeInFileWordCount = 0L;
 
     public RepositoryLocaleStatistic() {
