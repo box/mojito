@@ -9,6 +9,7 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import java.util.HashMap;
@@ -52,7 +53,10 @@ public class RepositoryService {
 
     @Autowired
     RepositoryStatisticRepository repositoryStatisticRepository;
-        
+
+    @Autowired
+    RepositoryLocaleStatisticRepository repositoryLocaleStatisticRepository;
+
     @Autowired
     DropExporterConfig dropExporterConfiguration;
     
@@ -298,6 +302,7 @@ public class RepositoryService {
         logger.debug("Clear all RepositoryLocale for Repository: " + repository.getId());
 
         Long aLong = repositoryLocaleRepository.deleteByRepositoryAndParentLocaleIsNotNull(repository);
+        repositoryLocaleStatisticRepository.deleteByRepositoryStatisticId(repository.getRepositoryStatistic().getId());
 
         logger.debug("Deleted RepositoryLocale: " + aLong);
     }

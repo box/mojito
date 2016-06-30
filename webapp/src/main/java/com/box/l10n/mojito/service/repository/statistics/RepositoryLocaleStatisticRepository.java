@@ -16,4 +16,6 @@ public interface RepositoryLocaleStatisticRepository extends JpaRepository<Repos
     RepositoryLocaleStatistic findByRepositoryStatisticIdAndLocaleId(Long repositoryStatisticId, Long localeId);
 
     Set<RepositoryLocaleStatistic> findByRepositoryStatisticId(Long repositoryStatisticId);
+
+    void deleteByRepositoryStatisticId(Long repositoryStatisticId);
 }
