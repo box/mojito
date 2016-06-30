@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.translationkit;
 
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.entity.TranslationKitTextUnit;
@@ -47,6 +48,8 @@ public class TranslationKitStep extends BasePipelineStep {
      */
     Long translationKitId;
 
+    Long wordCount = 0L;
+
     /**
      * Keeps track of {@link TranslationKitTextUnit}s to be included in the
      * {@link TranslationKit}
@@ -82,7 +85,9 @@ public class TranslationKitStep extends BasePipelineStep {
         translationKitTextUnit.setTranslationKit(translationKitRepository.getOne(translationKitId));
         
         Long textUnitId = Long.valueOf(textUnit.getId());
-        translationKitTextUnit.setTmTextUnit(tmTextUnitRepository.getOne(textUnitId));
+        TMTextUnit tmTextUnit = tmTextUnitRepository.getOne(textUnitId);
+        translationKitTextUnit.setTmTextUnit(tmTextUnit);
+        wordCount += tmTextUnit.getWordCount();
         
         translationKitTextUnit.setExportedTmTextUnitVariant(getTMTextUnitVariant(textUnit));
 
@@ -95,7 +100,7 @@ public class TranslationKitStep extends BasePipelineStep {
 
     @Override
     protected Event handleEndDocument(Event event) {
-        translationKitService.updateTranslationKitWithTmTextUnits(translationKitId, translationKitTextUnits);
+        translationKitService.updateTranslationKitWithTmTextUnits(translationKitId, translationKitTextUnits, wordCount);
         return event;
     }
 

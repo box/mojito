@@ -104,6 +104,10 @@ public class TranslationKit extends AuditableEntity {
     @Column(name = "num_bad_language_detections")
     private int numBadLanguageDetections;
 
+    @JsonView(View.DropSummary.class)
+    @Column(name = "word_count")
+    private Long wordCount;
+
     @ElementCollection
     @CollectionTable(name = "translation_kit_not_found_text_unit_ids",
             joinColumns = @JoinColumn(name = "TRANSLATION_KIT_ID"), foreignKey = @ForeignKey(name = "FK__TRANSLATION_KIT_NOT_FOUND_TEXT_UNIT_IDS__TRANSLATION_KIT__ID"))
@@ -184,6 +188,14 @@ public class TranslationKit extends AuditableEntity {
 
     public void setNotFoundTextUnitIds(Set<String> notFoundTextUnitIds) {
         this.notFoundTextUnitIds = notFoundTextUnitIds;
+    }
+
+    public Long getWordCount() {
+        return wordCount;
+    }
+
+    public void setWordCount(Long wordCount) {
+        this.wordCount = wordCount;
     }
 
 }

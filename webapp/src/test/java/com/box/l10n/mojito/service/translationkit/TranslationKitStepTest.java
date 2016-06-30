@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.translationkit;
 
+import static com.box.l10n.mojito.common.Mocks.getJpaRepositoryMockForGetOne;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TranslationKit;
@@ -15,12 +16,11 @@ import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.TextUnit;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 import static org.mockito.Mockito.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static com.box.l10n.mojito.common.Mocks.getJpaRepositoryMockForGetOne;
 
 /**
  *
@@ -60,6 +60,9 @@ public class TranslationKitStepTest {
         Long translationKitId = 987654321L;
         Long tmTextUnitId = 654987321L;
         Long tmTextUnitVariantId = 123456789L;
+        TMTextUnit tmTextUnit = new TMTextUnit();
+        tmTextUnit.setId(tmTextUnitId);
+        tmTextUnit.setWordCount(1);
 
         logger.debug("State of the instance to be checked");
         List<TranslationKitTextUnit> translationKitTextUnits = new ArrayList<>();
@@ -67,7 +70,8 @@ public class TranslationKitStepTest {
         logger.debug("Create mocks");
         TranslationKitRepository mockTranslationKitRepository = getJpaRepositoryMockForGetOne(TranslationKitRepository.class, TranslationKit.class, translationKitId);
         TMTextUnitVariantRepository mockTmTextUnitVariantRepository = getJpaRepositoryMockForGetOne(TMTextUnitVariantRepository.class, TMTextUnitVariant.class, tmTextUnitVariantId);
-        TMTextUnitRepository mockTmTextUnitRepository = getJpaRepositoryMockForGetOne(TMTextUnitRepository.class, TMTextUnit.class, tmTextUnitId);
+        TMTextUnitRepository mockTmTextUnitRepository = mock(TMTextUnitRepository.class);
+        when(mockTmTextUnitRepository.getOne(tmTextUnitId)).thenReturn(tmTextUnit);
 
         logger.debug("Create instance to be tested, inject mocks and state");
         TranslationKitStep translationKitStep = new TranslationKitStep(translationKitId);
@@ -122,7 +126,7 @@ public class TranslationKitStepTest {
         Event result = translationKitStep.handleEndDocument(event);
 
         assertEquals("the input event should be returned", event, result);
-        verify(mockTranslationKitService).updateTranslationKitWithTmTextUnits(translationKitId, translationKitTextUnits);
+        verify(mockTranslationKitService).updateTranslationKitWithTmTextUnits(translationKitId, translationKitTextUnits, 0L);
     }
 
     @Test

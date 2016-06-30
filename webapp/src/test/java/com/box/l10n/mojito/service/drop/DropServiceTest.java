@@ -615,11 +615,18 @@ public class DropServiceTest extends ServiceTestBase {
         for (TranslationKit tk : d.getTranslationKits()) {
 
             assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), tk.getNumTranslationKitUnits(), tk.getNumTranslatedTranslationKitUnits());
+            assertNotNull(tk.getWordCount());
 
             if (tk.getLocale().getBcp47Tag().equals("ko-KR")) {
                 assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 1, tk.getNotFoundTextUnitIds().size());
                 assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 1, tk.getNumSourceEqualsTarget());
+                assertEquals(1, tk.getWordCount().intValue());
             } else {
+                if (tk.getLocale().getBcp47Tag().equals("ja-JP")) {
+                    assertEquals(9, tk.getWordCount().intValue());
+                } else {
+                    assertEquals(1, tk.getWordCount().intValue());
+                }
                 assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 0, tk.getNotFoundTextUnitIds().size());
                 assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 0, tk.getNumSourceEqualsTarget());
             }

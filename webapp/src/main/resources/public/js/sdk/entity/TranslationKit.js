@@ -37,6 +37,9 @@ export default class TranslationKit {
 
         /** @type {StatusFilter}  */
         this.type = null;
+
+        /** @type {Number} */
+        this.wordCount =  0;
     }
 
     /**
@@ -57,6 +60,7 @@ export default class TranslationKit {
         result.numTranslatedTranslationKitUnits = json.numTranslatedTranslationKitUnits;
         result.numTranslationKitUnits = json.numTranslationKitUnits;
         result.type = new StatusFilter(json.type);
+        result.wordCount = json.wordCount;
 
         return result;
     }

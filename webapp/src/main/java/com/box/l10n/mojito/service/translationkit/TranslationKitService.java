@@ -22,6 +22,13 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
+import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
@@ -32,13 +39,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 /**
  * Service to generate {@link TranslationKit}s
@@ -188,14 +188,16 @@ public class TranslationKitService {
      *
      * @param translationKitId {@link TranslationKit#id}
      * @param translationKitTextUnits List of {@link TranslationKitTextUnit#id}s
+     * @param wordCount
      */
     @Transactional
-    public void updateTranslationKitWithTmTextUnits(Long translationKitId, List<TranslationKitTextUnit> translationKitTextUnits) {
+    public void updateTranslationKitWithTmTextUnits(Long translationKitId, List<TranslationKitTextUnit> translationKitTextUnits, Long wordCount) {
 
         logger.debug("Update translation kit: {} with list of tmTextUnitIds", translationKitId);
 
         TranslationKit translationKit = translationKitRepository.findOne(translationKitId);
         translationKit.setNumTranslationKitUnits(translationKitTextUnits.size());
+        translationKit.setWordCount(wordCount);
 
         logger.trace("Save the TranslationKit");
         translationKitRepository.save(translationKit);
