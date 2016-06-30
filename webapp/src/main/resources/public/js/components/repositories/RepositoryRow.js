@@ -1,12 +1,12 @@
 import React from "react";
-import { ProgressBar, Tooltip, OverlayTrigger, Label } from "react-bootstrap";
+import { ProgressBar, Tooltip, OverlayTrigger, Label, Glyphicon } from "react-bootstrap";
 import ReactIntl from "react-intl";
 import { History, Link  } from "react-router";
 
 import RepositoryStore from "../../stores/RepositoryStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-import SearchParamsStore from "../../stores/workbench/SearchParamsStore"
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
 let {IntlMixin, FormattedMessage, FormattedDate, FormattedNumber} = ReactIntl;
 
@@ -23,42 +23,6 @@ let RepositoryRow = React.createClass({
             "isActive": false,
             "isBlurred": false
         };
-    },
-
-    /**
-     * Invoked once, only on the client (not on the server), immediately after the initial rendering occurs.
-     * At this point in the lifecycle, the component has a DOM representation which you can access via
-     * React.findDOMNode(this). The componentDidMount() method of child components is invoked before that of parent components.
-     *
-     * If you want to integrate with other JavaScript frameworks, set timers using setTimeout or setInterval, or
-     * send AJAX requests, perform those operations in this method.
-     */
-    componentDidMount() {
-        let percentTranslated = this.getPercentTranslated();
-
-        setTimeout(() => {
-            this.setState({
-                "percent": percentTranslated * 100
-            });
-        }, 10);
-    },
-
-    /**
-     * Get percentage of translated text unit across all locales
-     * @return {number}
-     */
-    getPercentTranslated() {
-        let percentTranslated = 0;
-
-        let repoId = this.props.rowData.id;
-        let repo = RepositoryStore.getRepositoryById(repoId);
-
-        if (repo.repositoryStatistic.usedTextUnitCount > 0) {
-            let avgTranslated = this.calculateAvgNumOfTranslated(repoId);
-            percentTranslated = avgTranslated / repo.repositoryStatistic.usedTextUnitCount;
-        }
-
-        return percentTranslated;
     },
 
     /**
@@ -136,7 +100,22 @@ let RepositoryRow = React.createClass({
     },
 
     /**
-     * Calculate the average of number of rejected across all locales
+     * Calculate the total of number of words that needs review across all locales
+     *
+     * @param {number} repoId
+     * @return {number}
+     */
+    getNumberOfWordNeedsReview(repoId) {
+        let needsOfWordNeedsReview = 0;
+        let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
+        repoLocaleStatistics.forEach(repoLocaleStat =>
+                needsOfWordNeedsReview += repoLocaleStat.reviewNeededWordCount
+        );
+        return needsOfWordNeedsReview;
+    },
+
+    /**
+     * Calculate the total of number of rejected across all locales
      * @param {string} repoId
      * @return {number}
      */
@@ -164,11 +143,33 @@ let RepositoryRow = React.createClass({
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfNeedsTranslation += (repoStats.usedTextUnitCount - repoLocaleStat.translatedCount + repoLocaleStat.translationNeededCount);
+                numberOfNeedsTranslation += repoStats.usedTextUnitCount - repoLocaleStat.includeInFileCount + repoLocaleStat.translationNeededCount;
             }
         });
 
         return numberOfNeedsTranslation;
+    },
+
+    /**
+     * Calculate the total number of words for translation (untranslated + needs translation) across all Locales
+     *
+     * @param {string} repoId
+     * @return {number}
+     */
+    getNumberOfWordNeedsTranslation(repoId) {
+        let numberOfWordNeedsTranslation = 0;
+        let repo = RepositoryStore.getRepositoryById(repoId);
+        let repoStats = repo.repositoryStatistic;
+        let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
+
+        let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
+        repoLocaleStatistics.forEach(repoLocaleStat => {
+            if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
+                numberOfWordNeedsTranslation += (repoStats.usedTextUnitWordCount - repoLocaleStat.includeInFileWordCount + repoLocaleStat.translationNeededWordCount);
+            }
+        });
+
+        return numberOfWordNeedsTranslation;
     },
 
     /**
@@ -211,7 +212,7 @@ let RepositoryRow = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
-            "status":  SearchParamsStore.STATUS.REVIEW_NEEDED
+            "status": SearchParamsStore.STATUS.REVIEW_NEEDED
         });
     },
 
@@ -226,91 +227,96 @@ let RepositoryRow = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
-            "status":  SearchParamsStore.STATUS.REJECTED
+            "status": SearchParamsStore.STATUS.REJECTED
         });
-    },
-
-    /**
-     * @param {number} numberForReview
-     * @return {XML}
-     */
-    getNeedsReviewLabel(numberOfNeedsReview) {
-        const repoId = this.props.rowData.id;
-        return (
-            <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, repoId)} to='/workbench' className="label-container">
-                <Label bsStyle="info" className="mrs clickable">
-                    <FormattedMessage numberOfNeedsReview={numberOfNeedsReview} message={this.getIntlMessage("repositories.table.row.needsReview")} />
-                </Label>
-            </Link>
-        );
     },
 
     /**
      * @param {number} numberRejected
      * @return {XML}
      */
-    getRejectedLabel(numberRejected) {
+    getRejectedLabel() {
+
+        let ui = "";
+
         const repoId = this.props.rowData.id;
-        return (<Link onClick={this.updateSearchParamsForRejected.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
-            <Label bsStyle="danger" className="mrs clickable">
-                <FormattedMessage numberOfRejected={numberRejected} message={this.getIntlMessage("repositories.table.row.rejected")} />
-            </Label>
-        </Link>);
+        let numberOfRejected = this.getNumberOfRejected(repoId);
+
+        if (numberOfRejected > 0) {
+            ui = (
+                    <Link onClick={this.updateSearchParamsForRejected.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
+                        <Label bsStyle="danger" className="mrs clickable">
+                            <FormattedMessage numberOfRejected={numberOfRejected} message={this.getIntlMessage("repositories.table.row.rejected")}/>
+                        </Label>
+                    </Link>);
+        }
+
+        return ui;
     },
 
     /**
      * @return {XML}
      */
-    getNeedsTranslationLabel(numberOfNeedsTranslation) {
-        const repoId = this.props.rowData.id;
-        return (<Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
-            <Label className="mrs clickable">
-                <FormattedMessage numberOfNeedsTranslation={numberOfNeedsTranslation} message={this.getIntlMessage("repositories.table.row.needsTranslation")} />
-            </Label>
-        </Link>);
-    },
+    getNeedsReviewLabel() {
 
-    /**
-     * @return {XML}
-     */
-    getOkLabel() {
-        const repoId = this.props.rowData.id;
-        return (<Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
-            <Label bsStyle="success" className="mrs clickable">
-                {this.getIntlMessage("repositories.table.row.ok")}
-            </Label>
-        </Link>);
-    },
+        let ui = "";
 
-    /**
-     * @return {XML}
-     */
-    getStatusLabel() {
         const repoId = this.props.rowData.id;
         let numberOfNeedsReview = this.getNumberOfNeedsReview(repoId);
-        let numberOfRejected = this.getNumberOfRejected(repoId);
-        let numberOfNeedsTranslation = this.getNumberOfNeedsTranslation(repoId);
+        let numberOfWordNeedsReview = this.getNumberOfWordNeedsReview(repoId);
 
-        return (
-            <span>
-                {!numberOfNeedsReview && !numberOfRejected && !numberOfNeedsTranslation ? this.getOkLabel() : ""}
-                {numberOfNeedsTranslation ? this.getNeedsTranslationLabel(numberOfNeedsTranslation) : ""}
-                {numberOfNeedsReview ? this.getNeedsReviewLabel(numberOfNeedsReview) : ""}
-                {numberOfRejected ? this.getRejectedLabel(numberOfRejected) : ""}
-            </span>
-        );
+        if (numberOfNeedsReview > 0) {
+            ui = (
+                    <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, repoId)} to='/workbench' className="">
+                        <span className="repo-counts">{numberOfNeedsReview} </span>
+                        (
+                        <FormattedMessage
+                                numberOfWords={numberOfWordNeedsReview}
+                                message={this.getIntlMessage("repositories.table.row.numberOfWords")}/>
+                        )
+                    </Link>
+            );
+        }
+
+        return ui;
+    },
+
+    /**
+     * @return {XML}
+     */
+    getNeedsTranslationLabel() {
+
+        let ui = "";
+
+        const repoId = this.props.rowData.id;
+        let numberOfNeedsTranslation = this.getNumberOfNeedsTranslation(repoId);
+        let numberOfWordNeedsTranslation = this.getNumberOfWordNeedsTranslation(repoId);
+
+        if (numberOfNeedsTranslation > 0) {
+            ui = (
+                    <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, repoId)} to='/workbench'>
+                        <span className="repo-counts">{numberOfNeedsTranslation} </span>
+                        (
+                        <FormattedMessage
+                                numberOfWords={numberOfWordNeedsTranslation}
+                                message={this.getIntlMessage("repositories.table.row.numberOfWords")}/>
+                        )
+                    </Link>);
+        }
+
+        return ui;
     },
 
     /**
      * Handle when progress bar is clicked
      */
-    onClickProgressBar() {
+    onClickShowLocalesButton() {
         if (!this.state.isActive) {
             this.setState({
                 "isActive": true
             });
 
-            this.props.onClickProgressBar(this.props.rowData.id);
+            this.props.onClickShowLocalesButton(this.props.rowData.id);
         }
     },
 
@@ -332,34 +338,33 @@ let RepositoryRow = React.createClass({
         let descriptionTooltip = <div />;
 
         if (this.props.rowData.description) {
-            descriptionTooltip = <Tooltip>{this.props.rowData.description}</Tooltip>;
+            descriptionTooltip =
+                    <Tooltip>{this.props.rowData.description}</Tooltip>;
         }
 
         let rowClass = "";
+
         if (this.state.isActive) {
             rowClass = "repo-active";
         } else if (this.props.isBlurred) {
             rowClass = "repo-blurred";
         }
 
-        let progressLabel = <FormattedNumber value={(this.state.percent / 100).toFixed(3)} style="percent" />;
-        let progressClassName = "";
-        if (this.state.percent === 0) {
-            progressClassName = "zero-progress-bar";
-        }
-
         return (
-            <tr className={rowClass}>
-                <td className="repo-name" overlay={descriptionTooltip}>
-                    <OverlayTrigger placement="right" overlay={descriptionTooltip}>
-                        <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench'>{this.props.rowData.name}</Link>
-                    </OverlayTrigger>
-                </td>
-                <td>{this.getStatusLabel()}</td>
-                <td className="clickable progress-cell" onClick={this.onClickProgressBar}>
-                    <ProgressBar now={this.state.percent} label={progressLabel} className={progressClassName} />
-                </td>
-            </tr>
+                <tr className={rowClass}>
+                    <td className="repo-name" overlay={descriptionTooltip}>
+                        <OverlayTrigger placement="right" overlay={descriptionTooltip}>
+                            <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench'>{this.props.rowData.name}</Link>
+                        </OverlayTrigger>
+                    </td>
+
+                    <td>{this.getRejectedLabel()}</td>
+                    <td>{this.getNeedsTranslationLabel()}</td>
+                    <td>{this.getNeedsReviewLabel()}</td>
+                    <td>
+                        <Label className="clickable label label-primary repo-show-locales-button" onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
+                    </td>
+                </tr>
         );
     }
 });

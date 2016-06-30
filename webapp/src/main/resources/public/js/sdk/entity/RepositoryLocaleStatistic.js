@@ -10,13 +10,25 @@ export default class RepositoryLocaleStatistic {
         this.translatedCount = 0;
 
         /** @type {Number} */
+        this.translatedWordCount = 0;
+
+        /** @type {Number} */
         this.translationNeededCount = 0;
+
+        /** @type {Number} */
+        this.translationNeededWordCount = 0;
 
         /** @type {Number} */
         this.reviewNeededCount = 0;
 
         /** @type {Number} */
+        this.reviewNeededWordCount = 0
+
+        /** @type {Number} */
         this.includeInFileCount = 0;
+
+        /** @type {Number} */
+        this.includeInFileWordCount = 0;
     }
 
     /**
@@ -28,9 +40,13 @@ export default class RepositoryLocaleStatistic {
 
         result.locale = Locale.toLocale(json.locale);
         result.translatedCount = json.translatedCount;
+        result.translatedWordCount = json.translatedWordCount;
         result.translationNeededCount = json.translationNeededCount;
+        result.translationNeededWordCount = json.translationNeededWordCount;
         result.reviewNeededCount = json.reviewNeededCount;
+        result.reviewNeededWordCount = json.reviewNeededWordCount;
         result.includeInFileCount = json.includeInFileCount;
+        result.includeInFileWordCount = json.includeInFileWordCount;
 
         return result;
     }

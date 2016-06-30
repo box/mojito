@@ -68,8 +68,10 @@ export default class TranslationKit {
     static toTranslationKits(jsons) {
         let results = [];
 
-        for (let json of jsons) {
-            results.push(TranslationKit.toTranslationKit(json));
+        if (jsons) {
+            for (let json of jsons) {
+                results.push(TranslationKit.toTranslationKit(json));
+            }
         }
 
         return results;

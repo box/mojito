@@ -37,11 +37,11 @@ let Repositories = React.createClass({
         let isBlurred = this.state.isLocaleStatsShown && (this.state.activeRepoId !== repoId);
 
         return (
-            <RepositoryRow key={repoId} rowData={rowData} onClickProgressBar={this.onClickProgressBar} isBlurred={isBlurred} ref={"repositoryRow" + repoId} />
+                <RepositoryRow key={repoId} rowData={rowData} onClickShowLocalesButton={this.onClickShowLocalesButton} isBlurred={isBlurred} ref={"repositoryRow" + repoId}/>
         );
     },
 
-    onClickProgressBar(repoId) {
+    onClickShowLocalesButton(repoId) {
         if (this.state.activeRepoId) {
             this.refs["repositoryRow" + this.state.activeRepoId].setInActive();
         }
@@ -74,7 +74,7 @@ let Repositories = React.createClass({
         let result = "";
         if (this.state.isLocaleStatsShown) {
             result = (
-                <RepositoryStatistic className="split-right" repoId={this.state.activeRepoId} onCloseBegin={this.onCloseBeginRepoLocaleStats} onClose={this.onCloseRepoLocaleStats}/>
+                    <RepositoryStatistic className="split-right" repoId={this.state.activeRepoId} onCloseBegin={this.onCloseBeginRepoLocaleStats} onClose={this.onCloseRepoLocaleStats}/>
             );
         }
 
@@ -90,21 +90,23 @@ let Repositories = React.createClass({
         }
 
         return (
-            <div>
-                <div>{this.getRepoLocaleStats()}</div>
-                <Table className={tableClass}>
-                    <thead>
+                <div>
+                    <div>{this.getRepoLocaleStats()}</div>
+                    <Table className={tableClass}>
+                        <thead>
                         <tr>
-                            <RepositoryHeaderColumn columnNameMessageId="repositories.table.header.name" />
-                            <RepositoryHeaderColumn className="col-md-3" columnNameMessageId="repositories.table.header.status" />
-                            <RepositoryHeaderColumn className="col-md-5" columnNameMessageId="repositories.table.header.translated" />
+                            <RepositoryHeaderColumn className="col-md-3" columnNameMessageId="repositories.table.header.name"/>
+                            <RepositoryHeaderColumn className="col-md-2" />
+                            <RepositoryHeaderColumn className="col-md-3" columnNameMessageId="repositories.table.header.needsTranslation" />
+                            <RepositoryHeaderColumn className="col-md-3" columnNameMessageId="repositories.table.header.needsReview" />
+                            <RepositoryHeaderColumn className="col-md-1" />
                         </tr>
-                    </thead>
-                    <tbody>
-                    {rows}
-                    </tbody>
-                </Table>
-            </div>
+                        </thead>
+                        <tbody>
+                        {rows}
+                        </tbody>
+                    </Table>
+                </div>
         );
     },
 

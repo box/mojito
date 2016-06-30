@@ -158,8 +158,8 @@
         </dependency>
 
         <dependency>
-            <artifactId>icu4j</artifactId>
             <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
             <version>57.1</version>
         </dependency>
 
