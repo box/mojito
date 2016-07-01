@@ -206,11 +206,14 @@ public abstract class AbstractImportTranslationsStep extends BasePipelineStep {
                 case ERROR:
                     importNoteBuilder.addError(tmTextUnitVariantComment.getContent());
                     needsReview = true;
+                    break;
                 case WARNING:
                     importNoteBuilder.addWarning(tmTextUnitVariantComment.getContent());
                     needsReview = true;
+                    break;
                 case INFO:
                     importNoteBuilder.addInfo(tmTextUnitVariantComment.getContent());
+                    break;
             }
         }
 

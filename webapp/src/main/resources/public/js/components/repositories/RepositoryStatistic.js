@@ -121,9 +121,8 @@ let RepositoryStatistics = React.createClass({
     getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic) {
 
         let ui = "";
-
-        let numberOfNeedsTranslation = repositoryLocaleStatistic.translationNeededCount;
-        let numberOfWordNeedsTranslation = repositoryLocaleStatistic.translationNeededWordCount;
+        let numberOfNeedsTranslation = usedTextUnitCount - repositoryLocaleStatistic.translatedCount + repositoryLocaleStatistic.translationNeededCount;
+        let numberOfWordNeedsTranslation = usedTextUnitWordCount - repositoryLocaleStatistic.translatedWordCount + repositoryLocaleStatistic.translationNeededWordCount;
 
         if (numberOfNeedsTranslation > 0) {
             ui = (
