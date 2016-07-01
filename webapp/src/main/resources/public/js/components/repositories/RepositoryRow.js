@@ -51,40 +51,6 @@ let RepositoryRow = React.createClass({
     },
 
     /**
-     * Calculate the average of number of translated strings across all locales in the Repository
-     *
-     * @param {number} repoId
-     * @return {number}
-     */
-    calculateAvgNumOfTranslated(repoId) {
-        let repo = RepositoryStore.getRepositoryById(repoId);
-        let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
-        let repoLocales = repo.repositoryLocales;
-
-        let numFullyTranslated = 0;
-        let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
-        Object.keys(repoLocalesMap).forEach(bcp47Tag => {
-            if (repoLocalesMap[bcp47Tag].toBeFullyTranslated) {
-                numFullyTranslated++;
-            }
-        });
-
-        let avgTranslated = 0;
-        if (numFullyTranslated > 0) {
-            let totalTranslated = 0;
-            repoLocaleStatistics.forEach(repoLocaleStat => {
-                if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                    totalTranslated += repoLocaleStat.translatedCount;
-                }
-            });
-
-            avgTranslated = totalTranslated / numFullyTranslated;
-        }
-
-        return avgTranslated;
-    },
-
-    /**
      * Calculate the average of number of needs review across all locales
      *
      * @param {number} repoId
@@ -143,7 +109,7 @@ let RepositoryRow = React.createClass({
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfNeedsTranslation += repoLocaleStat.translationNeededCount;
+                numberOfNeedsTranslation += (repoStats.usedTextUnitCount - repoLocaleStat.translatedCount + repoLocaleStat.translationNeededCount);
             }
         });
 
@@ -165,7 +131,7 @@ let RepositoryRow = React.createClass({
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfWordNeedsTranslation += repoLocaleStat.translationNeededWordCount;
+                numberOfWordNeedsTranslation += (repoStats.usedTextUnitWordCount - repoLocaleStat.translatedWordCount + repoLocaleStat.translationNeededWordCount);
             }
         });
 

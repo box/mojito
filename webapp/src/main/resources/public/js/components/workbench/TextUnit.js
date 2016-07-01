@@ -233,7 +233,7 @@ let TextUnit = React.createClass({
         switch (modalData.textUnitAction) {
             case "reject":
                 textUnit.setIncludedInLocalizedFile(false);
-                textUnit.setStatus(TextUnitSDK.STATUS.APPROVED);
+                textUnit.setStatus(TextUnitSDK.STATUS.TRANSLATION_NEEDED);
                 break;
             case "review":
                 textUnit.setIncludedInLocalizedFile(true);
