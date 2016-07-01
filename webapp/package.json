@@ -22,7 +22,8 @@
     "react-bootstrap": "^0.24.5",
     "react-bootstrap-multiselect": "^0.2.2",
     "react-intl": "^1.2.0",
-    "react-router": "1.0.0-rc1"
+    "react-router": "1.0.0-rc1",
+    "react-sidebar": "1.1.0"
   },
   "devDependencies": {
     "app-module-path": "^1.0.3",
