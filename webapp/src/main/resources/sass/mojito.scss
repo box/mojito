@@ -424,13 +424,13 @@ div.targetstring-container textarea {
   border: 1px solid $brand-primary;
 }
 
-.repo-show-locales-button {
+.show-details-button {
   transition: margin 0.2s;
   color: $brand-primary;
   float: right;
 }
 
-.repo-show-locales-button:hover {
+.show-details-button:hover {
   opacity: 0.9;
 }
 
@@ -586,3 +586,22 @@ label.current-pageNumber {
   float: left;
 }
 
+.side-bar-container {
+  top: 51px !important;
+}
+
+.side-bar-container > div {
+  padding-top:10px;
+}
+
+.side-bar-container .close {
+  float: right;
+  margin-top: 3px;
+  margin-right: 10px;
+}
+
+.side-bar-content-container {
+  flex: 1 1;
+  overflow: scroll;
+  width: 300px;
+}

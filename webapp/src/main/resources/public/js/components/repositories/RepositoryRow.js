@@ -362,7 +362,7 @@ let RepositoryRow = React.createClass({
                     <td>{this.getNeedsTranslationLabel()}</td>
                     <td>{this.getNeedsReviewLabel()}</td>
                     <td>
-                        <Label className="clickable label label-primary repo-show-locales-button" onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
+                        <Label className="clickable label label-primary show-details-button" onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
                     </td>
                 </tr>
         );
