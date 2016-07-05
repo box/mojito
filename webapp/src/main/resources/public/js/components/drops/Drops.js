@@ -530,7 +530,6 @@ let Drops = React.createClass({
     },
     
     render() {
-        console.log("this.state.isSideBarShown", this.state.isSideBarShown);
         return (
             <div>
                 <SideBar ref="sideBar" sidebar={this.getSideBarContent()}
