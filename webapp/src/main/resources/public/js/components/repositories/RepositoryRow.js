@@ -274,6 +274,43 @@ let RepositoryRow = React.createClass({
     },
 
     /**
+     * @return {XML}
+     */
+    getDoneLabel() {
+
+        let ui = "";
+
+        const repoId = this.props.rowData.id;
+
+        let numberOfNeedsTranslation = this.getNumberOfNeedsTranslation(repoId);
+        let numberOfNeedsNeedsReview = this.getNumberOfNeedsReview(repoId);
+
+        if (numberOfNeedsTranslation === 0 && numberOfNeedsNeedsReview === 0) {
+
+            ui = (
+                    <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
+                        <Label bsStyle="success" className="mrs clickable">
+                            {this.getIntlMessage("repositories.table.row.done")}
+                        </Label>
+                    </Link>);
+        }
+
+        return ui;
+    },
+
+    /**
+     * @return {XML}
+     */
+    getStatusLabel() {
+        return (
+                <span>
+                    {this.getDoneLabel()}
+                    {this.getRejectedLabel()}
+                </span>
+        );
+    },
+
+    /**
      * Handle when progress bar is clicked
      */
     onClickShowLocalesButton() {
@@ -324,7 +361,7 @@ let RepositoryRow = React.createClass({
                         </OverlayTrigger>
                     </td>
 
-                    <td>{this.getRejectedLabel()}</td>
+                    <td>{this.getStatusLabel()}</td>
                     <td>{this.getNeedsTranslationLabel()}</td>
                     <td>{this.getNeedsReviewLabel()}</td>
                     <td>
