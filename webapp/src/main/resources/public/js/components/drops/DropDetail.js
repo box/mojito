@@ -71,8 +71,8 @@ let DropDetail = React.createClass({
                         <Table className="repo-stats-table">
                             <thead>
                             <tr>
-                                <th className="col-md-5">Locales</th>
-                                <th className="col-md-1">{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
+                                <th>{this.getIntlMessage("drops.tableHeader.locales")}</th>
+                                <th>{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
                             </tr>
                             </thead>
                             <tbody>
