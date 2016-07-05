@@ -1,7 +1,8 @@
+import $ from "jQuery";
 import React from "react";
 import {Table} from "react-bootstrap";
-import {IntlMixin} from 'react-intl';
-
+import {IntlMixin} from "react-intl";
+import SideBar from "react-sidebar";
 import RepositoryStore from "../../stores/RepositoryStore";
 import RepositoryHeaderColumn from "./RepositoryHeaderColumn";
 import RepositoryRow from "./RepositoryRow";
@@ -16,12 +17,14 @@ let Repositories = React.createClass({
 
         state.isLocaleStatsShown = false;
         state.activeRepoId = null;
-        state.isSplitToBeRemoved = false;
 
         return state;
     },
 
     componentDidMount: function () {
+
+        // TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
+        $(this.refs.sideBar.refs.sidebar.getDOMNode()).parent().addClass("side-bar-container");
 
         RepositoryActions.init();
 
@@ -37,7 +40,8 @@ let Repositories = React.createClass({
         let isBlurred = this.state.isLocaleStatsShown && (this.state.activeRepoId !== repoId);
 
         return (
-                <RepositoryRow key={repoId} rowData={rowData} onClickShowLocalesButton={this.onClickShowLocalesButton} isBlurred={isBlurred} ref={"repositoryRow" + repoId}/>
+            <RepositoryRow key={repoId} rowData={rowData} onClickShowLocalesButton={this.onClickShowLocalesButton}
+                           isBlurred={isBlurred} ref={"repositoryRow" + repoId}/>
         );
     },
 
@@ -48,12 +52,11 @@ let Repositories = React.createClass({
 
         this.setState({
             "isLocaleStatsShown": true,
-            "activeRepoId": repoId,
-            "isSplitToBeRemoved": false
+            "activeRepoId": repoId
         });
     },
 
-    onCloseRepoLocaleStats() {
+    onCloseRequestedRepoLocaleStats() {
         if (this.state.activeRepoId) {
             this.refs["repositoryRow" + this.state.activeRepoId].setInActive();
         }
@@ -64,49 +67,38 @@ let Repositories = React.createClass({
         });
     },
 
-    onCloseBeginRepoLocaleStats() {
-        this.setState({
-            "isSplitToBeRemoved": true
-        });
-    },
-
-    getRepoLocaleStats() {
-        let result = "";
-        if (this.state.isLocaleStatsShown) {
-            result = (
-                    <RepositoryStatistic className="split-right" repoId={this.state.activeRepoId} onCloseBegin={this.onCloseBeginRepoLocaleStats} onClose={this.onCloseRepoLocaleStats}/>
-            );
-        }
-
-        return result;
-    },
-
     render: function () {
-        let rows = this.state.repositories.map(this.getTableRow);
-
-        let tableClass = "repo-table";
-        if (this.state.isLocaleStatsShown && !this.state.isSplitToBeRemoved) {
-            tableClass += " split-left";
+        let sideBarContent = "";
+        if (this.state.activeRepoId) {
+            sideBarContent = <RepositoryStatistic repoId={this.state.activeRepoId}
+                                                  onCloseRequest={this.onCloseRequestedRepoLocaleStats}/>;
         }
 
         return (
-                <div>
-                    <div>{this.getRepoLocaleStats()}</div>
-                    <Table className={tableClass}>
-                        <thead>
-                        <tr>
-                            <RepositoryHeaderColumn className="col-md-3" columnNameMessageId="repositories.table.header.name"/>
-                            <RepositoryHeaderColumn className="col-md-2" />
-                            <RepositoryHeaderColumn className="col-md-3" columnNameMessageId="repositories.table.header.needsTranslation" />
-                            <RepositoryHeaderColumn className="col-md-3" columnNameMessageId="repositories.table.header.needsReview" />
-                            <RepositoryHeaderColumn className="col-md-1" />
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {rows}
-                        </tbody>
-                    </Table>
-                </div>
+            <div>
+                <SideBar ref="sideBar" sidebar={sideBarContent}
+                         docked={this.state.isLocaleStatsShown} pullRight={true}>
+                    <div>
+                        <Table className="repo-table">
+                            <thead>
+                            <tr>
+                                <RepositoryHeaderColumn className="col-md-3"
+                                                        columnNameMessageId="repositories.table.header.name"/>
+                                <RepositoryHeaderColumn className="col-md-2"/>
+                                <RepositoryHeaderColumn className="col-md-3"
+                                                        columnNameMessageId="repositories.table.header.needsTranslation"/>
+                                <RepositoryHeaderColumn className="col-md-3"
+                                                        columnNameMessageId="repositories.table.header.needsReview"/>
+                                <RepositoryHeaderColumn className="col-md-1"/>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {this.state.repositories.map(this.getTableRow)}
+                            </tbody>
+                        </Table>
+                    </div>
+                </SideBar>
+            </div>
         );
     },
 

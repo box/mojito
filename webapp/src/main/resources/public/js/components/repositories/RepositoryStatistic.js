@@ -18,6 +18,12 @@ let RepositoryStatistics = React.createClass({
         return {};
     },
 
+    propTypes: {
+
+        /** @type {function} */
+        "onCloseRequest": React.PropTypes.func.isRequired
+    },
+
     getLocaleStatistics() {
         let repoId = this.props.repoId;
         let repo = RepositoryStore.getRepositoryById(repoId);
@@ -103,7 +109,7 @@ let RepositoryStatistics = React.createClass({
         if (numberOfNeedsReview > 0) {
             ui = (
                     <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, bcp47Tag)} to='/workbench'>
-                        <span className="repo-counts">{numberOfNeedsReview}</span> ({numberOfWordNeedsReview})
+                        <span className="repo-counts bg-info pls prs">{numberOfNeedsReview}</span> ({numberOfWordNeedsReview})
                     </Link>
             );
         }
@@ -128,7 +134,7 @@ let RepositoryStatistics = React.createClass({
         if (numberOfNeedsTranslation > 0) {
             ui = (
                     <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, bcp47Tag)} to='/workbench'>
-                        <span className="repo-counts">{numberOfNeedsTranslation}</span> ({numberOfWordNeedsTranslation})
+                        <span className="repo-counts bg-warning pls prs">{numberOfNeedsTranslation}</span> ({numberOfWordNeedsTranslation})
                     </Link>);
         }
 
@@ -164,33 +170,17 @@ let RepositoryStatistics = React.createClass({
         );
     },
 
-    /**
-     * Handle onClick close button
-     */
-    onClickClose() {
-        this.props.onCloseBegin();
-
-        $(this.refs.statsContainer.getDOMNode())
-                .removeClass("slideInRight")
-                .addClass("slideOutRight")
-                .one("webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend", () => {
-                    this.props.onClose();
-                });
-    },
-
     render: function () {
-        let className = "repo-stats-panel animated slideInRight " + this.props.className;
-
         return (
-                <div className={className} ref="statsContainer">
+                <div className="repo-stats-panel" ref="statsContainer">
                     <div className="title">
-                        <Button className="close" onClick={this.onClickClose}>×</Button>
+                        <Button className="close" onClick={this.props.onCloseRequest ? this.props.onCloseRequest : null}>×</Button>
                     </div>
-                    <div className="repo-stats-table-container">
-                        <Table className="repo-stats-table animated fadeInRight">
+                    <div className="side-bar-content-container">
+                        <Table className="repo-stats-table">
                             <thead>
                             <tr>
-                                <th>Locales</th>
+                                <th>{this.getIntlMessage("drops.tableHeader.locales")}</th>
                                 <th>{this.getIntlMessage('repositories.table.header.needsTranslation')}</th>
                                 <th>{this.getIntlMessage('repositories.table.header.needsReview')}</th>
                             </tr>
@@ -201,7 +191,6 @@ let RepositoryStatistics = React.createClass({
                         </Table>
                     </div>
                 </div>
-
         );
     }
 

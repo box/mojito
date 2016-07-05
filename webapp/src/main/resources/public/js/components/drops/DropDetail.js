@@ -67,7 +67,7 @@ let DropDetail = React.createClass({
                     <div className="title">
                         <Button className="close" onClick={this.onClickClose}>×</Button>
                     </div>
-                    <div className="drop-details-container">
+                    <div className="side-bar-content-container">
                         <Table className="repo-stats-table">
                             <thead>
                             <tr>
