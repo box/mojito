@@ -1,11 +1,26 @@
+import $ from "jQuery";
 import React from "react";
-import {Alert, Button, ButtonGroup, ButtonToolbar, DropdownButton, MenuItem, OverlayTrigger, Table, Tooltip} from "react-bootstrap";
+import {
+    Alert,
+    Button,
+    ButtonGroup,
+    ButtonToolbar,
+    DropdownButton,
+    Glyphicon,
+    Label,
+    MenuItem,
+    OverlayTrigger,
+    Table,
+    Tooltip
+} from "react-bootstrap";
 import {IntlMixin, FormattedDate} from "react-intl";
+import SideBar from "react-sidebar";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import PageRequestParams from "../../sdk/PageRequestParams";
 import CancelDropConfig from "../../sdk/drop/CancelDropConfig";
 import Drop from "../../sdk/drop/Drop";
 import DropActions from "../../actions/drop/dropActions";
+import DropDetail from "./DropDetail";
 import DropStore from "../../stores/drop/DropStore";
 import ImportDropConfig from "../../sdk/drop/ImportDropConfig";
 import NewDropModal from "./NewDropModal";
@@ -44,6 +59,12 @@ let Drops = React.createClass({
             /** pagination related attributes  */
             /** @type {Number} */
             "pageSize": 10,
+
+            /** @type {Boolean} */
+            "isSideBarShown": false,
+
+            /** @type {Drop} */
+            "selectedDrop": null,
         };
     },
     
@@ -63,6 +84,9 @@ let Drops = React.createClass({
         RepositoryActions.getAllRepositories();
         
         this.fetchDrops(this.state.filter, this.state.currentPageNumber);
+
+        // TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
+        $(this.refs.sideBar.refs.sidebar.getDOMNode()).parent().addClass("side-bar-container");
     },
 
     /**
@@ -207,15 +231,37 @@ let Drops = React.createClass({
         let wordCount = this.getWordCountsForAllTranslationKits(drop.translationKits);
 
         return (
-            <tr className="">
+            <tr>
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
                 <td>{drop.repository.name}</td>
                 <td>{wordCount}</td>
                 <td><FormattedDate value={drop.createdDate} day="numeric" month="long" year="numeric"/></td>
                 <td>{drop.createdByUser.getDisplayName()}</td>
                 <td>{status}</td>
+                <td>
+                    <Label className="clickable label label-primary show-details-button mts" onClick={this.onClickDropDetails.bind(this, drop)}>
+                        <Glyphicon glyph="option-horizontal"/>
+                    </Label>
+                </td>
             </tr>
         );
+    },
+
+    /**
+     * @param {Drop} drop
+     */
+    onClickDropDetails(drop) {
+
+        let isSideBarShown = true;
+
+        if (this.state.selectedDrop && this.state.selectedDrop.getId() === drop.getId) {
+            isSideBarShown = !this.state.isSideBarShown;
+        }
+
+        this.setState({
+            "isSideBarShown": isSideBarShown,
+            "selectedDrop": drop
+        });
     },
 
     /**
@@ -275,12 +321,13 @@ let Drops = React.createClass({
         return (
             <thead>
             <tr>
-                <th>{this.getIntlMessage("drops.tableHeader.name")}</th>
+                <th className="col-md-4">{this.getIntlMessage("drops.tableHeader.name")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.repository")}</th>
                 <th className="col-md-1">{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdDate")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdBy")}</th>
                 <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.status")}</th>
+                <th className="col-md-1"></th>
             </tr>
             </thead>
         );
@@ -467,12 +514,29 @@ let Drops = React.createClass({
             </div>
         );
     },
+
+    onSideBarCloseRequest() {
+        this.setState({ "isSideBarShown": false });
+    },
+
+    getSideBarContent() {
+        let result = "";
+
+        if (this.state.selectedDrop) {
+            result = <DropDetail drop={this.state.selectedDrop} onCloseRequest={this.onSideBarCloseRequest} />;
+        }
+
+        return result;
+    },
     
     render() {
         return (
             <div>
-                {this.getDropTable()}
-                {this.getNewRequestModal()}
+                <SideBar ref="sideBar" sidebar={this.getSideBarContent()}
+                         docked={this.state.isSideBarShown} pullRight={true}>
+                    {this.getDropTable()}
+                    {this.getNewRequestModal()}
+                </SideBar>
             </div>
         );
     }

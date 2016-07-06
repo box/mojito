@@ -234,7 +234,7 @@ let RepositoryRow = React.createClass({
         if (numberOfNeedsReview > 0) {
             ui = (
                     <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, repoId)} to='/workbench' className="">
-                        <span className="repo-counts">{numberOfNeedsReview} </span>
+                        <span className="repo-counts bg-info pls prs">{numberOfNeedsReview}</span>&nbsp;
                         (
                         <FormattedMessage
                                 numberOfWords={numberOfWordNeedsReview}
@@ -261,7 +261,7 @@ let RepositoryRow = React.createClass({
         if (numberOfNeedsTranslation > 0) {
             ui = (
                     <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, repoId)} to='/workbench'>
-                        <span className="repo-counts">{numberOfNeedsTranslation} </span>
+                        <span className="repo-counts bg-warning pls prs">{numberOfNeedsTranslation}</span>&nbsp;
                         (
                         <FormattedMessage
                                 numberOfWords={numberOfWordNeedsTranslation}
@@ -365,7 +365,7 @@ let RepositoryRow = React.createClass({
                     <td>{this.getNeedsTranslationLabel()}</td>
                     <td>{this.getNeedsReviewLabel()}</td>
                     <td>
-                        <Label className="clickable label label-primary repo-show-locales-button" onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
+                        <Label className="clickable label label-primary show-details-button" onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
                     </td>
                 </tr>
         );

@@ -124,6 +124,7 @@ a.label-container:hover {
 }
 
 .table > thead > tr > th {
+  vertical-align: middle;
   border-bottom: 1px solid $gray-lighter;
 }
 
@@ -316,14 +317,6 @@ a.label-container:hover {
   cursor: pointer;
 }
 
-.split-left {
-  width: 60%;
-}
-
-.split-right {
-  width: 40%;
-}
-
 /**
  * WORKBENCH
  */
@@ -359,12 +352,12 @@ div.textunit label {
 
 .textunit-string {
   width: 90%;
-  white-space: pre-wrap; 
+  white-space: pre-wrap;
 }
 
 .textunit-returnline {
-    color: $brand-primary;
-    font-size: 10px;
+  color: $brand-primary;
+  font-size: 10px;
 }
 
 .textunit-string.textunit-target {
@@ -416,7 +409,6 @@ div.targetstring-container textarea {
 }
 
 .repo-counts {
-  color: $brand-primary;
   font-weight: bold;
 }
 
@@ -424,23 +416,18 @@ div.targetstring-container textarea {
   border: 1px solid $brand-primary;
 }
 
-.repo-show-locales-button {
+.show-details-button {
   transition: margin 0.2s;
   color: $brand-primary;
   float: right;
 }
 
-.repo-show-locales-button:hover {
+.show-details-button:hover {
   opacity: 0.9;
 }
 
 .repo-blurred td {
   opacity: 0.5;
-}
-
-.repo-table {
-  margin-left: 8px;
-  transition: width 1.0s;
 }
 
 .repo-table > thead > tr > th, .repo-table > tbody > tr > th, .repo-table > tfoot > tr > th, .repo-table > thead > tr > td, .repo-table > tbody > tr > td, .repo-table > tfoot > tr > td {
@@ -454,50 +441,17 @@ div.targetstring-container textarea {
 /**
  * REPOSITORY STATS
  */
-.repo-stats-panel {
-  height: 100%;
-  position: fixed;
-  right: 0;
-  top: 51px;
-  border: 1px solid $color-gray-light;
-  background: $color-white;
-  animation-delay: 0s;
-  display: flex;
-  flex-direction: column;
-}
-
-.repo-stats-table-container {
-  flex: 1 1;
-  overflow: scroll;
-}
-
-.repo-stats-table {
-  width: 100%;
-  border-bottom: 1px solid $color-gray-light;
-}
 
 .repo-stats-table > tbody > tr > td {
   vertical-align: middle;
 }
 
 .repo-stats-table a {
-   color: $gray-dark;
+  color: $gray-dark;
 }
 
 .repo-stats-row-blured {
   opacity: 0.5;
-}
-
-.repo-stats-panel .title h4 {
-  display: inline;
-  line-height: 1.9em;
-  margin-left: 7px;
-}
-
-.repo-stats-panel .close {
-  float: right;
-  margin-top: 3px;
-  margin-right: 10px;
 }
 
 @media (max-width: 780px) {
@@ -574,7 +528,6 @@ label.current-pageNumber {
   display: inline-block;
 }
 
-
 @media (max-width: 780px) {
   .drop-alert {
     top: -80px;
@@ -586,3 +539,32 @@ label.current-pageNumber {
   float: left;
 }
 
+.side-bar-container {
+  top: 51px !important;
+}
+
+// TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
+.side-bar-container > div {
+  padding-top: 10px;
+}
+
+// TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
+.side-bar-container > div:first-child {
+  width: 30%;
+}
+
+.side-bar-container > .title {
+  display: inline-block;
+}
+
+.side-bar-container .title .close {
+  right: 0;
+  top: 0;
+  padding: 5px 10px;
+  position: absolute;
+}
+
+.side-bar-content-container {
+  flex: 1 1;
+  overflow: scroll;
+}
