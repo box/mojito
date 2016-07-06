@@ -1,10 +1,7 @@
-import $ from "jquery";
-import _ from "lodash";
 import React from "react";
 import {Table, ProgressBar, Button, Label} from "react-bootstrap";
 import {History, Link} from "react-router";
-import {IntlMixin, FormattedNumber} from 'react-intl';
-
+import {FormattedMessage, FormattedNumber} from "react-intl";
 import Locales from "../../utils/Locales";
 import RepositoryStore from "../../stores/RepositoryStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
@@ -12,7 +9,6 @@ import SearchConstants from "../../utils/SearchConstants";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore.js";
 
 let RepositoryStatistics = React.createClass({
-    mixins: [IntlMixin],
 
     getInitialState() {
         return {};
@@ -108,9 +104,10 @@ let RepositoryStatistics = React.createClass({
 
         if (numberOfNeedsReview > 0) {
             ui = (
-                    <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, bcp47Tag)} to='/workbench'>
-                        <span className="repo-counts bg-info pls prs">{numberOfNeedsReview}</span> ({numberOfWordNeedsReview})
-                    </Link>
+                <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, bcp47Tag)} to='/workbench'>
+                    <span className="repo-counts bg-info pls prs">{numberOfNeedsReview}</span>
+                    ({numberOfWordNeedsReview})
+                </Link>
             );
         }
 
@@ -132,9 +129,10 @@ let RepositoryStatistics = React.createClass({
 
         if (numberOfNeedsTranslation > 0) {
             ui = (
-                    <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, bcp47Tag)} to='/workbench'>
-                        <span className="repo-counts bg-warning pls prs">{numberOfNeedsTranslation}</span> ({numberOfWordNeedsTranslation})
-                    </Link>);
+                <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, bcp47Tag)} to='/workbench'>
+                    <span className="repo-counts bg-warning pls prs">{numberOfNeedsTranslation}</span>
+                    ({numberOfWordNeedsTranslation})
+                </Link>);
         }
 
         return ui;
@@ -157,39 +155,41 @@ let RepositoryStatistics = React.createClass({
         }
 
         return (
-                <tr className={rowClassName}>
-                    <td>
-                        <div>
-                            <Link onClick={this.updateSearchParamsForLocale.bind(this, bcp47Tag)} to='/workbench'>{Locales.getDisplayName(bcp47Tag)}</Link>
-                        </div>
-                    </td>
-                    <td>{this.getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic)}</td>
-                    <td>{this.getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic)}</td>
-                </tr>
+            <tr className={rowClassName} key={bcp47Tag}>
+                <td>
+                    <div>
+                        <Link onClick={this.updateSearchParamsForLocale.bind(this, bcp47Tag)}
+                              to='/workbench'>{Locales.getDisplayName(bcp47Tag)}</Link>
+                    </div>
+                </td>
+                <td>{this.getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic)}</td>
+                <td>{this.getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic)}</td>
+            </tr>
         );
     },
 
     render: function () {
         return (
-                <div className="repo-stats-panel" ref="statsContainer">
-                    <div className="title">
-                        <Button className="close" onClick={this.props.onCloseRequest ? this.props.onCloseRequest : null}>×</Button>
-                    </div>
-                    <div className="side-bar-content-container">
-                        <Table className="repo-stats-table">
-                            <thead>
-                            <tr>
-                                <th>{this.getIntlMessage("drops.tableHeader.locales")}</th>
-                                <th>{this.getIntlMessage('repositories.table.header.needsTranslation')}</th>
-                                <th>{this.getIntlMessage('repositories.table.header.needsReview')}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {this.getLocaleStatistics()}
-                            </tbody>
-                        </Table>
-                    </div>
+            <div className="repo-stats-panel" ref="statsContainer">
+                <div className="title">
+                    <Button className="close"
+                            onClick={this.props.onCloseRequest ? this.props.onCloseRequest : null}>×</Button>
                 </div>
+                <div className="side-bar-content-container">
+                    <Table className="repo-stats-table">
+                        <thead>
+                        <tr>
+                            <th><FormattedMessage id="drops.tableHeader.locales"/></th>
+                            <th><FormattedMessage id='repositories.table.header.needsTranslation'/></th>
+                            <th><FormattedMessage id='repositories.table.header.needsReview'/></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {this.getLocaleStatistics()}
+                        </tbody>
+                    </Table>
+                </div>
+            </div>
         );
     }
 

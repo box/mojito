@@ -3,7 +3,7 @@ import _ from "lodash";
 
 import React from "react";
 import { History } from "react-router";
-import ReactIntl from 'react-intl';
+import {FormattedMessage, FormattedNumber} from 'react-intl';
 
 import FluxyMixin from "alt/mixins/FluxyMixin";
 
@@ -21,11 +21,9 @@ import SearchConstants from "../../utils/SearchConstants";
 
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
-let {IntlMixin, FormattedMessage, FormattedNumber} = ReactIntl;
-
 let Workbench = React.createClass({
 
-    mixins: [IntlMixin, FluxyMixin, History],
+    mixins: [FluxyMixin, History],
 
     statics: {
         storeListeners: {

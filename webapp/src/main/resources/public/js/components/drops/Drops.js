@@ -13,7 +13,7 @@ import {
     Table,
     Tooltip
 } from "react-bootstrap";
-import {IntlMixin, FormattedDate} from "react-intl";
+import {FormattedMessage, FormattedDate, injectIntl} from "react-intl";
 import SideBar from "react-sidebar";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import PageRequestParams from "../../sdk/PageRequestParams";
@@ -27,7 +27,7 @@ import NewDropModal from "./NewDropModal";
 import RepositoryActions from "../../actions/RepositoryActions";
 
 let Drops = React.createClass({
-    mixins: [IntlMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -67,26 +67,26 @@ let Drops = React.createClass({
             "selectedDrop": null,
         };
     },
-    
+
     getCurrentPageRequestParam(currentPageNumber) {
         return new PageRequestParams(currentPageNumber, this.state.pageSize);
     },
-    
+
     getPreviousPageRequestParam(currentPageNumber) {
         return new PageRequestParams(currentPageNumber - 1, this.state.pageSize);
     },
-    
+
     getNextPageRequestParam(currentPageNumber) {
         return new PageRequestParams(currentPageNumber + 1, this.state.pageSize);
     },
-    
+
     componentDidMount() {
         RepositoryActions.getAllRepositories();
-        
+
         this.fetchDrops(this.state.filter, this.state.currentPageNumber);
 
         // TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
-        $(this.refs.sideBar.refs.sidebar.getDOMNode()).parent().addClass("side-bar-container");
+        $(this.refs.sideBar.refs.sidebar).parent().addClass("side-bar-container");
     },
 
     /**
@@ -177,7 +177,7 @@ let Drops = React.createClass({
      * Hande import onclick event
      */
     onClickImport(dropId, repoId) {
-        this.showAlert(this.getIntlMessage("drops.beingImported.alert"));
+        this.showAlert(this.props.intl.formatMessage({id: "drops.beingImported.alert"}));
         let importDropConfig = new ImportDropConfig(repoId, dropId, null);
         DropActions.importRequest(importDropConfig);
 
@@ -190,7 +190,7 @@ let Drops = React.createClass({
      * @param {Number} repoId
      */
     onClickCancel(dropId, repoId) {
-        this.showAlert(this.getIntlMessage("drops.beingCanceled.alert"));
+        this.showAlert(this.props.intl.formatMessage({id: "drops.beingCanceled.alert"}));
         let cancelDropConfig = new CancelDropConfig(dropId, null);
         DropActions.cancelRequest(cancelDropConfig);
 
@@ -209,22 +209,22 @@ let Drops = React.createClass({
 
         switch (drop.status) {
             case Drop.STATUS_TYPE.IMPORTED:
-                status = this.getIntlMessage("drops.status.imported");
+                status = this.props.intl.formatMessage({id: "drops.status.imported"});
                 break;
             case Drop.STATUS_TYPE.IMPORTING:
-                status = this.getIntlMessage("drops.status.importing");
+                status = this.props.intl.formatMessage({id: "drops.status.importing"});
                 break;
             case Drop.STATUS_TYPE.IN_TRANSLATION:
-                status = this.getIntlMessage("drops.status.inTranslation");
+                status = this.props.intl.formatMessage({id: "drops.status.inTranslation"});
                 break;
             case Drop.STATUS_TYPE.IN_REVIEW:
-                status = this.getIntlMessage("drops.status.inReview");
+                status = this.props.intl.formatMessage({id: "drops.status.inReview"});
                 break;
             case Drop.STATUS_TYPE.SENDING:
-                status = this.getIntlMessage("drops.status.sending");
+                status = this.props.intl.formatMessage({id: "drops.status.sending"});
                 break;
             case Drop.STATUS_TYPE.CANCELED:
-                status = this.getIntlMessage("drops.status.canceled");
+                status = this.props.intl.formatMessage({id: "drops.status.canceled"});
                 break;
         }
 
@@ -239,7 +239,8 @@ let Drops = React.createClass({
                 <td>{drop.createdByUser.getDisplayName()}</td>
                 <td>{status}</td>
                 <td>
-                    <Label className="clickable label label-primary show-details-button mts" onClick={this.onClickDropDetails.bind(this, drop)}>
+                    <Label className="clickable label label-primary show-details-button mts"
+                           onClick={this.onClickDropDetails.bind(this, drop)}>
                         <Glyphicon glyph="option-horizontal"/>
                     </Label>
                 </td>
@@ -287,8 +288,8 @@ let Drops = React.createClass({
         let dropId = drop.id;
         let repoId = drop.repository.id;
 
-        let importTitle = <Tooltip>{this.getIntlMessage("drops.controlbar.button.tooltip.import")}</Tooltip>;
-        let cancelTitle = <Tooltip>{this.getIntlMessage("drops.controlbar.button.tooltip.cancel")}</Tooltip>;
+        let importTitle = <Tooltip><FormattedMessage id="drops.controlbar.button.tooltip.import"/></Tooltip>;
+        let cancelTitle = <Tooltip><FormattedMessage id="drops.controlbar.button.tooltip.cancel"/></Tooltip>;
 
         let cancelOverlay = "";
         if (!drop.isBeingExported() && !drop.isBeingImported()) {
@@ -321,12 +322,12 @@ let Drops = React.createClass({
         return (
             <thead>
             <tr>
-                <th className="col-md-4">{this.getIntlMessage("drops.tableHeader.name")}</th>
-                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.repository")}</th>
-                <th className="col-md-1">{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
-                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdDate")}</th>
-                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.createdBy")}</th>
-                <th className="col-md-2">{this.getIntlMessage("drops.tableHeader.status")}</th>
+                <th className="col-md-4"><FormattedMessage id="drops.tableHeader.name"/></th>
+                <th className="col-md-2"><FormattedMessage id="drops.tableHeader.repository"/></th>
+                <th className="col-md-1"><FormattedMessage id="drops.tableHeader.wordCount"/></th>
+                <th className="col-md-2"><FormattedMessage id="drops.tableHeader.createdDate"/></th>
+                <th className="col-md-2"><FormattedMessage id="drops.tableHeader.createdBy"/></th>
+                <th className="col-md-2"><FormattedMessage id="drops.tableHeader.status"/></th>
                 <th className="col-md-1"></th>
             </tr>
             </thead>
@@ -338,13 +339,13 @@ let Drops = React.createClass({
 
         switch (this.state.filter) {
             case Drops.FILTER.IN_PROGRESS:
-                result = this.getIntlMessage("drops.inProgress");
+                result = this.props.intl.formatMessage({id: "drops.inProgress"});
                 break;
             case Drops.FILTER.COMPLETED:
-                result = this.getIntlMessage("drops.completed");
+                result = this.props.intl.formatMessage({id: "drops.completed"});
                 break;
             case Drops.FILTER.ALL:
-                result = this.getIntlMessage("drops.all");
+                result = this.props.intl.formatMessage({id: "drops.all"});
                 break;
             default:
                 throw new Error("Unknown filter option");
@@ -387,11 +388,16 @@ let Drops = React.createClass({
                     {this.getAlert()}
                     {this.getNewRequestButton()}
                     {this.showPagination()}
-                    <DropdownButton title={this.getFilterTitle()} className="pull-right mrm mlm"  bsSize="small" onSelect={this.filterDropDownOnSelect}>
-                        <MenuItem eventKey={Drops.FILTER.IN_PROGRESS}>{this.getIntlMessage("drops.inProgress")}</MenuItem>
-                        <MenuItem eventKey={Drops.FILTER.COMPLETED}>{this.getIntlMessage("drops.completed")}</MenuItem>
-                        <MenuItem eventKey={Drops.FILTER.ALL}>{this.getIntlMessage("drops.all")}</MenuItem>
-                    </DropdownButton>
+                    <div className="pull-right">
+                        <DropdownButton title={this.getFilterTitle()} className="pull-right mrm mlm" bsSize="small"
+                                        onSelect={this.filterDropDownOnSelect}>
+                            <MenuItem eventKey={Drops.FILTER.IN_PROGRESS}><FormattedMessage
+                                id="drops.inProgress"/></MenuItem>
+                            <MenuItem eventKey={Drops.FILTER.COMPLETED}><FormattedMessage
+                                id="drops.completed"/></MenuItem>
+                            <MenuItem eventKey={Drops.FILTER.ALL}><FormattedMessage id="drops.all"/></MenuItem>
+                        </DropdownButton>
+                    </div>
                 </div>
                 <Table className={tableClass}>
                     {this.getTableHeader()}
@@ -402,7 +408,7 @@ let Drops = React.createClass({
             </div>
         );
     },
-    
+
     /**
      * @return {JSX}
      */
@@ -411,7 +417,7 @@ let Drops = React.createClass({
             <div className="pull-right mrm mlm">
                 <Button bsStyle="primary" bsSize="small" className="new-request-button"
                         onClick={this.onClickNewRequest}>
-                    {this.getIntlMessage("drops.newRequest.btn")}
+                    <FormattedMessage id="drops.newRequest.btn"/>
                 </Button>
             </div>
         );
@@ -421,14 +427,14 @@ let Drops = React.createClass({
      * Handler for when new translation request is made
      */
     onTranslationRequest() {
-        this.showAlert(this.getIntlMessage("drops.newTranslationRequest.alert"));
+        this.showAlert(this.props.intl.formatMessage({id: "drops.newTranslationRequest.alert"}));
     },
 
     /**
      * Handler for when new review request is made
      */
     onReviewRequest() {
-        this.showAlert(this.getIntlMessage("drops.newReviewRequest.alert"));
+        this.showAlert(this.props.intl.formatMessage({id: "drops.newReviewRequest.alert"}));
     },
 
     /**
@@ -483,19 +489,19 @@ let Drops = React.createClass({
     },
 
     onFetchPreviousPageClicked() {
-        
+
         if (this.state.currentPageNumber > 0) {
             DropActions.getAllInProcess(this.getPreviousPageRequestParam(this.state.currentPageNumber));
-        }      
+        }
     },
-    
+
     onFetchNextPageClicked() {
 
         if (this.state.hasMoreDrops) {
             DropActions.getAllInProcess(this.getNextPageRequestParam(this.state.currentPageNumber));
         }
     },
-    
+
     showPagination() {
         let previousPageButtonDisabled = this.state.currentPageNumber == 0;
         let nextPageButtonDisabled = !this.state.hasMoreDrops;
@@ -516,19 +522,19 @@ let Drops = React.createClass({
     },
 
     onSideBarCloseRequest() {
-        this.setState({ "isSideBarShown": false });
+        this.setState({"isSideBarShown": false});
     },
 
     getSideBarContent() {
         let result = "";
 
         if (this.state.selectedDrop) {
-            result = <DropDetail drop={this.state.selectedDrop} onCloseRequest={this.onSideBarCloseRequest} />;
+            result = <DropDetail drop={this.state.selectedDrop} onCloseRequest={this.onSideBarCloseRequest}/>;
         }
 
         return result;
     },
-    
+
     render() {
         return (
             <div>
@@ -550,4 +556,4 @@ Drops.FILTER = {
     "ALL": Symbol()
 };
 
-export default Drops;
+export default injectIntl(Drops);

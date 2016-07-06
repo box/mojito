@@ -2,7 +2,7 @@ import _ from "lodash";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import keycode from "keycode";
 import React from "react";
-import ReactIntl from "react-intl";
+import {FormattedMessage, injectIntl} from "react-intl";
 import {ButtonGroup, ButtonToolbar, Button} from "react-bootstrap";
 import Error from "../../utils/Error";
 import DeleteConfirmationModal from "../widgets/DeleteConfirmationModal";
@@ -16,11 +16,9 @@ import TextUnitSelectorCheckBox from "./TextUnitSelectorCheckBox";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import ReviewTextUnitsDTO from "../../stores/workbench/ReviewTextUnitsDTO";
 
-let {IntlMixin} = ReactIntl;
-
 let SearchResults = React.createClass({
 
-    mixins: [IntlMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -378,7 +376,7 @@ let SearchResults = React.createClass({
         let errorMessage = "";
         //TODO: fill in the error message with parameter values if any.
         if (errorObject !== null) {
-            errorMessage = this.getIntlMessage(Error.MESSAGEKEYS_MAP[errorObject.getErrorId()]);
+            errorMessage = this.props.intl.formatMessage({ id: Error.MESSAGEKEYS_MAP[errorObject.getErrorId()] });
         }
         return errorMessage;
     },
@@ -438,7 +436,7 @@ let SearchResults = React.createClass({
      * @returns {JSX} The JSX for the progress spinner to be displayed when server action is pending.
      */
     getLoadingSpinner: function () {
-        let altMessage = this.getIntlMessage("search.pagination.isLoading");
+        let altMessage = this.props.intl.formatMessage({ id: "search.pagination.isLoading" });
         return (
             <img src="/img/ajax-loader.gif" alt={altMessage}/>
         );
@@ -470,11 +468,11 @@ let SearchResults = React.createClass({
                             <ButtonToolbar>
                                 <Button bsSize="small" disabled={actionButtonsDisabled}
                                         onClick={this.onDeleteTextUnitsClicked}>
-                                    {this.getIntlMessage("label.delete")}
+                                    <FormattedMessage id="label.delete" />
                                 </Button>
                                 <Button bsSize="small" bsStyle="primary" disabled={actionButtonsDisabled}
                                         onClick={this.onStatusTextUnitsClicked}>
-                                    {this.getIntlMessage("workbench.toolbar.status")}
+                                    <FormattedMessage id="workbench.toolbar.status" />
                                 </Button>
                             </ButtonToolbar>
                         </div>
@@ -533,7 +531,7 @@ let SearchResults = React.createClass({
                 {this.getTextUnitToolbarUI()}
                 {this.createTextUnitComponents()}
                 <DeleteConfirmationModal showModal={this.state.showDeleteModal}
-                                         modalBodyMessage={this.getIntlMessage("textUnits.bulk.deleteMessage")}
+                                         modalBodyMessage="textUnits.bulk.deleteMessage"
                                          onDeleteCancelledCallback={this.onDeleteTextUnitsCancelled}
                                          onDeleteClickedCallback={this.onDeleteTextUnitsConfirmed}/>
                 <ErrorModal showModal={this.state.isErrorOccurred}
@@ -546,4 +544,4 @@ let SearchResults = React.createClass({
 
 });
 
-export default SearchResults;
+export default injectIntl(SearchResults);

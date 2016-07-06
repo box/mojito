@@ -1,18 +1,14 @@
 import React from "react";
-import ReactIntl from "react-intl";
+import {FormattedMessage} from "react-intl";
 import {Alert, Button, Modal} from "react-bootstrap";
 
-let {IntlMixin} = ReactIntl;
-
 let ErrorModal = React.createClass({
-
-    mixins: [IntlMixin],
 
     render() {
         return (
             <Modal show={this.props.showModal} onHide={this.props.onErrorModalClosed}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{this.getIntlMessage("error.modal.title")}</Modal.Title>
+                    <Modal.Title><FormattedMessage id="error.modal.title" /></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Alert bsStyle="danger">

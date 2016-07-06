@@ -1,7 +1,7 @@
 import $ from "jquery";
 import React from "react";
+import {FormattedMessage} from "react-intl";
 import {Button, ListGroupItem, ListGroup, Modal, Table} from "react-bootstrap";
-import {IntlMixin} from 'react-intl';
 import FluxyMixin from "alt/mixins/FluxyMixin";
 
 import ExportDropConfig from "../../sdk/drop/ExportDropConfig";
@@ -12,7 +12,7 @@ import DropStore from "../../stores/drop/DropStore";
 import StatusFilter from "../../sdk/entity/StatusFilter";
 
 let NewDropModal = React.createClass({
-    mixins: [IntlMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {}
@@ -113,20 +113,20 @@ let NewDropModal = React.createClass({
         return (
             <Modal show={this.props.show} onHide={this.close}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{this.getIntlMessage("drops.newRequestModal.title")}</Modal.Title>
+                    <Modal.Title><FormattedMessage id="drops.newRequestModal.title" /></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {this.getRepoListGroup()}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={this.close}>
-                        {this.getIntlMessage("label.cancel")}
+                        <FormattedMessage id="label.cancel" />
                     </Button>
                     <Button disabled={isButtonDisabled} onClick={this.onReviewClicked}>
-                        {this.getIntlMessage("drops.newRequestModal.requestReview")}
+                        <FormattedMessage id="drops.newRequestModal.requestReview" />
                     </Button>
                     <Button bsStyle="primary" disabled={isButtonDisabled} onClick={this.onTranslationClicked}>
-                        {this.getIntlMessage("drops.newRequestModal.requestTranslation")}
+                        <FormattedMessage id="drops.newRequestModal.requestTranslation" />
                     </Button>
                 </Modal.Footer>
             </Modal>

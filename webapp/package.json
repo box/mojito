@@ -6,7 +6,6 @@
   "private": true,
   "dependencies": {
     "alt": "0.17.1",
-    "babelify": "^6.1.3",
     "bootstrap-sass": "3.3.5",
     "cldr-data": "^28.0.2",
     "cldrjs": "^0.4.3",
@@ -18,16 +17,21 @@
     "node-fetch": "^1.3.2",
     "node-sass": "^3.3.3",
     "object-assign": "^1.0.0",
-    "react": "0.13.3",
-    "react-bootstrap": "^0.24.5",
-    "react-bootstrap-multiselect": "^0.2.2",
-    "react-intl": "^1.2.0",
+    "react": "^15.2.0",
+    "react-addons-linked-state-mixin": "^15.2.0",
+    "react-bootstrap": "^0.29.5",
+    "react-bootstrap-multiselect": "^2.0.0",
+    "react-dom": "^15.2.0",
+    "react-intl": "^2.1.3",
     "react-router": "1.0.0-rc1",
-    "react-sidebar": "1.1.0"
+    "react-sidebar": "^2.0.1"
   },
   "devDependencies": {
     "app-module-path": "^1.0.3",
-    "browserify": "^6.2.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-react": "^6.11.1",
+    "babelify": "^7.3.0",
+    "browserify": "^13.0.1",
     "chai": "^3.2.0",
     "envify": "^3.0.0",
     "eslint": "~1.1.0",
@@ -52,11 +56,11 @@
     "mojito-rb-gen": "0.0.1",
     "nodemon": "^1.0.15",
     "properties": "^1.2.1",
-    "reactify": "^0.15.2",
+    "reactify": "1.1.1",
     "sinon": "^1.15.4",
     "sinon-chai": "^2.8.0",
     "uglify-js": "~2.4.15",
-    "watchify": "^2.1.1"
+    "watchify": "^3.7.0"
   },
   "repository": {
     "type": "git",
@@ -67,10 +71,10 @@
     "start-server": "mvn spring-boot:run -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
     "watch": "npm run watch-js & npm run watch-rb & grunt watch",
     "watch-resources": "nodemon --watch src/main/resources/ -e html,css --exec 'mvn resources:resources'",
-    "watch-js": "watchify -o target/classes/public/js/bundle.min.js -v -d src/main/resources/public/js/app.js | uglifyjs -cm > target/classes/public/js/bundle.min.js",
+    "watch-js": "watchify --delay 100 -o target/classes/public/js/bundle.min.js -v -d src/main/resources/public/js/app.js | uglifyjs -cm > target/classes/public/js/bundle.min.js",
     "watch-js2": "nodemon --watch src/main/resources/public/js/ --exec 'browserify -t -e src/main/resources/public/js/app.js > target/classes/public/js/bundle.min.js'",
-    "watch-rb": "mojito-rb-gen -w -s src/main/resources/properties/ -o target/classes/public/intl/ -t js -n",
-    "build-rb": "mojito-rb-gen -s src/main/resources/properties/ -o target/classes/public/intl/ -t js -n",
+    "watch-rb": "mojito-rb-gen -w -s src/main/resources/properties/ -o target/classes/public/intl/ -t js",
+    "build-rb": "mojito-rb-gen -s src/main/resources/properties/ -o target/classes/public/intl/ -t js",
     "build": "browserify -t -e src/main/resources/public/js/app.js | uglifyjs -cm > target/classes/public/js/bundle.min.js",
     "tests": "./node_modules/karma/bin/karma start --singleRun=true",
     "mojito-tm-import": "java -jar ../cli/target/mojito-cli-*.jar tm-import -r Mojito -s src/main/resources/xliff/",
@@ -85,8 +89,16 @@
   "author": "Moji Webapp Team",
   "browserify": {
     "transform": [
-      "babelify",
-      "reactify",
+      [
+        "babelify",
+        {
+          "presets": [
+            "react",
+            "es2015"
+          ],
+          "sourceMapsAbsolute": true
+        }
+      ],
       "envify"
     ]
   }

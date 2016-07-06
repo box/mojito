@@ -1,7 +1,7 @@
 import React from "react";
 import {Table, ProgressBar, Button, Label} from "react-bootstrap";
 import {History, Link} from "react-router";
-import {IntlMixin, FormattedNumber} from "react-intl";
+import {FormattedMessage, FormattedNumber} from "react-intl";
 import Locales from "../../utils/Locales";
 import RepositoryStore from "../../stores/RepositoryStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
@@ -9,8 +9,6 @@ import SearchConstants from "../../utils/SearchConstants";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore.js";
 
 let DropDetail = React.createClass({
-    mixins: [IntlMixin],
-
     getInitialState() {
         return {};
     },
@@ -71,8 +69,8 @@ let DropDetail = React.createClass({
                         <Table className="repo-stats-table">
                             <thead>
                             <tr>
-                                <th>{this.getIntlMessage("drops.tableHeader.locales")}</th>
-                                <th>{this.getIntlMessage("drops.tableHeader.wordCount")}</th>
+                                <th><FormattedMessage id="drops.tableHeader.locales" /></th>
+                                <th><FormattedMessage id="drops.tableHeader.wordCount" /></th>
                             </tr>
                             </thead>
                             <tbody>
