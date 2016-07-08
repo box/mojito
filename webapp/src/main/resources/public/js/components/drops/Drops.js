@@ -389,7 +389,7 @@ let Drops = React.createClass({
                     {this.getNewRequestButton()}
                     {this.showPagination()}
                     <div className="pull-right">
-                        <DropdownButton title={this.getFilterTitle()} className="pull-right mrm mlm" bsSize="small"
+                        <DropdownButton title={this.getFilterTitle()} className="mrm mlm" bsSize="small"
                                         onSelect={this.filterDropDownOnSelect}>
                             <MenuItem eventKey={Drops.FILTER.IN_PROGRESS}><FormattedMessage
                                 id="drops.inProgress"/></MenuItem>
