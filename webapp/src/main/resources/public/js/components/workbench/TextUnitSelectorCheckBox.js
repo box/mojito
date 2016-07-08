@@ -1,15 +1,9 @@
 import React from "react";
-import ReactIntl from 'react-intl';
+import {FormattedMessage} from "react-intl";
 import {DropdownButton, MenuItem} from "react-bootstrap";
-
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
-let {IntlMixin} = ReactIntl;
-let {FormattedMessage} = ReactIntl;
-
 let TextUnitSelectorCheckBox = React.createClass({
-
-    mixins: [IntlMixin],
 
     componentWillMount() {
         // TODO: Move these to SearchConstants file. componentWillMount is not the place to create constants.
@@ -22,7 +16,7 @@ let TextUnitSelectorCheckBox = React.createClass({
      * @param {string} selection The eventKey for the selected MenuItem in the DropdownButton
      */
     selectionChanged(selection) {
-        switch(selection) {
+        switch (selection) {
             case this.SELECT_ALL_IN_PAGE:
                 WorkbenchActions.selectAllTextUnitsInCurrentPage();
                 break;
@@ -42,17 +36,18 @@ let TextUnitSelectorCheckBox = React.createClass({
         let numberOfSelectedTextUnits = this.props.numberOfSelectedTextUnits;
 
         return (
-            <FormattedMessage numberOfSelectedTextUnits={numberOfSelectedTextUnits}
-                message={this.getIntlMessage("workbench.toolbar.numberOfSelectedTextUnits")} />
+            <FormattedMessage values={{"numberOfSelectedTextUnits": numberOfSelectedTextUnits}}
+                              id="workbench.toolbar.numberOfSelectedTextUnits"/>
         );
     },
 
     render() {
         return (
             <DropdownButton title={this.getTitle()} className="mrl" onSelect={this.selectionChanged}>
-                <MenuItem eventKey={this.SELECT_ALL_IN_PAGE}>{this.getIntlMessage("workbench.toolbar.selectAllInPage")}</MenuItem>
-                <MenuItem eventKey={this.CLEAR_ALL_IN_PAGE}>{this.getIntlMessage("workbench.toolbar.clearAllInPage")}</MenuItem>
-                <MenuItem eventKey={this.CLEAR_ALL}>{this.getIntlMessage("workbench.toolbar.clearAll")}</MenuItem>
+                <MenuItem eventKey={this.SELECT_ALL_IN_PAGE}><FormattedMessage id="workbench.toolbar.selectAllInPage"/></MenuItem>
+                <MenuItem eventKey={this.CLEAR_ALL_IN_PAGE}><FormattedMessage
+                    id="workbench.toolbar.clearAllInPage"/></MenuItem>
+                <MenuItem eventKey={this.CLEAR_ALL}><FormattedMessage id="workbench.toolbar.clearAll"/></MenuItem>
             </DropdownButton>
         );
     }

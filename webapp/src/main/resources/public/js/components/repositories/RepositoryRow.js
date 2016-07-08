@@ -1,18 +1,15 @@
 import React from "react";
-import { ProgressBar, Tooltip, OverlayTrigger, Label, Glyphicon } from "react-bootstrap";
-import ReactIntl from "react-intl";
-import { History, Link  } from "react-router";
-
+import {ProgressBar, Tooltip, OverlayTrigger, Label, Glyphicon} from "react-bootstrap";
+import {FormattedMessage, FormattedDate, FormattedNumber} from "react-intl";
+import {History, Link} from "react-router";
 import RepositoryStore from "../../stores/RepositoryStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
-let {IntlMixin, FormattedMessage, FormattedDate, FormattedNumber} = ReactIntl;
-
 let RepositoryRow = React.createClass({
 
-    mixins: [History, IntlMixin],
+    mixins: [History],
 
     /**
      * @return {{percent: number}}
@@ -60,7 +57,7 @@ let RepositoryRow = React.createClass({
         let needsOfNeedsReview = 0;
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat =>
-                needsOfNeedsReview += repoLocaleStat.reviewNeededCount
+            needsOfNeedsReview += repoLocaleStat.reviewNeededCount
         );
         return needsOfNeedsReview;
     },
@@ -75,7 +72,7 @@ let RepositoryRow = React.createClass({
         let needsOfWordNeedsReview = 0;
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat =>
-                needsOfWordNeedsReview += repoLocaleStat.reviewNeededWordCount
+            needsOfWordNeedsReview += repoLocaleStat.reviewNeededWordCount
         );
         return needsOfWordNeedsReview;
     },
@@ -89,7 +86,7 @@ let RepositoryRow = React.createClass({
         let numberOfRejected = 0;
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat =>
-                numberOfRejected += (repoLocaleStat.translatedCount - repoLocaleStat.includeInFileCount)
+            numberOfRejected += (repoLocaleStat.translatedCount - repoLocaleStat.includeInFileCount)
         );
         return numberOfRejected;
     },
@@ -210,11 +207,13 @@ let RepositoryRow = React.createClass({
 
         if (numberOfRejected > 0) {
             ui = (
-                    <Link onClick={this.updateSearchParamsForRejected.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
-                        <Label bsStyle="danger" className="mrs clickable">
-                            <FormattedMessage numberOfRejected={numberOfRejected} message={this.getIntlMessage("repositories.table.row.rejected")}/>
-                        </Label>
-                    </Link>);
+                <Link onClick={this.updateSearchParamsForRejected.bind(this, repoId)} to='/workbench'
+                      className="label-container status-label-container">
+                    <Label bsStyle="danger" className="mrs clickable">
+                        <FormattedMessage values={{numberOfRejected: numberOfRejected}}
+                                          id="repositories.table.row.rejected"/>
+                    </Label>
+                </Link>);
         }
 
         return ui;
@@ -233,14 +232,13 @@ let RepositoryRow = React.createClass({
 
         if (numberOfNeedsReview > 0) {
             ui = (
-                    <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, repoId)} to='/workbench' className="">
-                        <span className="repo-counts bg-info pls prs">{numberOfNeedsReview}</span>&nbsp;
-                        (
-                        <FormattedMessage
-                                numberOfWords={numberOfWordNeedsReview}
-                                message={this.getIntlMessage("repositories.table.row.numberOfWords")}/>
-                        )
-                    </Link>
+                <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, repoId)} to='/workbench' className="">
+                    <span className="repo-counts bg-info pls prs">{numberOfNeedsReview}</span>&nbsp;
+                    (
+                    <FormattedMessage values={{numberOfWords: numberOfNeedsReview}}
+                                      id="repositories.table.row.numberOfWords"/>
+                    )
+                </Link>
             );
         }
 
@@ -260,14 +258,13 @@ let RepositoryRow = React.createClass({
 
         if (numberOfNeedsTranslation > 0) {
             ui = (
-                    <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, repoId)} to='/workbench'>
-                        <span className="repo-counts bg-warning pls prs">{numberOfNeedsTranslation}</span>&nbsp;
-                        (
-                        <FormattedMessage
-                                numberOfWords={numberOfWordNeedsTranslation}
-                                message={this.getIntlMessage("repositories.table.row.numberOfWords")}/>
-                        )
-                    </Link>);
+                <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, repoId)} to='/workbench'>
+                    <span className="repo-counts bg-warning pls prs">{numberOfNeedsTranslation}</span>&nbsp;
+                    (
+                    <FormattedMessage values={{numberOfWords: numberOfWordNeedsTranslation}}
+                            id="repositories.table.row.numberOfWords"/>
+                    )
+                </Link>);
         }
 
         return ui;
@@ -342,7 +339,7 @@ let RepositoryRow = React.createClass({
 
         if (this.props.rowData.description) {
             descriptionTooltip =
-                    <Tooltip>{this.props.rowData.description}</Tooltip>;
+                <Tooltip id="repo-description-tooltip">{this.props.rowData.description}</Tooltip>;
         }
 
         let rowClass = "";
@@ -354,20 +351,22 @@ let RepositoryRow = React.createClass({
         }
 
         return (
-                <tr className={rowClass}>
-                    <td className="repo-name" overlay={descriptionTooltip}>
-                        <OverlayTrigger placement="right" overlay={descriptionTooltip}>
-                            <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench'>{this.props.rowData.name}</Link>
-                        </OverlayTrigger>
-                    </td>
+            <tr className={rowClass}>
+                <td className="repo-name" overlay={descriptionTooltip}>
+                    <OverlayTrigger placement="right" overlay={descriptionTooltip}>
+                        <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)}
+                              to='/workbench'>{this.props.rowData.name}</Link>
+                    </OverlayTrigger>
+                </td>
 
-                    <td>{this.getStatusLabel()}</td>
-                    <td>{this.getNeedsTranslationLabel()}</td>
-                    <td>{this.getNeedsReviewLabel()}</td>
-                    <td>
-                        <Label className="clickable label label-primary show-details-button" onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
-                    </td>
-                </tr>
+                <td>{this.getRejectedLabel()}</td>
+                <td>{this.getNeedsTranslationLabel()}</td>
+                <td>{this.getNeedsReviewLabel()}</td>
+                <td>
+                    <Label className="clickable label label-primary show-details-button"
+                           onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
+                </td>
+            </tr>
         );
     }
 });

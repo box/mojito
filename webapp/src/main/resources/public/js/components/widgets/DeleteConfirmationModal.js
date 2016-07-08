@@ -1,12 +1,8 @@
 import React from "react";
-import ReactIntl from 'react-intl';
+import {FormattedMessage} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 
-let {IntlMixin} = ReactIntl;
-
 let DeleteConfirmationModal = React.createClass({
-
-    mixins: [IntlMixin],
 
     propTypes: {
         "showModal": React.PropTypes.bool.isRequired,
@@ -25,17 +21,17 @@ let DeleteConfirmationModal = React.createClass({
         return (
             <Modal show={this.props.showModal} onHide={this.props.onDeleteCancelledCallback}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{this.getIntlMessage("textUnit.deletemodal.title")}</Modal.Title>
+                    <Modal.Title><FormattedMessage id="textUnit.deletemodal.title"/></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {this.props.modalBodyMessage}
+                    <FormattedMessage id={this.props.modalBodyMessage}/>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button bsStyle="danger" onClick={this.props.onDeleteClickedCallback}>
-                        {this.getIntlMessage("label.delete")}
+                        <FormattedMessage id="label.delete"/>
                     </Button>
                     <Button onClick={this.props.onDeleteCancelledCallback}>
-                        {this.getIntlMessage("label.cancel")}
+                        <FormattedMessage id="label.cancel"/>
                     </Button>
                 </Modal.Footer>
             </Modal>

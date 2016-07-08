@@ -1,11 +1,9 @@
 import React from "react";
 import {Nav, NavItem} from "react-bootstrap";
-import {IntlMixin} from "react-intl";
 
 import BoxSettings from "./BoxSettings";
 
 let Settings = React.createClass({
-    mixins: [IntlMixin],
 
     getInitialState() {
         return {

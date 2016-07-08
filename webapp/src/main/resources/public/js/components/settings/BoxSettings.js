@@ -1,13 +1,13 @@
 import React from "react";
+import {FormattedMessage, injectIntl} from "react-intl";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-import {IntlMixin} from "react-intl";
 import {Modal} from "react-bootstrap";
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
 import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
 
 let BoxSettings = React.createClass({
-    mixins: [IntlMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -57,7 +57,7 @@ let BoxSettings = React.createClass({
         if (typeof config === "undefined") {
             this.setState({"displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO});
         } else if (config) {
-            let notAvailableMessage = this.getIntlMessage("settings.message.notAvailableYet");
+            let notAvailableMessage = this.props.intl.formatMessage({id: "settings.message.notAvailableYet"});
 
             this.setState({
                 "displayMode": this.DISPLAY_MODE.INFO,
@@ -86,10 +86,10 @@ let BoxSettings = React.createClass({
      */
     getLabelInputTextBox(intlMessageKey, inputName) {
         return (<div className="form-group pbs pts">
-            <label className="col-sm-2 control-label">{this.getIntlMessage(intlMessageKey)}</label>
+            <label className="col-sm-2 control-label"><FormattedMessage id={intlMessageKey}/></label>
             <div className="col-sm-8">
                 <input className="form-control" type="text" name={inputName}
-                       placeholder={this.getIntlMessage(intlMessageKey)}
+                       placeholder={this.props.intl.formatMessage({ id: intlMessageKey })}
                        onChange={this.onHandleInputChange}
                 />
             </div>
@@ -105,7 +105,7 @@ let BoxSettings = React.createClass({
     getLabelAndInfo(intlMessageKey, infoValue) {
         return (<div className="row pbs pts">
             <div className="col-sm-1"></div>
-            <label className="col-sm-2 control-label">{this.getIntlMessage(intlMessageKey)}</label>
+            <label className="col-sm-2 control-label"><FormattedMessage id={intlMessageKey}/></label>
             <div className="col-sm-8">
                 <span>{infoValue}</span>
             </div>
@@ -170,9 +170,9 @@ let BoxSettings = React.createClass({
             modal = (
                 <Modal show={true}>
                     <Modal.Header closeButton={false}>
-                        <Modal.Title>{this.getIntlMessage("settings.modal.title.pleaseWait")}</Modal.Title>
+                        <Modal.Title><FormattedMessage id="settings.modal.title.pleaseWait"/></Modal.Title>
                     </Modal.Header>
-                    <Modal.Body>{this.getIntlMessage("settings.modal.box.message")}</Modal.Body>
+                    <Modal.Body><FormattedMessage id="settings.modal.box.message"/></Modal.Body>
                 </Modal>
             );
         }
@@ -187,10 +187,10 @@ let BoxSettings = React.createClass({
                 {this.getLabelInputTextBox("settings.box.privateKeyPassword", "privateKeyPassword")}
                 <div className="form-group pbs pts">
                     <label
-                        className="col-sm-2 control-label">{this.getIntlMessage("settings.box.privateKey")}</label>
+                        className="col-sm-2 control-label"><FormattedMessage id="settings.box.privateKey"/></label>
                     <div className="col-sm-8">
                     <textarea className="form-control" rows="10" name="privateKey"
-                              placeholder={this.getIntlMessage("settings.box.privateKey")}
+                              placeholder={this.props.intl.formatMessage({ id: "settings.box.privateKey" })}
                               onChange={this.onHandleInputChange}
                     />
                     </div>
@@ -198,7 +198,7 @@ let BoxSettings = React.createClass({
                 <div className="form-group pbs pts">
                     <div className="col-sm-2"></div>
                     <div className="col-sm-8">
-                        <input value={this.getIntlMessage("settings.button.saveChanges")}
+                        <input value={this.props.intl.formatMessage({ id: "settings.button.saveChanges" })}
                                className="form-control btn btn-default col-md-3 btn-primary"
                                onClick={this.onClickSubmit}
 
@@ -231,7 +231,7 @@ let BoxSettings = React.createClass({
      */
     getWaitingForInfoView() {
         return (
-            <div className="row">{this.getIntlMessage("settings.message.waitingForInfo")}</div>
+            <div className="row"><FormattedMessage id="settings.message.waitingForInfo"/></div>
         );
     },
 
@@ -254,4 +254,4 @@ let BoxSettings = React.createClass({
 
 });
 
-export default BoxSettings;
+export default injectIntl(BoxSettings);

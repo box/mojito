@@ -3,7 +3,7 @@ var expect = chai.expect;
 import sinon  from "sinon";
 import sinonChai  from "sinon-chai";
 chai.use(sinonChai);
-import React  from "react/addons";
+import React  from "react";
 import $  from "jquery";
 
 import RepositoryActions  from "actions/RepositoryActions";

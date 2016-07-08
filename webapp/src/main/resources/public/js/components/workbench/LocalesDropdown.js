@@ -1,5 +1,5 @@
 import React from "react";
-import ReactIntl from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import Multiselect from "react-bootstrap-multiselect";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 
@@ -9,11 +9,9 @@ import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import Locales from "../../utils/Locales";
 
-let {IntlMixin, FormattedMessage} = ReactIntl;
-
 let LocalesDropDown = React.createClass({
 
-    mixins: [IntlMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -129,7 +127,7 @@ let LocalesDropDown = React.createClass({
         if (numberOfSelectedLocales == 1) {
             label = options[0].label;
         } else {
-            label = this.formatMessage(this.getIntlMessage("search.locale.btn.text"), {'numberOfSelectedLocales': numberOfSelectedLocales});
+            label = this.props.intl.formatMessage({ id: "search.locale.btn.text" }, {'numberOfSelectedLocales': numberOfSelectedLocales});
         }
 
         return label;
@@ -149,11 +147,11 @@ let LocalesDropDown = React.createClass({
                     id="localesDropDown"
                     enableFiltering={true}
                     buttonText={this.getButtonText}
-                    filterPlaceholder={this.getIntlMessage("search.locale.filterPlaceholder")}
+                    filterPlaceholder={this.props.intl.formatMessage({ id: "search.locale.filterPlaceholder" })}
                     ref="localeDropdownRef" data={localeOptions} multiple />
             </span>
         );
     }
 });
 
-export default LocalesDropDown;
+export default injectIntl(LocalesDropDown);

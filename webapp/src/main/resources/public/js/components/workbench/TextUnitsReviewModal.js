@@ -1,18 +1,17 @@
 import $ from "jquery";
 import _ from "lodash";
-import React from "react/addons";
-import ReactIntl from 'react-intl';
-import {Button, ButtonGroup, ButtonToolbar, Input, Modal} from "react-bootstrap";
+import React from "react";
+import LinkedStateMixin from "react-addons-linked-state-mixin";
+import {FormattedMessage, injectIntl} from 'react-intl';
+import {Button, ButtonGroup, ButtonToolbar, FormControl, Modal} from "react-bootstrap";
 
 import SearchResultsStore from "../../stores/workbench/SearchResultsStore";
 
 import TextUnit from "../../sdk/TextUnit";
 
-let {IntlMixin} = ReactIntl;
-
 let TextUnitsreviewModal = React.createClass({
 
-    mixins: [IntlMixin, React.addons.LinkedStateMixin],
+    mixins: [LinkedStateMixin],
 
     propTypes() {
         return {
@@ -23,7 +22,7 @@ let TextUnitsreviewModal = React.createClass({
     getDefaultProps() {
         return {
             "isShowModal": false
-        }
+        };
     },
 
     /**
@@ -84,7 +83,7 @@ let TextUnitsreviewModal = React.createClass({
             <Button active={this.state.currentReviewState === this.REJECT}
                 onClick={this.optionClicked} data-option={this.REJECT}>
 
-                {this.getIntlMessage("textUnit.reviewModal.rejected")}
+                <FormattedMessage id="textUnit.reviewModal.rejected" />
             </Button>
         );
     },
@@ -97,7 +96,7 @@ let TextUnitsreviewModal = React.createClass({
             <Button active={this.state.currentReviewState === this.REVIEW}
                 onClick={this.optionClicked} data-option={this.REVIEW}>
 
-                {this.getIntlMessage("textUnit.reviewModal.needsReview")}
+                <FormattedMessage id="textUnit.reviewModal.needsReview" />
             </Button>
         );
     },
@@ -110,7 +109,7 @@ let TextUnitsreviewModal = React.createClass({
             <Button active={this.state.currentReviewState === this.ACCEPT}
                 onClick={this.optionClicked} data-option={this.ACCEPT}>
 
-                {this.getIntlMessage("textUnit.reviewModal.accepted")}
+                <FormattedMessage id="textUnit.reviewModal.accepted" />
             </Button>
         );
     },
@@ -123,7 +122,7 @@ let TextUnitsreviewModal = React.createClass({
             <Button active={this.state.currentReviewState === this.TRANSLATE}
                 onClick={this.optionClicked} data-option={this.TRANSLATE}>
 
-                   {this.getIntlMessage("textUnit.reviewModal.translationNeeded")}
+                   <FormattedMessage id="textUnit.reviewModal.translationNeeded" />
             </Button>
         );
     },
@@ -200,16 +199,26 @@ let TextUnitsreviewModal = React.createClass({
         return targetComment;
     },
 
+    /**
+     * @param {Event} event
+     */
+    commentTextAreaOnChange(event) {
+        this.setState({ "comment": event.target.value});
+    },
+
     render() {
         return (
             <Modal show={this.props.isShowModal} onHide={this.closeModal}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{this.getIntlMessage("textUnit.reviewModal.title")}</Modal.Title>
+                    <Modal.Title><FormattedMessage id="textUnit.reviewModal.title" /></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <Input valueLink={this.linkState("comment")} type="textarea"
-                        label={this.getIntlMessage("textUnit.reviewModal.commentLabel")}
-                        placeholder={this.getIntlMessage("textUnit.reviewModal.commentPlaceholder")} />
+                    <FormControl
+                        defaultValue={this.state.comment ? this.state.comment : ""}
+                        onChange={this.commentTextAreaOnChange}
+                        componentClass="textarea"
+                        label={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentLabel" })}
+                        placeholder={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentPlaceholder" })} />
                     <ButtonToolbar>
                         <ButtonGroup ref="optionsGroup">
                             {this.getRejectButton()}
@@ -222,10 +231,10 @@ let TextUnitsreviewModal = React.createClass({
                 <Modal.Footer>
                     <Button bsStyle="primary" onClick={this.onReviewModalSaveClicked}
                         disabled={this.state.currentReviewState === ""}>
-                        {this.getIntlMessage("label.save")}
+                        <FormattedMessage id="label.save" />
                     </Button>
                     <Button onClick={this.closeModal}>
-                        {this.getIntlMessage("label.cancel")}
+                        <FormattedMessage id="label.cancel" />
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -233,4 +242,4 @@ let TextUnitsreviewModal = React.createClass({
     }
 });
 
-export default TextUnitsreviewModal;
+export default injectIntl(TextUnitsreviewModal);

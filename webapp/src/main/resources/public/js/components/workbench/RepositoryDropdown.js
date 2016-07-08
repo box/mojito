@@ -1,20 +1,15 @@
 import React from "react";
-import ReactIntl from 'react-intl';
+import {injectIntl} from "react-intl";
 import Multiselect from "react-bootstrap-multiselect";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-
 import RepositoriesStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-
 import SearchConstants from "../../utils/SearchConstants";
-
-let {IntlMixin} = ReactIntl;
 
 let RepositoryDropDown = React.createClass({
 
-    mixins: [IntlMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -99,7 +94,7 @@ let RepositoryDropDown = React.createClass({
         if (numberOfSelectedRepositories == 1) {
             label = options[0].label;
         } else {
-            label = this.formatMessage(this.getIntlMessage("search.repository.btn.text"), {'numberOfSelectedRepositories': numberOfSelectedRepositories});
+            label = this.props.intl.formatMessage({ id: "search.repository.btn.text"}, {"numberOfSelectedRepositories": numberOfSelectedRepositories});
         }
 
         return label;
@@ -112,13 +107,13 @@ let RepositoryDropDown = React.createClass({
         return (
             <span>
                 <Multiselect onChange={this.repositorySelected}
-                    enableFiltering={true}
-                    buttonText={this.getButtonText}
-                    filterPlaceholder={this.getIntlMessage("search.repository.filterPlaceholder")}
-                    ref="repositoryDropdownRef" data={options} multiple />
+                             enableFiltering={true}
+                             buttonText={this.getButtonText}
+                             filterPlaceholder={this.props.intl.formatMessage({ id: "search.repository.filterPlaceholder" })}
+                             ref="repositoryDropdownRef" data={options} multiple/>
             </span>
         );
     }
 });
 
-export default RepositoryDropDown;
+export default injectIntl(RepositoryDropDown);

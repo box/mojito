@@ -1,7 +1,6 @@
 import $ from "jQuery";
 import React from "react";
 import {Table} from "react-bootstrap";
-import {IntlMixin} from "react-intl";
 import SideBar from "react-sidebar";
 import RepositoryStore from "../../stores/RepositoryStore";
 import RepositoryHeaderColumn from "./RepositoryHeaderColumn";
@@ -10,7 +9,6 @@ import RepositoryActions from "../../actions/RepositoryActions";
 import RepositoryStatistic from "../../components/repositories/RepositoryStatistic";
 
 let Repositories = React.createClass({
-    mixins: [IntlMixin],
 
     getInitialState: function () {
         let state = RepositoryStore.getState();
@@ -24,7 +22,7 @@ let Repositories = React.createClass({
     componentDidMount: function () {
 
         // TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
-        $(this.refs.sideBar.refs.sidebar.getDOMNode()).parent().addClass("side-bar-container");
+        $(this.refs.sideBar.refs.sidebar).parent().addClass("side-bar-container");
 
         RepositoryActions.init();
 

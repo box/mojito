@@ -1,24 +1,18 @@
 import $ from "jquery";
 import React from "react";
-import Router from "react-router";
-import ReactIntl from 'react-intl';
-
-import {Input, ButtonInput} from 'react-bootstrap';
-
-let {IntlMixin, FormattedMessage, FormattedNumber} = ReactIntl;
+import {FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
+import {FormControl, Button} from "react-bootstrap";
 
 let Login = React.createClass({
 
-    mixins: [IntlMixin],
-
     getLogoutElement: function () {
-        let { logout } = this.props.location.query;
+        let {logout} = this.props.location.query;
 
         var logoutElement;
         if (typeof logout != 'undefined') {
             logoutElement = (<div className="form-group">
                 <p className="text-center color-info">
-                    <FormattedMessage message={this.getIntlMessage("login.form.logout")} />
+                    <FormattedMessage id="login.form.logout"/>
                 </p>
             </div>);
         }
@@ -27,14 +21,14 @@ let Login = React.createClass({
     },
 
     getErrorElement: function () {
-        let { error } = this.props.location.query;
+        let {error} = this.props.location.query;
 
         var errorElement;
         if (typeof error != 'undefined') {
             errorElement = (
                 <div className="form-group">
                     <p className="text-center color-info">
-                        <FormattedMessage message={this.getIntlMessage("login.form.error")} />
+                        <FormattedMessage id="login.form.error"/>
                     </p>
                 </div>
             );
@@ -51,14 +45,14 @@ let Login = React.createClass({
         let result = '/login';
 
         if (showPage) {
-            result += '?' + $.param({ "showPage": showPage });
+            result += '?' + $.param({"showPage": showPage});
         }
 
         return result;
     },
 
     render: function () {
-        let { logout, error, showPage } = this.props.location.query;
+        let {logout, error, showPage} = this.props.location.query;
 
         var logoutElement = this.getLogoutElement();
         var errorElement = this.getErrorElement();
@@ -68,7 +62,7 @@ let Login = React.createClass({
             <div className="container login-container">
                 <div className="row">
                     <div className="center-block login-logo-container">
-                        <img src="/img/logo-391x90.png" className="logo" alt="Box Mojito" />
+                        <img src="/img/logo-391x90.png" className="logo" alt="Box Mojito"/>
                     </div>
                     <div className="center-block login-form-container">
                         <form action={loginFormPostUrl} method="post">
@@ -76,19 +70,23 @@ let Login = React.createClass({
                             {logoutElement}
                             <div className="form-group pbs pts">
                                 <h4 className="text-center color-gray-light">
-                                    <FormattedMessage message={this.getIntlMessage("login.form.title")} />
+                                    <FormattedMessage id="login.form.title"/>
                                 </h4>
                             </div>
                             <div className="form-group pbs pts">
-                                <Input className="form-control" type="text" name="username" placeholder={this.getIntlMessage("login.form.username")}/>
+                                <FormControl className="form-control" type="text" name="username"
+                                             placeholder={this.props.intl.formatMessage({ id: "login.form.username" })}/>
                             </div>
                             <div className="form-group pbs pts">
-                                <Input className="form-control" type="password" name="password" placeholder={this.getIntlMessage("login.form.password")}/>
+                                <FormControl className="form-control" type="password" name="password"
+                                             placeholder={this.props.intl.formatMessage({ id: "login.form.password" })}/>
                             </div>
                             <div className="form-group pbs ptl">
-                                <ButtonInput type="submit" value={this.getIntlMessage("login.form.login")} className="form-control btn btn-default col-md-3 btn-primary btn-block"/>
+                                <Button type="submit" bsClass="form-control col-md-3 btn-primary btn-block">
+                                    <FormattedMessage id="login.form.login"/>
+                                </Button>
                             </div>
-                            <Input type="hidden" name="_csrf" value={CSRF_TOKEN}/>
+                            <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
                         </form>
                     </div>
                 </div>
@@ -97,4 +95,4 @@ let Login = React.createClass({
     }
 });
 
-export default Login;
+export default injectIntl(Login);

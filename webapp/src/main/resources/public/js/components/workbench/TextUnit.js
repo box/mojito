@@ -1,8 +1,8 @@
 import $ from "jquery";
 import keycode from "keycode";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-import React from "react/addons";
-import ReactIntl from "react-intl";
+import React from "react";
+import {FormattedMessage, injectIntl} from "react-intl";
 import Error from "../../utils/Error";
 import SearchConstants from "../../utils/SearchConstants";
 import SearchResultsStore from "../../stores/workbench/SearchResultsStore";
@@ -22,17 +22,18 @@ import {
     Button,
     ButtonToolbar,
     ButtonGroup,
+    FormControl,
     Input,
     Label,
     Glyphicon,
     Modal
 } from "react-bootstrap";
 
-let {IntlMixin} = ReactIntl;
+
 
 let TextUnit = React.createClass({
 
-    mixins: [IntlMixin, React.addons.LinkedStateMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -83,7 +84,7 @@ let TextUnit = React.createClass({
 
     componentDidUpdate() {
         if (this.state.isEditMode) {
-            this.refs.textUnitTextArea.getDOMNode().focus();
+            // this.refs.textUnitTextArea.focus();
         } else {
             this.putFocusOnActiveTextUnit();
         }
@@ -96,7 +97,7 @@ let TextUnit = React.createClass({
     putFocusOnActiveTextUnit() {
 
         if (this.props.isActive) {
-            $(this.refs.textunit.getDOMNode()).focus();
+            $(this.refs.textunit).focus();
         }
     },
 
@@ -268,7 +269,7 @@ let TextUnit = React.createClass({
         let rendered = '';
         if (!this.props.textUnit.isUsed()) {
             rendered = (
-                <Label bsStyle="default" className="mrxs">{this.getIntlMessage("textUnit.unused")}</Label>
+                <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.unused" /></Label>
             );
         }
         return rendered;
@@ -284,22 +285,22 @@ let TextUnit = React.createClass({
         if (this.props.textUnit.isTranslated()) {
 
             let glyphType = "ok";
-            let glyphTitle = this.getIntlMessage("textUnit.reviewModal.accepted");
+            let glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.accepted" });
 
             if (!this.props.textUnit.isIncludedInLocalizedFile()) {
 
                 glyphType = "alert";
-                glyphTitle = this.getIntlMessage("textUnit.reviewModal.rejected");
+                glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.rejected" });
 
             } else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.REVIEW_NEEDED) {
 
                 glyphType = "eye-open";
-                glyphTitle = this.getIntlMessage("textUnit.reviewModal.needsReview");
+                glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.needsReview" });
 
             } else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.TRANSLATION_NEEDED) {
 
                 glyphType = "edit";
-                glyphTitle = this.getIntlMessage("textUnit.reviewModal.translationNeeded");
+                glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.translationNeeded" });
             }
             ui = (
                 <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
@@ -308,6 +309,15 @@ let TextUnit = React.createClass({
         }
 
         return ui;
+    },
+
+    /**
+     * @param {Event} event
+     */
+    transUnitEditTextAreaOnChange(event) {
+        this.setState({
+            "translation": event.target.value
+        });
     },
 
     /**
@@ -325,18 +335,20 @@ let TextUnit = React.createClass({
 
             return (
                 <div className="targetstring-container">
-                    <textarea ref="textUnitTextArea" spellCheck="true" className="form-control mrxs"
+                    <FormControl ref="textUnitTextArea" componentClass="textarea" spellCheck="true" className="mrxs"
                               onKeyUp={this.onKeyUpTextArea} onKeyDown={this.onKeyDownTextArea}
-                              placeholder={this.getIntlMessage('textUnit.target.placeholder')}
-                              valueLink={this.linkState("translation")} dir={dir}/>
+                              placeholder={this.props.intl.formatMessage({ id: 'textUnit.target.placeholder' })}
+                              defaultValue={this.state.translation ? this.state.translation : ""}
+                              onChange={this.transUnitEditTextAreaOnChange}
+                              dir={dir}/>
 
                     <ButtonToolbar className="mtxs mbxs">
                         <Button bsStyle='primary' bsSize="small" disabled={saveDisabled}
                                 onClick={!saveDisabled ? this.saveTextUnitIfNeeded : null}>
-                            {this.getIntlMessage('label.save')}
+                            <FormattedMessage id='label.save' />
                         </Button>
                         <Button bsSize="small" onClick={this.cancelSaveTextUnit}>
-                            {this.getIntlMessage("label.cancel")}
+                            <FormattedMessage id="label.cancel" />
                         </Button>
                     </ButtonToolbar>
                 </div>
@@ -373,7 +385,7 @@ let TextUnit = React.createClass({
                 noTranslation = true;
                 dir = Locales.getLanguageDirection(Locales.getCurrentLocale());
                 targetClassName = targetClassName + " color-gray-light2";
-                targetString = this.getIntlMessage("textUnit.target.enterNewTranslation");
+                targetString = this.props.intl.formatMessage({ id: "textUnit.target.enterNewTranslation" });
             } else {
                 dir = Locales.getLanguageDirection(this.props.textUnit.getTargetLocale());
             }
@@ -416,19 +428,19 @@ let TextUnit = React.createClass({
     onTextUnitClick(e) {
 
         switch (e.target) {
-            case this.refs.selectCheckbox.getDOMNode():
+            case this.refs.selectCheckbox:
                 this.onChangeTextUnitCheckbox(e);
                 break;
 
-            case this.refs.localeLabel.getDOMNode():
+            case this.refs.localeLabel:
                 this.onLocaleLabelClick(e);
                 break;
 
-            case this.refs.stringId.getDOMNode():
+            case this.refs.stringId:
                 this.onStringIdClick(e);
                 break;
 
-            case typeof this.refs.textUnitTextArea !== "undefined" && this.refs.textUnitTextArea.getDOMNode():
+            case typeof this.refs.textUnitTextArea !== "undefined" && this.refs.textUnitTextArea:
                 break;
 
             default:
@@ -474,7 +486,7 @@ let TextUnit = React.createClass({
      * @returns {string} The error message with all the parameters populated.
      */
     getErrorMessage(error) {
-        return this.getIntlMessage(Error.MESSAGEKEYS_MAP[error.errorId]);
+        return this.props.intl.formatMessage({ id: Error.MESSAGEKEYS_MAP[error.errorId] });
     },
 
     getErrorAlert() {
@@ -484,24 +496,24 @@ let TextUnit = React.createClass({
                 buttons = (
                     <div>
                         <Button bsStyle="primary" onClick={this.handleModalSave}>
-                            {this.getIntlMessage("label.yes")}
+                            <FormattedMessage id="label.yes" />
                         </Button>
                         <Button onClick={this.handleErrorAlertDismiss}>
-                            {this.getIntlMessage("label.no")}
+                            <FormattedMessage id="label.no" />
                         </Button>
                     </div>
                 );
             } else {
                 buttons = (
                     <Button onClick={this.handleErrorAlertDismiss}>
-                        {this.getIntlMessage("label.okay")}
+                        <FormattedMessage id="label.okay" />
                     </Button>);
             }
 
             return (
                 <Modal show={true} onHide={this.handleErrorAlertDismiss}>
                     <Modal.Header closeButton>
-                        <Modal.Title>{this.getIntlMessage("error.modal.title")}</Modal.Title>
+                        <Modal.Title><FormattedMessage id="error.modal.title" /></Modal.Title>
                     </Modal.Header>
                     <Modal.Body>{this.getErrorMessage(this.state.error)}</Modal.Body>
                     <Modal.Footer>
@@ -588,4 +600,4 @@ let TextUnit = React.createClass({
     }
 });
 
-export default TextUnit;
+export default injectIntl(TextUnit);

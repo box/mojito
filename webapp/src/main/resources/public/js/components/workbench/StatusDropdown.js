@@ -1,6 +1,6 @@
 import _ from "lodash";
 import React from "react";
-import ReactIntl from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import {DropdownButton, MenuItem} from "react-bootstrap";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 
@@ -8,11 +8,9 @@ import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
-let {IntlMixin} = ReactIntl;
-
 let StatusDropdown = React.createClass({
 
-    mixins: [IntlMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -62,7 +60,7 @@ let StatusDropdown = React.createClass({
 
         switch (filter) {
             case "used" :
-                return this.getIntlMessage("search.statusDropdown.used");
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.used" });
         }
     },
 
@@ -109,7 +107,7 @@ let StatusDropdown = React.createClass({
      */
     renderFilterMenuItem(filter, isYes) {
 
-        let msg = isYes ? this.getIntlMessage("search.statusDropdown.yes") : this.getIntlMessage("search.statusDropdown.no");
+        let msg = isYes ? this.props.intl.formatMessage({ id: "search.statusDropdown.yes" }) : this.props.intl.formatMessage({ id: "search.statusDropdown.no" });
 
         return (
             <MenuItem eventKey={filter} active={this.state[filter]} onSelect={this.onFilterSelected} >{msg}</MenuItem>
@@ -119,15 +117,15 @@ let StatusDropdown = React.createClass({
     getMessageForStatus(status) {
         switch (status) {
             case SearchParamsStore.STATUS.ALL:
-                return this.getIntlMessage("search.statusDropdown.all");
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.all" });
             case SearchParamsStore.STATUS.TRANSLATED:
-                return this.getIntlMessage("search.statusDropdown.translated");
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.translated" });
             case SearchParamsStore.STATUS.FOR_TRANSLATION:
-                return this.getIntlMessage("search.statusDropdown.forTranslation");
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.forTranslation" });
             case SearchParamsStore.STATUS.REVIEW_NEEDED:
-                return this.getIntlMessage("search.statusDropdown.needsReview");
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.needsReview" });
             case SearchParamsStore.STATUS.REJECTED:
-                return this.getIntlMessage("search.statusDropdown.rejected");
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.rejected" });
         }
     },
 
@@ -144,9 +142,9 @@ let StatusDropdown = React.createClass({
         let searchParams = SearchParamsStore.getState();
 
         return (
-            <DropdownButton title={this.getIntlMessage("search.statusDropdown.title")}>
+            <DropdownButton title={this.props.intl.formatMessage({ id: "search.statusDropdown.title" })}>
 
-                <MenuItem header>{this.getIntlMessage("search.statusDropdown.status")}</MenuItem>
+                <MenuItem header><FormattedMessage id="search.statusDropdown.status" /></MenuItem>
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.ALL)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.TRANSLATED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.FOR_TRANSLATION)}
@@ -165,4 +163,4 @@ let StatusDropdown = React.createClass({
 });
 
 
-export default StatusDropdown;
+export default injectIntl(StatusDropdown);

@@ -1,6 +1,6 @@
 import _ from "lodash";
 import React from "react";
-import ReactIntl from 'react-intl';
+import {FormattedMessage, FormattedNumber} from 'react-intl';
 import { History } from "react-router";
 
 import LocaleSelectorModal from "./LocaleSelectorModal";
@@ -10,17 +10,13 @@ import RepositoryActions from "../../actions/RepositoryActions";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 
-import {Navbar, Nav, NavItem, DropdownButton, MenuItem, Glyphicon} from 'react-bootstrap';
+import {Navbar, Nav, NavItem, NavDropdown, MenuItem, Glyphicon, FormControl} from 'react-bootstrap';
 
 import {Router, Link} from "react-router";
 
-
-let {IntlMixin, FormattedMessage, FormattedNumber} = ReactIntl;
-
-
 let Header = React.createClass({
 
-    mixins: [IntlMixin, History],
+    mixins: [History],
 
     getInitialState() {
         return {
@@ -29,7 +25,7 @@ let Header = React.createClass({
     },
 
     logoutSelected: function () {
-        React.findDOMNode(this.refs.logoutForm).submit();
+        this.refs.logoutForm.submit();
     },
 
     settingsSelected: function () {
@@ -68,35 +64,34 @@ let Header = React.createClass({
                 </a>
                 <Nav>
                     <li className={(this.history.isActive("/repositories")) ? "active" : ""}>
-                        <Link onClick={RepositoryActions.getAllRepositories} to="/repositories">{this.getIntlMessage("header.repositories")}</Link>
+                        <Link onClick={RepositoryActions.getAllRepositories} to="/repositories"><FormattedMessage id="header.repositories" /></Link>
                     </li>
                     <li className={(this.history.isActive("/workbench")) ? "active" : ""}>
-                        <Link onClick={this.updateSearchParamsForDefaultView} to="/workbench">{this.getIntlMessage("header.workbench")}</Link>
+                        <Link onClick={this.updateSearchParamsForDefaultView} to="/workbench"><FormattedMessage id="header.workbench" /></Link>
                     </li>
                     <li className={(this.history.isActive("/project-requests")) ? "active" : ""}>
-                        <Link onClick={this.updateSearchParamsForDefaultView} to="/project-requests">{this.getIntlMessage("header.projectRequests")}</Link>
+                        <Link onClick={this.updateSearchParamsForDefaultView} to="/project-requests"><FormattedMessage id="header.projectRequests" /></Link>
                     </li>
                 </Nav>
-                <Nav right>
-                    <DropdownButton title={USERNAME}>
+                <Nav pullRight={true}>
+                    <NavDropdown title={USERNAME} id="user-menu">
                         <MenuItem onSelect={this.openLocaleSelectorModal}>
                             <Glyphicon glyph="globe" /> {Locales.getCurrentLocaleDisplayName()}
                             <LocaleSelectorModal key={_.uniqueId()} show={this.state.showLocaleSelectorModal} onClose={this.closeLocaleSelectorModal} />
                         </MenuItem>
 
                         <MenuItem onSelect={this.settingsSelected}>
-                            <Glyphicon glyph="wrench" /> {this.getIntlMessage("header.settings")}
+                            <Glyphicon glyph="wrench" /> <FormattedMessage id="header.settings" />
                         </MenuItem>
 
                         <MenuItem divider />
                         <MenuItem onSelect={this.logoutSelected}>
                             <form action="/logout" method="post" ref="logoutForm">
-                                <input type="hidden" name="_csrf" value={CSRF_TOKEN}/>
-                                <FormattedMessage message={this.getIntlMessage("header.loggedInUser.logout")} />
+                                <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
+                                <FormattedMessage id="header.loggedInUser.logout" />
                             </form>
                         </MenuItem>
-
-                    </DropdownButton>
+                    </NavDropdown>
                 </Nav>
             </Navbar>
         );

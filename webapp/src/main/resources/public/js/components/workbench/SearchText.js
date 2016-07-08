@@ -1,20 +1,15 @@
-import $ from "jquery";
-
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import keycode from "keycode";
-import React from "react/addons";
-import ReactIntl from 'react-intl';
-import {DropdownButton, Input, MenuItem, Button, Glyphicon} from "react-bootstrap";
-
+import React from "react";
+import {FormattedMessage, injectIntl} from "react-intl";
+import {DropdownButton, FormGroup, FormControl, InputGroup, MenuItem, Button, Glyphicon} from "react-bootstrap";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
-let {IntlMixin} = ReactIntl;
-
 let SearchText = React.createClass({
 
-    mixins: [IntlMixin, React.addons.LinkedStateMixin, FluxyMixin],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -110,36 +105,38 @@ let SearchText = React.createClass({
     getMessageForSearchAttribute(searchAttribute) {
         switch (searchAttribute) {
             case SearchParamsStore.SEARCH_ATTRIBUTES.STRING_ID:
-                return this.getIntlMessage("search.filter.id");
+                return this.props.intl.formatMessage({id: "search.filter.id"});
             case SearchParamsStore.SEARCH_ATTRIBUTES.SOURCE:
-                return this.getIntlMessage("search.filter.source");
+                return this.props.intl.formatMessage({id: "search.filter.source"});
             case SearchParamsStore.SEARCH_ATTRIBUTES.TARGET:
-                return this.getIntlMessage("search.filter.target");
+                return this.props.intl.formatMessage({id: "search.filter.target"});
         }
     },
 
     getMessageForSearchType(searchType) {
         switch (searchType) {
             case SearchParamsStore.SEARCH_TYPES.EXACT:
-                return this.getIntlMessage("search.filter.exact");
+                return this.props.intl.formatMessage({id: "search.filter.exact"});
             case SearchParamsStore.SEARCH_TYPES.CONTAINS:
-                return this.getIntlMessage("search.filter.contains");
+                return this.props.intl.formatMessage({id: "search.filter.contains"});
             case SearchParamsStore.SEARCH_TYPES.ILIKE:
-                return this.getIntlMessage("search.filter.ilike");
+                return this.props.intl.formatMessage({id: "search.filter.ilike"});
         }
     },
 
     renderSearchAttributeMenuItem(searchAttribute) {
         return (
-            <MenuItem eventKey={searchAttribute} active={this.state.searchAttribute === searchAttribute} onSelect={this.onSearchAttributeSelected} >
-                   {this.getMessageForSearchAttribute(searchAttribute)}
+            <MenuItem eventKey={searchAttribute} active={this.state.searchAttribute === searchAttribute}
+                      onSelect={this.onSearchAttributeSelected}>
+                {this.getMessageForSearchAttribute(searchAttribute)}
             </MenuItem>
         );
     },
 
     renderSearchTypeMenuItem(searchType) {
         return (
-            <MenuItem eventKey={searchType} active={this.state.searchType === searchType } onSelect={this.onSearchTypeSelected} >
+            <MenuItem eventKey={searchType} active={this.state.searchType === searchType }
+                      onSelect={this.onSearchTypeSelected}>
                 {this.getMessageForSearchType(searchType)}
             </MenuItem>
         );
@@ -147,17 +144,16 @@ let SearchText = React.createClass({
 
     renderDropdown() {
         return (
-            <DropdownButton title={this.getMessageForSearchAttribute(this.state.searchAttribute)}>
-                <MenuItem header>{this.getIntlMessage("search.filter.searchAttribute")}</MenuItem>
-                            {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.STRING_ID)}
-                            {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.SOURCE)}
-                            {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.TARGET)}
-                <MenuItem divider />
-                <MenuItem header>{this.getIntlMessage("search.filter.searchType")}</MenuItem>
-                            {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.EXACT)}
-                            {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.CONTAINS)}
-                            {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.ILIKE)}
-
+            <DropdownButton id="search-attribute-dropdown" title={this.getMessageForSearchAttribute(this.state.searchAttribute)}>
+                <MenuItem header><FormattedMessage id="search.filter.searchAttribute"/></MenuItem>
+                {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.STRING_ID)}
+                {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.SOURCE)}
+                {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.TARGET)}
+                <MenuItem divider/>
+                <MenuItem header><FormattedMessage id="search.filter.searchType"/></MenuItem>
+                {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.EXACT)}
+                {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.CONTAINS)}
+                {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.ILIKE)}
             </DropdownButton>
         );
     },
@@ -165,22 +161,37 @@ let SearchText = React.createClass({
     renderSearchButton() {
         return (
             <Button onClick={this.onSearchButtonClicked}>
-                <Glyphicon glyph='glyphicon glyphicon-search' />
+                <Glyphicon glyph='glyphicon glyphicon-search'/>
             </Button>
         );
     },
 
+    /**
+     *
+     * @param {SyntheticEvent} event
+     */
+    searchTextOnChange(event) {
+        this.setState({
+            "searchText": event.target.value
+        });
+    },
+
     render: function () {
         return (
-            <Input type='text' valueLink={this.linkState("searchText")}
-                placeholder={this.getIntlMessage("search.placeholder")}
-                buttonBefore={this.renderDropdown()}
-                buttonAfter={this.renderSearchButton()}
-                onKeyDown={this.onKeyDownOnSearchText}
-                wrapperClassName="col-xs-6"
-            />
+            <div className="col-xs-6">
+                <FormGroup>
+                    <InputGroup>
+                        <InputGroup.Button>{this.renderDropdown()}</InputGroup.Button>
+                        <FormControl type='text' value={this.state.searchText ? this.state.searchText : ""}
+                                     onChange={this.searchTextOnChange}
+                                     placeholder={this.props.intl.formatMessage({ id: "search.placeholder" })}
+                                     onKeyDown={this.onKeyDownOnSearchText}/>
+                        <InputGroup.Button>{this.renderSearchButton()}</InputGroup.Button>
+                    </InputGroup>
+                </FormGroup>
+            </div>
         );
     }
 });
 
-export default SearchText;
+export default injectIntl(SearchText);
