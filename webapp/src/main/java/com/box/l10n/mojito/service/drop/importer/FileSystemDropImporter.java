@@ -2,7 +2,7 @@ package com.box.l10n.mojito.service.drop.importer;
 
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporter;
 import com.box.sdk.BoxFile;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class FileSystemDropImporter implements DropImporter {
         logger.debug("Download file content for dropFile: {}", dropFile.getId());
 
         try {
-            String content = Files.toString(Paths.get(dropFile.getId()).toFile(), Charsets.UTF_8);
+            String content = Files.toString(Paths.get(dropFile.getId()).toFile(), StandardCharsets.UTF_8);
             dropFile.setContent(content);
         } catch (IOException ex) {
             throw new DropImporterException("Cannot download drop file content", ex);

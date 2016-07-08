@@ -6,7 +6,7 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import java.io.IOException;
@@ -100,10 +100,10 @@ public class DemoCreateCommand extends RepoCommand {
             URL inputResourceBundleUrl = getResourceURL(resourceBundleName);
             Path resourceBundlePath = outputDirectoryPath.resolve(resourceBundleName);
 
-            String resourceBundleContent = Resources.toString(inputResourceBundleUrl, Charsets.UTF_8);
+            String resourceBundleContent = Resources.toString(inputResourceBundleUrl, StandardCharsets.UTF_8);
 
             consoleWriter.newLine().a("Add resource bundle: ").fg(Ansi.Color.CYAN).a(resourceBundlePath.toString()).println();
-            Files.write(resourceBundleContent, resourceBundlePath.toFile(), Charsets.UTF_8);
+            Files.write(resourceBundleContent, resourceBundlePath.toFile(), StandardCharsets.UTF_8);
 
         } catch (IOException ioe) {
             throw new CommandException("Wasn't able to copy the resource bundle file into the demo directory", ioe);
@@ -172,7 +172,7 @@ public class DemoCreateCommand extends RepoCommand {
     void importTMFile(String tmFileName) throws CommandException {
 
         try {
-            String tmFileContent = Resources.toString(getResourceURL(tmFileName), Charsets.UTF_8);
+            String tmFileContent = Resources.toString(getResourceURL(tmFileName), StandardCharsets.UTF_8);
             repositoryClient.importRepository(repository.getId(), tmFileContent, false);
         } catch (IOException | ResourceNotCreatedException e) {
             throw new CommandException("Wasn't able to import file: " + tmFileName, e);

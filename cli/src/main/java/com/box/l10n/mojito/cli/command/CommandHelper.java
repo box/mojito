@@ -11,11 +11,11 @@ import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import org.apache.commons.io.ByteOrderMark;
@@ -180,7 +180,7 @@ public class CommandHelper {
                 FileUtils.writeByteArrayToFile(outputFile, inputStream.getBOM().getBytes());
                 FileUtils.writeByteArrayToFile(outputFile, content.getBytes(inputStream.getBOMCharsetName()), true);
             } else {
-                FileUtils.writeStringToFile(outputFile, content, Charsets.UTF_8);
+                FileUtils.writeStringToFile(outputFile, content, StandardCharsets.UTF_8);
             }
         } catch (IOException e) {
             throw new CommandException("Cannot write file content in path: " + path.toString(), e);
@@ -196,7 +196,7 @@ public class CommandHelper {
      */
     public void writeFileContent(String content, Path path) throws CommandException {
         try {
-            Files.write(content, path.toFile(), Charsets.UTF_8);
+            Files.write(content, path.toFile(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new CommandException("Cannot write file content in path: " + path.toString(), e);
         }

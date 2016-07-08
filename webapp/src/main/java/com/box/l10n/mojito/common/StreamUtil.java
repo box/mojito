@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.common;
 
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
@@ -23,7 +23,7 @@ public class StreamUtil {
      */
     public static String getUTF8OutputStreamAsString(ByteArrayOutputStream baos) {
         try {
-            return baos.toString(Charsets.UTF_8.name());
+            return baos.toString(StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException uee) {
             throw new RuntimeException(uee);
         }

@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.test;
 
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.base.Function;
 import com.google.common.io.Files;
 import java.io.File;
@@ -145,9 +145,9 @@ public class IOTestBase {
         Collection<File> files = FileUtils.listFiles(getTargetTestDir(), null, true);
 
         for (File file : files) {
-            String fileContent = Files.toString(file, Charsets.UTF_8);
+            String fileContent = Files.toString(file, StandardCharsets.UTF_8);
             String modifiedFileContent = fileContentModifier.apply(fileContent);
-            Files.write(modifiedFileContent, file, Charsets.UTF_8);
+            Files.write(modifiedFileContent, file, StandardCharsets.UTF_8);
         }
     }
 
@@ -220,7 +220,7 @@ public class IOTestBase {
     public void writeToFileInDirectory(File directory, String fileName, String content) {
 
         try {
-            Files.write(content, new File(directory, fileName), Charsets.UTF_8);
+            Files.write(content, new File(directory, fileName), StandardCharsets.UTF_8);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }

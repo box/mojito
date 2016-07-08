@@ -33,7 +33,7 @@ import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.service.translationkit.TranslationKitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.XliffUtils;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -359,7 +359,7 @@ public class DropServiceTest extends ServiceTestBase {
 
         for (File sourceFile : sourceFiles) {
 
-            String localizedContent = Files.toString(sourceFile, Charsets.UTF_8);
+            String localizedContent = Files.toString(sourceFile, StandardCharsets.UTF_8);
 
             if (sourceFile.getName().startsWith("ko-KR")) {
                 logger.debug("For the Korean file, don't translate but add a corrupted text unit (invalid id) at the end");
@@ -378,7 +378,7 @@ public class DropServiceTest extends ServiceTestBase {
 
             //TODO(P1) this logic is being dupplicated everywhere maybe it should go back into the config or service.
             Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
-            Files.write(localizedContent, localizedFolderPath.toFile(), Charsets.UTF_8);
+            Files.write(localizedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
         }
     }
 
@@ -393,12 +393,12 @@ public class DropServiceTest extends ServiceTestBase {
 
         for (File sourceFile : sourceFiles) {
 
-            String reviewedContent = Files.toString(sourceFile, Charsets.UTF_8);
+            String reviewedContent = Files.toString(sourceFile, StandardCharsets.UTF_8);
             reviewedContent = XliffUtils.replaceTargetState(reviewedContent, XliffState.SIGNED_OFF.toString());
 
             //TODO(P1) this logic is being dupplicated everywhere maybe it should go back into the config or service.
             Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
-            Files.write(reviewedContent, localizedFolderPath.toFile(), Charsets.UTF_8);
+            Files.write(reviewedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
         }
     }
 
@@ -417,7 +417,7 @@ public class DropServiceTest extends ServiceTestBase {
                 continue;
             }
 
-            String importedContent = Files.toString(importedFile, Charsets.UTF_8);
+            String importedContent = Files.toString(importedFile, StandardCharsets.UTF_8);
             checkImportedFilesContent(importedFile.getName(), importedContent, round);
         }
     }
@@ -544,7 +544,7 @@ public class DropServiceTest extends ServiceTestBase {
                 continue;
             }
 
-            String importedContent = Files.toString(importedFile, Charsets.UTF_8);
+            String importedContent = Files.toString(importedFile, StandardCharsets.UTF_8);
 
             if (importedFile.getName().startsWith("fr-FR")) {
 

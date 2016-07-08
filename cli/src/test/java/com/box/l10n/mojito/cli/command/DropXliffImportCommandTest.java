@@ -18,7 +18,7 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.test.XliffUtils;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
@@ -120,7 +120,7 @@ public class DropXliffImportCommandTest extends CLITestBase {
         File[] sourceFiles = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME).toFile().listFiles();
 
         for (File sourceFile : sourceFiles) {
-            String localizedContent = Files.toString(sourceFile, Charsets.UTF_8);
+            String localizedContent = Files.toString(sourceFile, StandardCharsets.UTF_8);
             localizedContent = XliffUtils.localizeTarget(localizedContent, "Import Xliff Drop");
             writeToFileInDirectory(getTargetTestDir("localized"), sourceFile.getName(), localizedContent);
         }
