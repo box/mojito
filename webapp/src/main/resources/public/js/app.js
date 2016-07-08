@@ -17,7 +17,7 @@ import SearchConstants from "./utils/SearchConstants";
 import SearchParamsStore from "./stores/workbench/SearchParamsStore";
 
 // NOTE this way of adding locale data is only recommeneded if there are a few locales.
-// if there are more, we should generate individual bundle js.
+// if there are more, we should load it dynamically using script tags
 // https://github.com/yahoo/react-intl/wiki#locale-data-in-browsers
 import en from 'react-intl/locale-data/en';
 import fr from 'react-intl/locale-data/fr';
