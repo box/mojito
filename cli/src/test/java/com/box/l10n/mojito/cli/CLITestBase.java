@@ -12,7 +12,7 @@ import com.box.l10n.mojito.test.IOTestBase;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
-import org.apache.commons.io.Charsets;
+import java.nio.charset.StandardCharsets;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -118,7 +118,7 @@ public class CLITestBase extends IOTestBase {
     
     public void importTranslations(Long assetId, String baseName, String bcp47Tag) throws IOException {
         File file = new File(getInputResourcesTestDir("translations"), baseName + bcp47Tag + ".xliff");
-        String fileContent = Files.toString(file, Charsets.UTF_8);
+        String fileContent = Files.toString(file, StandardCharsets.UTF_8);
         tmImportService.importXLIFF(assetId, fileContent, true);
     }
 

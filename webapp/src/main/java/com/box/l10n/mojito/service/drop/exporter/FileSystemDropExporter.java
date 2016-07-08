@@ -8,7 +8,7 @@ import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.
 import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 import com.box.l10n.mojito.service.drop.importer.DropImporter;
 import com.box.l10n.mojito.service.drop.importer.FileSystemDropImporter;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import java.io.File;
@@ -175,7 +175,7 @@ public class FileSystemDropExporter implements DropExporter {
 
         try {
             Path sourceFilePath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME, getSourceFileName(fileSystemDropExporterConfig.getUploadDate(), bcp47tag));
-            Files.write(fileContent, sourceFilePath.toFile(), Charsets.UTF_8);
+            Files.write(fileContent, sourceFilePath.toFile(), StandardCharsets.UTF_8);
         } catch (IOException ex) {
             String msg = "Cannot export file";
             logger.error(msg, ex);
@@ -189,7 +189,7 @@ public class FileSystemDropExporter implements DropExporter {
 
         try {
             Path importedFilePath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_IMPORTED_FILES_NAME, filename);
-            Files.write(fileContent, importedFilePath.toFile(), Charsets.UTF_8);
+            Files.write(fileContent, importedFilePath.toFile(), StandardCharsets.UTF_8);
 
             if (comment != null) {
                 addCommentToFile(importedFilePath.toString(), comment);
@@ -207,7 +207,7 @@ public class FileSystemDropExporter implements DropExporter {
         try {
             File commentFile = getPathToCommentsFile(fileId).toFile();
             Files.createParentDirs(commentFile);
-            Files.append(comment, commentFile, Charsets.UTF_8);
+            Files.append(comment, commentFile, StandardCharsets.UTF_8);
         } catch (IOException ioe) {
             throw new DropExporterException("Cannot add comment to file", ioe);
         }

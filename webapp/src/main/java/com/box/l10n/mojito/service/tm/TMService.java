@@ -27,7 +27,7 @@ import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.Integr
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.base.Preconditions;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
@@ -573,7 +573,7 @@ public class TMService {
         FilterEventsWriterStep filterEventsWriterStep = new FilterEventsWriterStep(new XLIFFWriter());
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         filterEventsWriterStep.setOutputStream(byteArrayOutputStream);
-        filterEventsWriterStep.setOutputEncoding(Charsets.UTF_8.toString());
+        filterEventsWriterStep.setOutputEncoding(StandardCharsets.UTF_8.toString());
 
         driver.addStep(filterEventsWriterStep);
 
@@ -643,7 +643,7 @@ public class TMService {
         FilterEventsWriterStep filterEventsWriterStep = new FilterEventsWriterStep(xliffWriter);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         filterEventsWriterStep.setOutputStream(byteArrayOutputStream);
-        filterEventsWriterStep.setOutputEncoding(Charsets.UTF_8.toString());
+        filterEventsWriterStep.setOutputEncoding(StandardCharsets.UTF_8.toString());
 
         logger.trace("Prepare the Okapi pipeline");
         IPipelineDriver driver = new PipelineDriver();

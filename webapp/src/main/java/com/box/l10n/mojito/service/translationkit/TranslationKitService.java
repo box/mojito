@@ -20,7 +20,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
-import com.google.common.base.Charsets;
+import java.nio.charset.StandardCharsets;
 import com.google.common.base.Objects;
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -100,7 +100,7 @@ public class TranslationKitService {
         FilterEventsWriterStep filterEventsWriterStep = new FilterEventsWriterStep(xliffWriter);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         filterEventsWriterStep.setOutputStream(byteArrayOutputStream);
-        filterEventsWriterStep.setOutputEncoding(Charsets.UTF_8.toString());
+        filterEventsWriterStep.setOutputEncoding(StandardCharsets.UTF_8.toString());
 
         logger.trace("Prepare the Okapi pipeline");
         IPipelineDriver driver = new PipelineDriver();

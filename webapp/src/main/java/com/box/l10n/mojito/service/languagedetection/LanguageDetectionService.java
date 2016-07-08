@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,7 +58,7 @@ public class LanguageDetectionService {
 
                 logger.debug("Add profile for: {}", filename);
                 try {
-                    jsonProfiles.add(Resources.toString(resource.getURL(), Charsets.UTF_8));
+                    jsonProfiles.add(Resources.toString(resource.getURL(), StandardCharsets.UTF_8));
                 } catch (Exception e) {
                     throw new RuntimeException("Cannot load langdetect profile for " + filename, e);
                 }
