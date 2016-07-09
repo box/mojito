@@ -76,8 +76,8 @@ let Repositories = React.createClass({
             <div>
                 <SideBar ref="sideBar" sidebar={sideBarContent}
                          docked={this.state.isLocaleStatsShown} pullRight={true}>
-                    <div>
-                        <Table className="repo-table">
+                    <div className="plx prx">
+                        <Table className="repo-table table-padded-sides">
                             <thead>
                             <tr>
                                 <RepositoryHeaderColumn className="col-md-3"
