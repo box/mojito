@@ -131,7 +131,8 @@ let Drops = React.createClass({
 
         this.setState({
             "drops": drops,
-            "hasMoreDrops": dropStore.hasMoreDrops
+            "hasMoreDrops": dropStore.hasMoreDrops,
+            "currentPageNumber" : dropStore.currentPageNumber
         });
     },
 

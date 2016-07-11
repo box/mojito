@@ -3,8 +3,7 @@ package com.box.l10n.mojito.rest.drop;
 import com.box.l10n.mojito.entity.Drop;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.entity.TranslationKit;
+import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
 import static com.box.l10n.mojito.rest.drop.DropSpecification.isImported;
 import static com.box.l10n.mojito.rest.drop.DropSpecification.repositoryIdEquals;
@@ -19,11 +18,11 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.UpdateTMWithXLIFFResult;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import com.fasterxml.jackson.annotation.JsonView;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import static org.springframework.data.jpa.domain.Specifications.where;
@@ -72,17 +71,19 @@ public class DropWS {
      */
     @JsonView(View.DropSummary.class)
     @RequestMapping(method = RequestMethod.GET, value = "/api/drops")
-    public List<Drop> getDrops(
+    public Page<Drop> getDrops(
             @RequestParam(value = "repositoryId", required = false) Long repositoryId,
             @RequestParam(value = "imported", required = false) Boolean importedFilter,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) throws Exception {
 
-        return dropRepository.findAll(where(
+        Page<Drop> findAll = dropRepository.findAll(where(
                 ifParamNotNull(repositoryIdEquals(repositoryId))).and(
-                ifParamNotNull(isImported(importedFilter))
-        ),
+                        ifParamNotNull(isImported(importedFilter))
+                ),
                 pageable
-        ).getContent();
+        );
+        
+        return new PageView<>(findAll);
     }
 
     /**

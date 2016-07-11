@@ -6,8 +6,8 @@ import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.DropClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.Drop;
+import com.box.l10n.mojito.rest.entity.Page;
 import com.box.l10n.mojito.service.tm.TMImportService;
-import java.util.List;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,13 +43,13 @@ public class DropExportCommandTest extends CLITestBase {
         importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
         importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
-        List<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
+        Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
 
         getL10nJCommander().run("drop-export", "-r", repository.getName());
 
-        List<Drop> findAllAfter = dropClient.getDrops(repository.getId(), null, null, null);
+        Page<Drop> findAllAfter = dropClient.getDrops(repository.getId(), null, null, null);
 
-        assertEquals("A Drop must have been added", findAllBefore.size() + 1, findAllAfter.size());
+        assertEquals("A Drop must have been added", findAllBefore.getTotalElements() + 1, findAllAfter.getTotalElements());
     }
 
 }

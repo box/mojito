@@ -116,7 +116,7 @@ public class DropImportCommand extends Command {
 
         long i = 1;
 
-        for (Drop availableDrop : dropClient.getDrops(repositoryId, getImportedFilter(), 0L, numberOfDropsToFetchParam)) {
+        for (Drop availableDrop : dropClient.getDrops(repositoryId, getImportedFilter(), 0L, numberOfDropsToFetchParam).getContent()) {
             dropIds.put(i++, availableDrop);
         }
 
