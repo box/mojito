@@ -18,6 +18,7 @@ $modal-backdrop-bg: #fff;
 $modal-backdrop-opacity: 0.9;
 $color-gray-light: #CCC;
 $color-white: #FFF;
+$large-spacer: 20px;
 
 @import "../../../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 
@@ -126,6 +127,14 @@ a.label-container:hover {
 .table > thead > tr > th {
   vertical-align: middle;
   border-bottom: 1px solid $gray-lighter;
+}
+
+.table-padded-sides > tbody > tr > td:last-child, .table-padded-sides > thead > tr > th:last-child {
+  padding-right: $large-spacer;
+}
+
+.table-padded-sides > tbody > tr > td:first-child, .table-padded-sides > thead > tr > th:first-child {
+  padding-left: $large-spacer;
 }
 
 .dropdown-menu {
@@ -283,6 +292,11 @@ a.label-container:hover {
   padding-left: 30px;
 }
 
+/** padding left x-large */
+.prx {
+  padding-right: 30px;
+}
+
 .align-rtl {
   direction: rtl;
 }
@@ -410,6 +424,7 @@ div.targetstring-container textarea {
 
 .repo-counts {
   font-weight: bold;
+  color: $brand-primary;
 }
 
 .repo-active {

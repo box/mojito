@@ -369,7 +369,6 @@ let Drops = React.createClass({
     },
 
     getDropTable() {
-        let tableClass = "drop-table";
         let rows = this.state.drops
             .filter(drop => {
                 let toKeep = true;
@@ -399,12 +398,14 @@ let Drops = React.createClass({
                         </DropdownButton>
                     </div>
                 </div>
-                <Table className={tableClass}>
-                    {this.getTableHeader()}
-                    <tbody>
-                    {rows}
-                    </tbody>
-                </Table>
+                <div className="plx prx">
+                    <Table className="drop-table table-padded-sides">
+                        {this.getTableHeader()}
+                        <tbody>
+                        {rows}
+                        </tbody>
+                    </Table>
+                </div>
             </div>
         );
     },
