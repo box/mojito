@@ -469,16 +469,6 @@ div.targetstring-container textarea {
   opacity: 0.5;
 }
 
-@media (max-width: 780px) {
-  .repo-stats-panel {
-    display: none;
-  }
-
-  .repo-table {
-    width: 100%;
-  }
-}
-
 /**
  * Bootstrap CSS makes text in all labels bold. Apply this class to get the default label rendered by the browser.
  */
@@ -554,18 +544,17 @@ label.current-pageNumber {
   float: left;
 }
 
-.side-bar-container {
+.side-bar-root-container {
   top: 51px !important;
 }
 
-// TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
-.side-bar-container > div {
+.side-bar-main-content-container {
   padding-top: 10px;
 }
 
-// TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
-.side-bar-container > div:first-child {
-  width: 30%;
+.side-bar-container {
+  min-width: 30%;
+  padding-top: 10px;
 }
 
 .side-bar-container > .title {

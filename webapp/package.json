@@ -24,7 +24,7 @@
     "react-dom": "^15.2.0",
     "react-intl": "^2.1.3",
     "react-router": "1.0.0-rc1",
-    "react-sidebar": "^2.0.1"
+    "react-sidebar": "^2.1.4"
   },
   "devDependencies": {
     "app-module-path": "^1.0.3",
@@ -70,7 +70,7 @@
     "start-dev": "npm run start-server & npm run watch",
     "start-server": "mvn spring-boot:run -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
     "watch": "npm run watch-js & npm run watch-rb & grunt watch",
-    "watch-fast": "npm run watch-js & npm run watch-rb & grunt watch",
+    "watch-fast": "npm run watch-js-fast & npm run watch-rb & grunt watch",
     "watch-resources": "nodemon --watch src/main/resources/ -e html,css --exec 'mvn resources:resources'",
     "watch-js": "watchify --delay 100 -o target/classes/public/js/bundle.min.js -v -d src/main/resources/public/js/app.js | uglifyjs -cm > target/classes/public/js/bundle.min.js",
     "watch-js-fast": "watchify --delay 100 -o target/classes/public/js/bundle.min.js -v -d src/main/resources/public/js/app.js",
