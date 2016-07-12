@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -247,6 +248,23 @@ public class AuthenticatedRestTemplate {
      */
     public <T> ResponseEntity<T> getForEntity(String resourcePath, Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
         return restTemplate.getForEntity(getURIForResource(resourcePath, uriVariables), responseType);
+    }
+    
+    /**
+     * Perform a GET request, using {@link ParameterizedTypeReference} to pass
+     * a generic type as return type.
+     * 
+     * @see RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, org.springframework.core.ParameterizedTypeReference, java.util.Map) 
+     * 
+     * @param <T> response body type
+     * @param resourcePath resource path transformed into final URI by this instance
+     * @param responseType
+     * @param uriVariables
+     * @return
+     * @throws RestClientException 
+     */
+    public <T> ResponseEntity<T> getForEntity(String resourcePath, ParameterizedTypeReference<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
+        return restTemplate.exchange(getURIForResource(resourcePath, uriVariables), HttpMethod.GET, HttpEntity.EMPTY, responseType, uriVariables);
     }
 
     /**

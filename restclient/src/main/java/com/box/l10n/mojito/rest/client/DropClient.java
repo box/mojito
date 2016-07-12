@@ -4,6 +4,7 @@ import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.ExportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportXliffBody;
+import com.box.l10n.mojito.rest.entity.Page;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -13,6 +14,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 
 /**
  *
@@ -44,7 +47,7 @@ public class DropClient extends BaseClient {
      * string will be set)
      * @return list of {@link Drop}s
      */
-    public List<Drop> getDrops(Long repositoryId, Boolean importedFilter, Long page, Long size) {
+    public Page<Drop> getDrops(Long repositoryId, Boolean importedFilter, Long page, Long size) {
 
         Map<String, String> params = new HashMap<>();
 
@@ -63,11 +66,14 @@ public class DropClient extends BaseClient {
         if (size != null) {
             params.put("size", size.toString());
         }
-
-        return authenticatedRestTemplate.getForObjectAsList(
+        
+        ResponseEntity<Page<Drop>> responseEntity = authenticatedRestTemplate.getForEntity(
                 getBasePathForEntity(),
-                Drop[].class,
+                new ParameterizedTypeReference<Page<Drop>>(){},
                 params);
+        
+        
+        return responseEntity.getBody();
     }
 
     /**

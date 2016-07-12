@@ -1,6 +1,7 @@
 import BaseClient from './BaseClient';
 import Drop from './drop/Drop';
 import ExportDropConfig from './drop/ExportDropConfig';
+import PageRequestResults from "./PageRequestResults";
 
 class DropClient extends BaseClient {
 
@@ -21,7 +22,14 @@ class DropClient extends BaseClient {
         });
 
         return promise.then(function (result) {
-            return Drop.toDrops(result);
+
+            let pageRequestResults = new PageRequestResults();
+
+            pageRequestResults.results = Drop.toDrops(result.content);
+            pageRequestResults.hasMoreResults = result.hasNext;
+            pageRequestResults.currentPageNumber = result.number;
+
+            return pageRequestResults;
         });
     }
 

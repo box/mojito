@@ -1,14 +1,11 @@
 import DropClient from "../../sdk/DropClient";
-import PageRequestResults from "../../sdk/PageRequestResults";
 import DropActions from "../../actions/drop/dropActions";
 
 const DropDataSource = {
 
     getAllInProcess: {
         remote(dropStoreState, pageRequestParams) {
-            return DropClient.getDrops(null, false, pageRequestParams.page, pageRequestParams.size).then(function (results) {
-                return new PageRequestResults(results, pageRequestParams.page, results.length == pageRequestParams.size);
-            });
+            return DropClient.getDrops(null, false, pageRequestParams.page, pageRequestParams.size);
         },
         success: DropActions.getAllInProcessSuccess,
         error: DropActions.getAllInProcessError
@@ -16,9 +13,7 @@ const DropDataSource = {
     
     getAllImported: {
         remote(dropStoreState, pageRequestParams) {
-            return DropClient.getDrops(null, true, pageRequestParams.page, pageRequestParams.size).then(function (results) {
-                return new PageRequestResults(results, pageRequestParams.page, results.length == pageRequestParams.size);
-            });
+            return DropClient.getDrops(null, true, pageRequestParams.page, pageRequestParams.size);
         },
         success: DropActions.getAllImportedSuccess,
         error: DropActions.getAllImportedError
@@ -26,9 +21,7 @@ const DropDataSource = {
 
     getAll: {
         remote(dropStoreState, pageRequestParams) {
-            return DropClient.getDrops(null, null, pageRequestParams.page, pageRequestParams.size).then(function (results) {
-                return new PageRequestResults(results, pageRequestParams.page, results.length == pageRequestParams.size);
-            });
+            return DropClient.getDrops(null, null, pageRequestParams.page, pageRequestParams.size);
         },
         success: DropActions.getAllSuccess,
         error: DropActions.getAllError
@@ -36,9 +29,7 @@ const DropDataSource = {
 
     createNewRequest: {
         remote(dropStoreState, exportDropConfig) {
-            return DropClient.exportDrop(exportDropConfig).then(function (results) {
-                return results;
-            });
+            return DropClient.exportDrop(exportDropConfig);
         },
         success: DropActions.createNewRequestSuccess,
         error: DropActions.createNewRequestError
@@ -46,9 +37,7 @@ const DropDataSource = {
 
     importRequest: {
         remote(dropStoreState, importDropConfig) {
-            return DropClient.importDrop(importDropConfig).then(function (results) {
-                return results;
-            });
+            return DropClient.importDrop(importDropConfig);
         },
         success: DropActions.importRequestSuccess,
         error: DropActions.importRequestError
@@ -56,9 +45,7 @@ const DropDataSource = {
 
     cancelRequest: {
         remote(dropStoreState, cancelDropConfig) {
-            return DropClient.cancelDrop(cancelDropConfig).then(function (results) {
-                return results;
-            });
+            return DropClient.cancelDrop(cancelDropConfig);
         },
         success: DropActions.cancelRequestSuccess,
         error: DropActions.cancelRequestError

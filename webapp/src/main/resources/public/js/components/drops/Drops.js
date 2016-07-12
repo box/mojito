@@ -68,22 +68,10 @@ let Drops = React.createClass({
         };
     },
 
-    getCurrentPageRequestParam(currentPageNumber) {
-        return new PageRequestParams(currentPageNumber, this.state.pageSize);
-    },
-
-    getPreviousPageRequestParam(currentPageNumber) {
-        return new PageRequestParams(currentPageNumber - 1, this.state.pageSize);
-    },
-
-    getNextPageRequestParam(currentPageNumber) {
-        return new PageRequestParams(currentPageNumber + 1, this.state.pageSize);
-    },
-
     componentDidMount() {
         RepositoryActions.getAllRepositories();
 
-        this.fetchDrops(this.state.filter, this.state.currentPageNumber);
+        this.fetchDrops();
 
         // TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
         $(this.refs.sideBar.refs.sidebar).parent().addClass("side-bar-container");
@@ -95,16 +83,19 @@ let Drops = React.createClass({
      * @param {Drops.FILTER} filter
      * @param {Number} currentPageNumber
      */
-    fetchDrops(filter, currentPageNumber) {
-        switch (filter) {
+    fetchDrops() {
+
+        let pageRequestParam = new PageRequestParams(this.state.currentPageNumber, this.state.pageSize);
+
+        switch (this.state.filter) {
             case Drops.FILTER.IN_PROGRESS:
-                DropActions.getAllInProcess(this.getCurrentPageRequestParam(currentPageNumber));
+                DropActions.getAllInProcess(pageRequestParam);
                 break;
             case Drops.FILTER.COMPLETED:
-                DropActions.getAllImported(this.getCurrentPageRequestParam(currentPageNumber));
+                DropActions.getAllImported(pageRequestParam);
                 break;
             case Drops.FILTER.ALL:
-                DropActions.getAll(this.getCurrentPageRequestParam(currentPageNumber));
+                DropActions.getAll(pageRequestParam);
                 break;
         }
     },
@@ -131,7 +122,8 @@ let Drops = React.createClass({
 
         this.setState({
             "drops": drops,
-            "hasMoreDrops": dropStore.hasMoreDrops
+            "hasMoreDrops": dropStore.hasMoreDrops,
+            "currentPageNumber" : dropStore.currentPageNumber
         });
     },
 
@@ -162,7 +154,7 @@ let Drops = React.createClass({
         }
 
         this.delayedRequestTimeout = setTimeout(() => {
-            this.fetchDrops(this.state.filter, this.state.currentPageNumber);
+            this.fetchDrops();
         }, delay);
     },
 
@@ -363,9 +355,8 @@ let Drops = React.createClass({
         this.setState({
             "filter": eventKey,
             "currentPageNumber": 0
-        });
+        }, this.fetchDrops);
 
-        this.fetchDrops(eventKey, 0);
     },
 
     getDropTable() {
@@ -492,14 +483,18 @@ let Drops = React.createClass({
     onFetchPreviousPageClicked() {
 
         if (this.state.currentPageNumber > 0) {
-            DropActions.getAllInProcess(this.getPreviousPageRequestParam(this.state.currentPageNumber));
+            this.setState({
+                "currentPageNumber": this.state.currentPageNumber - 1
+            }, this.fetchDrops);
         }
     },
 
     onFetchNextPageClicked() {
 
         if (this.state.hasMoreDrops) {
-            DropActions.getAllInProcess(this.getNextPageRequestParam(this.state.currentPageNumber));
+            this.setState({
+                "currentPageNumber": this.state.currentPageNumber + 1
+            }, this.fetchDrops);
         }
     },
 

@@ -14,8 +14,7 @@ class DropStore {
         this.currentPageNumber = 0;
 
         /** @type {Boolean} */
-        this.hasMoreDrops = true;
-
+        this.hasMoreDrops = false;
 
         this.bindActions(DropActions);
 
