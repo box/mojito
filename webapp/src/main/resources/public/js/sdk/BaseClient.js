@@ -86,8 +86,7 @@ class BaseClient {
 
     get(url, data) {
         return fetch(url + '?' + $.param(data), {
-            follow: 0,
-            compress: true
+            follow: 0
         }).then(response => {
             this.handleUnauthenticatedResponse(response);
             return response.json();
@@ -99,8 +98,7 @@ class BaseClient {
             method: 'put',
             body: JSON.stringify(data),
             headers: this.getHeaders(),
-            follow: 0,
-            compress: true
+            follow: 0
         }).then(response => {
             this.handleUnauthenticatedResponse(response);
         });
@@ -111,8 +109,7 @@ class BaseClient {
             method: 'post',
             body: JSON.stringify(data),
             headers: this.getHeaders(),
-            follow: 0,
-            compress: true
+            follow: 0
         }).then(response => {
             this.handleUnauthenticatedResponse(response);
             return response.json();
@@ -123,8 +120,7 @@ class BaseClient {
         return fetch(url, {
             method: 'delete',
             headers: this.getHeaders(),
-            follow: 0,
-            compress: true
+            follow: 0
         }).then(response => {
             this.handleUnauthenticatedResponse(response);
         });
