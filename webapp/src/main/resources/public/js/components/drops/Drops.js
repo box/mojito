@@ -1,4 +1,3 @@
-import $ from "jQuery";
 import React from "react";
 import {
     Alert,
@@ -14,7 +13,7 @@ import {
     Tooltip
 } from "react-bootstrap";
 import {FormattedMessage, FormattedDate, injectIntl} from "react-intl";
-import SideBar from "react-sidebar";
+import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import PageRequestParams from "../../sdk/PageRequestParams";
 import CancelDropConfig from "../../sdk/drop/CancelDropConfig";
@@ -72,9 +71,6 @@ let Drops = React.createClass({
         RepositoryActions.getAllRepositories();
 
         this.fetchDrops();
-
-        // TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
-        $(this.refs.sideBar.refs.sidebar).parent().addClass("side-bar-container");
     },
 
     /**
@@ -98,10 +94,6 @@ let Drops = React.createClass({
                 DropActions.getAll(pageRequestParam);
                 break;
         }
-    },
-
-    componentWillUnmount() {
-
     },
 
     /**
@@ -534,11 +526,14 @@ let Drops = React.createClass({
     render() {
         return (
             <div>
-                <SideBar ref="sideBar" sidebar={this.getSideBarContent()}
+                <ReactSidebarResponsive ref="sideBar" sidebar={this.getSideBarContent()}
+                         rootClassName="side-bar-root-container"
+                         sidebarClassName="side-bar-container"
+                         contentClassName="side-bar-main-content-container"
                          docked={this.state.isSideBarShown} pullRight={true}>
                     {this.getDropTable()}
                     {this.getNewRequestModal()}
-                </SideBar>
+                </ReactSidebarResponsive>
             </div>
         );
     }

@@ -1,7 +1,7 @@
 import $ from "jQuery";
 import React from "react";
 import {Table} from "react-bootstrap";
-import SideBar from "react-sidebar";
+import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 import RepositoryStore from "../../stores/RepositoryStore";
 import RepositoryHeaderColumn from "./RepositoryHeaderColumn";
 import RepositoryRow from "./RepositoryRow";
@@ -20,10 +20,6 @@ let Repositories = React.createClass({
     },
 
     componentDidMount: function () {
-
-        // TODO remove this when upgrading react-sidebar to 2.0 (when upgrading to react 15)
-        $(this.refs.sideBar.refs.sidebar).parent().addClass("side-bar-container");
-
         RepositoryActions.init();
 
         RepositoryStore.listen(this.dataChanged);
@@ -74,7 +70,10 @@ let Repositories = React.createClass({
 
         return (
             <div>
-                <SideBar ref="sideBar" sidebar={sideBarContent}
+                <ReactSidebarResponsive ref="sideBar" sidebar={sideBarContent}
+                         rootClassName="side-bar-root-container"
+                         sidebarClassName="side-bar-container"
+                         contentClassName="side-bar-main-content-container"
                          docked={this.state.isLocaleStatsShown} pullRight={true}>
                     <div className="plx prx">
                         <Table className="repo-table table-padded-sides">
@@ -95,7 +94,7 @@ let Repositories = React.createClass({
                             </tbody>
                         </Table>
                     </div>
-                </SideBar>
+                </ReactSidebarResponsive>
             </div>
         );
     },
