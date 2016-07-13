@@ -2,8 +2,9 @@ import $ from "jquery";
 import React from "react";
 import ReactDOM from "react-dom";
 import {Router, Route, IndexRoute} from "react-router";
+import {Modal, Button} from "react-bootstrap";
 import {createHistory} from "history";
-import {IntlProvider, addLocaleData} from "react-intl";
+import {FormattedMessage, IntlProvider, addLocaleData} from "react-intl";
 import App from "./components/App";
 import BaseClient from "./sdk/BaseClient";
 import Main from "./components/Main";
@@ -71,11 +72,32 @@ history.listen(location => {
  * Override handler to customise behavior
  */
 BaseClient.authenticateHandler = function () {
-    alert('Session expired.  Please re-authenticate.');
+    let containerId = "unauthenticated-container";
+    $("body").append("<div id=\"" + containerId + "\" />");
 
-    let pathNameStrippedLeadingSlash = location.pathname.substr(1, location.pathname.length);
-    let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
+    function okOnClick() {
+        let pathNameStrippedLeadingSlash = location.pathname.substr(1, location.pathname.length);
+        let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
 
-    window.location.href = "/login?" + $.param({"showPage": currentLocation});
+        window.location.href = "/login?" + $.param({"showPage": currentLocation});
+    }
+
+    ReactDOM.render(
+        <IntlProvider locale={LOCALE} messages={MESSAGES}>
+            <Modal show={true}>
+                <Modal.Header closeButton={true}>
+                    <Modal.Title>
+                        <FormattedMessage id="error.modal.header.title" />
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <FormattedMessage id="error.modal.message.loggedOut" />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button bsStyle="primary" onClick={okOnClick}>Okay</Button>
+              </Modal.Footer>
+            </Modal>
+        </IntlProvider>
+    , document.getElementById(containerId));
 };
 
