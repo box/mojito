@@ -31,6 +31,7 @@ class TextUnitClient extends BaseClient {
     deleteCurrentTranslation(textUnit) {
         return this.delete(this.getUrl(textUnit.getTmTextUnitCurrentVariantId())).then(function () {
             textUnit.setTarget(null);
+            textUnit.setTranslated(false);
             return textUnit;
         });
     }

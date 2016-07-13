@@ -162,6 +162,7 @@ let TextUnit = React.createClass({
         textUnit.setIncludedInLocalizedFile(true);
         textUnit.setStatus(TextUnitSDK.STATUS.APPROVED);
         textUnit.setTarget(this.state.translation);
+        textUnit.setTranslated(true);
         return textUnit;
     },
     /**
