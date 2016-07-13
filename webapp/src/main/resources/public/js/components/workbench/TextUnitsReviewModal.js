@@ -1,11 +1,6 @@
-import $ from "jquery";
-import _ from "lodash";
 import React from "react";
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, ButtonGroup, ButtonToolbar, FormControl, Modal} from "react-bootstrap";
-
-import SearchResultsStore from "../../stores/workbench/SearchResultsStore";
-
 import TextUnit from "../../sdk/TextUnit";
 
 let TextUnitsreviewModal = React.createClass({
@@ -13,7 +8,7 @@ let TextUnitsreviewModal = React.createClass({
     propTypes() {
         return {
             "isShowModal": React.PropTypes.bool.isRequired
-        }
+        };
     },
 
     getDefaultProps() {
@@ -36,17 +31,16 @@ let TextUnitsreviewModal = React.createClass({
         return {
             "currentReviewState": this.getInitialReviewStateOfTextUnits(),
             "comment": this.getInitialTargetCommentOfTextUnits()
-        }
+        };
     },
 
     /**
      * Sets the state of the component to the button that was clicked upon.
-     * @param {SyntheticEvent} e The event object for the click event on text unit action options
+     * @param {string} reviewState
      */
-    optionClicked(e) {
-        let $target = $(e.target);
+    optionClicked(reviewState) {
         this.setState({
-            "currentReviewState": $target.data("option")
+            "currentReviewState": reviewState
         });
     },
 
@@ -58,7 +52,7 @@ let TextUnitsreviewModal = React.createClass({
         let modalData = {
             "comment": this.state.comment,
             "textUnitAction": this.state.currentReviewState
-        }
+        };
         this.props.onReviewModalSaveClicked(modalData);
     },
 
@@ -78,9 +72,9 @@ let TextUnitsreviewModal = React.createClass({
     getRejectButton() {
         return (
             <Button active={this.state.currentReviewState === this.REJECT}
-                onClick={this.optionClicked} data-option={this.REJECT}>
+                    onClick={this.optionClicked.bind(this, this.REJECT)}>
 
-                <FormattedMessage id="textUnit.reviewModal.rejected" />
+                <FormattedMessage id="textUnit.reviewModal.rejected"/>
             </Button>
         );
     },
@@ -91,9 +85,9 @@ let TextUnitsreviewModal = React.createClass({
     getReviewButton() {
         return (
             <Button active={this.state.currentReviewState === this.REVIEW}
-                onClick={this.optionClicked} data-option={this.REVIEW}>
+                    onClick={this.optionClicked.bind(this, this.REVIEW)}>
 
-                <FormattedMessage id="textUnit.reviewModal.needsReview" />
+                <FormattedMessage id="textUnit.reviewModal.needsReview"/>
             </Button>
         );
     },
@@ -104,9 +98,9 @@ let TextUnitsreviewModal = React.createClass({
     getAcceptButton() {
         return (
             <Button active={this.state.currentReviewState === this.ACCEPT}
-                onClick={this.optionClicked} data-option={this.ACCEPT}>
+                    onClick={this.optionClicked.bind(this, this.ACCEPT)}>
 
-                <FormattedMessage id="textUnit.reviewModal.accepted" />
+                <FormattedMessage id="textUnit.reviewModal.accepted"/>
             </Button>
         );
     },
@@ -117,9 +111,9 @@ let TextUnitsreviewModal = React.createClass({
     getTranslateButton() {
         return (
             <Button active={this.state.currentReviewState === this.TRANSLATE}
-                onClick={this.optionClicked} data-option={this.TRANSLATE}>
+                    onClick={this.optionClicked.bind(this, this.TRANSLATE)}>
 
-                   <FormattedMessage id="textUnit.reviewModal.translationNeeded" />
+                <FormattedMessage id="textUnit.reviewModal.translationNeeded"/>
             </Button>
         );
     },
@@ -200,14 +194,14 @@ let TextUnitsreviewModal = React.createClass({
      * @param {Event} event
      */
     commentTextAreaOnChange(event) {
-        this.setState({ "comment": event.target.value});
+        this.setState({"comment": event.target.value});
     },
 
     render() {
         return (
             <Modal show={this.props.isShowModal} onHide={this.closeModal}>
                 <Modal.Header closeButton>
-                    <Modal.Title><FormattedMessage id="textUnit.reviewModal.title" /></Modal.Title>
+                    <Modal.Title><FormattedMessage id="textUnit.reviewModal.title"/></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <FormControl
@@ -215,7 +209,7 @@ let TextUnitsreviewModal = React.createClass({
                         onChange={this.commentTextAreaOnChange}
                         componentClass="textarea"
                         label={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentLabel" })}
-                        placeholder={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentPlaceholder" })} />
+                        placeholder={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentPlaceholder" })}/>
                     <ButtonToolbar>
                         <ButtonGroup ref="optionsGroup">
                             {this.getRejectButton()}
@@ -227,11 +221,11 @@ let TextUnitsreviewModal = React.createClass({
                 </Modal.Body>
                 <Modal.Footer>
                     <Button bsStyle="primary" onClick={this.onReviewModalSaveClicked}
-                        disabled={this.state.currentReviewState === ""}>
-                        <FormattedMessage id="label.save" />
+                            disabled={this.state.currentReviewState === ""}>
+                        <FormattedMessage id="label.save"/>
                     </Button>
                     <Button onClick={this.closeModal}>
-                        <FormattedMessage id="label.cancel" />
+                        <FormattedMessage id="label.cancel"/>
                     </Button>
                 </Modal.Footer>
             </Modal>
