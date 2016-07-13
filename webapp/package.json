@@ -18,7 +18,6 @@
     "node-sass": "^3.3.3",
     "object-assign": "^1.0.0",
     "react": "^15.1.0",
-    "react-addons-linked-state-mixin": "^15.1.0",
     "react-bootstrap": "^0.29.5",
     "react-bootstrap-multiselect": "^2.0.0",
     "react-dom": "^15.1.0",

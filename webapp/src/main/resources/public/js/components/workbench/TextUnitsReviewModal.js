@@ -1,7 +1,6 @@
 import $ from "jquery";
 import _ from "lodash";
 import React from "react";
-import LinkedStateMixin from "react-addons-linked-state-mixin";
 import {FormattedMessage, injectIntl} from 'react-intl';
 import {Button, ButtonGroup, ButtonToolbar, FormControl, Modal} from "react-bootstrap";
 
@@ -10,8 +9,6 @@ import SearchResultsStore from "../../stores/workbench/SearchResultsStore";
 import TextUnit from "../../sdk/TextUnit";
 
 let TextUnitsreviewModal = React.createClass({
-
-    mixins: [LinkedStateMixin],
 
     propTypes() {
         return {
