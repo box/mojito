@@ -1,7 +1,6 @@
 import $ from "jquery";
 import React from "react";
 import {FormattedMessage} from "react-intl";
-import LinkedStateMixin from "react-addons-linked-state-mixin";
 import {Button, Modal, ListGroup, ListGroupItem} from "react-bootstrap";
 
 import { Router, Route, Link } from 'react-router';
@@ -9,8 +8,6 @@ import { Router, Route, Link } from 'react-router';
 import Locales from '../../utils/Locales';
 
 let LocaleSelectorModal = React.createClass({
-
-    mixins: [LinkedStateMixin],
 
     propTypes: {
         "onClose": React.PropTypes.func.isRequired
