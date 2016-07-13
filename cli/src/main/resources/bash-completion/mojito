@@ -1,0 +1,21 @@
+# bash completion for mojito 
+# Installation: source this file locally in a terminal or from
+# ~/.bashrc or put it in /etc/bash_completions.d (debian)
+
+_mojito()
+{
+
+    local cur prev mojito_commands
+    mojito_commands="-h --help demo-create drop-export drop-import drop-xliff-import leveraging-copy-tm pull push repo-create repo-delete repo-update tm-export tm-import user-create user-delete user-update"
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+    
+    if [ ${#COMP_WORDS[@]} == 2 ]; then
+
+        case "$cur" in
+            *) 
+                COMPREPLY=( $( compgen -W '$mojito_commands' -- $cur ) );;
+        esac
+    fi
+
+} && complete -F _mojito mojito 
