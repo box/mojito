@@ -71,7 +71,7 @@ let LocalesDropDown = React.createClass({
 
             this.setState({
                 selectedBcp47Tags: selectedBcp47TagsFromMultiSelect
-            }, function () {
+            }, () => {
 
                 let actionData = {
                     "changedParam": SearchConstants.LOCALES_CHANGED,
@@ -89,6 +89,8 @@ let LocalesDropDown = React.createClass({
      * @returns {string[]}
      */
     getSelectedBcp47TagsFromMultiSelect() {
+
+        console.log("getSelectedBcp47TagsFromMultiSelect");
 
         let selected = $('#localesDropDown option:selected').map(function (a, item) {
             return item.value;
