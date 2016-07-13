@@ -1,14 +1,10 @@
-import $ from "jquery";
 import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, ListGroupItem, ListGroup, Modal, Table} from "react-bootstrap";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-
 import ExportDropConfig from "../../sdk/drop/ExportDropConfig";
-import RepositoryActions from "../../actions/RepositoryActions";
 import RepositoryStore from "../../stores/RepositoryStore";
 import DropActions from "../../actions/drop/dropActions";
-import DropStore from "../../stores/drop/DropStore";
 import StatusFilter from "../../sdk/entity/StatusFilter";
 
 let NewDropModal = React.createClass({
@@ -40,13 +36,11 @@ let NewDropModal = React.createClass({
 
     /**
      *
-     * @param {SyntheticEvent} e The event object for the click event on text unit action options
+     * @param {string} repoId
      */
-    onRepoClick(e) {
-        let selectedRepoId = $(e.target).data('repo-id');
-
+    onRepoClick(repoId) {
         this.setState({
-            "selectedRepoId": selectedRepoId
+            "selectedRepoId": repoId
         });
     },
 
@@ -55,8 +49,11 @@ let NewDropModal = React.createClass({
 
         let reposListGroupItems = repos.map(repo => {
             let isActive = repo.id === this.state.selectedRepoId;
-            return <ListGroupItem active={isActive} onClick={this.onRepoClick}
-                                  data-repo-id={repo.id}>{repo.name}</ListGroupItem>;
+            return (
+                <ListGroupItem active={isActive} onClick={this.onRepoClick.bind(this, repo.id)}>
+                    {repo.name}
+                </ListGroupItem>
+            );
         });
 
         return (

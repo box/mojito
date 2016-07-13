@@ -1,11 +1,8 @@
-import $ from "jquery";
 import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, Modal, ListGroup, ListGroupItem} from "react-bootstrap";
-
-import { Router, Route, Link } from 'react-router';
-
-import Locales from '../../utils/Locales';
+import {Router, Route, Link} from "react-router";
+import Locales from "../../utils/Locales";
 
 let LocaleSelectorModal = React.createClass({
 
@@ -46,13 +43,11 @@ let LocaleSelectorModal = React.createClass({
     /**
      * Selects the locale based on the list item that was clicked
      *
-     * @param {SyntheticEvent} e The event object for the click event on text unit action options
+     * @param {string} locale
      */
-    onLocaleClicked(e) {
-        let selectedLocale = $(e.target).data('value');
-
+    onLocaleClicked(locale) {
         this.setState({
-            "selectedLocale": selectedLocale
+            "selectedLocale": locale
         });
     },
 
@@ -67,7 +62,8 @@ let LocaleSelectorModal = React.createClass({
         let active = locale === this.state.selectedLocale;
 
         return (
-            <ListGroupItem active={active} onClick={this.onLocaleClicked} data-value={locale} key={locale}>{localeDisplayName}</ListGroupItem>
+            <ListGroupItem active={active} onClick={this.onLocaleClicked.bind(this, locale)}
+                           key={locale}>{localeDisplayName}</ListGroupItem>
         );
     },
 
@@ -84,18 +80,18 @@ let LocaleSelectorModal = React.createClass({
         return (
             <Modal show={this.props.show} onHide={this.close}>
                 <Modal.Header closeButton>
-                    <Modal.Title><FormattedMessage id="localeselector.title" /></Modal.Title>
+                    <Modal.Title><FormattedMessage id="localeselector.title"/></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     {this.getLocaleListGroup()}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={this.close}>
-                        <FormattedMessage id="label.cancel" />
+                        <FormattedMessage id="label.cancel"/>
                     </Button>
                     <Button bsStyle="primary" onClick={this.onSaveClicked}
-                        disabled={!this.isNewLocaleSelected()}>
-                        <FormattedMessage id="label.save" />
+                            disabled={!this.isNewLocaleSelected()}>
+                        <FormattedMessage id="label.save"/>
                     </Button>
                 </Modal.Footer>
             </Modal>
