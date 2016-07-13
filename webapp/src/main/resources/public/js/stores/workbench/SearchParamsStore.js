@@ -75,8 +75,8 @@ class SearchParamsStore {
             case SearchConstants.LOCALES_CHANGED:
 
                 this.setFirstPageAsCurrent();
-                let bcp47Tag = paramData.locale;
-                this.updateArrayState(this.bcp47Tags, paramData.isSelected, bcp47Tag);
+                let bcp47Tags = paramData.locales;
+                this.bcp47Tags = bcp47Tags;
                 break;
 
             case SearchConstants.SEARCHTEXT_CHANGED:
