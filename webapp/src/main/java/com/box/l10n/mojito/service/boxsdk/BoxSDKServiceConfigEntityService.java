@@ -73,15 +73,8 @@ public class BoxSDKServiceConfigEntityService {
             throw new BoxSDKServiceException("Config must be deleted first before adding a new one");
         }
 
-        boxSDKServiceConfig = new BoxSDKServiceConfigEntity();
-        boxSDKServiceConfig.setClientId(clientId);
-        boxSDKServiceConfig.setClientSecret(clientSecret);
-
-        boxSDKServiceConfig.setPublicKeyId(publicKeyId);
-        boxSDKServiceConfig.setPrivateKey(privateKey);
-        boxSDKServiceConfig.setPrivateKeyPassword(privateKeyPassword);
-
-        boxSDKServiceConfig.setEnterpriseId(enterpriseId);
+        boxSDKServiceConfig = new BoxSDKServiceConfigEntity(clientId, clientSecret, publicKeyId, privateKey, privateKeyPassword, enterpriseId,
+                null, null, null, false);
 
         logger.debug("Initial saving of the config so that it can be used immediately");
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
@@ -105,6 +98,45 @@ public class BoxSDKServiceConfigEntityService {
         boxSDKServiceConfig.setDropsFolderId(mojitoFolderStructure.getDropsFolderId());
 
         logger.debug("Saving of the config with updated IDs");
+        boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
+
+        return new PollableFutureTaskResult<>(boxSDKServiceConfig);
+    }
+
+    /**
+     * Add a new config
+     *
+     * @param clientId The Box API Client ID
+     * @param clientSecret The Box API Client Secret
+     * @param publicKeyId The Box API Public Key Id
+     * @param privateKey The Box API Private Key
+     * @param privateKeyPassword The Box API Private Key Password
+     * @param enterpriseId The Enterprise ID that has authorized the above Client ID
+     * @param appUserId The Box App User that belongs to the Enterprise ID above
+     * @param rootFolderId The root folder that contains all of Mojito related content and of which the App User has access to
+     * @param dropsFolderId The folder that contains drops that the App User listed above has access to
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws BoxSDKServiceException
+     */
+    @Pollable(async = true, message = "Start Adding Box SDK Service Config with no bootstrap")
+    public PollableFuture<BoxSDKServiceConfigEntity> addConfigWithNoBootstrap(
+            String clientId, String clientSecret, String publicKeyId,
+            String privateKey, String privateKeyPassword, String enterpriseId,
+            String appUserId, String rootFolderId, String dropsFolderId)
+            throws ExecutionException, InterruptedException, BoxSDKServiceException {
+
+        BoxSDKServiceConfigEntity boxSDKServiceConfig = boxSDKServiceConfigEntityRepository.findFirstByOrderByIdAsc();
+
+        if (boxSDKServiceConfig != null) {
+            throw new BoxSDKServiceException("Config must be deleted first before adding a new one");
+        }
+
+        boxSDKServiceConfig = new BoxSDKServiceConfigEntity(clientId, clientSecret, publicKeyId, privateKey, privateKeyPassword, enterpriseId,
+                appUserId, rootFolderId, dropsFolderId, true);
+
+        logger.debug("Saving of the config");
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
 
         return new PollableFutureTaskResult<>(boxSDKServiceConfig);

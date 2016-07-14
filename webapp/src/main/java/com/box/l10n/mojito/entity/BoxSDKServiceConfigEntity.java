@@ -43,6 +43,22 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
     @Column(name = "bootstrap")
     private Boolean bootstrap;
 
+    public BoxSDKServiceConfigEntity() {
+    }
+
+    public BoxSDKServiceConfigEntity(String clientId, String clientSecret, String publicKeyId, String privateKey, String privateKeyPassword, String enterpriseId, String appUserId, String rootFolderId, String dropsFolderId, Boolean bootstrap) {
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.publicKeyId = publicKeyId;
+        this.privateKey = privateKey;
+        this.privateKeyPassword = privateKeyPassword;
+        this.enterpriseId = enterpriseId;
+        this.appUserId = appUserId;
+        this.rootFolderId = rootFolderId;
+        this.dropsFolderId = dropsFolderId;
+        this.bootstrap = bootstrap;
+    }
+
     public String getClientId() {
         return clientId;
     }

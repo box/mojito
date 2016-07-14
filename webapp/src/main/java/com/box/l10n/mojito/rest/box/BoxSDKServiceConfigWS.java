@@ -42,18 +42,33 @@ public class BoxSDKServiceConfigWS {
 
     @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.POST)
     public ResponseEntity createBoxSDKServiceConfig(
-            @RequestBody BoxSDKServiceConfigEntity boxSDKServiceConfig
+            @RequestBody BoxSDKServiceConfigEntity config
     ) {
         try {
-            PollableFuture<BoxSDKServiceConfigEntity> boxSDKServiceConfigEntityPollableFuture =
-                    boxSDKServiceConfigEntityService.addConfig(
-                            boxSDKServiceConfig.getClientId(),
-                            boxSDKServiceConfig.getClientSecret(),
-                            boxSDKServiceConfig.getPublicKeyId(),
-                            boxSDKServiceConfig.getPrivateKey(),
-                            boxSDKServiceConfig.getPrivateKeyPassword(),
-                            boxSDKServiceConfig.getEnterpriseId()
-                    );
+            PollableFuture<BoxSDKServiceConfigEntity> boxSDKServiceConfigEntityPollableFuture;
+
+            if (!config.getBootstrap()) {
+                boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfig(
+                        config.getClientId(),
+                        config.getClientSecret(),
+                        config.getPublicKeyId(),
+                        config.getPrivateKey(),
+                        config.getPrivateKeyPassword(),
+                        config.getEnterpriseId()
+                );
+            } else {
+                boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfigWithNoBootstrap(
+                        config.getClientId(),
+                        config.getClientSecret(),
+                        config.getPublicKeyId(),
+                        config.getPrivateKey(),
+                        config.getPrivateKeyPassword(),
+                        config.getEnterpriseId(),
+                        config.getAppUserId(), config.getRootFolderId(),
+                        config.getDropsFolderId()
+                );
+            }
+
             return new ResponseEntity(boxSDKServiceConfigEntityPollableFuture, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.error("Unable to update BoxSDKServiceConfig", e);

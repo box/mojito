@@ -135,6 +135,7 @@ let BoxSettings = React.createClass({
         boxSDKConfig.privateKey = this.state.privateKey;
         boxSDKConfig.privateKeyPassword = this.state.privateKeyPassword;
         boxSDKConfig.enterpriseId = this.state.enterpriseId;
+        boxSDKConfig.bootstrap = shouldBootStrap;
 
         BoxSDKConfigActions.setConfig(boxSDKConfig);
 
