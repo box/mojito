@@ -27,6 +27,9 @@ export default class BoxSDKConfig {
 
         /** @type {string} */
         this.dropsFolderId = "";
+
+        /** @type {boolean} */
+        this.bootstrap = true;
     }
 
     /**
@@ -48,6 +51,7 @@ export default class BoxSDKConfig {
             result.appUserId = json.appUserId;
             result.rootFolderId = json.rootFolderId;
             result.dropsFolderId = json.dropsFolderId;
+            result.bootstrap = json.bootstrap;
         }
 
         return result;

@@ -39,6 +39,10 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
     @Column(name = "drops_folder_id")
     private String dropsFolderId;
 
+    // Bootstraping allows Mojito to set up the Box folder structures in prepartion for project requests, and other features
+    @Column(name = "bootstrap")
+    private Boolean bootstrap;
+
     public String getClientId() {
         return clientId;
     }
@@ -107,6 +111,18 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
         return dropsFolderId;
     }
 
+    public void setDropsFolderId(String dropsFolderId) {
+        this.dropsFolderId = dropsFolderId;
+    }
+
+    public Boolean getBootstrap() {
+        return bootstrap;
+    }
+
+    public void setBootstrap(Boolean bootstrap) {
+        this.bootstrap = bootstrap;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -123,8 +139,11 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
         if (enterpriseId != null ? !enterpriseId.equals(that.enterpriseId) : that.enterpriseId != null) return false;
         if (appUserId != null ? !appUserId.equals(that.appUserId) : that.appUserId != null) return false;
         if (rootFolderId != null ? !rootFolderId.equals(that.rootFolderId) : that.rootFolderId != null) return false;
-        return dropsFolderId != null ? dropsFolderId.equals(that.dropsFolderId) : that.dropsFolderId == null;
+        if (dropsFolderId != null ? !dropsFolderId.equals(that.dropsFolderId) : that.dropsFolderId != null)
+            return false;
+        if (bootstrap != null ? !bootstrap.equals(that.bootstrap) : that.bootstrap != null) return false;
 
+        return true;
     }
 
     @Override
@@ -138,10 +157,7 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
         result = 31 * result + (appUserId != null ? appUserId.hashCode() : 0);
         result = 31 * result + (rootFolderId != null ? rootFolderId.hashCode() : 0);
         result = 31 * result + (dropsFolderId != null ? dropsFolderId.hashCode() : 0);
+        result = 31 * result + (bootstrap != null ? bootstrap.hashCode() : 0);
         return result;
-    }
-
-    public void setDropsFolderId(String dropsFolderId) {
-        this.dropsFolderId = dropsFolderId;
     }
 }
