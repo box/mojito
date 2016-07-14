@@ -75,7 +75,7 @@ let LocalesDropDown = React.createClass({
 
                 let actionData = {
                     "changedParam": SearchConstants.LOCALES_CHANGED,
-                    "locales": selectedBcp47TagsFromMultiSelect
+                    "bcp47Tags": selectedBcp47TagsFromMultiSelect
                 };
 
                 WorkbenchActions.searchParamsChanged(actionData);

@@ -50,8 +50,7 @@ class SearchParamsStore {
      * @param {string} paramData.changedParam
      * @param {object} paramData.repository
      *
-     * @param {object} paramData.locale BCP47 tag  // TODO rename this to BCP47 tag...or something more specific
-     * @param {boolean} paramData.isSelected
+     * @param {string[]} paramData.bcp47Tags BCP47 tags
      *
      * @param {object} paramData.repoIds
      * @param {object} paramData.bcp47Tags Array of BCP47 Tag to be selected
@@ -75,8 +74,7 @@ class SearchParamsStore {
             case SearchConstants.LOCALES_CHANGED:
 
                 this.setFirstPageAsCurrent();
-                let bcp47Tags = paramData.locales;
-                this.bcp47Tags = bcp47Tags;
+                this.bcp47Tags = paramData.bcp47Tags;
                 break;
 
             case SearchConstants.SEARCHTEXT_CHANGED:
