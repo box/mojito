@@ -40,7 +40,6 @@ let RepositoryDropDown = React.createClass({
             "selectedRepoIds": SearchParamsStore.getState().repoIds
         });
 
-        this.refs.repositoryDropdownRef.syncData();
     },
 
     getInitialState: function () {

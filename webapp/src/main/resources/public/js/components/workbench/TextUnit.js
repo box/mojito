@@ -2,6 +2,7 @@ import $ from "jquery";
 import keycode from "keycode";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import React from "react";
+import ReactDOM from "react-dom";
 import {FormattedMessage, injectIntl} from "react-intl";
 import Error from "../../utils/Error";
 import SearchConstants from "../../utils/SearchConstants";
@@ -84,7 +85,7 @@ let TextUnit = React.createClass({
 
     componentDidUpdate() {
         if (this.state.isEditMode) {
-            // this.refs.textUnitTextArea.focus();
+            ReactDOM.findDOMNode(this.refs.textUnitTextArea).focus();
         } else {
             this.putFocusOnActiveTextUnit();
         }
