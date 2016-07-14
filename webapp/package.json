@@ -81,8 +81,8 @@
     "mojito-tm-import": "java -jar ../cli/target/mojito-cli-*.jar tm-import -r Mojito -s src/main/resources/xliff/",
     "mojito-tm-import-clean": "rm src/main/resources/xliff/Mojito-1.xliff; npm run mojito-push; npm run mojito-tm-import; npm run mojito-tm-export",
     "mojito-tm-export": "java -jar ../cli/target/mojito-cli-*.jar tm-export -r Mojito -t src/main/resources/xliff/",
-    "mojito-push": "java -jar ../cli/target/mojito-cli-*.jar push -r Mojito -s src/main/resources/properties/",
-    "mojito-pull": "cd src/main/resources/properties/; java -jar ../../../../../cli/target/mojito-cli-*.jar pull -r Mojito -lm \"fr:fr-FR,be:be-BY,ko:ko-KR,ru:ru-RU\"",
+    "mojito-push": "java -jar ../cli/target/mojito-cli-*.jar push -r Mojito -s src/main/resources/properties/ -ft PROPERTIES_NOBASENAME",
+    "mojito-pull": "cd src/main/resources/properties/; java -jar ../../../../../cli/target/mojito-cli-*.jar pull -r Mojito -lm \"fr:fr-FR,be:be-BY,ko:ko-KR,ru:ru-RU\" -ft PROPERTIES_NOBASENAME",
     "mojito-drop-export": "java -jar ../cli/target/mojito-cli-*.jar drop-export -r Mojito",
     "mojito-drop-import": "java -jar ../cli/target/mojito-cli-*.jar drop-import -r Mojito",
     "create-demo-data": "java -jar ../cli/target/mojito-cli-*.jar demo-create -n Demo"
