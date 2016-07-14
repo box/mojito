@@ -40,7 +40,6 @@ let RepositoryDropDown = React.createClass({
             "selectedRepoIds": SearchParamsStore.getState().repoIds
         });
 
-        this.refs.repositoryDropdownRef.syncData();
     },
 
     getInitialState: function () {
@@ -108,6 +107,7 @@ let RepositoryDropDown = React.createClass({
             <span>
                 <Multiselect onChange={this.repositorySelected}
                              enableFiltering={true}
+                             enableCaseInsensitiveFiltering={false}
                              buttonText={this.getButtonText}
                              filterPlaceholder={this.props.intl.formatMessage({ id: "search.repository.filterPlaceholder" })}
                              ref="repositoryDropdownRef" data={options} multiple/>

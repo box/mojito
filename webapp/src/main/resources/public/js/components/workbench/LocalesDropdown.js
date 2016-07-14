@@ -1,3 +1,5 @@
+import $ from "jquery";
+import _ from "lodash";
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
 import Multiselect from "react-bootstrap-multiselect";
@@ -31,14 +33,7 @@ let LocalesDropDown = React.createClass({
      * Handler for when SearchParamsStore is updated
      */
     onSearchParamsChanged: function () {
-
-        let searchParams = SearchParamsStore.getState();
-
-        if (searchParams.changedParam === SearchConstants.REPOSITORIES_CHANGED ||
-            searchParams.changedParam === SearchConstants.UPDATE_ALL) {
-
-            this.updateComponent();
-        }
+        this.updateComponent();
     },
 
     /**
@@ -46,29 +41,66 @@ let LocalesDropDown = React.createClass({
      */
     updateComponent: function () {
 
-        let searchParams = SearchParamsStore.getState();
-
         this.setState({
-            "selectedBcp47Tags": searchParams.bcp47Tags,
-            "selectedRepoIds": searchParams.repoIds
+            bcp47Tags: RepositoryStore.getAllBcp47TagsForRepositoryIds(SearchParamsStore.getState().repoIds),
+            selectedBcp47Tags: SearchParamsStore.getState().bcp47Tags
         });
-
-        this.refs.localeDropdownRef.syncData();
     },
 
     /**
      *
-     * @return {{repositories: object[], selectedRepoIds: string[], selectedBcp47Tags: string[]}}
+     * @return {{bcp47Tags: string[], selectedBcp47Tags: string[]}}
      */
     getInitialState: function () {
         return {
-            "selectedBcp47Tags": [],
-            "selectedRepoIds": []
+            "bcp47Tags": [],
+            "selectedBcp47Tags": []
         };
     },
 
     /**
-     * Create locale opeion
+     * Callback for multiselect change. Compare the selected locales with the
+     * locale in the state. If different, update the state and call the action
+     * to propagate locale change.
+     */
+    onMultiSelectChange() {
+
+        let selectedBcp47TagsFromMultiSelect = this.getSelectedBcp47TagsFromMultiSelect();
+
+        if (!_.isEqual(this.state.selectedBcp47Tags, selectedBcp47TagsFromMultiSelect)) {
+
+            this.setState({
+                selectedBcp47Tags: selectedBcp47TagsFromMultiSelect
+            }, () => {
+
+                let actionData = {
+                    "changedParam": SearchConstants.LOCALES_CHANGED,
+                    "bcp47Tags": selectedBcp47TagsFromMultiSelect
+                };
+
+                WorkbenchActions.searchParamsChanged(actionData);
+            });
+        }
+    },
+
+    /**
+     * Get the selected bcp47 tags from the multi select
+     * 
+     * @returns {string[]}
+     */
+    getSelectedBcp47TagsFromMultiSelect() {
+
+        console.log("getSelectedBcp47TagsFromMultiSelect");
+
+        let selected = $('#localesDropDown option:selected').map(function (a, item) {
+            return item.value;
+        }).toArray();
+
+        return selected;
+    },
+
+    /**
+     * Create locale option
      *
      * @param localeKey
      * @return {{value: string, selected: boolean}}
@@ -83,30 +115,15 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
-     * Get available locales for the LocalesDropDown
+     * Get locale options for the LocalesDropDown
      *
      * @return {{value: string, selected: boolean}[]}}
      */
-    getAvailableLocales: function () {
-        let localeOptions = RepositoryStore.getAllBcp47TagsForRepositoryIds(this.state.selectedRepoIds)
-            .map(this.createLocaleOption)
-            .sort((a, b) =>   Locales.getDisplayName(a.value).localeCompare(Locales.getDisplayName(b.value)));
+    getLocaleOptions: function () {
+        let localeOptions = this.state.bcp47Tags
+                .map(this.createLocaleOption)
+                .sort((a, b) => Locales.getDisplayName(a.value).localeCompare(Locales.getDisplayName(b.value)));
         return localeOptions;
-    },
-
-    /**
-     * @param {object} optionArray
-     * @param {bool} isSelected
-     */
-    localeSelected: function (optionArray, isSelected) {
-
-        let option = optionArray[0];
-        let actionData = {
-            "changedParam": SearchConstants.LOCALES_CHANGED,
-            "locale": option.value,
-            "isSelected": isSelected
-        };
-        WorkbenchActions.searchParamsChanged(actionData);
     },
 
     /**
@@ -127,7 +144,7 @@ let LocalesDropDown = React.createClass({
         if (numberOfSelectedLocales == 1) {
             label = options[0].label;
         } else {
-            label = this.props.intl.formatMessage({ id: "search.locale.btn.text" }, {'numberOfSelectedLocales': numberOfSelectedLocales});
+            label = this.props.intl.formatMessage({id: "search.locale.btn.text"}, {'numberOfSelectedLocales': numberOfSelectedLocales});
         }
 
         return label;
@@ -138,17 +155,23 @@ let LocalesDropDown = React.createClass({
      */
     render: function () {
 
-        let localeOptions = this.getAvailableLocales();
+        let localeOptions = this.getLocaleOptions();
 
         return (
-            <span className="mlm">
-                <Multiselect onChange={this.localeSelected}
-                    disabled={true}
-                    id="localesDropDown"
-                    enableFiltering={true}
-                    buttonText={this.getButtonText}
-                    filterPlaceholder={this.props.intl.formatMessage({ id: "search.locale.filterPlaceholder" })}
-                    ref="localeDropdownRef" data={localeOptions} multiple />
+                <span className="mlm">
+                <Multiselect
+                        onChange={this.onMultiSelectChange}
+                        onSelectAll={this.onMultiSelectChange}
+                        selectAllText={this.props.intl.formatMessage({ id: "search.locale.selectAll" })}
+                        includeSelectAllOption={true}
+                        id="localesDropDown"
+                        buttonText={this.getButtonText}
+                        enableFiltering={true}
+                        enableCaseInsensitiveFiltering={false}
+                        filterPlaceholder={this.props.intl.formatMessage({ id: "search.locale.filterPlaceholder" })}
+                        ref="localeDropdownRef"
+                        data={localeOptions}
+                        multiple/>
             </span>
         );
     }
