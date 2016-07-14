@@ -6,11 +6,11 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -66,12 +66,12 @@ public class DemoCreateCommand extends RepoCommand {
                 .reset()
                 .a(". Try to generate the localized files: ")
                 .fg(Ansi.Color.CYAN)
-                .a("l10n pull -r " + repository.getName())
+                .a("mojito pull -r " + repository.getName())
                 .reset()
                 .a(" then modify ").fg(Ansi.Color.CYAN).a(DEMO_PROPERTIES).reset()
                 .a(" and re-synchronize: ")
                 .fg(Ansi.Color.CYAN)
-                .a("l10n push -r " + repository.getName())
+                .a("mojito push -r " + repository.getName())
                 .println(2);
     }
 
