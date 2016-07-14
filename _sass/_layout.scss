@@ -337,3 +337,68 @@ $table-of-content-width: 250px;
       display: none;
     }
 }
+
+/* search */
+input#algolia-doc-search {
+    background: transparent url("/images/search.png") no-repeat 10px center;
+    background-size: 16px 16px;
+    position: relative;
+    vertical-align: top;
+    margin-left: 10px;
+    padding: 0 10px;
+    padding-left: 35px;
+    height: 30px;
+    margin-top: 10px;
+    font-size: 16px;
+    line-height: 20px;
+    background-color: #fff;
+    border-radius: 4px;
+    color: #333;
+    outline: none;
+    width: 100px;
+    transition: width .2s ease;
+    box-shadow: none;
+    border: 1px solid #ddd;
+}
+
+input#algolia-doc-search:focus {
+  width: 200px;
+}
+
+ /* Bottom border of each suggestion */
+.algolia-docsearch-suggestion {
+  border-bottom-color: $brand-color;
+}
+/* Main category headers */
+.algolia-docsearch-suggestion--category-header {
+  background-color: lighten($brand-color, 20%);
+}
+/* Highlighted search terms */
+.algolia-docsearch-suggestion--highlight {
+  color: lighten($brand-color, 10%);
+}
+/* Highligted search terms in the main category headers */
+.algolia-docsearch-suggestion--category-header .algolia-docsearch-suggestion--highlight  {
+  background-color: $brand-color;
+}
+/* Currently selected suggestion */
+.aa-cursor .algolia-docsearch-suggestion--content {
+  color: darken($brand-color, 10%);
+}
+.aa-cursor .algolia-docsearch-suggestion {
+  background: ligten($brand-color, 30%);
+}
+
+/* For bigger screens, when displaying results in two columns */
+@media (min-width: 768px) {
+  /* Bottom border of each suggestion */
+  .algolia-docsearch-suggestion {
+    border-bottom-color: lighten($brand-color, 15%);
+  }
+  /* Left column, with secondary category header */
+  .algolia-docsearch-suggestion--subcategory-column {
+    border-right-color: lighten($brand-color, 25%);
+    background-color: lighten($brand-color, 45%);
+    color: darken($brand-color, 35%);
+  }
+}
