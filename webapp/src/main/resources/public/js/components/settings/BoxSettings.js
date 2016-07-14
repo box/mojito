@@ -1,7 +1,7 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-import {Modal} from "react-bootstrap";
+import {Button, Modal, OverlayTrigger, Tooltip} from "react-bootstrap";
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
 import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
@@ -125,8 +125,9 @@ let BoxSettings = React.createClass({
 
     /**
      * Handling submit onclick
+     * @param {boolean} shouldBootStrap
      */
-    onClickSubmit() {
+    onClickSubmit(shouldBootStrap) {
         let boxSDKConfig = new BoxSDKConfig();
         boxSDKConfig.clientId = this.state.clientId;
         boxSDKConfig.clientSecret = this.state.clientSecret;
@@ -177,6 +178,9 @@ let BoxSettings = React.createClass({
             );
         }
 
+        let saveNoBootStrapTitle = <Tooltip><FormattedMessage id="settings.button.title.boxSaveChangesNoBootStrap"/></Tooltip>;
+        let saveTitle = <Tooltip><FormattedMessage id="settings.button.title.saveWithBootstrap"/></Tooltip>;
+
         return (
             <form className="form-horizontal">
                 {modal}
@@ -198,11 +202,17 @@ let BoxSettings = React.createClass({
                 <div className="form-group pbs pts">
                     <div className="col-sm-2"></div>
                     <div className="col-sm-8">
-                        <input value={this.props.intl.formatMessage({ id: "settings.button.saveChanges" })}
-                               className="form-control btn btn-default col-md-3 btn-primary"
-                               onClick={this.onClickSubmit}
-
-                        />
+                        <OverlayTrigger placement="top" overlay={saveNoBootStrapTitle}>
+                            <Button className="pull-right" onClick={this.onClickSubmit.bind(this, true)}>
+                                <FormattedMessage id="settings.button.boxSaveChangesNoBootStrap"/>
+                            </Button>
+                        </OverlayTrigger>
+                        <OverlayTrigger placement="top" overlay={saveTitle}>
+                            <Button bsStyle="primary" className="mrs pull-right"
+                                    onClick={this.onClickSubmit.bind(this, false)}>
+                                <FormattedMessage id="settings.button.save"/>
+                            </Button>
+                        </OverlayTrigger>
                     </div>
                 </div>
             </form>);
