@@ -1,7 +1,7 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-import {Button, Modal, OverlayTrigger, Tooltip} from "react-bootstrap";
+import {Button, Collapse, Modal, OverlayTrigger, Tooltip} from "react-bootstrap";
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
 import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
@@ -40,6 +40,7 @@ let BoxSettings = React.createClass({
             // Component related states
             "displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO,
             "showWaitModal": false,
+            "showExtraFields": false
         };
     },
 
@@ -125,9 +126,8 @@ let BoxSettings = React.createClass({
 
     /**
      * Handling submit onclick
-     * @param {boolean} shouldBootStrap
      */
-    onClickSubmit(shouldBootStrap) {
+    onClickSubmit() {
         let boxSDKConfig = new BoxSDKConfig();
         boxSDKConfig.clientId = this.state.clientId;
         boxSDKConfig.clientSecret = this.state.clientSecret;
@@ -135,7 +135,21 @@ let BoxSettings = React.createClass({
         boxSDKConfig.privateKey = this.state.privateKey;
         boxSDKConfig.privateKeyPassword = this.state.privateKeyPassword;
         boxSDKConfig.enterpriseId = this.state.enterpriseId;
-        boxSDKConfig.bootstrap = shouldBootStrap;
+
+        if (this.state.appUserId) {
+            boxSDKConfig.appUserId = this.state.appUserId;
+            boxSDKConfig.bootstrap = true;
+        }
+
+        if (this.state.dropsFolderId) {
+            boxSDKConfig.dropsFolderId = this.state.dropsFolderId;
+            boxSDKConfig.bootstrap = true;
+        }
+
+        if (this.state.rootFolderId) {
+            boxSDKConfig.rootFolderId = this.state.rootFolderId;
+            boxSDKConfig.bootstrap = true;
+        }
 
         BoxSDKConfigActions.setConfig(boxSDKConfig);
 
@@ -179,8 +193,22 @@ let BoxSettings = React.createClass({
             );
         }
 
-        let saveNoBootStrapTitle = <Tooltip><FormattedMessage id="settings.button.title.boxSaveChangesNoBootStrap"/></Tooltip>;
-        let saveTitle = <Tooltip><FormattedMessage id="settings.button.title.saveWithBootstrap"/></Tooltip>;
+        let bootstrapMessage
+        if (this.state.showExtraFields) {
+            bootstrapMessage = (
+                <OverlayTrigger placement="top"
+                                overlay={<Tooltip><FormattedMessage id="settings.label.disableBootstrapInstructions.tooltip"/></Tooltip>}>
+                    <label><FormattedMessage id="settings.label.disableBootstrapInstructions"/></label>
+                </OverlayTrigger>);
+        } else {
+            bootstrapMessage = (
+                <OverlayTrigger placement="top"
+                                overlay={<Tooltip><FormattedMessage id="settings.label.disableBootstrapInstructions.tooltip"/></Tooltip>}>
+                    <label className="clickable" onClick={() => {this.setState({"showExtraFields": true});}}>
+                        <FormattedMessage id="settings.label.disableBootstrap"/>
+                    </label>
+                </OverlayTrigger>);
+        }
 
         return (
             <form className="form-horizontal">
@@ -191,8 +219,9 @@ let BoxSettings = React.createClass({
                 {this.getLabelInputTextBox("settings.box.publicKeyId", "publicKeyId")}
                 {this.getLabelInputTextBox("settings.box.privateKeyPassword", "privateKeyPassword")}
                 <div className="form-group pbs pts">
-                    <label
-                        className="col-sm-2 control-label"><FormattedMessage id="settings.box.privateKey"/></label>
+                    <label className="col-sm-2 control-label">
+                        <FormattedMessage id="settings.box.privateKey"/>
+                    </label>
                     <div className="col-sm-8">
                     <textarea className="form-control" rows="10" name="privateKey"
                               placeholder={this.props.intl.formatMessage({ id: "settings.box.privateKey" })}
@@ -202,18 +231,25 @@ let BoxSettings = React.createClass({
                 </div>
                 <div className="form-group pbs pts">
                     <div className="col-sm-2"></div>
+                    <div className="col-sm-8 text-center">
+                        <hr />
+                        {bootstrapMessage}
+                    </div>
+                </div>
+                <Collapse in={this.state.showExtraFields}>
+                    <div>
+                        {this.getLabelInputTextBox("settings.box.appUserId", "appUserId")}
+                        {this.getLabelInputTextBox("settings.box.rootFolderId", "rootFolderId")}
+                        {this.getLabelInputTextBox("settings.box.dropsFolderId", "dropsFolderId")}
+                    </div>
+                </Collapse>
+                <div className="form-group pbs pts">
+                    <div className="col-sm-2"></div>
                     <div className="col-sm-8">
-                        <OverlayTrigger placement="top" overlay={saveNoBootStrapTitle}>
-                            <Button className="pull-right" onClick={this.onClickSubmit.bind(this, true)}>
-                                <FormattedMessage id="settings.button.boxSaveChangesNoBootStrap"/>
-                            </Button>
-                        </OverlayTrigger>
-                        <OverlayTrigger placement="top" overlay={saveTitle}>
-                            <Button bsStyle="primary" className="mrs pull-right"
-                                    onClick={this.onClickSubmit.bind(this, false)}>
-                                <FormattedMessage id="settings.button.save"/>
-                            </Button>
-                        </OverlayTrigger>
+                        <Button bsStyle="primary" className="pull-right"
+                                onClick={this.onClickSubmit}>
+                            <FormattedMessage id="settings.button.save"/>
+                        </Button>
                     </div>
                 </div>
             </form>);
