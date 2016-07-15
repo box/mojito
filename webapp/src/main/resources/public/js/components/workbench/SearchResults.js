@@ -38,9 +38,10 @@ let SearchResults = React.createClass({
      *  isErrorOccurred: boolean Helps show the ErrorModal if set to true.
      *  errorObject: object The Error object created by the store.
      *  errorResponse: object The error object returned by the promise. This can be used to pass parameters to translate the error. See getErrorMessage() in this file for details.
+     *  textUnitInEditMode: TextUnit, the text unit currently in edit mode if any
      *  }}
      */
-    getInitialState: function () {
+    getInitialState() {
 
         let resultsStoreState = SearchResultsStore.getState();
         let searchParamsStoreState = SearchParamsStore.getState();
@@ -55,7 +56,8 @@ let SearchResults = React.createClass({
             "mustShowReviewModal": false,
             "isErrorOccurred": false,
             "errorObject": null,
-            "errorResponse": null
+            "errorResponse": null,
+            "textUnitInEditMode": null
         };
     },
 
@@ -76,7 +78,7 @@ let SearchResults = React.createClass({
             case "right":
                 this.onFetchNextPageClicked();
                 break;
-            case "r":
+            case "s":
                 this.onStatusTextUnitsClicked();
                 break;
             case "d":
@@ -264,7 +266,7 @@ let SearchResults = React.createClass({
      * Helps maintain the state of this component depending on the new state.
      * See comments on getInitialState() for how each attribute affects the rendering of this component.
      */
-    onSearchResultsStoreUpdated: function () {
+    onSearchResultsStoreUpdated() {
 
         let resultsStoreState = SearchResultsStore.getState();
         let paramsStoreState = SearchParamsStore.getState();
@@ -280,7 +282,27 @@ let SearchResults = React.createClass({
             "mustShowToolbar": mustShowToolbar,
             "activeTextUnitIndex": this.getActiveTextUnitIndex(),
             "isErrorOccurred": resultsStoreState.isErrorOccurred,
-            "errorObject": resultsStoreState.errorObject
+            "errorObject": resultsStoreState.errorObject,
+            "textUnitInEditMode": this.state.textUnitInEditMode
+        });
+    },
+
+    /**
+     * If a text unit is in edit mode, disable it. Save the new provided text unit
+     * as the current text unit in edit mode.
+     * 
+     * @param {TextUnit} sdk text unit that got edit mode set to true
+     */
+    onTextUnitEditModeSetToTrue(textUnit) {
+
+        let previous = this.state.textUnitInEditMode;
+
+        if (previous && previous !== textUnit) {
+            previous.disableEditMode();
+        }
+
+        this.setState({
+            "textUnitInEditMode": textUnit
         });
     },
 
@@ -289,7 +311,7 @@ let SearchResults = React.createClass({
      * Sets the isFetchingPage attribute to true and fires the request to get the next page
      *  of search results.
      */
-    onFetchNextPageClicked: function () {
+    onFetchNextPageClicked() {
 
         this.setPageLoadingStatus(true);
         if (!this.state.noMoreResults) {
@@ -376,7 +398,7 @@ let SearchResults = React.createClass({
         let errorMessage = "";
         //TODO: fill in the error message with parameter values if any.
         if (errorObject !== null) {
-            errorMessage = this.props.intl.formatMessage({ id: Error.MESSAGEKEYS_MAP[errorObject.getErrorId()] });
+            errorMessage = this.props.intl.formatMessage({id: Error.MESSAGEKEYS_MAP[errorObject.getErrorId()]});
         }
         return errorMessage;
     },
@@ -386,9 +408,9 @@ let SearchResults = React.createClass({
      */
     createTextUnitComponents() {
         return (
-            <div className="textunits-container">
-                {this.state.searchResults.map(this.createTextUnitComponent)}
-            </div>
+                <div className="textunits-container">
+                    {this.state.searchResults.map(this.createTextUnitComponent)}
+                </div>
         );
     },
 
@@ -399,11 +421,13 @@ let SearchResults = React.createClass({
      * @returns {JSX} The JSX to paint the TextUnit component.
      */
     createTextUnitComponent(textUnit, arrayIndex) {
+
         return (
-            <TextUnit key={this.getTextUnitComponentKey(textUnit)} wait={this.props.mustWait}
-                      textUnit={textUnit} textUnitIndex={arrayIndex}
-                      isActive={arrayIndex === this.state.activeTextUnitIndex}
-                      isSelected={this.isTextUnitSelected(textUnit)}/>
+                <TextUnit key={this.getTextUnitComponentKey(textUnit)}
+                          textUnit={textUnit} textUnitIndex={arrayIndex}
+                          isActive={arrayIndex === this.state.activeTextUnitIndex}
+                          isSelected={this.isTextUnitSelected(textUnit)}
+                          onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}/>
         );
     },
 
@@ -435,10 +459,10 @@ let SearchResults = React.createClass({
     /**
      * @returns {JSX} The JSX for the progress spinner to be displayed when server action is pending.
      */
-    getLoadingSpinner: function () {
-        let altMessage = this.props.intl.formatMessage({ id: "search.pagination.isLoading" });
+    getLoadingSpinner() {
+        let altMessage = this.props.intl.formatMessage({id: "search.pagination.isLoading"});
         return (
-            <img src="/img/ajax-loader.gif" alt={altMessage}/>
+                <img src="/img/ajax-loader.gif" alt={altMessage}/>
         );
     },
 
@@ -462,36 +486,36 @@ let SearchResults = React.createClass({
 
         if (this.state.mustShowToolbar) {
             ui = (
-                <div>
                     <div>
-                        <div className="pull-left">
-                            <ButtonToolbar>
-                                <Button bsSize="small" disabled={actionButtonsDisabled}
-                                        onClick={this.onDeleteTextUnitsClicked}>
-                                    <FormattedMessage id="label.delete" />
-                                </Button>
-                                <Button bsSize="small" bsStyle="primary" disabled={actionButtonsDisabled}
-                                        onClick={this.onStatusTextUnitsClicked}>
-                                    <FormattedMessage id="workbench.toolbar.status" />
-                                </Button>
-                            </ButtonToolbar>
+                        <div>
+                            <div className="pull-left">
+                                <ButtonToolbar>
+                                    <Button bsSize="small" disabled={actionButtonsDisabled}
+                                            onClick={this.onDeleteTextUnitsClicked}>
+                                        <FormattedMessage id="label.delete"/>
+                                    </Button>
+                                    <Button bsSize="small" bsStyle="primary" disabled={actionButtonsDisabled}
+                                            onClick={this.onStatusTextUnitsClicked}>
+                                        <FormattedMessage id="workbench.toolbar.status"/>
+                                    </Button>
+                                </ButtonToolbar>
+                            </div>
+                            <div className="pull-right">
+                                <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits}/>
+                                <Button bsSize="small" disabled={previousPageButtonDisabled}
+                                        onClick={this.onFetchPreviousPageClicked}><span
+                                        className="glyphicon glyphicon-chevron-left"></span></Button>
+                                <label className="mls mrs default-label current-pageNumber">
+                                    {this.displayCurrentPageNumber()}
+                                </label>
+                                <Button bsSize="small" disabled={nextPageButtonDisabled}
+                                        onClick={this.onFetchNextPageClicked}><span
+                                        className="glyphicon glyphicon-chevron-right"></span></Button>
+                            </div>
                         </div>
-                        <div className="pull-right">
-                            <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits}/>
-                            <Button bsSize="small" disabled={previousPageButtonDisabled}
-                                    onClick={this.onFetchPreviousPageClicked}><span
-                                className="glyphicon glyphicon-chevron-left"></span></Button>
-                            <label className="mls mrs default-label current-pageNumber">
-                                {this.displayCurrentPageNumber()}
-                            </label>
-                            <Button bsSize="small" disabled={nextPageButtonDisabled}
-                                    onClick={this.onFetchNextPageClicked}><span
-                                className="glyphicon glyphicon-chevron-right"></span></Button>
-                        </div>
-                    </div>
 
-                    <div className="textunit-toolbar-clear"/>
-                </div>
+                        <div className="textunit-toolbar-clear"/>
+                    </div>
             );
         }
         return ui;
@@ -504,10 +528,10 @@ let SearchResults = React.createClass({
         let ui = "";
         if (this.state.mustShowReviewModal) {
             ui = (
-                <TextUnitsReviewModal isShowModal={this.state.mustShowReviewModal}
-                                      onReviewModalSaveClicked={this.onReviewModalSaveClicked}
-                                      textUnitsArray={this.getSelectedTextUnits()}
-                                      onCloseModal={this.hideReviewModal}/>
+                    <TextUnitsReviewModal isShowModal={this.state.mustShowReviewModal}
+                                          onReviewModalSaveClicked={this.onReviewModalSaveClicked}
+                                          textUnitsArray={this.getSelectedTextUnits()}
+                                          onCloseModal={this.hideReviewModal}/>
             );
         }
         return ui;
@@ -525,20 +549,20 @@ let SearchResults = React.createClass({
         return ui;
     },
 
-    render: function () {
+    render() {
         return (
-            <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>
-                {this.getTextUnitToolbarUI()}
-                {this.createTextUnitComponents()}
-                <DeleteConfirmationModal showModal={this.state.showDeleteModal}
-                                         modalBodyMessage="textUnits.bulk.deleteMessage"
-                                         onDeleteCancelledCallback={this.onDeleteTextUnitsCancelled}
-                                         onDeleteClickedCallback={this.onDeleteTextUnitsConfirmed}/>
-                <ErrorModal showModal={this.state.isErrorOccurred}
-                            errorMessage={this.getErrorMessage()}
-                            onErrorModalClosed={this.onErrorModalClosed}/>
-                {this.getTextUnitsReviewModal()}
-            </div>
+                <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>
+                    {this.getTextUnitToolbarUI()}
+                    {this.createTextUnitComponents()}
+                    <DeleteConfirmationModal showModal={this.state.showDeleteModal}
+                                             modalBodyMessage="textUnits.bulk.deleteMessage"
+                                             onDeleteCancelledCallback={this.onDeleteTextUnitsCancelled}
+                                             onDeleteClickedCallback={this.onDeleteTextUnitsConfirmed}/>
+                    <ErrorModal showModal={this.state.isErrorOccurred}
+                                errorMessage={this.getErrorMessage()}
+                                onErrorModalClosed={this.onErrorModalClosed}/>
+                    {this.getTextUnitsReviewModal()}
+                </div>
         );
     }
 

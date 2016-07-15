@@ -90,8 +90,6 @@ let LocalesDropDown = React.createClass({
      */
     getSelectedBcp47TagsFromMultiSelect() {
 
-        console.log("getSelectedBcp47TagsFromMultiSelect");
-
         let selected = $('#localesDropDown option:selected').map(function (a, item) {
             return item.value;
         }).toArray();
