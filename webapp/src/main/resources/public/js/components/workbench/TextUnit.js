@@ -15,21 +15,20 @@ import TextUnitSDK from "../../sdk/TextUnit";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import Locales from "../../utils/Locales";
 import {
-    Alert,
-    Grid,
-    Row,
-    Col,
-    Panel,
-    Button,
-    ButtonToolbar,
-    ButtonGroup,
-    FormControl,
-    Input,
-    Label,
-    Glyphicon,
-    Modal
+        Alert,
+        Grid,
+        Row,
+        Col,
+        Panel,
+        Button,
+        ButtonToolbar,
+        ButtonGroup,
+        FormControl,
+        Input,
+        Label,
+        Glyphicon,
+        Modal
 } from "react-bootstrap";
-
 
 
 let TextUnit = React.createClass({
@@ -44,7 +43,8 @@ let TextUnit = React.createClass({
 
     propTypes: {
         /** @type {TextUnit} */
-        "textUnit": React.PropTypes.object.isRequired
+        "textUnit": React.PropTypes.object.isRequired,
+        "onEditModeSetToTrue" : React.PropTypes.func
     },
 
     /**
@@ -271,7 +271,7 @@ let TextUnit = React.createClass({
         let rendered = '';
         if (!this.props.textUnit.isUsed()) {
             rendered = (
-                <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.unused" /></Label>
+                    <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.unused"/></Label>
             );
         }
         return rendered;
@@ -287,26 +287,26 @@ let TextUnit = React.createClass({
         if (this.props.textUnit.isTranslated()) {
 
             let glyphType = "ok";
-            let glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.accepted" });
+            let glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.accepted"});
 
             if (!this.props.textUnit.isIncludedInLocalizedFile()) {
 
                 glyphType = "alert";
-                glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.rejected" });
+                glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.rejected"});
 
             } else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.REVIEW_NEEDED) {
 
                 glyphType = "eye-open";
-                glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.needsReview" });
+                glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.needsReview"});
 
             } else if (this.props.textUnit.getStatus() === TextUnitSDK.STATUS.TRANSLATION_NEEDED) {
 
                 glyphType = "edit";
-                glyphTitle = this.props.intl.formatMessage({ id: "textUnit.reviewModal.translationNeeded" });
+                glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.translationNeeded"});
             }
             ui = (
-                <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
-                           onClick={this.onTextUnitGlyphClicked}/>
+                    <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
+                               onClick={this.onTextUnitGlyphClicked}/>
             );
         }
 
@@ -336,36 +336,53 @@ let TextUnit = React.createClass({
             let dir = Locales.getLanguageDirection(this.props.textUnit.getTargetLocale());
 
             return (
-                <div className="targetstring-container">
-                    <FormControl ref="textUnitTextArea" componentClass="textarea" spellCheck="true" className="mrxs"
-                              onKeyUp={this.onKeyUpTextArea} onKeyDown={this.onKeyDownTextArea}
-                              placeholder={this.props.intl.formatMessage({ id: 'textUnit.target.placeholder' })}
-                              defaultValue={this.state.translation ? this.state.translation : ""}
-                              onChange={this.transUnitEditTextAreaOnChange}
-                              dir={dir}/>
+                    <div className="targetstring-container">
+                        <FormControl ref="textUnitTextArea" componentClass="textarea" spellCheck="true" className="mrxs"
+                                     onKeyUp={this.onKeyUpTextArea} onKeyDown={this.onKeyDownTextArea}
+                                     placeholder={this.props.intl.formatMessage({ id: 'textUnit.target.placeholder' })}
+                                     defaultValue={this.state.translation ? this.state.translation : ""}
+                                     onChange={this.transUnitEditTextAreaOnChange}
+                                     dir={dir}
+                                     onClick={this.onClickTextArea}/>
 
-                    <ButtonToolbar className="mtxs mbxs">
-                        <Button bsStyle='primary' bsSize="small" disabled={saveDisabled}
-                                onClick={!saveDisabled ? this.saveTextUnitIfNeeded : null}>
-                            <FormattedMessage id='label.save' />
-                        </Button>
-                        <Button bsSize="small" onClick={this.cancelSaveTextUnit}>
-                            <FormattedMessage id="label.cancel" />
-                        </Button>
-                    </ButtonToolbar>
-                </div>
+                        <ButtonToolbar className="mtxs mbxs">
+                            <Button bsStyle='primary' bsSize="small" disabled={saveDisabled}
+                                    onClick={!saveDisabled ? this.saveTextUnitIfNeeded : null}>
+                                <FormattedMessage id='label.save'/>
+                            </Button>
+                            <Button bsSize="small" onClick={this.cancelSaveTextUnit}>
+                                <FormattedMessage id="label.cancel"/>
+                            </Button>
+                        </ButtonToolbar>
+                    </div>
             );
         }
     },
 
     /**
-     * Turns on the edit mode for the target string area of the textunit.
+     * Turns on the edit mode for the target string area of the textunit and
+     * call the onEditModeSetToTrue callback if defined.
+     *
      * @param {object} e - The click event object.
      */
     editStringClicked(e) {
         e.stopPropagation();
         this.setState({
             isEditMode: true
+        }, () => {
+            if (this.props.onEditModeSetToTrue) {
+                this.props.onEditModeSetToTrue(this);
+            }
+        });
+    },
+
+
+    /**
+     * Disable the edit mode
+     */
+    disableEditMode() {
+        this.setState({
+            isEditMode: false
         });
     },
 
@@ -387,24 +404,31 @@ let TextUnit = React.createClass({
                 noTranslation = true;
                 dir = Locales.getLanguageDirection(Locales.getCurrentLocale());
                 targetClassName = targetClassName + " color-gray-light2";
-                targetString = this.props.intl.formatMessage({ id: "textUnit.target.enterNewTranslation" });
+                targetString = this.props.intl.formatMessage({id: "textUnit.target.enterNewTranslation"});
             } else {
                 dir = Locales.getLanguageDirection(this.props.textUnit.getTargetLocale());
             }
 
             ui = (
-                <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
-                    {targetString}
-                </label>
+                    <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
+                        {targetString}
+                    </label>
             );
         }
         return ui;
     },
 
     /**
-     * Handle locale label click
+     * Handle click on the locale label: stop event propagation (no need to bubble
+     * up as we're reloading the workbench with new data) and update the search
+     * parameter to show strings for the locale specified on the label
+     *
+     * @param {SyntheticEvent} e
      */
-    onLocaleLabelClick() {
+    onLocaleLabelClick(e) {
+
+        e.stopPropagation();
+
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": SearchParamsStore.getState().repoIds,
@@ -412,7 +436,28 @@ let TextUnit = React.createClass({
         });
     },
 
-    onStringIdClick() {
+    /**
+     * Stop event propagation when clicking on the text area in edit mode (we
+     * don't want that click to select/unselect the textunit).
+     *
+     * @param {SyntheticEvent} e
+     */
+    onClickTextArea(e) {
+        e.stopPropagation();
+    },
+
+
+    /**
+     * Handle click on the string id: stop event propagation (no need to bubble
+     * up as we're reloading the workbench with new data) and update the search
+     * parameter to show strings for the given string id.
+     *
+     * @param {SyntheticEvent} e
+     */
+    onStringIdClick(e) {
+
+        e.stopPropagation();
+
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": SearchParamsStore.getState().repoIds,
@@ -428,26 +473,7 @@ let TextUnit = React.createClass({
      * @param {SyntheticEvent} e
      */
     onTextUnitClick(e) {
-
-        switch (e.target) {
-            case this.refs.selectCheckbox:
-                this.onChangeTextUnitCheckbox(e);
-                break;
-
-            case this.refs.localeLabel:
-                this.onLocaleLabelClick(e);
-                break;
-
-            case this.refs.stringId:
-                this.onStringIdClick(e);
-                break;
-
-            case typeof this.refs.textUnitTextArea !== "undefined" && this.refs.textUnitTextArea:
-                break;
-
-            default:
-                this.onChangeTextUnitCheckbox(e);
-        }
+        this.onChangeTextUnitCheckbox(e);
     },
 
     /**
@@ -458,9 +484,9 @@ let TextUnit = React.createClass({
         if (this.state.isShowModal) {
             let textUnitArray = [this.getTextUnitFromProps()];
             ui = (
-                <TextUnitsReviewModal isShowModal={this.state.isShowModal}
-                                      onReviewModalSaveClicked={this.performActionOnTextUnit}
-                                      onCloseModal={this.closeModal} textUnitsArray={textUnitArray}/>
+                    <TextUnitsReviewModal isShowModal={this.state.isShowModal}
+                                          onReviewModalSaveClicked={this.performActionOnTextUnit}
+                                          onCloseModal={this.closeModal} textUnitsArray={textUnitArray}/>
             );
         }
         return ui;
@@ -488,7 +514,7 @@ let TextUnit = React.createClass({
      * @returns {string} The error message with all the parameters populated.
      */
     getErrorMessage(error) {
-        return this.props.intl.formatMessage({ id: Error.MESSAGEKEYS_MAP[error.errorId] });
+        return this.props.intl.formatMessage({id: Error.MESSAGEKEYS_MAP[error.errorId]});
     },
 
     getErrorAlert() {
@@ -496,56 +522,56 @@ let TextUnit = React.createClass({
             let buttons;
             if (this.state.error.errorId == Error.IDS.TEXTUNIT_CHECK_FAILED) {
                 buttons = (
-                    <div>
-                        <Button bsStyle="primary" onClick={this.handleModalSave}>
-                            <FormattedMessage id="label.yes" />
-                        </Button>
-                        <Button onClick={this.handleErrorAlertDismiss}>
-                            <FormattedMessage id="label.no" />
-                        </Button>
-                    </div>
+                        <div>
+                            <Button bsStyle="primary" onClick={this.handleModalSave}>
+                                <FormattedMessage id="label.yes"/>
+                            </Button>
+                            <Button onClick={this.handleErrorAlertDismiss}>
+                                <FormattedMessage id="label.no"/>
+                            </Button>
+                        </div>
                 );
             } else {
                 buttons = (
-                    <Button onClick={this.handleErrorAlertDismiss}>
-                        <FormattedMessage id="label.okay" />
-                    </Button>);
+                        <Button onClick={this.handleErrorAlertDismiss}>
+                            <FormattedMessage id="label.okay"/>
+                        </Button>);
             }
 
             return (
-                <Modal show={true} onHide={this.handleErrorAlertDismiss}>
-                    <Modal.Header closeButton>
-                        <Modal.Title><FormattedMessage id="error.modal.title" /></Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>{this.getErrorMessage(this.state.error)}</Modal.Body>
-                    <Modal.Footer>
-                        {buttons}
-                    </Modal.Footer>
-                </Modal>
+                    <Modal show={true} onHide={this.handleErrorAlertDismiss}>
+                        <Modal.Header closeButton>
+                            <Modal.Title><FormattedMessage id="error.modal.title"/></Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>{this.getErrorMessage(this.state.error)}</Modal.Body>
+                        <Modal.Footer>
+                            {buttons}
+                        </Modal.Footer>
+                    </Modal>
             );
         }
     },
-    
+
     /**
-     * render the source. If the source ends with a retrun line remove and 
+     * render the source. If the source ends with a retrun line remove and
      * render a return line symbol so that the user as a clue about the trailing
      * return line.
      */
     renderSource() {
-        
+
         let source = this.props.textUnit.getSource();
         let optionalReturnLineSymbol = "";
-        
+
         if (source.endsWith("\n")) {
-            source = source.substring(0, source.length - 1); 
+            source = source.substring(0, source.length - 1);
             optionalReturnLineSymbol = (
-                    <span className="textunit-returnline"> ↵</span> 
+                    <span className="textunit-returnline"> ↵</span>
             );
         }
-        
+
         return (
-            <div className="plx pts textunit-string">{source}{optionalReturnLineSymbol}
-            </div>
+                <div className="plx pts textunit-string">{source}{optionalReturnLineSymbol}
+                </div>
         );
     },
 
@@ -562,42 +588,42 @@ let TextUnit = React.createClass({
         }
 
         return (
-            <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
-                 onClick={this.onTextUnitClick}>
-                {this.getErrorAlert()}
-                <div>
-                    <Grid fluid={true}>
-                        <Row className='show-grid'>
-                            <Col xs={11}>
+                <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
+                     onClick={this.onTextUnitClick}>
+                    {this.getErrorAlert()}
+                    <div>
+                        <Grid fluid={true}>
+                            <Row className='show-grid'>
+                                <Col xs={11}>
                                 <span className="mrxs">
-                                    <input type="checkbox" ref="selectCheckbox" checked={isSelected}/>
+                                    <input type="checkbox" checked={isSelected}/>
                                 </span>
-                                <Label bsStyle='primary' bsSize='large' className="mrxs mtl clickable"
-                                       ref="localeLabel">
-                                    {this.props.textUnit.getTargetLocale()}
-                                </Label>
-                                {this.renderUnusedLabel()}
-                                <span className="clickable" ref="stringId">{this.props.textUnit.getName()}</span>
-                            </Col>
-                        </Row>
-                        <Row className='show-grid'>
-                            <Col md={6}>
-                                <Row>
-                                   {this.renderSource()}                                                               
-                                    <div className="plx em color-gray-light2">{this.props.textUnit.getComment()}</div>
-                                </Row>
-                            </Col>
-                            <Col md={6}>
-                                <Row>
-                                    {this.getTargetStringUI()}
-                                    <span className="textunit-actionbar mrxs">{this.renderReviewGlyph()}</span>
-                                </Row>
-                            </Col>
-                        </Row>
-                    </Grid>
+                                    <Label bsStyle='primary' bsSize='large' className="mrxs mtl clickable"
+                                           onClick={this.onLocaleLabelClick}>
+                                        {this.props.textUnit.getTargetLocale()}
+                                    </Label>
+                                    {this.renderUnusedLabel()}
+                                    <span className="clickable" onClick={this.onStringIdClick}>{this.props.textUnit.getName()}</span>
+                                </Col>
+                            </Row>
+                            <Row className='show-grid'>
+                                <Col md={6}>
+                                    <Row>
+                                        {this.renderSource()}
+                                        <div className="plx em color-gray-light2">{this.props.textUnit.getComment()}</div>
+                                    </Row>
+                                </Col>
+                                <Col md={6}>
+                                    <Row>
+                                        {this.getTargetStringUI()}
+                                        <span className="textunit-actionbar mrxs">{this.renderReviewGlyph()}</span>
+                                    </Row>
+                                </Col>
+                            </Row>
+                        </Grid>
+                    </div>
+                    {this.getTextUnitReviewModal()}
                 </div>
-                {this.getTextUnitReviewModal()}
-            </div>
         );
     }
 });
