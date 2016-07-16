@@ -353,7 +353,7 @@ let RepositoryRow = React.createClass({
                     </OverlayTrigger>
                 </td>
 
-                <td>{this.getRejectedLabel()}</td>
+                <td>{this.getStatusLabel()}</td>
                 <td>{this.getNeedsTranslationLabel()}</td>
                 <td>{this.getNeedsReviewLabel()}</td>
                 <td>
