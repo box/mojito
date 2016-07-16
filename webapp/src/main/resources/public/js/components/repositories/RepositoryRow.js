@@ -281,7 +281,7 @@ let RepositoryRow = React.createClass({
             ui = (
                     <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
                         <Label bsStyle="success" className="mrs clickable">
-                            {this.getIntlMessage("repositories.table.row.done")}
+                            <FormattedMessage id="repositories.table.row.done"/>
                         </Label>
                     </Link>);
         }
