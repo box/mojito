@@ -48,6 +48,18 @@ button, .btn {
   background-color: transparent;
 }
 
+.navbar-brand {
+  padding-top: 10px;
+  padding-bottom: 0px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.navbar-brand > img {
+  width: 30px;
+  height: 30px;
+}
+
 /**
  * LABEL
  */
@@ -403,6 +415,7 @@ div.targetstring-container textarea {
 
 .login-logo-container {
   width: 391px;
+  padding-left: 30px;
 }
 
 .login-form-container {

@@ -62,7 +62,7 @@ let Login = React.createClass({
             <div className="container login-container">
                 <div className="row">
                     <div className="center-block login-logo-container">
-                        <img src="/img/logo-391x90.png" className="logo" alt="Box Mojito"/>
+                        <img src="/img/logo-login.png" className="logo mbm" alt="Mojito"/>
                     </div>
                     <div className="center-block login-form-container">
                         <form action={loginFormPostUrl} method="post">
