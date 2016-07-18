@@ -92,7 +92,7 @@ let BoxSettings = React.createClass({
             <div className="col-sm-8">
                 <input className="form-control" type="text" name={inputName}
                        placeholder={this.props.intl.formatMessage({ id: intlMessageKey })}
-                       onChange={this.onHandleInputChange}
+                       onChange={this.onHandleInputChange} defaultValue={this.state[inputName]}
                 />
             </div>
         </div>);
@@ -255,6 +255,11 @@ let BoxSettings = React.createClass({
                 <div className="form-group pbs pts">
                     <div className="col-sm-2"></div>
                     <div className="col-sm-8">
+                        {this.state.clientId ?
+                            <Button className="pull-right mlm" onClick={() => this.setState({"displayMode": this.DISPLAY_MODE.INFO }) }>
+                                <FormattedMessage id="settings.button.cancel"/>
+                            </Button> : ""
+                        }
                         <Button bsStyle="primary" className="pull-right"
                                 disabled={this.hasDisableBootstrapFieldsError()}
                                 onClick={this.onClickSubmit}>
@@ -275,6 +280,15 @@ let BoxSettings = React.createClass({
     getInfoView() {
         return (
             <div>
+                <div className="row pbm ptm">
+                    <div className="col-sm-1">
+                        <Button bsStyle="primary" className="mlm" onClick={() => this.setState({"displayMode": this.DISPLAY_MODE.EDIT, "showExtraFields": true}) }>
+                            <FormattedMessage id="settings.button.edit"/>
+                        </Button>
+                    </div>
+                    <div className="col-sm-2"></div>
+                    <div className="col-sm-8"></div>
+                </div>
                 {this.getLabelAndInfo("settings.box.clientId", this.state.clientId)}
                 {this.getLabelAndInfo("settings.box.enterpriseId", this.state.enterpriseId)}
                 {this.getLabelAndInfo("settings.box.publicKeyId", this.state.publicKeyId)}
