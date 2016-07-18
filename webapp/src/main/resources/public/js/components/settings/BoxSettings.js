@@ -5,6 +5,7 @@ import {Button, Collapse, Modal, OverlayTrigger, Tooltip} from "react-bootstrap"
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
 import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
+import xor from "../../utils/xor";
 
 let BoxSettings = React.createClass({
     mixins: [FluxyMixin],
@@ -136,17 +137,9 @@ let BoxSettings = React.createClass({
         boxSDKConfig.privateKeyPassword = this.state.privateKeyPassword;
         boxSDKConfig.enterpriseId = this.state.enterpriseId;
 
-        if (this.state.appUserId) {
+        if (this.state.appUserId && this.state.dropsFolderId && this.state.rootFolderId) {
             boxSDKConfig.appUserId = this.state.appUserId;
-            boxSDKConfig.bootstrap = true;
-        }
-
-        if (this.state.dropsFolderId) {
             boxSDKConfig.dropsFolderId = this.state.dropsFolderId;
-            boxSDKConfig.bootstrap = true;
-        }
-
-        if (this.state.rootFolderId) {
             boxSDKConfig.rootFolderId = this.state.rootFolderId;
             boxSDKConfig.bootstrap = true;
         }
@@ -155,6 +148,20 @@ let BoxSettings = React.createClass({
 
         this.setState({"showWaitModal": true});
         this.delayGetUpdatedConfig();
+    },
+
+    /**
+     * @return {boolean}
+     */
+    hasDisableBootstrapFieldsError() {
+        return xor(this.state.appUserId, this.state.dropsFolderId, this.state.rootFolderId);
+    },
+
+    /**
+     * @return {string|*|string}
+     */
+    hasAllDisabledBootstrapFields() {
+        return this.state.appUserId && this.state.dropsFolderId && this.state.rootFolderId;
     },
 
     /**
@@ -193,12 +200,14 @@ let BoxSettings = React.createClass({
             );
         }
 
-        let bootstrapMessage
+        let bootstrapMessage;
         if (this.state.showExtraFields) {
             bootstrapMessage = (
                 <OverlayTrigger placement="top"
                                 overlay={<Tooltip><FormattedMessage id="settings.label.disableBootstrapInstructions.tooltip"/></Tooltip>}>
-                    <label><FormattedMessage id="settings.label.disableBootstrapInstructions"/></label>
+                    <label className="clickable" onClick={() => {this.setState({"showExtraFields": false});}}>
+                        <FormattedMessage id="settings.label.disableBootstrapInstructions"/>
+                    </label>
                 </OverlayTrigger>);
         } else {
             bootstrapMessage = (
@@ -247,8 +256,12 @@ let BoxSettings = React.createClass({
                     <div className="col-sm-2"></div>
                     <div className="col-sm-8">
                         <Button bsStyle="primary" className="pull-right"
+                                disabled={this.hasDisableBootstrapFieldsError()}
                                 onClick={this.onClickSubmit}>
-                            <FormattedMessage id="settings.button.save"/>
+                            {this.hasAllDisabledBootstrapFields() ?
+                                <FormattedMessage id="settings.button.saveAndDisableBootstrapping"/> :
+                                <FormattedMessage id="settings.button.save"/>
+                            }
                         </Button>
                     </div>
                 </div>
@@ -298,7 +311,6 @@ let BoxSettings = React.createClass({
             </div>
         );
     }
-
 });
 
 export default injectIntl(BoxSettings);

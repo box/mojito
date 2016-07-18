@@ -18,7 +18,19 @@ module.exports = function (config)
 
         browserify: {
             paths: ["src/main/resources/public/js"],
-            transform: ['babelify', 'reactify']
+            "transform": [
+              [
+                "babelify",
+                {
+                  "presets": [
+                    "react",
+                    "es2015"
+                  ],
+                  "sourceMapsAbsolute": true
+                }
+              ],
+              "envify"
+            ]
         },
         
         reporters: ['progress'],
