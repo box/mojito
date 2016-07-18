@@ -210,7 +210,7 @@ let TextUnitsreviewModal = React.createClass({
                         componentClass="textarea"
                         label={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentLabel" })}
                         placeholder={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentPlaceholder" })}/>
-                    <ButtonToolbar>
+                    <ButtonToolbar className="mts">
                         <ButtonGroup ref="optionsGroup">
                             {this.getRejectButton()}
                             {this.getTranslateButton()}
