@@ -40,23 +40,17 @@ public class BoxSDKServiceConfigWS {
         return result;
     }
 
-    @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.POST)
-    public ResponseEntity createBoxSDKServiceConfig(
+    @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.PATCH)
+    public ResponseEntity setBoxSDKServiceConfig(
             @RequestBody BoxSDKServiceConfigEntity config
     ) {
         try {
+            logger.debug("Delete if config already exist");
+            boxSDKServiceConfigEntityService.deleteConfig();
+
             PollableFuture<BoxSDKServiceConfigEntity> boxSDKServiceConfigEntityPollableFuture;
 
             if (!config.getBootstrap()) {
-                boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfig(
-                        config.getClientId(),
-                        config.getClientSecret(),
-                        config.getPublicKeyId(),
-                        config.getPrivateKey(),
-                        config.getPrivateKeyPassword(),
-                        config.getEnterpriseId()
-                );
-            } else {
                 boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfigWithNoBootstrap(
                         config.getClientId(),
                         config.getClientSecret(),
@@ -66,6 +60,15 @@ public class BoxSDKServiceConfigWS {
                         config.getEnterpriseId(),
                         config.getAppUserId(), config.getRootFolderId(),
                         config.getDropsFolderId()
+                );
+            } else {
+                boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfig(
+                        config.getClientId(),
+                        config.getClientSecret(),
+                        config.getPublicKeyId(),
+                        config.getPrivateKey(),
+                        config.getPrivateKeyPassword(),
+                        config.getEnterpriseId()
                 );
             }
 

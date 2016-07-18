@@ -13,5 +13,5 @@ public interface BoxSDKServiceConfigEntityRepository extends JpaRepository<BoxSD
 
     BoxSDKServiceConfigEntity findFirstByOrderByIdAsc();
 
-    BoxSDKServiceConfigEntity deleteFirstByOrderByIdAsc();
+    Long deleteFirstByOrderByIdAsc();
 }

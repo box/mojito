@@ -116,6 +116,18 @@ class BaseClient {
         });
     }
 
+    patch(url, data) {
+        return fetch(url, {
+            method: 'patch',
+            body: JSON.stringify(data),
+            headers: this.getHeaders(),
+            follow: 0
+        }).then(response => {
+            this.handleUnauthenticatedResponse(response);
+            return response.json();
+        });
+    }
+
     delete(url) {
         return fetch(url, {
             method: 'delete',

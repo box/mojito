@@ -25,7 +25,7 @@ class BoxSDKConfigClient extends BaseClient {
      * @param {BoxSDKConfig} boxSDKConfig
      */
     setConfig(boxSDKConfig) {
-        let promise = this.post(this.getUrl(), boxSDKConfig);
+        let promise = this.patch(this.getUrl(), boxSDKConfig);
         return promise.then(() => {});
     }
 

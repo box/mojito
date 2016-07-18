@@ -14,6 +14,7 @@ import com.box.sdk.BoxUser;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.concurrent.ExecutionException;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -149,10 +150,12 @@ public class BoxSDKServiceConfigEntityService {
      * @throws InterruptedException
      * @throws BoxSDKServiceException
      */
+    @Transactional
     public void deleteConfig()
             throws ExecutionException, InterruptedException, BoxSDKServiceException {
 
-        boxSDKServiceConfigEntityRepository.deleteFirstByOrderByIdAsc();
+        Long deleted = boxSDKServiceConfigEntityRepository.deleteFirstByOrderByIdAsc();
+        logger.debug("Deleted Box SDK Config: {}", deleted);
     }
 
     /**
