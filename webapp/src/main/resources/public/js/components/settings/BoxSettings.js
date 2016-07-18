@@ -279,7 +279,7 @@ let BoxSettings = React.createClass({
                                 onClick={this.onClickSubmit}>
                             {this.hasAllDisabledBootstrapFields() ?
                                 <FormattedMessage id="settings.button.saveAndDisableBootstrapping"/> :
-                                <FormattedMessage id="settings.button.save"/>
+                                <FormattedMessage id="settings.button.saveWithBoostrapping"/>
                             }
                         </Button>
                     </div>
