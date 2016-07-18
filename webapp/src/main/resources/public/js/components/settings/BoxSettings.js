@@ -38,6 +38,9 @@ let BoxSettings = React.createClass({
             "rootFolderId": "",
             "dropsFolderId": "",
 
+            /** @type {boolean} */
+            "bootstrap": true,
+
             // Component related states
             "displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO,
             "showWaitModal": false,
@@ -67,7 +70,8 @@ let BoxSettings = React.createClass({
                 "enterpriseId": config.enterpriseId,
                 "appUserId": config.appUserId,
                 "rootFolderId": config.rootFolderId,
-                "dropsFolderId": config.dropsFolderId
+                "dropsFolderId": config.dropsFolderId,
+                "bootstrap": config.bootstrap
             });
         } else {
             this.setState({"displayMode": this.DISPLAY_MODE.EDIT});
@@ -311,6 +315,13 @@ let BoxSettings = React.createClass({
                 {this.getLabelAndInfo("settings.box.appUserId", this.state.appUserId, notAvailableYetMsg)}
                 {this.getLabelAndInfo("settings.box.rootFolderId", this.state.rootFolderId, notAvailableYetMsg)}
                 {this.getLabelAndInfo("settings.box.dropsFolderId", this.state.dropsFolderId, notAvailableYetMsg)}
+                <div className="row pbs pts">
+                    <div className="col-sm-1"></div>
+                    <label className="col-sm-2 control-label"><FormattedMessage id="settings.box.bootstrap" /></label>
+                    <div className="col-sm-8">
+                        {this.state.bootstrap ? <FormattedMessage id="settings.box.bootstrap.yes" /> : <FormattedMessage id="settings.box.bootstrap.no" />}
+                    </div>
+                </div>
             </div>
         );
     },

@@ -99,6 +99,7 @@ public class BoxSDKServiceConfigEntityService {
         boxSDKServiceConfig.setDropsFolderId(mojitoFolderStructure.getDropsFolderId());
 
         logger.debug("Saving of the config with updated IDs");
+        boxSDKServiceConfig.setBootstrap(true);
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
 
         return new PollableFutureTaskResult<>(boxSDKServiceConfig);
@@ -135,7 +136,7 @@ public class BoxSDKServiceConfigEntityService {
         }
 
         boxSDKServiceConfig = new BoxSDKServiceConfigEntity(clientId, clientSecret, publicKeyId, privateKey, privateKeyPassword, enterpriseId,
-                appUserId, rootFolderId, dropsFolderId, true);
+                appUserId, rootFolderId, dropsFolderId, false);
 
         logger.debug("Saving of the config");
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
