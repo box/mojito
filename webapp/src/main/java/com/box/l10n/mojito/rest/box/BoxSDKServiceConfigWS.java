@@ -40,7 +40,7 @@ public class BoxSDKServiceConfigWS {
         return result;
     }
 
-    @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.PATCH)
+    @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.POST)
     public ResponseEntity setBoxSDKServiceConfig(
             @RequestBody BoxSDKServiceConfigEntity config
     ) {
