@@ -10,10 +10,12 @@ import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxAPIException;
 import com.box.sdk.BoxFolder;
+import com.box.sdk.BoxSharedLink;
 import com.box.sdk.BoxUser;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.concurrent.ExecutionException;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -73,15 +75,8 @@ public class BoxSDKServiceConfigEntityService {
             throw new BoxSDKServiceException("Config must be deleted first before adding a new one");
         }
 
-        boxSDKServiceConfig = new BoxSDKServiceConfigEntity();
-        boxSDKServiceConfig.setClientId(clientId);
-        boxSDKServiceConfig.setClientSecret(clientSecret);
-
-        boxSDKServiceConfig.setPublicKeyId(publicKeyId);
-        boxSDKServiceConfig.setPrivateKey(privateKey);
-        boxSDKServiceConfig.setPrivateKeyPassword(privateKeyPassword);
-
-        boxSDKServiceConfig.setEnterpriseId(enterpriseId);
+        boxSDKServiceConfig = new BoxSDKServiceConfigEntity(clientId, clientSecret, publicKeyId, privateKey, privateKeyPassword, enterpriseId,
+                null, null, null, false);
 
         logger.debug("Initial saving of the config so that it can be used immediately");
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
@@ -103,8 +98,53 @@ public class BoxSDKServiceConfigEntityService {
         MojitoAppUserInfo mojitoFolderStructure = createMojitoFolderStructure();
         boxSDKServiceConfig.setRootFolderId(mojitoFolderStructure.getRootFolderId());
         boxSDKServiceConfig.setDropsFolderId(mojitoFolderStructure.getDropsFolderId());
+        boxSDKServiceConfig.setBootstrap(true);
+
+        validateConfig(boxSDKServiceConfig);
 
         logger.debug("Saving of the config with updated IDs");
+        boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
+
+        return new PollableFutureTaskResult<>(boxSDKServiceConfig);
+    }
+
+    /**
+     * Add a new config
+     *
+     * @param clientId The Box API Client ID
+     * @param clientSecret The Box API Client Secret
+     * @param publicKeyId The Box API Public Key Id
+     * @param privateKey The Box API Private Key
+     * @param privateKeyPassword The Box API Private Key Password
+     * @param enterpriseId The Enterprise ID that has authorized the above Client ID
+     * @param appUserId The Box App User that belongs to the Enterprise ID above
+     * @param rootFolderId The root folder that contains all of Mojito related content and of which the App User has access to
+     * @param dropsFolderId The folder that contains drops that the App User listed above has access to
+     * @return
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws BoxSDKServiceException
+     */
+    @Pollable(async = true, message = "Start Adding Box SDK Service Config with no bootstrap")
+    public PollableFuture<BoxSDKServiceConfigEntity> addConfigWithNoBootstrap(
+            String clientId, String clientSecret, String publicKeyId,
+            String privateKey, String privateKeyPassword, String enterpriseId,
+            String appUserId, String rootFolderId, String dropsFolderId)
+            throws ExecutionException, InterruptedException, BoxSDKServiceException {
+
+        BoxSDKServiceConfigEntity boxSDKServiceConfig = boxSDKServiceConfigEntityRepository.findFirstByOrderByIdAsc();
+
+        if (boxSDKServiceConfig != null) {
+            throw new BoxSDKServiceException("Config must be deleted first before adding a new one");
+        }
+
+        boxSDKServiceConfig = new BoxSDKServiceConfigEntity(clientId, clientSecret, publicKeyId, privateKey, privateKeyPassword, enterpriseId,
+                appUserId, rootFolderId, dropsFolderId, false);
+
+        logger.debug("Saving of the config first so that it can be validated");
+        boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
+
+        validateConfig(boxSDKServiceConfig);
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
 
         return new PollableFutureTaskResult<>(boxSDKServiceConfig);
@@ -117,10 +157,12 @@ public class BoxSDKServiceConfigEntityService {
      * @throws InterruptedException
      * @throws BoxSDKServiceException
      */
+    @Transactional
     public void deleteConfig()
             throws ExecutionException, InterruptedException, BoxSDKServiceException {
 
-        boxSDKServiceConfigEntityRepository.deleteFirstByOrderByIdAsc();
+        Long deleted = boxSDKServiceConfigEntityRepository.deleteFirstByOrderByIdAsc();
+        logger.debug("Deleted Box SDK Config: {}", deleted);
     }
 
     /**
@@ -155,6 +197,27 @@ public class BoxSDKServiceConfigEntityService {
             return result;
         } catch (BoxAPIException e) {
             throw new BoxSDKServiceException("Can't creating Mojito Folder Structure.", e);
+        }
+    }
+
+    /**
+     * @param boxSDKServiceConfig
+     */
+    @Pollable(message = "Validate Config Values")
+    private void validateConfig(BoxSDKServiceConfigEntity boxSDKServiceConfig) {
+        logger.debug("Validating Box SDK Config");
+        try {
+            BoxAPIConnection apiConnection = boxAPIConnectionProvider.getConnection();
+            BoxFolder mojitoFolder = new BoxFolder(apiConnection, boxSDKServiceConfig.getRootFolderId());
+            BoxSharedLink sharedLink = mojitoFolder.createSharedLink(BoxSharedLink.Access.COLLABORATORS, null, null);
+
+            boxSDKServiceConfig.setRootFolderUrl(sharedLink.getURL());
+            boxSDKServiceConfig.setValidated(true);
+
+            logger.debug("Shared link for root folder: {}", sharedLink);
+        } catch (BoxSDKServiceException e) {
+            boxSDKServiceConfig.setValidated(false);
+            logger.error("Error validing config", e);
         }
     }
 }

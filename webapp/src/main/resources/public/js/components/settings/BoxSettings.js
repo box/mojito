@@ -1,10 +1,11 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-import {Modal} from "react-bootstrap";
+import {Button, Collapse, Modal, Label, OverlayTrigger, Tooltip} from "react-bootstrap";
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
 import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
+import xor from "../../utils/xor";
 
 let BoxSettings = React.createClass({
     mixins: [FluxyMixin],
@@ -37,9 +38,19 @@ let BoxSettings = React.createClass({
             "rootFolderId": "",
             "dropsFolderId": "",
 
+            /** @type {boolean} */
+            "bootstrap": true,
+
+            /** @type {boolean} */
+            "validated": false,
+
+            /** @type {string} */
+            "rootFolderUrl": "",
+
             // Component related states
             "displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO,
             "showWaitModal": false,
+            "showExtraFields": false
         };
     },
 
@@ -57,17 +68,18 @@ let BoxSettings = React.createClass({
         if (typeof config === "undefined") {
             this.setState({"displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO});
         } else if (config) {
-            let notAvailableMessage = this.props.intl.formatMessage({id: "settings.message.notAvailableYet"});
-
             this.setState({
                 "displayMode": this.DISPLAY_MODE.INFO,
                 "showWaitModal": false,
                 "clientId": config.clientId,
                 "publicKeyId": config.publicKeyId,
                 "enterpriseId": config.enterpriseId,
-                "appUserId": config.appUserId ? config.appUserId : notAvailableMessage,
-                "rootFolderId": config.rootFolderId ? config.rootFolderId : notAvailableMessage,
-                "dropsFolderId": config.dropsFolderId ? config.dropsFolderId : notAvailableMessage
+                "appUserId": config.appUserId,
+                "rootFolderId": config.rootFolderId,
+                "dropsFolderId": config.dropsFolderId,
+                "bootstrap": config.bootstrap,
+                "validated": config.validated,
+                "rootFolderUrl": config.rootFolderUrl
             });
         } else {
             this.setState({"displayMode": this.DISPLAY_MODE.EDIT});
@@ -90,7 +102,7 @@ let BoxSettings = React.createClass({
             <div className="col-sm-8">
                 <input className="form-control" type="text" name={inputName}
                        placeholder={this.props.intl.formatMessage({ id: intlMessageKey })}
-                       onChange={this.onHandleInputChange}
+                       onChange={this.onHandleInputChange} defaultValue={this.state[inputName]}
                 />
             </div>
         </div>);
@@ -100,14 +112,15 @@ let BoxSettings = React.createClass({
      * Get a 2 column view of the label message and info
      * @param intlMessageKey
      * @param infoValue
+     * @param optionalMessageIfBlank
      * @return {XML}
      */
-    getLabelAndInfo(intlMessageKey, infoValue) {
+    getLabelAndInfo(intlMessageKey, infoValue, optionalMessageIfBlank) {
         return (<div className="row pbs pts">
             <div className="col-sm-1"></div>
             <label className="col-sm-2 control-label"><FormattedMessage id={intlMessageKey}/></label>
             <div className="col-sm-8">
-                <span>{infoValue}</span>
+                <span>{!infoValue && optionalMessageIfBlank ? optionalMessageIfBlank : infoValue}</span>
             </div>
         </div>);
     },
@@ -135,10 +148,46 @@ let BoxSettings = React.createClass({
         boxSDKConfig.privateKeyPassword = this.state.privateKeyPassword;
         boxSDKConfig.enterpriseId = this.state.enterpriseId;
 
+        if (this.state.appUserId && this.state.dropsFolderId && this.state.rootFolderId) {
+            boxSDKConfig.appUserId = this.state.appUserId;
+            boxSDKConfig.dropsFolderId = this.state.dropsFolderId;
+            boxSDKConfig.rootFolderId = this.state.rootFolderId;
+            boxSDKConfig.bootstrap = false;
+        }
+
         BoxSDKConfigActions.setConfig(boxSDKConfig);
 
         this.setState({"showWaitModal": true});
         this.delayGetUpdatedConfig();
+    },
+
+    /**
+     * @return {boolean}
+     */
+    isFormReadyForSubmission() {
+        return this.areAllNormalFieldsFilled() && !this.hasDisableBootstrapFieldsError();
+    },
+
+    /**
+     * @return {boolean}
+     */
+    areAllNormalFieldsFilled() {
+        return (this.state.clientId && this.state.clientSecret && this.state.publicKeyId
+        && this.state.privateKey && this.state.privateKeyPassword && this.state.enterpriseId);
+    },
+
+    /**
+     * @return {boolean}
+     */
+    hasDisableBootstrapFieldsError() {
+        return xor(this.state.appUserId, this.state.dropsFolderId, this.state.rootFolderId);
+    },
+
+    /**
+     * @return {string|*|string}
+     */
+    hasAllDisabledBootstrapFields() {
+        return this.state.appUserId && this.state.dropsFolderId && this.state.rootFolderId;
     },
 
     /**
@@ -177,6 +226,25 @@ let BoxSettings = React.createClass({
             );
         }
 
+        let bootstrapMessage;
+        if (this.state.showExtraFields) {
+            bootstrapMessage = (
+                <OverlayTrigger placement="top"
+                                overlay={<Tooltip id="disable-bootstrap-instruction"><FormattedMessage id="settings.label.saveWithoutBootstrapInstructions.tooltip"/></Tooltip>}>
+                    <label className="clickable" onClick={() => {this.setState({"showExtraFields": false});}}>
+                        <FormattedMessage id="settings.label.saveWithoutBootstrapInstructions"/>
+                    </label>
+                </OverlayTrigger>);
+        } else {
+            bootstrapMessage = (
+                <OverlayTrigger placement="top"
+                                overlay={<Tooltip id="disable-bootstrap-instruction"><FormattedMessage id="settings.label.saveWithoutBootstrapInstructions.tooltip"/></Tooltip>}>
+                    <label className="clickable" onClick={() => {this.setState({"showExtraFields": true});}}>
+                        <FormattedMessage id="settings.label.saveWithoutBootstrap"/>
+                    </label>
+                </OverlayTrigger>);
+        }
+
         return (
             <form className="form-horizontal">
                 {modal}
@@ -186,8 +254,9 @@ let BoxSettings = React.createClass({
                 {this.getLabelInputTextBox("settings.box.publicKeyId", "publicKeyId")}
                 {this.getLabelInputTextBox("settings.box.privateKeyPassword", "privateKeyPassword")}
                 <div className="form-group pbs pts">
-                    <label
-                        className="col-sm-2 control-label"><FormattedMessage id="settings.box.privateKey"/></label>
+                    <label className="col-sm-2 control-label">
+                        <FormattedMessage id="settings.box.privateKey"/>
+                    </label>
                     <div className="col-sm-8">
                     <textarea className="form-control" rows="10" name="privateKey"
                               placeholder={this.props.intl.formatMessage({ id: "settings.box.privateKey" })}
@@ -197,12 +266,34 @@ let BoxSettings = React.createClass({
                 </div>
                 <div className="form-group pbs pts">
                     <div className="col-sm-2"></div>
+                    <div className="col-sm-8 text-center">
+                        <hr />
+                        {bootstrapMessage}
+                    </div>
+                </div>
+                <Collapse in={this.state.showExtraFields}>
+                    <div>
+                        {this.getLabelInputTextBox("settings.box.appUserId", "appUserId")}
+                        {this.getLabelInputTextBox("settings.box.rootFolderId", "rootFolderId")}
+                        {this.getLabelInputTextBox("settings.box.dropsFolderId", "dropsFolderId")}
+                    </div>
+                </Collapse>
+                <div className="form-group pbs pts">
+                    <div className="col-sm-2"></div>
                     <div className="col-sm-8">
-                        <input value={this.props.intl.formatMessage({ id: "settings.button.saveChanges" })}
-                               className="form-control btn btn-default col-md-3 btn-primary"
-                               onClick={this.onClickSubmit}
-
-                        />
+                        {this.state.clientId ?
+                            <Button className="pull-right mlm" onClick={() => this.setState({"displayMode": this.DISPLAY_MODE.INFO }) }>
+                                <FormattedMessage id="settings.button.cancel"/>
+                            </Button> : ""
+                        }
+                        <Button bsStyle="primary" className="pull-right"
+                                disabled={!this.isFormReadyForSubmission()}
+                                onClick={this.onClickSubmit}>
+                            {this.hasAllDisabledBootstrapFields() ?
+                                <FormattedMessage id="settings.button.saveWithoutBootstrapping"/> :
+                                <FormattedMessage id="settings.button.saveWithBoostrapping"/>
+                            }
+                        </Button>
                     </div>
                 </div>
             </form>);
@@ -213,14 +304,41 @@ let BoxSettings = React.createClass({
      * @return {XML}
      */
     getInfoView() {
+        let notAvailableYetMsg = this.props.intl.formatMessage({id: "settings.message.notAvailableYet"});
+
         return (
             <div>
+                <div className="row pbm ptm">
+                    <div className="col-sm-1">
+                        <Button bsStyle="primary" className="mlm" onClick={() => this.setState({"displayMode": this.DISPLAY_MODE.EDIT, "showExtraFields": true}) }>
+                            <FormattedMessage id="settings.button.edit"/>
+                        </Button>
+                    </div>
+                    <div className="col-sm-2"></div>
+                    <div className="col-sm-8"></div>
+                </div>
+                <div className="row pbs pts">
+                    <div className="col-sm-1"></div>
+                    <div className="col-sm-2 control-label"><strong><FormattedMessage id="settings.box.validated" /></strong></div>
+                    <div className="col-sm-8">
+                        {this.state.validated ? <Label bsStyle="success"><FormattedMessage id="settings.box.yes" /></Label> :
+                        <Label bsStyle="danger"><FormattedMessage id="settings.box.no" /></Label>}
+                    </div>
+                </div>
                 {this.getLabelAndInfo("settings.box.clientId", this.state.clientId)}
                 {this.getLabelAndInfo("settings.box.enterpriseId", this.state.enterpriseId)}
                 {this.getLabelAndInfo("settings.box.publicKeyId", this.state.publicKeyId)}
-                {this.getLabelAndInfo("settings.box.appUserId", this.state.appUserId)}
-                {this.getLabelAndInfo("settings.box.rootFolderId", this.state.rootFolderId)}
-                {this.getLabelAndInfo("settings.box.dropsFolderId", this.state.dropsFolderId)}
+                {this.getLabelAndInfo("settings.box.appUserId", this.state.appUserId, notAvailableYetMsg)}
+                {this.getLabelAndInfo("settings.box.rootFolderId", this.state.rootFolderId, notAvailableYetMsg)}
+                {this.getLabelAndInfo("settings.box.rootFolderUrl", <a href={this.state.rootFolderUrl}>{this.state.rootFolderUrl}</a>)}
+                {this.getLabelAndInfo("settings.box.dropsFolderId", this.state.dropsFolderId, notAvailableYetMsg)}
+                <div className="row pbs pts">
+                    <div className="col-sm-1"></div>
+                    <label className="col-sm-2 control-label"><FormattedMessage id="settings.box.bootstrap" /></label>
+                    <div className="col-sm-8">
+                        {this.state.bootstrap ? <FormattedMessage id="settings.box.yes" /> : <FormattedMessage id="settings.box.no" />}
+                    </div>
+                </div>
             </div>
         );
     },
@@ -251,7 +369,6 @@ let BoxSettings = React.createClass({
             </div>
         );
     }
-
 });
 
 export default injectIntl(BoxSettings);

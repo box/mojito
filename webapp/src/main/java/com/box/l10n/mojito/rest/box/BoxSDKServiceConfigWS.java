@@ -41,19 +41,37 @@ public class BoxSDKServiceConfigWS {
     }
 
     @RequestMapping(value = "/api/boxSDKServiceConfigs", method = RequestMethod.POST)
-    public ResponseEntity createBoxSDKServiceConfig(
-            @RequestBody BoxSDKServiceConfigEntity boxSDKServiceConfig
+    public ResponseEntity setBoxSDKServiceConfig(
+            @RequestBody BoxSDKServiceConfigEntity config
     ) {
         try {
-            PollableFuture<BoxSDKServiceConfigEntity> boxSDKServiceConfigEntityPollableFuture =
-                    boxSDKServiceConfigEntityService.addConfig(
-                            boxSDKServiceConfig.getClientId(),
-                            boxSDKServiceConfig.getClientSecret(),
-                            boxSDKServiceConfig.getPublicKeyId(),
-                            boxSDKServiceConfig.getPrivateKey(),
-                            boxSDKServiceConfig.getPrivateKeyPassword(),
-                            boxSDKServiceConfig.getEnterpriseId()
-                    );
+            logger.debug("Delete if config already exist");
+            boxSDKServiceConfigEntityService.deleteConfig();
+
+            PollableFuture<BoxSDKServiceConfigEntity> boxSDKServiceConfigEntityPollableFuture;
+
+            if (!config.getBootstrap()) {
+                boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfigWithNoBootstrap(
+                        config.getClientId(),
+                        config.getClientSecret(),
+                        config.getPublicKeyId(),
+                        config.getPrivateKey(),
+                        config.getPrivateKeyPassword(),
+                        config.getEnterpriseId(),
+                        config.getAppUserId(), config.getRootFolderId(),
+                        config.getDropsFolderId()
+                );
+            } else {
+                boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfig(
+                        config.getClientId(),
+                        config.getClientSecret(),
+                        config.getPublicKeyId(),
+                        config.getPrivateKey(),
+                        config.getPrivateKeyPassword(),
+                        config.getEnterpriseId()
+                );
+            }
+
             return new ResponseEntity(boxSDKServiceConfigEntityPollableFuture, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.error("Unable to update BoxSDKServiceConfig", e);
