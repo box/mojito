@@ -2,6 +2,7 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceConfig;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -36,12 +37,18 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
     @Column(name = "root_folder_id")
     private String rootFolderId;
 
+    @Column(name = "root_folder_url")
+    private String rootFolderUrl;
+
     @Column(name = "drops_folder_id")
     private String dropsFolderId;
 
     // Bootstraping allows Mojito to set up the Box folder structures in prepartion for project requests, and other features
     @Column(name = "bootstrap")
     private Boolean bootstrap;
+
+    @Column(name = "validated")
+    private Boolean validated;
 
     public BoxSDKServiceConfigEntity() {
     }
@@ -139,6 +146,22 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
         this.bootstrap = bootstrap;
     }
 
+    public String getRootFolderUrl() {
+        return rootFolderUrl;
+    }
+
+    public void setRootFolderUrl(String rootFolderUrl) {
+        this.rootFolderUrl = rootFolderUrl;
+    }
+
+    public Boolean getValidated() {
+        return validated;
+    }
+
+    public void setValidated(Boolean validated) {
+        this.validated = validated;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -155,11 +178,13 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
         if (enterpriseId != null ? !enterpriseId.equals(that.enterpriseId) : that.enterpriseId != null) return false;
         if (appUserId != null ? !appUserId.equals(that.appUserId) : that.appUserId != null) return false;
         if (rootFolderId != null ? !rootFolderId.equals(that.rootFolderId) : that.rootFolderId != null) return false;
+        if (rootFolderUrl != null ? !rootFolderUrl.equals(that.rootFolderUrl) : that.rootFolderUrl != null)
+            return false;
         if (dropsFolderId != null ? !dropsFolderId.equals(that.dropsFolderId) : that.dropsFolderId != null)
             return false;
         if (bootstrap != null ? !bootstrap.equals(that.bootstrap) : that.bootstrap != null) return false;
+        return validated != null ? validated.equals(that.validated) : that.validated == null;
 
-        return true;
     }
 
     @Override
@@ -172,8 +197,10 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
         result = 31 * result + (enterpriseId != null ? enterpriseId.hashCode() : 0);
         result = 31 * result + (appUserId != null ? appUserId.hashCode() : 0);
         result = 31 * result + (rootFolderId != null ? rootFolderId.hashCode() : 0);
+        result = 31 * result + (rootFolderUrl != null ? rootFolderUrl.hashCode() : 0);
         result = 31 * result + (dropsFolderId != null ? dropsFolderId.hashCode() : 0);
         result = 31 * result + (bootstrap != null ? bootstrap.hashCode() : 0);
+        result = 31 * result + (validated != null ? validated.hashCode() : 0);
         return result;
     }
 }

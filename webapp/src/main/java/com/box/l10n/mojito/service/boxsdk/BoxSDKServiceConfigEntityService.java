@@ -10,6 +10,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.sdk.BoxAPIConnection;
 import com.box.sdk.BoxAPIException;
 import com.box.sdk.BoxFolder;
+import com.box.sdk.BoxSharedLink;
 import com.box.sdk.BoxUser;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,9 +98,11 @@ public class BoxSDKServiceConfigEntityService {
         MojitoAppUserInfo mojitoFolderStructure = createMojitoFolderStructure();
         boxSDKServiceConfig.setRootFolderId(mojitoFolderStructure.getRootFolderId());
         boxSDKServiceConfig.setDropsFolderId(mojitoFolderStructure.getDropsFolderId());
+        boxSDKServiceConfig.setBootstrap(true);
+
+        validateConfig(boxSDKServiceConfig);
 
         logger.debug("Saving of the config with updated IDs");
-        boxSDKServiceConfig.setBootstrap(true);
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
 
         return new PollableFutureTaskResult<>(boxSDKServiceConfig);
@@ -138,7 +141,10 @@ public class BoxSDKServiceConfigEntityService {
         boxSDKServiceConfig = new BoxSDKServiceConfigEntity(clientId, clientSecret, publicKeyId, privateKey, privateKeyPassword, enterpriseId,
                 appUserId, rootFolderId, dropsFolderId, false);
 
-        logger.debug("Saving of the config");
+        logger.debug("Saving of the config first so that it can be validated");
+        boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
+
+        validateConfig(boxSDKServiceConfig);
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
 
         return new PollableFutureTaskResult<>(boxSDKServiceConfig);
@@ -191,6 +197,27 @@ public class BoxSDKServiceConfigEntityService {
             return result;
         } catch (BoxAPIException e) {
             throw new BoxSDKServiceException("Can't creating Mojito Folder Structure.", e);
+        }
+    }
+
+    /**
+     * @param boxSDKServiceConfig
+     */
+    @Pollable(message = "Validate Config Values")
+    private void validateConfig(BoxSDKServiceConfigEntity boxSDKServiceConfig) {
+        logger.debug("Validating Box SDK Config");
+        try {
+            BoxAPIConnection apiConnection = boxAPIConnectionProvider.getConnection();
+            BoxFolder mojitoFolder = new BoxFolder(apiConnection, boxSDKServiceConfig.getRootFolderId());
+            BoxSharedLink sharedLink = mojitoFolder.createSharedLink(BoxSharedLink.Access.COLLABORATORS, null, null);
+
+            boxSDKServiceConfig.setRootFolderUrl(sharedLink.getURL());
+            boxSDKServiceConfig.setValidated(true);
+
+            logger.debug("Shared link for root folder: {}", sharedLink);
+        } catch (BoxSDKServiceException e) {
+            boxSDKServiceConfig.setValidated(false);
+            logger.error("Error validing config", e);
         }
     }
 }

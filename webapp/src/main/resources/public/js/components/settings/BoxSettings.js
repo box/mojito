@@ -1,7 +1,7 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import FluxyMixin from "alt/mixins/FluxyMixin";
-import {Button, Collapse, Modal, OverlayTrigger, Tooltip} from "react-bootstrap";
+import {Button, Collapse, Modal, Label, OverlayTrigger, Tooltip} from "react-bootstrap";
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
 import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
@@ -41,6 +41,12 @@ let BoxSettings = React.createClass({
             /** @type {boolean} */
             "bootstrap": true,
 
+            /** @type {boolean} */
+            "validated": false,
+
+            /** @type {string} */
+            "rootFolderUrl": "",
+
             // Component related states
             "displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO,
             "showWaitModal": false,
@@ -71,7 +77,9 @@ let BoxSettings = React.createClass({
                 "appUserId": config.appUserId,
                 "rootFolderId": config.rootFolderId,
                 "dropsFolderId": config.dropsFolderId,
-                "bootstrap": config.bootstrap
+                "bootstrap": config.bootstrap,
+                "validated": config.validated,
+                "rootFolderUrl": config.rootFolderUrl
             });
         } else {
             this.setState({"displayMode": this.DISPLAY_MODE.EDIT});
@@ -309,17 +317,26 @@ let BoxSettings = React.createClass({
                     <div className="col-sm-2"></div>
                     <div className="col-sm-8"></div>
                 </div>
+                <div className="row pbs pts">
+                    <div className="col-sm-1"></div>
+                    <div className="col-sm-2 control-label"><strong><FormattedMessage id="settings.box.validated" /></strong></div>
+                    <div className="col-sm-8">
+                        {this.state.validated ? <Label bsStyle="success"><FormattedMessage id="settings.box.yes" /></Label> :
+                        <Label bsStyle="danger"><FormattedMessage id="settings.box.no" /></Label>}
+                    </div>
+                </div>
                 {this.getLabelAndInfo("settings.box.clientId", this.state.clientId)}
                 {this.getLabelAndInfo("settings.box.enterpriseId", this.state.enterpriseId)}
                 {this.getLabelAndInfo("settings.box.publicKeyId", this.state.publicKeyId)}
                 {this.getLabelAndInfo("settings.box.appUserId", this.state.appUserId, notAvailableYetMsg)}
                 {this.getLabelAndInfo("settings.box.rootFolderId", this.state.rootFolderId, notAvailableYetMsg)}
+                {this.getLabelAndInfo("settings.box.rootFolderUrl", <a href={this.state.rootFolderUrl}>{this.state.rootFolderUrl}</a>)}
                 {this.getLabelAndInfo("settings.box.dropsFolderId", this.state.dropsFolderId, notAvailableYetMsg)}
                 <div className="row pbs pts">
                     <div className="col-sm-1"></div>
                     <label className="col-sm-2 control-label"><FormattedMessage id="settings.box.bootstrap" /></label>
                     <div className="col-sm-8">
-                        {this.state.bootstrap ? <FormattedMessage id="settings.box.bootstrap.yes" /> : <FormattedMessage id="settings.box.bootstrap.no" />}
+                        {this.state.bootstrap ? <FormattedMessage id="settings.box.yes" /> : <FormattedMessage id="settings.box.no" />}
                     </div>
                 </div>
             </div>

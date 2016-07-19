@@ -30,6 +30,12 @@ export default class BoxSDKConfig {
 
         /** @type {boolean} */
         this.bootstrap = true;
+
+        /** @type {boolean} */
+        this.validated = false;
+
+        /** @type {string} */
+        this.rootFolderUrl = "";
     }
 
     /**
@@ -52,6 +58,8 @@ export default class BoxSDKConfig {
             result.rootFolderId = json.rootFolderId;
             result.dropsFolderId = json.dropsFolderId;
             result.bootstrap = json.bootstrap;
+            result.validated = json.validated;
+            result.rootFolderUrl = json.rootFolderUrl;
         }
 
         return result;
