@@ -302,7 +302,8 @@ let SearchResults = React.createClass({
         }
 
         this.setState({
-            "textUnitInEditMode": textUnit
+            "textUnitInEditMode": textUnit,
+            "activeTextUnitIndex": textUnit.props.textUnitIndex
         });
     },
 
