@@ -43,7 +43,9 @@ public class BoxSDKServiceConfigEntity extends AuditableEntity implements BoxSDK
     @Column(name = "drops_folder_id")
     private String dropsFolderId;
 
-    // Bootstraping allows Mojito to set up the Box folder structures in prepartion for project requests, and other features
+    /**
+     * Bootstraping allows Mojito to set up the Box folder structures in prepartion for project requests, and other features
+     */
     @Column(name = "bootstrap")
     private Boolean bootstrap;
 

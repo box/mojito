@@ -230,17 +230,17 @@ let BoxSettings = React.createClass({
         if (this.state.showExtraFields) {
             bootstrapMessage = (
                 <OverlayTrigger placement="top"
-                                overlay={<Tooltip id="disable-bootstrap-instruction"><FormattedMessage id="settings.label.disableBootstrapInstructions.tooltip"/></Tooltip>}>
+                                overlay={<Tooltip id="disable-bootstrap-instruction"><FormattedMessage id="settings.label.saveWithoutBootstrapInstructions.tooltip"/></Tooltip>}>
                     <label className="clickable" onClick={() => {this.setState({"showExtraFields": false});}}>
-                        <FormattedMessage id="settings.label.disableBootstrapInstructions"/>
+                        <FormattedMessage id="settings.label.saveWithoutBootstrapInstructions"/>
                     </label>
                 </OverlayTrigger>);
         } else {
             bootstrapMessage = (
                 <OverlayTrigger placement="top"
-                                overlay={<Tooltip id="disable-bootstrap-instruction"><FormattedMessage id="settings.label.disableBootstrapInstructions.tooltip"/></Tooltip>}>
+                                overlay={<Tooltip id="disable-bootstrap-instruction"><FormattedMessage id="settings.label.saveWithoutBootstrapInstructions.tooltip"/></Tooltip>}>
                     <label className="clickable" onClick={() => {this.setState({"showExtraFields": true});}}>
-                        <FormattedMessage id="settings.label.disableBootstrap"/>
+                        <FormattedMessage id="settings.label.saveWithoutBootstrap"/>
                     </label>
                 </OverlayTrigger>);
         }
@@ -290,7 +290,7 @@ let BoxSettings = React.createClass({
                                 disabled={!this.isFormReadyForSubmission()}
                                 onClick={this.onClickSubmit}>
                             {this.hasAllDisabledBootstrapFields() ?
-                                <FormattedMessage id="settings.button.saveAndDisableBootstrapping"/> :
+                                <FormattedMessage id="settings.button.saveWithoutBootstrapping"/> :
                                 <FormattedMessage id="settings.button.saveWithBoostrapping"/>
                             }
                         </Button>
