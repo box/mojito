@@ -1,6 +1,12 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 import com.ibm.icu.text.MessageFormat;
+import java.text.Format;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +52,17 @@ public class MessageFormatIntegrityChecker implements TextUnitIntegrityChecker {
         logger.debug("Check number of format/placeholder in the source and target message formats is the same");
         int numberSourceFormats = sourceMessageFormat.getFormats().length;
         int numberTargetFormats = targetMessageFormat.getFormats().length;
-        
+                
         if(numberSourceFormats != numberTargetFormats) {
             throw new MessageFormatIntegrityCheckerException("Number of placeholders in source (" + numberSourceFormats + ") and target (" 
                     + numberTargetFormats + ") is different");
+        }
+            
+        Set<String> sourceArgumentNames = sourceMessageFormat.getArgumentNames();
+        Set<String> targetArgumentNames = targetMessageFormat.getArgumentNames();
+        
+        if(!sourceArgumentNames.equals(targetArgumentNames)) {
+           throw new MessageFormatIntegrityCheckerException("Different placeholder name in source and target");
         }
     }
 }
