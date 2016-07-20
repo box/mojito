@@ -56,7 +56,7 @@ class BoxSDKConfigStore {
         let pollableTask = pollableTaskFuture.pollableTask;
         if (!pollableTask.isAllFinished) {
             this.setState({"isBeingProcessed": true});
-            PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id, 0)
+            PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id)
                 .then(() => {
                     this.onGetConfig();
                     this.setState({"isBeingProcessed": false});

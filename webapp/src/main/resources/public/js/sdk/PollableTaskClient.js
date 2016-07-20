@@ -4,26 +4,47 @@ import ExportDropConfig from './drop/ExportDropConfig';
 import PageRequestResults from "./PageRequestResults";
 import PollableTask from "./entity/PollableTask";
 
+/**
+ * @param ms The amount of time in ms to delay
+ * @return {Promise}
+ */
+function delay(ms) {
+    return new Promise((resolve, reject) => setTimeout(resolve, ms));
+}
+
 class PollableTaskClient extends BaseClient {
 
     /**
      *
      * @param {Number} pollableId
-     * @param {Number} timeout
+     * @param {Number} timeout in ms
      * @return {Promise}
      */
     waitForPollableTaskToFinish(pollableId, timeout) {
-        function delay(ms) {
-            return new Promise((resolve, reject) => setTimeout(resolve, ms));
+        let timeoutTime = 0;
+        if (timeout) {
+            timeoutTime = (new Date()).getTime() + timeout;
         }
 
-        // TODO timeout
+        return this.doWaitForPollableTaskToFinish(pollableId, timeoutTime);
+    }
+
+    /**
+     * @param pollableId
+     * @param timeoutTime The time at which waiting should stop.  If this is 0, it will wait forever.
+     * @return {Promise.<TResult>}
+     */
+    doWaitForPollableTaskToFinish(pollableId, timeoutTime) {
+        let currentTime = (new Date()).getTime();
+        if (timeoutTime && currentTime > timeoutTime ) {
+            throw new Error("Timed out waiting for pollableTask to finish");
+        }
 
         return this.get(this.getUrl(pollableId), {}).then((json) => {
             let pollableTask = PollableTask.toPollableTask(json);
 
             if (!pollableTask.isAllFinished) {
-                return delay(500).then(this.waitForPollableTaskToFinish.bind(this, pollableId, timeout));
+                return delay(500).then(this.doWaitForPollableTaskToFinish.bind(this, pollableId, timeoutTime));
             }
         });
     }
