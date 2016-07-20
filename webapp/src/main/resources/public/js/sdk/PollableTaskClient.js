@@ -13,12 +13,18 @@ class PollableTaskClient extends BaseClient {
      * @return {Promise}
      */
     waitForPollableTaskToFinish(pollableId, timeout) {
-        return this.get(this.getUrl(pollableId), {}).then((result) => {
-            let pollableTask = PollableTask.toPollableTask(result);
+        function delay(ms) {
+            return new Promise((resolve, reject) => setTimeout(resolve, ms));
+        }
 
-            // TODO timeout
-            // TODO settimeout promise, wait
-            return pollableTask.isAllFinished ? true : this.waitForPollableTaskToFinish(pollableId, timeout);
+        // TODO timeout
+
+        return this.get(this.getUrl(pollableId), {}).then((json) => {
+            let pollableTask = PollableTask.toPollableTask(json);
+
+            if (!pollableTask.isAllFinished) {
+                return delay(500).then(this.waitForPollableTaskToFinish.bind(this, pollableId, timeout));
+            }
         });
     }
 
