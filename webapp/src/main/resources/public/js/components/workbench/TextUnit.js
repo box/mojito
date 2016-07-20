@@ -494,8 +494,10 @@ let TextUnit = React.createClass({
 
     handleErrorAlertDismiss() {
         this.setState({
-            "isErrorAlertShown": false,
+            "isErrorAlertShown": false
         });
+
+        WorkbenchActions.resetErrorState(this.getTextUnitFromProps());
     },
 
     handleModalSave() {
@@ -503,7 +505,7 @@ let TextUnit = React.createClass({
         WorkbenchActions.saveTextUnit(textUnit);
 
         this.setState({
-            "isErrorAlertShown": false,
+            "isErrorAlertShown": false
         });
     },
 
