@@ -38,7 +38,7 @@ public class UserDeleteCommand extends Command {
             userClient.deleteUserByUsername(username);
             consoleWriter.newLine().a("deleted --> user: ").fg(Ansi.Color.MAGENTA).a(username).println();
         } catch (ResourceNotFoundException ex) {
-            throw new CommandException("User not found: " + username, ex);
+            throw new CommandException("Error deleting user: " + ex.getMessage(), ex);
         }
     }
 

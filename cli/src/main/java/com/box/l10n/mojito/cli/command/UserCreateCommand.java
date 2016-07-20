@@ -60,14 +60,14 @@ public class UserCreateCommand extends Command {
         consoleWriter.a("Create user: ").fg(Ansi.Color.CYAN).a(username).println();
 
         try {
-            consoleWriter.a("Enter user password: ").println();
+            consoleWriter.a("Enter new password for " + username + ":").println();
             String password = console.readPassword();
             
             Role role = rolename == null ? null : Role.valueOf(rolename);
             User user = userClient.createUser(username, password, role, surname, givenName, commonName);
             consoleWriter.newLine().a("created --> user: ").fg(Ansi.Color.MAGENTA).a(user.getUsername()).println();
         } catch (ResourceNotCreatedException ex) {
-            throw new CommandException("Error creating user: " + username, ex);
+            throw new CommandException("Error creating user: " + ex.getMessage(), ex);
         }
     }
     
