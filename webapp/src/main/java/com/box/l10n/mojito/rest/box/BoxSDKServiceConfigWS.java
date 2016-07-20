@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.box;
 
 import com.box.l10n.mojito.entity.BoxSDKServiceConfigEntity;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import org.slf4j.Logger;
@@ -59,7 +60,8 @@ public class BoxSDKServiceConfigWS {
                         config.getPrivateKeyPassword(),
                         config.getEnterpriseId(),
                         config.getAppUserId(), config.getRootFolderId(),
-                        config.getDropsFolderId()
+                        config.getDropsFolderId(),
+                        PollableTask.INJECT_CURRENT_TASK
                 );
             } else {
                 boxSDKServiceConfigEntityPollableFuture = boxSDKServiceConfigEntityService.addConfig(
@@ -68,7 +70,8 @@ public class BoxSDKServiceConfigWS {
                         config.getPublicKeyId(),
                         config.getPrivateKey(),
                         config.getPrivateKeyPassword(),
-                        config.getEnterpriseId()
+                        config.getEnterpriseId(),
+                        PollableTask.INJECT_CURRENT_TASK
                 );
             }
 

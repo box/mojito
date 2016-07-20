@@ -1,5 +1,6 @@
 import BaseClient from "./BaseClient";
 import BoxSDKConfig from "../sdk/entity/BoxSDKConfig";
+import PollableTaskFuture from "./entity/PollableTaskFuture";
 
 class BoxSDKConfigClient extends BaseClient {
 
@@ -23,10 +24,13 @@ class BoxSDKConfigClient extends BaseClient {
 
     /**
      * @param {BoxSDKConfig} boxSDKConfig
+     * @return {Promise.<PollableTaskFuture>}
      */
     setConfig(boxSDKConfig) {
         let promise = this.post(this.getUrl(), boxSDKConfig);
-        return promise.then(() => {});
+        return promise.then((pollableTaskFuture) => {
+            return PollableTaskFuture.toPollableTaskFuture(pollableTaskFuture);
+        });
     }
 
     getEntityName() {

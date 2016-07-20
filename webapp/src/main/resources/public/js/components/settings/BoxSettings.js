@@ -47,6 +47,9 @@ let BoxSettings = React.createClass({
             /** @type {string} */
             "rootFolderUrl": "",
 
+            /** @type {boolean} */
+            "isBeingProcessed": false,
+
             // Component related states
             "displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO,
             "showWaitModal": false,
@@ -64,6 +67,9 @@ let BoxSettings = React.createClass({
      */
     onBoxSDKConfigStoreUpdated(boxSDKConfigStore) {
         let config = boxSDKConfigStore.boxSDKConfig;
+
+        console.log("boxSDKConfigStore.isBeingProcessed", boxSDKConfigStore.isBeingProcessed);
+        this.setState({"isBeingProcessed": boxSDKConfigStore.isBeingProcessed});
 
         if (typeof config === "undefined") {
             this.setState({"displayMode": this.DISPLAY_MODE.WAITING_FOR_INFO});
@@ -305,6 +311,11 @@ let BoxSettings = React.createClass({
      */
     getInfoView() {
         let notAvailableYetMsg = this.props.intl.formatMessage({id: "settings.message.notAvailableYet"});
+        
+        let validatedResult = (this.state.isBeingProcessed) ? <FormattedMessage id="settings.box.validating" /> :
+                (this.state.validated) ?
+                    (<Label bsStyle="success"><FormattedMessage id="settings.box.yes"/></Label>) :
+                    (<Label bsStyle="danger"><FormattedMessage id="settings.box.no"/></Label>);
 
         return (
             <div>
@@ -320,10 +331,7 @@ let BoxSettings = React.createClass({
                 <div className="row pbs pts">
                     <div className="col-sm-1"></div>
                     <div className="col-sm-2 control-label"><strong><FormattedMessage id="settings.box.validated" /></strong></div>
-                    <div className="col-sm-8">
-                        {this.state.validated ? <Label bsStyle="success"><FormattedMessage id="settings.box.yes" /></Label> :
-                        <Label bsStyle="danger"><FormattedMessage id="settings.box.no" /></Label>}
-                    </div>
+                    <div className="col-sm-8">{validatedResult}</div>
                 </div>
                 {this.getLabelAndInfo("settings.box.clientId", this.state.clientId)}
                 {this.getLabelAndInfo("settings.box.enterpriseId", this.state.enterpriseId)}

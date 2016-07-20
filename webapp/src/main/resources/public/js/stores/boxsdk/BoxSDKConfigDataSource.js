@@ -18,14 +18,14 @@ const BoxSDKConfigDataSource = {
         /**
          * @param {BoxSDKConfigStore} boxSDKConfigState
          * @param {BoxSDKConfig} boxSDKConfig
+         * @return {Promise.<PollableTaskFuture>}
          */
         remote(boxSDKConfigState, boxSDKConfig) {
-            return BoxSDKConfigClient.setConfig(boxSDKConfig)
-                .then(() => {});
+            return BoxSDKConfigClient.setConfig(boxSDKConfig);
         },
         success: BoxSDKConfigActions.setConfigSuccess,
         error: BoxSDKConfigActions.setConfigError
-    },
+    }
 };
 
 export default BoxSDKConfigDataSource;
