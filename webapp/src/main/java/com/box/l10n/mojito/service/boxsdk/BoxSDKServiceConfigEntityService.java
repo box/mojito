@@ -4,6 +4,9 @@ import com.box.l10n.mojito.boxsdk.BoxAPIConnectionProvider;
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceException;
 import com.box.l10n.mojito.boxsdk.MojitoAppUserInfo;
 import com.box.l10n.mojito.entity.BoxSDKServiceConfigEntity;
+import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
+import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
@@ -58,15 +61,17 @@ public class BoxSDKServiceConfigEntityService {
      * @param privateKey The Box API Private Key
      * @param privateKeyPassword The Box API Private Key Password
      * @param enterpriseId The Enterprise ID that has authorized the above Client ID
+     * @param currentTask
      * @return
      * @throws ExecutionException
      * @throws InterruptedException
      * @throws BoxSDKServiceException
      */
-    @Pollable(async = true, message = "Start Adding Box SDK Service Config")
+    @Pollable(async = true, message = "Start Adding Box SDK Service Config", expectedSubTaskNumber = 1)
     public PollableFuture<BoxSDKServiceConfigEntity> addConfig(
             String clientId, String clientSecret, String publicKeyId,
-            String privateKey, String privateKeyPassword, String enterpriseId)
+            String privateKey, String privateKeyPassword, String enterpriseId,
+            @InjectCurrentTask PollableTask currentTask)
             throws ExecutionException, InterruptedException, BoxSDKServiceException {
 
         BoxSDKServiceConfigEntity boxSDKServiceConfig = boxSDKServiceConfigEntityRepository.findFirstByOrderByIdAsc();
@@ -100,7 +105,7 @@ public class BoxSDKServiceConfigEntityService {
         boxSDKServiceConfig.setDropsFolderId(mojitoFolderStructure.getDropsFolderId());
         boxSDKServiceConfig.setBootstrap(true);
 
-        validateConfig(boxSDKServiceConfig);
+        validateConfig(boxSDKServiceConfig, currentTask);
 
         logger.debug("Saving of the config with updated IDs");
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
@@ -120,16 +125,18 @@ public class BoxSDKServiceConfigEntityService {
      * @param appUserId The Box App User that belongs to the Enterprise ID above
      * @param rootFolderId The root folder that contains all of Mojito related content and of which the App User has access to
      * @param dropsFolderId The folder that contains drops that the App User listed above has access to
+     * @param currentTask
      * @return
      * @throws ExecutionException
      * @throws InterruptedException
      * @throws BoxSDKServiceException
      */
-    @Pollable(async = true, message = "Start Adding Box SDK Service Config with no bootstrap")
+    @Pollable(async = true, message = "Start Adding Box SDK Service Config with no bootstrap", expectedSubTaskNumber = 1)
     public PollableFuture<BoxSDKServiceConfigEntity> addConfigWithNoBootstrap(
             String clientId, String clientSecret, String publicKeyId,
             String privateKey, String privateKeyPassword, String enterpriseId,
-            String appUserId, String rootFolderId, String dropsFolderId)
+            String appUserId, String rootFolderId, String dropsFolderId,
+            @InjectCurrentTask PollableTask currentTask)
             throws ExecutionException, InterruptedException, BoxSDKServiceException {
 
         BoxSDKServiceConfigEntity boxSDKServiceConfig = boxSDKServiceConfigEntityRepository.findFirstByOrderByIdAsc();
@@ -144,8 +151,7 @@ public class BoxSDKServiceConfigEntityService {
         logger.debug("Saving of the config first so that it can be validated");
         boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
 
-        validateConfig(boxSDKServiceConfig);
-        boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
+        validateConfig(boxSDKServiceConfig, currentTask);
 
         return new PollableFutureTaskResult<>(boxSDKServiceConfig);
     }
@@ -204,7 +210,7 @@ public class BoxSDKServiceConfigEntityService {
      * @param boxSDKServiceConfig
      */
     @Pollable(message = "Validate Config Values")
-    private void validateConfig(BoxSDKServiceConfigEntity boxSDKServiceConfig) {
+    private void validateConfig(BoxSDKServiceConfigEntity boxSDKServiceConfig, @ParentTask PollableTask parentTask) {
         logger.debug("Validating Box SDK Config");
         try {
             BoxAPIConnection apiConnection = boxAPIConnectionProvider.getConnection();
@@ -213,6 +219,8 @@ public class BoxSDKServiceConfigEntityService {
 
             boxSDKServiceConfig.setRootFolderUrl(sharedLink.getURL());
             boxSDKServiceConfig.setValidated(true);
+
+            boxSDKServiceConfigEntityRepository.save(boxSDKServiceConfig);
 
             logger.debug("Shared link for root folder: {}", sharedLink);
         } catch (BoxSDKServiceException e) {
