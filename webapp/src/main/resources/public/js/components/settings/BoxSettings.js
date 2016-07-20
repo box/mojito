@@ -68,7 +68,6 @@ let BoxSettings = React.createClass({
     onBoxSDKConfigStoreUpdated(boxSDKConfigStore) {
         let config = boxSDKConfigStore.boxSDKConfig;
 
-        console.log("boxSDKConfigStore.isBeingProcessed", boxSDKConfigStore.isBeingProcessed);
         this.setState({"isBeingProcessed": boxSDKConfigStore.isBeingProcessed});
 
         if (typeof config === "undefined") {
