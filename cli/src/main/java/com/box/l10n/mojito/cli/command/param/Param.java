@@ -42,7 +42,7 @@ public class Param {
     public static final String TARGET_DIRECTORY_DESCRIPTION = "Target directory that will contain localized assets";
 
     public static final String DROP_IMPORT_STATUS = "--import-status";
-    public static final String DROP_IMPORT_STATUS_DESCRIPTION = "Target directory that will contain localized assets";
+    public static final String DROP_IMPORT_STATUS_DESCRIPTION = "Override the status of translations being imported";
 
     public static final String SOURCE_LOCALE_LONG = "--source-locale";
     public static final String SOURCE_LOCALE_SHORT = "-sl";
