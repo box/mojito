@@ -128,7 +128,7 @@ public class DropWS {
     public ImportDropConfig importDrop(@RequestBody ImportDropConfig importDropConfig) throws Exception {
 
         // TODO(P1) Check here that the repo exists (and the user has access to it)?
-        PollableFuture importDropFuture = dropService.importDrop(importDropConfig.getDropId(), importDropConfig.getImportStatus(), PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture importDropFuture = dropService.importDrop(importDropConfig.getDropId(), importDropConfig.getStatus(), PollableTask.INJECT_CURRENT_TASK);
 
         importDropConfig.setPollableTask(importDropFuture.getPollableTask());
 

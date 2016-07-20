@@ -22,7 +22,7 @@ public class ImportDropConfig {
     @JsonProperty(required = true)
     Long dropId;
 
-    TMTextUnitVariant.Status importStatus;
+    TMTextUnitVariant.Status status;
 
     PollableTask pollableTask;
 
@@ -42,12 +42,12 @@ public class ImportDropConfig {
         this.dropId = dropId;
     }
 
-    public TMTextUnitVariant.Status getImportStatus() {
-        return importStatus;
+    public TMTextUnitVariant.Status getStatus() {
+        return status;
     }
 
-    public void setImportStatus(TMTextUnitVariant.Status importStatus) {
-        this.importStatus = importStatus;
+    public void setStatus(TMTextUnitVariant.Status status) {
+        this.status = status;
     }
 
     @JsonProperty
