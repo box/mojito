@@ -67,7 +67,7 @@ public class UserClient extends BaseClient {
      * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException 
      */
     public User createUser(String username, String password, Role role, String surname, String givenName, String commonName) throws ResourceNotCreatedException {
-        logger.debug("Creating user with username = {}", username);
+        logger.debug("Creating user with username [{}]", username);
 
         User userToCreate = new User();
         userToCreate.setUsername(username);
@@ -86,7 +86,7 @@ public class UserClient extends BaseClient {
             return authenticatedRestTemplate.postForObject(getBasePathForEntity(), userToCreate, User.class);
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
-                throw new ResourceNotCreatedException("User with this username already exists");
+                throw new ResourceNotCreatedException("User with username [" + username + "] already exists");
             } else {
                 throw exception;
             }
@@ -103,7 +103,7 @@ public class UserClient extends BaseClient {
         logger.debug("Deleting user by username = [{}]", username);
         List<User> users = getUsers(username);
         if (users.isEmpty()) {
-            throw new ResourceNotFoundException("Could not find user with username = " + username);
+            throw new ResourceNotFoundException("User with username [" + username + "] not found");
         } else {
             authenticatedRestTemplate.delete(getBasePathForEntity() + "/" + users.get(0).getId());
         }
@@ -125,7 +125,7 @@ public class UserClient extends BaseClient {
         
         List<User> users = getUsers(username);       
         if (users.isEmpty()) {
-            throw new ResourceNotFoundException("Could not find user with username = " + username);
+            throw new ResourceNotFoundException("User with username [" + username + "] not found");
         } else {
             User user = users.get(0);
             user.setPassword(password);

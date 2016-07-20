@@ -1,20 +1,14 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.internal.DefaultConsole;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.Console;
-import static com.box.l10n.mojito.cli.command.UserUpdateCommandTest.logger;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
-import java.lang.reflect.Field;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-import static org.mockito.Matchers.anyString;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.mockito.invocation.InvocationOnMock;
@@ -68,7 +62,7 @@ public class UserCreateCommandTest extends CLITestBase {
         createTestUser(username, null);
         
         createTestUser(username, null);
-        assertTrue(outputCapture.toString().contains("Error creating user"));
+        assertTrue(outputCapture.toString().contains("User with username [" + username + "] already exists"));
     }
         
     private String createTestUser(String username, String role) throws Exception {

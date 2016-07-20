@@ -55,6 +55,6 @@ public class UserDeleteCommandTest extends CLITestBase {
                 "user-delete",
                 Param.USERNAME_SHORT, username
         ); 
-        assertTrue(outputCapture.toString().contains("User not found:"));
+        assertTrue(outputCapture.toString().contains("User with username [" + username + "] not found"));
     }
 }

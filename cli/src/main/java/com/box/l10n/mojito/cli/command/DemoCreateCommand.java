@@ -60,7 +60,7 @@ public class DemoCreateCommand extends RepoCommand {
         push();
 
         consoleWriter.newLine().a("Demo reposiotry is ready!").println().println()
-                .a("Go in directory: ")
+                .a("Go to directory: ")
                 .fg(Ansi.Color.CYAN)
                 .a(outputDirectoryPath.toString())
                 .reset()
