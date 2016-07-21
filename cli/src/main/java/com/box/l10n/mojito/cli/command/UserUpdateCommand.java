@@ -66,7 +66,7 @@ public class UserUpdateCommand extends Command {
             userClient.updateUserByUsername(username, getPassword(), role, surname, givenName, commonName);
             consoleWriter.newLine().a("updated --> user: ").fg(Ansi.Color.MAGENTA).a(username).println();
         } catch (ResourceNotFoundException ex) {
-            throw new CommandException("Error updating user: " + ex.getMessage(), ex);
+            throw new CommandException(ex.getMessage(), ex);
         }
     }
 

@@ -91,7 +91,7 @@ public class LocaleHelper {
             Locale locale = localeMapByBcp47Tag.get(bcp47Tag);
 
             if (locale == null) {
-                throw new CommandException("You have specified a locale that does not exist in the system: " + bcp47Tag);
+                throw new CommandException("Locale [" + bcp47Tag + "] does not exist in the system");
             }
 
             if (repositoryLocale.getLocale() == null) {

@@ -18,7 +18,7 @@ public class ExportDropConfigType implements IStringConverter<ExportDropConfig.T
             try {
                 type = ExportDropConfig.Type.valueOf(string.toUpperCase());
             } catch (IllegalArgumentException iae) {
-                throw new ParameterException("Invalid type");
+                throw new ParameterException("Invalid type [" + string + "]");
             }
         }
 

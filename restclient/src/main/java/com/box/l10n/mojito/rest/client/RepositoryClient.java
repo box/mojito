@@ -76,7 +76,7 @@ public class RepositoryClient extends BaseClient {
         List<Repository> repositoryList = getRepositories(repositoryName);
 
         if (repositoryList.size() != 1) {
-            throw new RepositoryNotFoundException("Could not find repo with name = " + repositoryName);
+            throw new RepositoryNotFoundException("Repository with name [" + repositoryName + "] is not found");
         }
 
         return repositoryList.get(0);
@@ -104,7 +104,7 @@ public class RepositoryClient extends BaseClient {
             return authenticatedRestTemplate.postForObject(getBasePathForEntity(), repoToCreate, Repository.class);
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
-                throw new ResourceNotCreatedException("Repository with this name already exists");
+                throw new ResourceNotCreatedException("Repository with name [" + name + "] already exists");
             } else {
                 throw exception;
             }
@@ -133,7 +133,7 @@ public class RepositoryClient extends BaseClient {
 
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
-                throw new ResourceNotCreatedException("Repository import was not successful");
+                throw new ResourceNotCreatedException("Importing to repository [" + repositoryId + "] failed");
             } else {
                 throw exception;
             }

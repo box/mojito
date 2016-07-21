@@ -103,7 +103,7 @@ public class UserClient extends BaseClient {
         logger.debug("Deleting user by username = [{}]", username);
         List<User> users = getUsers(username);
         if (users.isEmpty()) {
-            throw new ResourceNotFoundException("User with username [" + username + "] not found");
+            throw new ResourceNotFoundException("User with username [" + username + "] is not found");
         } else {
             authenticatedRestTemplate.delete(getBasePathForEntity() + "/" + users.get(0).getId());
         }
@@ -125,7 +125,7 @@ public class UserClient extends BaseClient {
         
         List<User> users = getUsers(username);       
         if (users.isEmpty()) {
-            throw new ResourceNotFoundException("User with username [" + username + "] not found");
+            throw new ResourceNotFoundException("User with username [" + username + "] is not found");
         } else {
             User user = users.get(0);
             user.setPassword(password);
