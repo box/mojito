@@ -138,7 +138,7 @@ public class DropExportCommand extends Command {
         } else {
             bcp47tagsParam.removeAll(validTags);
             String invalidLocales = StringUtils.collectionToDelimitedString(bcp47tagsParam, ", ");
-            throw new CommandException("Repository is not configured with locales [" + invalidLocales + "]");
+            throw new CommandException("Locales [" + invalidLocales + "] do not exist in the repository");
         }
 
         return bcp47tags;

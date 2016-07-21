@@ -6,6 +6,7 @@ import com.beust.jcommander.Parameters;
 import static com.box.l10n.mojito.cli.command.RepoCommand.INTEGRITY_CHECK_LONG_PARAM;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
+import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.List;
@@ -74,7 +75,7 @@ public class RepoUpdateCommand extends RepoCommand {
 
             repositoryClient.updateRepository(nameParam, newNameParam, descriptionParam, repositoryLocales, integrityCheckers);
             consoleWriter.newLine().a("updated --> repository name: ").fg(Ansi.Color.MAGENTA).a(nameParam).println();
-        } catch (ParameterException | RepositoryNotFoundException ex) {
+        } catch (ParameterException | RepositoryNotFoundException | ResourceNotUpdatedException ex) {
             throw new CommandException(ex.getMessage(), ex);
         }
     }

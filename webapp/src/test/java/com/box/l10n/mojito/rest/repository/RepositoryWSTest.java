@@ -6,6 +6,7 @@ import com.box.l10n.mojito.rest.WSTestDataFactory;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
+import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
@@ -80,7 +81,7 @@ public class RepositoryWSTest extends WSTestBase {
     }
     
     @Test
-    public void testUpdateRepositoryNameAndDescription() throws RepositoryNotFoundException, ResourceNotCreatedException, RepositoryNameAlreadyUsedException {      
+    public void testUpdateRepositoryNameAndDescription() throws RepositoryNotFoundException, ResourceNotCreatedException, RepositoryNameAlreadyUsedException, ResourceNotUpdatedException {
         Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
         
         String newName = expectedRepository.getName() + "_updated";
@@ -102,7 +103,7 @@ public class RepositoryWSTest extends WSTestBase {
     }
     
     @Test
-    public void testUpdateRepositoryLocales() throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException {
+    public void testUpdateRepositoryLocales() throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException, ResourceNotUpdatedException {
         Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
         
         Set<RepositoryLocale> repositoryLocales = new HashSet<>();

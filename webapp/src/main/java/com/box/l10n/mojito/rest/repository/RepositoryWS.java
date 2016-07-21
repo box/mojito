@@ -119,9 +119,12 @@ public class RepositoryWS {
                     repository.getAssetIntegrityCheckers()
             );
             result = new ResponseEntity<>(createdRepo, HttpStatus.CREATED);
-        } catch (RepositoryNameAlreadyUsedException | RepositoryLocaleCreationException e) {
+        } catch (RepositoryNameAlreadyUsedException e) {
             logger.debug("Cannot create the repository", e);
-            result = new ResponseEntity<>(HttpStatus.CONFLICT);
+            result = new ResponseEntity("Repository with name [" + repository.getName() + "] already exists", HttpStatus.CONFLICT);
+        } catch (RepositoryLocaleCreationException e) {
+            logger.debug("Cannot create the repository", e);
+            result = new ResponseEntity(e.getMessage(), HttpStatus.CONFLICT);
         }
 
         return result;
@@ -204,9 +207,12 @@ public class RepositoryWS {
             } else {
                 result = new ResponseEntity(HttpStatus.NOT_FOUND);
             }
-        } catch (RepositoryLocaleCreationException | RepositoryNameAlreadyUsedException exception) {
-            logger.debug("Can't update repository", exception);
-            result = new ResponseEntity<>(HttpStatus.CONFLICT);
+        } catch (RepositoryNameAlreadyUsedException e) {
+            logger.debug("Cannot create the repository", e);
+            result = new ResponseEntity("Repository with name [" + repository.getName() + "] already exists", HttpStatus.CONFLICT);
+        } catch (RepositoryLocaleCreationException e) {
+            logger.debug("Cannot create the repository", e);
+            result = new ResponseEntity(e.getMessage(), HttpStatus.CONFLICT);
         }
 
         return result;

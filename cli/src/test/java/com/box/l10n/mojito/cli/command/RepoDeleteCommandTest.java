@@ -3,10 +3,10 @@ package com.box.l10n.mojito.cli.command;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.Repository;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -41,7 +41,7 @@ public class RepoDeleteCommandTest extends CLITestBase {
                 Param.REPOSITORY_NAME_SHORT, testRepoName
         );
         
-        assertTrue("Expecting error from deleting non-existing repository", outputCapture.toString().contains("Repository not found: "));
+        assertTrue("Expecting error from deleting non-existing repository", outputCapture.toString().contains("Repository with name [" + testRepoName + "] is not found"));
     }
     
 }
