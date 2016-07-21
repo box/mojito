@@ -5,7 +5,7 @@
 
     <groupId>com.box.l10n.mojito</groupId>
     <artifactId>mojito-parent</artifactId>
-    <version>0.45-SNAPSHOT</version>
+    <version>0.45</version>
     <packaging>pom</packaging>
     <name>Mojito</name>
 
@@ -52,7 +52,7 @@
         <url>https://github.com/box/mojito</url>
         <connection>scm:git:git@github.com:box/mojito.git</connection>
         <developerConnection>scm:git:git@github.com:box/mojito.git</developerConnection>
-      <tag>HEAD</tag>
+      <tag>v0.45</tag>
   </scm>
 
     <build>
