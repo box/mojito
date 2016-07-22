@@ -1,39 +1,29 @@
+var webpackConfig = require("./webpack.config.js");
+
+// NOTE: The entry point from the referenced Webpack configuration has to be removed or tests will fail in weird
+// and inscrutable ways. Easy enough, just define an empty entry object (null won’t work).
+webpackConfig.entry = {};
+webpackConfig.devtool = "inline-source-map";
+
 module.exports = function (config)
 {
     config.set({
 
-        basePath: '',
+        basePath: "",
 
-        frameworks: ['browserify', 'mocha', 'chai'],
+        frameworks: ["mocha", "chai"],
 
         files: [
-            {pattern: 'src/test/**/*.js', included: true}
+            {pattern: "src/test/**/*.js", included: true}
         ],
 
         exclude: [],
 
         preprocessors: {
-            "src/test/**/*.js": ['browserify']
+            "src/test/**/*.js": ["webpack", "sourcemap"]
         },
 
-        browserify: {
-            paths: ["src/main/resources/public/js"],
-            "transform": [
-              [
-                "babelify",
-                {
-                  "presets": [
-                    "react",
-                    "es2015"
-                  ],
-                  "sourceMapsAbsolute": true
-                }
-              ],
-              "envify"
-            ]
-        },
-        
-        reporters: ['progress'],
+        reporters: ["progress"],
 
         colors: true,
 
@@ -41,8 +31,10 @@ module.exports = function (config)
 
         autoWatch: true,
 
-        browsers: ['Chrome'],
+        browsers: ["Chrome"],
 
-        singleRun: false
-    })
-}
+        singleRun: false,
+
+        webpack: webpackConfig
+    });
+};

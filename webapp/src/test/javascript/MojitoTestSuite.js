@@ -5,8 +5,8 @@ var assert = chai.assert;
 import sinon  from "sinon";
 import sinonChai  from "sinon-chai";
 chai.use(sinonChai);
-import React  from "react";
-import $  from "jquery";
+import React from "react";
+import $ from "jquery";
 
 import RepositoryActions  from "actions/RepositoryActions";
 import xor from "utils/xor";
