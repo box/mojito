@@ -10,14 +10,14 @@ import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+import java.util.HashMap;
+import java.util.Map;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * Command to import a drop. Displays the list of drops available and ask the
@@ -81,7 +81,9 @@ public class DropImportCommand extends Command {
                         a(" - id: ").fg(Color.MAGENTA).a(drop.getId()).reset().
                         a(", name: ").fg(Color.MAGENTA).a(drop.getName()).reset();
 
-                if (drop.getLastImportedDate() == null) {
+                if (Boolean.TRUE.equals(drop.getCanceled())) {
+                    consoleWriter.fg(Color.GREEN).a(" CANCELED");
+                } else if (drop.getLastImportedDate() == null) {
                     consoleWriter.fg(Color.GREEN).a(" NEW");
                 } else {
                     consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
