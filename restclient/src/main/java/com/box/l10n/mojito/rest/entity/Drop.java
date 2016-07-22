@@ -14,6 +14,8 @@ public class Drop {
 
     DateTime lastImportedDate;
 
+    Boolean canceled;
+
     public Long getId() {
         return id;
     }
@@ -36,6 +38,14 @@ public class Drop {
 
     public void setLastImportedDate(DateTime lastImportedDate) {
         this.lastImportedDate = lastImportedDate;
+    }
+
+    public Boolean getCanceled() {
+        return canceled;
+    }
+
+    public void setCanceled(Boolean canceled) {
+        this.canceled = canceled;
     }
 
 }
