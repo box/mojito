@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
+import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
 import com.box.l10n.mojito.rest.entity.ImportRepositoryBody;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Repository;
@@ -76,7 +77,7 @@ public class RepositoryClient extends BaseClient {
         List<Repository> repositoryList = getRepositories(repositoryName);
 
         if (repositoryList.size() != 1) {
-            throw new RepositoryNotFoundException("Could not find repo with name = " + repositoryName);
+            throw new RepositoryNotFoundException("Repository with name [" + repositoryName + "] is not found");
         }
 
         return repositoryList.get(0);
@@ -90,6 +91,7 @@ public class RepositoryClient extends BaseClient {
      * @param repositoryLocales With id, and repository id not set
      * @param integrityCheckers
      * @return
+     * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException
      */
     public Repository createRepository(String name, String description, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws ResourceNotCreatedException {
         logger.debug("Creating repo with name = {}, and description = {}, and repositoryLocales = {}", name, description, repositoryLocales.toString());
@@ -104,7 +106,7 @@ public class RepositoryClient extends BaseClient {
             return authenticatedRestTemplate.postForObject(getBasePathForEntity(), repoToCreate, Repository.class);
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
-                throw new ResourceNotCreatedException("Repository with this name already exists");
+                throw new ResourceNotCreatedException(exception.getResponseBodyAsString());
             } else {
                 throw exception;
             }
@@ -133,7 +135,7 @@ public class RepositoryClient extends BaseClient {
 
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
-                throw new ResourceNotCreatedException("Repository import was not successful");
+                throw new ResourceNotCreatedException("Importing to repository [" + repositoryId + "] failed");
             } else {
                 throw exception;
             }
@@ -162,8 +164,9 @@ public class RepositoryClient extends BaseClient {
      * @param integrityCheckers
      * @throws
      * com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException
+     * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException
      */
-    public void updateRepository(String name, String newName, String description, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws RepositoryNotFoundException {
+    public void updateRepository(String name, String newName, String description, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws RepositoryNotFoundException, ResourceNotUpdatedException {
         
         logger.debug("Updating repository by name = [{}]", name);
         Repository repository = getRepositoryByName(name);
@@ -173,7 +176,15 @@ public class RepositoryClient extends BaseClient {
         repository.setRepositoryLocales(repositoryLocales);
         repository.setIntegrityCheckers(integrityCheckers);
 
-        authenticatedRestTemplate.patch(getBasePathForResource(repository.getId()), repository);
+        try {
+            authenticatedRestTemplate.patch(getBasePathForResource(repository.getId()), repository);
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
+                throw new ResourceNotUpdatedException(exception.getResponseBodyAsString());
+            } else {
+                throw exception;
+            }
+        }
 
     }
 

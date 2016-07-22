@@ -359,7 +359,7 @@ public class RepositoryService {
 
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
         if (bcp47TagsInParents.contains(bcp47Tag)) {
-            String msg = "Found a cycle: " + bcp47TagsInParents.toString();
+            String msg = "Found a cycle in locales [" + bcp47TagsInParents.toString() + "]";
             logger.error(msg);
             throw new RepositoryLocaleCreationException(msg);
         } else {
@@ -422,15 +422,15 @@ public class RepositoryService {
             RepositoryLocale parentRepositoryLocale = repositoryLocale.getParentLocale();
 
             if (mapParentRepositoryLocale != null && parentRepositoryLocale != null && !mapParentRepositoryLocale.getLocale().getBcp47Tag().equals(parentRepositoryLocale.getLocale().getBcp47Tag())) {
-                String msg = "There is a conflict for " + bcp47Tag + " with parent locales: " + mapParentRepositoryLocale.getLocale().getBcp47Tag() + ", " + parentRepositoryLocale.getLocale().getBcp47Tag();
+                String msg = "There is a conflict for " + bcp47Tag + " with parent locales [" + mapParentRepositoryLocale.getLocale().getBcp47Tag() + ", " + parentRepositoryLocale.getLocale().getBcp47Tag() + "]";
                 logger.error(msg);
                 throw new RepositoryLocaleCreationException(msg);
             } else if (mapParentRepositoryLocale != null && parentRepositoryLocale == null) {
-                String msg = "There is a conflict for " + bcp47Tag + " with parent locales: " + mapParentRepositoryLocale.getLocale().getBcp47Tag() + ", null";
+                String msg = "There is a conflict for " + bcp47Tag + " with parent locales [" + mapParentRepositoryLocale.getLocale().getBcp47Tag() + ", null]";
                 logger.error(msg);
                 throw new RepositoryLocaleCreationException(msg);
             } else if (mapParentRepositoryLocale == null && parentRepositoryLocale != null) {
-                String msg = "There is a conflict for " + bcp47Tag + " with parent locales: null," + parentRepositoryLocale.getLocale().getBcp47Tag();
+                String msg = "There is a conflict for " + bcp47Tag + " with parent locales [null, " + parentRepositoryLocale.getLocale().getBcp47Tag() + "]";
                 logger.error(msg);
                 throw new RepositoryLocaleCreationException(msg);
             }
@@ -492,7 +492,7 @@ public class RepositoryService {
     private void checkNoRootLocaleExists(Repository repository) {
         RepositoryLocale findByRepositoryAndParentLocaleIsNull = repositoryLocaleRepository.findByRepositoryAndParentLocaleIsNull(repository);
         if (findByRepositoryAndParentLocaleIsNull != null) {
-            throw new RuntimeException("Root locale already exists in repository: " + repository.getId());
+            throw new RuntimeException("Root locale already exists in repository [" + repository.getId() + "]");
         }
     }
 
@@ -530,7 +530,7 @@ public class RepositoryService {
             parentLocaleBcp47Tag = DEFAULT_ROOT_LOCALE;
 
             if (DEFAULT_ROOT_LOCALE.equals(bcp47Tag)) {
-                throw new RepositoryLocaleCreationException(bcp47Tag + " cannot be added since it is the root locale");
+                throw new RepositoryLocaleCreationException("Locale [" + bcp47Tag + "] cannot be added because it is the root locale");
             }
         }
 
@@ -544,7 +544,7 @@ public class RepositoryService {
         RepositoryLocale parentLocale = repositoryLocaleRepository.findByRepositoryAndLocale_Bcp47Tag(repository, parentLocaleBcp47Tag);
 
         if (parentLocale == null) {
-            throw new IllegalArgumentException("Parent locale: " + parentLocaleBcp47Tag + " doesn't exist in repository");
+            throw new IllegalArgumentException("Parent locale [" + parentLocaleBcp47Tag + "] doesn't exist in repository");
         }
 
         repositoryLocale.setParentLocale(parentLocale);

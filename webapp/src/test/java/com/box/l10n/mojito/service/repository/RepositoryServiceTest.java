@@ -67,7 +67,7 @@ public class RepositoryServiceTest extends ServiceTestBase {
             repositoryService.addRootLocale(repository, "en");
             Assert.fail("It shouldn't be possible to add twice a root locale (root locale was added during repository creation)");
         } catch (RuntimeException re) {
-            assertEquals("Root locale already exists in repository: " + repository.getId(), re.getMessage());
+            assertEquals("Root locale already exists in repository [" + repository.getId() + "]", re.getMessage());
         }
     }
 

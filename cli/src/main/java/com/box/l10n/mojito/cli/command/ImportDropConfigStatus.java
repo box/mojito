@@ -19,7 +19,7 @@ public class ImportDropConfigStatus implements IStringConverter<ImportDropConfig
             try {
                 status = ImportDropConfig.Status.valueOf(string.toUpperCase());
             } catch (IllegalArgumentException iae) {
-                throw new ParameterException("Invalid import status");
+                throw new ParameterException("Invalid import status [" + string + "]");
             }
         }
 

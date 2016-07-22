@@ -45,7 +45,7 @@ public class RepoDeleteCommand extends Command {
             repositoryClient.deleteRepositoryByName(nameParam);
             consoleWriter.newLine().a("deleted --> repository name: ").fg(Ansi.Color.MAGENTA).a(nameParam).println();
         } catch (RepositoryNotFoundException ex) {
-            throw new CommandException("Repository not found: " + nameParam, ex);
+            throw new CommandException(ex.getMessage(), ex);
         }
         
     }

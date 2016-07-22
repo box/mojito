@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
@@ -63,14 +64,14 @@ public class RepoCreateCommand extends RepoCommand {
     public void execute() throws CommandException {
         consoleWriter.a("Create repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
-        Set<RepositoryLocale> repositoryLocales = localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
-        Set<IntegrityChecker> integrityCheckers = extractIntegrityCheckersFromInput(integrityCheckParam, true);
-
         try {
+            Set<RepositoryLocale> repositoryLocales = localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
+            Set<IntegrityChecker> integrityCheckers = extractIntegrityCheckersFromInput(integrityCheckParam, true);
+
             Repository repository = repositoryClient.createRepository(nameParam, descriptionParam, repositoryLocales, integrityCheckers);
             consoleWriter.newLine().a("created --> repository id: ").fg(Ansi.Color.MAGENTA).a(repository.getId()).println();
-        } catch (ResourceNotCreatedException ex) {
-            throw new CommandException("Error creating repository: " + nameParam, ex);
+        } catch (ParameterException | ResourceNotCreatedException ex) {
+            throw new CommandException(ex.getMessage(), ex);
         }
     }
 

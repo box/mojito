@@ -11,12 +11,13 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.ArrayList;
 import java.util.List;
+import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import static org.fusesource.jansi.Ansi.*;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * Command to create a drop for a repository.
@@ -135,7 +136,9 @@ public class DropExportCommand extends Command {
         if (validTags.containsAll(bcp47tagsParam)) {
             bcp47tags.addAll(bcp47tagsParam);
         } else {
-            throw new CommandException("Invalid locale list");
+            bcp47tagsParam.removeAll(validTags);
+            String invalidLocales = StringUtils.collectionToDelimitedString(bcp47tagsParam, ", ");
+            throw new CommandException("Locales [" + invalidLocales + "] do not exist in the repository");
         }
 
         return bcp47tags;

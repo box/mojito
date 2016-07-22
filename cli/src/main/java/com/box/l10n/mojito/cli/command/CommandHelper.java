@@ -65,7 +65,7 @@ public class CommandHelper {
         try {
             return repositoryClient.getRepositoryByName(repositoryName);
         } catch (RestClientException e) {
-            throw new CommandException("Repository: " + repositoryName + " could not be found", e);
+            throw new CommandException("Repository [" + repositoryName + "] is not found", e);
         }
     }
 

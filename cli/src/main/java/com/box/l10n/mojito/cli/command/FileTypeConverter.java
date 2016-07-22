@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.ParameterException;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileTypes;
 import java.util.Arrays;
@@ -20,8 +21,8 @@ public class FileTypeConverter implements IStringConverter<FileType> {
             try {
                 fileType = com.box.l10n.mojito.cli.filefinder.file.FileTypes.valueOf(value.toUpperCase()).toFileType();
             } catch (IllegalArgumentException iae) {
-                String msg = "Invalid file type provided, should be one of: " + Arrays.toString(FileTypes.values());
-                throw new RuntimeException(msg);
+                String msg = "Invalid file type [" + value + "], should be one of: " + Arrays.toString(FileTypes.values());
+                throw new ParameterException(msg);
             }
         }
 

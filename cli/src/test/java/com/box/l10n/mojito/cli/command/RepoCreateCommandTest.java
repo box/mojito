@@ -30,7 +30,7 @@ public class RepoCreateCommandTest extends CLITestBase {
      */
     static Logger logger = LoggerFactory.getLogger(RepoCreateCommandTest.class);
 
-    protected static final String COMMAND_ERROR_MESSAGE = "Error creating repository";
+    protected static final String COMMAND_ERROR_MESSAGE = "There is a conflict";
 
     @Autowired
     RepositoryRepository repositoryRepository;
@@ -255,7 +255,7 @@ public class RepoCreateCommandTest extends CLITestBase {
                 Param.REPOSITORY_LOCALES_SHORT, "fr-FR", "(fr-CA)->fr-FR", "en-GB", "(en-CA)->en-GB", "en-AU->en-GB"
         );
 
-        assertTrue("Conflict because the repository has already been created", outputCapture.toString().contains(COMMAND_ERROR_MESSAGE));
+        assertTrue("Error because the repository has already been created", outputCapture.toString().contains("Repository with name [" + testRepoName + "] already exists"));
     }
 
     @Test
@@ -361,7 +361,7 @@ public class RepoCreateCommandTest extends CLITestBase {
                 Param.REPOSITORY_DESCRIPTION_SHORT, testIdWatcher.getEntityName("repository") + " description",
                 Param.REPOSITORY_LOCALES_SHORT, "fr-FR", "fr-CH->fr-FR", "fr-CA->fr-FR", "en");
 
-        assertTrue("There should be a conflict for the set of locales", outputCapture.toString().contains(COMMAND_ERROR_MESSAGE));
+        assertTrue("There should be a conflict for the set of locales", outputCapture.toString().contains("Locale [en] cannot be added because it is the root locale"));
     }
 
     @Test
@@ -387,6 +387,6 @@ public class RepoCreateCommandTest extends CLITestBase {
                 Param.REPOSITORY_LOCALES_SHORT, "en-AU->en-CA", "en-CA->en-AU"
         );
 
-        assertTrue("There should be a conflict between \"en-CA->en-GB\", \"en-GB->en-CA\"", outputCapture.toString().contains(COMMAND_ERROR_MESSAGE));
+        assertTrue("There should be a conflict between \"en-CA->en-GB\", \"en-GB->en-CA\"", outputCapture.toString().contains("Found a cycle"));
     }
 }

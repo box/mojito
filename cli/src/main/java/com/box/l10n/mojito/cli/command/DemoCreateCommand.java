@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
@@ -89,7 +90,7 @@ public class DemoCreateCommand extends RepoCommand {
         try {
             java.nio.file.Files.createDirectories(outputDirectoryPath);
         } catch (IOException ioe) {
-            throw new CommandException("Can't create the output directory", ioe);
+            throw new CommandException("Error creating output directory", ioe);
         }
     }
 
@@ -106,7 +107,7 @@ public class DemoCreateCommand extends RepoCommand {
             Files.write(resourceBundleContent, resourceBundlePath.toFile(), StandardCharsets.UTF_8);
 
         } catch (IOException ioe) {
-            throw new CommandException("Wasn't able to copy the resource bundle file into the demo directory", ioe);
+            throw new CommandException("Error copying resource bundle file into the demo directory", ioe);
         }
     }
     static final String DEMO_PROPERTIES = "demo.properties";
@@ -122,8 +123,8 @@ public class DemoCreateCommand extends RepoCommand {
                     getRepositoryLocales(),
                     extractIntegrityCheckersFromInput("properties:MESSAGE_FORMAT", false));
 
-        } catch (ResourceNotCreatedException rnce) {
-            throw new CommandException("Error creating demo repository: " + nameParam, rnce);
+        } catch (ParameterException | ResourceNotCreatedException rnce) {
+            throw new CommandException(rnce.getMessage(), rnce);
         }
     }
 
@@ -175,7 +176,7 @@ public class DemoCreateCommand extends RepoCommand {
             String tmFileContent = Resources.toString(getResourceURL(tmFileName), StandardCharsets.UTF_8);
             repositoryClient.importRepository(repository.getId(), tmFileContent, false);
         } catch (IOException | ResourceNotCreatedException e) {
-            throw new CommandException("Wasn't able to import file: " + tmFileName, e);
+            throw new CommandException("Error importing file [" + tmFileName + "]", e);
         }
     }
 

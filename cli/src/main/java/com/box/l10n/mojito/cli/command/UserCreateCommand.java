@@ -67,7 +67,7 @@ public class UserCreateCommand extends Command {
             User user = userClient.createUser(username, password, role, surname, givenName, commonName);
             consoleWriter.newLine().a("created --> user: ").fg(Ansi.Color.MAGENTA).a(user.getUsername()).println();
         } catch (ResourceNotCreatedException ex) {
-            throw new CommandException("Error creating user: " + ex.getMessage(), ex);
+            throw new CommandException(ex.getMessage(), ex);
         }
     }
     

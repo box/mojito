@@ -153,7 +153,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
                 RepoCommand.INTEGRITY_CHECK_SHORT_PARAM, "properties:MESSAGE_FORMAT"
         );
         
-        assertTrue("Expecting error from updating non-existing repository", outputCapture.toString().contains("Repository not found: "));
+        assertTrue("Expecting error from updating non-existing repository", outputCapture.toString().contains("Repository with name [" + testRepoName + "] is not found"));
     }
 
     @Test

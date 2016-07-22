@@ -1,10 +1,12 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import static com.box.l10n.mojito.cli.command.RepoCommand.INTEGRITY_CHECK_LONG_PARAM;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
+import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.List;
@@ -67,14 +69,14 @@ public class RepoUpdateCommand extends RepoCommand {
     public void execute() throws CommandException {        
         consoleWriter.a("Update repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
 
-        Set<RepositoryLocale> repositoryLocales = localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
-        Set<IntegrityChecker> integrityCheckers = extractIntegrityCheckersFromInput(integrityCheckParam, true);
-
         try {
+            Set<RepositoryLocale> repositoryLocales = localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
+            Set<IntegrityChecker> integrityCheckers = extractIntegrityCheckersFromInput(integrityCheckParam, true);
+
             repositoryClient.updateRepository(nameParam, newNameParam, descriptionParam, repositoryLocales, integrityCheckers);
             consoleWriter.newLine().a("updated --> repository name: ").fg(Ansi.Color.MAGENTA).a(nameParam).println();
-        } catch (RepositoryNotFoundException ex) {
-            throw new CommandException("Repository not found: " + nameParam, ex);
+        } catch (ParameterException | RepositoryNotFoundException | ResourceNotUpdatedException ex) {
+            throw new CommandException(ex.getMessage(), ex);
         }
     }
     

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
+import com.beust.jcommander.ParameterException;
 import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
@@ -52,13 +53,17 @@ public abstract class RepoCommand extends Command {
             for (String integrityCheckerParam : integrityCheckerParams) {
                 String[] param = StringUtils.delimitedListToStringArray(integrityCheckerParam, ":");
                 if (param.length != 2) {
-                    throw new CommandException("Invalid Integrity Checker format: " + integrityCheckerParam);
+                    throw new ParameterException("Invalid integrity checker format [" + integrityCheckerParam + "]");
                 }
                 String fileExtension = param[0];
                 String checkerType = param[1];
                 IntegrityChecker integrityChecker = new IntegrityChecker();
                 integrityChecker.setAssetExtension(fileExtension);
-                integrityChecker.setIntegrityCheckerType(IntegrityCheckerType.valueOf(checkerType));
+                try {
+                    integrityChecker.setIntegrityCheckerType(IntegrityCheckerType.valueOf(checkerType));
+                } catch (IllegalArgumentException ex) {
+                    throw new ParameterException("Invalid integrity checker type [" + checkerType + "]");
+                }
 
                 if (doPrint) {
                     consoleWriter.fg(Ansi.Color.BLUE).a("-- file extension = ").fg(Ansi.Color.GREEN).a(integrityChecker.getAssetExtension()).println();
