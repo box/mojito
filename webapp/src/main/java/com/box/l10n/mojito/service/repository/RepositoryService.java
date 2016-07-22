@@ -642,9 +642,8 @@ public class RepositoryService {
         if (!repositoryLocales.isEmpty()) {
             updateRepositoryLocales(repository, repositoryLocales);
         }
-        if (!assetIntegrityCheckers.isEmpty()) {
-            updateAssetIntegrityCheckers(repository, assetIntegrityCheckers);
-        }
+
+        updateAssetIntegrityCheckers(repository, assetIntegrityCheckers);
 
         logger.debug("Updated repository with name: {}", repository.getName());
     }

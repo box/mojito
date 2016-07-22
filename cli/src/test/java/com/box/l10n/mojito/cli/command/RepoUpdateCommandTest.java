@@ -186,4 +186,49 @@ public class RepoUpdateCommandTest extends CLITestBase {
 
     }
     
+    @Test
+    public void testDeleteExistingIntegrityChecker() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+        String testRepoName = repository.getName();
+        String testRepoNameUpdated = testRepoName + "_updated";
+
+        // add two integrity checkers
+        getL10nJCommander().run(
+                "repo-update",
+                Param.REPOSITORY_NAME_SHORT, testRepoName,
+                RepoCommand.INTEGRITY_CHECK_SHORT_PARAM, "resx:MESSAGE_FORMAT,resw:MESSAGE_FORMAT"
+        );
+        assertTrue("Repository is not updated successfully", outputCapture.toString().contains("updated --> repository name: "));
+
+        repository = repositoryRepository.findByName(testRepoName);
+        assertEquals(2, repository.getAssetIntegrityCheckers().size());
+        assertEquals("MESSAGE_FORMAT", repository.getAssetIntegrityCheckers().iterator().next().getIntegrityCheckerType().toString());
+        assertEquals("MESSAGE_FORMAT", repository.getAssetIntegrityCheckers().iterator().next().getIntegrityCheckerType().toString());
+
+        // update repo without integrity checker param and check there was no change in existing integrity checkers
+        getL10nJCommander().run(
+                "repo-update",
+                Param.REPOSITORY_NAME_SHORT, testRepoName,
+                Param.REPOSITORY_NEW_NAME_SHORT, testRepoNameUpdated
+        );
+        assertTrue("Repository is not updated successfully", outputCapture.toString().contains("updated --> repository name: "));
+
+        repository = repositoryRepository.findByName(testRepoNameUpdated);
+        assertEquals(2, repository.getAssetIntegrityCheckers().size());
+        assertEquals("MESSAGE_FORMAT", repository.getAssetIntegrityCheckers().iterator().next().getIntegrityCheckerType().toString());
+        assertEquals("MESSAGE_FORMAT", repository.getAssetIntegrityCheckers().iterator().next().getIntegrityCheckerType().toString());
+
+        // update repo with empty integrity checker param and check existing integrity checkers are deleted
+        getL10nJCommander().run(
+                "repo-update",
+                Param.REPOSITORY_NAME_SHORT, testRepoNameUpdated,
+                RepoCommand.INTEGRITY_CHECK_SHORT_PARAM, ""
+        );
+        assertTrue("Repository is not updated successfully", outputCapture.toString().contains("updated --> repository name: "));
+
+        repository = repositoryRepository.findByName(testRepoNameUpdated);
+        assertEquals("Integrity checker should have been deleted", 0, repository.getAssetIntegrityCheckers().size());
+
+    }
+
 }

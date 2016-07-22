@@ -43,8 +43,9 @@ public abstract class RepoCommand extends Command {
      * @return
      */
     protected Set<IntegrityChecker> extractIntegrityCheckersFromInput(String integrityCheckParam, boolean doPrint) throws CommandException {
-        Set<IntegrityChecker> integrityCheckers = new HashSet<>();
-        if (!StringUtils.isEmpty(integrityCheckParam)) {
+        Set<IntegrityChecker> integrityCheckers = null;
+        if (integrityCheckParam != null) {
+            integrityCheckers = new HashSet<>();
             Set<String> integrityCheckerParams = StringUtils.commaDelimitedListToSet(integrityCheckParam);
             if (doPrint) {
                 consoleWriter.a("Extracted Integrity Checkers").println();
