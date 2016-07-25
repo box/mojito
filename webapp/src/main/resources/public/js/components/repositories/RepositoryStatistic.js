@@ -175,7 +175,7 @@ let RepositoryStatistics = React.createClass({
                     <Button className="close"
                             onClick={this.props.onCloseRequest ? this.props.onCloseRequest : null}>×</Button>
                 </div>
-                <div className="side-bar-content-container">
+                <div className="side-bar-content-container prl">
                     <Table className="repo-stats-table">
                         <thead>
                         <tr>
