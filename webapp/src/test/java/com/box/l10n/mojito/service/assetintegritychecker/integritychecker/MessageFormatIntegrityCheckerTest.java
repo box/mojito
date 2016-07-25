@@ -37,7 +37,7 @@ public class MessageFormatIntegrityCheckerTest {
             checker.check(source, target);
             fail("MessageFormatIntegrityCheckerException must be thrown");
         } catch (MessageFormatIntegrityCheckerException e) {
-            assertEquals(e.getMessage(), "Invalid pattern");
+            assertEquals("Invalid pattern", e.getMessage());
         }
     }
 
@@ -52,33 +52,73 @@ public class MessageFormatIntegrityCheckerTest {
             checker.check(source, target);
             fail("Exception must be thrown");
         } catch (MessageFormatIntegrityCheckerException e) {
-            assertEquals(e.getMessage(), "Invalid pattern");
+            assertEquals("Invalid pattern", e.getMessage());
         }
     }
-    
+
     @Test
     public void testNumberOfPlaceholder() throws MessageFormatIntegrityCheckerException {
-        
+
         MessageFormatIntegrityChecker checker = new MessageFormatIntegrityChecker();
         String source = "At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.";
         String target = "At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.";
-        
+
         checker.check(source, target);
     }
 
     @Test
     public void testWrongNumberOfPlaceholder() throws MessageFormatIntegrityCheckerException {
-        
+
         MessageFormatIntegrityChecker checker = new MessageFormatIntegrityChecker();
         String source = "At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.";
         String target = "At on {1,date}, there was {2} on planet {0,number,integer}.";
-                
+
         try {
             checker.check(source, target);
             fail("Exception must be thrown");
         } catch (MessageFormatIntegrityCheckerException e) {
-            assertEquals(e.getMessage(), "Number of placeholders in source (4) and target (3) is different");
+            assertEquals("Number of placeholders in source (4) and target (3) is different", e.getMessage());
         }
     }
-  
+
+    @Test
+    public void testNamedParametersChanged() throws MessageFormatIntegrityCheckerException {
+
+        MessageFormatIntegrityChecker checker = new MessageFormatIntegrityChecker();
+        String source = "{username} likes skydiving";
+        String target = "{utilisateur} aime le saut en parachute";
+
+        try {
+            checker.check(source, target);
+            fail("Exception must be thrown");
+        } catch (MessageFormatIntegrityCheckerException e) {
+            assertEquals("Different placeholder name in source and target", e.getMessage());
+        }
+    }
+
+    /**
+     * This test actually pass but ideally it should fail.
+     *
+     * ICU doesn't provide public API to iterate on each format name. It only
+     * provides a method that return argument names as a Set hence we can simply
+     * implements this check.
+     *
+     *
+     * @throws MessageFormatIntegrityCheckerException
+     */
+    @Test
+    public void testNamedParametersChangedButWithDupplicates() throws MessageFormatIntegrityCheckerException {
+
+        MessageFormatIntegrityChecker checker = new MessageFormatIntegrityChecker();
+        String source = "{1} {1} {2}";
+        String target = "{1} {2} {2}";
+
+        try {
+            checker.check(source, target);
+            //fail("Exception must be thrown");
+        } catch (MessageFormatIntegrityCheckerException e) {
+            //assertEquals("Different placeholder name in source and target", e.getMessage());
+        }
+    }
+
 }
