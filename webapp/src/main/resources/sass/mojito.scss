@@ -388,6 +388,16 @@ div.textunit label {
 
 .textunit-string.textunit-target {
   cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+
+.textunit-string.textunit-target:hover {
+  border: 1px dotted gray;
+}
+
+.textunit .textunit-target {
+
 }
 
 .textunit-actionbar {

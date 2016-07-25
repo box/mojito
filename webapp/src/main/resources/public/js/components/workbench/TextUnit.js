@@ -399,7 +399,7 @@ let TextUnit = React.createClass({
             let dir;
 
             let noTranslation = false;
-            let targetClassName = "pts textunit-string textunit-target";
+            let targetClassName = "pts pls pbs textunit-string textunit-target";
             if (targetString == null) {
                 noTranslation = true;
                 dir = Locales.getLanguageDirection(Locales.getCurrentLocale());
@@ -410,9 +410,9 @@ let TextUnit = React.createClass({
             }
 
             ui = (
-                    <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
-                        {targetString}
-                    </label>
+                <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
+                    {targetString}
+                </label>
             );
         }
         return ui;
