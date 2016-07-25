@@ -88,7 +88,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 // TODO (move img to images)
                 // TODO (move intl to js/intl)
-                .antMatchers("/intl/*", "/img/*", "/fonts/*").permitAll()
+                .antMatchers("/intl/*", "/img/*", "/fonts/*", "/webjars/**").permitAll()
                 .regexMatchers("/login\\?.*").permitAll()
                 .anyRequest().fullyAuthenticated()
                 .and()

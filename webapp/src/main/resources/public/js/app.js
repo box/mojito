@@ -29,24 +29,40 @@ addLocaleData([...en, ...fr, ...be, ...ko, ...ru]);
 
 let history = createHistory();
 
-ReactDOM.render(
-    <IntlProvider locale={LOCALE} messages={MESSAGES}>
-        <Router history={history}>
-            <Route component={Main}>
-                <Route path="/" component={App}>
-                    <Route path="workbench" component={Workbench} onLeave={onLeaveWorkbench}/>
-                    <Route path="repositories" component={Repositories}/>
-                    <Route path="project-requests" component={Drops}/>
-                    <Route path="settings" component={Settings}/>
-                    <IndexRoute component={Repositories}/>
-                </Route>
-                <Route path="login" component={Login}></Route>
-            </Route>
+if (!global.Intl) {
+    // NOTE: require.ensure would have been nice to use to do module loading
+    // but webpack doesn't support ES6 so after Babel transcompile,
+    // require.ensure is no longer available.
+    // https://webpack.github.io/docs/code-splitting.html#es6-modules
+    $.getScript('/webjars/Intl.js/dist/Intl.min.js', () => {
+        $.getScript('/webjars/Intl.js/locale-data/jsonp/' + LOCALE + '.js', () => {
+            startApp();
+        });
+    });
+} else {
+    startApp();
+}
 
-        </Router>
-    </IntlProvider>
-    , document.getElementById("app")
-);
+function startApp() {
+    ReactDOM.render(
+        <IntlProvider locale={LOCALE} messages={MESSAGES}>
+            <Router history={history}>
+                <Route component={Main}>
+                    <Route path="/" component={App}>
+                        <Route path="workbench" component={Workbench} onLeave={onLeaveWorkbench}/>
+                        <Route path="repositories" component={Repositories}/>
+                        <Route path="project-requests" component={Drops}/>
+                        <Route path="settings" component={Settings}/>
+                        <IndexRoute component={Repositories}/>
+                    </Route>
+                    <Route path="login" component={Login}></Route>
+                </Route>
+
+            </Router>
+        </IntlProvider>
+        , document.getElementById("app")
+    );
+}
 
 
 /**
