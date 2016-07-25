@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -56,7 +57,7 @@ public class RepositoryStatisticService {
      *
      * @param repositoryId {@link Repository#id}
      */
-    @Transactional
+    @Transactional(isolation = Isolation.READ_UNCOMMITTED)
     public void updateStatistics(Long repositoryId) {
 
         Repository repository = repositoryRepository.findOne(repositoryId);
