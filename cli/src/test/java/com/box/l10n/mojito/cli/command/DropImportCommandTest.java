@@ -17,27 +17,28 @@ import com.box.l10n.mojito.service.drop.exporter.DropExporterService;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporter;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.test.XliffUtils;
-import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import static org.mockito.Mockito.when;
 import org.springframework.boot.test.OutputCapture;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -73,7 +74,43 @@ public class DropImportCommandTest extends CLITestBase {
 
     @Autowired
     DropRepository dropRepository;
+    
+    @Autowired
+    RepositoryService repositoryService;
 
+    @Test
+    public void importLockTest() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            test(i);
+        }
+    }
+    
+    public void test(int i) throws Exception {
+        String[] locales = {"da-DK", "de-DE", "en-GB", "es-ES", "es-MX", "fr-FR", "ja-JP", "ko-KR", "pt-BR", "ru-RU", "zh-CN", "zh-TW"};
+        String repoName = testIdWatcher.getEntityName("repo" + i);
+        Repository repository = repositoryService.createRepository(repoName, repoName + " description");
+
+        for (String locale : locales) {
+            logger.info("adding locale [" + locale + "]");
+            repositoryService.addRepositoryLocale(repository, locale);
+        }
+        repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+        for (String locale : locales) {
+            logger.info("importing " + locale);
+            importTranslations(asset.getId(), "source-xliff_", locale);
+        }
+        Asset asset2 = assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
+        for (String locale : locales) {
+            logger.info("importing " + locale);
+            importTranslations(asset.getId(), "source2-xliff_", locale);
+        }
+    }
+    
     @Test
     public void dropImport() throws Exception {
 
