@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
+ <file original="" source-language="en" target-language="fr-FR" datatype="x-undefined">
+  <body>
+   <trans-unit id="" resname="100_character_description_" datatype="php">
+    <source>100 character description:</source>
+    <target>100 character description:</target>
+   </trans-unit>
+   <trans-unit id="" resname="15_min_duration" datatype="x-javascript+php">
+    <source>15 min</source>
+    <target>15 min</target>
+    <note>File lock dialog duration</note>
+   </trans-unit>
+   <trans-unit id="" resname="1_day_duration" datatype="x-javascript+php">
+    <source>1 day</source>
+    <target>1 day</target>
+    <note>File lock dialog duration</note>
+   </trans-unit>
+   <trans-unit id="" resname="1_hour_duration" datatype="x-javascript+php">
+    <source>1 hour</source>
+    <target>1 hour</target>
+    <note>File lock dialog duration</note>
+   </trans-unit>
+   <trans-unit id="" resname="1_month_duration" datatype="x-javascript+php">
+    <source>1 month</source>
+    <target>1 month</target>
+    <note>File lock dialog duration</note>
+   </trans-unit>
+  </body>
+ </file>
+</xliff>
