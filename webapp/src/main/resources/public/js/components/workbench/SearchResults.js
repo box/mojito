@@ -550,6 +550,23 @@ let SearchResults = React.createClass({
         return ui;
     },
 
+    /**
+     * @returns {JSX}
+     */
+    getEmptyStateContainer() {
+        let result = "";
+
+        if (this.state.searchResults.length === 0) {
+            result = (
+                <div className="empty-search-container text-center center-block">
+                    <FormattedMessage id="search.result.empty" />
+                </div>
+            );
+        }
+
+        return result;
+    },
+
     render() {
         return (
                 <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>
@@ -562,6 +579,7 @@ let SearchResults = React.createClass({
                     <ErrorModal showModal={this.state.isErrorOccurred}
                                 errorMessage={this.getErrorMessage()}
                                 onErrorModalClosed={this.onErrorModalClosed}/>
+                    {this.getEmptyStateContainer()}
                     {this.getTextUnitsReviewModal()}
                 </div>
         );
