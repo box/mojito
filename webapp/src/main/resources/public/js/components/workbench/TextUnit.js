@@ -65,6 +65,9 @@ let TextUnit = React.createClass({
             /** @type {Boolean} */
             "isErrorAlertShown": false,
 
+            /** @type {Boolean} */
+            "isCancelConfirmShown": false,
+
             /** @type {TextUnitError} */
             "error": null
         };
@@ -183,15 +186,29 @@ let TextUnit = React.createClass({
         }
     },
 
+    /**
+     * @param {Event} e
+     */
     cancelSaveTextUnit(e) {
         e.stopPropagation();
+
+        if (this.hasTargetChanged()) {
+            this.setState({ "isCancelConfirmShown": true });
+        } else {
+            this.doCancelSaveTextUnit();
+        }
+    },
+
+    /**
+     *
+     */
+    doCancelSaveTextUnit() {
         if (this.state.isEditMode) {
             this.setState({
                 "isEditMode": false,
-                "translation": this.props.textUnit.getTarget(),
+                "translation": this.props.textUnit.getTarget()
             });
         }
-
     },
 
     /**
@@ -351,7 +368,7 @@ let TextUnit = React.createClass({
                                 <FormattedMessage id='label.save'/>
                             </Button>
                             <Button bsSize="small" onClick={this.cancelSaveTextUnit}>
-                                <FormattedMessage id="label.cancel"/>
+                                <span className={this.hasTargetChanged() ? "text-danger" : ""}><FormattedMessage id="label.cancel"/></span>
                             </Button>
                         </ButtonToolbar>
                     </div>
@@ -577,6 +594,36 @@ let TextUnit = React.createClass({
         );
     },
 
+    handleConfirmCancel() {
+        this.setState({ "isCancelConfirmShown": false });
+
+        this.doCancelSaveTextUnit();
+    },
+
+    /**
+     * @return {JSX}
+     */
+    getCancelConfirmationModel() {
+        if (this.state.isCancelConfirmShown) {
+            return (
+                <Modal show={true} onHide={this.handleCancelConfirmationDismiss}>
+                    <Modal.Header closeButton>
+                        <Modal.Title><FormattedMessage id="modal.title" /></Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body><FormattedMessage id="textUnit.cancel.confirmation" /></Modal.Body>
+                    <Modal.Footer>
+                        <Button bsStyle="primary" onClick={this.handleConfirmCancel}>
+                            <FormattedMessage id="label.yes" />
+                        </Button>
+                        <Button onClick={() => { this.setState({ "isCancelConfirmShown": false }) }}>
+                            <FormattedMessage id="label.no" />
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            );
+        }
+    },
+
     render() {
         // TODO: Must show which repository a string belongs to when multiple repositories are selected
         let textunitClass = "mrm pbm ptm textunit";
@@ -625,6 +672,7 @@ let TextUnit = React.createClass({
                         </Grid>
                     </div>
                     {this.getTextUnitReviewModal()}
+                    {this.getCancelConfirmationModel()}
                 </div>
         );
     }
