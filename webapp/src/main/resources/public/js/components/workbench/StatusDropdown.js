@@ -55,15 +55,6 @@ let StatusDropdown = React.createClass({
         }
     },
 
-
-    getMessageForFilterHeader(filter) {
-
-        switch (filter) {
-            case "used" :
-                return this.props.intl.formatMessage({ id: "search.statusDropdown.used" });
-        }
-    },
-
     setStateAndCallSearchParamChanged(state) {
         this.setState(state, function () {
             this.callSearchParamChanged();
@@ -139,8 +130,6 @@ let StatusDropdown = React.createClass({
 
     render() {
 
-        let searchParams = SearchParamsStore.getState();
-
         return (
             <DropdownButton title={this.props.intl.formatMessage({ id: "search.statusDropdown.title" })}>
 
@@ -153,7 +142,7 @@ let StatusDropdown = React.createClass({
 
                 <MenuItem divider />
 
-                <MenuItem header>{this.getMessageForFilterHeader("used")}</MenuItem>
+                <MenuItem header><FormattedMessage id="search.statusDropdown.used" /></MenuItem>
                     {this.renderFilterMenuItem("used", true)}
                     {this.renderFilterMenuItem("unUsed", false)}
 
