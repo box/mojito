@@ -31,25 +31,6 @@ class SearchResultsStore {
     }
 
     /**
-     * Updates the searchResults array of this store with the textunit passed by the SDK after successfully saving it.
-     * @param textUnit
-     */
-    updateSearchResultsArrayWithTextUnit(textUnit) {
-        let updatedSearchResultsArray = this.searchResults.map((textUnitInStore) => {
-
-            let textUnitToReturn = textUnitInStore;
-            if (textUnitInStore.getTargetLocale() === textUnit.getTargetLocale() &&
-                textUnitInStore.getTmTextUnitId() === textUnit.getTmTextUnitId()) {
-
-                textUnitToReturn = textUnit;
-            }
-            return textUnitToReturn;
-        });
-
-        this.searchResults = updatedSearchResultsArray;
-    }
-
-    /**
      * The action handler that is called when any search parameter on the workbench changes.
      * This function waits for the SearchParamsStore to finish its action handler before
      * firing the request to fetch results for the search criteria provided in the UI.
@@ -60,7 +41,7 @@ class SearchResultsStore {
         this.noMoreResults = false;
         this.setPageFetched(false);
         if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
-            searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
+                searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
             this.resetSelectedTextUnitsMap();
         }
         this.getInstance().performSearch(searchParamsStoreState);
@@ -122,7 +103,7 @@ class SearchResultsStore {
             let currentSearchParams = SearchParamsStore.getState();
 
             if (currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED ||
-                currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED_AND_NOT_REJECTED ) {
+                    currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED_AND_NOT_REJECTED) {
 
                 // remove it from the list of result because now it doesn't have a translation anymore
                 for (let index = 0; index < this.searchResults.length; index++) {
@@ -172,6 +153,24 @@ class SearchResultsStore {
     onResetSelectedTextUnitsInCurrentPage() {
         for (let textUnit of this.searchResults) {
             delete this.selectedTextUnitsMap[textUnit.getTextUnitKey()];
+        }
+    }
+
+    /**
+     * Handle onSuccess event of onSaveTextUnit
+     * 
+     * We replace the old text unit in sotre with the new version version passed
+     * as parameter
+     * @param {TextUnit} textUnit The textUnit passed back by the SDK
+     */
+    onSaveTextUnitSuccess(textUnit) { 
+
+        for (let index = 0; index < this.searchResults.length; index++) {
+            let textUnitInStore = this.searchResults[index];
+            if (textUnitInStore.getTextUnitKey() === textUnit.getTextUnitKey()) {
+                this.searchResults[index] = textUnit;
+                break;
+            }
         }
     }
 
