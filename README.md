@@ -9,7 +9,7 @@ Mojito is an automation platform that enables continuous localization.  It fits 
 - Extract (push) strings from your repository to be translated
 - Generates localized files from translated strings (pull)
 - Includes quality checks of the translated content (placeholder validation, etc)
-- Uses previous translations to support refactoring (basic leveraging - no fuzzy)
+- Uses previous translations to support refactoring
 - Generates XLIFFs - files that translators know how to use
 
 ## [Getting Started](http://opensource.box.com/mojito/docs/guides/getting-started/)
