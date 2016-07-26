@@ -234,6 +234,7 @@ let TextUnit = React.createClass({
             }, () => {
                 if (this.pendingCancelEditPromiseResolve) {
                     this.pendingCancelEditPromiseResolve(true);
+                    this.pendingCancelEditPromiseResolve = null;
                 }
             });
         }
@@ -245,6 +246,7 @@ let TextUnit = React.createClass({
     abandonEditTextUnitCancellation() {
         if (this.pendingCancelEditPromiseResolve) {
             this.pendingCancelEditPromiseResolve(false);
+            this.pendingCancelEditPromiseResolve = null;
         }
     },
 
