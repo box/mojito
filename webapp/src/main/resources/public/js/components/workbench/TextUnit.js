@@ -637,8 +637,10 @@ let TextUnit = React.createClass({
      * @return {JSX}
      */
     getCancelConfirmationModel() {
+        let result = null;
+
         if (this.state.isCancelConfirmShown) {
-            return (
+            result = (
                 <Modal show={true} onHide={this.handleCancelConfirmationDismiss}>
                     <Modal.Header closeButton>
                         <Modal.Title><FormattedMessage id="modal.title"/></Modal.Title>
@@ -655,6 +657,8 @@ let TextUnit = React.createClass({
                 </Modal>
             );
         }
+
+        return result;
     },
 
     render() {
