@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Update {@link RepositoryStatistic}s on a regular basis.
@@ -64,7 +63,6 @@ public class RepositoryStatisticsScheduler {
         }
     }
 
-    @Transactional
     private void updateRepositoryStatistics(Long repositoryId) {
         List<StatisticsSchedule> statisticsScheduleList = statisticsScheduleRepository.findByRepositoryIdAndTimeToUpdateBefore(repositoryId, DateTime.now());
         if (!statisticsScheduleList.isEmpty()) {

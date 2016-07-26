@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service to compute and update {@link Repository} statistics
@@ -56,7 +55,6 @@ public class RepositoryStatisticService {
      *
      * @param repositoryId {@link Repository#id}
      */
-    @Transactional
     public void updateStatistics(Long repositoryId) {
 
         Repository repository = repositoryRepository.findOne(repositoryId);
