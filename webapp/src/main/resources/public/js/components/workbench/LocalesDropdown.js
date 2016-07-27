@@ -2,7 +2,7 @@ import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
-import Multiselect from "react-bootstrap-multiselect";
+import {DropdownButton, MenuItem} from "react-bootstrap";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 
 import RepositoryStore from "../../stores/RepositoryStore";
@@ -42,86 +42,128 @@ let LocalesDropDown = React.createClass({
     updateComponent: function () {
 
         this.setState({
-            bcp47Tags: RepositoryStore.getAllBcp47TagsForRepositoryIds(SearchParamsStore.getState().repoIds),
-            selectedBcp47Tags: SearchParamsStore.getState().bcp47Tags
+            bcp47Tags: this.getSortedBcp47TagsFromStore(),
+            fullyTranslatedBcp47Tags: this.getSortedFullyTranslatedBcp47TagsFromStore(),
+            selectedBcp47Tags: this.getSortedSelectedBcp47TagsFromStore()
         });
     },
 
     /**
+     * Gets sorted bcp47tags from stores.
      *
-     * @return {{bcp47Tags: string[], selectedBcp47Tags: string[]}}
+     * Sort is important to ensure later array comparison in the component will
+     * work as expected.
+     *
+     * @returns {string[]}
+     */
+    getSortedBcp47TagsFromStore() {
+        return RepositoryStore.getAllBcp47TagsForRepositoryIds(SearchParamsStore.getState().repoIds).sort();
+    },
+
+    /**
+     * Gets sorted fully translated bcp47tags from stores.
+     *
+     * Sort is important to ensure later array comparison in the component will
+     * work as expected.
+     *
+     * @returns {string[]}
+     */
+    getSortedFullyTranslatedBcp47TagsFromStore() {
+        return RepositoryStore.getAllBcp47TagsForRepositoryIds(SearchParamsStore.getState().repoIds, true).sort();
+    },
+
+    /**
+     * Gets sorted selected bcp47tags from stores.
+     *
+     * Sort is important to ensure later array comparison in the component will
+     * work as expected.
+     *
+     * @returns {string[]}
+     */
+    getSortedSelectedBcp47TagsFromStore() {
+        return SearchParamsStore.getState().bcp47Tags.sort();
+    },
+
+    /**
+     *
+     * @return {{bcp47Tags: string[], fullyTranslatedBcp47Tags: string[], selectedBcp47Tags: string[], dropdownOpen: boolean}}
      */
     getInitialState: function () {
         return {
             "bcp47Tags": [],
-            "selectedBcp47Tags": []
+            "fullyTranslatedBcp47Tags": [],
+            "selectedBcp47Tags": [],
+            "dropdownOpen": false
         };
     },
 
     /**
-     * Callback for multiselect change. Compare the selected locales with the
-     * locale in the state. If different, update the state and call the action
-     * to propagate locale change.
-     */
-    onMultiSelectChange() {
-
-        let selectedBcp47TagsFromMultiSelect = this.getSelectedBcp47TagsFromMultiSelect();
-
-        if (!_.isEqual(this.state.selectedBcp47Tags, selectedBcp47TagsFromMultiSelect)) {
-
-            this.setState({
-                selectedBcp47Tags: selectedBcp47TagsFromMultiSelect
-            }, () => {
-
-                let actionData = {
-                    "changedParam": SearchConstants.LOCALES_CHANGED,
-                    "bcp47Tags": selectedBcp47TagsFromMultiSelect
-                };
-
-                WorkbenchActions.searchParamsChanged(actionData);
-            });
-        }
-    },
-
-    /**
-     * Get the selected bcp47 tags from the multi select
-     * 
-     * @returns {string[]}
-     */
-    getSelectedBcp47TagsFromMultiSelect() {
-
-        let selected = $('#localesDropDown option:selected').map(function (a, item) {
-            return item.value;
-        }).toArray();
-
-        return selected;
-    },
-
-    /**
-     * Create locale option
+     * Get an object that contains locale information (display name, if
+     * selected or not).
      *
-     * @param localeKey
-     * @return {{value: string, selected: boolean}}
+     * @param bcp47Tag the locale bcp47 tag
+     * @return {{bcp47Tag: string, displayName: string, selected: boolean}}
      */
-    createLocaleOption: function (bcp47Tag) {
+    getLocale: function (bcp47Tag) {
 
         return {
-            "value": bcp47Tag,
-            "label": Locales.getDisplayName(bcp47Tag),
+            "bcp47Tag": bcp47Tag,
+            "displayName": Locales.getDisplayName(bcp47Tag),
             "selected": this.state.selectedBcp47Tags.indexOf(bcp47Tag) > -1
         };
     },
 
     /**
-     * Get locale options for the LocalesDropDown
+     * Get list of locales sorted by their display name
      *
      * @return {{value: string, selected: boolean}[]}}
      */
-    getLocaleOptions: function () {
+    getSortedLocales: function () {
         let localeOptions = this.state.bcp47Tags
-                .map(this.createLocaleOption)
-                .sort((a, b) => Locales.getDisplayName(a.value).localeCompare(Locales.getDisplayName(b.value)));
+                .map(this.getLocale)
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
         return localeOptions;
+
+    },
+
+    /**
+     * On dropdown selected event, add or remove the target locale from the
+     * selected locale list base on its previous state (selected or not).
+     *
+     * @param locale the locale that was selected
+     */
+    onLocaleSelected(locale) {
+
+        // Currently there is no way to prevent the dropdown to close on select unless using this trick
+        this.forceDropdownOpen = true;
+
+        let bcp47Tag = locale.bcp47Tag;
+
+        let newSelectedBcp47Tags = this.state.selectedBcp47Tags.slice();
+
+        if (locale.selected) {
+            newSelectedBcp47Tags = _.pull(this.state.selectedBcp47Tags, bcp47Tag);
+        } else {
+            newSelectedBcp47Tags.push(bcp47Tag);
+        }
+
+        this.searchParamChanged(newSelectedBcp47Tags);
+    },
+
+    /**
+     * Trigger the searchParamsChanged action for a given list of selected
+     * bcp47 tags.
+     *
+     * @param newSelectedBcp47Tags
+     */
+    searchParamChanged(newSelectedBcp47Tags) {
+
+        let actionData = {
+            "changedParam": SearchConstants.LOCALES_CHANGED,
+            "bcp47Tags": newSelectedBcp47Tags
+        };
+
+        WorkbenchActions.searchParamsChanged(actionData);
     },
 
     /**
@@ -137,10 +179,10 @@ let LocalesDropDown = React.createClass({
 
         let label = '';
 
-        let numberOfSelectedLocales = options.filter(':selected').length;
+        let numberOfSelectedLocales = this.state.selectedBcp47Tags.length;
 
         if (numberOfSelectedLocales == 1) {
-            label = options[0].label;
+            label = this.getSortedLocales()[0].displayName;
         } else {
             label = this.props.intl.formatMessage({id: "search.locale.btn.text"}, {'numberOfSelectedLocales': numberOfSelectedLocales});
         }
@@ -149,29 +191,118 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
+     * Here we handle the logic to keep the dropdown open because it is not
+     * supported by default react-bootstrap component.
+     *
+     * "forceDropdownOpen" can be set in any function that wants to prevent the
+     * the dropdown to close.
+     *
+     * @param newOpenState
+     */
+    onDropdownToggle(newOpenState){
+
+        if (this.forceDropdownOpen) {
+            this.forceDropdownOpen = false;
+            this.setState({dropdownOpen: true});
+        } else {
+            this.setState({dropdownOpen: newOpenState});
+        }
+    },
+
+    /**
+     * Selects fully translated locales.
+     */
+    onSelectTranslated() {
+        // Currently there is no way to prevent the dropdown to close on select unless using this trick
+        this.forceDropdownOpen = true;
+        this.searchParamChanged(this.state.fullyTranslatedBcp47Tags.slice());
+    },
+
+    /**
+     * Selects all locales.
+     */
+    onSelectAll() {
+        // Currently there is no way to prevent the dropdown to close on select unless using this trick
+        this.forceDropdownOpen = true;
+        this.searchParamChanged(this.state.bcp47Tags.slice());
+    },
+
+    /**
+     * Clear all selected locales.
+     */
+    onClearAll() {
+        // Currently there is no way to prevent the dropdown to close on select unless using this trick
+        this.forceDropdownOpen = true;
+        this.searchParamChanged([]);
+    },
+
+    /**
+     * Indicates if the select translated menu item should be disabled.
+     *
+     * @returns {boolean}
+     */
+    isSelectTranslatedDisabled() {
+        return _.isEqual(this.state.selectedBcp47Tags, this.state.fullyTranslatedBcp47Tags);
+    },
+
+
+    /**
+     * Indicates if the select all menu item should be disabled.
+     *
+     * @returns {boolean}
+     */
+    isSelectAllDisabled() {
+        return this.state.selectedBcp47Tags.length === this.state.bcp47Tags.length;
+    },
+
+    /**
+     * Indicates if the clear all menu item should be disabled.
+     *
+     * @returns {boolean}
+     */
+    isClearAllDisabled() {
+        return this.state.selectedBcp47Tags.length === 0;
+    },
+
+
+    /**
+     * Renders the locale menu item list.
+     *
+     * @returns {Array}
+     */
+    renderLocales() {
+        return this.getSortedLocales().map(this.renderLocale);
+    },
+
+    /**
+     * Render a locale menu item.
+     *
+     * @param locale
+     * @returns {XML}
+     */
+    renderLocale(locale) {
+        return (
+                <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
+        );
+    },
+
+    /**
      * @return {JSX}
      */
     render: function () {
 
-        let localeOptions = this.getLocaleOptions();
-
         return (
-                <span className="mlm">
-                <Multiselect
-                        onChange={this.onMultiSelectChange}
-                        onSelectAll={this.onMultiSelectChange}
-                        selectAllText={this.props.intl.formatMessage({ id: "search.locale.selectAll" })}
-                        includeSelectAllOption={true}
-                        id="localesDropDown"
-                        buttonText={this.getButtonText}
-                        enableFiltering={true}
-                        enableCaseInsensitiveFiltering={false}
-                        filterPlaceholder={this.props.intl.formatMessage({ id: "search.locale.filterPlaceholder" })}
-                        ref="localeDropdownRef"
-                        data={localeOptions}
-                        multiple/>
-            </span>
+                <span className="mlm localeDropdown">
+                <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.dropdownOpen}>
+                    <MenuItem disabled={this.isSelectTranslatedDisabled()} onSelect={this.onSelectTranslated}>Select Translated</MenuItem>
+                    <MenuItem disabled={this.isSelectAllDisabled()} onSelect={this.onSelectAll}>Select All</MenuItem>
+                    <MenuItem disabled={this.isClearAllDisabled()} onSelect={this.onClearAll}>Clear All</MenuItem>
+                    <MenuItem divider/>
+                    {this.renderLocales()}
+                </DropdownButton>
+                </span>
         );
+
     }
 });
 
