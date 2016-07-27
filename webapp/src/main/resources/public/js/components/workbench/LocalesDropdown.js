@@ -178,7 +178,7 @@ let LocalesDropDown = React.createClass({
         let numberOfSelectedLocales = this.state.selectedBcp47Tags.length;
 
         if (numberOfSelectedLocales == 1) {
-            label = this.getSortedLocales()[0].displayName;
+            label = Locales.getDisplayName(this.state.selectedBcp47Tags[0]);
         } else {
             label = this.props.intl.formatMessage({id: "search.locale.btn.text"}, {'numberOfSelectedLocales': numberOfSelectedLocales});
         }
@@ -208,7 +208,7 @@ let LocalesDropDown = React.createClass({
     /**
      * Selects fully translated locales.
      */
-    onSelectTranslated() {
+    onSelectPrincipal() {
         this.forceDropdownOpen = true;
         this.searchParamChanged(this.state.fullyTranslatedBcp47Tags.slice());
     },
@@ -224,7 +224,7 @@ let LocalesDropDown = React.createClass({
     /**
      * Clear all selected locales.
      */
-    onClearAll() {
+    onSelectNone() {
         this.forceDropdownOpen = true;
         this.searchParamChanged([]);
     },
@@ -234,7 +234,7 @@ let LocalesDropDown = React.createClass({
      *
      * @returns {boolean}
      */
-    isSelectTranslatedDisabled() {
+    isPrincipalActive() {
         return _.isEqual(this.state.selectedBcp47Tags, this.state.fullyTranslatedBcp47Tags);
     },
 
@@ -244,7 +244,7 @@ let LocalesDropDown = React.createClass({
      *
      * @returns {boolean}
      */
-    isSelectAllDisabled() {
+    isAllActive() {
         return this.state.selectedBcp47Tags.length === this.state.bcp47Tags.length;
     },
 
@@ -253,7 +253,7 @@ let LocalesDropDown = React.createClass({
      *
      * @returns {boolean}
      */
-    isClearAllDisabled() {
+    isNoneActive() {
         return this.state.selectedBcp47Tags.length === 0;
     },
 
@@ -277,9 +277,9 @@ let LocalesDropDown = React.createClass({
         return (
                 <span className="mlm locale-dropdown">
                 <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
-                    <MenuItem disabled={this.isSelectTranslatedDisabled()} onSelect={this.onSelectTranslated}>Select Translated</MenuItem>
-                    <MenuItem disabled={this.isSelectAllDisabled()} onSelect={this.onSelectAll}>Select All</MenuItem>
-                    <MenuItem disabled={this.isClearAllDisabled()} onSelect={this.onClearAll}>Clear All</MenuItem>
+                    <MenuItem active={this.isPrincipalActive()} onSelect={this.onSelectPrincipal}><FormattedMessage id="search.locale.selectPrincipal" /></MenuItem>
+                    <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll" /></MenuItem>
+                    <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone" /></MenuItem>
                     <MenuItem divider/>
                     {this.renderLocales()}
                 </DropdownButton>
