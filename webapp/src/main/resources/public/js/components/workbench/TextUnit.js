@@ -117,7 +117,7 @@ let TextUnit = React.createClass({
         let paramsStoreState = SearchParamsStore.getState();
         switch (eventKeyCode) {
             case "x":
-                WorkbenchActions.textUnitSelection(this.getTextUnitFromProps());
+                WorkbenchActions.textUnitSelection(this.getCloneOfTextUnitFromProps());
                 break;
         }
     },
@@ -157,18 +157,21 @@ let TextUnit = React.createClass({
      */
     onChangeTextUnitCheckbox(e) {
         e.textUnitIndex = this.props.textUnitIndex;
-        WorkbenchActions.textUnitSelection(this.getTextUnitFromProps());
+        WorkbenchActions.textUnitSelection(this.getCloneOfTextUnitFromProps());
     },
     /**
      * Prepares the TextUnit for saving
      * @return {TextUnit}
      */
     prepTextUnitForSaving: function () {
-        let textUnit = this.getTextUnitFromProps();
+
+        let textUnit = this.getCloneOfTextUnitFromProps();
+
         textUnit.setIncludedInLocalizedFile(true);
         textUnit.setStatus(TextUnitSDK.STATUS.APPROVED);
         textUnit.setTarget(this.state.translation);
         textUnit.setTranslated(true);
+        
         return textUnit;
     },
     /**
@@ -259,12 +262,12 @@ let TextUnit = React.createClass({
     },
 
     /**
-     * Gets the textUnit form the state.
+     * Gets a clone of the textUnit form the props
      *
      * @returns {TextUnit}
      */
-    getTextUnitFromProps() {
-        return this.props.textUnit;
+    getCloneOfTextUnitFromProps() {
+        return TextUnitSDK.toTextUnit(_.clone(this.props.textUnit.data));
     },
 
     /**
@@ -287,7 +290,8 @@ let TextUnit = React.createClass({
 
         // TODO: web service does not make needsReview and includedInFile mutually exclusive.
         // Set it manually in the UI till the web service is fixed.
-        let textUnit = this.getTextUnitFromProps();
+        let textUnit = this.getCloneOfTextUnitFromProps();
+
         textUnit.setTargetComment(modalData.comment);
         switch (modalData.textUnitAction) {
             case "reject":
@@ -433,7 +437,7 @@ let TextUnit = React.createClass({
             }
         });
     },
-
+    
     /**
      * @returns {JSX} - This area has a readonly mode and an edit mode. This function
      * returns the JSX for the target string area depending on the view mode.
@@ -530,7 +534,7 @@ let TextUnit = React.createClass({
     getTextUnitReviewModal() {
         let ui = "";
         if (this.state.isShowModal) {
-            let textUnitArray = [this.getTextUnitFromProps()];
+            let textUnitArray = [this.getCloneOfTextUnitFromProps()];
             ui = (
                 <TextUnitsReviewModal isShowModal={this.state.isShowModal}
                                       onReviewModalSaveClicked={this.performActionOnTextUnit}
@@ -541,11 +545,13 @@ let TextUnit = React.createClass({
     },
 
     handleErrorAlertDismiss() {
-        this.setState({
-            "isErrorAlertShown": false
-        });
 
-        WorkbenchActions.resetErrorState(this.getTextUnitFromProps());
+        WorkbenchActions.resetErrorState(this.props.textUnit);
+ 
+        this.setState({
+            "isErrorAlertShown": false,
+            "isEditMode" : true
+        });
     },
 
     handleModalSave() {

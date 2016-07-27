@@ -591,3 +591,14 @@ label.current-pageNumber {
   flex: 1 1;
   overflow: scroll;
 }
+
+.empty-search-container {
+  background-image: url("/img/magnifying-glass.svg");
+  background-repeat: no-repeat;
+  background-size: 150px;
+  background-position: center;
+  width: 600px;
+  height: 300px;
+  opacity: 0.5;
+  margin-top: 80px;
+}
