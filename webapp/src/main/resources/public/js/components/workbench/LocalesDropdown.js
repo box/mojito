@@ -23,28 +23,38 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
+     * Currently there is no way to prevent the dropdown to close on select
+     * unless using a trick based on this attribute.
+     *
+     * Action that shouldn't close the dropdown can set this attribute to 'true'
+     * This will prevent onDropdownToggle to actually close the dropdown.
+     * Subsequent calls to onDropdownToggle will behave normally.
+     */
+    forceDropdownOpen: false,
+
+    /**
      * Handler for when RepositoryStore is updated
      */
-    onRepositoriesFetched: function () {
+    onRepositoriesFetched() {
         this.updateComponent();
     },
 
     /**
      * Handler for when SearchParamsStore is updated
      */
-    onSearchParamsChanged: function () {
+    onSearchParamsChanged() {
         this.updateComponent();
     },
 
     /**
      * State the state based on the stores and sync data with the multiselect component
      */
-    updateComponent: function () {
+    updateComponent() {
 
         this.setState({
-            bcp47Tags: this.getSortedBcp47TagsFromStore(),
-            fullyTranslatedBcp47Tags: this.getSortedFullyTranslatedBcp47TagsFromStore(),
-            selectedBcp47Tags: this.getSortedSelectedBcp47TagsFromStore()
+            "bcp47Tags": this.getSortedBcp47TagsFromStore(),
+            "fullyTranslatedBcp47Tags": this.getSortedFullyTranslatedBcp47TagsFromStore(),
+            "selectedBcp47Tags": this.getSortedSelectedBcp47TagsFromStore()
         });
     },
 
@@ -86,44 +96,33 @@ let LocalesDropDown = React.createClass({
 
     /**
      *
-     * @return {{bcp47Tags: string[], fullyTranslatedBcp47Tags: string[], selectedBcp47Tags: string[], dropdownOpen: boolean}}
+     * @return {{bcp47Tags: string[], fullyTranslatedBcp47Tags: string[], selectedBcp47Tags: string[], isDropdownOpenned: boolean}}
      */
-    getInitialState: function () {
+    getInitialState() {
         return {
             "bcp47Tags": [],
             "fullyTranslatedBcp47Tags": [],
             "selectedBcp47Tags": [],
-            "dropdownOpen": false
+            "isDropdownOpenned": false
         };
     },
 
     /**
-     * Get an object that contains locale information (display name, if
-     * selected or not).
+     * Get list of locales (with selected state) sorted by their display name
      *
-     * @param bcp47Tag the locale bcp47 tag
-     * @return {{bcp47Tag: string, displayName: string, selected: boolean}}
+     * @return {{bcp47Tag: string, displayName: string, selected: boolean}[]}}
      */
-    getLocale: function (bcp47Tag) {
+    getSortedLocales() {
+        let locales = this.state.bcp47Tags
+                .map((bcp47Tag) => {
+                    return {
+                        "bcp47Tag": bcp47Tag,
+                        "displayName": Locales.getDisplayName(bcp47Tag),
+                        "selected": this.state.selectedBcp47Tags.indexOf(bcp47Tag) > -1
+                    }
+                }).sort((a, b) => a.displayName.localeCompare(b.displayName));
 
-        return {
-            "bcp47Tag": bcp47Tag,
-            "displayName": Locales.getDisplayName(bcp47Tag),
-            "selected": this.state.selectedBcp47Tags.indexOf(bcp47Tag) > -1
-        };
-    },
-
-    /**
-     * Get list of locales sorted by their display name
-     *
-     * @return {{value: string, selected: boolean}[]}}
-     */
-    getSortedLocales: function () {
-        let localeOptions = this.state.bcp47Tags
-                .map(this.getLocale)
-                .sort((a, b) => a.displayName.localeCompare(b.displayName));
-        return localeOptions;
-
+        return locales;
     },
 
     /**
@@ -134,7 +133,6 @@ let LocalesDropDown = React.createClass({
      */
     onLocaleSelected(locale) {
 
-        // Currently there is no way to prevent the dropdown to close on select unless using this trick
         this.forceDropdownOpen = true;
 
         let bcp47Tag = locale.bcp47Tag;
@@ -171,11 +169,9 @@ let LocalesDropDown = React.createClass({
      *
      * if 1 locale selected the named is shown, else the number of selected locale is displayed (with proper i18n support)
      *
-     * @param options
-     * @param select
      * @returns {string} text to display on the button
      */
-    getButtonText: function (options, select) {
+    getButtonText() {
 
         let label = '';
 
@@ -203,9 +199,9 @@ let LocalesDropDown = React.createClass({
 
         if (this.forceDropdownOpen) {
             this.forceDropdownOpen = false;
-            this.setState({dropdownOpen: true});
+            this.setState({"isDropdownOpenned": true});
         } else {
-            this.setState({dropdownOpen: newOpenState});
+            this.setState({"isDropdownOpenned": newOpenState});
         }
     },
 
@@ -213,7 +209,6 @@ let LocalesDropDown = React.createClass({
      * Selects fully translated locales.
      */
     onSelectTranslated() {
-        // Currently there is no way to prevent the dropdown to close on select unless using this trick
         this.forceDropdownOpen = true;
         this.searchParamChanged(this.state.fullyTranslatedBcp47Tags.slice());
     },
@@ -222,7 +217,6 @@ let LocalesDropDown = React.createClass({
      * Selects all locales.
      */
     onSelectAll() {
-        // Currently there is no way to prevent the dropdown to close on select unless using this trick
         this.forceDropdownOpen = true;
         this.searchParamChanged(this.state.bcp47Tags.slice());
     },
@@ -231,7 +225,6 @@ let LocalesDropDown = React.createClass({
      * Clear all selected locales.
      */
     onClearAll() {
-        // Currently there is no way to prevent the dropdown to close on select unless using this trick
         this.forceDropdownOpen = true;
         this.searchParamChanged([]);
     },
@@ -268,32 +261,22 @@ let LocalesDropDown = React.createClass({
     /**
      * Renders the locale menu item list.
      *
-     * @returns {Array}
-     */
-    renderLocales() {
-        return this.getSortedLocales().map(this.renderLocale);
-    },
-
-    /**
-     * Render a locale menu item.
-     *
-     * @param locale
      * @returns {XML}
      */
-    renderLocale(locale) {
-        return (
-                <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
+    renderLocales() {
+        return this.getSortedLocales().map(
+                (locale) =>  <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
         );
     },
 
     /**
      * @return {JSX}
      */
-    render: function () {
+    render() {
 
         return (
-                <span className="mlm localeDropdown">
-                <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.dropdownOpen}>
+                <span className="mlm locale-dropdown">
+                <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
                     <MenuItem disabled={this.isSelectTranslatedDisabled()} onSelect={this.onSelectTranslated}>Select Translated</MenuItem>
                     <MenuItem disabled={this.isSelectAllDisabled()} onSelect={this.onSelectAll}>Select All</MenuItem>
                     <MenuItem disabled={this.isClearAllDisabled()} onSelect={this.onClearAll}>Clear All</MenuItem>

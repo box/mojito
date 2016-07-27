@@ -586,13 +586,10 @@ label.current-pageNumber {
   overflow: scroll;
 }
 
-
-.localeDropdown ul {
-
+.locale-dropdown ul {
   max-height: 400px;
   overflow: scroll;
-}
-.empty-search-container {
+}.empty-search-container {
   background-image: url("/img/magnifying-glass.svg");
   background-repeat: no-repeat;
   background-size: 150px;
