@@ -140,7 +140,7 @@ let LocalesDropDown = React.createClass({
         let newSelectedBcp47Tags = this.state.selectedBcp47Tags.slice();
 
         if (locale.selected) {
-            newSelectedBcp47Tags = _.pull(this.state.selectedBcp47Tags, bcp47Tag);
+            _.pull(newSelectedBcp47Tags, bcp47Tag);
         } else {
             newSelectedBcp47Tags.push(bcp47Tag);
         }
