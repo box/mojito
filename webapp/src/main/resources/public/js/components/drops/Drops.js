@@ -214,8 +214,17 @@ let Drops = React.createClass({
 
         let wordCount = this.getWordCountsForAllTranslationKits(drop.translationKits);
 
+        let rowClass = "";
+        if (this.state.selectedDrop) {
+            if (this.state.selectedDrop.id === drop.id) {
+                rowClass = "row-active";
+            } else {
+                rowClass = "row-blurred";
+            }
+        }
+
         return (
-            <tr>
+            <tr className={rowClass}>
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
                 <td>{drop.repository.name}</td>
                 <td>{wordCount}</td>
