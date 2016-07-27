@@ -25,15 +25,18 @@ let RepositoryStatistics = React.createClass({
         let repo = RepositoryStore.getRepositoryById(repoId);
 
         let repoStat = repo.repositoryStatistic;
-        let repositoryLocaleStatistics = repoStat.repositoryLocaleStatistics;
+        let repositoryLocaleStatistics = repoStat.repositoryLocaleStatistics
+                .map(this.getRepositoryLocaleStatistics)
+                .sort((a, b) => a.localeDisplayName.localeCompare(b.localeDisplayName));
 
         let toBeFullyTranslatedBcp47Tags = RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId);
 
         let rows = repositoryLocaleStatistics.map(repoLocaleStat => {
-            let bcp47Tag = repoLocaleStat.locale.bcp47Tag;
+            let bcp47Tag = repoLocaleStat.bcp47Tag;
+            let localeDisplayName = repoLocaleStat.localeDisplayName;
             let isFullyTranslated = toBeFullyTranslatedBcp47Tags.indexOf(bcp47Tag) !== -1;
 
-            return this.getLocaleStatisticRow(bcp47Tag, isFullyTranslated, repoStat.usedTextUnitCount, repoStat.usedTextUnitWordCount, repoLocaleStat);
+            return this.getLocaleStatisticRow(bcp47Tag, isFullyTranslated, repoStat.usedTextUnitCount, repoStat.usedTextUnitWordCount, repoLocaleStat.repositoryLocaleStatistic);
         });
 
 
@@ -136,6 +139,20 @@ let RepositoryStatistics = React.createClass({
         }
 
         return ui;
+    },
+
+    /**
+     * returns RepositoryLocaleStatistics with locale with the display name
+     *
+     * @param RepositoryLocaleStatistics
+     * @return {{bcp47Tag: String, localeDisplayName: String, repositoryLocaleStatistic: RepositoryLocaleStatistics}}
+     */
+    getRepositoryLocaleStatistics: function (repositoryLocaleStatistic) {
+        return {
+            "bcp47Tag": repositoryLocaleStatistic.locale.bcp47Tag,
+            "localeDisplayName": Locales.getDisplayName(repositoryLocaleStatistic.locale.bcp47Tag),
+            "repositoryLocaleStatistic": repositoryLocaleStatistic
+        };
     },
 
     /**

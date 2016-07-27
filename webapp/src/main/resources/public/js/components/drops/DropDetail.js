@@ -45,15 +45,31 @@ let DropDetail = React.createClass({
         });
     },
 
-    render: function () {
-        let rows = this.props.drop.translationKits.map(tk => {
-            let bcp47Tag = tk.locale.bcp47Tag;
+    /**
+     * extracts word count from translationKit
+     *
+     * @param translationKit
+     * @return {{bcp47Tag: String, localeDisplayName: String, wordCount: Number}}
+     */
+    getWordCounts: function (translationKit) {
+        return {
+            "bcp47Tag": translationKit.locale.bcp47Tag,
+            "localeDisplayName": Locales.getDisplayName(translationKit.locale.bcp47Tag),
+            "wordCount": translationKit.wordCount
+        };
+    },
 
+    render: function () {
+        let wordCounts = this.props.drop.translationKits
+                .map(this.getWordCounts)
+                .sort((a, b) => a.localeDisplayName.localeCompare(b.localeDisplayName));
+
+        let rows = wordCounts.map(tk => {
             return <tr>
                 <td>
                     <div>
-                        <Link onClick={this.updateSearchParamsForLocale.bind(this, bcp47Tag)}
-                              to='/workbench'>{Locales.getDisplayName(bcp47Tag)}</Link>
+                        <Link onClick={this.updateSearchParamsForLocale.bind(this, tk.bcp47Tag)}
+                              to='/workbench'>{tk.localeDisplayName}</Link>
                     </div>
                 </td>
                 <td>{tk.wordCount}</td>
