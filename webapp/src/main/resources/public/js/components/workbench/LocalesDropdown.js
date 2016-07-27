@@ -230,26 +230,26 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
-     * Indicates if the select translated menu item should be disabled.
+     * Indicates if the select translated menu item should be active.
      *
      * @returns {boolean}
      */
     isPrincipalActive() {
-        return _.isEqual(this.state.selectedBcp47Tags, this.state.fullyTranslatedBcp47Tags);
+        return this.state.selectedBcp47Tags.length > 0 && _.isEqual(this.state.selectedBcp47Tags, this.state.fullyTranslatedBcp47Tags);
     },
 
 
     /**
-     * Indicates if the select all menu item should be disabled.
+     * Indicates if the select all menu item should be active.
      *
      * @returns {boolean}
      */
     isAllActive() {
-        return this.state.selectedBcp47Tags.length === this.state.bcp47Tags.length;
+        return this.state.selectedBcp47Tags.length > 0 && this.state.selectedBcp47Tags.length === this.state.bcp47Tags.length;
     },
 
     /**
-     * Indicates if the clear all menu item should be disabled.
+     * Indicates if the clear all menu item should be active.
      *
      * @returns {boolean}
      */
