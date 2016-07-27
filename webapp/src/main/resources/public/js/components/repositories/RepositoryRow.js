@@ -339,9 +339,9 @@ let RepositoryRow = React.createClass({
         let rowClass = "";
 
         if (this.state.isActive) {
-            rowClass = "repo-active";
+            rowClass = "row-active";
         } else if (this.props.isBlurred) {
-            rowClass = "repo-blurred";
+            rowClass = "row-blurred";
         }
 
         return (

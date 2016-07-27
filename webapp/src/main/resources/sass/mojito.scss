@@ -149,6 +149,14 @@ a.label-container:hover {
   padding-left: $large-spacer;
 }
 
+.row-active {
+  border: 1px solid $brand-primary;
+}
+
+.row-blurred td {
+  opacity: 0.5;
+}
+
 .dropdown-menu {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
@@ -440,10 +448,6 @@ div.targetstring-container textarea {
   color: $brand-primary;
 }
 
-.repo-active {
-  border: 1px solid $brand-primary;
-}
-
 .show-details-button {
   transition: margin 0.2s;
   color: $brand-primary;
@@ -452,10 +456,6 @@ div.targetstring-container textarea {
 
 .show-details-button:hover {
   opacity: 0.9;
-}
-
-.repo-blurred td {
-  opacity: 0.5;
 }
 
 .repo-table > thead > tr > th, .repo-table > tbody > tr > th, .repo-table > tfoot > tr > th, .repo-table > thead > tr > td, .repo-table > tbody > tr > td, .repo-table > tfoot > tr > td {
