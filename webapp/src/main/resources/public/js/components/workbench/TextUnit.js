@@ -15,19 +15,19 @@ import TextUnitSDK from "../../sdk/TextUnit";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import Locales from "../../utils/Locales";
 import {
-        Alert,
-        Grid,
-        Row,
-        Col,
-        Panel,
-        Button,
-        ButtonToolbar,
-        ButtonGroup,
-        FormControl,
-        Input,
-        Label,
-        Glyphicon,
-        Modal
+    Alert,
+    Grid,
+    Row,
+    Col,
+    Panel,
+    Button,
+    ButtonToolbar,
+    ButtonGroup,
+    FormControl,
+    Input,
+    Label,
+    Glyphicon,
+    Modal
 } from "react-bootstrap";
 
 
@@ -44,7 +44,9 @@ let TextUnit = React.createClass({
     propTypes: {
         /** @type {TextUnit} */
         "textUnit": React.PropTypes.object.isRequired,
-        "onEditModeSetToTrue" : React.PropTypes.func
+
+        /** @type {function} */
+        "onEditModeSetToTrue": React.PropTypes.func
     },
 
     /**
@@ -64,6 +66,9 @@ let TextUnit = React.createClass({
 
             /** @type {Boolean} */
             "isErrorAlertShown": false,
+
+            /** @type {Boolean} */
+            "isCancelConfirmShown": false,
 
             /** @type {TextUnitError} */
             "error": null
@@ -127,7 +132,7 @@ let TextUnit = React.createClass({
             e.preventDefault();
             this.saveTextUnitIfNeeded(e);
         } else if (keycode(e) == keycode(keycode("escape"))) {
-            this.cancelSaveTextUnit(e);
+            this.cancelEditTextUnitHandlerEvent(e);
         }
     },
 
@@ -186,15 +191,66 @@ let TextUnit = React.createClass({
         }
     },
 
-    cancelSaveTextUnit(e) {
+    /**
+     * @param {Event} e
+     */
+    cancelEditTextUnitHandlerEvent(e) {
         e.stopPropagation();
+        this.cancelEditTextUnitHandler();
+    },
+
+
+    /**
+     * The pending Promise.resolve that is to be called when cancellation occurs or rejected.
+     * wasSuccessfullyCancelled is true if it cancellation of edit mode was successful.  Otherwise, it is false.
+     *
+     * This resolve is part of the Promise that is return when {@link cancelEditTextUnitHandler} is called.
+     *
+     * @typedef {Boolean} wasSuccessfullyCancelled
+     * @type {function(wasSuccessfullyCancelled)}
+     */
+    pendingCancelEditPromiseResolve: null,
+
+    /**
+     * @return {Promise.<Boolean>}
+     */
+    cancelEditTextUnitHandler() {
+        return new Promise((resolve, reject) => {
+            this.pendingCancelEditPromiseResolve = resolve;
+
+            if (this.hasTargetChanged()) {
+                this.setState({"isCancelConfirmShown": true});
+            } else {
+                this.doCancelEditTextUnit();
+            }
+        });
+    },
+
+    /**
+     * Actually cancel the edit model and reset the translation to the original translation
+     */
+    doCancelEditTextUnit() {
         if (this.state.isEditMode) {
             this.setState({
                 "isEditMode": false,
-                "translation": this.props.textUnit.getTarget(),
+                "translation": this.props.textUnit.getTarget()
+            }, () => {
+                if (this.pendingCancelEditPromiseResolve) {
+                    this.pendingCancelEditPromiseResolve(true);
+                    this.pendingCancelEditPromiseResolve = null;
+                }
             });
         }
+    },
 
+    /**
+     * Abandon the cancellation of edit mode
+     */
+    abandonEditTextUnitCancellation() {
+        if (this.pendingCancelEditPromiseResolve) {
+            this.pendingCancelEditPromiseResolve(false);
+            this.pendingCancelEditPromiseResolve = null;
+        }
     },
 
     /**
@@ -275,7 +331,7 @@ let TextUnit = React.createClass({
         let rendered = '';
         if (!this.props.textUnit.isUsed()) {
             rendered = (
-                    <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.unused"/></Label>
+                <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.unused"/></Label>
             );
         }
         return rendered;
@@ -309,8 +365,8 @@ let TextUnit = React.createClass({
                 glyphTitle = this.props.intl.formatMessage({id: "textUnit.reviewModal.translationNeeded"});
             }
             ui = (
-                    <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
-                               onClick={this.onTextUnitGlyphClicked}/>
+                <Glyphicon glyph={glyphType} id="reviewStringButton" title={glyphTitle} className="btn"
+                           onClick={this.onTextUnitGlyphClicked}/>
             );
         }
 
@@ -340,25 +396,26 @@ let TextUnit = React.createClass({
             let dir = Locales.getLanguageDirection(this.props.textUnit.getTargetLocale());
 
             return (
-                    <div className="targetstring-container">
-                        <FormControl ref="textUnitTextArea" componentClass="textarea" spellCheck="true" className="mrxs"
-                                     onKeyUp={this.onKeyUpTextArea} onKeyDown={this.onKeyDownTextArea}
-                                     placeholder={this.props.intl.formatMessage({ id: 'textUnit.target.placeholder' })}
-                                     defaultValue={this.state.translation ? this.state.translation : ""}
-                                     onChange={this.transUnitEditTextAreaOnChange}
-                                     dir={dir}
-                                     onClick={this.onClickTextArea}/>
+                <div className="targetstring-container">
+                    <FormControl ref="textUnitTextArea" componentClass="textarea" spellCheck="true" className="mrxs"
+                                 onKeyUp={this.onKeyUpTextArea} onKeyDown={this.onKeyDownTextArea}
+                                 placeholder={this.props.intl.formatMessage({ id: 'textUnit.target.placeholder' })}
+                                 defaultValue={this.state.translation ? this.state.translation : ""}
+                                 onChange={this.transUnitEditTextAreaOnChange}
+                                 dir={dir}
+                                 onClick={this.onClickTextArea}/>
 
-                        <ButtonToolbar className="mtxs mbxs">
-                            <Button bsStyle='primary' bsSize="small" disabled={saveDisabled}
-                                    onClick={!saveDisabled ? this.saveTextUnitIfNeeded : null}>
-                                <FormattedMessage id='label.save'/>
-                            </Button>
-                            <Button bsSize="small" onClick={this.cancelSaveTextUnit}>
-                                <FormattedMessage id="label.cancel"/>
-                            </Button>
-                        </ButtonToolbar>
-                    </div>
+                    <ButtonToolbar className="mtxs mbxs">
+                        <Button bsStyle='primary' bsSize="small" disabled={saveDisabled}
+                                onClick={!saveDisabled ? this.saveTextUnitIfNeeded : null}>
+                            <FormattedMessage id='label.save'/>
+                        </Button>
+                        <Button bsSize="small" onClick={this.cancelEditTextUnitHandlerEvent}>
+                            <span className={this.hasTargetChanged() ? "text-danger" : ""}><FormattedMessage
+                                id="label.cancel"/></span>
+                        </Button>
+                    </ButtonToolbar>
+                </div>
             );
         }
     },
@@ -371,6 +428,7 @@ let TextUnit = React.createClass({
      */
     editStringClicked(e) {
         e.stopPropagation();
+
         this.setState({
             isEditMode: true
         }, () => {
@@ -379,18 +437,7 @@ let TextUnit = React.createClass({
             }
         });
     },
-
-
-    /**
-     * Disable the edit mode. It also reset the target to the original string
-     */
-    disableEditMode() {
-        this.setState({
-            "isEditMode": false,
-            "translation": this.props.textUnit.getTarget()
-        });
-    },
-
+    
     /**
      * @returns {JSX} - This area has a readonly mode and an edit mode. This function
      * returns the JSX for the target string area depending on the view mode.
@@ -404,7 +451,7 @@ let TextUnit = React.createClass({
             let dir;
 
             let noTranslation = false;
-            let targetClassName = "pts textunit-string textunit-target";
+            let targetClassName = "pts pls pbs textunit-string textunit-target";
             if (targetString == null) {
                 noTranslation = true;
                 dir = Locales.getLanguageDirection(Locales.getCurrentLocale());
@@ -415,9 +462,9 @@ let TextUnit = React.createClass({
             }
 
             ui = (
-                    <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
-                        {targetString}
-                    </label>
+                <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
+                    {targetString}
+                </label>
             );
         }
         return ui;
@@ -489,9 +536,9 @@ let TextUnit = React.createClass({
         if (this.state.isShowModal) {
             let textUnitArray = [this.getCloneOfTextUnitFromProps()];
             ui = (
-                    <TextUnitsReviewModal isShowModal={this.state.isShowModal}
-                                          onReviewModalSaveClicked={this.performActionOnTextUnit}
-                                          onCloseModal={this.closeModal} textUnitsArray={textUnitArray}/>
+                <TextUnitsReviewModal isShowModal={this.state.isShowModal}
+                                      onReviewModalSaveClicked={this.performActionOnTextUnit}
+                                      onCloseModal={this.closeModal} textUnitsArray={textUnitArray}/>
             );
         }
         return ui;
@@ -531,32 +578,32 @@ let TextUnit = React.createClass({
             let buttons;
             if (this.state.error.errorId == Error.IDS.TEXTUNIT_CHECK_FAILED) {
                 buttons = (
-                        <div>
-                            <Button bsStyle="primary" onClick={this.handleModalSave}>
-                                <FormattedMessage id="label.yes"/>
-                            </Button>
-                            <Button onClick={this.handleErrorAlertDismiss}>
-                                <FormattedMessage id="label.no"/>
-                            </Button>
-                        </div>
+                    <div>
+                        <Button bsStyle="primary" onClick={this.handleModalSave}>
+                            <FormattedMessage id="label.yes"/>
+                        </Button>
+                        <Button onClick={this.handleErrorAlertDismiss}>
+                            <FormattedMessage id="label.no"/>
+                        </Button>
+                    </div>
                 );
             } else {
                 buttons = (
-                        <Button onClick={this.handleErrorAlertDismiss}>
-                            <FormattedMessage id="label.okay"/>
-                        </Button>);
+                    <Button onClick={this.handleErrorAlertDismiss}>
+                        <FormattedMessage id="label.okay"/>
+                    </Button>);
             }
 
             return (
-                    <Modal show={true} onHide={this.handleErrorAlertDismiss}>
-                        <Modal.Header closeButton>
-                            <Modal.Title><FormattedMessage id="error.modal.title"/></Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>{this.getErrorMessage(this.state.error)}</Modal.Body>
-                        <Modal.Footer>
-                            {buttons}
-                        </Modal.Footer>
-                    </Modal>
+                <Modal show={true} onHide={this.handleErrorAlertDismiss}>
+                    <Modal.Header closeButton>
+                        <Modal.Title><FormattedMessage id="error.modal.title"/></Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>{this.getErrorMessage(this.state.error)}</Modal.Body>
+                    <Modal.Footer>
+                        {buttons}
+                    </Modal.Footer>
+                </Modal>
             );
         }
     },
@@ -574,14 +621,52 @@ let TextUnit = React.createClass({
         if (source.endsWith("\n")) {
             source = source.substring(0, source.length - 1);
             optionalReturnLineSymbol = (
-                    <span className="textunit-returnline"> ↵</span>
+                <span className="textunit-returnline"> ↵</span>
             );
         }
 
         return (
-                <div className="plx pts textunit-string">{source}{optionalReturnLineSymbol}
-                </div>
+            <div className="plx pts textunit-string">{source}{optionalReturnLineSymbol}
+            </div>
         );
+    },
+
+    handleConfirmCancel() {
+        this.setState({"isCancelConfirmShown": false});
+        this.doCancelEditTextUnit();
+    },
+
+    handleConfirmCancelNo() {
+        this.setState({"isCancelConfirmShown": false});
+        this.abandonEditTextUnitCancellation();
+    },
+
+    /**
+     * @return {JSX}
+     */
+    getCancelConfirmationModel() {
+        let result = null;
+
+        if (this.state.isCancelConfirmShown) {
+            result = (
+                <Modal show={true} onHide={this.handleCancelConfirmationDismiss}>
+                    <Modal.Header closeButton>
+                        <Modal.Title><FormattedMessage id="modal.title"/></Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body><FormattedMessage id="textUnit.cancel.confirmation"/></Modal.Body>
+                    <Modal.Footer>
+                        <Button bsStyle="primary" onClick={this.handleConfirmCancel}>
+                            <FormattedMessage id="label.yes"/>
+                        </Button>
+                        <Button onClick={this.handleConfirmCancelNo}>
+                            <FormattedMessage id="label.no"/>
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            );
+        }
+
+        return result;
     },
 
     render() {
@@ -597,42 +682,44 @@ let TextUnit = React.createClass({
         }
 
         return (
-                <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
-                     onClick={this.onTextUnitClick}>
-                    {this.getErrorAlert()}
-                    <div>
-                        <Grid fluid={true}>
-                            <Row className='show-grid'>
-                                <Col xs={11}>
+            <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
+                 onClick={this.onTextUnitClick}>
+                {this.getErrorAlert()}
+                <div>
+                    <Grid fluid={true}>
+                        <Row className='show-grid'>
+                            <Col xs={11}>
                                 <span className="mrxs">
                                     <input type="checkbox" checked={isSelected}/>
                                 </span>
-                                    <Label bsStyle='primary' bsSize='large' className="mrxs mtl clickable"
-                                           onClick={this.onLocaleLabelClick}>
-                                        {this.props.textUnit.getTargetLocale()}
-                                    </Label>
-                                    {this.renderUnusedLabel()}
-                                    <span className="clickable" onClick={this.onStringIdClick}>{this.props.textUnit.getName()}</span>
-                                </Col>
-                            </Row>
-                            <Row className='show-grid'>
-                                <Col md={6}>
-                                    <Row>
-                                        {this.renderSource()}
-                                        <div className="plx em color-gray-light2">{this.props.textUnit.getComment()}</div>
-                                    </Row>
-                                </Col>
-                                <Col md={6}>
-                                    <Row>
-                                        {this.getTargetStringUI()}
-                                        <span className="textunit-actionbar mrxs">{this.renderReviewGlyph()}</span>
-                                    </Row>
-                                </Col>
-                            </Row>
-                        </Grid>
-                    </div>
-                    {this.getTextUnitReviewModal()}
+                                <Label bsStyle='primary' bsSize='large' className="mrxs mtl clickable"
+                                       onClick={this.onLocaleLabelClick}>
+                                    {this.props.textUnit.getTargetLocale()}
+                                </Label>
+                                {this.renderUnusedLabel()}
+                                <span className="clickable"
+                                      onClick={this.onStringIdClick}>{this.props.textUnit.getName()}</span>
+                            </Col>
+                        </Row>
+                        <Row className='show-grid'>
+                            <Col md={6}>
+                                <Row>
+                                    {this.renderSource()}
+                                    <div className="plx em color-gray-light2">{this.props.textUnit.getComment()}</div>
+                                </Row>
+                            </Col>
+                            <Col md={6}>
+                                <Row>
+                                    {this.getTargetStringUI()}
+                                    <span className="textunit-actionbar mrxs">{this.renderReviewGlyph()}</span>
+                                </Row>
+                            </Col>
+                        </Row>
+                    </Grid>
                 </div>
+                {this.getTextUnitReviewModal()}
+                {this.getCancelConfirmationModel()}
+            </div>
         );
     }
 });

@@ -288,19 +288,31 @@ let SearchResults = React.createClass({
     },
 
     /**
-     * If a text unit is in edit mode, disable it. Save the new provided text unit
-     * as the current text unit in edit mode.
-     * 
-     * @param {TextUnit} sdk text unit that got edit mode set to true
+     * If a text unit is in edit mode, asks for cancel it.  If it is successfully canceled out of edit mode, then
+     * save the new provided text unit as the current text unit in edit mode.
+     *
+     * @param {TextUnit} textUnit component that got edit mode set to true
      */
     onTextUnitEditModeSetToTrue(textUnit) {
-
         let previous = this.state.textUnitInEditMode;
 
-        if (previous && previous !== textUnit) {
-            previous.disableEditMode();
+        if (!previous) {
+            this.setStateForEditingTextUnit(textUnit);
+        } else if (previous && previous !== textUnit) {
+            previous.cancelEditTextUnitHandler().then((hasSuccessfullyCanceled) => {
+                if (hasSuccessfullyCanceled) {
+                    this.setStateForEditingTextUnit(textUnit);
+                } else {
+                    textUnit.doCancelEditTextUnit();
+                }
+            });
         }
+    },
 
+    /**
+     * @param textUnit
+     */
+    setStateForEditingTextUnit(textUnit) {
         this.setState({
             "textUnitInEditMode": textUnit,
             "activeTextUnitIndex": textUnit.props.textUnitIndex
@@ -409,9 +421,9 @@ let SearchResults = React.createClass({
      */
     createTextUnitComponents() {
         return (
-                <div className="textunits-container">
-                    {this.state.searchResults.map(this.createTextUnitComponent)}
-                </div>
+            <div className="textunits-container">
+                {this.state.searchResults.map(this.createTextUnitComponent)}
+            </div>
         );
     },
 
@@ -424,11 +436,11 @@ let SearchResults = React.createClass({
     createTextUnitComponent(textUnit, arrayIndex) {
 
         return (
-                <TextUnit key={this.getTextUnitComponentKey(textUnit)}
-                          textUnit={textUnit} textUnitIndex={arrayIndex}
-                          isActive={arrayIndex === this.state.activeTextUnitIndex}
-                          isSelected={this.isTextUnitSelected(textUnit)}
-                          onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}/>
+            <TextUnit key={this.getTextUnitComponentKey(textUnit)}
+                      textUnit={textUnit} textUnitIndex={arrayIndex}
+                      isActive={arrayIndex === this.state.activeTextUnitIndex}
+                      isSelected={this.isTextUnitSelected(textUnit)}
+                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue} />
         );
     },
 
@@ -463,7 +475,7 @@ let SearchResults = React.createClass({
     getLoadingSpinner() {
         let altMessage = this.props.intl.formatMessage({id: "search.pagination.isLoading"});
         return (
-                <img src="/img/ajax-loader.gif" alt={altMessage}/>
+            <img src="/img/ajax-loader.gif" alt={altMessage}/>
         );
     },
 
@@ -487,36 +499,36 @@ let SearchResults = React.createClass({
 
         if (this.state.mustShowToolbar) {
             ui = (
+                <div>
                     <div>
-                        <div>
-                            <div className="pull-left">
-                                <ButtonToolbar>
-                                    <Button bsSize="small" disabled={actionButtonsDisabled}
-                                            onClick={this.onDeleteTextUnitsClicked}>
-                                        <FormattedMessage id="label.delete"/>
-                                    </Button>
-                                    <Button bsSize="small" bsStyle="primary" disabled={actionButtonsDisabled}
-                                            onClick={this.onStatusTextUnitsClicked}>
-                                        <FormattedMessage id="workbench.toolbar.status"/>
-                                    </Button>
-                                </ButtonToolbar>
-                            </div>
-                            <div className="pull-right">
-                                <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits}/>
-                                <Button bsSize="small" disabled={previousPageButtonDisabled}
-                                        onClick={this.onFetchPreviousPageClicked}><span
-                                        className="glyphicon glyphicon-chevron-left"></span></Button>
-                                <label className="mls mrs default-label current-pageNumber">
-                                    {this.displayCurrentPageNumber()}
-                                </label>
-                                <Button bsSize="small" disabled={nextPageButtonDisabled}
-                                        onClick={this.onFetchNextPageClicked}><span
-                                        className="glyphicon glyphicon-chevron-right"></span></Button>
-                            </div>
+                        <div className="pull-left">
+                            <ButtonToolbar>
+                                <Button bsSize="small" disabled={actionButtonsDisabled}
+                                        onClick={this.onDeleteTextUnitsClicked}>
+                                    <FormattedMessage id="label.delete"/>
+                                </Button>
+                                <Button bsSize="small" bsStyle="primary" disabled={actionButtonsDisabled}
+                                        onClick={this.onStatusTextUnitsClicked}>
+                                    <FormattedMessage id="workbench.toolbar.status"/>
+                                </Button>
+                            </ButtonToolbar>
                         </div>
-
-                        <div className="textunit-toolbar-clear"/>
+                        <div className="pull-right">
+                            <TextUnitSelectorCheckBox numberOfSelectedTextUnits={numberOfSelectedTextUnits}/>
+                            <Button bsSize="small" disabled={previousPageButtonDisabled}
+                                    onClick={this.onFetchPreviousPageClicked}><span
+                                className="glyphicon glyphicon-chevron-left"></span></Button>
+                            <label className="mls mrs default-label current-pageNumber">
+                                {this.displayCurrentPageNumber()}
+                            </label>
+                            <Button bsSize="small" disabled={nextPageButtonDisabled}
+                                    onClick={this.onFetchNextPageClicked}><span
+                                className="glyphicon glyphicon-chevron-right"></span></Button>
+                        </div>
                     </div>
+
+                    <div className="textunit-toolbar-clear"/>
+                </div>
             );
         }
         return ui;
@@ -529,10 +541,10 @@ let SearchResults = React.createClass({
         let ui = "";
         if (this.state.mustShowReviewModal) {
             ui = (
-                    <TextUnitsReviewModal isShowModal={this.state.mustShowReviewModal}
-                                          onReviewModalSaveClicked={this.onReviewModalSaveClicked}
-                                          textUnitsArray={this.getSelectedTextUnits()}
-                                          onCloseModal={this.hideReviewModal}/>
+                <TextUnitsReviewModal isShowModal={this.state.mustShowReviewModal}
+                                      onReviewModalSaveClicked={this.onReviewModalSaveClicked}
+                                      textUnitsArray={this.getSelectedTextUnits()}
+                                      onCloseModal={this.hideReviewModal}/>
             );
         }
         return ui;
@@ -569,19 +581,19 @@ let SearchResults = React.createClass({
 
     render() {
         return (
-                <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>
-                    {this.getTextUnitToolbarUI()}
-                    {this.createTextUnitComponents()}
-                    <DeleteConfirmationModal showModal={this.state.showDeleteModal}
-                                             modalBodyMessage="textUnits.bulk.deleteMessage"
-                                             onDeleteCancelledCallback={this.onDeleteTextUnitsCancelled}
-                                             onDeleteClickedCallback={this.onDeleteTextUnitsConfirmed}/>
-                    <ErrorModal showModal={this.state.isErrorOccurred}
-                                errorMessage={this.getErrorMessage()}
-                                onErrorModalClosed={this.onErrorModalClosed}/>
-                    {this.getEmptyStateContainer()}
-                    {this.getTextUnitsReviewModal()}
-                </div>
+            <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>
+                {this.getTextUnitToolbarUI()}
+                {this.createTextUnitComponents()}
+                <DeleteConfirmationModal showModal={this.state.showDeleteModal}
+                                         modalBodyMessage="textUnits.bulk.deleteMessage"
+                                         onDeleteCancelledCallback={this.onDeleteTextUnitsCancelled}
+                                         onDeleteClickedCallback={this.onDeleteTextUnitsConfirmed}/>
+                <ErrorModal showModal={this.state.isErrorOccurred}
+                            errorMessage={this.getErrorMessage()}
+                            onErrorModalClosed={this.onErrorModalClosed}/>
+                {this.getEmptyStateContainer()}
+                {this.getTextUnitsReviewModal()}
+            </div>
         );
     }
 
