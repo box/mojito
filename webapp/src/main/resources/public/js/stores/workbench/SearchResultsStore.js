@@ -25,6 +25,9 @@ class SearchResultsStore {
          */
         this.selectedTextUnitsMap = {};
 
+        /** @type {Boolean} */
+        this.isSearching = false;
+
         this.bindActions(WorkbenchActions);
 
         this.registerAsync(SearchDataSource);
@@ -36,14 +39,24 @@ class SearchResultsStore {
      * firing the request to fetch results for the search criteria provided in the UI.
      */
     onSearchParamsChanged() {
+
         this.waitFor(SearchParamsStore);
+
         let searchParamsStoreState = SearchParamsStore.getState();
-        this.noMoreResults = false;
-        this.setPageFetched(false);
+
+        let newState = {
+            "pageFetched": false,
+            "noMoreResults": false,
+            "isSearching": true
+        };
+
         if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
             searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
-            this.resetSelectedTextUnitsMap();
+            newState.selectedTextUnitsMap = {};
         }
+
+        this.setState(newState);
+
         this.getInstance().performSearch(searchParamsStoreState);
     }
 
@@ -56,6 +69,7 @@ class SearchResultsStore {
         let paramsStoreState = SearchParamsStore.getState();
         this.noMoreResults = response.length < paramsStoreState.pageSize;
         this.searchResults = response;
+        this.isSearching = false;
         this.setPageFetched(true);
     }
 
@@ -67,6 +81,7 @@ class SearchResultsStore {
         this.setPageFetched(true);
         this.searchResults = [];
         this.noMoreResults = true;
+        this.isSearching = false;
         let errorObject = this.createErrorObject(Error.IDS.SEARCH_QUERY_FAILED);
         this.setErrorState(errorObject, errorResponse);
     }
