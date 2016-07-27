@@ -41,7 +41,7 @@ class SearchResultsStore {
         this.noMoreResults = false;
         this.setPageFetched(false);
         if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
-                searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
+            searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
             this.resetSelectedTextUnitsMap();
         }
         this.getInstance().performSearch(searchParamsStoreState);
@@ -103,7 +103,7 @@ class SearchResultsStore {
             let currentSearchParams = SearchParamsStore.getState();
 
             if (currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED ||
-                    currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED_AND_NOT_REJECTED) {
+                currentSearchParams.status === SearchParamsStore.STATUS.TRANSLATED_AND_NOT_REJECTED) {
 
                 // remove it from the list of result because now it doesn't have a translation anymore
                 for (let index = 0; index < this.searchResults.length; index++) {
@@ -158,16 +158,35 @@ class SearchResultsStore {
 
     /**
      * Handle onSuccess event of onSaveTextUnit
-     * 
-     * We replace the old text unit in sotre with the new version version passed
+     *
+     * We replace the old text unit in store with the new version version passed
      * as parameter
      * @param {TextUnit} textUnit The textUnit passed back by the SDK
      */
-    onSaveTextUnitSuccess(textUnit) { 
+    onSaveTextUnitSuccess(textUnit) {
+        this.updateSearchResultsWithTextUnit(textUnit);
+    }
 
+    /**
+     * Handle onSuccess event of onSaveTextUnit
+     *
+     * We replace the old text unit in store with the new version version passed
+     * as parameter
+     *
+     * @param {TextUnit} textUnit
+     */
+    onCheckAndSaveTextUnitSuccess(textUnit) {
+        this.updateSearchResultsWithTextUnit(textUnit);
+    }
+
+    /**
+     * @param {TextUnit} textUnit
+     */
+    updateSearchResultsWithTextUnit(textUnit) {
         for (let index = 0; index < this.searchResults.length; index++) {
             let textUnitInStore = this.searchResults[index];
             if (textUnitInStore.getTextUnitKey() === textUnit.getTextUnitKey()) {
+                console.log("swapping tu");
                 this.searchResults[index] = textUnit;
                 break;
             }
