@@ -46,9 +46,7 @@ let DropDetail = React.createClass({
     },
 
     render: function () {
-        let translationKits = Locales.sortByDisplayName(this.props.drop.translationKits, function(translationKit) {
-            return translationKit.locale.bcp47Tag
-        });
+        let translationKits = Locales.sortByDisplayName(this.props.drop.translationKits, translationKit => translationKit.locale.bcp47Tag);
 
         let rows = translationKits.map(tk => {
             return <tr>

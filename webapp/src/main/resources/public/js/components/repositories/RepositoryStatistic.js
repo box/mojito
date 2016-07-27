@@ -25,9 +25,7 @@ let RepositoryStatistics = React.createClass({
         let repo = RepositoryStore.getRepositoryById(repoId);
 
         let repoStat = repo.repositoryStatistic;
-        let repositoryLocaleStatistics = Locales.sortByDisplayName(repoStat.repositoryLocaleStatistics, function(repositoryLocaleStatistic) {
-            return repositoryLocaleStatistic.locale.bcp47Tag
-        });
+        let repositoryLocaleStatistics = Locales.sortByDisplayName(repoStat.repositoryLocaleStatistics, repositoryLocaleStatistic => repositoryLocaleStatistic.locale.bcp47Tag);
 
         let toBeFullyTranslatedBcp47Tags = RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId);
 
