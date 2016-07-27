@@ -89,15 +89,16 @@ class RepositoryStore {
     /**
      * Get all BCP47 tags that belongs to a list of repositories
      * @param {object} rlist of epositoryId
+     * @param {Boolean} filteredByFullyTranslated [Optional] True to return only fully translated
      * @return {string[]}
      */
-    static getAllBcp47TagsForRepositoryIds(repositoryIds) {
+    static getAllBcp47TagsForRepositoryIds(repositoryIds, filteredByFullyTranslated = false) {
 
         let repositories = [];
 
         repositoryIds.forEach(repositoryId => repositories.push(this.getRepositoryById(repositoryId)));
 
-        return this.getAllBcp47TagsForRepositories(repositories);
+        return this.getAllBcp47TagsForRepositories(repositories, filteredByFullyTranslated);
     }
 
     /**
