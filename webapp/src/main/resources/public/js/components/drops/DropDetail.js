@@ -46,14 +46,14 @@ let DropDetail = React.createClass({
     },
 
     render: function () {
-        let rows = this.props.drop.translationKits.map(tk => {
-            let bcp47Tag = tk.locale.bcp47Tag;
+        let translationKits = Locales.sortByDisplayName(this.props.drop.translationKits, translationKit => translationKit.locale.bcp47Tag);
 
+        let rows = translationKits.map(tk => {
             return <tr>
                 <td>
                     <div>
-                        <Link onClick={this.updateSearchParamsForLocale.bind(this, bcp47Tag)}
-                              to='/workbench'>{Locales.getDisplayName(bcp47Tag)}</Link>
+                        <Link onClick={this.updateSearchParamsForLocale.bind(this, tk.locale.bcp47Tag)}
+                              to='/workbench'>{tk.localeDisplayName}</Link>
                     </div>
                 </td>
                 <td>{tk.wordCount}</td>

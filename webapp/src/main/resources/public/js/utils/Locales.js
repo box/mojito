@@ -149,6 +149,23 @@ class Locales {
         return dir;
     }
 
+    /**
+     * Returns sorted objects by the locale display name
+     *
+     * @param {Object[]} objects array of object that contains locale
+     * @param {Function} getBcp45Tag function to retrieve bcp47Tag from the object
+     * @returns {Object[]} sorted objects
+     */
+    sortByDisplayName(objects, getBcp47Tag) {
+        return objects
+            .map(object => {
+                let bcp47Tag = getBcp47Tag(object);
+                object.localeDisplayName = this.getDisplayName(bcp47Tag);
+                return object;
+            })
+            .sort((a, b) => a.localeDisplayName.localeCompare(b.localeDisplayName));
+    }
+
 }
 ;
 

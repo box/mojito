@@ -25,12 +25,13 @@ let RepositoryStatistics = React.createClass({
         let repo = RepositoryStore.getRepositoryById(repoId);
 
         let repoStat = repo.repositoryStatistic;
-        let repositoryLocaleStatistics = repoStat.repositoryLocaleStatistics;
+        let repositoryLocaleStatistics = Locales.sortByDisplayName(repoStat.repositoryLocaleStatistics, repositoryLocaleStatistic => repositoryLocaleStatistic.locale.bcp47Tag);
 
         let toBeFullyTranslatedBcp47Tags = RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId);
 
         let rows = repositoryLocaleStatistics.map(repoLocaleStat => {
             let bcp47Tag = repoLocaleStat.locale.bcp47Tag;
+            let localeDisplayName = repoLocaleStat.localeDisplayName;
             let isFullyTranslated = toBeFullyTranslatedBcp47Tags.indexOf(bcp47Tag) !== -1;
 
             return this.getLocaleStatisticRow(bcp47Tag, isFullyTranslated, repoStat.usedTextUnitCount, repoStat.usedTextUnitWordCount, repoLocaleStat);
