@@ -186,7 +186,6 @@ class SearchResultsStore {
         for (let index = 0; index < this.searchResults.length; index++) {
             let textUnitInStore = this.searchResults[index];
             if (textUnitInStore.getTextUnitKey() === textUnit.getTextUnitKey()) {
-                console.log("swapping tu");
                 this.searchResults[index] = textUnit;
                 break;
             }
