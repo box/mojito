@@ -16,7 +16,7 @@ const SearchDataSource = {
 
             let textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-            if (repositoryIds.length <= 0 || bcp47Tags.length <= 0) {
+            if (!SearchParamStore.isReadyForSearching(searchParams)) {
                 returnEmpty = true;
             }
 

@@ -44,14 +44,14 @@ class SearchResultsStore {
 
         this.waitFor(SearchParamsStore);
 
-        if (this.shouldPerformSearch()) {
+        let searchParamsStoreState = SearchParamsStore.getState();
+        if (SearchParamsStore.isReadyForSearching(searchParamsStoreState)) {
             let newState = {
                 "noMoreResults": false,
                 "isSearching": true,
                 "searchHadNoResults": false
             };
 
-            let searchParamsStoreState = SearchParamsStore.getState();
             if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
                 searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
                 newState.selectedTextUnitsMap = {};
@@ -60,19 +60,13 @@ class SearchResultsStore {
             this.setState(newState);
 
             this.getInstance().performSearch(searchParamsStoreState);
+        } else {
+            this.setState({
+                "searchResults": [],
+                "isSearching": false,
+                "selectedTextUnitsMap": {}
+            });
         }
-    }
-
-    /**
-     * @return {boolean}
-     */
-    shouldPerformSearch() {
-        let searchParamsStoreState = SearchParamsStore.getState();
-
-        let repositoryIds = searchParamsStoreState.repoIds;
-        let bcp47Tags = searchParamsStoreState.bcp47Tags;
-
-        return !(repositoryIds.length === 0 || bcp47Tags.length === 0);
     }
 
     /**

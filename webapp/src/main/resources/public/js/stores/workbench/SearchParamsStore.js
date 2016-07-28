@@ -278,6 +278,14 @@ class SearchParamsStore {
             this.currentPageNumber = pageNumber;
         }
     }
+
+    /**
+     * Checks the minimum set state requirement to perform searching.  True when it is ready for searching
+     * @return {SearchParamsStore}
+     */
+    static isReadyForSearching(searchParamStoreState) {
+        return (searchParamStoreState.repoIds.length > 0 && searchParamStoreState.bcp47Tags.length > 0);
+    }
 }
 
 SearchParamsStore.SEARCH_TYPES = {

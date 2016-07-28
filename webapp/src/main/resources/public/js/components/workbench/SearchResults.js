@@ -38,7 +38,10 @@ let SearchResults = React.createClass({
             "searchResults": resultsStoreState.searchResults,
 
             /** @type {Boolean} */
-            "isSearching": false,
+            "isSearching": SearchResultsStore.getState().isSearching,
+
+            /** @type {Boolean} True if the minimum set of parameters are required for searching */
+            "isReadyForSearching": false,
 
             /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
             "searchHadNoResults": false,
@@ -286,9 +289,11 @@ let SearchResults = React.createClass({
         let paramsStoreState = SearchParamsStore.getState();
         let resultsInComponent = this.state.searchResults;
         let mustShowToolbar = this.mustToolbarBeShown();
+        let isReadyForSearching = SearchParamsStore.isReadyForSearching(paramsStoreState);
 
         this.setState({
             "searchResults": resultsStoreState.searchResults,
+            "isReadyForSearching": isReadyForSearching,
             "isSearching": resultsStoreState.isSearching,
             "searchHadNoResults": resultsStoreState.searchHadNoResults,
             "noMoreResults": resultsStoreState.noMoreResults,
@@ -450,7 +455,7 @@ let SearchResults = React.createClass({
                       textUnit={textUnit} textUnitIndex={arrayIndex}
                       isActive={arrayIndex === this.state.activeTextUnitIndex}
                       isSelected={this.isTextUnitSelected(textUnit)}
-                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue} />
+                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}/>
         );
     },
 
@@ -563,12 +568,20 @@ let SearchResults = React.createClass({
     getEmptyStateContainer() {
         let result = "";
 
-        if (this.state.searchHadNoResults) {
-            result = (
-                <div className="empty-search-container text-center center-block">
-                    <FormattedMessage id="search.result.empty" />
-                </div>
-            );
+        if (!this.state.isSearching) {
+            if (!this.state.isReadyForSearching) {
+                result = (
+                    <div className="empty-search-container text-center center-block">
+                        <FormattedMessage id="search.result.selectRepoAndLocale"/>
+                    </div>
+                );
+            }
+            else if (this.state.searchHadNoResults) {
+                result = (
+                    <div className="empty-search-container text-center center-block">
+                        <FormattedMessage id="search.result.empty"/>
+                    </div>);
+            }
         }
 
         return result;

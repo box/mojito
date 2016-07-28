@@ -638,6 +638,7 @@ label.current-pageNumber {
 }
 
 .search-text .glyphicon-refresh.spinning {
+  color: $brand-primary;
   position: absolute;
   z-index: 3;
   right: 10px;
