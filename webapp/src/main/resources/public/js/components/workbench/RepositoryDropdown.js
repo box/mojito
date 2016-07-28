@@ -18,14 +18,6 @@ let RepositoryDropDown = React.createClass({
         }
     },
 
-    getInitialState: function () {
-        return {
-            "repositories": [],
-            "selectedRepoIds": [],
-            "isDropdownOpenned": false
-        };
-    },
-
     /**
      * Currently there is no way to prevent the dropdown to close on select
      * unless using a trick based on this attribute.
@@ -65,6 +57,18 @@ let RepositoryDropDown = React.createClass({
             "repositories": RepositoriesStore.getState().repositories.slice().sort(),
             "selectedRepoIds": SearchParamsStore.getState().repoIds.slice().sort()
         });
+    },
+
+    /**
+     *
+     * @return {{repositories: number[], selectedRepoIds: string[], isDropdownOpenned: boolean}}
+     */
+    getInitialState: function () {
+        return {
+            "repositories": [],
+            "selectedRepoIds": [],
+            "isDropdownOpenned": false
+        };
     },
 
     /**

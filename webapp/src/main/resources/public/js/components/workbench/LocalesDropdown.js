@@ -59,6 +59,19 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
+     *
+     * @return {{bcp47Tags: string[], fullyTranslatedBcp47Tags: string[], selectedBcp47Tags: string[], isDropdownOpenned: boolean}}
+     */
+    getInitialState() {
+        return {
+            "bcp47Tags": [],
+            "fullyTranslatedBcp47Tags": [],
+            "selectedBcp47Tags": [],
+            "isDropdownOpenned": false
+        };
+    },
+
+    /**
      * Gets sorted bcp47tags from stores.
      *
      * Sort is important to ensure later array comparison in the component will
@@ -92,19 +105,6 @@ let LocalesDropDown = React.createClass({
      */
     getSortedSelectedBcp47TagsFromStore() {
         return SearchParamsStore.getState().bcp47Tags.sort();
-    },
-
-    /**
-     *
-     * @return {{bcp47Tags: string[], fullyTranslatedBcp47Tags: string[], selectedBcp47Tags: string[], isDropdownOpenned: boolean}}
-     */
-    getInitialState() {
-        return {
-            "bcp47Tags": [],
-            "fullyTranslatedBcp47Tags": [],
-            "selectedBcp47Tags": [],
-            "isDropdownOpenned": false
-        };
     },
 
     /**
@@ -265,7 +265,8 @@ let LocalesDropDown = React.createClass({
      */
     renderLocales() {
         return this.getSortedLocales().map(
-                (locale) =>  <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
+                (locale) =>
+                        <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
         );
     },
 
@@ -277,9 +278,9 @@ let LocalesDropDown = React.createClass({
         return (
                 <span className="mlm locale-dropdown">
                 <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
-                    <MenuItem active={this.isPrincipalActive()} onSelect={this.onSelectPrincipal}><FormattedMessage id="search.locale.selectPrincipal" /></MenuItem>
-                    <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll" /></MenuItem>
-                    <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone" /></MenuItem>
+                    <MenuItem active={this.isPrincipalActive()} onSelect={this.onSelectPrincipal}><FormattedMessage id="search.locale.selectPrincipal"/></MenuItem>
+                    <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll"/></MenuItem>
+                    <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone"/></MenuItem>
                     <MenuItem divider/>
                     {this.renderLocales()}
                 </DropdownButton>
