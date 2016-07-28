@@ -67,7 +67,7 @@ class SearchParamsStore {
             case SearchConstants.REPOSITORIES_CHANGED:
 
                 this.setFirstPageAsCurrent();
-                this.updateArrayState(this.repoIds, paramData.isSelected, paramData.repositoryId);
+                this.repoIds = paramData.repoIds;
                 this.filterBcp47TagsForSelectedRepositories();
                 break;
 
