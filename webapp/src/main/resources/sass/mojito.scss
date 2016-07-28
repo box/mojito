@@ -595,7 +595,14 @@ label.current-pageNumber {
 .locale-dropdown ul {
   max-height: 400px;
   overflow: scroll;
-}.empty-search-container {
+}
+
+.repository-dropdown ul {
+  max-height: 400px;
+  overflow: scroll;
+}
+
+.empty-search-container {
   background-image: url("/img/magnifying-glass.svg");
   background-repeat: no-repeat;
   background-size: 150px;

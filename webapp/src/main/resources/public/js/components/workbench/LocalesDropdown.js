@@ -59,6 +59,19 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
+     *
+     * @return {{bcp47Tags: string[], fullyTranslatedBcp47Tags: string[], selectedBcp47Tags: string[], isDropdownOpenned: boolean}}
+     */
+    getInitialState() {
+        return {
+            "bcp47Tags": [],
+            "fullyTranslatedBcp47Tags": [],
+            "selectedBcp47Tags": [],
+            "isDropdownOpenned": false
+        };
+    },
+
+    /**
      * Gets sorted bcp47tags from stores.
      *
      * Sort is important to ensure later array comparison in the component will
@@ -95,19 +108,6 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
-     *
-     * @return {{bcp47Tags: string[], fullyTranslatedBcp47Tags: string[], selectedBcp47Tags: string[], isDropdownOpenned: boolean}}
-     */
-    getInitialState() {
-        return {
-            "bcp47Tags": [],
-            "fullyTranslatedBcp47Tags": [],
-            "selectedBcp47Tags": [],
-            "isDropdownOpenned": false
-        };
-    },
-
-    /**
      * Get list of locales (with selected state) sorted by their display name
      *
      * @return {{bcp47Tag: string, displayName: string, selected: boolean}[]}}
@@ -140,7 +140,7 @@ let LocalesDropDown = React.createClass({
         let newSelectedBcp47Tags = this.state.selectedBcp47Tags.slice();
 
         if (locale.selected) {
-            newSelectedBcp47Tags = _.pull(this.state.selectedBcp47Tags, bcp47Tag);
+            _.pull(newSelectedBcp47Tags, bcp47Tag);
         } else {
             newSelectedBcp47Tags.push(bcp47Tag);
         }
@@ -208,7 +208,7 @@ let LocalesDropDown = React.createClass({
     /**
      * Selects fully translated locales.
      */
-    onSelectPrincipal() {
+    onSelectToBeFullyTranslated() {
         this.forceDropdownOpen = true;
         this.searchParamChanged(this.state.fullyTranslatedBcp47Tags.slice());
     },
@@ -230,11 +230,11 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
-     * Indicates if the select translated menu item should be active.
+     * Indicates if the select to be fully translated menu item should be active.
      *
      * @returns {boolean}
      */
-    isPrincipalActive() {
+    isToBeFullyTranslatedActive() {
         return this.state.selectedBcp47Tags.length > 0 && _.isEqual(this.state.selectedBcp47Tags, this.state.fullyTranslatedBcp47Tags);
     },
 
@@ -265,7 +265,8 @@ let LocalesDropDown = React.createClass({
      */
     renderLocales() {
         return this.getSortedLocales().map(
-                (locale) =>  <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
+                (locale) =>
+                        <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
         );
     },
 
@@ -277,9 +278,9 @@ let LocalesDropDown = React.createClass({
         return (
                 <span className="mlm locale-dropdown">
                 <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
-                    <MenuItem active={this.isPrincipalActive()} onSelect={this.onSelectPrincipal}><FormattedMessage id="search.locale.selectPrincipal" /></MenuItem>
-                    <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll" /></MenuItem>
-                    <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone" /></MenuItem>
+                    <MenuItem active={this.isToBeFullyTranslatedActive()} onSelect={this.onSelectToBeFullyTranslated}><FormattedMessage id="search.locale.selectToBeFullyTranslated"/></MenuItem>
+                    <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll"/></MenuItem>
+                    <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone"/></MenuItem>
                     <MenuItem divider/>
                     {this.renderLocales()}
                 </DropdownButton>
