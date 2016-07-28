@@ -13,7 +13,6 @@ class SearchResultsStore {
         /** @type {TextUnit[]} */
         this.searchResults = [];
 
-        this.pageFetched = false;
         this.noMoreResults = false;
 
         this.isErrorOccurred = false;
@@ -47,7 +46,6 @@ class SearchResultsStore {
 
         if (this.shouldPerformSearch()) {
             let newState = {
-                "pageFetched": false,
                 "noMoreResults": false,
                 "isSearching": true,
                 "searchHadNoResults": false
@@ -87,7 +85,6 @@ class SearchResultsStore {
         this.searchResults = response;
         this.isSearching = false;
         this.searchHadNoResults = (response.length === 0);
-        this.setPageFetched(true);
     }
 
     /**
@@ -95,7 +92,6 @@ class SearchResultsStore {
      */
     onSearchResultsReceivedError(errorResponse) {
         console.error("SearchResultsStore::onSearchResultsReceivedError ", errorResponse);
-        this.setPageFetched(true);
         this.searchResults = [];
         this.noMoreResults = true;
         this.isSearching = false;
@@ -231,10 +227,6 @@ class SearchResultsStore {
         for (let textUnit of this.searchResults) {
             this.selectedTextUnitsMap[textUnit.getTextUnitKey()] = textUnit;
         }
-    }
-
-    setPageFetched(boolValue) {
-        this.pageFetched = boolValue;
     }
 
     /**
