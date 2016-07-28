@@ -13,7 +13,6 @@ class SearchResultsStore {
         /** @type {TextUnit[]} */
         this.searchResults = [];
 
-        this.pageFetched = false;
         this.noMoreResults = false;
 
         this.isErrorOccurred = false;
@@ -24,6 +23,12 @@ class SearchResultsStore {
          * this map contains ids of all selected textunits
          */
         this.selectedTextUnitsMap = {};
+
+        /** @type {Boolean} True when a search is being formed.  This store is responsible for setting this state to true before searching and setting to false when searching is done */
+        this.isSearching = false;
+
+        /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
+        this.searchHadNoResults = false;
 
         this.bindActions(WorkbenchActions);
 
@@ -36,27 +41,44 @@ class SearchResultsStore {
      * firing the request to fetch results for the search criteria provided in the UI.
      */
     onSearchParamsChanged() {
+
         this.waitFor(SearchParamsStore);
+
         let searchParamsStoreState = SearchParamsStore.getState();
-        this.noMoreResults = false;
-        this.setPageFetched(false);
-        if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
-            searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
-            this.resetSelectedTextUnitsMap();
+        if (SearchParamsStore.isReadyForSearching(searchParamsStoreState)) {
+            let newState = {
+                "noMoreResults": false,
+                "isSearching": true,
+                "searchHadNoResults": false
+            };
+
+            if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
+                searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
+                newState.selectedTextUnitsMap = {};
+            }
+
+            this.setState(newState);
+
+            this.getInstance().performSearch(searchParamsStoreState);
+        } else {
+            this.setState({
+                "searchResults": [],
+                "isSearching": false,
+                "selectedTextUnitsMap": {}
+            });
         }
-        this.getInstance().performSearch(searchParamsStoreState);
     }
 
     /**
      * @param {object} -- The response sent by the promise when the search query is successful.
      */
     onSearchResultsReceivedSuccess(response) {
-
         this.waitFor(SearchParamsStore);
         let paramsStoreState = SearchParamsStore.getState();
         this.noMoreResults = response.length < paramsStoreState.pageSize;
         this.searchResults = response;
-        this.setPageFetched(true);
+        this.isSearching = false;
+        this.searchHadNoResults = (response.length === 0);
     }
 
     /**
@@ -64,9 +86,9 @@ class SearchResultsStore {
      */
     onSearchResultsReceivedError(errorResponse) {
         console.error("SearchResultsStore::onSearchResultsReceivedError ", errorResponse);
-        this.setPageFetched(true);
         this.searchResults = [];
         this.noMoreResults = true;
+        this.isSearching = false;
         let errorObject = this.createErrorObject(Error.IDS.SEARCH_QUERY_FAILED);
         this.setErrorState(errorObject, errorResponse);
     }
@@ -199,10 +221,6 @@ class SearchResultsStore {
         for (let textUnit of this.searchResults) {
             this.selectedTextUnitsMap[textUnit.getTextUnitKey()] = textUnit;
         }
-    }
-
-    setPageFetched(boolValue) {
-        this.pageFetched = boolValue;
     }
 
     /**

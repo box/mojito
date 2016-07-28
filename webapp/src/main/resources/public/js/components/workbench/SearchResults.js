@@ -27,36 +27,53 @@ let SearchResults = React.createClass({
     },
 
     /**
-     * @returns {{
-     *  searchResults: [],  Array of textunits in the current page of the search results.
-     *  isFetchingPage: boolean,  Indicates status of fetching a page of search results from the server. Helps maintain pending state of the component.
-     *  noMoreResults: boolean,  Indicates that no more results exist for the search criteria. Helps maintain enabled status of toolbar buttons.
-     *  mustShowToolbar: boolean,  If no results exist for the provided search criteria, this boolean helps to hide the workbench toolbar.
-     *  currentPageNumber: number,  Indicates the current page number of the search results.
-     *  activeTextUnitIndex: number,  The index of the currently active textunit.
-     *  showDeleteModal: boolean  Displays the DeleteConfirmationModal when the delete button is clicked.
-     *  isErrorOccurred: boolean Helps show the ErrorModal if set to true.
-     *  errorObject: object The Error object created by the store.
-     *  errorResponse: object The error object returned by the promise. This can be used to pass parameters to translate the error. See getErrorMessage() in this file for details.
-     *  textUnitInEditMode: TextUnit, the text unit currently in edit mode if any
-     *  }}
+     * @return {{searchResults: (*|Array|TextUnit[]), searchHadNoResults: boolean, noMoreResults: boolean, mustShowToolbar: boolean, currentPageNumber: (*|Number|number), activeTextUnitIndex: number, showDeleteModal: boolean, mustShowReviewModal: boolean, isErrorOccurred: boolean, errorObject: null, errorResponse: null, textUnitInEditMode: null}}
      */
     getInitialState() {
 
         let resultsStoreState = SearchResultsStore.getState();
         let searchParamsStoreState = SearchParamsStore.getState();
         return {
+            /** @type [] Array of textunits in the current page of the search results. */
             "searchResults": resultsStoreState.searchResults,
-            "isFetchingPage": false,
+
+            /** @type {Boolean} */
+            "isSearching": SearchResultsStore.getState().isSearching,
+
+            /** @type {Boolean} True if the minimum set of parameters are required for searching */
+            "isReadyForSearching": false,
+
+            /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
+            "searchHadNoResults": false,
+
+            /** @type {Boolean} Indicates that no more results exist for the search criteria. Helps maintain enabled status of toolbar buttons. */
             "noMoreResults": false,
+
+            /** @type {Boolean} If no results exist for the provided search criteria, this boolean helps to hide the workbench toolbar. */
             "mustShowToolbar": false,
+
+            /** @type {Number} Indicates the current page number of the search results. */
             "currentPageNumber": searchParamsStoreState.currentPageNumber,
+
+            /** @type {Number}  The index of the currently active textunit. */
             "activeTextUnitIndex": 0,
+
+            /** @type {Boolean} Displays the DeleteConfirmationModal when the delete button is clicked. */
             "showDeleteModal": false,
+
+            /** @type {Boolean} Helps show the ErrorModal if set to true. */
             "mustShowReviewModal": false,
+
+            /** @type {Boolean} */
             "isErrorOccurred": false,
+
+            /** @type {Boolean} The Error object created by the store.  */
             "errorObject": null,
+
+            /** @type {Boolean} The error object returned by the promise. This can be used to pass parameters to translate the error. See getErrorMessage() in this file for details. */
             "errorResponse": null,
+
+            /** @type {TextUnit}   the text unit currently in edit mode if any*/
             "textUnitInEditMode": null
         };
     },
@@ -271,12 +288,14 @@ let SearchResults = React.createClass({
         let resultsStoreState = SearchResultsStore.getState();
         let paramsStoreState = SearchParamsStore.getState();
         let resultsInComponent = this.state.searchResults;
-        let pageFetched = resultsStoreState.pageFetched;
         let mustShowToolbar = this.mustToolbarBeShown();
+        let isReadyForSearching = SearchParamsStore.isReadyForSearching(paramsStoreState);
 
         this.setState({
             "searchResults": resultsStoreState.searchResults,
-            "isFetchingPage": !pageFetched,
+            "isReadyForSearching": isReadyForSearching,
+            "isSearching": resultsStoreState.isSearching,
+            "searchHadNoResults": resultsStoreState.searchHadNoResults,
             "noMoreResults": resultsStoreState.noMoreResults,
             "currentPageNumber": paramsStoreState.currentPageNumber,
             "mustShowToolbar": mustShowToolbar,
@@ -321,12 +340,10 @@ let SearchResults = React.createClass({
 
     /**
      * Called when the next page button is clicked on the workbench toolbar.
-     * Sets the isFetchingPage attribute to true and fires the request to get the next page
      *  of search results.
      */
     onFetchNextPageClicked() {
 
-        this.setPageLoadingStatus(true);
         if (!this.state.noMoreResults) {
             WorkbenchActions.searchParamsChanged({
                 "changedParam": SearchConstants.NEXT_PAGE_REQUESTED
@@ -336,13 +353,11 @@ let SearchResults = React.createClass({
 
     /**
      * Called when the previous page button is clicked on the workbench toolbar.
-     * Sets the isFetchingPage attribute to true and fires the request to get the previous
      * page of search results if the currentPage is greater than one.
      */
     onFetchPreviousPageClicked() {
 
         if (this.state.currentPageNumber > 1) {
-            this.setPageLoadingStatus(true);
             let paramData = {
                 "changedParam": SearchConstants.PREVIOUS_PAGE_REQUESTED
             };
@@ -440,7 +455,7 @@ let SearchResults = React.createClass({
                       textUnit={textUnit} textUnitIndex={arrayIndex}
                       isActive={arrayIndex === this.state.activeTextUnitIndex}
                       isSelected={this.isTextUnitSelected(textUnit)}
-                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue} />
+                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}/>
         );
     },
 
@@ -460,42 +475,22 @@ let SearchResults = React.createClass({
     },
 
     /**
-     * @param {boolean} boolValue If true is passed, then the component will display a pending status while waiting for
-     * server to respond.
-     */
-    setPageLoadingStatus(boolValue) {
-        this.setState({
-            "isFetchingPage": boolValue
-        });
-    },
-
-    /**
-     * @returns {JSX} The JSX for the progress spinner to be displayed when server action is pending.
-     */
-    getLoadingSpinner() {
-        let altMessage = this.props.intl.formatMessage({id: "search.pagination.isLoading"});
-        return (
-            <img src="/img/ajax-loader.gif" alt={altMessage}/>
-        );
-    },
-
-    /**
      * @returns {JSX} Depending on the state of the component, this function returns the JSX for the
      * workbench toolbar.
      */
     getTextUnitToolbarUI() {
         //TODO: create a WorkbenchToolbar component. The SearchResults component should delegate toolbar rendering and actions to the WorkbenchToolbar
         let ui = "";
-        let isFetchingPage = this.state.isFetchingPage;
+        let isSearching = this.state.isSearching;
         let noMoreResults = this.state.noMoreResults;
         let isFirstPage = this.state.currentPageNumber <= 1;
         let selectedTextUnits = this.getSelectedTextUnits();
         let numberOfSelectedTextUnits = selectedTextUnits.length;
         let isAtLeastOneTextUnitSelected = numberOfSelectedTextUnits >= 1;
 
-        let actionButtonsDisabled = isFetchingPage || !isAtLeastOneTextUnitSelected;
-        let nextPageButtonDisabled = isFetchingPage || noMoreResults;
-        let previousPageButtonDisabled = isFetchingPage || isFirstPage;
+        let actionButtonsDisabled = isSearching || !isAtLeastOneTextUnitSelected;
+        let nextPageButtonDisabled = isSearching || noMoreResults;
+        let previousPageButtonDisabled = isSearching || isFirstPage;
 
         if (this.state.mustShowToolbar) {
             ui = (
@@ -554,12 +549,7 @@ let SearchResults = React.createClass({
      * @returns {JSX} The progress spinner if server action is pending. Otherwise, return the currentPageNumber.
      */
     displayCurrentPageNumber() {
-        let ui = this.state.currentPageNumber;
-        if (this.state.isFetchingPage) {
-            //TODO this is not good keeps doing network call (image no cache in springboot???) + flicker
-            ui = this.getLoadingSpinner();
-        }
-        return ui;
+        return this.state.currentPageNumber;
     },
 
     /**
@@ -568,12 +558,20 @@ let SearchResults = React.createClass({
     getEmptyStateContainer() {
         let result = "";
 
-        if (this.state.searchResults.length === 0) {
-            result = (
-                <div className="empty-search-container text-center center-block">
-                    <FormattedMessage id="search.result.empty" />
-                </div>
-            );
+        if (!this.state.isSearching) {
+            if (!this.state.isReadyForSearching) {
+                result = (
+                    <div className="empty-search-container text-center center-block">
+                        <FormattedMessage id="search.result.selectRepoAndLocale"/>
+                    </div>
+                );
+            }
+            else if (this.state.searchHadNoResults) {
+                result = (
+                    <div className="empty-search-container text-center center-block">
+                        <FormattedMessage id="search.result.empty"/>
+                    </div>);
+            }
         }
 
         return result;

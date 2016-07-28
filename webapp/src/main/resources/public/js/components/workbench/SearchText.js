@@ -6,6 +6,7 @@ import {DropdownButton, FormGroup, FormControl, InputGroup, MenuItem, Button, Gl
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
+import SearchResultsStore from "../../stores/workbench/SearchResultsStore";
 
 let SearchText = React.createClass({
 
@@ -13,7 +14,8 @@ let SearchText = React.createClass({
 
     statics: {
         storeListeners: {
-            "onSearchParamsChanged": SearchParamsStore
+            "onSearchParamsChanged": SearchParamsStore,
+            "onSearchResultsStoreChanged": SearchResultsStore
         }
     },
 
@@ -27,11 +29,30 @@ let SearchText = React.createClass({
         });
     },
 
+    /**
+     *
+     */
+    onSearchResultsStoreChanged() {
+        this.setState({ "isSpinnerShown": SearchResultsStore.getState().isSearching });
+    },
+
+    /**
+     *
+     * @return {{searchAttribute: (*|string), searchType: (*|string), searchText: (*|string), isSpinnerShown: (*|boolean|Boolean)}}
+     */
     getInitialState() {
         return {
+            /** @type {string} */
             "searchAttribute": this.getInitialSearchAttribute(),
+
+            /** @type {string} */
             "searchType": this.getInitialSearchType(),
-            "searchText": this.getInitialSearchText()
+
+            /** @type {string} */
+            "searchText": this.getInitialSearchText(),
+
+            /** @type {Boolean} */
+            "isSpinnerShown": SearchResultsStore.getState().isSearching
         };
     },
 
@@ -178,7 +199,7 @@ let SearchText = React.createClass({
 
     render: function () {
         return (
-            <div className="col-xs-6">
+            <div className="col-xs-6 search-text">
                 <FormGroup>
                     <InputGroup>
                         <InputGroup.Button>{this.renderDropdown()}</InputGroup.Button>
@@ -186,6 +207,9 @@ let SearchText = React.createClass({
                                      onChange={this.searchTextOnChange}
                                      placeholder={this.props.intl.formatMessage({ id: "search.placeholder" })}
                                      onKeyDown={this.onKeyDownOnSearchText}/>
+                        <InputGroup>
+                            {this.state.isSpinnerShown ? (<span className="glyphicon glyphicon-refresh spinning" />) : ""}
+                        </InputGroup>
                         <InputGroup.Button>{this.renderSearchButton()}</InputGroup.Button>
                     </InputGroup>
                 </FormGroup>
