@@ -591,6 +591,13 @@ label.current-pageNumber {
   top: 51px !important;
 }
 
+@media (max-width: 780px) {
+  .side-bar-root-container {
+    position: absolute !important;
+    top: 186px !important;
+  }
+}
+
 .side-bar-main-content-container {
   padding-top: 10px;
 }
