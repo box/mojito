@@ -208,7 +208,7 @@ let LocalesDropDown = React.createClass({
     /**
      * Selects fully translated locales.
      */
-    onSelectPrincipal() {
+    onSelectToBeFullyTranslated() {
         this.forceDropdownOpen = true;
         this.searchParamChanged(this.state.fullyTranslatedBcp47Tags.slice());
     },
@@ -230,11 +230,11 @@ let LocalesDropDown = React.createClass({
     },
 
     /**
-     * Indicates if the select translated menu item should be active.
+     * Indicates if the select to be fully translated menu item should be active.
      *
      * @returns {boolean}
      */
-    isPrincipalActive() {
+    isToBeFullyTranslatedActive() {
         return this.state.selectedBcp47Tags.length > 0 && _.isEqual(this.state.selectedBcp47Tags, this.state.fullyTranslatedBcp47Tags);
     },
 
@@ -278,7 +278,7 @@ let LocalesDropDown = React.createClass({
         return (
                 <span className="mlm locale-dropdown">
                 <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
-                    <MenuItem active={this.isPrincipalActive()} onSelect={this.onSelectPrincipal}><FormattedMessage id="search.locale.selectPrincipal"/></MenuItem>
+                    <MenuItem active={this.isToBeFullyTranslatedActive()} onSelect={this.onSelectToBeFullyTranslated}><FormattedMessage id="search.locale.selectToBeFullyTranslated"/></MenuItem>
                     <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll"/></MenuItem>
                     <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone"/></MenuItem>
                     <MenuItem divider/>
