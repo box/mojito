@@ -1,5 +1,5 @@
 import React from "react";
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl} from "react-intl";
 import {DropdownButton, MenuItem} from "react-bootstrap";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
