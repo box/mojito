@@ -1,41 +1,30 @@
 - class: "section-1"
-  title: "Continuous Localization"
-  description: "News strings in the code <br> flow into Mojito, get translated,<br> then flow back into the code.<br> All automated.<br><br>Supports Xliff, Android, iOS,<br>Java, Windows Resource files"
-  screenshotContent: "<img src=\"images/screenshot-cl.png\" class=\"screenshot-cl\">"
-
-- class: "section-2"
-  flipped: true
-  title: "Continous Integration"
-  description: "A natural fit into various CI pipeline<br>"
-  screenshotContent: '<div class="ci-logo-group"><span><img src="images/ci-buildbot.png" class="ci-logo"></span>
-      <span><img src="images/ci-jenkins.png"  class="ci-logo"></span>
-      <span><img src="images/ci-strider.png"  class="ci-logo"></span>
-      <span><img src="images/ci-travis.png"  class="ci-logo"></span></div>'
-      
-- class: "section-3"
   type: "vertical"
-  title: "Simple User Interface"
+  title: "Continuous Localization"
   description: "
-  Check number of Strings and Words to Translate<br><br>
-  Search, View & Edit Translations<br><br>
-  Manage Translation Requests
+  New strings in the code flow into Mojito, get translated, then flow back into the code. All automated!<br>
+  Be agile.  Continuously develop and localize your application real-time.<br>
+  <small><i>Supports Android, iOS, Java, Windows Resource files and xliff files using <a href=\"http://www.opentag.com/okapi/wiki/index.php\">Okapi Framework</a>.</i></small>"
+  screenshotContent: "<img src=\"images/screenshot-cl.png\" class=\"screenshot-cl\">"
+      
+- class: "section-2"
+  type: "vertical"
+  title: "Translation Searcher & Editor"
+  description: "
+  Translate and review online.<br>
+  Translate with confidence.  Mojito rejects translation with potential errors.<br>
+  Search specific string across multiple repositories and languages.<br>
   "
   screenshotContent: "<img src=\"images/screenshot-workbench.png\" class=\"screenshot-workbench\">"
   
-- class: "section-4"
-  title: "Powerful Command Line"
-  description: "
-  Extract Strings to Translate<br><br>
-  Generate Localized Resourece Files<br><br>
-  Manage TM, Repositories & Users<br><br>
-  "
-  screenshotContent: "<img src=\"images/screenshot-cli.png\" class=\"screenshot-cli\">"
-  
-- class: "section-5"
-  title: "And more..."
-  description: "
-  Includes quality checks of the translated content (placeholder validation, etc)<br><br>
-  Uses previous translations to support refactoring (basic leveraging - no fuzzy)<br><br>
-  Relies on <a href=\"http://www.opentag.com/okapi/wiki/index.php\">Okapi Framework</a><br><br>
-  "
+- class: "section-3"
+  title: "And More Powerful Features..."
+  description: "<ul class=\"feature-list\">
+  <li class=\"feature-check\">Simple UI to manage project requests for offline translations and reviews.</li>
+  <li class=\"feature-check\">Integrate with CI pipleline such as Jenkins, Travis CI, etc.</li>
+  <li class=\"feature-check\">Powerful command line to manage TM, repositories and users.</li>
+  <li class=\"feature-check\">Create backup TM and get translations from the backup TM.</li>
+  <li class=\"feature-check\">Recycle and leverage existing translations.</li>
+  <li class=\"feature-check\">Making global changes to a string is easy!</li>
+  </ul>"
   screenshotContent: ""

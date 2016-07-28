@@ -14,18 +14,17 @@
 
 .screenshot-cl {
   background: url('/images/screenshot-cl.png');
-  width: 400px;
-  height: 150px;
+  width: 600px;
 }
 
-.screenshot-cl {
+.screenshot-workbench {
   background: url('/images/screenshot-workbench.png');
-  width: 400px;
+  width: 600px;
 }
 
 .screenshot-cli {
   background: url('/images/screenshot-cli.png');
-  width: 400px;
+  width: 300px;
 }
 
 .ci-logo-group {
@@ -39,21 +38,32 @@
 
 .section-1 {
   background-color: rgba($grey-color, 0.0);
-  height: 250px;
+  height: 380px;
 }
 
 .section-2 {
   background-color: rgba($grey-color, 0.1);
+  height: 550px;
 }
 
 .section-3 {
   background-color: rgba($grey-color, 0.0);
-  height: 550px;
+  height: 180px;
 }
 
 .section-4 {
   background-color: rgba($grey-color, 0.2);
-  height: 550px;
 }
-  
 
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-check {
+  background: url('/images/green-check-mark.png') no-repeat left;
+  background-size: 15px 15px;
+  padding-left: 20px;
+  padding-top: 2px;
+}
