@@ -87,7 +87,7 @@ let Workbench = React.createClass({
     },
 
     render: function () {
-
+        
         return (
             <div>
                 <div className="pull-left">

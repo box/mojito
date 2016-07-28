@@ -28,6 +28,9 @@ class SearchResultsStore {
         /** @type {Boolean} */
         this.isSearching = false;
 
+        /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
+        this.searchHadNoResults = false;
+
         this.bindActions(WorkbenchActions);
 
         this.registerAsync(SearchDataSource);
@@ -42,34 +45,48 @@ class SearchResultsStore {
 
         this.waitFor(SearchParamsStore);
 
+        if (this.shouldPerformSearch()) {
+            let newState = {
+                "pageFetched": false,
+                "noMoreResults": false,
+                "isSearching": true,
+                "searchHadNoResults": false
+            };
+
+            let searchParamsStoreState = SearchParamsStore.getState();
+            if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
+                searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
+                newState.selectedTextUnitsMap = {};
+            }
+
+            this.setState(newState);
+
+            this.getInstance().performSearch(searchParamsStoreState);
+        }
+    }
+
+    /**
+     * @return {boolean}
+     */
+    shouldPerformSearch() {
         let searchParamsStoreState = SearchParamsStore.getState();
 
-        let newState = {
-            "pageFetched": false,
-            "noMoreResults": false,
-            "isSearching": true
-        };
+        let repositoryIds = searchParamsStoreState.repoIds;
+        let bcp47Tags = searchParamsStoreState.bcp47Tags;
 
-        if (searchParamsStoreState.changedParam !== SearchConstants.NEXT_PAGE_REQUESTED &&
-            searchParamsStoreState.changedParam !== SearchConstants.PREVIOUS_PAGE_REQUESTED) {
-            newState.selectedTextUnitsMap = {};
-        }
-
-        this.setState(newState);
-
-        this.getInstance().performSearch(searchParamsStoreState);
+        return !(repositoryIds.length === 0 || bcp47Tags.length === 0);
     }
 
     /**
      * @param {object} -- The response sent by the promise when the search query is successful.
      */
     onSearchResultsReceivedSuccess(response) {
-
         this.waitFor(SearchParamsStore);
         let paramsStoreState = SearchParamsStore.getState();
         this.noMoreResults = response.length < paramsStoreState.pageSize;
         this.searchResults = response;
         this.isSearching = false;
+        this.searchHadNoResults = (response.length === 0);
         this.setPageFetched(true);
     }
 

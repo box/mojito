@@ -27,36 +27,53 @@ let SearchResults = React.createClass({
     },
 
     /**
-     * @returns {{
-     *  searchResults: [],  Array of textunits in the current page of the search results.
-     *  isFetchingPage: boolean,  Indicates status of fetching a page of search results from the server. Helps maintain pending state of the component.
-     *  noMoreResults: boolean,  Indicates that no more results exist for the search criteria. Helps maintain enabled status of toolbar buttons.
-     *  mustShowToolbar: boolean,  If no results exist for the provided search criteria, this boolean helps to hide the workbench toolbar.
-     *  currentPageNumber: number,  Indicates the current page number of the search results.
-     *  activeTextUnitIndex: number,  The index of the currently active textunit.
-     *  showDeleteModal: boolean  Displays the DeleteConfirmationModal when the delete button is clicked.
-     *  isErrorOccurred: boolean Helps show the ErrorModal if set to true.
-     *  errorObject: object The Error object created by the store.
-     *  errorResponse: object The error object returned by the promise. This can be used to pass parameters to translate the error. See getErrorMessage() in this file for details.
-     *  textUnitInEditMode: TextUnit, the text unit currently in edit mode if any
-     *  }}
+     * @return {{searchResults: (*|Array|TextUnit[]), searchHadNoResults: boolean, isFetchingPage: boolean, noMoreResults: boolean, mustShowToolbar: boolean, currentPageNumber: (*|Number|number), activeTextUnitIndex: number, showDeleteModal: boolean, mustShowReviewModal: boolean, isErrorOccurred: boolean, errorObject: null, errorResponse: null, textUnitInEditMode: null}}
      */
     getInitialState() {
 
         let resultsStoreState = SearchResultsStore.getState();
         let searchParamsStoreState = SearchParamsStore.getState();
         return {
+            /** @type [] Array of textunits in the current page of the search results. */
             "searchResults": resultsStoreState.searchResults,
+
+            /** @type {Boolean} */
+            "isSearching": false,
+
+            /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
+            "searchHadNoResults": false,
+
+            /** @type {Boolean} Indicates status of fetching a page of search results from the server. Helps maintain pending state of the component. */
             "isFetchingPage": false,
+
+            /** @type {Boolean} Indicates that no more results exist for the search criteria. Helps maintain enabled status of toolbar buttons. */
             "noMoreResults": false,
+
+            /** @type {Boolean} If no results exist for the provided search criteria, this boolean helps to hide the workbench toolbar. */
             "mustShowToolbar": false,
+
+            /** @type {Number} Indicates the current page number of the search results. */
             "currentPageNumber": searchParamsStoreState.currentPageNumber,
+
+            /** @type {Number}  The index of the currently active textunit. */
             "activeTextUnitIndex": 0,
+
+            /** @type {Boolean} Displays the DeleteConfirmationModal when the delete button is clicked. */
             "showDeleteModal": false,
+
+            /** @type {Boolean} Helps show the ErrorModal if set to true. */
             "mustShowReviewModal": false,
+
+            /** @type {Boolean} */
             "isErrorOccurred": false,
+
+            /** @type {Boolean} The Error object created by the store.  */
             "errorObject": null,
+
+            /** @type {Boolean} The error object returned by the promise. This can be used to pass parameters to translate the error. See getErrorMessage() in this file for details. */
             "errorResponse": null,
+
+            /** @type {TextUnit}   the text unit currently in edit mode if any*/
             "textUnitInEditMode": null
         };
     },
@@ -276,6 +293,8 @@ let SearchResults = React.createClass({
 
         this.setState({
             "searchResults": resultsStoreState.searchResults,
+            "isSearching": resultsStoreState.isSearching,
+            "searchHadNoResults": resultsStoreState.searchHadNoResults,
             "isFetchingPage": !pageFetched,
             "noMoreResults": resultsStoreState.noMoreResults,
             "currentPageNumber": paramsStoreState.currentPageNumber,
@@ -568,7 +587,7 @@ let SearchResults = React.createClass({
     getEmptyStateContainer() {
         let result = "";
 
-        if (this.state.searchResults.length === 0) {
+        if (this.state.searchHadNoResults) {
             result = (
                 <div className="empty-search-container text-center center-block">
                     <FormattedMessage id="search.result.empty" />
