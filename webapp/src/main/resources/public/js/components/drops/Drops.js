@@ -519,7 +519,10 @@ let Drops = React.createClass({
     },
 
     onSideBarCloseRequest() {
-        this.setState({"isSideBarShown": false});
+        this.setState({
+            "isSideBarShown": false,
+            "selectedDrop": null
+        });
     },
 
     getSideBarContent() {
