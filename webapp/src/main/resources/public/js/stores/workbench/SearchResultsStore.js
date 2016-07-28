@@ -24,7 +24,7 @@ class SearchResultsStore {
          */
         this.selectedTextUnitsMap = {};
 
-        /** @type {Boolean} */
+        /** @type {Boolean} True when a search is being formed.  This store is responsible for setting this state to true before searching and setting to false when searching is done */
         this.isSearching = false;
 
         /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
