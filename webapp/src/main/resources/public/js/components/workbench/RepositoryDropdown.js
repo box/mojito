@@ -61,12 +61,14 @@ let RepositoryDropDown = React.createClass({
 
     /**
      *
-     * @return {{repositories: number[], selectedRepoIds: string[], isDropdownOpenned: boolean}}
      */
     getInitialState: function () {
         return {
+            /** @type Number[] */
             "repositories": [],
+            /** @type Number[] */
             "selectedRepoIds": [],
+            /** @type boolean */
             "isDropdownOpenned": false
         };
     },
@@ -77,7 +79,7 @@ let RepositoryDropDown = React.createClass({
      * @return {{id: number, name: string, selected: boolean}[]}}
      */
     getSortedRepositories() {
-        let repositories = this.state.repositories
+        return this.state.repositories
                 .map((repository) => {
                     return {
                         "id": repository.id,
@@ -85,8 +87,6 @@ let RepositoryDropDown = React.createClass({
                         "selected": this.state.selectedRepoIds.indexOf(repository.id) > -1
                     }
                 }).sort((a, b) => a.name.localeCompare(b.name));
-
-        return repositories;
     },
 
     /**
@@ -145,7 +145,7 @@ let RepositoryDropDown = React.createClass({
             let repoId = this.state.selectedRepoIds[0];
             label = this.getRepositoryById(repoId).name;
         } else {
-            label = this.props.intl.formatMessage({id: "search.repository.btn.text"}, {'numberOfSelectedRepositories': numberOfSelectedRepositories});
+            label = this.props.intl.formatMessage({"id": "search.repository.btn.text"}, {"numberOfSelectedRepositories": numberOfSelectedRepositories});
         }
 
         return label;
@@ -166,7 +166,7 @@ let RepositoryDropDown = React.createClass({
      * @returns {number[]}
      */
     getRepositoryIdsFromState() {
-        return this.state.repositories.map((repository) => repository.id);
+        return this.state.repositories.map(repository => repository.id);
     },
 
     /**
