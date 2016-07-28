@@ -19,7 +19,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -50,7 +49,6 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-    @Transactional
     @Test
     public void testUpdateStatistics() throws Exception {
 
@@ -75,7 +73,6 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ko-KR"), "ko-KR", 1, 8, 1, 8, 0, 0, 0, 0);
     }
 
-    @Transactional
     @Test
     public void testComputeBaseStatistics() throws Exception {
 
@@ -93,7 +90,6 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         assertEquals(1L, (long) repositoryStatistic.getUnusedTextUnitWordCount());
     }
 
-    @Transactional
     @Test
     public void testComputeLocaleStatistics() throws Exception {
 
@@ -103,7 +99,7 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
 
         tmService.addTMTextUnitCurrentVariant(
                 tmTestData.addCurrentTMTextUnitVariant1FrFR.getTmTextUnit().getId(),
-                tmTestData.addCurrentTMTextUnitVariant1FrFR.getLocale().getId(),
+                tmTestData.frFR.getId(),
                 tmTestData.addCurrentTMTextUnitVariant1FrFR.getContent(),
                 "this translation fails compilation",
                 TMTextUnitVariant.Status.REVIEW_NEEDED,
@@ -111,7 +107,7 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
 
         tmService.addTMTextUnitCurrentVariant(
                 tmTestData.addCurrentTMTextUnitVariant1KoKR.getTmTextUnit().getId(),
-                tmTestData.addCurrentTMTextUnitVariant1KoKR.getLocale().getId(),
+                tmTestData.koKR.getId(),
                 tmTestData.addCurrentTMTextUnitVariant1KoKR.getContent(),
                 "this translation fails compilation",
                 TMTextUnitVariant.Status.TRANSLATION_NEEDED,
