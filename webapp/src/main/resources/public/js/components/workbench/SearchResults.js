@@ -475,16 +475,6 @@ let SearchResults = React.createClass({
     },
 
     /**
-     * @returns {JSX} The JSX for the progress spinner to be displayed when server action is pending.
-     */
-    getLoadingSpinner() {
-        let altMessage = this.props.intl.formatMessage({id: "search.pagination.isLoading"});
-        return (
-            <img src="/img/ajax-loader.gif" alt={altMessage}/>
-        );
-    },
-
-    /**
      * @returns {JSX} Depending on the state of the component, this function returns the JSX for the
      * workbench toolbar.
      */
