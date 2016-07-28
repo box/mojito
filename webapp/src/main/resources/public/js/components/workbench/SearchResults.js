@@ -27,7 +27,7 @@ let SearchResults = React.createClass({
     },
 
     /**
-     * @return {{searchResults: (*|Array|TextUnit[]), searchHadNoResults: boolean, isFetchingPage: boolean, noMoreResults: boolean, mustShowToolbar: boolean, currentPageNumber: (*|Number|number), activeTextUnitIndex: number, showDeleteModal: boolean, mustShowReviewModal: boolean, isErrorOccurred: boolean, errorObject: null, errorResponse: null, textUnitInEditMode: null}}
+     * @return {{searchResults: (*|Array|TextUnit[]), searchHadNoResults: boolean, noMoreResults: boolean, mustShowToolbar: boolean, currentPageNumber: (*|Number|number), activeTextUnitIndex: number, showDeleteModal: boolean, mustShowReviewModal: boolean, isErrorOccurred: boolean, errorObject: null, errorResponse: null, textUnitInEditMode: null}}
      */
     getInitialState() {
 
@@ -42,9 +42,6 @@ let SearchResults = React.createClass({
 
             /** @type {Boolean} True when search didn't result any result, It's different than searchResults.length equals to 0 b'c it can be 0 if search has not been requested. */
             "searchHadNoResults": false,
-
-            /** @type {Boolean} Indicates status of fetching a page of search results from the server. Helps maintain pending state of the component. */
-            "isFetchingPage": false,
 
             /** @type {Boolean} Indicates that no more results exist for the search criteria. Helps maintain enabled status of toolbar buttons. */
             "noMoreResults": false,
@@ -288,14 +285,12 @@ let SearchResults = React.createClass({
         let resultsStoreState = SearchResultsStore.getState();
         let paramsStoreState = SearchParamsStore.getState();
         let resultsInComponent = this.state.searchResults;
-        let pageFetched = resultsStoreState.pageFetched;
         let mustShowToolbar = this.mustToolbarBeShown();
 
         this.setState({
             "searchResults": resultsStoreState.searchResults,
             "isSearching": resultsStoreState.isSearching,
             "searchHadNoResults": resultsStoreState.searchHadNoResults,
-            "isFetchingPage": !pageFetched,
             "noMoreResults": resultsStoreState.noMoreResults,
             "currentPageNumber": paramsStoreState.currentPageNumber,
             "mustShowToolbar": mustShowToolbar,
@@ -340,12 +335,10 @@ let SearchResults = React.createClass({
 
     /**
      * Called when the next page button is clicked on the workbench toolbar.
-     * Sets the isFetchingPage attribute to true and fires the request to get the next page
      *  of search results.
      */
     onFetchNextPageClicked() {
 
-        this.setPageLoadingStatus(true);
         if (!this.state.noMoreResults) {
             WorkbenchActions.searchParamsChanged({
                 "changedParam": SearchConstants.NEXT_PAGE_REQUESTED
@@ -355,13 +348,11 @@ let SearchResults = React.createClass({
 
     /**
      * Called when the previous page button is clicked on the workbench toolbar.
-     * Sets the isFetchingPage attribute to true and fires the request to get the previous
      * page of search results if the currentPage is greater than one.
      */
     onFetchPreviousPageClicked() {
 
         if (this.state.currentPageNumber > 1) {
-            this.setPageLoadingStatus(true);
             let paramData = {
                 "changedParam": SearchConstants.PREVIOUS_PAGE_REQUESTED
             };
@@ -479,16 +470,6 @@ let SearchResults = React.createClass({
     },
 
     /**
-     * @param {boolean} boolValue If true is passed, then the component will display a pending status while waiting for
-     * server to respond.
-     */
-    setPageLoadingStatus(boolValue) {
-        this.setState({
-            "isFetchingPage": boolValue
-        });
-    },
-
-    /**
      * @returns {JSX} The JSX for the progress spinner to be displayed when server action is pending.
      */
     getLoadingSpinner() {
@@ -505,16 +486,16 @@ let SearchResults = React.createClass({
     getTextUnitToolbarUI() {
         //TODO: create a WorkbenchToolbar component. The SearchResults component should delegate toolbar rendering and actions to the WorkbenchToolbar
         let ui = "";
-        let isFetchingPage = this.state.isFetchingPage;
+        let isSearching = this.state.isSearching;
         let noMoreResults = this.state.noMoreResults;
         let isFirstPage = this.state.currentPageNumber <= 1;
         let selectedTextUnits = this.getSelectedTextUnits();
         let numberOfSelectedTextUnits = selectedTextUnits.length;
         let isAtLeastOneTextUnitSelected = numberOfSelectedTextUnits >= 1;
 
-        let actionButtonsDisabled = isFetchingPage || !isAtLeastOneTextUnitSelected;
-        let nextPageButtonDisabled = isFetchingPage || noMoreResults;
-        let previousPageButtonDisabled = isFetchingPage || isFirstPage;
+        let actionButtonsDisabled = isSearching || !isAtLeastOneTextUnitSelected;
+        let nextPageButtonDisabled = isSearching || noMoreResults;
+        let previousPageButtonDisabled = isSearching || isFirstPage;
 
         if (this.state.mustShowToolbar) {
             ui = (
@@ -573,12 +554,7 @@ let SearchResults = React.createClass({
      * @returns {JSX} The progress spinner if server action is pending. Otherwise, return the currentPageNumber.
      */
     displayCurrentPageNumber() {
-        let ui = this.state.currentPageNumber;
-        if (this.state.isFetchingPage) {
-            //TODO this is not good keeps doing network call (image no cache in springboot???) + flicker
-            ui = this.getLoadingSpinner();
-        }
-        return ui;
+        return this.state.currentPageNumber;
     },
 
     /**
