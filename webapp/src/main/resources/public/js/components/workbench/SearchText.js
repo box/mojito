@@ -38,12 +38,17 @@ let SearchText = React.createClass({
 
     /**
      *
-     * @return {{searchAttribute: (*|string), searchType: (*|string), searchText: (*|string), isSpinnerShown: (boolean|Boolean)}}
+     * @return {{searchAttribute: (*|string), searchType: (*|string), searchText: (*|string), isSpinnerShown: (*|boolean|Boolean)}}
      */
     getInitialState() {
         return {
+            /** @type {string} */
             "searchAttribute": this.getInitialSearchAttribute(),
+
+            /** @type {string} */
             "searchType": this.getInitialSearchType(),
+
+            /** @type {string} */
             "searchText": this.getInitialSearchText(),
 
             /** @type {Boolean} */
