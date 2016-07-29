@@ -113,10 +113,10 @@ The translation gets rejected if any traingling whitespaces in the source string
 
 While importing offline translations, the integrity checker catches errors and reject translations with errors.  The number of rejected translations show up in the Repository page.
 
-![Repository with Rejected Translations](./images/repository-statistics-rejected.png)
+![Repository with Rejected Translation](./images/repository-rejected-translation.png)
 
-Clicking on the number of rejected translations loads the Workbench with rejected translations.  You can correct the translations and change their status to `Needs Review` or `Accepted`.
+Clicking on the number of rejected translations loads the Workbench with rejected translation.  You can correct the translation and change its status to `Needs Review` or `Accepted`.
 
-![Workbench with Rejected Translations](./images/workbench-warning.png)
+![Workbench with Rejected Translation](./images/workbench-warning.png)
 
 

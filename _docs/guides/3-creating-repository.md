@@ -34,7 +34,7 @@ You can now see the repository `MyRepo` in the Webapp.
 This creates a repository with name `MyRepo` with locales `fr-FR`.
 
 
-The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` extensions.  Integrity checkers are used to validate translations.  Integrity checker configuration is optional but it is highly recommended to catch translations with errors and reject them.  See [Integrity Checkers]({{ site.github.url }}/docs/guides/integrity-checkers/) for more information.
+The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` extension.  Integrity checkers are used to validate translations.  Integrity checker configuration is optional but it is highly recommended to catch translations with errors and reject them.  See [Integrity Checkers]({{ site.github.url }}/docs/guides/integrity-checkers/) for more information.
 
 
 
