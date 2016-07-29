@@ -1,4 +1,5 @@
 import $ from "jquery";
+import _ from "lodash";
 import keycode from "keycode";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import React from "react";
@@ -46,7 +47,10 @@ let TextUnit = React.createClass({
         "textUnit": React.PropTypes.object.isRequired,
 
         /** @type {function} */
-        "onEditModeSetToTrue": React.PropTypes.func
+        "onEditModeSetToTrue": React.PropTypes.func,
+
+        /** @type {number} */
+        "textUnitIndex": React.PropTypes.number
     },
 
     /**
@@ -73,6 +77,15 @@ let TextUnit = React.createClass({
             /** @type {TextUnitError} */
             "error": null
         };
+    },
+
+    /**
+     * @param {object} nextProps
+     * @param {object} nextState
+     * @return {boolean}
+     */
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
     },
 
     onTextUnitStoreUpdated() {
@@ -525,7 +538,11 @@ let TextUnit = React.createClass({
      * @param {SyntheticEvent} e
      */
     onTextUnitClick(e) {
-        this.onChangeTextUnitCheckbox(e);
+        // NOTE: if text has been selected for this textunit, don't activate it because the user's intention is to
+        // select text, not activate textunit.
+        if (!window.getSelection().toString()) {
+            this.onChangeTextUnitCheckbox(e);
+        }
     },
 
     /**
@@ -684,7 +701,7 @@ let TextUnit = React.createClass({
         return (
             <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
                  onClick={this.onTextUnitClick}>
-                {this.getErrorAlert()}
+            {this.getErrorAlert()}
                 <div>
                     <Grid fluid={true}>
                         <Row className='show-grid'>
