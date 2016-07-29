@@ -143,7 +143,10 @@ let RepositoryDropDown = React.createClass({
 
         if (numberOfSelectedRepositories == 1) {
             let repoId = this.state.selectedRepoIds[0];
-            label = this.getRepositoryById(repoId).name;
+            let repo = this.getRepositoryById(repoId);
+            // NOTE repo is null before the list of repositories are returned.  But this is not big deal b'c
+            // when repositories returns, the state is updated, and this component re-renders.
+            label = repo ? repo.name : "";
         } else {
             label = this.props.intl.formatMessage({"id": "search.repository.btn.text"}, {"numberOfSelectedRepositories": numberOfSelectedRepositories});
         }
