@@ -48,7 +48,7 @@
 
 .section-3 {
   background-color: rgba($grey-color, 0.0);
-  height: 180px;
+  height: 270px;
 }
 
 .section-4 {
@@ -62,8 +62,8 @@
 }
 
 .feature-check {
-  background: url('/images/green-check-mark.png') no-repeat left;
+  background: url("/images/green-check-mark.png") no-repeat left top;
   background-size: 15px 15px;
-  padding-left: 20px;
-  padding-top: 2px;
+  background-position-y: 4px;
+  padding-left: 25px;
 }

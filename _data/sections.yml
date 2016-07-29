@@ -25,5 +25,5 @@
   <li class=\"feature-check\">Powerful command line to manage TM, repositories and users.</li>
   <li class=\"feature-check\">Straight-forward integration with CI pipleline such as Jenkins, Travis CI, etc.</li>
   <li class=\"feature-check\">Create backup TM and get translations from the backup TM.</li>
-  </ul>"
+  </ul><br><br>"
   screenshotContent: ""
