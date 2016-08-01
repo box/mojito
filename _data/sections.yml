@@ -21,9 +21,9 @@
   title: "Happy localization with Mojito's powerful features..."
   description: "<ul class=\"feature-list\">
   <li class=\"feature-check\">Recycle and leverage existing translations.</li>
-  <li class=\"feature-check\">Simple UI to manage project requests for offline translations and reviews.</li>
+  <li class=\"feature-check\">Simple UI to manage translation packages for offline translations and reviews.</li>
   <li class=\"feature-check\">Powerful command line to manage TM, repositories and users.</li>
-  <li class=\"feature-check\">Straight-forward integration with CI pipleline such as Jenkins, etc.</li>
-  <li class=\"feature-check\">Create backup TM and get translations from the backup TM.</li>
+  <li class=\"feature-check\">Straight-forward integration with CI pipleline such as Jenkins etc.</li>
+  <li class=\"feature-check\">Create and Restore TM backup.</li>
   </ul><br><br>"
   screenshotContent: ""
