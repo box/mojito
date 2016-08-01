@@ -16,7 +16,7 @@ permalink: /docs/refs/mojito-file-formats/
 | XLIFF                              | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
 
 
-## Android Strings Example
+### Android Strings Example
 Source Resource File (English): res/values/strings.xml
 
 
@@ -37,7 +37,7 @@ Localized Resource File (Spanish): res/values-es/strings.xml
 </resources>
 ```
 
-## iOS/Mac Strings Example
+### iOS/Mac Strings Example
 Source Resource File (English): en.lproj/Localizable.strings
 
 
@@ -55,7 +55,7 @@ Localized Resource File (Spanish): es.lproj/Localizable.strings
 ```
 
 
-## Java Properties Example
+### Java Properties Example
 Source Resource File (English): en.properties
 
 
@@ -73,7 +73,7 @@ hello = ¡Hola!
 ```
 
 
-## RESW Example
+### RESW Example
 Source Resource File (English): en/Resources.resw
 
 
@@ -101,7 +101,7 @@ Localized Resource File (Spanish): es/Resources.resw
 ```
 
 
-## RESX Example
+### RESX Example
 Source Resource File (English): Resources.resx
 
 
@@ -129,7 +129,7 @@ Localized Resource File (Spanish): Resources.es-ES.resx
 ```
 
 
-## XLIFF Example
+### XLIFF Example
 Source Resource File (English): resource.xliff    
 
 
