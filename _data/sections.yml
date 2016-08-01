@@ -12,7 +12,7 @@
   title: "Translation Searcher & Editor"
   description: "
   Translate and review online.<br>
-  Translate with confidence.  Mojito rejects translation with potential errors.<br>
+  Translate with confidence.  Mojito rejects translations with potential errors.<br>
   Search specific strings across multiple repositories and languages.<br>
   "
   screenshotContent: "<img src=\"images/screenshot-workbench.png\" class=\"screenshot-workbench\">"
@@ -23,7 +23,7 @@
   <li class=\"feature-check\">Recycle and leverage existing translations.</li>
   <li class=\"feature-check\">Simple UI to manage project requests for offline translations and reviews.</li>
   <li class=\"feature-check\">Powerful command line to manage TM, repositories and users.</li>
-  <li class=\"feature-check\">Straight-forward integration with CI pipleline such as Jenkins, Travis CI, etc.</li>
+  <li class=\"feature-check\">Straight-forward integration with CI pipleline such as Jenkins, etc.</li>
   <li class=\"feature-check\">Create backup TM and get translations from the backup TM.</li>
   </ul><br><br>"
   screenshotContent: ""
