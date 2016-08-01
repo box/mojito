@@ -345,8 +345,10 @@ let SearchResults = React.createClass({
     onFetchNextPageClicked() {
 
         if (!this.state.noMoreResults) {
-            WorkbenchActions.searchParamsChanged({
-                "changedParam": SearchConstants.NEXT_PAGE_REQUESTED
+            this.setState({"textUnitInEditMode": null}, () => {
+                WorkbenchActions.searchParamsChanged({
+                    "changedParam": SearchConstants.NEXT_PAGE_REQUESTED
+                });
             });
         }
     },
@@ -358,10 +360,11 @@ let SearchResults = React.createClass({
     onFetchPreviousPageClicked() {
 
         if (this.state.currentPageNumber > 1) {
-            let paramData = {
-                "changedParam": SearchConstants.PREVIOUS_PAGE_REQUESTED
-            };
-            WorkbenchActions.searchParamsChanged(paramData);
+            this.setState({"textUnitInEditMode": null}, () => {
+                WorkbenchActions.searchParamsChanged({
+                    "changedParam": SearchConstants.PREVIOUS_PAGE_REQUESTED
+                });
+            });
         }
     },
 
