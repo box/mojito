@@ -57,7 +57,7 @@ Otherwise, an exception like the folllowing will be thrown:
 
 ### Fill in the Required Box Client Configurations in Mojito
 
-Navigate to `/settings/box` and fill in the form.
+Navigate to `/settings` and fill in the form.
 
 - `Client Id`: This is provided in the **Edit Application** page on Box (https://app.box.com/developers/services/edit/<###>)
 - `Client Secret`: This is provided in the **Edit Application** page on Box (https://app.box.com/developers/services/edit/<###>)
