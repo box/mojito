@@ -2,9 +2,9 @@
   type: "vertical"
   title: "Continuous Localization"
   description: "
-  New strings in the code flow into Mojito, get translated, then flow back into the code. All automated!<br>
   Be agile.  Continuously develop and localize your application real-time.<br>
-  <small><i>Supports Android, iOS, Java, Windows Resource files and xliff files using <a href=\"http://www.opentag.com/okapi/wiki/index.php\">Okapi Framework</a>.</i></small>"
+  New strings in the code flow into Mojito, get translated, then flow back into the code. All automated!<br>
+  <small><i>Mojito supports Android, iOS, Java, Windows Resource files and xliff files using <a href=\"http://www.opentag.com/okapi/wiki/index.php\">Okapi Framework</a>.</i></small>"
   screenshotContent: "<img src=\"images/screenshot-cl.png\" class=\"screenshot-cl\">"
       
 - class: "section-2"
@@ -13,7 +13,7 @@
   description: "
   Translate and review online.<br>
   Translate with confidence.  Mojito rejects translation with potential errors.<br>
-  Search specific string across multiple repositories and languages.<br>
+  Search specific strings across multiple repositories and languages.<br>
   "
   screenshotContent: "<img src=\"images/screenshot-workbench.png\" class=\"screenshot-workbench\">"
   
