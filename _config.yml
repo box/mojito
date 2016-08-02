@@ -9,7 +9,7 @@
 title: Mojito
 email: oss@box.com
 description: > # this means to ignore newlines until "baseurl:"
-  An Open Source Autmation Platform that Enables Continuous Localization for Sofware Development
+  An open sourced automation platform that enables continuous localization for software development
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://opensource.box.com/mojito" # the base hostname & protocol for your site
 github_username:  mojito
