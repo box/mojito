@@ -628,6 +628,12 @@ label.current-pageNumber {
   overflow: scroll;
 }
 
+.repository-dropdown li > a {
+  max-width: 500px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .repository-dropdown ul {
   max-height: 400px;
   overflow: scroll;
