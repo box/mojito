@@ -307,8 +307,7 @@ public abstract class AbstractImportTranslationsStep extends BasePipelineStep {
         boolean includedInLocalizedFile = true;
 
         if (tmTextUnitVariantCommentAnnotations.hasCommentWithWarningSeverity()) {
-            logger.debug("translation has comments with warning, document review is needed");
-            documentReviewNeeded = true;
+            logger.debug("translation has comments with warning, document review is not needed though");
         }
 
         if (tmTextUnitVariantCommentAnnotations.hasCommentWithErrorSeverity()) {
