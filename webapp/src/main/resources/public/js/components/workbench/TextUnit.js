@@ -46,6 +46,12 @@ let TextUnit = React.createClass({
         /** @type {TextUnit} */
         "textUnit": React.PropTypes.object.isRequired,
 
+        /** @type {string} Since we don't have immutable objects, and the textunit object is mutated everywhere, this is
+         * the best way to ensure we get the freshest translation from the parent.  Always use this instead of the textunit.getTarget()
+         * The benefit here is that when the translation prop changes, the component will automatically re-render
+         */
+        "translation": React.PropTypes.string,
+
         /** @type {function} */
         "onEditModeSetToTrue": React.PropTypes.func,
 
@@ -59,8 +65,8 @@ let TextUnit = React.createClass({
      */
     getInitialState() {
         return {
-            /** @type {string} */
-            "translation": this.props.textUnit.getTarget(),
+            /** @type {string} This state should only be used to store the state of edited translation only */
+            "translation": this.props.translation,
 
             /** @type {Boolean} */
             "isEditMode": false,
@@ -246,7 +252,7 @@ let TextUnit = React.createClass({
         if (this.state.isEditMode) {
             this.setState({
                 "isEditMode": false,
-                "translation": this.props.textUnit.getTarget()
+                "translation": this.props.translation
             }, () => {
                 if (this.pendingCancelEditPromiseResolve) {
                     this.pendingCancelEditPromiseResolve(true);
@@ -271,7 +277,7 @@ let TextUnit = React.createClass({
      *
      */
     hasTargetChanged() {
-        return this.props.textUnit.getTarget() !== this.state.translation;
+        return this.props.translation !== this.state.translation;
     },
 
     /**
@@ -413,7 +419,7 @@ let TextUnit = React.createClass({
                     <FormControl ref="textUnitTextArea" componentClass="textarea" spellCheck="true" className="mrxs"
                                  onKeyUp={this.onKeyUpTextArea} onKeyDown={this.onKeyDownTextArea}
                                  placeholder={this.props.intl.formatMessage({ id: 'textUnit.target.placeholder' })}
-                                 defaultValue={this.state.translation ? this.state.translation : ""}
+                                 defaultValue={this.props.translation ? this.props.translation : ""}
                                  onChange={this.transUnitEditTextAreaOnChange}
                                  dir={dir}
                                  onClick={this.onClickTextArea}/>
@@ -460,7 +466,7 @@ let TextUnit = React.createClass({
         if (this.state.isEditMode) {
             ui = this.getUIForEditMode();
         } else {
-            let targetString = this.props.textUnit.getTarget();
+            let targetString = this.props.translation;
             let dir;
 
             let noTranslation = false;

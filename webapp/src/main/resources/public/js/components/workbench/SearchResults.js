@@ -284,7 +284,6 @@ let SearchResults = React.createClass({
      * See comments on getInitialState() for how each attribute affects the rendering of this component.
      */
     onSearchResultsStoreUpdated() {
-
         let resultsStoreState = SearchResultsStore.getState();
         let paramsStoreState = SearchParamsStore.getState();
         let resultsInComponent = this.state.searchResults;
@@ -456,6 +455,7 @@ let SearchResults = React.createClass({
         return (
             <TextUnit key={this.getTextUnitComponentKey(textUnit)}
                       textUnit={textUnit} textUnitIndex={arrayIndex}
+                      translation={textUnit.getTarget()}
                       isActive={arrayIndex === this.state.activeTextUnitIndex}
                       isSelected={this.isTextUnitSelected(textUnit)}
                       onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}/>

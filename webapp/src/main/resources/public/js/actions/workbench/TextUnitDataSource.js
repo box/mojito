@@ -36,7 +36,7 @@ const TextUnitDataSource = {
             return TextUnitClient.deleteCurrentTranslation(textUnit)
                 .catch(error => {
                     throw new TextUnitError(Error.IDS.TEXTUNIT_DELETE_FAILED, textUnit);
-                });;
+                });
         },
         success: WorkbenchActions.deleteTextUnitsSuccess,
         error: WorkbenchActions.deleteTextUnitsError
