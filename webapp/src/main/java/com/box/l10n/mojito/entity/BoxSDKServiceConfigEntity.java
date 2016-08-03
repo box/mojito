@@ -2,7 +2,6 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceConfig;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
