@@ -55,8 +55,14 @@ let TextUnit = React.createClass({
         /** @type {function} */
         "onEditModeSetToTrue": React.PropTypes.func,
 
+        /** @type {function} */
+        "onEditModeSetToFalse": React.PropTypes.func,
+
         /** @type {number} */
-        "textUnitIndex": React.PropTypes.number
+        "textUnitIndex": React.PropTypes.number,
+
+        /** @type {boolean} */
+        "isActive": React.PropTypes.bool
     },
 
     /**
@@ -86,6 +92,21 @@ let TextUnit = React.createClass({
     },
 
     /**
+     * Invoked when a component is receiving new props. This method is not called for the initial render.
+     *
+     * Use this as an opportunity to react to a prop transition before render() is called by updating the state using
+     * this.setState(). The old props can be accessed via this.props. Calling this.setState() within this function
+     * will not trigger an additional render.
+     * @param nextProps
+     */
+    componentWillReceiveProps(nextProps) {
+        // update translation state if the new props is different and it's not currently being edited.
+        if (!this.state.isEditMode && nextProps.translation !== this.props.translation) {
+            this.setState({ "translation": nextProps.translation });
+        }
+    },
+
+    /**
      * @param {object} nextProps
      * @param {object} nextState
      * @return {boolean}
@@ -103,6 +124,10 @@ let TextUnit = React.createClass({
                 "isErrorAlertShown": false,
                 "error": null,
                 "isEditMode": false
+            }, () => {
+                if (this.props.onEditModeSetToFalse) {
+                    this.props.onEditModeSetToFalse(this);
+                }
             });
         }
     },
@@ -254,6 +279,10 @@ let TextUnit = React.createClass({
                 "isEditMode": false,
                 "translation": this.props.translation
             }, () => {
+                if (this.props.onEditModeSetToFalse) {
+                    this.props.onEditModeSetToFalse(this);
+                }
+
                 if (this.pendingCancelEditPromiseResolve) {
                     this.pendingCancelEditPromiseResolve(true);
                     this.pendingCancelEditPromiseResolve = null;
