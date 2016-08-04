@@ -8,6 +8,7 @@ import javax.persistence.ColumnResult;
 import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SqlResultSetMapping;
@@ -21,7 +22,11 @@ import org.hibernate.annotations.NamedNativeQuery;
  * @author jaurambault
  */
 @Entity
-@Table(name = "repository_locale_statistic")
+@Table(name = "repository_locale_statistic",
+        indexes = {
+            @Index(name = "UK__REPO_LOCALE_STAT___REPO_STAT_ID_LOCALE_ID", columnList = "repository_statistic_id, locale_id", unique = true)
+        }
+)
 @SqlResultSetMapping(
         name = "RepositoryLocaleStatistic.computeLocaleStatistics",
         classes = {
@@ -67,7 +72,7 @@ import org.hibernate.annotations.NamedNativeQuery;
         )
 )
 public class RepositoryLocaleStatistic extends BaseEntity {
-     
+
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE_STATISTIC__REPOSITORY__ID"))
