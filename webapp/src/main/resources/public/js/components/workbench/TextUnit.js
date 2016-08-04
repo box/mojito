@@ -55,8 +55,14 @@ let TextUnit = React.createClass({
         /** @type {function} */
         "onEditModeSetToTrue": React.PropTypes.func,
 
+        /** @type {function} */
+        "onEditModeSetToFalse": React.PropTypes.func,
+
         /** @type {number} */
-        "textUnitIndex": React.PropTypes.number
+        "textUnitIndex": React.PropTypes.number,
+
+        /** @type {boolean} */
+        "isActive": React.PropTypes.bool
     },
 
     /**
@@ -103,6 +109,10 @@ let TextUnit = React.createClass({
                 "isErrorAlertShown": false,
                 "error": null,
                 "isEditMode": false
+            }, () => {
+                if (this.props.onEditModeSetToFalse) {
+                    this.props.onEditModeSetToFalse(this);
+                }
             });
         }
     },
@@ -254,6 +264,10 @@ let TextUnit = React.createClass({
                 "isEditMode": false,
                 "translation": this.props.translation
             }, () => {
+                if (this.props.onEditModeSetToFalse) {
+                    this.props.onEditModeSetToFalse(this);
+                }
+
                 if (this.pendingCancelEditPromiseResolve) {
                     this.pendingCancelEditPromiseResolve(true);
                     this.pendingCancelEditPromiseResolve = null;

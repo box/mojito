@@ -328,7 +328,16 @@ let SearchResults = React.createClass({
     },
 
     /**
+     * Handler for when textunit edit mode is manually canceled
      * @param textUnit
+     */
+    onTextUnitEditModeSetToFalse(textUnit) {
+        // don't need to set "activeTextUnitIndex"
+        this.setState({"textUnitInEditMode": null});
+    },
+
+    /**
+     * @param textUnit component
      */
     setStateForEditingTextUnit(textUnit) {
         this.setState({
@@ -458,7 +467,9 @@ let SearchResults = React.createClass({
                       translation={textUnit.getTarget()}
                       isActive={arrayIndex === this.state.activeTextUnitIndex}
                       isSelected={this.isTextUnitSelected(textUnit)}
-                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}/>
+                      onEditModeSetToTrue={this.onTextUnitEditModeSetToTrue}
+                      onEditModeSetToFalse={this.onTextUnitEditModeSetToFalse}
+            />
         );
     },
 
