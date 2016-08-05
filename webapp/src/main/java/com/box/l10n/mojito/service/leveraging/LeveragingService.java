@@ -39,7 +39,13 @@ public class LeveragingService {
 
     @Autowired
     LeveragerByMd5 leveragerByMd5;
-
+    
+    @Autowired
+    LeveragerByContent leveragerByContent;
+    
+    @Autowired
+    LeveragerByNameAndContent leveragerByNameAndContent;
+    
     /**
      * Performs "source" leveraging for a list of {@link TMTextUnit}s.
      * <p/>
@@ -85,12 +91,39 @@ public class LeveragingService {
      * @param source the source repository
      * @param target the target repository
      */
-    @Pollable(async = true, message = "Start copying all translations between repository")
-    public PollableFuture copyAllTranslationBetweenRepositories(Repository source, Repository target) {
+    @Pollable(async = true, message = "Start copying all translations with MD5 match between repository")
+    public PollableFuture copyAllTranslationsWithMD5MatchBetweenRepositories(Repository source, Repository target) {
+        
         logger.debug("Get TmTextUnit that must be processed");
-
         List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(target.getTm().getId());
         leveragerByMd5.performLeveragingFor(tmTextUnits, source.getTm().getId());
+        
+        return new PollableFutureTaskResult();
+    }
+
+    /**
+     * This will copy all translations from the source repository into the
+     * target repository, overriding any translation in the target repository.
+     *
+     * Matches are performed based on content only (exact match), 
+     * if the repository has multiple text units with same content it will 
+     * first check for string with same IDs and then the source will 
+     * be arbitrarily chosen.
+     *
+     * @param source the source repository
+     * @param target the target repository
+     */
+    @Pollable(async = true, message = "Start copying all translations with exact match between repository")
+    public PollableFuture copyAllTranslationsWithExactMatchBetweenRepositories(Repository source, Repository target) {
+
+        logger.debug("Get TmTextUnit that must be processed");
+        List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(target.getTm().getId());
+       
+        logger.debug("First perform leveraging by name and content (to give priority to string with same tags");
+        leveragerByNameAndContent.performLeveragingFor(tmTextUnits, source.getTm().getId());
+        
+        logger.debug("Now, perform leveraging only on the name");
+        leveragerByContent.performLeveragingFor(tmTextUnits, source.getTm().getId());
         
         return new PollableFutureTaskResult();
     }

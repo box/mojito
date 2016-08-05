@@ -39,6 +39,11 @@ public class LeveragingCommand extends Command {
     @Parameter(names = {Param.TARGET_REPOSITORY_LONG, Param.TARGET_REPOSITORY_SHORT}, arity = 1, required = true, description = Param.TARGET_REPOSITORY_DESCRIPTION)
     String targetRepositoryParam;
 
+    @Parameter(names = {"--mode", "-m"}, arity = 1, required = false, description = "Matching mode. "
+            + "MD5 will perform matching based on the ID, content and comment. "
+            + "EXACT match is only using the content.", converter = CopyTmConfigMode.class)
+    CopyTmConfig.Mode mode;
+
     @Autowired
     CommandHelper commandHelper;
 
@@ -54,8 +59,8 @@ public class LeveragingCommand extends Command {
         Repository sourceRepository = commandHelper.findRepositoryByName(sourceRepositoryParam);
         Repository targetRepository = commandHelper.findRepositoryByName(targetRepositoryParam);
 
-        CopyTmConfig copyTM = leveragingClient.copyTM(sourceRepository.getId(), targetRepository.getId());
-        
+        CopyTmConfig copyTM = leveragingClient.copyTM(sourceRepository.getId(), targetRepository.getId(), mode);
+
         PollableTask pollableTask = copyTM.getPollableTask();
         commandHelper.waitForPollableTask(pollableTask.getId());
 

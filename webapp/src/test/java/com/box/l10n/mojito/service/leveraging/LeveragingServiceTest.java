@@ -52,7 +52,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
     TMService tmService;
 
     @Test
-    public void testCopyAllTranslationBetweenRepositories() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException {
+    public void copyAllTranslationsWithMD5MatchBetweenRepositories() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException {
 
         TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
 
@@ -70,7 +70,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
         tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
         tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
 
-        leveragingService.copyAllTranslationBetweenRepositories(sourceRepository, targetRepository).get();
+        leveragingService.copyAllTranslationsWithMD5MatchBetweenRepositories(sourceRepository, targetRepository).get();
 
         List<TMTextUnitVariant> sourceTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(sourceRepository);
         List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository);
@@ -85,7 +85,44 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
         Assert.assertFalse(itTarget.hasNext());
         Assert.assertFalse(itSource.hasNext());
-        
+
+    }
+
+    @Test
+    public void copyAllTranslationsWithExactMatchBetweenRepositories() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException {
+
+        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+
+        Repository sourceRepository = tmTestDataSource.repository;
+
+        logger.debug("Create the target repository");
+        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+
+        TM tm = targetRepository.getTm();
+
+        Asset asset = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test");
+        Long assetId = asset.getId();
+
+        tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province_update", "Please enter a valid state, region or province", "Comment1");
+        tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
+        tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+
+        leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(sourceRepository, targetRepository).get();
+
+        List<TMTextUnitVariant> sourceTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(sourceRepository);
+        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository);
+
+        Iterator<TMTextUnitVariant> itSource = sourceTranslations.iterator();
+        Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
+
+        while (itTarget.hasNext()) {
+            TMTextUnitVariant next = itTarget.next();
+            Assert.assertEquals("translation in source and target must be the same", itSource.next().getContent(), next.getContent());
+        }
+
+        Assert.assertFalse(itTarget.hasNext());
+        Assert.assertFalse(itSource.hasNext());
+
     }
 
 }

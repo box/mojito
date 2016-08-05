@@ -234,7 +234,7 @@ let RepositoryRow = React.createClass({
             ui = (
                 <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, repoId)} to='/workbench' className="">
                     <span className="repo-counts">{numberOfNeedsReview}&nbsp;</span>
-                    (&nbsp;<FormattedMessage values={{numberOfWords: numberOfNeedsReview}} id="repositories.table.row.numberOfWords"/>&nbsp;)
+                    (&nbsp;<FormattedMessage values={{numberOfWords: numberOfWordNeedsReview}} id="repositories.table.row.numberOfWords"/>&nbsp;)
                 </Link>
             );
         }
