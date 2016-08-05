@@ -61,12 +61,12 @@ public class CopyTmConfig {
      */
     public enum Mode {
         /**
-         * MD5 match means the message id, comment and English must be the same
+         * MD5 match means the message id, comment and content must be the same
          */
         MD5,
         /**
-         * Exact match means the English must be the same (message id and
-         * comment are not checked)
+         * Exact match means the content must be the same (message id and
+         * comment are not checked).
          */
         EXACT,
     }

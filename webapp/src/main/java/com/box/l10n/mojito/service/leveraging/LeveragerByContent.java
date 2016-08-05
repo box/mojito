@@ -23,7 +23,7 @@ public class LeveragerByContent extends AbstractLeverager {
 
     @Override
     public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
-        logger.debug("Get TextUnitDTOs for leveraging by name");
+        logger.debug("Get TextUnitDTOs for leveraging by content");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setTmId(sourceTmId);
@@ -40,7 +40,7 @@ public class LeveragerByContent extends AbstractLeverager {
 
     @Override
     public String getType() {
-        return "Leverage by source Md5";
+        return "Leverage by content";
     }
 
 }

@@ -22,7 +22,7 @@ public class LeveragerByNameAndContent extends AbstractLeverager {
 
     @Override
     public String getType() {
-        return "by name and content for source leveraging";
+        return "by name and content";
     }
 
     @Override
