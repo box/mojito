@@ -5,14 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Configuration to start the copy TM process 
- * 
+ * Configuration to start the copy TM process
+ *
  * @author jaurambault
  */
 public class CopyTmConfig {
 
     Long sourceRepositoryId;
     Long targetRepositoryId;
+
+    Mode mode = Mode.MD5;
 
     PollableTask pollableTask;
 
@@ -46,6 +48,29 @@ public class CopyTmConfig {
 
     public void setTargetRepositoryId(Long targetRepositoryId) {
         this.targetRepositoryId = targetRepositoryId;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
+    /**
+     * Matching mode for leveraging
+     */
+    public enum Mode {
+        /**
+         * MD5 match means the message id, comment and content must be the same
+         */
+        MD5,
+        /**
+         * Exact match means the content must be the same (message id and
+         * comment are not checked)
+         */
+        EXACT,
     }
 
 }

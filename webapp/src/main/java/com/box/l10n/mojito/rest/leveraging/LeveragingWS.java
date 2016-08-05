@@ -31,7 +31,7 @@ public class LeveragingWS {
 
     /**
      * Copy the TM of a source repository into the a target repository.
-     * 
+     *
      * @param copyTmConfig config to perform the copy (source and target
      * repositories).
      * @return the config updated with a pollable task
@@ -43,11 +43,17 @@ public class LeveragingWS {
 
         Repository source = repositoryRepository.findOne(copyTmConfig.getSourceRepositoryId());
         Repository target = repositoryRepository.findOne(copyTmConfig.getTargetRepositoryId());
-        
-        PollableFuture copyAllTranslationBetweenRepositoryFuture = leveragingService.copyAllTranslationBetweenRepositories(source, target);
-        
-        copyTmConfig.setPollableTask(copyAllTranslationBetweenRepositoryFuture.getPollableTask());
-        
+
+        PollableFuture pollableFuture;
+
+        if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
+            pollableFuture = leveragingService.copyAllTranslationsWithMD5MatchBetweenRepositories(source, target);
+        } else {
+            pollableFuture = leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(source, target);
+        }
+
+        copyTmConfig.setPollableTask(pollableFuture.getPollableTask());
+
         return copyTmConfig;
     }
 }

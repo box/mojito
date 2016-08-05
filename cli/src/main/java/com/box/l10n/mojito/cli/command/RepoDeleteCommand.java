@@ -47,7 +47,6 @@ public class RepoDeleteCommand extends Command {
         } catch (RepositoryNotFoundException ex) {
             throw new CommandException(ex.getMessage(), ex);
         }
-        
     }
     
 }
