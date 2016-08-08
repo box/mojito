@@ -19,7 +19,7 @@ public class BootstrapConfig {
 
         String username = "admin";
 
-        String password = "admin";
+        String password = "ChangeMe";
 
         public String getUsername() {
             return username;

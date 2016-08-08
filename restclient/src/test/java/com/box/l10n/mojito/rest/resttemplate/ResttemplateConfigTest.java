@@ -31,7 +31,7 @@ public class ResttemplateConfigTest {
         assertEquals(new Integer(8080), resttemplateConfig.getPort());
         assertEquals("http", resttemplateConfig.getScheme());
         assertEquals("admin", resttemplateConfig.getAuthentication().getUsername());
-        assertEquals("admin", resttemplateConfig.getAuthentication().getPassword());
+        assertEquals("ChangeMe", resttemplateConfig.getAuthentication().getPassword());
     }
 
 }
