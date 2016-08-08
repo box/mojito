@@ -10,8 +10,8 @@ import org.springframework.util.StringUtils;
  */
 public class CSVFilter extends CommaSeparatedValuesFilter {
 
-    public static final String FILTER_NAME = "@box_webapp";
-    public static final String FILTER_CONFIG_ID = "okf_table_csv@box_webapp";
+    public static final String FILTER_NAME = "okf_table_csv@mojito";
+    public static final String FILTER_CONFIG_ID = "okf_table_csv@mojito";
 
     public CSVFilter() {
         super();
@@ -22,7 +22,7 @@ public class CSVFilter extends CommaSeparatedValuesFilter {
                 FILTER_CONFIG_ID,
                 "Table (Comma-Separated Values)",
                 "Comma-separated values, optional header with field names.",
-                "okf_table_csv_box_webapp.fprm"
+                "okf_table_csv_mojito.fprm"
         );
     }
 

@@ -27,9 +27,9 @@ import org.xml.sax.SAXException;
  */
 public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
 
-    public static final String FILTER_CONFIG_ID = "okf_xml@box_webapp";
-    public static final String ANDROIDSTRINGS_CONFIG_FILE_NAME = "AndroidStrings_box_webapp.fprm";
-    public static final String RESX_CONFIG_FILE_NAME = "resx_box_webapp.fprm";
+    public static final String FILTER_CONFIG_ID = "okf_xml@mojito";
+    public static final String ANDROIDSTRINGS_CONFIG_FILE_NAME = "AndroidStrings_mojito.fprm";
+    public static final String RESX_CONFIG_FILE_NAME = "resx_mojito.fprm";
     
     @Override
     public String getName() {
