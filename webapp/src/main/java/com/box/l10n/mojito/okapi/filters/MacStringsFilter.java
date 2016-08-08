@@ -17,7 +17,7 @@ import net.sf.okapi.filters.regex.RegexFilter;
  */
 public class MacStringsFilter extends RegexFilter {
     
-    public static final String FILTER_CONFIG_ID = "okf_regex@box_webapp";
+    public static final String FILTER_CONFIG_ID = "okf_regex@mojito";
     
     @Override
     public String getName() {
@@ -32,7 +32,7 @@ public class MacStringsFilter extends RegexFilter {
                 getClass().getName(),
                 "Text (Mac Strings)",
                 "Configuration for Macintosh .strings files.",
-                "macStrings_box_webapp.fprm"));
+                "macStrings_mojito.fprm"));
         return list;
     }
 
