@@ -21,7 +21,7 @@ public class ResttemplateConfig {
     public static class Authentication {
 
         String username = "admin";
-        String password = "admin";
+        String password = "ChangeMe";
 
         CredentialProvider credentialProvider = CredentialProvider.CONFIG;
 
