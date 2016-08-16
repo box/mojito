@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mojito-test-common</artifactId>
+    <version>0.56-SNAPSHOT</version>
+    <name>Mojito - Test common</name>
+
+    <parent>
+        <groupId>com.box.l10n.mojito</groupId>
+        <artifactId>mojito-parent</artifactId>
+        <version>0.56-SNAPSHOT</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+        </dependency>
+    </dependencies>
+
+</project>

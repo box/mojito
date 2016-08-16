@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="100_character_description_" xml:space="preserve">
+    <value>100文字の説明：</value>
+  </data>
+    <data name="something_new_localization" xml:space="preserve">
+    <value>Something new for localization</value>
+  </data>  
+</root>

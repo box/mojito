@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>mojito-maven-plugin</artifactId>
+    <version>0.56-SNAPSHOT</version>
+    <name>Mojito - Maven Plugin</name>
+    <packaging>maven-plugin</packaging>
+    
+    <parent>
+        <groupId>com.box.l10n.mojito</groupId>
+        <artifactId>mojito-parent</artifactId>
+        <version>0.56-SNAPSHOT</version>
+    </parent>
+ 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.3.9</version>
+        </dependency>
+ 
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.4</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>mojito-cli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
+<file original="en.properties" source-language="en" target-language="be-by" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<body>
+<trans-unit id="" resname="header.workbench" xml:space="preserve">
+<source xml:lang="en">Workbench</source>
+<target xml:lang="be-by">Працоўная панэль</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.repositories" xml:space="preserve">
+<source xml:lang="en">Repositories</source>
+<target xml:lang="be-by">Рэпазіторый</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the repositories page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.description" xml:space="preserve">
+<source xml:lang="en">Description</source>
+<target xml:lang="be-by">Апісанне</target>
+<note>{"sourceComment":" Description column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="be-by">Стан</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="be-by">Перакладзеныя</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.review" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Needs Review} other{# Needs Review}}</source>
+<target xml:lang="be-by">{numberOfNeedsReview, plural, =0 {Правяраць нічога не трэба} other{Трэба праверыць пераклады (#)}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.rejected" xml:space="preserve">
+<source xml:lang="en">{numberOfRejected, plural, =0 {None Rejected} other{# Rejected}}</source>
+<target xml:lang="be-by">{numberOfRejected, plural, =0 {Усе пераклады прынятыя} other{Ёсць адхіленыя пераклады (#)}}</target>
+<note>{"sourceComment":" Label to show the number of rejected text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.ok" xml:space="preserve">
+<source xml:lang="en">Ok</source>
+<target xml:lang="be-by">Добра</target>
+<note>{"sourceComment":" Label to show ok - meaning that everything is fine","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.placeholder" xml:space="preserve">
+<source xml:lang="en">Search term...</source>
+<target xml:lang="be-by">Шукаць слова…</target>
+<note>{"sourceComment":"Label used as placeholder for the search input field of the SearchPanelWithFilters widget","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.stringId" xml:space="preserve">
+<source xml:lang="en">String ID</source>
+<target xml:lang="be-by">Ідэнтыфікатар радка</target>
+<note>{"sourceComment":" Search filter option \"string id\"","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.source" xml:space="preserve">
+<source xml:lang="en">Source</source>
+<target xml:lang="be-by">Арыгінал</target>
+<note>{"sourceComment":" Search filter option \"source\"","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.target" xml:space="preserve">
+<source xml:lang="en">Target</source>
+<target xml:lang="be-by">Пераклад</target>
+<note>{"sourceComment":" Search filter option \"target\"","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.exact" xml:space="preserve">
+<source xml:lang="en">Exact</source>
+<target xml:lang="be-by">Дакладнае супадзенне</target>
+<note>{"sourceComment":" Search filter option to search for strings that matche exactly the search critera","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149195000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.contains" xml:space="preserve">
+<source xml:lang="en">Contains</source>
+<target xml:lang="be-by">Частковае супадзенне</target>
+<note>{"sourceComment":" Search filter option to search for strings that contains the search critera","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.ilike" xml:space="preserve">
+<source xml:lang="en">ILike</source>
+<target xml:lang="be-by">ILike</target>
+<note>{"sourceComment":" Search filter option to search for strings that matches a ilike SQL style expression","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchAttribute" xml:space="preserve">
+<source xml:lang="en">Attribute</source>
+<target xml:lang="be-by">Атрыбут</target>
+<note>{"sourceComment":" Header shown before the list of attributes (string id, source, target) the search can be perform on","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchType" xml:space="preserve">
+<source xml:lang="en">Type</source>
+<target xml:lang="be-by">Тып</target>
+<note>{"sourceComment":" Header shown before the list of search type (exact, contains, ilike) that can be performed","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.title" xml:space="preserve">
+<source xml:lang="en">Filter by</source>
+<target xml:lang="be-by">Паказаць радкі</target>
+<note>{"sourceComment":" Title of the status dropdown in the workbench to filter results","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.used" xml:space="preserve">
+<source xml:lang="en">Used</source>
+<target xml:lang="be-by">Якія ўжываюцца</target>
+<note>{"sourceComment":" Search filter option \"used\" used in the status dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="be-by">Перакладзеныя</target>
+<note>{"sourceComment":" Search filter option \"translated\" used in the status dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="be-by">Не правераныя</target>
+<note>{"sourceComment":" Search filter option \"needs review\" used in the status dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="be-by">Адхіленыя</target>
+<note>{"sourceComment":" Search filter option \"Not rejected\" used in the status dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="be-by">Так</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is active","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="be-by">Не</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is inactive","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.pagination.isLoading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="be-by">Загружаю…</target>
+<note>{"sourceComment":"label displayed alternately if the \"loading\" image used during pagination is not available","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.profile" xml:space="preserve">
+<source xml:lang="en">My Profile</source>
+<target xml:lang="be-by">Мая старонка</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's profile","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.preferences" xml:space="preserve">
+<source xml:lang="en">My Preferences</source>
+<target xml:lang="be-by">Мае наладкі</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's preferences","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.logout" xml:space="preserve">
+<source xml:lang="en">Logout</source>
+<target xml:lang="be-by">Выйсці</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to logout","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="be-by">Захаваць</target>
+<note>{"sourceComment":"Save label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.delete" xml:space="preserve">
+<source xml:lang="en">Delete</source>
+<target xml:lang="be-by">Выдаліць</target>
+<note>{"sourceComment":"Delete label to be used on buttons","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="be-by">Скасаваць</target>
+<note>{"sourceComment":"Cancel label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter a new translation ...</source>
+<target xml:lang="be-by">Дадай пераклад…</target>
+<note>{"sourceComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.unused" xml:space="preserve">
+<source xml:lang="en">Unused</source>
+<target xml:lang="be-by">Не ўжываецца</target>
+<note>{"sourceComment":"Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.notIncludedInLocalizedFile" xml:space="preserve">
+<source xml:lang="en">Not included in localized file</source>
+<target xml:lang="be-by">Не дададзены ў файл для лакалізацыі</target>
+<note>{"sourceComment":"Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation...</source>
+<target xml:lang="be-by">Дадай пераклад…</target>
+<note>{"sourceComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.review" xml:space="preserve">
+<source xml:lang="en">Review</source>
+<target xml:lang="be-by">Рэдагаваць</target>
+<note>{"sourceComment":"Label for the Review button on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.numberOfSelectedTextUnits" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedTextUnits, plural, =0 {None selected} other{# selected}}</source>
+<target xml:lang="be-by">{numberOfSelectedTextUnits, plural, =0 {Радкі не абраныя} other{Вы абралі радкі (#)}}</target>
+<note>{"sourceComment":" Label displayed as the title of the dropdown in the workbench toolbar to indicate the number of selected text units in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.selectAllInPage" xml:space="preserve">
+<source xml:lang="en">Select all in page</source>
+<target xml:lang="be-by">Абраць усе радкі на старонцы</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to select all textunits in the current page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAllInPage" xml:space="preserve">
+<source xml:lang="en">Clear all in page</source>
+<target xml:lang="be-by">Скасаваць выбар усіх радкоў на старонцы</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits in the current page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAll" xml:space="preserve">
+<source xml:lang="en">Clear all</source>
+<target xml:lang="be-by">Скасаваць выбар усіх радкоў</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits across all pages in the search results","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="be-by">Адхіленыя</target>
+<note>{"sourceComment":"Label for the Review button on the modal in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.accepted" xml:space="preserve">
+<source xml:lang="en">Accepted</source>
+<target xml:lang="be-by">Прынятыя</target>
+<note>{"sourceComment":"Button label used for primary action \"removeReview\" on modal dialog","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="be-by">Трэба праверыць</target>
+<note>{"sourceComment":"Button label used for the Needs Review button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.title" xml:space="preserve">
+<source xml:lang="en">Review selected translations</source>
+<target xml:lang="be-by">Пераклады, абраныя для праверкі</target>
+<note>{"sourceComment":"Label displayed as the title of the modal popup when user clicks on a textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentLabel" xml:space="preserve">
+<source xml:lang="en">Comment</source>
+<target xml:lang="be-by">Каментар</target>
+<note>{"sourceComment":"Label for the text unit comment on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460149196000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentPlaceholder" xml:space="preserve">
+<source xml:lang="en">Enter comment</source>
+<target xml:lang="be-by">Дадай каментар</target>
+<note>{"sourceComment":"Placeholder for the textarea on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.deletemodal.title" xml:space="preserve">
+<source xml:lang="en">Confirm delete</source>
+<target xml:lang="be-by">Развітайся з радкамі</target>
+<note>{"sourceComment":"Label displayed in the header of the modal popup when user clicks on delete textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnits.bulk.deleteMessage" xml:space="preserve">
+<source xml:lang="en">Are you sure you want to delete the selected text units?</source>
+<target xml:lang="be-by">Ты сапраўды хочаш выдаліць гэтыя радкі ці проста жартуеш?</target>
+<note>{"sourceComment":"Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.save.failed" xml:space="preserve">
+<source xml:lang="en">There was an error saving the translation.</source>
+<target xml:lang="be-by">Пераклад не захаваўся.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when saving a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.delete.failed" xml:space="preserve">
+<source xml:lang="en">There was an error deleting the translation.</source>
+<target xml:lang="be-by">Пераклад не выдаліўся.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when deleting a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.placeholder" xml:space="preserve">
+<source xml:lang="en">Choose Repositories</source>
+<target xml:lang="be-by">Абяры рэпазіторый</target>
+<note>{"sourceComment":"Label displayed on the repositories dropdown in the workbench when no repositories are selected","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.filterPlaceholder" xml:space="preserve">
+<source xml:lang="en">Repository Name...</source>
+<target xml:lang="be-by">Назва рэпазіторыя…</target>
+<note>{"sourceComment":"Label displayed in the search box of the repositories dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales ... } =1{1 locale selected} other{# locales selected}}</source>
+<target xml:lang="be-by">{numberOfSelectedLocales, plural, =0{Лакалі... } =1{Абраная 1 лакаль} other{Абраныя лакалі (#)}}</target>
+<note>{"sourceComment":"Label displayed on the locales dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.filterPlaceholder" xml:space="preserve">
+<source xml:lang="en">Locale Name...</source>
+<target xml:lang="be-by">Код лакалі…</target>
+<note>{"sourceComment":"Label displayed in the search box of the locales dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.query.failed" xml:space="preserve">
+<source xml:lang="en">There was an error querying the server</source>
+<target xml:lang="be-by">Пры спробе звязацца з серверам узнікла памылка.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when the search query fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.logout" xml:space="preserve">
+<source xml:lang="en">You have been logged out.</source>
+<target xml:lang="be-by">Вы больш не ў сістэме.</target>
+<note>{"sourceComment":"Login form log out message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.error" xml:space="preserve">
+<source xml:lang="en">Invalid username and password.</source>
+<target xml:lang="be-by">Няслушнвя імя карыстальніка і пароль.</target>
+<note>{"sourceComment":"Login form error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in</source>
+<target xml:lang="be-by">Welcome back, please log in</target>
+<note>{"sourceComment":"Login form title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.login" xml:space="preserve">
+<source xml:lang="en">Log in</source>
+<target xml:lang="be-by">Увайсці</target>
+<note>{"sourceComment":"Login form log in button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.username" xml:space="preserve">
+<source xml:lang="en">username</source>
+<target xml:lang="be-by">імя карыстальніка</target>
+<note>{"sourceComment":"Login form username input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.password" xml:space="preserve">
+<source xml:lang="en">password</source>
+<target xml:lang="be-by">пароль</target>
+<note>{"sourceComment":"Login form password input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.title" xml:space="preserve">
+<source xml:lang="en">That caused an error</source>
+<target xml:lang="be-by">Узнікла памылка</target>
+<note>{"sourceComment":" Label shown on the ErrorModal when saving a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.review" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</source>
+<target xml:lang="be-by">{numberOfNeedsReview, plural, =0 {Правяраць не трэба} =1 {1 на праверку} other{# на праверку}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.numNew" xml:space="preserve">
+<source xml:lang="en">{numberOfNew, plural, =0 {None New} other{# New}}</source>
+<target xml:lang="be-by">{numberOfNew, plural, =0 {Новых няма} other{Новыя (#)}}</target>
+<note>{"sourceComment":" Label to show the number of new","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.localeStats" xml:space="preserve">
+<source xml:lang="en">Locale Statistics</source>
+<target xml:lang="be-by">Статыстыка па лакалях</target>
+<note>{"sourceComment":" Label for a table to show stats for each locale","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.close" xml:space="preserve">
+<source xml:lang="en">Close</source>
+<target xml:lang="be-by">Зачыніць</target>
+<note>{"sourceComment":" Button to close the locale stats","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</source>
+<target xml:lang="be-by">{numberOfSelectedRepositories, plural, =0{Рэпазіторыі} =1{1 рэпазіторый} other{Рэпазіторыі (#)}}</target>
+<note>{"sourceComment":"Label displayed on the repositories dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</source>
+<target xml:lang="be-by">{numberOfSelectedLocales, plural, =0{Лакалі} =1{1 лакаль} other{Лакалі (#)}}</target>
+<note>{"sourceComment":"Label displayed on the locales dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="localeselector.title" xml:space="preserve">
+<source xml:lang="en">Select Mojito locale</source>
+<target xml:lang="be-by">Абяры лакаль Mojito</target>
+<note>{"sourceComment":" Title shown in the modal to select the locale for the whole Mojito app","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307860000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="be-by">Стан</target>
+<note>{"sourceComment":"Label for the Review button on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":35205,"createdDate":1458655961000,"lastModifiedDate":1458655961000,"severity":"INFO","type":"LEVERAGING","content":"by content leveraging from: 350573, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1450479846000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.projectRequests" xml:space="preserve">
+<source xml:lang="en">Project Requests</source>
+<target xml:lang="be-by">Праекты</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the project requests page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053645000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.needsReview" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</source>
+<target xml:lang="be-by">{numberOfNeedsReview, plural, =0 {Правяраць нічога не трэба} =1 {Трэба праверыць 1} other{Трэба праверыць #}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053737000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.needsTranslation" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsTranslation, plural, =0 {None Need translation} =1 {1 Needs Translation} other{# Need Translation}}</source>
+<target xml:lang="be-by">{numberOfNeedsTranslation, plural, =0 {Перакладаць нічога не трэба} =1 {Трэба перакласці 1} other{Трэба перакласці #}}</target>
+<note>{"sourceComment":" Label to show the number of text units to translate","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053788000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="be-by">Стан</target>
+<note>{"sourceComment":" Header shown before the list of status types (all, translated, needs reivew...) that can be used to search text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053814000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.all" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="be-by">Усе</target>
+<note>{"sourceComment":" Status filter option to search for all text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053817000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="be-by">Перакладзеныя</target>
+<note>{"sourceComment":" Status filter option to search for only for translated text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053836000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="be-by">На праверку</target>
+<note>{"sourceComment":" Status filter option to search for text units that need to be reviewed","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053843000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.forTranslation" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="be-by">На пераклад</target>
+<note>{"sourceComment":" Status filter option to search for text units that need to be translated","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053850000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="be-by">Адхіленыя</target>
+<note>{"sourceComment":" Status filter option to search for text units that are rejected (won't be added in localized file)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053889000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.translationNeeded" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="be-by">На пераклад</target>
+<note>{"sourceComment":"Button label used for the Translation needed button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053922000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequest.btn" xml:space="preserve">
+<source xml:lang="en">New Request</source>
+<target xml:lang="be-by">Новы праект</target>
+<note>{"sourceComment":" New Request button for translation request (a translation request is a drop containing xliffs which are send to the translator)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053935000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="be-by">Назва</target>
+<note>{"sourceComment":" Table header title for translation request - name of the translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053942000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.createdBy" xml:space="preserve">
+<source xml:lang="en">Created By</source>
+<target xml:lang="be-by">Стваральнік</target>
+<note>{"sourceComment":" Table header title for translation request - created by user name","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053952000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.createdDate" xml:space="preserve">
+<source xml:lang="en">Created Date</source>
+<target xml:lang="be-by">Дата стварэння</target>
+<note>{"sourceComment":" Table header title for translation request - date the translation request was created","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053960000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.repository" xml:space="preserve">
+<source xml:lang="en">Repository</source>
+<target xml:lang="be-by">Рэпазіторый</target>
+<note>{"sourceComment":" Table header title for translation request - repository for which the translation req was created for","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053966000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="be-by">Стан</target>
+<note>{"sourceComment":" Table header title for translation request - status of the translation req","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053970000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.createRequest" xml:space="preserve">
+<source xml:lang="en">Create Request</source>
+<target xml:lang="be-by">Стварыць праект</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460053984000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.title" xml:space="preserve">
+<source xml:lang="en">Select a Repository to Create a Request</source>
+<target xml:lang="be-by">Абярыце рэпазіторый і стварыце праект</target>
+<note>{"sourceComment":" Modal title for making a new translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054017000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.requestTranslation" xml:space="preserve">
+<source xml:lang="en">Request Translation</source>
+<target xml:lang="be-by">Праект на пераклад</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054105000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.inTranslation" xml:space="preserve">
+<source xml:lang="en">In Translation</source>
+<target xml:lang="be-by">На перакладзе</target>
+<note>{"sourceComment":" Status label for drop when translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054347000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.sending" xml:space="preserve">
+<source xml:lang="en">Sending</source>
+<target xml:lang="be-by">Дасылаецца</target>
+<note>{"sourceComment":" Status label for drop when being sent","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054066000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.requestReview" xml:space="preserve">
+<source xml:lang="en">Request Review</source>
+<target xml:lang="be-by">Праект на праверку</target>
+<note>{"sourceComment":" Modal button for create new review request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054080000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.controlbar.button.tooltip.import" xml:space="preserve">
+<source xml:lang="en">Import Request</source>
+<target xml:lang="be-by">Імпартаваць праект</target>
+<note>{"sourceComment":" Tooltip on import drop button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054151000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.ongoingRequests.title" xml:space="preserve">
+<source xml:lang="en">Ongoing Requests</source>
+<target xml:lang="be-by">Цяперашнія праекты</target>
+<note>{"sourceComment":" Table title to show ongoing drop requests","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054206000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.importedRequests.title" xml:space="preserve">
+<source xml:lang="en">Imported Requests</source>
+<target xml:lang="be-by">Імпартаваныя праекты</target>
+<note>{"sourceComment":" Table title to show imported drop requests","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054214000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newTranslationRequest.alert" xml:space="preserve">
+<source xml:lang="en">New Translation Request is being sent</source>
+<target xml:lang="be-by">Дасылаю новы праект на пераклад</target>
+<note>{"sourceComment":" Alert to show that new translation request is being sent","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054288000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newReviewRequest.alert" xml:space="preserve">
+<source xml:lang="en">New Review Request is being sent</source>
+<target xml:lang="be-by">Дасылаю новы праект на праверку</target>
+<note>{"sourceComment":" Alert to show that new review request is being sent","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054279000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.beingImported.alert" xml:space="preserve">
+<source xml:lang="en">Request is being imported</source>
+<target xml:lang="be-by">Імпартую праект</target>
+<note>{"sourceComment":" Alert to show that request is being imported","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054273000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.controlbar.button.tooltip.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel Request</source>
+<target xml:lang="be-by">Адмяніць праект</target>
+<note>{"sourceComment":" Tooltip on cancel drop button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054297000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.beingCanceled.alert" xml:space="preserve">
+<source xml:lang="en">Request is being canceled</source>
+<target xml:lang="be-by">Адмяняю праект</target>
+<note>{"sourceComment":" Alert to show that request is being canceled","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054303000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.inReview" xml:space="preserve">
+<source xml:lang="en">In Review</source>
+<target xml:lang="be-by">На праверцы</target>
+<note>{"sourceComment":" Status label for drop when review request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054321000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.id" xml:space="preserve">
+<source xml:lang="en">Id</source>
+<target xml:lang="be-by">Ідэнтыфікатар</target>
+<note>{"sourceComment":" Search filter option \"Id\"","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054370000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.showImported.link" xml:space="preserve">
+<source xml:lang="en">Show Imported</source>
+<target xml:lang="be-by">Паказаць імпартаваныя</target>
+<note>{"sourceComment":" Link to show imported drops","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054378000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.hideImported.link" xml:space="preserve">
+<source xml:lang="en">Hide Imported</source>
+<target xml:lang="be-by">Схаваць імпартаваныя</target>
+<note>{"sourceComment":" Link to hide imported drops","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054385000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.canceled" xml:space="preserve">
+<source xml:lang="en">Canceled</source>
+<target xml:lang="be-by">Адменены</target>
+<note>{"sourceComment":" Status label for drop when it has been canceld","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054403000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.imported" xml:space="preserve">
+<source xml:lang="en">Imported</source>
+<target xml:lang="be-by">Імпартаваны</target>
+<note>{"sourceComment":" Status label for drop when it has been imported","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054408000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.importing" xml:space="preserve">
+<source xml:lang="en">Importing</source>
+<target xml:lang="be-by">Імпартуецца</target>
+<note>{"sourceComment":" Status label for drop when it is importing","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460054414000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="be-by">Дадай пераклад…</target>
+<note>{"sourceComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":92801,"createdDate":1461611000000,"lastModifiedDate":1461611000000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 1274505, unique match: true","createdByUser":{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"username":"translations","enabled":true,"surname":"translations","givenName":null,"commonName":"translations","authorities":[{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"authority":"ROLE_USER"}]}}],"createdDate":1461611000000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="be-by">Дадай пераклад…</target>
+<note>{"sourceComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":92813,"createdDate":1461611000000,"lastModifiedDate":1461611000000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 1274529, unique match: true","createdByUser":{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"username":"translations","enabled":true,"surname":"translations","givenName":null,"commonName":"translations","authorities":[{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"authority":"ROLE_USER"}]}}],"createdDate":1461611000000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.save.failed" xml:space="preserve">
+<source xml:lang="en">There was an error saving the translation.  Please try again later.</source>
+<target xml:lang="be-by">Пераклад не захаваўся.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when saving a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":124321,"createdDate":1464375798000,"lastModifiedDate":1464375798000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 934649, unique match: true","createdByUser":{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"username":"translations","enabled":true,"surname":"translations","givenName":null,"commonName":"translations","authorities":[{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"authority":"ROLE_USER"}]}}],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="be-by">Так</target>
+<note>{"sourceComment":"Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":124333,"createdDate":1464375798000,"lastModifiedDate":1464375798000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274465, unique match: true","createdByUser":{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"username":"translations","enabled":true,"surname":"translations","givenName":null,"commonName":"translations","authorities":[{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"authority":"ROLE_USER"}]}}],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="be-by">Не</target>
+<note>{"sourceComment":"No label to be used on buttons, labels etc.  No to indicate rejection to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":124345,"createdDate":1464375798000,"lastModifiedDate":1464375798000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274469, unique match: true","createdByUser":{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"username":"translations","enabled":true,"surname":"translations","givenName":null,"commonName":"translations","authorities":[{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"authority":"ROLE_USER"}]}}],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in.</source>
+<target xml:lang="be-by">Welcome back, please log in</target>
+<note>{"sourceComment":"Login form title","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":176465,"createdDate":1468518670000,"lastModifiedDate":1468518670000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 934685, unique match: true","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="be-by">Адхіленыя</target>
+<note>{"sourceComment":" Rejected (text units) column in the table header used to display a list of repositories.","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":176477,"createdDate":1468518670000,"lastModifiedDate":1468518670000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274533, unique match: false","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.all" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="be-by">Усе</target>
+<note>{"sourceComment":" Label to show all project requests including those that are done and those that are in progress","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":176489,"createdDate":1468518670000,"lastModifiedDate":1468518670000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1168045, unique match: true","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="be-by">Усе</target>
+<note>{"sourceComment":"Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":176501,"createdDate":1468534928000,"lastModifiedDate":1468534928000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1168045, unique match: false","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468534928000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="be-by">Назва</target>
+<note>{"sourceComment":" Name column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751804000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.settings" xml:space="preserve">
+<source xml:lang="en">Settings</source>
+<target xml:lang="be-by">Наладкі</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the settings page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751828000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.enterpriseId" xml:space="preserve">
+<source xml:lang="en">Enterprise Id</source>
+<target xml:lang="be-by">Enterprise Id</target>
+<note>{"sourceComment":" Label for enterprise id input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751871000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.appUserId" xml:space="preserve">
+<source xml:lang="en">App User Id</source>
+<target xml:lang="be-by">App User Id</target>
+<note>{"sourceComment":" Label for App User Id.  App User is defined as the user created by the api application key","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751877000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.clientId" xml:space="preserve">
+<source xml:lang="en">Client Id</source>
+<target xml:lang="be-by">Client Id</target>
+<note>{"sourceComment":" Label for Client Id input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751890000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.clientSecret" xml:space="preserve">
+<source xml:lang="en">Client Secret</source>
+<target xml:lang="be-by">Client Secret</target>
+<note>{"sourceComment":" Label for Client Secret input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751899000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.publicKeyId" xml:space="preserve">
+<source xml:lang="en">Public Key Id</source>
+<target xml:lang="be-by">Public Key Id</target>
+<note>{"sourceComment":" Label for id of the \"Public Key\" input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751904000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.privateKey" xml:space="preserve">
+<source xml:lang="en">Private Key</source>
+<target xml:lang="be-by">Private Key</target>
+<note>{"sourceComment":" Label for \"Private Key\" input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751909000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.privateKeyPassword" xml:space="preserve">
+<source xml:lang="en">Private Key Password</source>
+<target xml:lang="be-by">Private Key Password</target>
+<note>{"sourceComment":" Label for passward of the \"Private Key\" input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1469751915000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.placeholder" xml:space="preserve">
+<source xml:lang="en">Search term...</source>
+<target xml:lang="be-by">Шукаць слова…</target>
+<note>{"sourceComment":" Label used as placeholder for the search input field of the SearchPanelWithFilters widget","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192457,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274425, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.pagination.isLoading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="be-by">Загружаю…</target>
+<note>{"sourceComment":" label displayed alternately if the \"loading\" image used during pagination is not available","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192469,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274477, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.profile" xml:space="preserve">
+<source xml:lang="en">My Profile</source>
+<target xml:lang="be-by">Мая старонка</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to show user's profile","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192481,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274473, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.preferences" xml:space="preserve">
+<source xml:lang="en">My Preferences</source>
+<target xml:lang="be-by">Мае наладкі</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to show user's preferences","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192493,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274481, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.logout" xml:space="preserve">
+<source xml:lang="en">Logout</source>
+<target xml:lang="be-by">Выйсці</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to logout","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192505,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274485, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="be-by">Захаваць</target>
+<note>{"sourceComment":" Save label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192517,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274489, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="be-by">Так</target>
+<note>{"sourceComment":" Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192529,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274465, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}},{"id":192533,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1739573, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="be-by">Не</target>
+<note>{"sourceComment":" No label to be used on buttons, labels etc.  No to indicate rejection to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192553,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274469, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}},{"id":192557,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1739585, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.delete" xml:space="preserve">
+<source xml:lang="en">Delete</source>
+<target xml:lang="be-by">Выдаліць</target>
+<note>{"sourceComment":" Delete label to be used on buttons","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192577,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274497, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="be-by">Скасаваць</target>
+<note>{"sourceComment":" Cancel label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192589,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274493, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="be-by">Дадай пераклад…</target>
+<note>{"sourceComment":" Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192605,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 1274505, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}},{"id":192609,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1435741, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.unused" xml:space="preserve">
+<source xml:lang="en">Unused</source>
+<target xml:lang="be-by">Не ўжываецца</target>
+<note>{"sourceComment":" Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192625,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274501, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.notIncludedInLocalizedFile" xml:space="preserve">
+<source xml:lang="en">Not included in localized file</source>
+<target xml:lang="be-by">Не дададзены ў файл для лакалізацыі</target>
+<note>{"sourceComment":" Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192637,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274509, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="be-by">Дадай пераклад…</target>
+<note>{"sourceComment":" Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192649,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 1274529, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}},{"id":192653,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1435753, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="be-by">Стан</target>
+<note>{"sourceComment":" Label for the Review button on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192669,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by content leveraging from: 350573, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}},{"id":192673,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934733, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="be-by">Адхіленыя</target>
+<note>{"sourceComment":" Label for the Review button on the modal in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192689,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274533, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.accepted" xml:space="preserve">
+<source xml:lang="en">Accepted</source>
+<target xml:lang="be-by">Прынятыя</target>
+<note>{"sourceComment":" Button label used for primary action \"removeReview\" on modal dialog","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192701,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274537, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="be-by">Трэба праверыць</target>
+<note>{"sourceComment":" Button label used for the Needs Review button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192713,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274541, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.translationNeeded" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="be-by">На пераклад</target>
+<note>{"sourceComment":" Button label used for the Translation needed button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192725,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1168685, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.title" xml:space="preserve">
+<source xml:lang="en">Review selected translations</source>
+<target xml:lang="be-by">Пераклады, абраныя для праверкі</target>
+<note>{"sourceComment":" Label displayed as the title of the modal popup when user clicks on a textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192737,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274549, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentLabel" xml:space="preserve">
+<source xml:lang="en">Comment</source>
+<target xml:lang="be-by">Каментар</target>
+<note>{"sourceComment":" Label for the text unit comment on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192749,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1274545, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentPlaceholder" xml:space="preserve">
+<source xml:lang="en">Enter comment</source>
+<target xml:lang="be-by">Дадай каментар</target>
+<note>{"sourceComment":" Placeholder for the textarea on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192761,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934637, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.deletemodal.title" xml:space="preserve">
+<source xml:lang="en">Confirm delete</source>
+<target xml:lang="be-by">Развітайся з радкамі</target>
+<note>{"sourceComment":" Label displayed in the header of the modal popup when user clicks on delete textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192773,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934641, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnits.bulk.deleteMessage" xml:space="preserve">
+<source xml:lang="en">Are you sure you want to delete the selected text units?</source>
+<target xml:lang="be-by">Ты сапраўды хочаш выдаліць гэтыя радкі ці проста жартуеш?</target>
+<note>{"sourceComment":" Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192785,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934645, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</source>
+<target xml:lang="be-by">{numberOfSelectedRepositories, plural, =0{Рэпазіторыі} =1{1 рэпазіторый} other{Рэпазіторыі (#)}}</target>
+<note>{"sourceComment":" Label displayed on the repositories dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192797,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934721, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</source>
+<target xml:lang="be-by">{numberOfSelectedLocales, plural, =0{Лакалі} =1{1 лакаль} other{Лакалі (#)}}</target>
+<note>{"sourceComment":" Label displayed on the locales dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192809,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934725, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.logout" xml:space="preserve">
+<source xml:lang="en">You have been logged out.</source>
+<target xml:lang="be-by">Вы больш не ў сістэме.</target>
+<note>{"sourceComment":" Login form log out message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192821,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934677, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.error" xml:space="preserve">
+<source xml:lang="en">Invalid username and password.</source>
+<target xml:lang="be-by">Няслушнвя імя карыстальніка і пароль.</target>
+<note>{"sourceComment":" Login form error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192833,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934681, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.login" xml:space="preserve">
+<source xml:lang="en">Log in</source>
+<target xml:lang="be-by">Увайсці</target>
+<note>{"sourceComment":" Login form log in button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192845,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934689, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.username" xml:space="preserve">
+<source xml:lang="en">username</source>
+<target xml:lang="be-by">імя карыстальніка</target>
+<note>{"sourceComment":" Login form username input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192857,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934693, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.password" xml:space="preserve">
+<source xml:lang="en">password</source>
+<target xml:lang="be-by">пароль</target>
+<note>{"sourceComment":" Login form password input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192869,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 934697, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in.</source>
+<target xml:lang="be-by">Welcome back, please log in</target>
+<note>{"sourceComment":" Login form title","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192881,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 934685, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="be-by">Усе</target>
+<note>{"sourceComment":" Label displayed in the search box of the repository dropdown in the workbench to select all the repositories at once","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192893,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1168045, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="be-by">Усе</target>
+<note>{"sourceComment":" Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192905,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1168045, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="be-by">Так</target>
+<note>{"sourceComment":" Label Yes to indicate confirmation","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192917,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274465, unique match: false","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="be-by">Не</target>
+<note>{"sourceComment":" Label Yes to indicate negative","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192929,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274469, unique match: false","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="be-by">Скасаваць</target>
+<note>{"sourceComment":" Button label to cancel changes","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192941,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1274493, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+</body>
+</file>
+</xliff>

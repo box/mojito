@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
+<file original="demo.properties" source-language="en" target-language="ja-jp" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<body>
+<trans-unit id="" resname="ContactInfo.customSupportEmail" xml:space="preserve">
+<source xml:lang="en">Email</source>
+<target xml:lang="ja-jp">メール</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179281000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.customSupportPhone" xml:space="preserve">
+<source xml:lang="en">Phone Number</source>
+<target xml:lang="ja-jp">電話番号</target>
+<note>{"sourceComment":" customSupportPhone","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179780000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.descriptionText" xml:space="preserve">
+<source xml:lang="en">If your managed users run into issues with their accounts, you can send them to your company's support resources instead of the default Box customer support.</source>
+<target xml:lang="ja-jp">管理対象ユーザーのアカウントで問題が発生したときに、デフォルトのBoxカスタマーサポートの代わりに、自社のサポートリソースに問題を送信することができます。</target>
+<note>{"sourceComment":" Contact information section description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428488000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.linkUrl" xml:space="preserve">
+<source xml:lang="en">Support Site URL</source>
+<target xml:lang="ja-jp">サポートサイトのURL</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179297000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.title" xml:space="preserve">
+<source xml:lang="en">Support Contact Information</source>
+<target xml:lang="ja-jp">サポートの連絡先情報</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179264000}</note>
+</trans-unit>
+<trans-unit id="" resname="EmailSignature.description" xml:space="preserve">
+<source xml:lang="en">Box sends automated email notifications on behalf of users when they take certain actions in Box - for example, adding collaborators to a folder. You can add an email signature with additional information, such as a privacy notice, to these automated emails.</source>
+<target xml:lang="ja-jp">フォルダにコラボレータを追加するなど、ユーザーがBoxで特定の操作を実行したときに、Boxがユーザーに代わって自動メール通知を送信します。この自動メールには、署名とプライバシーに関する通知などの追加情報を追加できます。</target>
+<note>{"sourceComment":" section description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428488000}</note>
+</trans-unit>
+<trans-unit id="" resname="EmailSignature.email" xml:space="preserve">
+<source xml:lang="en">Text</source>
+<target xml:lang="ja-jp">テキスト</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179355000}</note>
+</trans-unit>
+<trans-unit id="" resname="EmailSignature.title" xml:space="preserve">
+<source xml:lang="en">System Email Signature</source>
+<target xml:lang="ja-jp">システムのメール署名</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179332000}</note>
+</trans-unit>
+<trans-unit id="" resname="InProductMessage.description" xml:space="preserve">
+<source xml:lang="en">Create a custom in-product message to communicate with your managed users. This message will appear in the upper right-hand corner of the Box homepage.</source>
+<target xml:lang="ja-jp">管理対象ユーザーに送信する製品内カスタムメッセージを作成します。このメッセージは、Boxホームページの右上に表示されます。</target>
+<note>{"sourceComment":" in product message description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428488000}</note>
+</trans-unit>
+<trans-unit id="" resname="InProductMessage.text" xml:space="preserve">
+<source xml:lang="en">Text</source>
+<target xml:lang="ja-jp">テキスト</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458180029000}</note>
+</trans-unit>
+<trans-unit id="" resname="InProductMessage.title" xml:space="preserve">
+<source xml:lang="en">In Product Message</source>
+<target xml:lang="ja-jp">製品に含まれるメッセージ</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458180049000}</note>
+</trans-unit>
+<trans-unit id="" resname="addGroupFolderViewer.add" xml:space="preserve">
+<source xml:lang="en">Add</source>
+<target xml:lang="ja-jp">追加</target>
+<note>{"sourceComment":" Add the folders to group","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461202735000}</note>
+</trans-unit>
+<trans-unit id="" resname="addGroupFolderViewer.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="ja-jp">キャンセル</target>
+<note>{"sourceComment":" Close the add group folder viewer","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461202735000}</note>
+</trans-unit>
+<trans-unit id="" resname="addGroupFolderViewer.viewerTitle" xml:space="preserve">
+<source xml:lang="en">Add Folders to Group</source>
+<target xml:lang="ja-jp">フォルダをグループに追加</target>
+<note>{"sourceComment":" Add Group Folder Viewer Title","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615007000}</note>
+</trans-unit>
+<trans-unit id="" resname="boxui.validationURLHTTPError" xml:space="preserve">
+<source xml:lang="en">URL must start with http:// or https://</source>
+<target xml:lang="ja-jp">URLはhttp://またはhttps://で始まる必要があります</target>
+<note>{"sourceComment":" Error message for when missing http from url","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428499000}</note>
+</trans-unit>
+<trans-unit id="" resname="colorPicker.hexCode" xml:space="preserve">
+<source xml:lang="en">Hex Code</source>
+<target xml:lang="ja-jp">16進数コード</target>
+<note>{"sourceComment":" Displayed in the color picker popup","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179646000}</note>
+</trans-unit>
+<trans-unit id="" resname="colorPicker.oldColor" xml:space="preserve">
+<source xml:lang="en">Current</source>
+<target xml:lang="ja-jp">現行</target>
+<note>{"sourceComment":" Displayed in color picker popup for the old color","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458180068000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.customUrlInvalidError" xml:space="preserve">
+<source xml:lang="en">Invalid URL. Custom URL must be an alphanumeric value</source>
+<target xml:lang="ja-jp">無効なURLです。カスタムURLは英数字である必要があります</target>
+<note>{"sourceComment":" Invalid url error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428525000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.customUrlWWWError" xml:space="preserve">
+<source xml:lang="en">URL cannot start with www</source>
+<target xml:lang="ja-jp">URLは「www」で始まらないようにしてください</target>
+<note>{"sourceComment":" Custom url www error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179764000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.customsubdomain" xml:space="preserve">
+<source xml:lang="en">Custom Subdomain</source>
+<target xml:lang="ja-jp">カスタムサブドメイン</target>
+<note>{"sourceComment":" label for subdomain input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179241000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.description" xml:space="preserve">
+<source xml:lang="en">Set up your company name and then create the custom URL your managed users will use to log into Box.</source>
+<target xml:lang="ja-jp">会社名を設定してから、管理対象ユーザーがBoxへのログインに使用するカスタムURLを作成します。</target>
+<note>{"sourceComment":" Company profile section description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428489000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.invalidWhitespaceError" xml:space="preserve">
+<source xml:lang="en">Requires at least one non-whitespace character</source>
+<target xml:lang="ja-jp">空白文字以外の文字が1つ以上必要です。</target>
+<note>{"sourceComment":" Invalid whitespace error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428496000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.message" xml:space="preserve">
+<source xml:lang="en">Message</source>
+<target xml:lang="ja-jp">メッセージ</target>
+<note>{"sourceComment":" label for text area","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179184000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.name" xml:space="preserve">
+<source xml:lang="en">Company Name</source>
+<target xml:lang="ja-jp">会社名</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179225000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.title" xml:space="preserve">
+<source xml:lang="en">Company Profile</source>
+<target xml:lang="ja-jp">会社概要</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179211000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalCancelButton" xml:space="preserve">
+<source xml:lang="en">CANCEL</source>
+<target xml:lang="ja-jp">キャンセル</target>
+<note>{"sourceComment":" Cancel Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428513000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalDescription" xml:space="preserve">
+<source xml:lang="en">You are about to change the Permission for {numberOfSelection} {numberOfSelection, plural, =1 {folder} other {folders}} to {permission}.</source>
+<target xml:lang="ja-jp">{numberOfSelection} {numberOfSelection, plural, =1{個のフォルダ} other {個のフォルダ}}の権限を{permission}に変更しようとしています。</target>
+<note>{"sourceComment":" Description of Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428529000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalOkayButton" xml:space="preserve">
+<source xml:lang="en">OKAY</source>
+<target xml:lang="ja-jp">OK</target>
+<note>{"sourceComment":" Confirm Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428514000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalTitle" xml:space="preserve">
+<source xml:lang="en">Are you sure?</source>
+<target xml:lang="ja-jp">よろしいですか?</target>
+<note>{"sourceComment":" Title of Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428514000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolder.folderNameLengthExceeded" xml:space="preserve">
+<source xml:lang="en">Folder name has exceeded its limit.</source>
+<target xml:lang="ja-jp">フォルダ名の長さが制限を超えました。</target>
+<note>{"sourceComment":" Error message shown when user is trying to create a folder with a folder name that is too long","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187179000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolder.folderNameZeroLength" xml:space="preserve">
+<source xml:lang="en">Folder name cannot be empty.</source>
+<target xml:lang="ja-jp">フォルダ名を空にすることはできません。</target>
+<note>{"sourceComment":" Error message shown when user is trying to create a folder with an empty folder name","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187179000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.body" xml:space="preserve">
+<source xml:lang="en">Enter a name for the new folder. You may use alphanumeric characters and some symbols. Folder will use default collaboration settings.</source>
+<target xml:lang="ja-jp">新規フォルダの名前を入力します。英数字と一部の記号が使用できます。フォルダにはデフォルトのコラボレーション設定が適用されます。</target>
+<note>{"sourceComment":" Body text in modal to create a new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187179000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="ja-jp">キャンセル</target>
+<note>{"sourceComment":" Cancel button in a modal to create new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187180000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.create" xml:space="preserve">
+<source xml:lang="en">Create</source>
+<target xml:lang="ja-jp">作成</target>
+<note>{"sourceComment":" Create button in a modal to create new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":204,"createdDate":1464218618000,"lastModifiedDate":1464218618000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1346981, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}},{"id":205,"createdDate":1464218618000,"lastModifiedDate":1464218618000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1672217, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1462925480000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.myFiles" xml:space="preserve">
+<source xml:lang="en">My Files</source>
+<target xml:lang="ja-jp">マイファイル</target>
+<note>{"sourceComment":" Name of the root level folder of the current Box account.","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":206,"createdDate":1464218618000,"lastModifiedDate":1464218618000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1439205, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1462925480000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.newFolderPlaceholder" xml:space="preserve">
+<source xml:lang="en">New Folder</source>
+<target xml:lang="ja-jp">新しいフォルダ</target>
+<note>{"sourceComment":" Placeholder (watermark) of the input field in the create folder modal","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187180000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.title" xml:space="preserve">
+<source xml:lang="en">Create a new folder in "{name}"</source>
+<target xml:lang="ja-jp">「{name}」に新規フォルダを作成</target>
+<note>{"sourceComment":" Title for the modal to create a new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187180000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.error" xml:space="preserve">
+<source xml:lang="en">There was a problem updating your settings.</source>
+<target xml:lang="ja-jp">設定の更新中に問題が発生しました。</target>
+<note>{"sourceComment":" Failure Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458178850000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.errorDigestTitle" xml:space="preserve">
+<source xml:lang="en">Oops that didn't work!</source>
+<target xml:lang="ja-jp">送信できませんでした。</target>
+<note>{"sourceComment":" Failure Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428513000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.errorLoadingHeader" xml:space="preserve">
+<source xml:lang="en">Apologies, we were unable to load this.</source>
+<target xml:lang="ja-jp">申し訳ございません。このページを読み込めませんでした。</target>
+<note>{"sourceComment":" Error loading header message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179874000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.errorLoadingSubHeader" xml:space="preserve">
+<source xml:lang="en">Please refresh the page or try again later.</source>
+<target xml:lang="ja-jp">ページを更新するか、後でもう一度お試しください。</target>
+<note>{"sourceComment":" Error loading subheader message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179898000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.learnMore" xml:space="preserve">
+<source xml:lang="en">Learn more</source>
+<target xml:lang="ja-jp">詳細を表示</target>
+<note>{"sourceComment":" link to the help page about what custom branding is about","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428486000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.loading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="ja-jp">ロード中...</target>
+<note>{"sourceComment":" temporary loading page message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179796000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="ja-jp">保存</target>
+<note>{"sourceComment":" Theme form submit button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458178875000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.submitting" xml:space="preserve">
+<source xml:lang="en">Submitting</source>
+<target xml:lang="ja-jp">送信中</target>
+<note>{"sourceComment":" Theme form update is being sent and is disabled","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458178897000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.success" xml:space="preserve">
+<source xml:lang="en">Your changes have been saved.</source>
+<target xml:lang="ja-jp">変更を保存しました。</target>
+<note>{"sourceComment":" Success Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428499000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.toggleLabel" xml:space="preserve">
+<source xml:lang="en">Enable Custom Settings</source>
+<target xml:lang="ja-jp">カスタム設定を有効にする</target>
+<note>{"sourceComment":" Toggle label for enabling custom branding","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428497000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.toggleSectionDescription" xml:space="preserve">
+<source xml:lang="en">Customize your company Box experience for managed and external users. You can set the logo, color scheme and messaging users see when they work in the Box web application. {learnMoreLink}</source>
+<target xml:lang="ja-jp">管理対象ユーザーおよび外部ユーザーのBox環境をカスタマイズします。ロゴ、配色、およびBoxウェブアプリケーションにログインしたときにユーザーに表示されるメッセージを設定できます。{learnMoreLink}</target>
+<note>{"sourceComment":" Section description for enabling custom branding for an enterprise. {learnMoreLink} is a link to the help page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428490000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.toggleSectionTitle" xml:space="preserve">
+<source xml:lang="en">Custom Settings</source>
+<target xml:lang="ja-jp">カスタム設定</target>
+<note>{"sourceComment":" Section title for enabling custom branding for an enterprise","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428490000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.change" xml:space="preserve">
+<source xml:lang="en">Change</source>
+<target xml:lang="ja-jp">変更</target>
+<note>{"sourceComment":" Button text to change custom logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179610000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.clear" xml:space="preserve">
+<source xml:lang="en">Clear</source>
+<target xml:lang="ja-jp">消去</target>
+<note>{"sourceComment":" Button text to clear custom logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179626000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.fileSizeError" xml:space="preserve">
+<source xml:lang="en">Files must be under 1MB in size</source>
+<target xml:lang="ja-jp">ファイルサイズは1MB未満にしてください</target>
+<note>{"sourceComment":" Error message in notification when uploading an invalid logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179682000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.fileTypeError" xml:space="preserve">
+<source xml:lang="en">Only JPG, JPEG, and PNG files are supported</source>
+<target xml:lang="ja-jp">JPG、JPEG、およびPNG形式のファイルのみサポートされています</target>
+<note>{"sourceComment":" Error message in notification when uploading an invalid logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428499000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.previewAltText" xml:space="preserve">
+<source xml:lang="en">Logo Preview</source>
+<target xml:lang="ja-jp">ロゴのプレビュー</target>
+<note>{"sourceComment":" Image preview of user uploaded logo","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463616062000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.title" xml:space="preserve">
+<source xml:lang="en">Logo</source>
+<target xml:lang="ja-jp">ロゴ</target>
+<note>{"sourceComment":" Label for Custom Logo Input Section","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179719000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.uploadError" xml:space="preserve">
+<source xml:lang="en">There was a problem uploading your logo.</source>
+<target xml:lang="ja-jp">ロゴのアップロード中に問題が発生しました。</target>
+<note>{"sourceComment":" Failure Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428487000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.lastModifiedDate" xml:space="preserve">
+<source xml:lang="en">Last Modified Date</source>
+<target xml:lang="ja-jp">最終更新日</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - last modified date of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615007000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="ja-jp">名前</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - name of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615007000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.owner" xml:space="preserve">
+<source xml:lang="en">Owner</source>
+<target xml:lang="ja-jp">所有者</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - owner of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":198,"createdDate":1464218618000,"lastModifiedDate":1464218618000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1000641, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1461186677000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.size" xml:space="preserve">
+<source xml:lang="en">Size</source>
+<target xml:lang="ja-jp">サイズ</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - size of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":200,"createdDate":1464218618000,"lastModifiedDate":1464218618000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1000649, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1461186677000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderViewer.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="ja-jp">キャンセル</target>
+<note>{"sourceComment":" Close the add group folder viewer","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615006000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderViewer.remove" xml:space="preserve">
+<source xml:lang="en">Remove</source>
+<target xml:lang="ja-jp">削除</target>
+<note>{"sourceComment":" Remove the folders from group","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615007000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderViewer.viewerTitle" xml:space="preserve">
+<source xml:lang="en">Edit Group Folders</source>
+<target xml:lang="ja-jp">グループフォルダの編集</target>
+<note>{"sourceComment":" Edit Group Folders Viewer Title","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615007000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.adminConsole" xml:space="preserve">
+<source xml:lang="en">Admin Console</source>
+<target xml:lang="ja-jp">管理コンソール</target>
+<note>{"sourceComment":" The feature label of Other option","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428514000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.adminDashboard" xml:space="preserve">
+<source xml:lang="en">Admin Dashboard</source>
+<target xml:lang="ja-jp">管理ダッシュボード</target>
+<note>{"sourceComment":" The feature of admin dashboard","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428514000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.articleLink" xml:space="preserve">
+<source xml:lang="en">article</source>
+<target xml:lang="ja-jp">記事</target>
+<note>{"sourceComment":" A web page contains useful information about the feature.","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428514000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.automations" xml:space="preserve">
+<source xml:lang="en">Automations</source>
+<target xml:lang="ja-jp">自動化</target>
+<note>{"sourceComment":" The feature of automations","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428515000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.bug" xml:space="preserve">
+<source xml:lang="en">Bug</source>
+<target xml:lang="ja-jp">バグ</target>
+<note>{"sourceComment":" The issue of noticing a bug","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428515000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.closeText" xml:space="preserve">
+<source xml:lang="en">Close</source>
+<target xml:lang="ja-jp">閉じる</target>
+<note>{"sourceComment":" The label of close button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428515000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.confusingInterface" xml:space="preserve">
+<source xml:lang="en">Confusing interface</source>
+<target xml:lang="ja-jp">インターフェースがわかりにくい</target>
+<note>{"sourceComment":" The issue of confusing user interface","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428515000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.contentManager" xml:space="preserve">
+<source xml:lang="en">Content Manager</source>
+<target xml:lang="ja-jp">コンテンツマネージャ</target>
+<note>{"sourceComment":" The feature of managing content","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428516000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.externalUsers" xml:space="preserve">
+<source xml:lang="en">External Users</source>
+<target xml:lang="ja-jp">外部ユーザー</target>
+<note>{"sourceComment":" The feature of managing external users","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428516000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.featureLabel" xml:space="preserve">
+<source xml:lang="en">What feature are you having trouble with?</source>
+<target xml:lang="ja-jp">問題があったのはどの機能ですか?</target>
+<note>{"sourceComment":" The label of the feature list form element","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428516000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.feedbackContent" xml:space="preserve">
+<source xml:lang="en">To learn more about {label}, check out this {link} on our Help Center!</source>
+<target xml:lang="ja-jp">{label}の詳細については、ヘルプセンターの{link}をご覧ください。</target>
+<note>{"sourceComment":" The text displayed after feedback submission is completed. {label}: The name of the feature category. {link}: The link to the article about the feature.","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428516000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.feedbackHeader" xml:space="preserve">
+<source xml:lang="en">Give Feedback</source>
+<target xml:lang="ja-jp">意見を送る</target>
+<note>{"sourceComment":" The header of feedback form","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1462214417000}</note>
+</trans-unit>
+</body>
+</file>
+</xliff>

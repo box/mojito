@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
+<file original="demo.properties" source-language="en" target-language="nl-nl" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<body>
+<trans-unit id="" resname="ContactInfo.customSupportEmail" xml:space="preserve">
+<source xml:lang="en">Email</source>
+<target xml:lang="nl-nl">E-mail</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179281000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.customSupportPhone" xml:space="preserve">
+<source xml:lang="en">Phone Number</source>
+<target xml:lang="nl-nl">Telefoonnummer</target>
+<note>{"sourceComment":" customSupportPhone","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179780000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.descriptionText" xml:space="preserve">
+<source xml:lang="en">If your managed users run into issues with their accounts, you can send them to your company's support resources instead of the default Box customer support.</source>
+<target xml:lang="nl-nl">Als uw beheerde gebruikers problemen met hun accounts ondervinden, kunt u hen verwijzen naar de supportmedewerkers van uw bedrijf in plaats van naar de klantenondersteuning van Box.</target>
+<note>{"sourceComment":" Contact information section description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428538000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.linkUrl" xml:space="preserve">
+<source xml:lang="en">Support Site URL</source>
+<target xml:lang="nl-nl">URL van ondersteuningssite</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179297000}</note>
+</trans-unit>
+<trans-unit id="" resname="ContactInfo.title" xml:space="preserve">
+<source xml:lang="en">Support Contact Information</source>
+<target xml:lang="nl-nl">Contactgegevens voor ondersteuning</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179264000}</note>
+</trans-unit>
+<trans-unit id="" resname="EmailSignature.description" xml:space="preserve">
+<source xml:lang="en">Box sends automated email notifications on behalf of users when they take certain actions in Box - for example, adding collaborators to a folder. You can add an email signature with additional information, such as a privacy notice, to these automated emails.</source>
+<target xml:lang="nl-nl">Box verzendt automatische e-mailmeldingen namens gebruikers wanneer deze bepaalde handelingen uitvoeren in Box, bijvoorbeeld wanneer zij medebewerkers toevoegen aan een map. U kunt een e-mailhandtekening met extra informatie aan deze automatische e-mails toevoegen, zoals een privacykennisgeving.</target>
+<note>{"sourceComment":" section description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428539000}</note>
+</trans-unit>
+<trans-unit id="" resname="EmailSignature.email" xml:space="preserve">
+<source xml:lang="en">Text</source>
+<target xml:lang="nl-nl">Tekst</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179355000}</note>
+</trans-unit>
+<trans-unit id="" resname="EmailSignature.title" xml:space="preserve">
+<source xml:lang="en">System Email Signature</source>
+<target xml:lang="nl-nl">E-mailhandtekening van het systeem</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179332000}</note>
+</trans-unit>
+<trans-unit id="" resname="InProductMessage.description" xml:space="preserve">
+<source xml:lang="en">Create a custom in-product message to communicate with your managed users. This message will appear in the upper right-hand corner of the Box homepage.</source>
+<target xml:lang="nl-nl">Maak een aangepast bericht in het product om informatie te geven aan uw beheerde gebruikers. Dit bericht verschijnt in de rechterbovenhoek van de Box-startpagina.</target>
+<note>{"sourceComment":" in product message description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428539000}</note>
+</trans-unit>
+<trans-unit id="" resname="InProductMessage.text" xml:space="preserve">
+<source xml:lang="en">Text</source>
+<target xml:lang="nl-nl">Tekst</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458180029000}</note>
+</trans-unit>
+<trans-unit id="" resname="InProductMessage.title" xml:space="preserve">
+<source xml:lang="en">In Product Message</source>
+<target xml:lang="nl-nl">Bericht in product</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458180049000}</note>
+</trans-unit>
+<trans-unit id="" resname="addGroupFolderViewer.add" xml:space="preserve">
+<source xml:lang="en">Add</source>
+<target xml:lang="nl-nl">Toevoegen</target>
+<note>{"sourceComment":" Add the folders to group","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461202748000}</note>
+</trans-unit>
+<trans-unit id="" resname="addGroupFolderViewer.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="nl-nl">Annuleren</target>
+<note>{"sourceComment":" Close the add group folder viewer","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461202748000}</note>
+</trans-unit>
+<trans-unit id="" resname="addGroupFolderViewer.viewerTitle" xml:space="preserve">
+<source xml:lang="en">Add Folders to Group</source>
+<target xml:lang="nl-nl">Mappen aan groep toevoegen</target>
+<note>{"sourceComment":" Add Group Folder Viewer Title","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615025000}</note>
+</trans-unit>
+<trans-unit id="" resname="boxui.validationURLHTTPError" xml:space="preserve">
+<source xml:lang="en">URL must start with http:// or https://</source>
+<target xml:lang="nl-nl">URL moet beginnen met http:// of https://</target>
+<note>{"sourceComment":" Error message for when missing http from url","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428556000}</note>
+</trans-unit>
+<trans-unit id="" resname="colorPicker.hexCode" xml:space="preserve">
+<source xml:lang="en">Hex Code</source>
+<target xml:lang="nl-nl">Hexadecimale code</target>
+<note>{"sourceComment":" Displayed in the color picker popup","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179646000}</note>
+</trans-unit>
+<trans-unit id="" resname="colorPicker.oldColor" xml:space="preserve">
+<source xml:lang="en">Current</source>
+<target xml:lang="nl-nl">Huidige</target>
+<note>{"sourceComment":" Displayed in color picker popup for the old color","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458180068000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.customUrlInvalidError" xml:space="preserve">
+<source xml:lang="en">Invalid URL. Custom URL must be an alphanumeric value</source>
+<target xml:lang="nl-nl">Ongeldige URL. Aangepaste URL moet een alfanumerieke waarde zijn</target>
+<note>{"sourceComment":" Invalid url error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428580000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.customUrlWWWError" xml:space="preserve">
+<source xml:lang="en">URL cannot start with www</source>
+<target xml:lang="nl-nl">URL mag niet beginnen met www</target>
+<note>{"sourceComment":" Custom url www error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179764000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.customsubdomain" xml:space="preserve">
+<source xml:lang="en">Custom Subdomain</source>
+<target xml:lang="nl-nl">Aangepast subdomein</target>
+<note>{"sourceComment":" label for subdomain input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179241000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.description" xml:space="preserve">
+<source xml:lang="en">Set up your company name and then create the custom URL your managed users will use to log into Box.</source>
+<target xml:lang="nl-nl">Voer uw bedrijfsnaam in en maak vervolgens de aangepaste URL waarmee uw beheerde gebruikers inloggen op Box.</target>
+<note>{"sourceComment":" Company profile section description","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428540000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.invalidWhitespaceError" xml:space="preserve">
+<source xml:lang="en">Requires at least one non-whitespace character</source>
+<target xml:lang="nl-nl">Er is ten minste één niet-spatieteken vereist</target>
+<note>{"sourceComment":" Invalid whitespace error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428552000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.message" xml:space="preserve">
+<source xml:lang="en">Message</source>
+<target xml:lang="nl-nl">Bericht</target>
+<note>{"sourceComment":" label for text area","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179184000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.name" xml:space="preserve">
+<source xml:lang="en">Company Name</source>
+<target xml:lang="nl-nl">Bedrijfsnaam</target>
+<note>{"sourceComment":" label for text input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179225000}</note>
+</trans-unit>
+<trans-unit id="" resname="companyProfile.title" xml:space="preserve">
+<source xml:lang="en">Company Profile</source>
+<target xml:lang="nl-nl">Bedrijfsprofiel</target>
+<note>{"sourceComment":" Section title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179211000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalCancelButton" xml:space="preserve">
+<source xml:lang="en">CANCEL</source>
+<target xml:lang="nl-nl">ANNULEREN</target>
+<note>{"sourceComment":" Cancel Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428567000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalDescription" xml:space="preserve">
+<source xml:lang="en">You are about to change the Permission for {numberOfSelection} {numberOfSelection, plural, =1 {folder} other {folders}} to {permission}.</source>
+<target xml:lang="nl-nl">U staat op het punt de machtigingen voor {numberOfSelection} {numberOfSelection, plural, =1 {map} other {mappen}} te wijzigen in {permission}.</target>
+<note>{"sourceComment":" Description of Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428586000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalOkayButton" xml:space="preserve">
+<source xml:lang="en">OKAY</source>
+<target xml:lang="nl-nl">OK</target>
+<note>{"sourceComment":" Confirm Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428568000}</note>
+</trans-unit>
+<trans-unit id="" resname="confirmModal.confirmModalTitle" xml:space="preserve">
+<source xml:lang="en">Are you sure?</source>
+<target xml:lang="nl-nl">Weet u het zeker?</target>
+<note>{"sourceComment":" Title of Confirm Modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428568000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolder.folderNameLengthExceeded" xml:space="preserve">
+<source xml:lang="en">Folder name has exceeded its limit.</source>
+<target xml:lang="nl-nl">Mapnaam is te lang.</target>
+<note>{"sourceComment":" Error message shown when user is trying to create a folder with a folder name that is too long","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187201000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolder.folderNameZeroLength" xml:space="preserve">
+<source xml:lang="en">Folder name cannot be empty.</source>
+<target xml:lang="nl-nl">Mapnaam mag niet leeg zijn.</target>
+<note>{"sourceComment":" Error message shown when user is trying to create a folder with an empty folder name","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187202000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.body" xml:space="preserve">
+<source xml:lang="en">Enter a name for the new folder. You may use alphanumeric characters and some symbols. Folder will use default collaboration settings.</source>
+<target xml:lang="nl-nl">Voer een naam in voor de nieuwe map. U mag alfanumerieke tekens en bepaalde symbolen gebruiken. De standaardinstellingen voor samenwerking zijn van toepassing op de map.</target>
+<note>{"sourceComment":" Body text in modal to create a new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187202000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="nl-nl">Annuleren</target>
+<note>{"sourceComment":" Cancel button in a modal to create new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187202000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.create" xml:space="preserve">
+<source xml:lang="en">Create</source>
+<target xml:lang="nl-nl">Maken</target>
+<note>{"sourceComment":" Create button in a modal to create new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":322,"createdDate":1464218620000,"lastModifiedDate":1464218620000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1347341, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}},{"id":323,"createdDate":1464218620000,"lastModifiedDate":1464218620000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1672229, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1462925480000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.myFiles" xml:space="preserve">
+<source xml:lang="en">My Files</source>
+<target xml:lang="nl-nl">Mijn bestanden</target>
+<note>{"sourceComment":" Name of the root level folder of the current Box account.","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":324,"createdDate":1464218620000,"lastModifiedDate":1464218620000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1439421, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1462925480000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.newFolderPlaceholder" xml:space="preserve">
+<source xml:lang="en">New Folder</source>
+<target xml:lang="nl-nl">Nieuwe map</target>
+<note>{"sourceComment":" Placeholder (watermark) of the input field in the create folder modal","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187203000}</note>
+</trans-unit>
+<trans-unit id="" resname="createFolderModal.title" xml:space="preserve">
+<source xml:lang="en">Create a new folder in "{name}"</source>
+<target xml:lang="nl-nl">Een nieuwe mapnaam maken in "{name}"</target>
+<note>{"sourceComment":" Title for the modal to create a new folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463187203000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.error" xml:space="preserve">
+<source xml:lang="en">There was a problem updating your settings.</source>
+<target xml:lang="nl-nl">Er is een probleem opgetreden bij het bijwerken van uw instellingen.</target>
+<note>{"sourceComment":" Failure Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458178850000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.errorDigestTitle" xml:space="preserve">
+<source xml:lang="en">Oops that didn't work!</source>
+<target xml:lang="nl-nl">Er is iets misgegaan.</target>
+<note>{"sourceComment":" Failure Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428567000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.errorLoadingHeader" xml:space="preserve">
+<source xml:lang="en">Apologies, we were unable to load this.</source>
+<target xml:lang="nl-nl">Laden is mislukt.</target>
+<note>{"sourceComment":" Error loading header message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179874000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.errorLoadingSubHeader" xml:space="preserve">
+<source xml:lang="en">Please refresh the page or try again later.</source>
+<target xml:lang="nl-nl">Vernieuw de pagina of probeer het later opnieuw.</target>
+<note>{"sourceComment":" Error loading subheader message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179898000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.learnMore" xml:space="preserve">
+<source xml:lang="en">Learn more</source>
+<target xml:lang="nl-nl">Meer informatie</target>
+<note>{"sourceComment":" link to the help page about what custom branding is about","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428536000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.loading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="nl-nl">Laden...</target>
+<note>{"sourceComment":" temporary loading page message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179796000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="nl-nl">Opslaan</target>
+<note>{"sourceComment":" Theme form submit button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458178875000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.submitting" xml:space="preserve">
+<source xml:lang="en">Submitting</source>
+<target xml:lang="nl-nl">Verzenden</target>
+<note>{"sourceComment":" Theme form update is being sent and is disabled","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458178897000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.success" xml:space="preserve">
+<source xml:lang="en">Your changes have been saved.</source>
+<target xml:lang="nl-nl">Uw wijzigingen zijn opgeslagen.</target>
+<note>{"sourceComment":" Success Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428557000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.toggleLabel" xml:space="preserve">
+<source xml:lang="en">Enable Custom Settings</source>
+<target xml:lang="nl-nl">Aangepaste instellingen inschakelen</target>
+<note>{"sourceComment":" Toggle label for enabling custom branding","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428553000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.toggleSectionDescription" xml:space="preserve">
+<source xml:lang="en">Customize your company Box experience for managed and external users. You can set the logo, color scheme and messaging users see when they work in the Box web application. {learnMoreLink}</source>
+<target xml:lang="nl-nl">Pas de Box-ervaring van uw bedrijf aan voor beheerde en externe gebruikers. U kunt een logo, kleurschema en berichten instellen die gebruikers zien wanneer zij met de Box-webapplicatie werken. {learnMoreLink}</target>
+<note>{"sourceComment":" Section description for enabling custom branding for an enterprise. {learnMoreLink} is a link to the help page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428540000}</note>
+</trans-unit>
+<trans-unit id="" resname="customBranding.toggleSectionTitle" xml:space="preserve">
+<source xml:lang="en">Custom Settings</source>
+<target xml:lang="nl-nl">Aangepaste instellingen</target>
+<note>{"sourceComment":" Section title for enabling custom branding for an enterprise","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428541000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.change" xml:space="preserve">
+<source xml:lang="en">Change</source>
+<target xml:lang="nl-nl">Wijzigen</target>
+<note>{"sourceComment":" Button text to change custom logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179610000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.clear" xml:space="preserve">
+<source xml:lang="en">Clear</source>
+<target xml:lang="nl-nl">Wissen</target>
+<note>{"sourceComment":" Button text to clear custom logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179626000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.fileSizeError" xml:space="preserve">
+<source xml:lang="en">Files must be under 1MB in size</source>
+<target xml:lang="nl-nl">Bestanden moeten kleiner zijn dan 1 MB</target>
+<note>{"sourceComment":" Error message in notification when uploading an invalid logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179682000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.fileTypeError" xml:space="preserve">
+<source xml:lang="en">Only JPG, JPEG, and PNG files are supported</source>
+<target xml:lang="nl-nl">Alleen JPG-, JPEG- en PNG-bestanden worden ondersteund</target>
+<note>{"sourceComment":" Error message in notification when uploading an invalid logo","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428556000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.previewAltText" xml:space="preserve">
+<source xml:lang="en">Logo Preview</source>
+<target xml:lang="nl-nl">Voorbeeld van logo</target>
+<note>{"sourceComment":" Image preview of user uploaded logo","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1463616087000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.title" xml:space="preserve">
+<source xml:lang="en">Logo</source>
+<target xml:lang="nl-nl">Logo</target>
+<note>{"sourceComment":" Label for Custom Logo Input Section","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458179719000}</note>
+</trans-unit>
+<trans-unit id="" resname="customLogo.uploadError" xml:space="preserve">
+<source xml:lang="en">There was a problem uploading your logo.</source>
+<target xml:lang="nl-nl">Er is een probleem opgetreden bij het uploaden van uw logo.</target>
+<note>{"sourceComment":" Failure Form submit message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428538000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.lastModifiedDate" xml:space="preserve">
+<source xml:lang="en">Last Modified Date</source>
+<target xml:lang="nl-nl">Datum laatste wijziging</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - last modified date of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615026000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="nl-nl">Naam</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - name of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615026000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.owner" xml:space="preserve">
+<source xml:lang="en">Owner</source>
+<target xml:lang="nl-nl">Eigenaar</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - owner of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":316,"createdDate":1464218620000,"lastModifiedDate":1464218620000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1001061, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1461186677000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderExplorer.tableHeaders.size" xml:space="preserve">
+<source xml:lang="en">Size</source>
+<target xml:lang="nl-nl">Grootte</target>
+<note>{"sourceComment":" Edit Group folder explorer table header - size of the folder","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[{"id":318,"createdDate":1464218620000,"lastModifiedDate":1464218620000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 1001069, unique match: true","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1461186677000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderViewer.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="nl-nl">Annuleren</target>
+<note>{"sourceComment":" Close the add group folder viewer","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615025000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderViewer.remove" xml:space="preserve">
+<source xml:lang="en">Remove</source>
+<target xml:lang="nl-nl">Verwijderen</target>
+<note>{"sourceComment":" Remove the folders from group","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615026000}</note>
+</trans-unit>
+<trans-unit id="" resname="editGroupFolderViewer.viewerTitle" xml:space="preserve">
+<source xml:lang="en">Edit Group Folders</source>
+<target xml:lang="nl-nl">Groepsmappen bewerken</target>
+<note>{"sourceComment":" Edit Group Folders Viewer Title","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1461615025000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.adminConsole" xml:space="preserve">
+<source xml:lang="en">Admin Console</source>
+<target xml:lang="nl-nl">Admin Console</target>
+<note>{"sourceComment":" The feature label of Other option","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":297,"createdDate":1464218619000,"lastModifiedDate":1464218619000,"severity":"WARNING","type":"QUALITY_CHECK","content":"Translation is the same as the source.","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1463428568000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.adminDashboard" xml:space="preserve">
+<source xml:lang="en">Admin Dashboard</source>
+<target xml:lang="nl-nl">Admin Dashboard</target>
+<note>{"sourceComment":" The feature of admin dashboard","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":298,"createdDate":1464218619000,"lastModifiedDate":1464218619000,"severity":"WARNING","type":"QUALITY_CHECK","content":"Translation is the same as the source.","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1463428569000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.articleLink" xml:space="preserve">
+<source xml:lang="en">article</source>
+<target xml:lang="nl-nl">artikel</target>
+<note>{"sourceComment":" A web page contains useful information about the feature.","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428569000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.automations" xml:space="preserve">
+<source xml:lang="en">Automations</source>
+<target xml:lang="nl-nl">Automatiseringen</target>
+<note>{"sourceComment":" The feature of automations","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428569000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.bug" xml:space="preserve">
+<source xml:lang="en">Bug</source>
+<target xml:lang="nl-nl">Bug</target>
+<note>{"sourceComment":" The issue of noticing a bug","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":299,"createdDate":1464218619000,"lastModifiedDate":1464218619000,"severity":"WARNING","type":"QUALITY_CHECK","content":"Translation is the same as the source.","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1463428569000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.closeText" xml:space="preserve">
+<source xml:lang="en">Close</source>
+<target xml:lang="nl-nl">Sluiten</target>
+<note>{"sourceComment":" The label of close button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428570000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.confusingInterface" xml:space="preserve">
+<source xml:lang="en">Confusing interface</source>
+<target xml:lang="nl-nl">Verwarrende interface</target>
+<note>{"sourceComment":" The issue of confusing user interface","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428570000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.contentManager" xml:space="preserve">
+<source xml:lang="en">Content Manager</source>
+<target xml:lang="nl-nl">Content Manager</target>
+<note>{"sourceComment":" The feature of managing content","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":300,"createdDate":1464218619000,"lastModifiedDate":1464218619000,"severity":"WARNING","type":"QUALITY_CHECK","content":"Translation is the same as the source.","createdByUser":{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"username":"admin","enabled":true,"surname":null,"givenName":null,"commonName":null,"authorities":[{"id":2,"createdDate":1464218576000,"lastModifiedDate":1464218576000,"authority":"ROLE_ADMIN"}]}}],"createdDate":1463428570000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.externalUsers" xml:space="preserve">
+<source xml:lang="en">External Users</source>
+<target xml:lang="nl-nl">Externe gebruikers</target>
+<note>{"sourceComment":" The feature of managing external users","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428570000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.featureLabel" xml:space="preserve">
+<source xml:lang="en">What feature are you having trouble with?</source>
+<target xml:lang="nl-nl">Bij welke functie ondervindt u problemen?</target>
+<note>{"sourceComment":" The label of the feature list form element","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428571000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.feedbackContent" xml:space="preserve">
+<source xml:lang="en">To learn more about {label}, check out this {link} on our Help Center!</source>
+<target xml:lang="nl-nl">Voor meer informatie over {label} kunt u {link} bekijken in ons helpcentrum.</target>
+<note>{"sourceComment":" The text displayed after feedback submission is completed. {label}: The name of the feature category. {link}: The link to the article about the feature.","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1463428571000}</note>
+</trans-unit>
+<trans-unit id="" resname="feedback.feedbackHeader" xml:space="preserve">
+<source xml:lang="en">Give Feedback</source>
+<target xml:lang="nl-nl">Feedback geven</target>
+<note>{"sourceComment":" The header of feedback form","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[],"createdDate":1462214440000}</note>
+</trans-unit>
+</body>
+</file>
+</xliff>
