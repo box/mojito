@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head lang="{{locale}}">
+        <title>Mojito</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+        <link rel="stylesheet" type="text/css" href="/css/mojito.css" />
+        <link rel="stylesheet" type="text/css" href="/css/bootstrap-multiselect.css" />
+        <link rel="stylesheet" type="text/css" href="/css/animate.min.css">
+
+        <script type="text/javascript">
+            LOCALE = '{{locale}}';
+            CSRF_TOKEN = '{{csrfToken}}';
+            USERNAME = '{{username}}';
+        </script>
+
+        <script src="/intl/{{locale}}.js"></script>
+
+    </head>
+
+    <body>
+        <div id="app"></div>
+        <script type="text/javascript" src="/js/bundle.min.js"></script>
+    </body>
+
+</html>

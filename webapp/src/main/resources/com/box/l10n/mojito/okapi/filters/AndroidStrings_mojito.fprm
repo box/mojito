@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<its:rules xmlns:its="http://www.w3.org/2005/11/its" version="2.0"
+ xmlns:a="http://schemas.android.com/apk/res/android"
+ xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"
+ xmlns:okp="okapi-framework:xmlfilter-options">
+    
+ <its:translateRule selector="/*" translate="no"/>
+ <its:withinTextRule selector="//string/descendant::*|//item/descendant::*" withinText="yes"/> 
+ 
+ <its:translateRule selector="resources//string[text()]" translate="yes" />
+ <its:translateRule selector="resources/string[@translatable='false']" translate="no" />
+ <its:translateRule selector="resources//string//xliff:g" translate="no"/>
+ <its:idValueRule selector="resources//string" idValue="@name"/>
+ <its:locNoteRule selector="resources//string" locNoteType="description" locNotePointer="@description"/>
+ <its:preserveSpaceRule selector="resources//string" space="preserve"/>
+
+ <its:translateRule selector="resources//string-array//item[text()]" translate="yes" />
+ <its:translateRule selector="resources/string-array[@translatable='false']" translate="no" />
+ <its:translateRule selector="resources//string-array//item//xliff:g" translate="no"/>
+ <its:idValueRule selector="resources//string-array//item" idValue="concat(../@name, '_', count(preceding-sibling::*))"/>
+ <its:locNoteRule selector="resources//string-array//item" locNoteType="description" locNotePointer="../@description"/>
+ <its:preserveSpaceRule selector="resources//string-array//item" space="preserve"/>
+ 
+ <its:translateRule selector="resources//plurals//item[text()]" translate="yes" />
+ <its:translateRule selector="resources/plurals[@translatable='false']" translate="no" />
+ <its:translateRule selector="resources//plurals//item//xliff:g" translate="no"/> 
+ <its:idValueRule selector="resources//plurals//item" idValue="concat(../@name, '_', @quantity)"/>
+ <its:locNoteRule selector="resources//plurals//item" locNoteType="description" locNotePointer="../@description"/>
+ <its:preserveSpaceRule selector="resources//plurals//item" space="preserve"/>
+ 
+ <okp:options escapeQuotes="no"/>
+ <okp:codeFinder useCodeFinder="yes">#v1
+count.i=2
+rule0=%(([-0+ #]?)[-0+ #]?)((\d\$)?)(([\d\*]*)(\.[\d\*]*)?)[dioxXucsfeEgGpn]
+rule1=&lt;(/?)\w[^&lt;]*?&gt;
+ </okp:codeFinder>
+
+</its:rules>

@@ -1,0 +1,837 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
+<file original="en.properties" source-language="en" target-language="ko-kr" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<body>
+<trans-unit id="" resname="header.workbench" xml:space="preserve">
+<source xml:lang="en">Workbench</source>
+<target xml:lang="ko-kr">워크벤치</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1461693347000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.repositories" xml:space="preserve">
+<source xml:lang="en">Repositories</source>
+<target xml:lang="ko-kr">프로젝트</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the repositories page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1460151601000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="ko-kr">이름</target>
+<note>{"sourceComment":" Name column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146408000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.description" xml:space="preserve">
+<source xml:lang="en">Description</source>
+<target xml:lang="ko-kr">설명</target>
+<note>{"sourceComment":" Description column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146749000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="ko-kr">번역현황</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146801000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="ko-kr">번역됨</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146811000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.rejected" xml:space="preserve">
+<source xml:lang="en">{numberOfRejected, plural, =0 {None Rejected} other{# Rejected}}</source>
+<target xml:lang="ko-kr">{numberOfRejected, plural, =0 {거절 된것 없음} other{#개 거절됨}}</target>
+<note>{"sourceComment":" Label to show the number of rejected text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.ok" xml:space="preserve">
+<source xml:lang="en">Ok</source>
+<target xml:lang="ko-kr">확인</target>
+<note>{"sourceComment":" Label to show ok - meaning that everything is fine","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146876000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.placeholder" xml:space="preserve">
+<source xml:lang="en">Search term...</source>
+<target xml:lang="ko-kr">검색어...</target>
+<note>{"sourceComment":"Label used as placeholder for the search input field of the SearchPanelWithFilters widget","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146927000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.source" xml:space="preserve">
+<source xml:lang="en">Source</source>
+<target xml:lang="ko-kr">번역전 문장</target>
+<note>{"sourceComment":" Search filter option \"source\"","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146977000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.target" xml:space="preserve">
+<source xml:lang="en">Target</source>
+<target xml:lang="ko-kr">번역후 문장</target>
+<note>{"sourceComment":" Search filter option \"target\"","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148455000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.exact" xml:space="preserve">
+<source xml:lang="en">Exact</source>
+<target xml:lang="ko-kr">동일</target>
+<note>{"sourceComment":" Search filter option to search for strings that matche exactly the search critera","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148460000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.contains" xml:space="preserve">
+<source xml:lang="en">Contains</source>
+<target xml:lang="ko-kr">포함</target>
+<note>{"sourceComment":" Search filter option to search for strings that contains the search critera","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148463000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.ilike" xml:space="preserve">
+<source xml:lang="en">ILike</source>
+<target xml:lang="ko-kr">비슷</target>
+<note>{"sourceComment":" Search filter option to search for strings that matches a ilike SQL style expression","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148468000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchAttribute" xml:space="preserve">
+<source xml:lang="en">Attribute</source>
+<target xml:lang="ko-kr">속성</target>
+<note>{"sourceComment":" Header shown before the list of attributes (string id, source, target) the search can be perform on","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146990000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchType" xml:space="preserve">
+<source xml:lang="en">Type</source>
+<target xml:lang="ko-kr">종류</target>
+<note>{"sourceComment":" Header shown before the list of search type (exact, contains, ilike) that can be performed","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458146999000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.title" xml:space="preserve">
+<source xml:lang="en">Filter by</source>
+<target xml:lang="ko-kr">필터하기</target>
+<note>{"sourceComment":" Title of the status dropdown in the workbench to filter results","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147022000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.used" xml:space="preserve">
+<source xml:lang="en">Used</source>
+<target xml:lang="ko-kr">사용중</target>
+<note>{"sourceComment":" Search filter option \"used\" used in the status dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147042000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="ko-kr">예</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is active","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147058000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="ko-kr">아니요</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is inactive","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147064000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.pagination.isLoading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="ko-kr">로딩중...</target>
+<note>{"sourceComment":"label displayed alternately if the \"loading\" image used during pagination is not available","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147076000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.profile" xml:space="preserve">
+<source xml:lang="en">My Profile</source>
+<target xml:lang="ko-kr">프로필</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's profile","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147112000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.preferences" xml:space="preserve">
+<source xml:lang="en">My Preferences</source>
+<target xml:lang="ko-kr">선호도</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's preferences","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147111000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.logout" xml:space="preserve">
+<source xml:lang="en">Logout</source>
+<target xml:lang="ko-kr">로그아웃</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to logout","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147117000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="ko-kr">저장</target>
+<note>{"sourceComment":"Save label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147121000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.delete" xml:space="preserve">
+<source xml:lang="en">Delete</source>
+<target xml:lang="ko-kr">삭제</target>
+<note>{"sourceComment":"Delete label to be used on buttons","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147125000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="ko-kr">취소</target>
+<note>{"sourceComment":"Cancel label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147129000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter a new translation ...</source>
+<target xml:lang="ko-kr">새로운 번역 입력하기 ...</target>
+<note>{"sourceComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147153000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.unused" xml:space="preserve">
+<source xml:lang="en">Unused</source>
+<target xml:lang="ko-kr">사용안함</target>
+<note>{"sourceComment":"Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147177000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.notIncludedInLocalizedFile" xml:space="preserve">
+<source xml:lang="en">Not included in localized file</source>
+<target xml:lang="ko-kr">번역된 파일에 포함안됨</target>
+<note>{"sourceComment":"Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147195000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation...</source>
+<target xml:lang="ko-kr">새로운 번역 입력하기...</target>
+<note>{"sourceComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147210000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.numberOfSelectedTextUnits" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedTextUnits, plural, =0 {None selected} other{# selected}}</source>
+<target xml:lang="ko-kr">{numberOfSelectedTextUnits, plural, =0 {선택 없음} other{#개 선택}}</target>
+<note>{"sourceComment":" Label displayed as the title of the dropdown in the workbench toolbar to indicate the number of selected text units in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147234000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.selectAllInPage" xml:space="preserve">
+<source xml:lang="en">Select all in page</source>
+<target xml:lang="ko-kr">페이지 모두 선택</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to select all textunits in the current page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147249000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAllInPage" xml:space="preserve">
+<source xml:lang="en">Clear all in page</source>
+<target xml:lang="ko-kr">페이지 선택 취소</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits in the current page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147265000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAll" xml:space="preserve">
+<source xml:lang="en">Clear all</source>
+<target xml:lang="ko-kr">선택 취소</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits across all pages in the search results","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147278000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="ko-kr">거절</target>
+<note>{"sourceComment":"Label for the Review button on the modal in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147289000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.accepted" xml:space="preserve">
+<source xml:lang="en">Accepted</source>
+<target xml:lang="ko-kr">승인</target>
+<note>{"sourceComment":"Button label used for primary action \"removeReview\" on modal dialog","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147294000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="ko-kr">리뷰필요</target>
+<note>{"sourceComment":"Button label used for the Needs Review button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147304000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.title" xml:space="preserve">
+<source xml:lang="en">Review selected translations</source>
+<target xml:lang="ko-kr">선택된 번역 리뷰하기</target>
+<note>{"sourceComment":"Label displayed as the title of the modal popup when user clicks on a textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147319000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentLabel" xml:space="preserve">
+<source xml:lang="en">Comment</source>
+<target xml:lang="ko-kr">댓글</target>
+<note>{"sourceComment":"Label for the text unit comment on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147327000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentPlaceholder" xml:space="preserve">
+<source xml:lang="en">Enter comment</source>
+<target xml:lang="ko-kr">댓글달기</target>
+<note>{"sourceComment":"Placeholder for the textarea on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147341000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.deletemodal.title" xml:space="preserve">
+<source xml:lang="en">Confirm delete</source>
+<target xml:lang="ko-kr">삭제확인</target>
+<note>{"sourceComment":"Label displayed in the header of the modal popup when user clicks on delete textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147353000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnits.bulk.deleteMessage" xml:space="preserve">
+<source xml:lang="en">Are you sure you want to delete the selected text units?</source>
+<target xml:lang="ko-kr">선택한 문장과 번역을 지우시겠습니까?</target>
+<note>{"sourceComment":"Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147366000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.save.failed" xml:space="preserve">
+<source xml:lang="en">There was an error saving the translation.</source>
+<target xml:lang="ko-kr">번역을 저장하는데 문제가 생겼습니다.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when saving a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147378000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.delete.failed" xml:space="preserve">
+<source xml:lang="en">There was an error deleting the translation.</source>
+<target xml:lang="ko-kr">번역을 삭제하는데 문제가 생겼습니다.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when deleting a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147388000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.filterPlaceholder" xml:space="preserve">
+<source xml:lang="en">Repository Name...</source>
+<target xml:lang="ko-kr">프로젝트 이름...</target>
+<note>{"sourceComment":"Label displayed in the search box of the repositories dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147400000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.filterPlaceholder" xml:space="preserve">
+<source xml:lang="en">Locale Name...</source>
+<target xml:lang="ko-kr">언어...</target>
+<note>{"sourceComment":"Label displayed in the search box of the locales dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147411000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.query.failed" xml:space="preserve">
+<source xml:lang="en">There was an error querying the server</source>
+<target xml:lang="ko-kr">서버에 문제가 생겼습니다.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when the search query fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147428000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.logout" xml:space="preserve">
+<source xml:lang="en">You have been logged out.</source>
+<target xml:lang="ko-kr">로그아웃 되었습니다.</target>
+<note>{"sourceComment":"Login form log out message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147439000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.error" xml:space="preserve">
+<source xml:lang="en">Invalid username and password.</source>
+<target xml:lang="ko-kr">아이디나 패스워드가 잘못되었습니다.</target>
+<note>{"sourceComment":"Login form error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147451000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in</source>
+<target xml:lang="ko-kr">로그인 하세요</target>
+<note>{"sourceComment":"Login form title","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147472000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.login" xml:space="preserve">
+<source xml:lang="en">Log in</source>
+<target xml:lang="ko-kr">로그인</target>
+<note>{"sourceComment":"Login form log in button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147478000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.username" xml:space="preserve">
+<source xml:lang="en">username</source>
+<target xml:lang="ko-kr">아이디</target>
+<note>{"sourceComment":"Login form username input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147483000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.password" xml:space="preserve">
+<source xml:lang="en">password</source>
+<target xml:lang="ko-kr">패스워드</target>
+<note>{"sourceComment":"Login form password input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147489000}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.title" xml:space="preserve">
+<source xml:lang="en">That caused an error</source>
+<target xml:lang="ko-kr">문제가 발생했습니다</target>
+<note>{"sourceComment":" Label shown on the ErrorModal when saving a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147500000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.localeStats" xml:space="preserve">
+<source xml:lang="en">Locale Statistics</source>
+<target xml:lang="ko-kr">언어 번역 현황</target>
+<note>{"sourceComment":" Label for a table to show stats for each locale","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147552000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.close" xml:space="preserve">
+<source xml:lang="en">Close</source>
+<target xml:lang="ko-kr">닫기</target>
+<note>{"sourceComment":" Button to close the locale stats","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147559000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</source>
+<target xml:lang="ko-kr">{numberOfSelectedRepositories, plural, =0{프로젝트} =1{프로젝트 1개} other{프로젝트 #개}}</target>
+<note>{"sourceComment":"Label displayed on the repositories dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147586000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</source>
+<target xml:lang="ko-kr">{numberOfSelectedLocales, plural, =0{언어} =1{1개 언어} other{#개 언어}}</target>
+<note>{"sourceComment":"Label displayed on the locales dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147617000}</note>
+</trans-unit>
+<trans-unit id="" resname="localeselector.title" xml:space="preserve">
+<source xml:lang="en">Select Mojito locale</source>
+<target xml:lang="ko-kr">Mojito 언어 선택</target>
+<note>{"sourceComment":" Title shown in the modal to select the locale for the whole Mojito app","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147667000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.projectRequests" xml:space="preserve">
+<source xml:lang="en">Project Requests</source>
+<target xml:lang="ko-kr">프로젝트 요청</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the project requests page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147702000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.needsReview" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</source>
+<target xml:lang="ko-kr">{numberOfNeedsReview, plural, =0 {리뷰 필요 없음} =1 {1개 리뷰 필요} other{#개 리뷰 필요}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147738000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.needsTranslation" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsTranslation, plural, =0 {None Need translation} =1 {1 Needs Translation} other{# Need Translation}}</source>
+<target xml:lang="ko-kr">{numberOfNeedsTranslation, plural, =0 {번역 필요 없음} =1 {1개 번역 필요} other{#개 번역 필요}}</target>
+<note>{"sourceComment":" Label to show the number of text units to translate","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147756000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="ko-kr">번역현황</target>
+<note>{"sourceComment":" Header shown before the list of status types (all, translated, needs reivew...) that can be used to search text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147802000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.all" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="ko-kr">모두보기</target>
+<note>{"sourceComment":" Status filter option to search for all text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147813000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="ko-kr">번역됨</target>
+<note>{"sourceComment":" Status filter option to search for only for translated text units","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147827000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="ko-kr">리뷰필요</target>
+<note>{"sourceComment":" Status filter option to search for text units that need to be reviewed","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147836000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.forTranslation" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="ko-kr">번역필요</target>
+<note>{"sourceComment":" Status filter option to search for text units that need to be translated","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147844000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="ko-kr">거절됨</target>
+<note>{"sourceComment":" Status filter option to search for text units that are rejected (won't be added in localized file)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147865000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.translationNeeded" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="ko-kr">번역필요</target>
+<note>{"sourceComment":"Button label used for the Translation needed button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147883000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequest.btn" xml:space="preserve">
+<source xml:lang="en">New Request</source>
+<target xml:lang="ko-kr">번역요청</target>
+<note>{"sourceComment":" New Request button for translation request (a translation request is a drop containing xliffs which are send to the translator)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147954000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="ko-kr">이름</target>
+<note>{"sourceComment":" Table header title for translation request - name of the translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458147959000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.createdBy" xml:space="preserve">
+<source xml:lang="en">Created By</source>
+<target xml:lang="ko-kr">사용자</target>
+<note>{"sourceComment":" Table header title for translation request - created by user name","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148013000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.createdDate" xml:space="preserve">
+<source xml:lang="en">Created Date</source>
+<target xml:lang="ko-kr">날짜</target>
+<note>{"sourceComment":" Table header title for translation request - date the translation request was created","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148020000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.repository" xml:space="preserve">
+<source xml:lang="en">Repository</source>
+<target xml:lang="ko-kr">프로젝트</target>
+<note>{"sourceComment":" Table header title for translation request - repository for which the translation req was created for","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148026000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="ko-kr">번역현황</target>
+<note>{"sourceComment":" Table header title for translation request - status of the translation req","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148047000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.createRequest" xml:space="preserve">
+<source xml:lang="en">Create Request</source>
+<target xml:lang="ko-kr">번역 요청 하기</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148083000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.title" xml:space="preserve">
+<source xml:lang="en">Select a Repository to Create a Request</source>
+<target xml:lang="ko-kr">번역할 프로젝트를 선택하세요</target>
+<note>{"sourceComment":" Modal title for making a new translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148101000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.requestTranslation" xml:space="preserve">
+<source xml:lang="en">Request Translation</source>
+<target xml:lang="ko-kr">번역 요청 하기</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148114000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.requestReview" xml:space="preserve">
+<source xml:lang="en">Request Review</source>
+<target xml:lang="ko-kr">리뷰 요청 하기</target>
+<note>{"sourceComment":" Modal button for create new review request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148124000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.sending" xml:space="preserve">
+<source xml:lang="en">Sending</source>
+<target xml:lang="ko-kr">보내는중</target>
+<note>{"sourceComment":" Status label for drop when being sent","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148137000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.inTranslation" xml:space="preserve">
+<source xml:lang="en">In Translation</source>
+<target xml:lang="ko-kr">번역중</target>
+<note>{"sourceComment":" Status label for drop when translation request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148142000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.inReview" xml:space="preserve">
+<source xml:lang="en">In Review</source>
+<target xml:lang="ko-kr">리뷰중</target>
+<note>{"sourceComment":" Status label for drop when review request","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148146000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.controlbar.button.tooltip.import" xml:space="preserve">
+<source xml:lang="en">Import Request</source>
+<target xml:lang="ko-kr">번역 업로드하기</target>
+<note>{"sourceComment":" Tooltip on import drop button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148189000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.id" xml:space="preserve">
+<source xml:lang="en">Id</source>
+<target xml:lang="ko-kr">아이디</target>
+<note>{"sourceComment":" Search filter option \"Id\"","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148194000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="ko-kr">번역현황</target>
+<note>{"sourceComment":"Label for the Review button on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148205000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.showImported.link" xml:space="preserve">
+<source xml:lang="en">Show Imported</source>
+<target xml:lang="ko-kr">업로드 보여주기</target>
+<note>{"sourceComment":" Link to show imported drops","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148223000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.hideImported.link" xml:space="preserve">
+<source xml:lang="en">Hide Imported</source>
+<target xml:lang="ko-kr">업로드 감추기</target>
+<note>{"sourceComment":" Link to hide imported drops","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148234000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.ongoingRequests.title" xml:space="preserve">
+<source xml:lang="en">Ongoing Requests</source>
+<target xml:lang="ko-kr">진행중인 번역요청</target>
+<note>{"sourceComment":" Table title to show ongoing drop requests","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148254000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.importedRequests.title" xml:space="preserve">
+<source xml:lang="en">Imported Requests</source>
+<target xml:lang="ko-kr">업로드된 번역들</target>
+<note>{"sourceComment":" Table title to show imported drop requests","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148294000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newTranslationRequest.alert" xml:space="preserve">
+<source xml:lang="en">New Translation Request is being sent</source>
+<target xml:lang="ko-kr">새 번역요청이 보내졌습니다</target>
+<note>{"sourceComment":" Alert to show that new translation request is being sent","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148315000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newReviewRequest.alert" xml:space="preserve">
+<source xml:lang="en">New Review Request is being sent</source>
+<target xml:lang="ko-kr">새 리뷰요청이 보내졌습니다</target>
+<note>{"sourceComment":" Alert to show that new review request is being sent","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148325000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.beingImported.alert" xml:space="preserve">
+<source xml:lang="en">Request is being imported</source>
+<target xml:lang="ko-kr">업로드중입니다</target>
+<note>{"sourceComment":" Alert to show that request is being imported","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148353000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.canceled" xml:space="preserve">
+<source xml:lang="en">Canceled</source>
+<target xml:lang="ko-kr">취소됨</target>
+<note>{"sourceComment":" Status label for drop when it has been canceld","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148361000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.imported" xml:space="preserve">
+<source xml:lang="en">Imported</source>
+<target xml:lang="ko-kr">업로드됨</target>
+<note>{"sourceComment":" Status label for drop when it has been imported","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148365000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.importing" xml:space="preserve">
+<source xml:lang="en">Importing</source>
+<target xml:lang="ko-kr">업로드중</target>
+<note>{"sourceComment":" Status label for drop when it is importing","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148372000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.controlbar.button.tooltip.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel Request</source>
+<target xml:lang="ko-kr">요청 취소</target>
+<note>{"sourceComment":" Tooltip on cancel drop button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148378000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.beingCanceled.alert" xml:space="preserve">
+<source xml:lang="en">Request is being canceled</source>
+<target xml:lang="ko-kr">취소되었습니다</target>
+<note>{"sourceComment":" Alert to show that request is being canceled","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1458148395000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="ko-kr">새로운 번역 입력하기 ...</target>
+<note>{"sourceComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245728000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="ko-kr">새로운 번역 입력하기...</target>
+<note>{"sourceComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245750000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.settings" xml:space="preserve">
+<source xml:lang="en">Settings</source>
+<target xml:lang="ko-kr">설정</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the settings page","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245915000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.clientId" xml:space="preserve">
+<source xml:lang="en">Client Id</source>
+<target xml:lang="ko-kr">Client Id</target>
+<note>{"sourceComment":" Label for Client Id input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245948000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.clientSecret" xml:space="preserve">
+<source xml:lang="en">Client Secret</source>
+<target xml:lang="ko-kr">Client Secret</target>
+<note>{"sourceComment":" Label for Client Secret input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245954000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.publicKeyId" xml:space="preserve">
+<source xml:lang="en">Public Key Id</source>
+<target xml:lang="ko-kr">Public Key Id</target>
+<note>{"sourceComment":" Label for id of the \"Public Key\" input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245960000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.privateKey" xml:space="preserve">
+<source xml:lang="en">Private Key</source>
+<target xml:lang="ko-kr">Private Key</target>
+<note>{"sourceComment":" Label for \"Private Key\" input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245965000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.privateKeyPassword" xml:space="preserve">
+<source xml:lang="en">Private Key Password</source>
+<target xml:lang="ko-kr">Private Key Password</target>
+<note>{"sourceComment":" Label for passward of the \"Private Key\" input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245970000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.enterpriseId" xml:space="preserve">
+<source xml:lang="en">Enterprise Id</source>
+<target xml:lang="ko-kr">Enterprise Id</target>
+<note>{"sourceComment":" Label for enterprise id input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245974000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.appUserId" xml:space="preserve">
+<source xml:lang="en">App User Id</source>
+<target xml:lang="ko-kr">App User Id</target>
+<note>{"sourceComment":" Label for App User Id.  App User is defined as the user created by the api application key","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470245981000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.rootFolderId" xml:space="preserve">
+<source xml:lang="en">Root Folder Id</source>
+<target xml:lang="ko-kr">Root Folder Id</target>
+<note>{"sourceComment":" Label for Root Folder Id. Root folder is the first folder.","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246017000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.dropsFolderId" xml:space="preserve">
+<source xml:lang="en">Project Requests Folder Id</source>
+<target xml:lang="ko-kr">Project Requests Folder Id</target>
+<note>{"sourceComment":" Label for Project Requests Folder id input","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246026000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.saveChanges" xml:space="preserve">
+<source xml:lang="en">Save Changes</source>
+<target xml:lang="ko-kr">변경사항 저장</target>
+<note>{"sourceComment":" Button label to save changes","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246224000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.modal.title.pleaseWait" xml:space="preserve">
+<source xml:lang="en">Please Wait</source>
+<target xml:lang="ko-kr">기다려주십시오</target>
+<note>{"sourceComment":" Modal title for user to wait","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246247000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.modal.box.message" xml:space="preserve">
+<source xml:lang="en">API Configurations is being set up</source>
+<target xml:lang="ko-kr">API Configurations이 설치되고 있는 중입니다</target>
+<note>{"sourceComment":" Modal message displayed to the user","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246298000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.message.waitingForInfo" xml:space="preserve">
+<source xml:lang="en">Retreiving Information.  Please wait.</source>
+<target xml:lang="ko-kr">정보를 불러오고 있는 중입니다</target>
+<note>{"sourceComment":" Message for waiting","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246354000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.message.notAvailableYet" xml:space="preserve">
+<source xml:lang="en">Not Avaialble Yet</source>
+<target xml:lang="ko-kr">아직 정보가 없습니다</target>
+<note>{"sourceComment":" Not available is referring to the information","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246410000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="ko-kr">예</target>
+<note>{"sourceComment":"Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":124341,"createdDate":1464375798000,"lastModifiedDate":1464375798000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935093, unique match: true","createdByUser":{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"username":"translations","enabled":true,"surname":"translations","givenName":null,"commonName":"translations","authorities":[{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"authority":"ROLE_USER"}]}}],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="ko-kr">아니요</target>
+<note>{"sourceComment":"No label to be used on buttons, labels etc.  No to indicate rejection to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":124353,"createdDate":1464375798000,"lastModifiedDate":1464375798000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935097, unique match: true","createdByUser":{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"username":"translations","enabled":true,"surname":"translations","givenName":null,"commonName":"translations","authorities":[{"id":13,"createdDate":1458611521000,"lastModifiedDate":1458611521000,"authority":"ROLE_USER"}]}}],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.okay" xml:space="preserve">
+<source xml:lang="en">Okay</source>
+<target xml:lang="ko-kr">확인</target>
+<note>{"sourceComment":"Okay label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246418000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.save.failed" xml:space="preserve">
+<source xml:lang="en">There was an error saving the translation.  Please try again later.</source>
+<target xml:lang="ko-kr">번역을 저장하는데 문제가 생겼습니다. 조금 후에 다시 시도해주세요.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when saving a textunit fails","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246443000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.check.failed" xml:space="preserve">
+<source xml:lang="en">Your translation failed the integrity check.  Some placeholders may not be in the correct place and the format may not be correct.  Are you sure you want to save anyways?</source>
+<target xml:lang="ko-kr">번역에 오류가 있습니다.  변수나 공백에 문제가 있는것 같습니다.  그대로 저장하시겠습니까?</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when checking a textunit","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246662000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="ko-kr">거절</target>
+<note>{"sourceComment":" Rejected (text units) column in the table header used to display a list of repositories.","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":176485,"createdDate":1468518670000,"lastModifiedDate":1468518670000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935161, unique match: false","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in.</source>
+<target xml:lang="ko-kr">로그인 하세요</target>
+<note>{"sourceComment":"Login form title","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":176473,"createdDate":1468518670000,"lastModifiedDate":1468518670000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 935221, unique match: true","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.all" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="ko-kr">모두보기</target>
+<note>{"sourceComment":" Label to show all project requests including those that are done and those that are in progress","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":176497,"createdDate":1468518670000,"lastModifiedDate":1468518670000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935277, unique match: true","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.header.title" xml:space="preserve">
+<source xml:lang="en">Oops</source>
+<target xml:lang="ko-kr">죄송합니다</target>
+<note>{"sourceComment":" Title for an error modal overlay.  Oops - as in something went wrong","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246697000}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.message.loggedOut" xml:space="preserve">
+<source xml:lang="en">Session expired.  Please re-authenticate.</source>
+<target xml:lang="ko-kr">세션이 만료되었습니다.  다시 로그인해주십시오.</target>
+<note>{"sourceComment":" Logged out error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246737000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="ko-kr">모두보기</target>
+<note>{"sourceComment":"Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":176509,"createdDate":1468534928000,"lastModifiedDate":1468534928000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935277, unique match: false","createdByUser":{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"username":"jyi","enabled":true,"surname":"Yi","givenName":"Jee","commonName":"Jee Yi","authorities":[{"id":25,"createdDate":1458613280000,"lastModifiedDate":1458613280000,"authority":"ROLE_USER"}]}}],"createdDate":1468534928000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.placeholder" xml:space="preserve">
+<source xml:lang="en">Search term...</source>
+<target xml:lang="ko-kr">검색어...</target>
+<note>{"sourceComment":" Label used as placeholder for the search input field of the SearchPanelWithFilters widget","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192465,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935053, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.pagination.isLoading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="ko-kr">로딩중...</target>
+<note>{"sourceComment":" label displayed alternately if the \"loading\" image used during pagination is not available","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192477,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935101, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.result.empty" xml:space="preserve">
+<source xml:lang="en">There are no results. Update your search parameter to find what you're looking for!</source>
+<target xml:lang="ko-kr">검색결과가 없습니다.  다시 검색해주세요.</target>
+<note>{"sourceComment":" Message displayed when there's no search results found.","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246771000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.result.selectRepoAndLocale" xml:space="preserve">
+<source xml:lang="en">Selecte at least one repository and locale before you can search.</source>
+<target xml:lang="ko-kr">검색전에 적어도 한개의 프로젝트와 언어를 선택해주세요.</target>
+<note>{"sourceComment":" Message displayed when the user has not selected repository and locales","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246817000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.profile" xml:space="preserve">
+<source xml:lang="en">My Profile</source>
+<target xml:lang="ko-kr">프로필</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to show user's profile","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192489,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935105, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.preferences" xml:space="preserve">
+<source xml:lang="en">My Preferences</source>
+<target xml:lang="ko-kr">선호도</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to show user's preferences","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192501,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935109, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.logout" xml:space="preserve">
+<source xml:lang="en">Logout</source>
+<target xml:lang="ko-kr">로그아웃</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to logout","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192513,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935113, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="ko-kr">저장</target>
+<note>{"sourceComment":" Save label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192525,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935117, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="ko-kr">예</target>
+<note>{"sourceComment":" Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192545,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935093, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}},{"id":192549,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1739581, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="ko-kr">아니요</target>
+<note>{"sourceComment":" No label to be used on buttons, labels etc.  No to indicate rejection to the question","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192569,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935097, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}},{"id":192573,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 1739593, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.delete" xml:space="preserve">
+<source xml:lang="en">Delete</source>
+<target xml:lang="ko-kr">삭제</target>
+<note>{"sourceComment":" Delete label to be used on buttons","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192585,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935121, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="ko-kr">취소</target>
+<note>{"sourceComment":" Cancel label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192597,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935125, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.okay" xml:space="preserve">
+<source xml:lang="en">Okay</source>
+<target xml:lang="ko-kr">확인</target>
+<note>{"sourceComment":" Okay label to be used on buttons, labels etc","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246821000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="ko-kr">새로운 번역 입력하기</target>
+<note>{"sourceComment":" Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246852000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.unused" xml:space="preserve">
+<source xml:lang="en">Unused</source>
+<target xml:lang="ko-kr">사용안함</target>
+<note>{"sourceComment":" Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192633,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935133, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.notIncludedInLocalizedFile" xml:space="preserve">
+<source xml:lang="en">Not included in localized file</source>
+<target xml:lang="ko-kr">번역된 파일에 포함안됨</target>
+<note>{"sourceComment":" Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192645,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935137, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="ko-kr">새로운 번역 입력하기</target>
+<note>{"sourceComment":" Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470246850000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="ko-kr">번역현황</target>
+<note>{"sourceComment":" Label for the Review button on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192685,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935361, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="ko-kr">거절</target>
+<note>{"sourceComment":" Label for the Review button on the modal in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192697,"createdDate":1470185986000,"lastModifiedDate":1470185986000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935161, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.accepted" xml:space="preserve">
+<source xml:lang="en">Accepted</source>
+<target xml:lang="ko-kr">승인</target>
+<note>{"sourceComment":" Button label used for primary action \"removeReview\" on modal dialog","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192709,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935165, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="ko-kr">리뷰필요</target>
+<note>{"sourceComment":" Button label used for the Needs Review button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192721,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935169, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.translationNeeded" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="ko-kr">번역필요</target>
+<note>{"sourceComment":" Button label used for the Translation needed button on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192733,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935297, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.title" xml:space="preserve">
+<source xml:lang="en">Review selected translations</source>
+<target xml:lang="ko-kr">선택된 번역 리뷰하기</target>
+<note>{"sourceComment":" Label displayed as the title of the modal popup when user clicks on a textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192745,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935173, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentLabel" xml:space="preserve">
+<source xml:lang="en">Comment</source>
+<target xml:lang="ko-kr">댓글</target>
+<note>{"sourceComment":" Label for the text unit comment on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192757,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935177, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentPlaceholder" xml:space="preserve">
+<source xml:lang="en">Enter comment</source>
+<target xml:lang="ko-kr">댓글달기</target>
+<note>{"sourceComment":" Placeholder for the textarea on the textunit review modal","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192769,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935181, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.deletemodal.title" xml:space="preserve">
+<source xml:lang="en">Confirm delete</source>
+<target xml:lang="ko-kr">삭제확인</target>
+<note>{"sourceComment":" Label displayed in the header of the modal popup when user clicks on delete textunit action","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192781,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935185, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnits.bulk.deleteMessage" xml:space="preserve">
+<source xml:lang="en">Are you sure you want to delete the selected text units?</source>
+<target xml:lang="ko-kr">선택한 문장과 번역을 지우시겠습니까?</target>
+<note>{"sourceComment":" Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192793,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935189, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</source>
+<target xml:lang="ko-kr">{numberOfSelectedRepositories, plural, =0{프로젝트} =1{프로젝트 1개} other{프로젝트 #개}}</target>
+<note>{"sourceComment":" Label displayed on the repositories dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192805,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935249, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="ko-kr">모두보기</target>
+<note>{"sourceComment":" Label displayed in the search box of the repository dropdown in the workbench to select all the repositories at once","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192901,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935277, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</source>
+<target xml:lang="ko-kr">{numberOfSelectedLocales, plural, =0{언어} =1{1개 언어} other{#개 언어}}</target>
+<note>{"sourceComment":" Label displayed on the locales dropdown in the workbench","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192817,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935253, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="ko-kr">모두보기</target>
+<note>{"sourceComment":" Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192913,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935277, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.logout" xml:space="preserve">
+<source xml:lang="en">You have been logged out.</source>
+<target xml:lang="ko-kr">로그아웃 되었습니다.</target>
+<note>{"sourceComment":" Login form log out message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192829,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935213, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.error" xml:space="preserve">
+<source xml:lang="en">Invalid username and password.</source>
+<target xml:lang="ko-kr">아이디나 패스워드가 잘못되었습니다.</target>
+<note>{"sourceComment":" Login form error message","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192841,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935217, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in.</source>
+<target xml:lang="ko-kr">로그인 하세요</target>
+<note>{"sourceComment":" Login form title","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192889,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name for source leveraging leveraging from: 935221, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.login" xml:space="preserve">
+<source xml:lang="en">Log in</source>
+<target xml:lang="ko-kr">로그인</target>
+<note>{"sourceComment":" Login form log in button","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192853,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935225, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.username" xml:space="preserve">
+<source xml:lang="en">username</source>
+<target xml:lang="ko-kr">아이디</target>
+<note>{"sourceComment":" Login form username input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192865,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935229, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.password" xml:space="preserve">
+<source xml:lang="en">password</source>
+<target xml:lang="ko-kr">패스워드</target>
+<note>{"sourceComment":" Login form password input field place holder","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192877,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by name and content for source leveraging leveraging from: 935233, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="ko-kr">예</target>
+<note>{"sourceComment":" Label Yes to indicate confirmation","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192925,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935093, unique match: false","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="ko-kr">아니요</target>
+<note>{"sourceComment":" Label Yes to indicate negative","targetComment":null,"includedInLocalizedFile":true,"status":"TRANSLATION_NEEDED","variantComments":[{"id":192937,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935097, unique match: false","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="ko-kr">취소</target>
+<note>{"sourceComment":" Button label to cancel changes","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[{"id":192949,"createdDate":1470185987000,"lastModifiedDate":1470185987000,"severity":"INFO","type":"LEVERAGING","content":"by content for source leveraging leveraging from: 935125, unique match: true","createdByUser":{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"username":"jaurambault","enabled":true,"surname":"Aurambault","givenName":"Jean","commonName":"Jean Aurambault","authorities":[{"id":9,"createdDate":1458610889000,"lastModifiedDate":1458610889000,"authority":"ROLE_USER"}]}}],"createdDate":1470185987000}</note>
+</trans-unit>
+</body>
+</file>
+</xliff>
