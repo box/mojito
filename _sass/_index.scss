@@ -1,0 +1,69 @@
+.section {
+ height: 300px; 
+  padding: 10px 0;
+  
+  .description {
+    
+  }
+  
+  .screenshot {
+    background-size: contain;
+    display: inline-block;
+  }  
+}
+
+.screenshot-cl {
+  background: url('/images/screenshot-cl.png');
+  width: 600px;
+}
+
+.screenshot-workbench {
+  background: url('/images/screenshot-workbench.png');
+  width: 600px;
+}
+
+.screenshot-cli {
+  background: url('/images/screenshot-cli.png');
+  width: 300px;
+}
+
+.ci-logo-group {
+  width: 400px;
+  height: 100px;
+}
+
+.ci-logo {
+  width: 150px;  
+}
+
+.section-1 {
+  background-color: rgba($grey-color, 0.0);
+  height: 380px;
+}
+
+.section-2 {
+  background-color: rgba($grey-color, 0.1);
+  height: 550px;
+}
+
+.section-3 {
+  background-color: rgba($grey-color, 0.0);
+  height: 270px;
+}
+
+.section-4 {
+  background-color: rgba($grey-color, 0.2);
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-check {
+  background: url("/images/green-check-mark.png") no-repeat left top;
+  background-size: 15px 15px;
+  background-position-y: 4px;
+  padding-left: 25px;
+}
