@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <string name="100_character_description_"><b>100</b> \"character\" \'description\':\n</string>
+    <string name="15_min_duration" description="File lock dialog duration">15 min</string>
+    <string name="1_hour_duration" description="File lock dialog duration">1 hour</string>
+    <string name="1_month_duration" description="File lock dialog duration">1 month</string>
+    <string name="something_new">Something new</string>
+</resources>

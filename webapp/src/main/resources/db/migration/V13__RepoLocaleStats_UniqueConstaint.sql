@@ -1,0 +1,1 @@
+alter table repository_locale_statistic add constraint UK__REPO_LOCALE_STAT___REPO_STAT_ID_LOCALE_ID unique (repository_statistic_id, locale_id);

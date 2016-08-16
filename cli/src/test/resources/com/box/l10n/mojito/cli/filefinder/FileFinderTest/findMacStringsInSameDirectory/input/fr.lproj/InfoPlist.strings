@@ -1,0 +1,8 @@
+/* Localized versions of Info.plist keys */
+
+// hello comment
+NSHelloInfoPlist = "Bonjour InfoPlist";
+
+// Bye comment
+NSByeInfoPlist = "Au revoir InfoPlist";
+

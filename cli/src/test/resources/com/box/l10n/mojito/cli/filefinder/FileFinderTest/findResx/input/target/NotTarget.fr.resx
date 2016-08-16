@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+  <data name="Test" xml:space="preserve">
+    <value>You must test your code</value>
+	<comment>Label</comment>
+  </data>
+</root>

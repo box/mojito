@@ -1,0 +1,659 @@
+$brand-font-weight: 400;
+
+/** Overriding bootstrap default vars */
+$brand-primary: #559745;
+$brand-success: lighten($brand-primary, 0.5%);
+$brand-info: #004b85;
+$brand-warning: #f1aa1e;
+$brand-danger: #a62c38;
+$link-color: $brand-primary;
+$input-border-focus: $brand-primary;
+$headings-font-weight: $brand-font-weight;
+$form-group-margin-bottom: 3px;
+$btn-font-weight: $brand-font-weight;
+$border-radius-base: 3px;
+$border-radius-large: 4px;
+$border-radius-small: 2px;
+$modal-backdrop-bg: #fff;
+$modal-backdrop-opacity: 0.9;
+$color-gray-light: #CCC;
+$color-white: #FFF;
+$large-spacer: 20px;
+
+@import "../../../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+
+body {
+  font-weight: $brand-font-weight;
+}
+
+h4 {
+  color: $gray-light;
+  font-weight: 300;
+}
+
+button, .btn {
+  @include form-control-focus;
+}
+
+.navbar-default {
+  border-color: $brand-primary;
+  border-top: 0;
+  background-color: $color-white;
+  border-left: 0;
+  border-right: 0;
+}
+
+.navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
+  color: $brand-primary;
+  background-color: transparent;
+}
+
+.navbar-brand {
+  padding-top: 10px;
+  padding-bottom: 0px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.navbar-brand > img {
+  width: 30px;
+  height: 30px;
+}
+
+/**
+ * LABEL
+ */
+.label {
+  background-color: $color-white;
+  border: 1px solid $gray-base;
+  color: $gray-base;
+  font-weight: 200;
+  border-radius: 2px;
+}
+
+.label-primary {
+  border: 1px solid $brand-primary;
+  color: $brand-primary;
+}
+
+.label-success {
+  border: 1px solid $brand-success;
+  color: $brand-success;
+}
+
+.label-info {
+  border: 1px solid $brand-info;
+  color: $brand-info;
+}
+
+.label-warning {
+  border: 1px solid $brand-warning;
+  color: $brand-warning;
+}
+
+.label-danger {
+  border: 1px solid $brand-danger;
+  color: $brand-danger;
+}
+
+.label.clickable:hover {
+  background-color: darken($gray-base, 15%);
+  color: $color-white;
+}
+
+.label.label-success.clickable:hover {
+  background-color: darken($brand-success, 15%);
+}
+
+.label.label-info.clickable:hover {
+  background-color: darken($brand-info, 15%);
+}
+
+.label.label-warning.clickable:hover {
+  background-color: darken($brand-warning, 15%);
+}
+
+.label.label-danger.clickable:hover {
+  background-color: darken($brand-danger, 15%);
+}
+
+a.label-container:hover {
+  text-decoration: none !important;
+}
+
+/** TABLE */
+.table > thead > tr > th, .table > thead > tr > td {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.table > tbody > tr > th, .table > tbody > tr > td {
+  color: $gray;
+  border-top: 1px solid $gray-lighter;
+}
+
+.table > tbody > tr:first-child > th, .table > tbody > tr:first-child > td {
+  border-top: 0px;
+}
+
+.table > thead > tr > th {
+  vertical-align: middle;
+  border-bottom: 1px solid $gray-lighter;
+}
+
+.table-padded-sides > tbody > tr > td:last-child, .table-padded-sides > thead > tr > th:last-child {
+  padding-right: $large-spacer;
+}
+
+.table-padded-sides > tbody > tr > td:first-child, .table-padded-sides > thead > tr > th:first-child {
+  padding-left: $large-spacer;
+}
+
+.row-active {
+  border: 1px solid $brand-primary;
+}
+
+.row-blurred td {
+  opacity: 0.5;
+}
+
+.dropdown-menu {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/** MODAL */
+.modal-content {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/** emphasis */
+.em {
+  font-style: italic;
+}
+
+/** margin left extra small */
+.mlxs {
+  margin-left: 5px;
+}
+
+/** margin right extra small */
+.mrxs {
+  margin-right: 5px;
+}
+
+/** margin bottom extra small */
+.mbxs {
+  margin-bottom: 5px;
+}
+
+/** margin top extra small */
+.mtxs {
+  margin-top: 5px;
+}
+
+/** margin left small */
+.mls {
+  margin-left: 10px;
+}
+
+/** margin right small */
+.mrs {
+  margin-right: 10px;
+}
+
+/** margin bottom small */
+.mbs {
+  margin-bottom: 10px;
+}
+
+/** margin top small */
+.mts {
+  margin-top: 10px;
+}
+
+/** margin left medium */
+.mlm {
+  margin-left: 15px;
+}
+
+/** margin right medium */
+.mrm {
+  margin-right: 15px;
+}
+
+/** margin bottom meidum */
+.mbm {
+  margin-bottom: 15px;
+}
+
+/** margin bottom medium */
+.mtm {
+  margin-top: 15px;
+}
+
+/** margin left large */
+.mll {
+  margin-left: 20px;
+}
+
+/** margin right large */
+.mrl {
+  margin-right: 20px;
+}
+
+/** margin bottom large */
+.mbl {
+  margin-bottom: 20px;
+}
+
+/** margin top large */
+.mtl {
+  margin-top: 20px;
+}
+
+/** padding bottom medium */
+.pbm {
+  padding-bottom: 15px;
+}
+
+/** padding top medium */
+.ptm {
+  padding-top: 15px;
+}
+
+/** padding right medium */
+.prm {
+  padding-right: 15px;
+}
+
+.ptl {
+  padding-top: 20px;
+}
+
+.pbl {
+  padding-bottom: 20px;
+}
+
+.pll {
+  padding-left: 20px;
+}
+
+.prl {
+  padding-right: 20px;
+}
+
+/** padding left medium */
+.plm {
+  padding-left: 15px;
+}
+
+/** padding bottom small */
+.pbs {
+  padding-bottom: 5px;
+}
+
+/** padding top small */
+.pts {
+  padding-top: 5px;
+}
+
+/** padding right small */
+.prs {
+  padding-right: 5px;
+}
+
+/** padding left small */
+.pls {
+  padding-left: 5px;
+}
+
+/** padding left x-large */
+.plx {
+  padding-left: 30px;
+}
+
+/** padding left x-large */
+.prx {
+  padding-right: 30px;
+}
+
+.align-rtl {
+  direction: rtl;
+}
+
+.align-start {
+  text-align: left;
+  text-align: start; /* Experimental, IE10+ */
+}
+
+.align-end {
+  text-align: right;
+  text-align: end; /* Experimental, IE10+ */
+}
+
+.align-center {
+  text-align: center;
+}
+
+.color-info {
+  color: $brand-info;
+}
+
+.color-gray-light {
+  color: $gray-light;
+}
+
+.color-gray-light2 {
+  color: $color-gray-light;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.glyphicon.spinning {
+  opacity: 0.7;
+  animation: spin 1s infinite linear;
+  -webkit-animation: spin2 1s infinite linear;
+}
+
+@keyframes spin {
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+  to {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+@-webkit-keyframes spin2 {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+/**
+ * WORKBENCH
+ */
+
+/* override  bootstrap css so that status dropdown options do not wrap in the workbench */
+div.statusDropdown {
+  min-width: 200px;
+}
+
+.textunit {
+  position: initial;
+  border-bottom: 1px solid $color-gray-light;
+  border-left: 2px solid $color-white;
+  outline: none;
+}
+
+.textunit:hover {
+  background: rgba($brand-primary, 0.03);;
+}
+
+div.textunit.textunit-selected {
+  background-color: rgba($brand-primary, 0.1);;
+}
+
+div.textunit.textunit-active {
+  border-left: 2px solid $brand-primary;
+}
+
+div.textunit label {
+  font-weight: normal;
+  margin-left: 10px;
+}
+
+.textunit-string {
+  width: 90%;
+  white-space: pre-wrap;
+}
+
+.textunit-returnline {
+  color: $brand-primary;
+  font-size: 10px;
+}
+
+.textunit-string.textunit-target {
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+
+.textunit-string.textunit-target:hover {
+  border: 1px dotted gray;
+}
+
+.textunit-actionbar {
+  position: absolute;
+  right: 0;
+}
+
+div.textunit div.targetstring-container {
+  float: left;
+  width: 90%;
+}
+
+div.targetstring-container textarea {
+  max-width: 100%;
+  outline: invert;
+}
+
+/**
+ * LOGIN
+ */
+.login-container {
+  padding-top: 200px;
+  font-weight: $brand-font-weight;
+}
+
+.login-logo-container {
+  width: 391px;
+  padding-left: 30px;
+}
+
+.login-form-container {
+  width: 391px;
+}
+
+.login-container .form-control {
+  height: 50px;
+}
+
+/**
+ * REPOSITORY
+ */
+.repo-name {
+  word-break: break-all;
+  word-wrap: break-word;
+  width: 300px;
+}
+
+.repo-counts {
+  font-weight: bold;
+  color: $brand-primary;
+}
+
+.show-details-button {
+  transition: margin 0.2s;
+  color: $brand-primary;
+  float: right;
+}
+
+.show-details-button:hover {
+  opacity: 0.9;
+}
+
+.repo-table > thead > tr > th, .repo-table > tbody > tr > th, .repo-table > tfoot > tr > th, .repo-table > thead > tr > td, .repo-table > tbody > tr > td, .repo-table > tfoot > tr > td {
+  vertical-align: middle;
+}
+
+.repo-table a {
+  color: $gray-dark;
+}
+
+/**
+ * REPOSITORY STATS
+ */
+
+.repo-stats-table > tbody > tr > td {
+  vertical-align: middle;
+}
+
+.repo-stats-table a {
+  color: $gray-dark;
+}
+
+.repo-stats-row-blured {
+  opacity: 0.5;
+}
+
+/**
+ * Bootstrap CSS makes text in all labels bold. Apply this class to get the default label rendered by the browser.
+ */
+.default-label {
+  font-weight: normal;
+}
+
+label.current-pageNumber {
+  width: 17px;
+  text-align: center;
+}
+
+.textunits-container {
+  position: absolute;
+  top: 170px;
+  bottom: 0px;
+  width: 98%;
+  overflow-y: auto;
+}
+
+.textunit-toolbar-clear {
+  clear: both;
+}
+
+@media (max-width: 780px) {
+  .textunits-container {
+    top: 320px;
+  }
+}
+
+.drop-table > thead > tr > th, .drop-table > tbody > tr > th, .drop-table > tfoot > tr > th, .drop-table > thead > tr > td, .drop-table > tbody > tr > td, .drop-table > tfoot > tr > td {
+  line-height: 2.7;
+}
+
+.drop-table > tbody > tr > td {
+  position: relative;
+}
+
+.drop-table .btn-toolbar {
+  position: absolute;
+  right: 10px;
+  display: inline-block;
+  visibility: hidden;
+}
+
+.drop-table > tbody > tr:hover .btn-toolbar {
+  visibility: visible;
+}
+
+.drop-title-bar {
+  position: relative;
+}
+
+.drop-alert {
+  width: 50%;
+  position: absolute;
+  top: -10px;
+  left: 25%;
+}
+
+.drop-alert .alert {
+  display: inline-block;
+}
+
+@media (max-width: 780px) {
+  .drop-alert {
+    top: -80px;
+    left: 5%;
+  }
+}
+
+.drop-pagination {
+  float: left;
+}
+
+.side-bar-root-container {
+  top: 51px !important;
+}
+
+@media (max-width: 780px) {
+  .side-bar-root-container {
+    position: absolute !important;
+    top: 186px !important;
+  }
+}
+
+.side-bar-main-content-container {
+  padding-top: 10px;
+}
+
+.side-bar-container {
+  min-width: 30%;
+  padding-top: 10px;
+}
+
+.side-bar-container > .title {
+  display: inline-block;
+}
+
+.side-bar-container .title .close {
+  right: 0;
+  top: 0;
+  padding: 5px 10px;
+  position: absolute;
+}
+
+.side-bar-content-container {
+  flex: 1 1;
+  overflow: scroll;
+}
+
+.locale-dropdown ul {
+  max-height: 400px;
+  overflow: scroll;
+}
+
+.repository-dropdown li > a {
+  max-width: 500px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.repository-dropdown ul {
+  max-height: 400px;
+  overflow: scroll;
+}
+
+.empty-search-container {
+  background-image: url("/img/magnifying-glass.svg");
+  background-repeat: no-repeat;
+  background-size: 125px;
+  background-position: center;
+  width: 600px;
+  height: 300px;
+  opacity: 0.5;
+  margin-top: 80px;
+}
+
+.search-text .glyphicon-refresh.spinning {
+  color: $brand-primary;
+  position: absolute;
+  z-index: 3;
+  right: 10px;
+  top: 9px;
+}

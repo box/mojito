@@ -1,0 +1,6 @@
+alter table asset_integrity_checker drop foreign key FK__ASSET_INTEGRITY_CHECKER__REPOSITORY__ID;
+
+drop index UK__ASSET_INTEGRITY_CHECKER__REPOSITORY_ID__ASSET_EXTENSION on asset_integrity_checker;
+create index I__ASSET_INTEGRITY_CHECKER__REPOSITORY_ID__ASSET_EXTENSION on asset_integrity_checker (repository_id, asset_extension);
+
+alter table asset_integrity_checker add constraint FK__ASSET_INTEGRITY_CHECKER__REPOSITORY__ID foreign key (repository_id) references repository (id);

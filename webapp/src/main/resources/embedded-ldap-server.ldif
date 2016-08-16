@@ -1,0 +1,31 @@
+dn: ou=Managers,dc=mojito,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: Managers
+
+dn: ou=Users,dc=mojito,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: Users
+
+dn: ou=Subgroup,ou=Users,dc=mojito,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: Subgroup
+
+dn: cn=bind_user,ou=Managers,dc=mojito,dc=org
+objectclass: top
+objectclass: organizationalRole
+uid: bind_user
+cn: bind_user
+sn: bind_user
+userPassword: test
+
+dn: cn=admin,ou=Users,dc=mojito,dc=org
+objectclass: top
+objectclass: posixAccount
+cn: admin
+sn: admin
+givenname: admin
+uid: admin
+userPassword: admin

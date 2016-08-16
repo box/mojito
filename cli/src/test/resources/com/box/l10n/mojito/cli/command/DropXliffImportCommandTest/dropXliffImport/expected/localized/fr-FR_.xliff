@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
+<file original="replaced-original" source-language="en" target-language="fr-fr" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<body>
+<trans-unit id="replaced-id" resname="1_hour_duration" xml:space="preserve">
+<source xml:lang="en">1 hour</source>
+<target xml:lang="fr-fr" state="new">Import Xliff Drop - 1 hour fr-fr</target>
+<note>File lock dialog duration</note>
+</trans-unit>
+<trans-unit id="replaced-id" resname="1_month_duration" xml:space="preserve">
+<source xml:lang="en">1 month</source>
+<target xml:lang="fr-fr" state="new">Import Xliff Drop - 1 month fr-fr</target>
+<note>File lock dialog duration</note>
+</trans-unit>
+</body>
+</file>
+</xliff>

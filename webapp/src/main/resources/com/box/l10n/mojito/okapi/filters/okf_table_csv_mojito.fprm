@@ -1,0 +1,11 @@
+#v1
+fieldDelimiter=,
+textQualifier="
+sourceIdColumns=5
+sourceColumns=2
+targetColumns=4
+commentColumns=7
+sourceIdSourceRefs=2
+targetSourceRefs=2
+commentSourceRefs=2
+parametersClass=net.sf.okapi.filters.table.csv.Parameters

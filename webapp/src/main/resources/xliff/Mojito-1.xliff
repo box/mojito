@@ -1,0 +1,1032 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
+<file original="en.properties" source-language="en" target-language="en" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<body>
+<trans-unit id="" resname="header.workbench" xml:space="preserve">
+<source xml:lang="en">Workbench</source>
+<target xml:lang="en">Workbench</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the workbench","targetComment":" Label displayed in the header menu to open the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.repositories" xml:space="preserve">
+<source xml:lang="en">Repositories</source>
+<target xml:lang="en">Repositories</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the repositories page","targetComment":" Label displayed in the header menu to open the repositories page","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="en">Name</target>
+<note>{"sourceComment":" Name column in the table header used to display a list of repositories","targetComment":" Name column in the table header used to display a list of repositories","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.description" xml:space="preserve">
+<source xml:lang="en">Description</source>
+<target xml:lang="en">Description</target>
+<note>{"sourceComment":" Description column in the table header used to display a list of repositories","targetComment":" Description column in the table header used to display a list of repositories","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="en">Status</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":" Updated column in the table header used to display a list of repositories","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="en">Translated</target>
+<note>{"sourceComment":" Updated column in the table header used to display a list of repositories","targetComment":" Updated column in the table header used to display a list of repositories","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.review" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Needs Review} other{# Needs Review}}</source>
+<target xml:lang="en">{numberOfNeedsReview, plural, =0 {None Needs Review} other{# Needs Review}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":" Label to show the number of text units to review","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.rejected" xml:space="preserve">
+<source xml:lang="en">{numberOfRejected, plural, =0 {None Rejected} other{# Rejected}}</source>
+<target xml:lang="en">{numberOfRejected, plural, =0 {None Rejected} other{# Rejected}}</target>
+<note>{"sourceComment":" Label to show the number of rejected text units","targetComment":" Label to show the number of rejected text units","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.ok" xml:space="preserve">
+<source xml:lang="en">Ok</source>
+<target xml:lang="en">Ok</target>
+<note>{"sourceComment":" Label to show ok - meaning that everything is fine","targetComment":" Label to show ok - meaning that everything is fine","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.placeholder" xml:space="preserve">
+<source xml:lang="en">Search term...</source>
+<target xml:lang="en">Search term...</target>
+<note>{"sourceComment":"Label used as placeholder for the search input field of the SearchPanelWithFilters widget","targetComment":"Label used as placeholder for the search input field of the SearchPanelWithFilters widget","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.stringId" xml:space="preserve">
+<source xml:lang="en">String ID</source>
+<target xml:lang="en">String ID</target>
+<note>{"sourceComment":" Search filter option \"string id\"","targetComment":" Search filter option \"string id\"","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.source" xml:space="preserve">
+<source xml:lang="en">Source</source>
+<target xml:lang="en">Source</target>
+<note>{"sourceComment":" Search filter option \"source\"","targetComment":" Search filter option \"source\"","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.target" xml:space="preserve">
+<source xml:lang="en">Target</source>
+<target xml:lang="en">Target</target>
+<note>{"sourceComment":" Search filter option \"target\"","targetComment":" Search filter option \"target\"","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.exact" xml:space="preserve">
+<source xml:lang="en">Exact</source>
+<target xml:lang="en">Exact</target>
+<note>{"sourceComment":" Search filter option to search for strings that matche exactly the search critera","targetComment":" Search filter option to search for strings that matche exactly the search critera","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.contains" xml:space="preserve">
+<source xml:lang="en">Contains</source>
+<target xml:lang="en">Contains</target>
+<note>{"sourceComment":" Search filter option to search for strings that contains the search critera","targetComment":" Search filter option to search for strings that contains the search critera","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.ilike" xml:space="preserve">
+<source xml:lang="en">ILike</source>
+<target xml:lang="en">ILike</target>
+<note>{"sourceComment":" Search filter option to search for strings that matches a ilike SQL style expression","targetComment":" Search filter option to search for strings that matches a ilike SQL style expression","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchAttribute" xml:space="preserve">
+<source xml:lang="en">Attribute</source>
+<target xml:lang="en">Attribute</target>
+<note>{"sourceComment":" Header shown before the list of attributes (string id, source, target) the search can be perform on","targetComment":" Header shown before the list of attributes (string id, source, target) the search can be perform on","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.searchType" xml:space="preserve">
+<source xml:lang="en">Type</source>
+<target xml:lang="en">Type</target>
+<note>{"sourceComment":" Header shown before the list of search type (exact, contains, ilike) that can be performed","targetComment":" Header shown before the list of search type (exact, contains, ilike) that can be performed","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.title" xml:space="preserve">
+<source xml:lang="en">Filter by</source>
+<target xml:lang="en">Filter by</target>
+<note>{"sourceComment":" Title of the status dropdown in the workbench to filter results","targetComment":" Title of the status dropdown in the workbench to filter results","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.used" xml:space="preserve">
+<source xml:lang="en">Used</source>
+<target xml:lang="en">Used</target>
+<note>{"sourceComment":" Search filter option \"used\" used in the status dropdown in the workbench","targetComment":" Search filter option \"used\" used in the status dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="en">Translated</target>
+<note>{"sourceComment":" Search filter option \"translated\" used in the status dropdown in the workbench","targetComment":" Search filter option \"translated\" used in the status dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="en">Needs Review</target>
+<note>{"sourceComment":" Search filter option \"needs review\" used in the status dropdown in the workbench","targetComment":" Search filter option \"needs review\" used in the status dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="en">Rejected</target>
+<note>{"sourceComment":" Search filter option \"Not rejected\" used in the status dropdown in the workbench","targetComment":" Search filter option \"Not rejected\" used in the status dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="en">Yes</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is active","targetComment":" Search filter option label to indicate that the filter is active","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="en">No</target>
+<note>{"sourceComment":" Search filter option label to indicate that the filter is inactive","targetComment":" Search filter option label to indicate that the filter is inactive","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.pagination.isLoading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="en">Loading...</target>
+<note>{"sourceComment":"label displayed alternately if the \"loading\" image used during pagination is not available","targetComment":"label displayed alternately if the \"loading\" image used during pagination is not available","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.profile" xml:space="preserve">
+<source xml:lang="en">My Profile</source>
+<target xml:lang="en">My Profile</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's profile","targetComment":"Label used in the header loggedInUser dropdown to show user's profile","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.preferences" xml:space="preserve">
+<source xml:lang="en">My Preferences</source>
+<target xml:lang="en">My Preferences</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to show user's preferences","targetComment":"Label used in the header loggedInUser dropdown to show user's preferences","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.logout" xml:space="preserve">
+<source xml:lang="en">Logout</source>
+<target xml:lang="en">Logout</target>
+<note>{"sourceComment":"Label used in the header loggedInUser dropdown to logout","targetComment":"Label used in the header loggedInUser dropdown to logout","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="en">Save</target>
+<note>{"sourceComment":"Save label to be used on buttons, labels etc","targetComment":"Save label to be used on buttons, labels etc","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.delete" xml:space="preserve">
+<source xml:lang="en">Delete</source>
+<target xml:lang="en">Delete</target>
+<note>{"sourceComment":"Delete label to be used on buttons","targetComment":"Delete label to be used on buttons","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="en">Cancel</target>
+<note>{"sourceComment":"Cancel label to be used on buttons, labels etc","targetComment":"Cancel label to be used on buttons, labels etc","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter a new translation ...</source>
+<target xml:lang="en">Enter a new translation ...</target>
+<note>{"sourceComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.unused" xml:space="preserve">
+<source xml:lang="en">Unused</source>
+<target xml:lang="en">Unused</target>
+<note>{"sourceComment":"Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","targetComment":"Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.notIncludedInLocalizedFile" xml:space="preserve">
+<source xml:lang="en">Not included in localized file</source>
+<target xml:lang="en">Not included in localized file</target>
+<note>{"sourceComment":"Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","targetComment":"Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation...</source>
+<target xml:lang="en">Enter new translation...</target>
+<note>{"sourceComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.review" xml:space="preserve">
+<source xml:lang="en">Review</source>
+<target xml:lang="en">Review</target>
+<note>{"sourceComment":"Label for the Review button on the workbench toolbar","targetComment":"Label for the Review button on the workbench toolbar","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.numberOfSelectedTextUnits" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedTextUnits, plural, =0 {None selected} other{# selected}}</source>
+<target xml:lang="en">{numberOfSelectedTextUnits, plural, =0 {None selected} other{# selected}}</target>
+<note>{"sourceComment":" Label displayed as the title of the dropdown in the workbench toolbar to indicate the number of selected text units in the workbench","targetComment":" Label displayed as the title of the dropdown in the workbench toolbar to indicate the number of selected text units in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.selectAllInPage" xml:space="preserve">
+<source xml:lang="en">Select all in page</source>
+<target xml:lang="en">Select all in page</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to select all textunits in the current page","targetComment":" Label displayed in the workbench toolbar dropdown to select all textunits in the current page","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAllInPage" xml:space="preserve">
+<source xml:lang="en">Clear all in page</source>
+<target xml:lang="en">Clear all in page</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits in the current page","targetComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits in the current page","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.clearAll" xml:space="preserve">
+<source xml:lang="en">Clear all</source>
+<target xml:lang="en">Clear all</target>
+<note>{"sourceComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits across all pages in the search results","targetComment":" Label displayed in the workbench toolbar dropdown to clear selection of all textunits across all pages in the search results","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="en">Rejected</target>
+<note>{"sourceComment":"Label for the Review button on the modal in the workbench","targetComment":"Label for the Review button on the modal in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.accepted" xml:space="preserve">
+<source xml:lang="en">Accepted</source>
+<target xml:lang="en">Accepted</target>
+<note>{"sourceComment":"Button label used for primary action \"removeReview\" on modal dialog","targetComment":"Button label used for primary action \"removeReview\" on modal dialog","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="en">Needs Review</target>
+<note>{"sourceComment":"Button label used for the Needs Review button on the textunit review modal","targetComment":"Button label used for the Needs Review button on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.title" xml:space="preserve">
+<source xml:lang="en">Review selected translations</source>
+<target xml:lang="en">Review selected translations</target>
+<note>{"sourceComment":"Label displayed as the title of the modal popup when user clicks on a textunit action","targetComment":"Label displayed as the title of the modal popup when user clicks on a textunit action","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentLabel" xml:space="preserve">
+<source xml:lang="en">Comment</source>
+<target xml:lang="en">Comment</target>
+<note>{"sourceComment":"Label for the text unit comment on the textunit review modal","targetComment":"Label for the text unit comment on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentPlaceholder" xml:space="preserve">
+<source xml:lang="en">Enter comment</source>
+<target xml:lang="en">Enter comment</target>
+<note>{"sourceComment":"Placeholder for the textarea on the textunit review modal","targetComment":"Placeholder for the textarea on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.deletemodal.title" xml:space="preserve">
+<source xml:lang="en">Confirm delete</source>
+<target xml:lang="en">Confirm delete</target>
+<note>{"sourceComment":"Label displayed in the header of the modal popup when user clicks on delete textunit action","targetComment":"Label displayed in the header of the modal popup when user clicks on delete textunit action","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnits.bulk.deleteMessage" xml:space="preserve">
+<source xml:lang="en">Are you sure you want to delete the selected text units?</source>
+<target xml:lang="en">Are you sure you want to delete the selected text units?</target>
+<note>{"sourceComment":"Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","targetComment":"Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.save.failed" xml:space="preserve">
+<source xml:lang="en">There was an error saving the translation.</source>
+<target xml:lang="en">There was an error saving the translation.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when saving a textunit fails","targetComment":" Label displayed on the ErrorModal when saving a textunit fails","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.delete.failed" xml:space="preserve">
+<source xml:lang="en">There was an error deleting the translation.</source>
+<target xml:lang="en">There was an error deleting the translation.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when deleting a textunit fails","targetComment":" Label displayed on the ErrorModal when deleting a textunit fails","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.placeholder" xml:space="preserve">
+<source xml:lang="en">Choose Repositories</source>
+<target xml:lang="en">Choose Repositories</target>
+<note>{"sourceComment":"Label displayed on the repositories dropdown in the workbench when no repositories are selected","targetComment":"Label displayed on the repositories dropdown in the workbench when no repositories are selected","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.filterPlaceholder" xml:space="preserve">
+<source xml:lang="en">Repository Name...</source>
+<target xml:lang="en">Repository Name...</target>
+<note>{"sourceComment":"Label displayed in the search box of the repositories dropdown in the workbench","targetComment":"Label displayed in the search box of the repositories dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales ... } =1{1 locale selected} other{# locales selected}}</source>
+<target xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales ... } =1{1 locale selected} other{# locales selected}}</target>
+<note>{"sourceComment":"Label displayed on the locales dropdown in the workbench","targetComment":"Label displayed on the locales dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.filterPlaceholder" xml:space="preserve">
+<source xml:lang="en">Locale Name...</source>
+<target xml:lang="en">Locale Name...</target>
+<note>{"sourceComment":"Label displayed in the search box of the locales dropdown in the workbench","targetComment":"Label displayed in the search box of the locales dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.query.failed" xml:space="preserve">
+<source xml:lang="en">There was an error querying the server</source>
+<target xml:lang="en">There was an error querying the server</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when the search query fails","targetComment":" Label displayed on the ErrorModal when the search query fails","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.logout" xml:space="preserve">
+<source xml:lang="en">You have been logged out.</source>
+<target xml:lang="en">You have been logged out.</target>
+<note>{"sourceComment":"Login form log out message","targetComment":"Login form log out message","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.error" xml:space="preserve">
+<source xml:lang="en">Invalid username and password.</source>
+<target xml:lang="en">Invalid username and password.</target>
+<note>{"sourceComment":"Login form error message","targetComment":"Login form error message","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in</source>
+<target xml:lang="en">Welcome back, please log in</target>
+<note>{"sourceComment":"Login form title","targetComment":"Login form title","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.login" xml:space="preserve">
+<source xml:lang="en">Log in</source>
+<target xml:lang="en">Log in</target>
+<note>{"sourceComment":"Login form log in button","targetComment":"Login form log in button","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.username" xml:space="preserve">
+<source xml:lang="en">username</source>
+<target xml:lang="en">username</target>
+<note>{"sourceComment":"Login form username input field place holder","targetComment":"Login form username input field place holder","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.password" xml:space="preserve">
+<source xml:lang="en">password</source>
+<target xml:lang="en">password</target>
+<note>{"sourceComment":"Login form password input field place holder","targetComment":"Login form password input field place holder","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.title" xml:space="preserve">
+<source xml:lang="en">That caused an error</source>
+<target xml:lang="en">That caused an error</target>
+<note>{"sourceComment":" Label shown on the ErrorModal when saving a textunit fails","targetComment":" Label shown on the ErrorModal when saving a textunit fails","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.review" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</source>
+<target xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":" Label to show the number of text units to review","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.numNew" xml:space="preserve">
+<source xml:lang="en">{numberOfNew, plural, =0 {None New} other{# New}}</source>
+<target xml:lang="en">{numberOfNew, plural, =0 {None New} other{# New}}</target>
+<note>{"sourceComment":" Label to show the number of new","targetComment":" Label to show the number of new","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.localeStats" xml:space="preserve">
+<source xml:lang="en">Locale Statistics</source>
+<target xml:lang="en">Locale Statistics</target>
+<note>{"sourceComment":" Label for a table to show stats for each locale","targetComment":" Label for a table to show stats for each locale","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.localeStats.close" xml:space="preserve">
+<source xml:lang="en">Close</source>
+<target xml:lang="en">Close</target>
+<note>{"sourceComment":" Button to close the locale stats","targetComment":" Button to close the locale stats","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</source>
+<target xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</target>
+<note>{"sourceComment":"Label displayed on the repositories dropdown in the workbench","targetComment":"Label displayed on the repositories dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</source>
+<target xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</target>
+<note>{"sourceComment":"Label displayed on the locales dropdown in the workbench","targetComment":"Label displayed on the locales dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="localeselector.title" xml:space="preserve">
+<source xml:lang="en">Select Mojito locale</source>
+<target xml:lang="en">Select Mojito locale</target>
+<note>{"sourceComment":" Title shown in the modal to select the locale for the whole Mojito app","targetComment":" Title shown in the modal to select the locale for the whole Mojito app","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450307859000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.projectRequests" xml:space="preserve">
+<source xml:lang="en">Project Requests</source>
+<target xml:lang="en">Project Requests</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the project requests page","targetComment":" Label displayed in the header menu to open the project requests page","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.needsReview" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</source>
+<target xml:lang="en">{numberOfNeedsReview, plural, =0 {None Need Review} =1 {1 Needs Review} other{# Need Review}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":" Label to show the number of text units to review","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.needsTranslation" xml:space="preserve">
+<source xml:lang="en">{numberOfNeedsTranslation, plural, =0 {None Need translation} =1 {1 Needs Translation} other{# Need Translation}}</source>
+<target xml:lang="en">{numberOfNeedsTranslation, plural, =0 {None Need translation} =1 {1 Needs Translation} other{# Need Translation}}</target>
+<note>{"sourceComment":" Label to show the number of text units to translate","targetComment":" Label to show the number of text units to translate","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="en">Status</target>
+<note>{"sourceComment":" Header shown before the list of status types (all, translated, needs reivew...) that can be used to search text units","targetComment":" Header shown before the list of status types (all, translated, needs reivew...) that can be used to search text units","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.all" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="en">All</target>
+<note>{"sourceComment":" Status filter option to search for all text units","targetComment":" Status filter option to search for all text units","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.translated" xml:space="preserve">
+<source xml:lang="en">Translated</source>
+<target xml:lang="en">Translated</target>
+<note>{"sourceComment":" Status filter option to search for only for translated text units","targetComment":" Status filter option to search for only for translated text units","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="en">Needs Review</target>
+<note>{"sourceComment":" Status filter option to search for text units that need to be reviewed","targetComment":" Status filter option to search for text units that need to be reviewed","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.forTranslation" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="en">Needs Translation</target>
+<note>{"sourceComment":" Status filter option to search for text units that need to be translated","targetComment":" Status filter option to search for text units that need to be translated","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.statusDropdown.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="en">Rejected</target>
+<note>{"sourceComment":" Status filter option to search for text units that are rejected (won't be added in localized file)","targetComment":" Status filter option to search for text units that are rejected (won't be added in localized file)","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.translationNeeded" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="en">Needs Translation</target>
+<note>{"sourceComment":"Button label used for the Translation needed button on the textunit review modal","targetComment":"Button label used for the Translation needed button on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequest.btn" xml:space="preserve">
+<source xml:lang="en">New Request</source>
+<target xml:lang="en">New Request</target>
+<note>{"sourceComment":" New Request button for translation request (a translation request is a drop containing xliffs which are send to the translator)","targetComment":" New Request button for translation request (a translation request is a drop containing xliffs which are send to the translator)","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.name" xml:space="preserve">
+<source xml:lang="en">Name</source>
+<target xml:lang="en">Name</target>
+<note>{"sourceComment":" Table header title for translation request - name of the translation request","targetComment":" Table header title for translation request - name of the translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.createdBy" xml:space="preserve">
+<source xml:lang="en">Created By</source>
+<target xml:lang="en">Created By</target>
+<note>{"sourceComment":" Table header title for translation request - created by user name","targetComment":" Table header title for translation request - created by user name","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.createdDate" xml:space="preserve">
+<source xml:lang="en">Created Date</source>
+<target xml:lang="en">Created Date</target>
+<note>{"sourceComment":" Table header title for translation request - date the translation request was created","targetComment":" Table header title for translation request - date the translation request was created","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.repository" xml:space="preserve">
+<source xml:lang="en">Repository</source>
+<target xml:lang="en">Repository</target>
+<note>{"sourceComment":" Table header title for translation request - repository for which the translation req was created for","targetComment":" Table header title for translation request - repository for which the translation req was created for","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="en">Status</target>
+<note>{"sourceComment":" Table header title for translation request - status of the translation req","targetComment":" Table header title for translation request - status of the translation req","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.title" xml:space="preserve">
+<source xml:lang="en">Choose Repository to create new request for</source>
+<target xml:lang="en">Choose Repository to create new request for</target>
+<note>{"sourceComment":" Modal title for making a new translation request","targetComment":" Modal title for making a new translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.createRequest" xml:space="preserve">
+<source xml:lang="en">Create Request</source>
+<target xml:lang="en">Create Request</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":" Modal button for create new translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.imported" xml:space="preserve">
+<source xml:lang="en">Imported</source>
+<target xml:lang="en">Imported</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":" Modal button for create new translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.sending" xml:space="preserve">
+<source xml:lang="en">Sending</source>
+<target xml:lang="en">Sending</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":" Modal button for create new translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.inTranslation" xml:space="preserve">
+<source xml:lang="en">In Translation</source>
+<target xml:lang="en">In Translation</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":" Modal button for create new translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450308186000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.title" xml:space="preserve">
+<source xml:lang="en">Select a Repository to Create a Request</source>
+<target xml:lang="en">Select a Repository to Create a Request</target>
+<note>{"sourceComment":" Modal title for making a new translation request","targetComment":" Modal title for making a new translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450314200000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.requestTranslation" xml:space="preserve">
+<source xml:lang="en">Request Translation</source>
+<target xml:lang="en">Request Translation</target>
+<note>{"sourceComment":" Modal button for create new translation request","targetComment":" Modal button for create new translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450314200000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newRequestModal.requestReview" xml:space="preserve">
+<source xml:lang="en">Request Review</source>
+<target xml:lang="en">Request Review</target>
+<note>{"sourceComment":" Modal button for create new review request","targetComment":" Modal button for create new review request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450314200000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.imported" xml:space="preserve">
+<source xml:lang="en">Imported</source>
+<target xml:lang="en">Imported</target>
+<note>{"sourceComment":" Status label for for drop when it has been imported","targetComment":" Status label for for drop when it has been imported","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450314200000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.sending" xml:space="preserve">
+<source xml:lang="en">Sending</source>
+<target xml:lang="en">Sending</target>
+<note>{"sourceComment":" Status label for drop when being sent","targetComment":" Status label for drop when being sent","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450314200000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.inTranslation" xml:space="preserve">
+<source xml:lang="en">In Translation</source>
+<target xml:lang="en">In Translation</target>
+<note>{"sourceComment":" Status label for drop when translation request","targetComment":" Status label for drop when translation request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450314200000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.inReview" xml:space="preserve">
+<source xml:lang="en">In Review</source>
+<target xml:lang="en">In Review</target>
+<note>{"sourceComment":" Status label for drop when review request","targetComment":" Status label for drop when review request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450314200000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.controlbar.button.tooltip.import" xml:space="preserve">
+<source xml:lang="en">Import Request</source>
+<target xml:lang="en">Import Request</target>
+<note>{"sourceComment":" Tooltip on import drop button","targetComment":" Tooltip on import drop button","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450400600000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.filter.id" xml:space="preserve">
+<source xml:lang="en">Id</source>
+<target xml:lang="en">Id</target>
+<note>{"sourceComment":" Search filter option \"Id\"","targetComment":" Search filter option \"Id\"","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450479846000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="en">Status</target>
+<note>{"sourceComment":"Label for the Review button on the workbench toolbar","targetComment":"Label for the Review button on the workbench toolbar","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450479846000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.showImported.link" xml:space="preserve">
+<source xml:lang="en">Show Imported</source>
+<target xml:lang="en">Show Imported</target>
+<note>{"sourceComment":" Link to show imported drops","targetComment":" Link to show imported drops","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450926201000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.hideImported.link" xml:space="preserve">
+<source xml:lang="en">Hide Imported</source>
+<target xml:lang="en">Hide Imported</target>
+<note>{"sourceComment":" Link to hide imported drops","targetComment":" Link to hide imported drops","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450926201000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.ongoingRequests.title" xml:space="preserve">
+<source xml:lang="en">Ongoing Requests</source>
+<target xml:lang="en">Ongoing Requests</target>
+<note>{"sourceComment":" Table title to show ongoing drop requests","targetComment":" Table title to show ongoing drop requests","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450926201000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.importedRequests.title" xml:space="preserve">
+<source xml:lang="en">Imported Requests</source>
+<target xml:lang="en">Imported Requests</target>
+<note>{"sourceComment":" Table title to show imported drop requests","targetComment":" Table title to show imported drop requests","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450926201000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newTranslationRequest.alert" xml:space="preserve">
+<source xml:lang="en">New Translation Request is being sent</source>
+<target xml:lang="en">New Translation Request is being sent</target>
+<note>{"sourceComment":" Alert to show that new translation request is being sent","targetComment":" Alert to show that new translation request is being sent","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450926201000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.newReviewRequest.alert" xml:space="preserve">
+<source xml:lang="en">New Review Request is being sent</source>
+<target xml:lang="en">New Review Request is being sent</target>
+<note>{"sourceComment":" Alert to show that new review request is being sent","targetComment":" Alert to show that new review request is being sent","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450926201000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.beingImported.alert" xml:space="preserve">
+<source xml:lang="en">Request is being imported</source>
+<target xml:lang="en">Request is being imported</target>
+<note>{"sourceComment":" Alert to show that request is being imported","targetComment":" Alert to show that request is being imported","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1450926201000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.canceled" xml:space="preserve">
+<source xml:lang="en">Canceled</source>
+<target xml:lang="en">Canceled</target>
+<note>{"sourceComment":" Status label for drop when it has been canceld","targetComment":" Status label for drop when it has been canceld","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1452629066000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.imported" xml:space="preserve">
+<source xml:lang="en">Imported</source>
+<target xml:lang="en">Imported</target>
+<note>{"sourceComment":" Status label for drop when it has been imported","targetComment":" Status label for drop when it has been imported","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1452629066000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.status.importing" xml:space="preserve">
+<source xml:lang="en">Importing</source>
+<target xml:lang="en">Importing</target>
+<note>{"sourceComment":" Status label for drop when it is importing","targetComment":" Status label for drop when it is importing","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1452629066000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.controlbar.button.tooltip.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel Request</source>
+<target xml:lang="en">Cancel Request</target>
+<note>{"sourceComment":" Tooltip on cancel drop button","targetComment":" Tooltip on cancel drop button","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1452629066000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.beingCanceled.alert" xml:space="preserve">
+<source xml:lang="en">Request is being canceled</source>
+<target xml:lang="en">Request is being canceled</target>
+<note>{"sourceComment":" Alert to show that request is being canceled","targetComment":" Alert to show that request is being canceled","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1452629066000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="en">Enter new translation</target>
+<note>{"sourceComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":"Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1461611000000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="en">Enter new translation</target>
+<note>{"sourceComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":"Placeholder text displayed instead of the target string in the textunit if no translation exists","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1461611000000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.settings" xml:space="preserve">
+<source xml:lang="en">Settings</source>
+<target xml:lang="en">Settings</target>
+<note>{"sourceComment":" Label displayed in the header menu to open the settings page","targetComment":" Label displayed in the header menu to open the settings page","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.clientId" xml:space="preserve">
+<source xml:lang="en">Client Id</source>
+<target xml:lang="en">Client Id</target>
+<note>{"sourceComment":" Label for Client Id input","targetComment":" Label for Client Id input","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.clientSecret" xml:space="preserve">
+<source xml:lang="en">Client Secret</source>
+<target xml:lang="en">Client Secret</target>
+<note>{"sourceComment":" Label for Client Secret input","targetComment":" Label for Client Secret input","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.publicKeyId" xml:space="preserve">
+<source xml:lang="en">Public Key Id</source>
+<target xml:lang="en">Public Key Id</target>
+<note>{"sourceComment":" Label for id of the \"Public Key\" input","targetComment":" Label for id of the \"Public Key\" input","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.privateKey" xml:space="preserve">
+<source xml:lang="en">Private Key</source>
+<target xml:lang="en">Private Key</target>
+<note>{"sourceComment":" Label for \"Private Key\" input","targetComment":" Label for \"Private Key\" input","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.privateKeyPassword" xml:space="preserve">
+<source xml:lang="en">Private Key Password</source>
+<target xml:lang="en">Private Key Password</target>
+<note>{"sourceComment":" Label for passward of the \"Private Key\" input","targetComment":" Label for passward of the \"Private Key\" input","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.enterpriseId" xml:space="preserve">
+<source xml:lang="en">Enterprise Id</source>
+<target xml:lang="en">Enterprise Id</target>
+<note>{"sourceComment":" Label for enterprise id input","targetComment":" Label for enterprise id input","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.appUserId" xml:space="preserve">
+<source xml:lang="en">App User Id</source>
+<target xml:lang="en">App User Id</target>
+<note>{"sourceComment":" Label for App User Id.  App User is defined as the user created by the api application key","targetComment":" Label for App User Id.  App User is defined as the user created by the api application key","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.rootFolderId" xml:space="preserve">
+<source xml:lang="en">Root Folder Id</source>
+<target xml:lang="en">Root Folder Id</target>
+<note>{"sourceComment":" Label for Root Folder Id. Root folder is the first folder.","targetComment":" Label for Root Folder Id. Root folder is the first folder.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.dropsFolderId" xml:space="preserve">
+<source xml:lang="en">Project Requests Folder Id</source>
+<target xml:lang="en">Project Requests Folder Id</target>
+<note>{"sourceComment":" Label for Project Requests Folder id input","targetComment":" Label for Project Requests Folder id input","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.saveChanges" xml:space="preserve">
+<source xml:lang="en">Save Changes</source>
+<target xml:lang="en">Save Changes</target>
+<note>{"sourceComment":" Button label to save changes","targetComment":" Button label to save changes","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.modal.title.pleaseWait" xml:space="preserve">
+<source xml:lang="en">Please Wait</source>
+<target xml:lang="en">Please Wait</target>
+<note>{"sourceComment":" Modal title for user to wait","targetComment":" Modal title for user to wait","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.modal.box.message" xml:space="preserve">
+<source xml:lang="en">API Configurations is being set up</source>
+<target xml:lang="en">API Configurations is being set up</target>
+<note>{"sourceComment":" Modal message displayed to the user","targetComment":" Modal message displayed to the user","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.message.waitingForInfo" xml:space="preserve">
+<source xml:lang="en">Retreiving Information.  Please wait.</source>
+<target xml:lang="en">Retreiving Information.  Please wait.</target>
+<note>{"sourceComment":" Message for waiting","targetComment":" Message for waiting","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.message.notAvailableYet" xml:space="preserve">
+<source xml:lang="en">Not Avaialble Yet</source>
+<target xml:lang="en">Not Avaialble Yet</target>
+<note>{"sourceComment":" Not available is referring to the information","targetComment":" Not available is referring to the information","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1462482467000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="en">Yes</target>
+<note>{"sourceComment":"Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","targetComment":"Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="en">No</target>
+<note>{"sourceComment":"No label to be used on buttons, labels etc.  No to indicate rejection to the question","targetComment":"No label to be used on buttons, labels etc.  No to indicate rejection to the question","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.okay" xml:space="preserve">
+<source xml:lang="en">Okay</source>
+<target xml:lang="en">Okay</target>
+<note>{"sourceComment":"Okay label to be used on buttons, labels etc","targetComment":"Okay label to be used on buttons, labels etc","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.save.failed" xml:space="preserve">
+<source xml:lang="en">There was an error saving the translation.  Please try again later.</source>
+<target xml:lang="en">There was an error saving the translation.  Please try again later.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when saving a textunit fails","targetComment":" Label displayed on the ErrorModal when saving a textunit fails","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.check.failed" xml:space="preserve">
+<source xml:lang="en">Your translation failed the integrity check.  Some placeholders may not be in the correct place and the format may not be correct.  Are you sure you want to save anyways?</source>
+<target xml:lang="en">Your translation failed the integrity check.  Some placeholders may not be in the correct place and the format may not be correct.  Are you sure you want to save anyways?</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when checking a textunit","targetComment":" Label displayed on the ErrorModal when checking a textunit","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.checkandsave.failed" xml:space="preserve">
+<source xml:lang="en">There was an error checking and saving the translation.</source>
+<target xml:lang="en">There was an error checking and saving the translation.</target>
+<note>{"sourceComment":" Label displayed on the ErrorModal when checking and saving a textunit fails","targetComment":" Label displayed on the ErrorModal when checking and saving a textunit fails","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1464375798000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="en">Rejected</target>
+<note>{"sourceComment":" Rejected (text units) column in the table header used to display a list of repositories.","targetComment":" Rejected (text units) column in the table header used to display a list of repositories.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.needsTranslation" xml:space="preserve">
+<source xml:lang="en">Need Translation</source>
+<target xml:lang="en">Need Translation</target>
+<note>{"sourceComment":" Need translation (text units) column in the table header used to display a list of repositories.","targetComment":" Need translation (text units) column in the table header used to display a list of repositories.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.header.needsReview" xml:space="preserve">
+<source xml:lang="en">Need Review</source>
+<target xml:lang="en">Need Review</target>
+<note>{"sourceComment":" Need review (text units) column in the table header used to display a list of repositories.","targetComment":" Need review (text units) column in the table header used to display a list of repositories.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.numberOfWords" xml:space="preserve">
+<source xml:lang="en">{numberOfWords, plural, =1 {# word} other {# words}}</source>
+<target xml:lang="en">{numberOfWords, plural, =1 {# word} other {# words}}</target>
+<note>{"sourceComment":" Label to show the number of text units to review","targetComment":" Label to show the number of text units to review","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="repositories.table.row.done" xml:space="preserve">
+<source xml:lang="en">Done</source>
+<target xml:lang="en">Done</target>
+<note>{"sourceComment":" Label to show done - meaning that everything is fine, either there is no string or everything is translated","targetComment":" Label to show done - meaning that everything is fine, either there is no string or everything is translated","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in.</source>
+<target xml:lang="en">Welcome back, please log in.</target>
+<note>{"sourceComment":"Login form title","targetComment":"Login form title","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.wordCount" xml:space="preserve">
+<source xml:lang="en">Words</source>
+<target xml:lang="en">Words</target>
+<note>{"sourceComment":" Table header title for translation request - the number of words included in this project request","targetComment":" Table header title for translation request - the number of words included in this project request","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.tableHeader.locales" xml:space="preserve">
+<source xml:lang="en">Locales</source>
+<target xml:lang="en">Locales</target>
+<note>{"sourceComment":" Table column header to show the list of different locales","targetComment":" Table column header to show the list of different locales","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.inProgress" xml:space="preserve">
+<source xml:lang="en">In Progress</source>
+<target xml:lang="en">In Progress</target>
+<note>{"sourceComment":" Label to show project requests where translations are in progress","targetComment":" Label to show project requests where translations are in progress","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.completed" xml:space="preserve">
+<source xml:lang="en">Completed</source>
+<target xml:lang="en">Completed</target>
+<note>{"sourceComment":" Label to show project requests that are done translation","targetComment":" Label to show project requests that are done translation","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="drops.all" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="en">All</target>
+<note>{"sourceComment":" Label to show all project requests including those that are done and those that are in progress","targetComment":" Label to show all project requests including those that are done and those that are in progress","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.header.title" xml:space="preserve">
+<source xml:lang="en">Oops</source>
+<target xml:lang="en">Oops</target>
+<note>{"sourceComment":" Title for an error modal overlay.  Oops - as in something went wrong","targetComment":" Title for an error modal overlay.  Oops - as in something went wrong","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="error.modal.message.loggedOut" xml:space="preserve">
+<source xml:lang="en">Session expired.  Please re-authenticate.</source>
+<target xml:lang="en">Session expired.  Please re-authenticate.</target>
+<note>{"sourceComment":" Logged out error message","targetComment":" Logged out error message","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468518670000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="en">All</target>
+<note>{"sourceComment":"Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","targetComment":"Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1468534928000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.placeholder" xml:space="preserve">
+<source xml:lang="en">Search term...</source>
+<target xml:lang="en">Search term...</target>
+<note>{"sourceComment":" Label used as placeholder for the search input field of the SearchPanelWithFilters widget","targetComment":" Label used as placeholder for the search input field of the SearchPanelWithFilters widget","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185985000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.pagination.isLoading" xml:space="preserve">
+<source xml:lang="en">Loading...</source>
+<target xml:lang="en">Loading...</target>
+<note>{"sourceComment":" label displayed alternately if the \"loading\" image used during pagination is not available","targetComment":" label displayed alternately if the \"loading\" image used during pagination is not available","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185985000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.result.empty" xml:space="preserve">
+<source xml:lang="en">There are no results. Update your search parameter to find what you're looking for!</source>
+<target xml:lang="en">There are no results. Update your search parameter to find what you're looking for!</target>
+<note>{"sourceComment":" Message displayed when there's no search results found.","targetComment":" Message displayed when there's no search results found.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185985000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.result.selectRepoAndLocale" xml:space="preserve">
+<source xml:lang="en">Selecte at least one repository and locale before you can search.</source>
+<target xml:lang="en">Selecte at least one repository and locale before you can search.</target>
+<note>{"sourceComment":" Message displayed when the user has not selected repository and locales","targetComment":" Message displayed when the user has not selected repository and locales","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185985000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.profile" xml:space="preserve">
+<source xml:lang="en">My Profile</source>
+<target xml:lang="en">My Profile</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to show user's profile","targetComment":" Label used in the header loggedInUser dropdown to show user's profile","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.preferences" xml:space="preserve">
+<source xml:lang="en">My Preferences</source>
+<target xml:lang="en">My Preferences</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to show user's preferences","targetComment":" Label used in the header loggedInUser dropdown to show user's preferences","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="header.loggedInUser.logout" xml:space="preserve">
+<source xml:lang="en">Logout</source>
+<target xml:lang="en">Logout</target>
+<note>{"sourceComment":" Label used in the header loggedInUser dropdown to logout","targetComment":" Label used in the header loggedInUser dropdown to logout","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.save" xml:space="preserve">
+<source xml:lang="en">Save</source>
+<target xml:lang="en">Save</target>
+<note>{"sourceComment":" Save label to be used on buttons, labels etc","targetComment":" Save label to be used on buttons, labels etc","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="en">Yes</target>
+<note>{"sourceComment":" Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","targetComment":" Yes label to be used on buttons, labels etc.  Yes to indicate affirmation to the question","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="en">No</target>
+<note>{"sourceComment":" No label to be used on buttons, labels etc.  No to indicate rejection to the question","targetComment":" No label to be used on buttons, labels etc.  No to indicate rejection to the question","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.delete" xml:space="preserve">
+<source xml:lang="en">Delete</source>
+<target xml:lang="en">Delete</target>
+<note>{"sourceComment":" Delete label to be used on buttons","targetComment":" Delete label to be used on buttons","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="en">Cancel</target>
+<note>{"sourceComment":" Cancel label to be used on buttons, labels etc","targetComment":" Cancel label to be used on buttons, labels etc","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="label.okay" xml:space="preserve">
+<source xml:lang="en">Okay</source>
+<target xml:lang="en">Okay</target>
+<note>{"sourceComment":" Okay label to be used on buttons, labels etc","targetComment":" Okay label to be used on buttons, labels etc","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.placeholder" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="en">Enter new translation</target>
+<note>{"sourceComment":" Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","targetComment":" Placeholder that is displayed in the target (translation) input when there is no translation in the TextUnit","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.unused" xml:space="preserve">
+<source xml:lang="en">Unused</source>
+<target xml:lang="en">Unused</target>
+<note>{"sourceComment":" Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","targetComment":" Label displayed to indicate that the TextUnit is not used anymore (is not in the source file)","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.notIncludedInLocalizedFile" xml:space="preserve">
+<source xml:lang="en">Not included in localized file</source>
+<target xml:lang="en">Not included in localized file</target>
+<note>{"sourceComment":" Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","targetComment":" Label dispalyed to indicate that the TextUnit is not included in the localized file (it has some issue)","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.target.enterNewTranslation" xml:space="preserve">
+<source xml:lang="en">Enter new translation</source>
+<target xml:lang="en">Enter new translation</target>
+<note>{"sourceComment":" Placeholder text displayed instead of the target string in the textunit if no translation exists","targetComment":" Placeholder text displayed instead of the target string in the textunit if no translation exists","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="workbench.toolbar.status" xml:space="preserve">
+<source xml:lang="en">Status</source>
+<target xml:lang="en">Status</target>
+<note>{"sourceComment":" Label for the Review button on the workbench toolbar","targetComment":" Label for the Review button on the workbench toolbar","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.rejected" xml:space="preserve">
+<source xml:lang="en">Rejected</source>
+<target xml:lang="en">Rejected</target>
+<note>{"sourceComment":" Label for the Review button on the modal in the workbench","targetComment":" Label for the Review button on the modal in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.accepted" xml:space="preserve">
+<source xml:lang="en">Accepted</source>
+<target xml:lang="en">Accepted</target>
+<note>{"sourceComment":" Button label used for primary action \"removeReview\" on modal dialog","targetComment":" Button label used for primary action \"removeReview\" on modal dialog","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.needsReview" xml:space="preserve">
+<source xml:lang="en">Needs Review</source>
+<target xml:lang="en">Needs Review</target>
+<note>{"sourceComment":" Button label used for the Needs Review button on the textunit review modal","targetComment":" Button label used for the Needs Review button on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.translationNeeded" xml:space="preserve">
+<source xml:lang="en">Needs Translation</source>
+<target xml:lang="en">Needs Translation</target>
+<note>{"sourceComment":" Button label used for the Translation needed button on the textunit review modal","targetComment":" Button label used for the Translation needed button on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.title" xml:space="preserve">
+<source xml:lang="en">Review selected translations</source>
+<target xml:lang="en">Review selected translations</target>
+<note>{"sourceComment":" Label displayed as the title of the modal popup when user clicks on a textunit action","targetComment":" Label displayed as the title of the modal popup when user clicks on a textunit action","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentLabel" xml:space="preserve">
+<source xml:lang="en">Comment</source>
+<target xml:lang="en">Comment</target>
+<note>{"sourceComment":" Label for the text unit comment on the textunit review modal","targetComment":" Label for the text unit comment on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.reviewModal.commentPlaceholder" xml:space="preserve">
+<source xml:lang="en">Enter comment</source>
+<target xml:lang="en">Enter comment</target>
+<note>{"sourceComment":" Placeholder for the textarea on the textunit review modal","targetComment":" Placeholder for the textarea on the textunit review modal","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.deletemodal.title" xml:space="preserve">
+<source xml:lang="en">Confirm delete</source>
+<target xml:lang="en">Confirm delete</target>
+<note>{"sourceComment":" Label displayed in the header of the modal popup when user clicks on delete textunit action","targetComment":" Label displayed in the header of the modal popup when user clicks on delete textunit action","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnits.bulk.deleteMessage" xml:space="preserve">
+<source xml:lang="en">Are you sure you want to delete the selected text units?</source>
+<target xml:lang="en">Are you sure you want to delete the selected text units?</target>
+<note>{"sourceComment":" Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","targetComment":" Label shown in the DeleteConfirmationModal when the delete button is clicked on the workbench toolbar","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="textUnit.cancel.confirmation" xml:space="preserve">
+<source xml:lang="en">Are you sure you want to cancel editing? You will lose the changes you've made.</source>
+<target xml:lang="en">Are you sure you want to cancel editing? You will lose the changes you've made.</target>
+<note>{"sourceComment":" Confirmation message","targetComment":" Confirmation message","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</source>
+<target xml:lang="en">{numberOfSelectedRepositories, plural, =0{Repositories} =1{1 repository} other{# repositories}}</target>
+<note>{"sourceComment":" Label displayed on the repositories dropdown in the workbench","targetComment":" Label displayed on the repositories dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="en">All</target>
+<note>{"sourceComment":" Label displayed in the search box of the repository dropdown in the workbench to select all the repositories at once","targetComment":" Label displayed in the search box of the repository dropdown in the workbench to select all the repositories at once","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.repository.selectNone" xml:space="preserve">
+<source xml:lang="en">None</source>
+<target xml:lang="en">None</target>
+<note>{"sourceComment":" Label displayed in the search box of the repository dropdown in the workbench to deselect all the repository","targetComment":" Label displayed in the search box of the repository dropdown in the workbench to deselect all the repository","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.btn.text" xml:space="preserve">
+<source xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</source>
+<target xml:lang="en">{numberOfSelectedLocales, plural, =0{Locales} =1{1 locale} other{# locales}}</target>
+<note>{"sourceComment":" Label displayed on the locales dropdown in the workbench","targetComment":" Label displayed on the locales dropdown in the workbench","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectAll" xml:space="preserve">
+<source xml:lang="en">All</source>
+<target xml:lang="en">All</target>
+<note>{"sourceComment":" Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","targetComment":" Label displayed in the search box of the locales dropdown in the workbench to select all the locales at once","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectNone" xml:space="preserve">
+<source xml:lang="en">None</source>
+<target xml:lang="en">None</target>
+<note>{"sourceComment":" Label displayed in the search box of the locales dropdown in the workbench to deselect all the locales","targetComment":" Label displayed in the search box of the locales dropdown in the workbench to deselect all the locales","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="search.locale.selectToBeFullyTranslated" xml:space="preserve">
+<source xml:lang="en">To be fully translated</source>
+<target xml:lang="en">To be fully translated</target>
+<note>{"sourceComment":" Label displayed in the search box of the locales dropdown in the workbench to select locales that\n should be fully translated","targetComment":" Label displayed in the search box of the locales dropdown in the workbench to select locales that\n should be fully translated","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.logout" xml:space="preserve">
+<source xml:lang="en">You have been logged out.</source>
+<target xml:lang="en">You have been logged out.</target>
+<note>{"sourceComment":" Login form log out message","targetComment":" Login form log out message","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.error" xml:space="preserve">
+<source xml:lang="en">Invalid username and password.</source>
+<target xml:lang="en">Invalid username and password.</target>
+<note>{"sourceComment":" Login form error message","targetComment":" Login form error message","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.title" xml:space="preserve">
+<source xml:lang="en">Welcome back, please log in.</source>
+<target xml:lang="en">Welcome back, please log in.</target>
+<note>{"sourceComment":" Login form title","targetComment":" Login form title","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.login" xml:space="preserve">
+<source xml:lang="en">Log in</source>
+<target xml:lang="en">Log in</target>
+<note>{"sourceComment":" Login form log in button","targetComment":" Login form log in button","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.username" xml:space="preserve">
+<source xml:lang="en">username</source>
+<target xml:lang="en">username</target>
+<note>{"sourceComment":" Login form username input field place holder","targetComment":" Login form username input field place holder","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="login.form.password" xml:space="preserve">
+<source xml:lang="en">password</source>
+<target xml:lang="en">password</target>
+<note>{"sourceComment":" Login form password input field place holder","targetComment":" Login form password input field place holder","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="modal.title" xml:space="preserve">
+<source xml:lang="en">Oops</source>
+<target xml:lang="en">Oops</target>
+<note>{"sourceComment":" Generic title for a modal popup that indicate something unexpected has occured","targetComment":" Generic title for a modal popup that indicate something unexpected has occured","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.bootstrap" xml:space="preserve">
+<source xml:lang="en">Bootstrap</source>
+<target xml:lang="en">Bootstrap</target>
+<note>{"sourceComment":" Label for Bootstrap.  It will show Yes or No to indicate whether it was or was not bootstrapped","targetComment":" Label for Bootstrap.  It will show Yes or No to indicate whether it was or was not bootstrapped","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.validated" xml:space="preserve">
+<source xml:lang="en">Validated</source>
+<target xml:lang="en">Validated</target>
+<note>{"sourceComment":" Label for validated.  Validated means that configuration was good and ready to be used.  A Yes/No will be followed.","targetComment":" Label for validated.  Validated means that configuration was good and ready to be used.  A Yes/No will be followed.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.rootFolderUrl" xml:space="preserve">
+<source xml:lang="en">Root Folder Url</source>
+<target xml:lang="en">Root Folder Url</target>
+<note>{"sourceComment":" Label for the root folder url.  The root folder is considered like the root of a tree.  It's the first folder.","targetComment":" Label for the root folder url.  The root folder is considered like the root of a tree.  It's the first folder.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.yes" xml:space="preserve">
+<source xml:lang="en">Yes</source>
+<target xml:lang="en">Yes</target>
+<note>{"sourceComment":" Label Yes to indicate confirmation","targetComment":" Label Yes to indicate confirmation","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.no" xml:space="preserve">
+<source xml:lang="en">No</source>
+<target xml:lang="en">No</target>
+<note>{"sourceComment":" Label Yes to indicate negative","targetComment":" Label Yes to indicate negative","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.saveWithBoostrapping" xml:space="preserve">
+<source xml:lang="en">Save With Bootstrapping</source>
+<target xml:lang="en">Save With Bootstrapping</target>
+<note>{"sourceComment":" Button label to save changes","targetComment":" Button label to save changes","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.edit" xml:space="preserve">
+<source xml:lang="en">Edit</source>
+<target xml:lang="en">Edit</target>
+<note>{"sourceComment":" Button label to edit changes","targetComment":" Button label to edit changes","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.cancel" xml:space="preserve">
+<source xml:lang="en">Cancel</source>
+<target xml:lang="en">Cancel</target>
+<note>{"sourceComment":" Button label to cancel changes","targetComment":" Button label to cancel changes","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.button.saveWithoutBootstrapping" xml:space="preserve">
+<source xml:lang="en">Save Without Bootstrapping</source>
+<target xml:lang="en">Save Without Bootstrapping</target>
+<note>{"sourceComment":" Button label to save changes","targetComment":" Button label to save changes","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.label.saveWithoutBootstrap" xml:space="preserve">
+<source xml:lang="en">Click here to add extra fields and skip bootstrapping</source>
+<target xml:lang="en">Click here to add extra fields and skip bootstrapping</target>
+<note>{"sourceComment":" Link to allow users to see extra fields that can be filled out to allow saving changes without bootstrapping.  See `settings.label.saveWithoutBootstrapInstructions.tooltip` comment to see what bootstrapping means.","targetComment":" Link to allow users to see extra fields that can be filled out to allow saving changes without bootstrapping.  See `settings.label.saveWithoutBootstrapInstructions.tooltip` comment to see what bootstrapping means.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.label.saveWithoutBootstrapInstructions" xml:space="preserve">
+<source xml:lang="en">Fill in ALL of the following fields to save without bootstrapping</source>
+<target xml:lang="en">Fill in ALL of the following fields to save without bootstrapping</target>
+<note>{"sourceComment":" Message to indicate that users must fill out ALL of the following fields.  Each field is an input box where they can enter the relevant information.  See `settings.label.saveWithoutBootstrapInstructions.tooltip` comment to see what bootstrapping means.","targetComment":" Message to indicate that users must fill out ALL of the following fields.  Each field is an input box where they can enter the relevant information.  See `settings.label.saveWithoutBootstrapInstructions.tooltip` comment to see what bootstrapping means.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.label.saveWithoutBootstrapInstructions.tooltip" xml:space="preserve">
+<source xml:lang="en">You don't need to bootstrap if Mojto has already set up the folder structures from previous Mojito installs.  Bootstraping allows Mojito to set up the Ap User and Box folder structures in preperation for project requests, and other features</source>
+<target xml:lang="en">You don't need to bootstrap if Mojto has already set up the folder structures from previous Mojito installs.  Bootstraping allows Mojito to set up the Ap User and Box folder structures in preperation for project requests, and other features</target>
+<note>{"sourceComment":" Tooltip to define what save without boostrapping means.","targetComment":" Tooltip to define what save without boostrapping means.","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+<trans-unit id="" resname="settings.box.validating" xml:space="preserve">
+<source xml:lang="en">Validating</source>
+<target xml:lang="en">Validating</target>
+<note>{"sourceComment":" Describing that a process is taking place to validate the correctness configuration","targetComment":" Describing that a process is taking place to validate the correctness configuration","includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"createdDate":1470185986000}</note>
+</trans-unit>
+</body>
+</file>
+</xliff>

@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="15_min_duration" xml:space="preserve">
+    <value>15 min</value>
+    <comment>File lock dialog duration</comment>
+  </data>
+    <data name="1_hour_duration" xml:space="preserve">
+    <value>1 hour</value>
+    <comment>File lock dialog duration</comment>
+  </data>
+    <data name="1_month_duration" xml:space="preserve">
+    <value>1 month</value>
+    <comment>File lock dialog duration</comment>
+  </data>
+    <data name="something_new" xml:space="preserve">
+    <value>Something new</value>
+  </data>  
+</root>
+
+
+ 

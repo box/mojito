@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <data name="15_min_duration" xml:space="preserve">
+    <value>15分</value>
+    <comment>File lock dialog duration</comment>
+  </data>
+    <data name="1_day_duration" xml:space="preserve">
+    <value>1日</value>
+    <comment>File lock dialog duration</comment>
+  </data>
+    <data name="1_hour_duration" xml:space="preserve">
+    <value>1時間</value>
+    <comment>File lock dialog duration</comment>
+  </data>
+    <data name="1_month_duration" xml:space="preserve">
+    <value>1か月</value>
+    <comment>File lock dialog duration</comment>
+  </data>
+</root>
