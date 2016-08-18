@@ -1,7 +1,7 @@
 Mojito 
 ====
 [![Project Status](http://opensource.box.com/badges/active.svg)](http://opensource.box.com/badges)
-[![Build Status](https://travis-ci.com/box/mojito.svg?token=NJfRzR9V36ATPDsJtEkR&branch=master)](https://travis-ci.com/box/mojito)
+[![Build Status](https://travis-ci.org/box/mojito.svg)](https://travis-ci.org/box/mojito)
 
 Mojito is a continuous localization platform. Rely on continuous integration to collect all of your software strings in one place. Check what products need localization—in real time. Create and import translation packages—with a single click. Search and edit translations—across all products and languages! And if you have a small dedicated translation team, they can work directly in mojito.
 
