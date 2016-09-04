@@ -10,11 +10,11 @@ permalink: /docs/refs/configurations/
 {{ site.mojito_green }} configuration loaded from the following files in order:
 
     classpath:/application.properties                           # default config
-    ${HOME}/.l10n/config/webapp/application-${USER}.properties  # override config
+    /usr/local/etc/mojito/cli/application.properties            # override config
 
 To override default configurations of {{ site.mojito_green }}, add them in
 
-    ${HOME}/.l10n/config/webapp/application-${USER}.properties
+    /usr/local/etc/mojito/cli/application.properties
 
 If you want to use different path to store the override configuration, you can specify the following extra parameter when you start {{ site.mojito_green }} server and when you run {{ site.mojito_green }} CLI.  For example,
 
