@@ -13,11 +13,7 @@
       </a>
       <div class="trigger">
         <a class="page-link" href="{{site.github.url }}/docs/guides/getting-started/">Getting Started</a>
-        {% for my_page in site.pages %}
-          {% if my_page.title %}
-          <a class="page-link" href="{{ my_page.url | prepend: site.github.url }}">{{ my_page.title }}</a>
-          {% endif %}
-        {% endfor %}
+        <a class="page-link" href="{{site.github.url }}/docs/">Documentation</a>
         <a class="page-link" href="https://github.com/box/mojito">GitHub</a>
         <span class="site-search">
           <input type="text" id="algolia-doc-search">
