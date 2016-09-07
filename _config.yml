@@ -20,3 +20,4 @@ exclude: ["node_modules/", "webapp/"]
 collections:
   docs:
     output: true
+google_analytics: UA-83813115-1

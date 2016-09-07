@@ -15,6 +15,7 @@
   <link rel="canonical" href="http://opensource.box.com/mojito/docs/refs/configurations/">
   <link rel="alternate" type="application/rss+xml" title="mojito" href="http://opensource.box.com/mojito/feed.xml">
 
+  
 </head>
 
 
@@ -96,13 +97,13 @@ inputSelector: '#algolia-doc-search'
 <p><span><font color="green">mojito</font><span> configuration loaded from the following files in order:</span></span></p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>classpath:/application.properties                           # default config
-${HOME}/.l10n/config/webapp/application-${USER}.properties  # override config
+/usr/local/etc/mojito/cli/application.properties            # override config
 </code></pre>
 </div>
 
 <p>To override default configurations of <span><font color="green">mojito</font><span>, add them in</span></span></p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>${HOME}/.l10n/config/webapp/application-${USER}.properties
+<div class="highlighter-rouge"><pre class="highlight"><code>/usr/local/etc/mojito/cli/application.properties
 </code></pre>
 </div>
 
