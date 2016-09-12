@@ -495,7 +495,7 @@ let TextUnit = React.createClass({
         if (this.state.isEditMode) {
             ui = this.getUIForEditMode();
         } else {
-            let targetString = this.props.translation;
+            let targetString = this.hasTargetChanged() ? this.state.translation : this.props.translation;
             let dir;
 
             let noTranslation = false;
