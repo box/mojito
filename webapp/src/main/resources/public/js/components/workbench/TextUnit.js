@@ -443,12 +443,19 @@ let TextUnit = React.createClass({
             // This issue is minor, placeholder is "New translation..." only the dots gets pushed on the left side.
             let dir = Locales.getLanguageDirection(this.props.textUnit.getTargetLocale());
 
+            let defaultTextAreaValue = "";
+            if (this.state.translation) {
+                defaultTextAreaValue = this.state.translation;
+            } else if (this.props.translation) {
+                defaultTextAreaValue = this.props.translation;
+            }
+
             return (
                 <div className="targetstring-container">
                     <FormControl ref="textUnitTextArea" componentClass="textarea" spellCheck="true" className="mrxs"
                                  onKeyUp={this.onKeyUpTextArea} onKeyDown={this.onKeyDownTextArea}
                                  placeholder={this.props.intl.formatMessage({ id: 'textUnit.target.placeholder' })}
-                                 defaultValue={this.props.translation ? this.props.translation : ""}
+                                 defaultValue={defaultTextAreaValue}
                                  onChange={this.transUnitEditTextAreaOnChange}
                                  dir={dir}
                                  onClick={this.onClickTextArea}/>
