@@ -23,6 +23,13 @@ For full documentation, examples, and other information.
 Need to contact us directly? Email oss@box.com and be sure to include the name of this project in the subject.
 - [GitHub Issues](https://github.com/Box/Mojito/issues)
 
+### Team
+- Hanna Kanabiajeuskaja (@hkanabiajeuskaja)
+- Jean Aurambault (@aurambaj)
+- Jee Yi (@jeeyi)
+- Adrien Loison (@adrilo)
+- Will Yau (@willyau)
+
 ## Copyright and License
 
 Copyright 2016 Box, Inc. All rights reserved.
