@@ -11,6 +11,7 @@ public enum IntegrityCheckerType {
     PRINTF_LIKE,
     SIMPLE_PRINTF_LIKE,
     COMPOSITE_FORMAT,
+    WHITESPACE,
     TRAILING_WHITESPACE,
     HTML_TAG;
 }

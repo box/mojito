@@ -11,6 +11,7 @@ public enum IntegrityCheckerType {
     PRINTF_LIKE(PrintfLikeIntegrityChecker.class.getName()),
     SIMPLE_PRINTF_LIKE(SimplePrintfLikeIntegrityChecker.class.getName()),
     COMPOSITE_FORMAT(CompositeFormatIntegrityChecker.class.getName()),
+    WHITESPACE(WhitespaceIntegrityChecker.class.getName()),
     TRAILING_WHITESPACE(TrailingWhitespaceIntegrityChecker.class.getName()),
     HTML_TAG(HtmlTagIntegrityChecker.class.getName());
 
