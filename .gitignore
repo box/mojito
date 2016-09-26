@@ -1,3 +1,4 @@
+/docker/.data
 /cli/target/
 /webapp/target/
 application.pid

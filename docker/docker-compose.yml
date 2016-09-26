@@ -1,0 +1,38 @@
+version: '2'
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - "./.data/db:/var/lib/mysql"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ChangeMe
+      MYSQL_DATABASE: mojito
+      MYSQL_USER: mojito
+      MYSQL_PASSWORD: ChangeMe
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+  webapp:
+    depends_on:
+      - db
+    image: aurambaj/mojito-webapp
+    links:
+      - db
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      SPRING_APPLICATION_JSON: '{ 
+      "flyway.enabled": "true",
+      "l10n.flyway.clean" : "true", 
+      "spring.jpa.database" : "MYSQL",
+      "spring.jpa.database-platform" : "org.hibernate.dialect.MySQLDialect",
+      "spring.jpa.hibernate.ddl-auto" : "none",
+      "spring.datasource.url" : "jdbc:mysql://db:3306/mojito?characterEncoding=UTF-8&useUnicode=true",
+      "spring.datasource.username" : "mojito",
+      "spring.datasource.password" : "ChangeMe",
+      "spring.datasource.driverClassName" : "com.mysql.jdbc.Driver",
+      "spring.datasource.validation-query" : "SELECT 1"
+      }'     
+    
