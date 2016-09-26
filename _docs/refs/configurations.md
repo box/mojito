@@ -45,7 +45,7 @@ Create user `${DB_USERNAME}` with `${DB_PASSWORD}`
 
 Create database `${DB_NAME}` and give `${DB_USERNAME}` full access to the database
 
-    mysql> CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET 'utf8' COLLATE 'utf8_bin';
+    mysql> CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_unicode_ci';
     mysql> GRANT ALL ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
     mysql> FLUSH PRIVILEGES;
 
