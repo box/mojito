@@ -445,4 +445,74 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("This is translatable", assetTextUnits.get(1).getContent());
 
     }
+
+    @Test
+    public void testXliffNoResname() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+                + "<xliff xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\" xsi:schemaLocation=\"urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd\">\n"
+                + "  <file original=\"Localizable.strings\" source-language=\"en\" datatype=\"plaintext\">\n"
+                + "    <header>\n"
+                + "      <tool tool-id=\"com.apple.dt.xcode\" tool-name=\"Xcode\" tool-version=\"7.2\" build-num=\"7C68\"/>\n"
+                + "    </header>\n"
+                + "    <body>\n"
+                + "      <trans-unit id=\"Test\">\n"
+                + "        <source>This is a test</source>\n"
+                + "        <note>This is note for Test</note>"
+                + "      </trans-unit>\n"
+                + "    </body>\n"
+                + "  </file>"
+                + "</xliff>";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/en.xliff");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
+        assertEquals("Test", assetTextUnits.get(0).getName());
+        assertEquals("This is a test", assetTextUnits.get(0).getContent());
+        assertEquals("This is note for Test", assetTextUnits.get(0).getComment());
+
+    }
+
+    @Test
+    public void testXliffDoNotTranslate() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
+                + "<xliff xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" version=\"1.2\" xsi:schemaLocation=\"urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd\">\n"
+                + "  <file original=\"Localizable.strings\" source-language=\"en\" datatype=\"plaintext\">\n"
+                + "    <header>\n"
+                + "      <tool tool-id=\"com.apple.dt.xcode\" tool-name=\"Xcode\" tool-version=\"7.2\" build-num=\"7C68\"/>\n"
+                + "    </header>\n"
+                + "    <body>\n"
+                + "      <trans-unit id=\"Test\">\n"
+                + "        <source>This is a test</source>\n"
+                + "        <note>This is note for Test</note>"
+                + "      </trans-unit>\n"
+                + "      <trans-unit id=\"Test not translatable\">\n"
+                + "        <source>This is not translatable</source>\n"
+                + "        <note>DO NOT TRANSLATE</note>"
+                + "      </trans-unit>\n"
+                + "    </body>\n"
+                + "  </file>"
+                + "</xliff>";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/en.xliff");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
+        assertEquals("Test", assetTextUnits.get(0).getName());
+        assertEquals("This is a test", assetTextUnits.get(0).getContent());
+        assertEquals("This is note for Test", assetTextUnits.get(0).getComment());
+
+    }
 }

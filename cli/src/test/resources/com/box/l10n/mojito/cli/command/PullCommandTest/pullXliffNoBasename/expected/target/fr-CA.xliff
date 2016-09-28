@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd">
+  <file original="PullCommandTest/en.lproj/Localizable.strings" source-language="en" datatype="plaintext" target-language="fr-ca">
+    <header>
+    <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="7.2"></tool></header>
+    <body>
+      <trans-unit id="100_character_description_">
+        <source>100 character description:</source>
+      <target xml:lang="fr-ca">Description de 100 caractères :</target>
+</trans-unit>
+      <trans-unit id="15_min_duration">
+        <source>15 min</source>
+        <target xml:lang="fr-ca">15 min</target>
+<note>File lock dialog duration</note>
+      </trans-unit>
+      <trans-unit id="1_day_duration">
+        <source>1 day</source>
+        <target xml:lang="fr-ca">1 jour</target>
+<note>File lock dialog duration</note>
+      </trans-unit>
+      <trans-unit id="1_hour_duration">
+        <source>1 hour</source>
+        <target xml:lang="fr-ca">1 heure</target>
+<note>File lock dialog duration</note>
+      </trans-unit>
+      <trans-unit id="1_month_duration">
+        <source>1 month</source>
+        <target xml:lang="fr-ca">1 mois</target>
+<note>File lock dialog duration</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

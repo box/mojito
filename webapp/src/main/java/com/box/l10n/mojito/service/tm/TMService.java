@@ -10,6 +10,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
+import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
@@ -27,9 +28,9 @@ import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.Integr
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
-import java.nio.charset.StandardCharsets;
 import com.google.common.base.Preconditions;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import javax.persistence.EntityManager;
 import net.sf.okapi.common.LocaleId;
@@ -701,6 +702,7 @@ public class TMService {
         IPipelineDriver driver = new PipelineDriver();
 
         driver.addStep(new RawDocumentToFilterEventsStep());
+        driver.addStep(new CheckForDoNotTranslateStep());
         driver.addStep(new TranslateStep(asset, repositoryLocale, InheritanceMode.USE_PARENT));
 
         //TODO(P1) see assetExtractor comments

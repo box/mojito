@@ -7,6 +7,7 @@ import net.sf.okapi.common.Event;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.resource.ITextUnit;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,7 @@ public class AssetExtractionStep extends BasePipelineStep {
      * when developer does not provide comment, some tools auto-generate comment
      * auto-generated comments should be ignored
      */
-    private static final String COMMENT_TO_IGNORE = "No comment provided by engineer"; 
+    private static final String COMMENT_TO_IGNORE = "No comment provided by engineer";
 
     private Long assetExtractionId;
 
@@ -72,13 +73,13 @@ public class AssetExtractionStep extends BasePipelineStep {
         ITextUnit textUnit = event.getTextUnit();
 
         if (textUnit.isTranslatable()) {
-            String name = textUnit.getName();
+            String name = StringUtils.isEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
             String source = textUnit.getSource().toString();
             String comments = textUnitUtils.getNote(textUnit);
-            if (comments != null && comments.contains(COMMENT_TO_IGNORE)) {
+            if (StringUtils.contains(comments, COMMENT_TO_IGNORE)) {
                 comments = null;
-            } 
-            
+            }
+
             String md5 = DigestUtils.md5Hex(name + source + comments);
 
             if (!assetTextUnitMD5s.contains(md5)) {

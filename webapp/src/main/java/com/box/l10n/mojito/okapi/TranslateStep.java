@@ -12,6 +12,9 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
@@ -19,13 +22,11 @@ import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.TextContainer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author aloison
@@ -110,7 +111,7 @@ public class TranslateStep extends BasePipelineStep {
 
             String translation = null;
 
-            String name = textUnit.getName();
+            String name = StringUtils.isEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
             String source = textUnit.getSource().toString();
             String comments = textUnitUtils.getNote(textUnit);
             String md5 = tmService.computeTMTextUnitMD5(name, source, comments);

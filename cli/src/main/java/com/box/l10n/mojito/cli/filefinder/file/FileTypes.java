@@ -8,6 +8,7 @@ package com.box.l10n.mojito.cli.filefinder.file;
 public enum FileTypes {
 
     XLIFF(XliffFileType.class),
+    XLIFF_NOBASENAME(XliffNoBasenameFileType.class),
     ANDROID_STRINGS(AndroidStringsFileType.class),
     MAC_STRING(MacStringsFileType.class),
     PROPERTIES(PropertiesFileType.class),
