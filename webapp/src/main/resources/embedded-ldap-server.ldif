@@ -28,4 +28,14 @@ cn: admin
 sn: admin
 givenname: admin
 uid: admin
+userPassword: ChangeMeLdap
+
+dn: cn=user1,ou=Users,dc=mojito,dc=org
+objectclass: top
+objectclass: posixAccount
+cn: user1
+sn: user1
+givenname: user1
+uid: user1
+userPassword: user1
 userPassword: admin
