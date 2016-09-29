@@ -18,14 +18,14 @@ We use `mojito-cli` to configure integrity checkers in a repository.  Integrity 
 
 ### Available Integrity Checkers
 
-| Integrity Checker                      | Recommended File Extensions&nbsp;&nbsp;&nbsp; | File Format                          |
-|:---------------------------------------|:----------------------------------------------|:-------------------------------------|
-| COMPOSITE_FORMAT                       | resw, resx                                    | RESW, RESX                           |
-| MESSAGE_FORMAT                         | properties                                    | Java Properties                      |
-| PRINTF_LIKE                            | xml, strings,                                 | Android Strings, iOS/Mac Strings,    |
-| SIMPLE_PRINTF_LIKE                     |                                               |                                      |
-| WHITESPACE                             |                                               |                                      |
-| TRAILING_WHITESPACE &nbsp;&nbsp;&nbsp; |                                               |                                      |
+| Integrity Checker                      | Recommended File Extensions &nbsp;&nbsp;&nbsp; | File Format                          |
+|:---------------------------------------|:------------------------------- ---------------|:-------------------------------------|
+| COMPOSITE_FORMAT                       | resw, resx                                     | RESW, RESX                           |
+| MESSAGE_FORMAT                         | properties                                     | Java Properties                      |
+| PRINTF_LIKE                            | xml, strings,                                  | Android Strings, iOS/Mac Strings,    |
+| SIMPLE_PRINTF_LIKE                     |                                                |                                      |
+| WHITESPACE                             |                                                |                                      |
+| TRAILING_WHITESPACE &nbsp;&nbsp;&nbsp; |                                                |                                      |
 
 
 ### Composite Format Integrity Checker
@@ -34,13 +34,13 @@ Composite format integrity checker validates that the placeholders of format `{s
 
 The translation gets rejected if any placeholder in the source string is missing in the translation.  There can be multiple placeholders in the source string.  The order of the placeholders can change in the translation. 
 
-| Source String &nbsp;&nbsp;&nbsp; | Translation &nbsp;&nbsp;&nbsp; | Checker |
-|:---------------------------------|:-------------------------------|:-------:|
-| Hello {0}!                       | ¡Hola {0}!                     | OK      |
-| Hello {0}!                       | ¡Hola!                         | FAIL    |
-| {0.00}% used                     | {0.00} used                    | OK      |
-| {0.00}% used                     | {0} used                       | FAIL    |
-| {0} with {1}                     | {1} con {0}                    | OK      |
+| Source String &nbsp;&nbsp;&nbsp; | Translation &nbsp;&nbsp;&nbsp; | Checker                                  |
+|:---------------------------------|:-------------------------------|:-----------------------------------------|
+| <small>Hello {0}!</small>        | <small>¡Hola {0}!</small>      | <small>OK</small>                        |
+| <small>Hello {0}!</small>        | <small>¡Hola!</small>          | <small>FAIL missing placeholder</small>  |
+| <small>{0.00}% used</small>      | <small>{0.00} used</small>     | <small>OK</small>                        |
+| <small>{0.00}% used</small>      | <small>{0} used</small>        | <small>FAIL modified placeholder</small> |
+| <small>{0} with {1}</small>      | <small>{1} con {0}</small>     | <small>OK</small>                        |
 
 
 
@@ -52,11 +52,11 @@ The translation gets rejected if any placeholder in the source string is missing
 
 Missing curly braces or translating elements within the curly braces also cause the translation to be rejected.
 
-| Source String                                                 | Translation                                           | Checker |
-|:--------------------------------------------------------------|:------------------------------------------------------|:-------:|
-| {numFiles, plural, one{one file} other{# files}} &nbsp;&nbsp; | {numFiles, plural, one{un fichier} other{# fichiers}} | OK      |
-| {numFiles, plural, one{one file} other{# files}} &nbsp;&nbsp; | {numFiles, plural, one{un fichier} other{# fichiers}  | FAIL    |
-| {numFiles, plural, one{one file} other{# files}} &nbsp;&nbsp; | {numFiles, plural, un{un fichier} autre{# fichiers}}  | FAIL    |
+| Source String                                                   | Translation                                                          | Checker           |
+|:----------------------------------------------------------------|:---------------------------------------------------------------------|:----------------- |
+| <small>{numFiles, plural, one{one file} other{# files}}</small> | <small>{numFiles, plural, one{un fichier} other{# fichiers}}</small> | <small>OK</small> |
+| <small>{numFiles, plural, one{one file} other{# files}}</small> | <small>{numFiles, plural, one{un fichier} other{# fichiers}</small>  | <small>FAIL missing closing curly braces</small>  |
+| <small>{numFiles, plural, one{one file} other{# files}}</small> | <small>{numFiles, plural, un{un fichier} autre{# fichiers}}</small>  | <small>FAIL translating quantity elements</small> |
 
 
 
@@ -67,12 +67,12 @@ Printf-like integrity checker validates that the placeholders in the source stri
 
 The translation gets rejected if any placeholder in the source string is missing in the translation or the specifier is modified.  There can be multiple placeholders in the source string.  The order of the placeholders can change in the translation.
 
-| Source String                            | Translation                     | Checker |
-|:-----------------------------------------|:--------------------------------|:-------:|
-| Hello %@!                                | ¡Hola %@!                       | OK      |
-| %1$s of %2$s                             | %2$s의 %1$s                      | OK      |
-| %1$d files and %2$d folders              | %1$d fichiers et dossiers       | FAIL    |
-| %1$d files and %2$d folders &nbsp;&nbsp; | %1$d fichiers et %2$s dossiers  | FAIL    |
+| Source String                                          | Translation                                               | Checker           |
+|:-------------------------------------------------------|:----------------------------------------------------------|:------------------|
+| <small>Hello %@!</small>                               | <small>¡Hola %@!</small>                                  | <small>OK</small> |
+| <small>%1$s of %2$s</small>                            | <small>%2$s의 %1$s</small>                                 | <small>OK</small> |
+| <small>%1$d files and %2$d folders</small>             | <small>%1$d fichiers et dossiers</small>                  | <small>FAIL missing placeholder</small> |
+| <small>%1$d files and %2$d folders</small>&nbsp;&nbsp; | <small>%1$d fichiers et %2$s dossiers</small>&nbsp;&nbsp; | <small>FAIL modified placeholder</small> |
 
 
 
@@ -83,12 +83,12 @@ Simple Printf-like integrity checker validates that the placeholders in the sour
 
 The translation gets rejected if any placeholder in the source string is missing in the translation.  There can be multiple placeholders in the source string.  The order of the placeholders can change in the translation.
 
-| Source String                        | Translation                     | Checker |
-|:-------------------------------------|:--------------------------------|:-------:|
-| Hello %1!                            | ¡Hola %1!                       | OK      |
-| %1 of %2                             | %2의 %1                          | OK      |
-| %1 files and %2 folders              | %1 fichiers et dossiers         | FAIL    |
-| %1 files and %2 folders &nbsp;&nbsp; | fichiers et %2 dossiers         | FAIL    |
+| Source String                                      | Translation                                        | Checker           |
+|:---------------------------------------------------|:---------------------------------------------------|:------------------|
+| <small>Hello %1!</small>                           | <small>¡Hola %1!</small>                           | <small>OK</small> |
+| <small>%1 of %2</small>                            | <small>%2의 %1</small>                              | <small>OK</small> |
+| <small>%1 files and %2 folders</small>             | <small>%1 fichiers et dossiers</small>             | <small>FAIL missing placeholder</small> |
+| <small>%1 files and %2 folders</small>&nbsp;&nbsp; | <small>fichiers et %2 dossiers</small>&nbsp;&nbsp; | <small>FAIL missing placeholder</small> |
 
 
 
@@ -99,12 +99,12 @@ Whitespace integrity checker validates that the leading and trailing whitespaces
 
 The translation gets rejected if any leading or traingling whitespace in the source string is missing in the translation.
 
-| Source String                                                | Translation                                            | Checker |
-|:-------------------------------------------------------------|:-------------------------------------------------------|:-------:|
-| [space]Hello %@![newline]                                    | [space]¡Hola %@![newline]                              | OK      |
-| [space]%1$d files and %2$d folders                           | %1$d fichiers et %2$s dossiers                         | FAIL    |
-| %1$d files and %2$d folders[newline]&nbsp;&nbsp;&nbsp;&nbsp; | %1$d fichiers et %2$s dossiers                         | FAIL    |
-| [space]%1 files and %2 folders[newline]                      | [newline]%1 fichiers et %2 dossiers[space]&nbsp;&nbsp; | FAIL    |
+| Source String                                          | Translation                                                           | Checker           |
+|:-------------------------------------------------------|:----------------------------------------------------------------------|:------------------|
+| <small>[space]Hello %@![newline]</small>               | <small>[space]¡Hola %@![newline]</small>                              | <small>OK</small> |
+| <small>[space]%1$d files and %2$d folders</small>      | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing leading space</small>                    |
+| <small>%1$d files and %2$d folders[newline]</small>    | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing trailing newline</small>                 |
+| <small>[space]%1 files and %2 folders[newline]</small> | <small>[newline]%1 fichiers et %2 dossiers[space]</small>&nbsp;&nbsp; | <small>FAIL modified leading and trailing whitepsace</small> |
 
 
 
@@ -115,12 +115,12 @@ Trailing whitespace integrity checker validates that the trailing whitespaces in
 
 The translation gets rejected if any traingling whitespace in the source string is missing in the translation.
 
-| Source String                                                | Translation                                            | Checker |
-|:-------------------------------------------------------------|:-------------------------------------------------------|:-------:|
-| Hello %@![space][newline]                                    | ¡Hola %@![space][newline]                              | OK      |
-| %1$d files and %2$d folders[space]                           | %1$d fichiers et %2$s dossiers                         | FAIL    |
-| %1$d files and %2$d folders[newline]&nbsp;&nbsp;&nbsp;&nbsp; | %1$d fichiers et %2$s dossiers                         | FAIL    |
-| %1 files and %2 folders[space][newline]                      | %1 fichiers et %2 dossiers[newline][space]&nbsp;&nbsp; | FAIL    |
+| Source String                                                      | Translation                                                           | Checker           |
+|:-------------------------------------------------------------------|:----------------------------------------------------------------------|:------------------|
+| <small>Hello %@![space][newline]</small>                           | <small>¡Hola %@![space][newline]</small>                              | <small>OK</small> |
+| <small>%1$d files and %2$d folders[space]</small>                  | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing trailng space</small>         |
+| <small>%1$d files and %2$d folders[newline]</small>                | <small>%1$d fichiers et %2$s dossiers</small>                         | <small>FAIL missing trailing newline</small>      |
+| <small>%1 files and %2 folders[space][newline]</small>&nbsp;&nbsp; | <small>%1 fichiers et %2 dossiers[newline][space]</small>&nbsp;&nbsp; | <small>FAIL modified trailing whitespaces</small> |
 
 
 
