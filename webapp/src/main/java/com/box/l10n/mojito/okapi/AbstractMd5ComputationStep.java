@@ -1,11 +1,11 @@
 package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.service.tm.TMService;
+import com.google.common.base.Strings;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.TextUnit;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,10 +47,10 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
         textUnit = event.getTextUnit();
 
         if (textUnit.isTranslatable()) {
-            name = StringUtils.isEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
+            name = Strings.isNullOrEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
             source = textUnit.getSource().toString();
             comments = textUnitUtils.getNote(textUnit);
-            if (StringUtils.contains(comments, COMMENT_TO_IGNORE)) {
+            if (comments != null && comments.contains(COMMENT_TO_IGNORE)) {
                 comments = null;
             }
             md5 = tmService.computeTMTextUnitMD5(name, source, comments);
