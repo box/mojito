@@ -17,12 +17,9 @@ import java.util.List;
 import java.util.Map;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
-import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
-import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.TextContainer;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +29,9 @@ import org.springframework.beans.factory.annotation.Configurable;
  * @author aloison
  */
 @Configurable
-public class TranslateStep extends BasePipelineStep {
+public class TranslateStep extends AbstractMd5ComputationStep {
 
     static Logger logger = LoggerFactory.getLogger(TranslateStep.class);
-
-    @Autowired
-    TMService tmService;
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
@@ -55,9 +49,6 @@ public class TranslateStep extends BasePipelineStep {
     TextUnitSearcher textUnitSearcher;
 
     private LocaleId targetLocale;
-
-    @Autowired
-    TextUnitUtils textUnitUtils;
 
     Asset asset;
 
@@ -105,16 +96,11 @@ public class TranslateStep extends BasePipelineStep {
 
     @Override
     protected Event handleTextUnit(Event event) {
-        ITextUnit textUnit = event.getTextUnit();
+        event = super.handleTextUnit(event);
 
         if (textUnit.isTranslatable()) {
 
             String translation = null;
-
-            String name = StringUtils.isEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
-            String source = textUnit.getSource().toString();
-            String comments = textUnitUtils.getNote(textUnit);
-            String md5 = tmService.computeTMTextUnitMD5(name, source, comments);
 
             logger.debug("Look for a translation in target locale: {} for text unit with name: {}", targetLocale.toBCP47(), name);
             TextUnitDTO textUnitDTO = getTextUnitDTO(md5, repositoryLocale.getLocale().getId());

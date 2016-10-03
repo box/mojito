@@ -4,10 +4,6 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import java.util.HashSet;
 import java.util.Set;
 import net.sf.okapi.common.Event;
-import net.sf.okapi.common.pipeline.BasePipelineStep;
-import net.sf.okapi.common.resource.ITextUnit;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +15,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 //TODO(P1) We should probably move this to the service directory and keep
 //this folder more for classes related to the okapi framework itself
 @Configurable
-public class AssetExtractionStep extends BasePipelineStep {
+public class AssetExtractionStep extends AbstractMd5ComputationStep {
 
     /**
      * logger
@@ -36,9 +32,6 @@ public class AssetExtractionStep extends BasePipelineStep {
 
     @Autowired
     AssetExtractionService assetExtractionService;
-
-    @Autowired
-    TextUnitUtils textUnitUtils;
 
     Set<String> assetTextUnitMD5s;
 
@@ -70,18 +63,9 @@ public class AssetExtractionStep extends BasePipelineStep {
 
     @Override
     protected Event handleTextUnit(Event event) {
-        ITextUnit textUnit = event.getTextUnit();
+        event = super.handleTextUnit(event);
 
         if (textUnit.isTranslatable()) {
-            String name = StringUtils.isEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
-            String source = textUnit.getSource().toString();
-            String comments = textUnitUtils.getNote(textUnit);
-            if (StringUtils.contains(comments, COMMENT_TO_IGNORE)) {
-                comments = null;
-            }
-
-            String md5 = DigestUtils.md5Hex(name + source + comments);
-
             if (!assetTextUnitMD5s.contains(md5)) {
                 assetTextUnitMD5s.add(md5);
                 assetExtractionService.createAssetTextUnit(assetExtractionId, name, source, comments);

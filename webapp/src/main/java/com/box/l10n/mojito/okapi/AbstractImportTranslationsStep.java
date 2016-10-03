@@ -6,13 +6,13 @@ import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotation;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotations;
 import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
+import java.util.HashSet;
+import java.util.Set;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
-import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Base class that contains the logic to import XLIFFs.
@@ -35,15 +33,12 @@ import java.util.Set;
  * @author aloison
  */
 @Configurable
-public abstract class AbstractImportTranslationsStep extends BasePipelineStep {
+public abstract class AbstractImportTranslationsStep extends AbstractMd5ComputationStep {
 
     /**
      * Logger
      */
     static Logger logger = LoggerFactory.getLogger(AbstractImportTranslationsStep.class);
-
-    @Autowired
-    TMService tmService;
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
@@ -109,7 +104,7 @@ public abstract class AbstractImportTranslationsStep extends BasePipelineStep {
 
     @Override
     protected Event handleTextUnit(Event event) {
-        ITextUnit textUnit = event.getTextUnit();
+        event = super.handleTextUnit(event);
 
         if (textUnit.isTranslatable()) {
 
