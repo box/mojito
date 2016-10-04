@@ -10,7 +10,6 @@ import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffNoBasenameFileType;
 import com.box.l10n.mojito.test.IOTestBase;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -19,8 +18,6 @@ import java.util.Iterator;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,19 +131,8 @@ public class FileFinderTest extends IOTestBase {
         assertFalse(itTargets.hasNext());
     }
 
-    //TODO(P1) fix the failure and enable the test
-    @Ignore
     @Test
-    public void findXliffNoBasename() throws IOException, FileFinderException {
-
-        File sourceDirectory = getInputResourcesTestDir("source");
-        File targetDirectory = getInputResourcesTestDir("target");
-
-        assertTrue(sourceDirectory.getPath() + " should exist", sourceDirectory.exists());
-        assertTrue(targetDirectory.getPath() + " should exist", targetDirectory.exists());
-        assertTrue(sourceDirectory.getPath() + " should be a directory", sourceDirectory.isDirectory());
-        assertTrue(targetDirectory.getPath() + " should be a directory", targetDirectory.isDirectory());
-
+    public void findXliffNoBaseName() throws IOException, FileFinderException {
         FileFinder fileFinder = initFileFinder(false, new XliffNoBasenameFileType());
 
         Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
