@@ -71,6 +71,7 @@
   "scripts": {
     "start-dev": "npm run start-server & npm run watch",
     "start-server": "mvn spring-boot:run -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
+    "start-server-debug": "mvn spring-boot:run -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005\" -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
     "watch": "npm run watch-js & npm run watch-rb & grunt watch",
     "watch-resources": "nodemon --watch src/main/resources/ -e html,css --exec 'mvn resources:resources'",
     "watch-js": "webpack --progress --colors --watch --inline-source-map",

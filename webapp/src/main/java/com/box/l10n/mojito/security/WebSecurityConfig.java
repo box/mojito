@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.security.Http401AuthenticationEntr
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
+import org.springframework.security.config.annotation.authentication.configurers.provisioning.InMemoryUserDetailsManagerConfigurer;
 
 /**
  * @author wyau
@@ -38,24 +38,44 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     LdapConfig ldapConfig;
 
     @Autowired
+    ActiveDirectoryConfig activeDirectoryConfig;
+
+    @Autowired
     UserDetailsContextMapperImpl userDetailsContextMapperImpl;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 
-        switch (securityConfig.getAuthenticationType()) {
-            case DATABASE:
-                configureDatabase(auth);
-                break;
-            case LDAP:
-                configureLdap(auth);
-                break;
+        for (SecurityConfig.AuthenticationType authenticationType : securityConfig.getAuthenticationType()) {
+            switch (authenticationType) {
+                case DATABASE:
+                    configureDatabase(auth);
+                    break;
+                case LDAP:
+                    configureLdap(auth);
+                    break;
+                case AD:
+                    configureActiveDirectory(auth);
+                    break;
+            }
         }
     }
+ 
+    void configureActiveDirectory(AuthenticationManagerBuilder auth) throws Exception {
+        logger.debug("Configuring in active directory authentication");
+        ActiveDirectoryAuthenticationProviderConfigurer<AuthenticationManagerBuilder> activeDirectoryManagerConfigurer = new ActiveDirectoryAuthenticationProviderConfigurer<>();
+        
+        activeDirectoryManagerConfigurer.domain(activeDirectoryConfig.getDomain());
+        activeDirectoryManagerConfigurer.url(activeDirectoryConfig.getUrl());
+        activeDirectoryManagerConfigurer.rootDn(activeDirectoryConfig.getRootDn());
+        activeDirectoryManagerConfigurer.userServiceDetailMapper(userDetailsContextMapperImpl);
+        
+        auth.apply(activeDirectoryManagerConfigurer);
+    }
 
-    void configureDatabase(AuthenticationManagerBuilder auth) {
+    void configureDatabase(AuthenticationManagerBuilder auth) throws Exception {
         logger.debug("Configuring in database authentication");
-        auth.authenticationProvider(getDaoAuthenticationProvider());
+        auth.userDetailsService(getUserDetailsService()).passwordEncoder(new BCryptPasswordEncoder());
     }
 
     void configureLdap(AuthenticationManagerBuilder auth) throws Exception {
@@ -100,16 +120,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.exceptionHandling().defaultAuthenticationEntryPointFor(new Http401AuthenticationEntryPoint("API_UNAUTHORIZED"), new AntPathRequestMatcher("/api/*"));
         http.exceptionHandling().defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new AntPathRequestMatcher("/*"));
-    }
-
-    @Bean
-    protected DaoAuthenticationProvider getDaoAuthenticationProvider() {
-        logger.debug("Getting DaoAuthenticationProvider");
-        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-        daoAuthenticationProvider.setUserDetailsService(getUserDetailsService());
-        daoAuthenticationProvider.setPasswordEncoder(new BCryptPasswordEncoder());
-
-        return daoAuthenticationProvider;
     }
 
     @Bean
