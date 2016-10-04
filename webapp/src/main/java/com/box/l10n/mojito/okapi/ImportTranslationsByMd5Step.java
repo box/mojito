@@ -49,13 +49,6 @@ public class ImportTranslationsByMd5Step extends AbstractImportTranslationsStep 
 
     @Override
     TMTextUnit getTMTextUnit(ITextUnit textUnit) {
-
-        String name = textUnit.getName();
-        String sourceContent = textUnit.getSource().toString();
-        String note = textUnitUtils.getNote(textUnit);
-
-        String md5 = tmService.computeTMTextUnitMD5(name, sourceContent, note);
-
         return tmTextUnitRepository.findFirstByTmAndMd5(repository.getTm(), md5);
     }
 }

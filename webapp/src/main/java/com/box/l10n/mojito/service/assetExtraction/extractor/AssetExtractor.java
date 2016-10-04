@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
+import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
@@ -57,6 +58,7 @@ public class AssetExtractor {
 
         IPipelineDriver driver = new PipelineDriver();
         driver.addStep(new RawDocumentToFilterEventsStep());
+        driver.addStep(new CheckForDoNotTranslateStep());
         driver.addStep(new AssetExtractionStep(assetExtraction.getId()));
 
         //TODO(10) Is this actually used as we have our own logic to set the filter to be used, see following todo
