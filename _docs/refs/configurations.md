@@ -68,6 +68,34 @@ The default server configuration of {{ site.mojito_green }} to run on port 8080.
 
 	server.port=8080
 
+
+### Project Request Configuration
+
+The project request configuration is for the offline translation requests.  These settings define where {{ site.mojito_green }} stores xliff files.
+
+By default, {{ site.mojito_green }} uses local file system to manage xliff files.
+
+    l10n.dropExporter.type=FILE_SYSTEM
+    l10n.fileSystemDropExporter.basePath=(Java system property for java.io.tmpdir)/fileSystemDropExporter
+
+Let's say that `java.io.tmpdir` is `/tmp`.  When you create a new project request for a repository, {{ site.mojito_green }} generates the following directories.
+
+    /tmp/fileSystemDropExporter/<repository name>/<project name>
+        |-> Imported Files
+        |-> Localized Files
+        |-> Queries
+        |-> Quotes
+        |-> Source Files
+            |-> fr-FR_mm-dd-yy.xliff
+            |-> ja-JP_mm-dd-yy.xliff
+
+{{ site.mojito_green }} exports xliff files in `Source Files` directory.  You should give them to the translators to translate.
+
+When translators are done, translated xliff files should be put in the `Localized Files` directory.  {{ site.mojito_green }} imports xliff files from this directory.
+
+You can override this default configuration and have project requests to be managed on Box instead of local file system.  Refer to [Integrating with Box]({{ site.github.url }}/docs/guides/integrating-with-box/).
+
+
 ### Database Authentication
 
 The default user authentication setting in {{ site.mojito_green }} is to use database.  User information is stored in database.  {{ site.mojito_green }} initially is set up with one default user `admin/ChangeMe`.  You can override the default user settings.  These values are only respected on initial bootstrapping.
@@ -86,6 +114,7 @@ With database authentication, {{ site.mojito_green }} users can be added, update
 
     # delete user
     mojito user-delete --username ${USERNAME}   
+
 
 ### LDAP Authentication
 

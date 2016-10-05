@@ -67,13 +67,13 @@ Navigate to `/settings` and fill in the form.
 
 ![Box Integration Settings](./images/box-settings.png)
 
-### Bootstrapping {{ site.mojito_green }} Folder Structure
+### Bootstrapping Mojito Folder Structure
 
-By default, {{ site.mojito_green }} will create the skeleton folder structure it will use after the configurations are provided.  A `{{ site.mojito_green }}` folder containing the folder structure will be created in the root folder of the **App User** account.
+By default, {{ site.mojito_green }} will create the skeleton folder structure it will use after the configurations are provided.  A `Mojito` folder containing the folder structure will be created in the root folder of the **App User** account.
 
 ![Box mojito Folder](./images/box-mojito-folder.png)
 
-### Sharing the {{ site.mojito_green }} Folder with Vendors
+### Sharing the Mojito Folder with Vendors
 Most of the time, the content of this folder will be used to exchange translation project requests / files with vendors.  At this time, {{ site.mojito_green }} does not have vendor management features.
 
 To customize sharing of this folder to individuals, log into the **Box Developer Account** (or the **Enterprise** Admin user, for which you provided the **Enterprise ID**), navigate to the **Admin Console** ([https://app.box.com/master](https://app.box.com/master)), and follow instructions [here](https://community.box.com/t5/For-Admins/How-Do-I-Share-Files-And-Folders-From-The-Admin-Console/ta-p/211) to share with collaborators.
