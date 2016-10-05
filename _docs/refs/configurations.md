@@ -70,11 +70,11 @@ The default server configuration of {{ site.mojito_green }} to run on port 8080.
 
 ### Database Authentication
 
-The default user authentication setting in {{ site.mojito_green }} is to use database.  User information is stored in database.  {{ site.mojito_green }} initially is set up with one default user `admin/admin`.  You can override the default user settings.  These values are only respected on initial bootstrapping.
+The default user authentication setting in {{ site.mojito_green }} is to use database.  User information is stored in database.  {{ site.mojito_green }} initially is set up with one default user `admin/ChangeMe`.  You can override the default user settings.  These values are only respected on initial bootstrapping.
 
     l10n.security.authenticationType=DATABASE
     l10n.bootstrap.defaultUser.username=admin
-    l10n.bootstrap.defaultUser.password=admin
+    l10n.bootstrap.defaultUser.password=ChangeMe
 
 With database authentication, {{ site.mojito_green }} users can be added, updated (with new password) and deleted using {{ site.mojito_green }} CLI.
 
@@ -114,14 +114,17 @@ The default CLI configuration of {{ site.mojito_green }} is to connect to [http:
     l10n.resttemplate.scheme=http
     l10n.resttemplate.authentication.credentialProvider=CONFIG
     l10n.resttemplate.authentication.username=admin
-    l10n.resttemplate.authentication.password=admin
+    l10n.resttemplate.authentication.password=ChangeMe
 
-If you want to authenticate the user running CLI on command-line, update the following.  Enter password for ${USER} when promtped.
+If you want to authenticate the user running CLI on command-line, set the following configuration to prompt the user for the password.
 
     l10n.resttemplate.authentication.credentialProvider=CONSOLE
-    #l10n.resttemplate.authentication.username=admin   # set to ${USER} at run-time
-    #l10n.resttemplate.authentication.password=admin   # obtained at run-time
 
+Please note that the the username defaults to the current user (Java system property for user.name) running the CLI instead of `admin`.  Before updating this configuration, it is strongly recommended to add usernames of users that would run the CLI as described in [Database Authentication]({{ site.github.url }}/docs/refs/configurations/#database-authentication).
+
+You can override Java system property for user.name with `-Duser.name=admin`.  For example, to run {{ site.mojito_green }} CLI as `admin` user, enter the following:
+
+    java -Duser.name=admin -jar mojito-cli-<version>.jar <cli-commands>
 
 ## Box Platform Integration
 
