@@ -219,5 +219,16 @@ public class CommandHelper {
             throw new CommandException(e.getMessage(), e.getCause());
         }
     }
-    
+
+    /**
+     * Adds attribute xml:space="preserve" in the trans-unit element in the
+     * xliff
+     *
+     * @param assetContent
+     * @return
+     */
+    String setPreserveSpaceInXliff(String assetContent) {
+        return assetContent.replaceAll("<trans-unit id=\"(.*?)\">", "<trans-unit id=\"$1\" xml:space=\"preserve\">");
+    }
+
 }

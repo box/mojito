@@ -7,8 +7,8 @@ import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
 import com.box.l10n.mojito.cli.filefinder.file.PropertiesNoBasenameFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
+import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
-import com.box.l10n.mojito.cli.filefinder.file.XliffNoBasenameFileType;
 import com.box.l10n.mojito.test.IOTestBase;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -132,13 +132,13 @@ public class FileFinderTest extends IOTestBase {
     }
 
     @Test
-    public void findXliffNoBaseName() throws IOException, FileFinderException {
-        FileFinder fileFinder = initFileFinder(false, new XliffNoBasenameFileType());
+    public void findXcodeXliff() throws IOException, FileFinderException {
+        FileFinder fileFinder = initFileFinder(false, new XcodeXliffFileType());
 
         Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
 
         FileMatch next = itSources.next();
-        assertEquals(XliffNoBasenameFileType.class, next.fileType.getClass());
+        assertEquals(XcodeXliffFileType.class, next.fileType.getClass());
         assertEquals(getInputResourcesTestDir("source").toString() + "/en.xliff", next.getPath().toString());
         assertEquals("fr.xliff", next.getTargetPath("fr"));
 
