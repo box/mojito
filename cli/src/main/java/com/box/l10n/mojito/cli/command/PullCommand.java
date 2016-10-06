@@ -6,6 +6,7 @@ import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.filefinder.file.XliffNoBasenameFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
@@ -203,10 +204,18 @@ public class PullCommand extends Command {
             logger.debug("Getting the asset for path: {} and locale: {}", sourceFileMatch.getSourcePath(), repositoryLocale.getLocale().getBcp47Tag());
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(sourceFileMatch.getSourcePath(), repository.getId());
 
+            String assetContent = commandHelper.getFileContent(sourceFileMatch.getPath());
+
+            // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
+            // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
+            if (fileType != null && fileType.getClass() == XliffNoBasenameFileType.class) {
+                assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
+            }
+
             LocalizedAssetBody localizedAsset = assetClient.getLocalizedAssetForContent(
                     assetByPathAndRepositoryId.getId(),
                     repositoryLocale.getLocale().getId(),
-                    commandHelper.getFileContent(sourceFileMatch.getPath()),
+                    assetContent,
                     outputBcp47tag);
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());

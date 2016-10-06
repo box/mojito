@@ -6,6 +6,7 @@ import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.filefinder.file.XliffNoBasenameFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
@@ -52,7 +53,7 @@ public class PushCommand extends Command {
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
-    
+
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
@@ -85,6 +86,12 @@ public class PushCommand extends Command {
             String sourcePath = sourceFileMatch.getSourcePath();
 
             String assetContent = commandHelper.getFileContent(sourceFileMatch.getPath());
+
+            // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
+            // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
+            if (fileType != null && fileType.getClass() == XliffNoBasenameFileType.class) {
+                assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
+            }
 
             SourceAsset sourceAsset = new SourceAsset();
             sourceAsset.setPath(sourcePath);

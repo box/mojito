@@ -3,26 +3,26 @@
     <header>
     <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="7.2"></tool></header>
     <body>
-      <trans-unit id="100_character_description_">
+      <trans-unit id="100_character_description_" xml:space="preserve">
         <source>100 character description:</source>
       <target xml:lang="ja">Description de 100 caractères :</target>
 </trans-unit>
-      <trans-unit id="15_min_duration">
+      <trans-unit id="15_min_duration" xml:space="preserve">
         <source>15 min</source>
         <target xml:lang="ja">15分</target>
 <note>File lock dialog duration</note>
       </trans-unit>
-      <trans-unit id="1_hour_duration">
+      <trans-unit id="1_hour_duration" xml:space="preserve">
         <source>1 hour</source>
         <target xml:lang="ja">1時間</target>
 <note>File lock dialog duration</note>
       </trans-unit>
-      <trans-unit id="1_month_duration">
+      <trans-unit id="1_month_duration" xml:space="preserve">
         <source>1 month</source>
         <target xml:lang="ja">1か月</target>
 <note>File lock dialog duration</note>
       </trans-unit>
-      <trans-unit id="something_new">
+      <trans-unit id="something_new" xml:space="preserve">
         <source>Something new</source>
       <target xml:lang="ja">Something new</target>
 </trans-unit>
