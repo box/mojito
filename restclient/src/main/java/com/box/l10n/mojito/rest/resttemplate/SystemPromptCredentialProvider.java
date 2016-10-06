@@ -27,7 +27,7 @@ public class SystemPromptCredentialProvider implements CredentialProvider {
     @Override
     public String getPassword() {
         if (password == null) {
-            System.out.println("Enter your password for Mojito: ");
+            System.out.println("Enter password for mojito user " + systemUserName + ": ");
             char[] readPassword = System.console().readPassword();
             password = new String(readPassword);
         }
