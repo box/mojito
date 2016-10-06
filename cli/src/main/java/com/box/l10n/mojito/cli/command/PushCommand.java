@@ -6,7 +6,7 @@ import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.cli.filefinder.file.XliffNoBasenameFileType;
+import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
@@ -89,7 +89,8 @@ public class PushCommand extends Command {
 
             // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
             // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
-            if (fileType != null && fileType.getClass() == XliffNoBasenameFileType.class) {
+            // See Xcode bug http://www.openradar.me/23410569
+            if (fileType != null && fileType.getClass() == XcodeXliffFileType.class) {
                 assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
             }
 

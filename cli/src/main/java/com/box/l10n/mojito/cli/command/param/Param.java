@@ -47,37 +47,37 @@ public class Param {
     public static final String SOURCE_LOCALE_LONG = "--source-locale";
     public static final String SOURCE_LOCALE_SHORT = "-sl";
     public static final String SOURCE_LOCALE_DESCRIPTION = "Override the default source locale of the filter (if -ft option is used)";
-    
+
     public static final String FILE_TYPE_LONG = "--file-type";
     public static final String FILE_TYPE_SHORT = "-ft";
-    public static final String FILE_TYPE_DESCRIPTION = "File type (if none provided it will scan for default formats: XLIFF, XLIFF_NOBASENAME, MAC_STRING, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, RESW, RESX)";
-    
+    public static final String FILE_TYPE_DESCRIPTION = "File type (if none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, RESW, RESX)";
+
     public static final String SOURCE_REGEX_LONG = "--source-regex";
     public static final String SOURCE_REGEX_SHORT = "-sr";
     public static final String SOURCE_REGEX_DESCRIPTION = "Regular expression to match the path of source assets to localize";
-     
+
     public static final String USERNAME_LONG = "--username";
     public static final String USERNAME_SHORT = "-un";
     public static final String USERNAME_DESCRIPTION = "Username of user";
- 
+
     public static final String PASSWORD_LONG = "--password";
     public static final String PASSWORD_SHORT = "-pw";
     public static final String PASSWORD_DESCRIPTION = "Prompt for user password";
-    
+
     public static final String SURNAME_LONG = "--surname";
     public static final String SURNAME_SHORT = "-sn";
     public static final String SURNAME_DESCRIPTION = "Surname of user";
-    
+
     public static final String GIVEN_NAME_LONG = "--given-name";
     public static final String GIVEN_NAME_SHORT = "-gn";
     public static final String GIVEN_NAME_DESCRIPTION = "Given name of user";
-    
+
     public static final String COMMON_NAME_LONG = "--common-name";
     public static final String COMMON_NAME_SHORT = "-cn";
     public static final String COMMON_NAME_DESCRIPTION = "Common name of user";
-    
+
     public static final String ROLE_LONG = "--role";
     public static final String ROLE_SHORT = "-r";
     public static final String ROLE_DESCRIPTION = "Available user roles: PM, TRANSLATOR, ADMIN, USER";
-    
+
 }

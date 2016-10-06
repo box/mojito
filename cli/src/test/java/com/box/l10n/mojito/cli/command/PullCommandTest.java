@@ -334,13 +334,13 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
-    public void pullXliffNoBasename() throws Exception {
+    public void pullXcodeXliff() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-ft", "XLIFF_NOBASENAME");
+                "-ft", "XCODE_XLIFF");
 
         Asset asset = assetClient.getAssetByPathAndRepositoryId("en.xliff", repository.getId());
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -350,13 +350,13 @@ public class PullCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir("target").getAbsolutePath(),
                 "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
-                "-ft", "XLIFF_NOBASENAME");
+                "-ft", "XCODE_XLIFF");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
                 "-t", getTargetTestDir("target_modified").getAbsolutePath(),
                 "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
-                "-ft", "XLIFF_NOBASENAME");
+                "-ft", "XCODE_XLIFF");
 
         checkExpectedGeneratedResources();
     }
