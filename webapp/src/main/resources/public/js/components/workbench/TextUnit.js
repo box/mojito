@@ -504,6 +504,8 @@ let TextUnit = React.createClass({
         } else {
             let targetString = this.hasTargetChanged() ? this.state.translation : this.props.translation;
             let dir;
+            let leadingWhitespacesSymbol = "";
+            let trailingWhitespacesSymbol = "";
 
             let noTranslation = false;
             let targetClassName = "pts pls pbs textunit-string textunit-target";
@@ -514,11 +516,14 @@ let TextUnit = React.createClass({
                 targetString = this.props.intl.formatMessage({id: "textUnit.target.enterNewTranslation"});
             } else {
                 dir = Locales.getLanguageDirection(this.props.textUnit.getTargetLocale());
+                leadingWhitespacesSymbol = this.getLeadingWhitespacesSymbol(targetString);
+                trailingWhitespacesSymbol = this.getTrailingWhitespacesSymbol(targetString);
+                targetString = targetString.trim();
             }
 
             ui = (
                 <label className={targetClassName} onClick={this.editStringClicked} dir={dir}>
-                    {targetString}
+                {leadingWhitespacesSymbol}{targetString}{trailingWhitespacesSymbol}
                 </label>
             );
         }
@@ -667,6 +672,34 @@ let TextUnit = React.createClass({
         }
     },
 
+    getLeadingWhitespacesSymbol(str) {
+        let optionalWhitespaceSymbols = "";
+        let leadingWhitespacesRegex = /^(\s+).*?/g;
+        let match = leadingWhitespacesRegex.exec(str);
+        if (match) {
+            optionalWhitespaceSymbols = this.getWhitespacesSymbol(match[1]);
+        }
+        return optionalWhitespaceSymbols;
+    },
+
+    getTrailingWhitespacesSymbol(str) {
+        let optionalWhitespaceSymbols = "";
+        let trailingWhitespacesRegex = /.*?(\s+)$/g;
+        let match = trailingWhitespacesRegex.exec(str);
+        if (match) {
+            optionalWhitespaceSymbols = this.getWhitespacesSymbol(match[1]);
+        }
+        return optionalWhitespaceSymbols;
+    },
+
+    getWhitespacesSymbol(str) {
+        let whitespaces = str.replace(/\n/g, "↵");
+        whitespaces = whitespaces.replace(/ /g, "⎵");
+        return (
+            <span className="textunit-whitespaces">{whitespaces}</span>
+        );
+    },
+
     /**
      * render the source. If the source ends with a retrun line remove and
      * render a return line symbol so that the user as a clue about the trailing
@@ -675,18 +708,12 @@ let TextUnit = React.createClass({
     renderSource() {
 
         let source = this.props.textUnit.getSource();
-        let optionalReturnLineSymbol = "";
-
-        if (source.endsWith("\n")) {
-            source = source.substring(0, source.length - 1);
-            optionalReturnLineSymbol = (
-                <span className="textunit-returnline"> ↵</span>
-            );
-        }
+        let leadingWhitespacesSymbol = this.getLeadingWhitespacesSymbol(source);
+        let trailingWhitespacesSymbol = this.getTrailingWhitespacesSymbol(source);
+        source = source.trim();
 
         return (
-            <div className="plx pts textunit-string">{source}{optionalReturnLineSymbol}
-            </div>
+            <div className="plx pts textunit-string">{leadingWhitespacesSymbol}{source}{trailingWhitespacesSymbol}</div>
         );
     },
 
