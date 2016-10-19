@@ -56,7 +56,7 @@ let DropDetail = React.createClass({
                               to='/workbench'>{tk.localeDisplayName}</Link>
                     </div>
                 </td>
-                <td>{tk.wordCount}</td>
+                <td><FormattedNumber value={tk.wordCount}/></td>
             </tr>;
         });
 

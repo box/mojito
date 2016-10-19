@@ -12,7 +12,7 @@ import {
     Table,
     Tooltip
 } from "react-bootstrap";
-import {FormattedMessage, FormattedDate, injectIntl} from "react-intl";
+import {FormattedMessage, FormattedDate, FormattedNumber, injectIntl} from "react-intl";
 import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 import FluxyMixin from "alt/mixins/FluxyMixin";
 import PageRequestParams from "../../sdk/PageRequestParams";
@@ -227,7 +227,7 @@ let Drops = React.createClass({
             <tr className={rowClass}>
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
                 <td>{drop.repository.name}</td>
-                <td>{wordCount}</td>
+                <td><FormattedNumber value={wordCount}/></td>
                 <td><FormattedDate value={drop.createdDate} day="numeric" month="long" year="numeric"/></td>
                 <td>{drop.createdByUser.getDisplayName()}</td>
                 <td>{status}</td>

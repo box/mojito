@@ -106,8 +106,8 @@ let RepositoryStatistics = React.createClass({
         if (numberOfNeedsReview > 0) {
             ui = (
                 <Link onClick={this.updateSearchParamsForNeedsReview.bind(this, bcp47Tag)} to='/workbench'>
-                    <span className="repo-counts">{numberOfNeedsReview}&nbsp;</span>
-                    ({numberOfWordNeedsReview})
+                    <span className="repo-counts"><FormattedNumber value={numberOfNeedsReview}/>&nbsp;</span>
+                    (&nbsp;<FormattedNumber value={numberOfWordNeedsReview}/>&nbsp;)
                 </Link>
             );
         }
@@ -131,8 +131,8 @@ let RepositoryStatistics = React.createClass({
         if (numberOfNeedsTranslation > 0) {
             ui = (
                 <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, bcp47Tag)} to='/workbench'>
-                    <span className="repo-counts">{numberOfNeedsTranslation}&nbsp;</span>
-                    ({numberOfWordNeedsTranslation})
+                    <span className="repo-counts"><FormattedNumber value={numberOfNeedsTranslation}/>&nbsp;</span>
+                    (&nbsp;<FormattedNumber value={numberOfWordNeedsTranslation}/>&nbsp;)
                 </Link>);
         }
 
