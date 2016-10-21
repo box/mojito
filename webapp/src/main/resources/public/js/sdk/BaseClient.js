@@ -1,5 +1,14 @@
-import fetch from "node-fetch";
 import $ from "jquery";
+// TODO remove node-fetch which is only useful for older browser like Safari 9.
+// Chrome, Firefox support fetch correctly.
+//
+// node-fetch causes some issue with compression ("invalid response body at:
+// http://localhost:8080/ap…mit=10 reason: data error: incorrect header check",
+// type: "system", errno: "Z_DATA_ERROR", code: "Z_DATA_ERROR"}).
+//
+// A counter intuitive workaround is to use compress: false
+// we can remove it later when Safari 9 doesn't need to be supported
+import fetch from "node-fetch";
 
 class BaseClient {
     constructor() {
@@ -86,7 +95,9 @@ class BaseClient {
 
     get(url, data) {
         return fetch(url + '?' + $.param(data), {
-            follow: 0
+            follow: 0,
+            compress: false, // workaround for node-fetch, see this file header
+            credentials: 'include' // this is required if using fetch from the browser, not needed with node-fetch
         }).then(response => {
             this.handleUnauthenticatedResponse(response);
             return response.json();
@@ -96,6 +107,8 @@ class BaseClient {
     put(url, data) {
         return fetch(url, {
             method: 'put',
+            compress: false, // workaround for node-fetch, see this file header
+            credentials: 'include',
             body: JSON.stringify(data),
             headers: this.getHeaders(),
             follow: 0
@@ -107,6 +120,8 @@ class BaseClient {
     post(url, data) {
         return fetch(url, {
             method: 'post',
+            compress: false, // workaround for node-fetch, see this file header
+            credentials: 'include',
             body: JSON.stringify(data),
             headers: this.getHeaders(),
             follow: 0
@@ -119,6 +134,8 @@ class BaseClient {
     delete(url) {
         return fetch(url, {
             method: 'delete',
+            compress: false, // workaround for node-fetch, see this file header
+            credentials: 'include',
             headers: this.getHeaders(),
             follow: 0
         }).then(response => {
