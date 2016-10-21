@@ -23,6 +23,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -269,8 +270,14 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
         logger.debug("Post to login url to startAuthenticationFlow with user={}, pwd={}", credentialProvider.getUsername(), credentialProvider.getPassword());
         ResponseEntity<String> postLoginResponseEntity = restTemplateForAuthenticationFlow.postForEntity(authRestTemplate.getURIForResource(formLoginConfig.getLoginFormPath()), loginPostParams, String.class);
 
+        //TODO(P1) This current way of checking if authentication is successful is somewhat
+        // hacky. Bascailly it says that authentication is successful if a 302 is returned
+        // and the redirect (from location header) maps to the login redirect path from the config. 
+        URI locationURI = URI.create(postLoginResponseEntity.getHeaders().get("Location").get(0));
+        String expectedLocation = "/" + formLoginConfig.getLoginRedirectPath();
+        
         if (postLoginResponseEntity.getStatusCode().equals(HttpStatus.FOUND)
-                && postLoginResponseEntity.getHeaders().get("Location").get(0).equals(authRestTemplate.getURIForResource(formLoginConfig.getLoginRedirectPath()))) {
+                && expectedLocation.equals(locationURI.getPath())) {
 
             latestCsrfToken = getCsrfTokenFromEndpoint(authRestTemplate.getURIForResource(formLoginConfig.getCsrfTokenPath()));
             latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
@@ -279,7 +286,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
         } else {
             throw new SessionAuthenticationException("Authentication failed.  Post login status code = " + postLoginResponseEntity.getStatusCode()
-                    + ", location = " + postLoginResponseEntity.getHeaders().getLocation());
+                    + ", location = [" + locationURI.getPath() + "], expected location = [" + formLoginConfig.getLoginRedirectPath()+ "]");
         }
     }
 

@@ -138,7 +138,7 @@ public class AuthenticatedRestTemplate {
         } else {
             uri = resttemplateConfig.getScheme() + "://" + resttemplateConfig.getHost();
 
-            if (resttemplateConfig.getPort()!= 80) {
+            if (resttemplateConfig.getPort() != 80) {
                 uri += ":" + resttemplateConfig.getPort();
             }
 
