@@ -129,6 +129,7 @@ public class L10nJCommander {
             try {
                 command.run();
             } catch (SessionAuthenticationException ae) {
+                logger.debug("Exit with Invalid username or password", ae);
                 printErrorMessage("Invalid username or password");
                 exitWithError();
             } catch (CommandException ce) {
