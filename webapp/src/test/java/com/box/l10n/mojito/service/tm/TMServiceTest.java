@@ -45,11 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author jaurambault
@@ -729,7 +724,53 @@ public class TMServiceTest extends ServiceTestBase {
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
-    
+
+    /**
+     * This test is to test AndroidStrings array with no xml version
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testLocalizeAndroidStringsNoXMLVersion() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent
+                = "<resources>\n"
+                + "    <string name=\"test\">\"This is test\"</string>\n"
+                + "</resources>";
+        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(assetContent, localizedAsset);
+    }
+
     /**
      * This test is to test {@link MacStringsEncoder} with special characters
      * 

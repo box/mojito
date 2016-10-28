@@ -138,7 +138,7 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
     protected void createStartDocumentSkeleton(StartDocument startDoc) {
         // Add the XML declaration
         skel = new GenericSkeleton();
-        if (!params.omitXMLDeclaration) {
+        if (!params.omitXMLDeclaration && doc.getXmlEncoding() != null) {
             skel.add("<?xml version=\"" + doc.getXmlVersion() + "\"");
             skel.add(" encoding=\"" + doc.getXmlEncoding() + "\"");
             if (doc.getXmlStandalone()) {
