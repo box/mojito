@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.sf.okapi.common.encoder.EncoderContext;
 import net.sf.okapi.filters.its.Parameters;
 import org.apache.commons.lang.StringUtils;
@@ -32,15 +34,20 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
             return false;
         }
     }
-    
+
     public String escape(String text) {
         boolean enclosedInDoubleQuotes = StringUtils.startsWith(text, "\"") && StringUtils.endsWith(text, "\"");
         if (enclosedInDoubleQuotes) {
             text = text.substring(1, text.length() - 1);
         }
-        
+
         String pattern = "(&lt;)(/?)(b|i|u)(&gt;)";
-        String replacement = "<$2$3>";
+        String replacement;
+        if (escapeHTML(text)) {
+            replacement = "$1$2$3>";
+        } else {
+            replacement = "<$2$3>";
+        }
         text = text.replaceAll(pattern, replacement);
         text = text.replaceAll("\n", "\\\\n");
         text = text.replaceAll("\r", "\\\\r");
@@ -49,9 +56,17 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
             text = escapeSingleQuotes(text);
         }
         return enclosedInDoubleQuotes ? "\"" + text + "\"" : text;
-        
+
     }
-    
+
+    private boolean escapeHTML(String text) {
+        // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
+        Pattern pattern = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
+        Matcher matcher = pattern.matcher(text);
+
+        return matcher.find();
+    }
+
     private String escapeDoubleQuotes(String text) {
         String pattern1 = "([^\\\\])(\")";
         String pattern2 = "(^\")";  

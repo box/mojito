@@ -45,11 +45,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * @author jaurambault
@@ -679,11 +674,66 @@ public class TMServiceTest extends ServiceTestBase {
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
-    
+
+    /**
+     * This test is to test {@link XMLEncoder} with escaped HTML and CDATA
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testLocalizeAndroidStringsWithEscapedHTMLAndCDATA() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "    <string name=\"welcome_messages0\">Hello, %1$s! You have <b>%2$d new messages</b>.</string>\n"
+                + "    <string name=\"welcome_messages1\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
+                + "    <string name=\"welcome_messages2\">Hello, %1$s! You have <![CDATA[<b>%2$d new messages</b>]]>.</string>\n"
+                + "</resources>";
+        String expectedLocalizedAsset = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "    <string name=\"welcome_messages0\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
+                + "    <string name=\"welcome_messages1\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
+                + "    <string name=\"welcome_messages2\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
+                + "</resources>";
+        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.info("source=[{}]", textUnitDTO.getSource());
+            assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        logger.info("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+    }
+
     /**
      * This test is to test AndroidStrings array with empty item
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test
     public void testLocalizeAndroidStringsArrayWithEmptyItem() throws Exception {
