@@ -24,12 +24,12 @@ import org.apache.commons.lang.StringUtils;
 public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
 
     // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
-    Pattern androidVariableWithinHTML = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
-    Pattern androidHTML = Pattern.compile("(&lt;)(/?)(b|i|u)(&gt;)");
-    Pattern unescapedDoubleQuote = Pattern.compile("([^\\\\])(\")");
-    Pattern startsWithDoubleQuote = Pattern.compile("(^\")");
-    Pattern unescapedSingleQuote = Pattern.compile("([^\\\\])(')");
-    Pattern startsWithSingleQuote = Pattern.compile("(^')");
+    private static Pattern androidVariableWithinHTML = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
+    private static Pattern androidHTML = Pattern.compile("(&lt;)(/?)(b|i|u)(&gt;)");
+    private static Pattern unescapedDoubleQuote = Pattern.compile("([^\\\\])(\")");
+    private static Pattern startsWithDoubleQuote = Pattern.compile("(^\")");
+    private static Pattern unescapedSingleQuote = Pattern.compile("([^\\\\])(')");
+    private static Pattern startsWithSingleQuote = Pattern.compile("(^')");
 
     @Override
     public String encode(String text, EncoderContext context) {
