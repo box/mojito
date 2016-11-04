@@ -24,12 +24,12 @@ import org.apache.commons.lang.StringUtils;
 public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
 
     // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
-    private static Pattern androidVariableWithinHTML = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
-    private static Pattern androidHTML = Pattern.compile("(&lt;)(/?)(b|i|u)(&gt;)");
-    private static Pattern unescapedDoubleQuote = Pattern.compile("([^\\\\])(\")");
-    private static Pattern startsWithDoubleQuote = Pattern.compile("(^\")");
-    private static Pattern unescapedSingleQuote = Pattern.compile("([^\\\\])(')");
-    private static Pattern startsWithSingleQuote = Pattern.compile("(^')");
+    private static final Pattern ANDROID_VARIABLE_WITHIN_HTML = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
+    private static final Pattern ANDROID_HTML = Pattern.compile("(&lt;)(/?)(b|i|u)(&gt;)");
+    private static final Pattern UNESCAPED_DOUBLE_QUOTE = Pattern.compile("([^\\\\])(\")");
+    private static final Pattern START_WITH_DOUBLE_QUOTE = Pattern.compile("(^\")");
+    private static final Pattern UNESCAPED_SINGLE_QUOTE = Pattern.compile("([^\\\\])(')");
+    private static final Pattern START_WITH_SINGLE_QUOTE = Pattern.compile("(^')");
 
     @Override
     public String encode(String text, EncoderContext context) {
@@ -61,7 +61,7 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
         } else {
             replacement = "<$2$3>";
         }
-        text = androidHTML.matcher(text).replaceAll(replacement);
+        text = ANDROID_HTML.matcher(text).replaceAll(replacement);
         text = text.replaceAll("\n", "\\\\n");
         text = text.replaceAll("\r", "\\\\r");
         text = escapeDoubleQuotes(text);
@@ -73,19 +73,19 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
     }
 
     private boolean needsAndroidEscapeHTML(String text) {
-        Matcher matcher = androidVariableWithinHTML.matcher(text);
+        Matcher matcher = ANDROID_VARIABLE_WITHIN_HTML.matcher(text);
         return matcher.find();
     }
 
     private String escapeDoubleQuotes(String text) {
-        String escaped = unescapedDoubleQuote.matcher(text).replaceAll("$1\\\\$2");
-        escaped = startsWithDoubleQuote.matcher(escaped).replaceFirst("\\\\$1");
+        String escaped = UNESCAPED_DOUBLE_QUOTE.matcher(text).replaceAll("$1\\\\$2");
+        escaped = START_WITH_DOUBLE_QUOTE.matcher(escaped).replaceFirst("\\\\$1");
         return escaped;
     }
     
     private String escapeSingleQuotes(String text) {
-        String escaped = unescapedSingleQuote.matcher(text).replaceAll("$1\\\\$2");
-        escaped = startsWithSingleQuote.matcher(escaped).replaceFirst("\\\\$1");
+        String escaped = UNESCAPED_SINGLE_QUOTE.matcher(text).replaceAll("$1\\\\$2");
+        escaped = START_WITH_SINGLE_QUOTE.matcher(escaped).replaceFirst("\\\\$1");
         return escaped;
     }
 }
