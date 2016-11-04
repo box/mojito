@@ -7,21 +7,36 @@ import net.sf.okapi.filters.its.Parameters;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * This overrides the {@link net.sf.okapi.common.encoder.XMLEncoder} 
- * to not to escape supported HTML elements for Android strings.
- * Also it overrides the default quotemode setting so the quotes do not get escaped.
- * According to Android specification in http://developer.android.com/guide/topics/resources/string-resource.html,
- * <b>bold</b>, <i>italian</i> and <u>underline</u> should be in localized file as-is.
- * 
+ * This overrides the {@link net.sf.okapi.common.encoder.XMLEncoder} for Android
+ * strings.
+ *
+ * It does not escape supported HTML elements for Android strings unless there
+ * are variables within the HTML elements, for example, <b>songs</b> vs.
+ * &lt;b>%d songs&lt;/b> Also it overrides the default quotemode setting so the
+ * quotes do not get escaped.
+ *
+ * According to Android specification in
+ * http://developer.android.com/guide/topics/resources/string-resource.html,
+ * <b>bold</b>, <i>italian</i> and <u>underline</u> should be in localized file
+ * as-is.
+ *
  * @author jyi
  */
 public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
-    
+
+    // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
+    Pattern androidVariableWithinHTML = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
+    Pattern androidHTML = Pattern.compile("(&lt;)(/?)(b|i|u)(&gt;)");
+    Pattern unescapedDoubleQuote = Pattern.compile("([^\\\\])(\")");
+    Pattern startsWithDoubleQuote = Pattern.compile("(^\")");
+    Pattern unescapedSingleQuote = Pattern.compile("([^\\\\])(')");
+    Pattern startsWithSingleQuote = Pattern.compile("(^')");
+
     @Override
     public String encode(String text, EncoderContext context) {
         String encoded = super.encode(text, context);
         if (isAndroidStrings()) {
-            encoded = escape(encoded);
+            encoded = escapeAndroid(encoded);
         }
         return encoded;
     }
@@ -35,20 +50,19 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
         }
     }
 
-    public String escape(String text) {
+    public String escapeAndroid(String text) {
         boolean enclosedInDoubleQuotes = StringUtils.startsWith(text, "\"") && StringUtils.endsWith(text, "\"");
         if (enclosedInDoubleQuotes) {
             text = text.substring(1, text.length() - 1);
         }
 
-        String pattern = "(&lt;)(/?)(b|i|u)(&gt;)";
         String replacement;
-        if (escapeHTML(text)) {
+        if (needsAndroidEscapeHTML(text)) {
             replacement = "$1$2$3>";
         } else {
             replacement = "<$2$3>";
         }
-        text = text.replaceAll(pattern, replacement);
+        text = androidHTML.matcher(text).replaceAll(replacement);
         text = text.replaceAll("\n", "\\\\n");
         text = text.replaceAll("\r", "\\\\r");
         text = escapeDoubleQuotes(text);
@@ -59,27 +73,20 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
 
     }
 
-    private boolean escapeHTML(String text) {
-        // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
-        Pattern pattern = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
-        Matcher matcher = pattern.matcher(text);
-
+    private boolean needsAndroidEscapeHTML(String text) {
+        Matcher matcher = androidVariableWithinHTML.matcher(text);
         return matcher.find();
     }
 
     private String escapeDoubleQuotes(String text) {
-        String pattern1 = "([^\\\\])(\")";
-        String pattern2 = "(^\")";  
-        String escaped = text.replaceAll(pattern1, "$1\\\\$2");
-        escaped = escaped.replaceFirst(pattern2, "\\\\$1");
+        String escaped = unescapedDoubleQuote.matcher(text).replaceAll("$1\\\\$2");
+        escaped = startsWithDoubleQuote.matcher(escaped).replaceFirst("\\\\$1");
         return escaped;
     }
     
     private String escapeSingleQuotes(String text) {
-        String pattern1 = "([^\\\\])(')";
-        String pattern2 = "(^')";    
-        String escaped = text.replaceAll(pattern1, "$1\\\\$2");
-        escaped = escaped.replaceFirst(pattern2, "\\\\$1");
+        String escaped = unescapedSingleQuote.matcher(text).replaceAll("$1\\\\$2");
+        escaped = startsWithSingleQuote.matcher(escaped).replaceFirst("\\\\$1");
         return escaped;
     }
 }
