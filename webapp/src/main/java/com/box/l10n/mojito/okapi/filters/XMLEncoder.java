@@ -11,14 +11,13 @@ import org.apache.commons.lang.StringUtils;
  * strings.
  *
  * It does not escape supported HTML elements for Android strings unless there
- * are variables within the HTML elements, for example, <b>songs</b> vs.
- * &lt;b>%d songs&lt;/b> Also it overrides the default quotemode setting so the
- * quotes do not get escaped.
+ * are variables within the HTML elements.
+ * For example, <b>songs</b> vs. &lt;b>%d songs&lt;/b>
  *
- * According to Android specification in
+ * Also it overrides the default quotemode setting so the quotes do not get escaped.
+ *
+ * For detailed information, see to Android specification in
  * http://developer.android.com/guide/topics/resources/string-resource.html,
- * <b>bold</b>, <i>italian</i> and <u>underline</u> should be in localized file
- * as-is.
  *
  * @author jyi
  */
