@@ -447,6 +447,50 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void testAndroidStringsWithEscapedHTMLTags() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <string name=\"Test\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
+                + "</resources>";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
+        assertEquals("Test", assetTextUnits.get(0).getName());
+        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", assetTextUnits.get(0).getContent());
+
+    }
+
+    @Test
+    public void testAndroidStringsWithCDATA() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <string name=\"Test\">Hello, %1$s! You have <![CDATA[<b>%2$d new messages</b>]]>.</string>\n"
+                + "</resources>";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
+        assertEquals("Test", assetTextUnits.get(0).getName());
+        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", assetTextUnits.get(0).getContent());
+
+    }
+
+    @Test
     public void testXliffNoResname() throws Exception {
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));

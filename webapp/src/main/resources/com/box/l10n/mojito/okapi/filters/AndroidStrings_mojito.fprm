@@ -29,7 +29,8 @@
  <its:preserveSpaceRule selector="resources//plurals//item" space="preserve"/>
  
  <okp:options escapeQuotes="no"/>
- <okp:codeFinder useCodeFinder="yes">#v1
+ <okp:options escapeGT="no"/>
+ <okp:codeFinder useCodeFinder="no">#v1
 count.i=2
 rule0=%(([-0+ #]?)[-0+ #]?)((\d\$)?)(([\d\*]*)(\.[\d\*]*)?)[dioxXucsfeEgGpn]
 rule1=&lt;(/?)\w[^&lt;]*?&gt;
