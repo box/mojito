@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mojito-webapp</artifactId>
-    <version>0.60</version>
+    <version>0.61-SNAPSHOT</version>
     <name>Mojito - Webapp</name>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>com.box.l10n.mojito</groupId>
         <artifactId>mojito-parent</artifactId>
-        <version>0.60</version>
+        <version>0.61-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -177,14 +177,14 @@
         <dependency>
             <groupId>com.box.l10n.mojito</groupId>
             <artifactId>mojito-restclient</artifactId>
-            <version>0.60</version>
+            <version>0.61-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.box.l10n.mojito</groupId>
             <artifactId>mojito-test-common</artifactId>
-            <version>0.60</version>
+            <version>0.61-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
 
