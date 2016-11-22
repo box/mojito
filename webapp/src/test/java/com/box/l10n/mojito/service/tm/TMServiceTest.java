@@ -721,12 +721,12 @@ public class TMServiceTest extends ServiceTestBase {
         textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
-            logger.info("source=[{}]", textUnitDTO.getSource());
+            logger.debug("source=[{}]", textUnitDTO.getSource());
             assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
         }
 
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
-        logger.info("localized=\n{}", localizedAsset);
+        logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
     }
 
