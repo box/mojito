@@ -22,15 +22,6 @@ let DropDetail = React.createClass({
     },
 
     /**
-     * Handle onClick close button
-     */
-    onClickClose() {
-        if (this.props.onCloseRequest) {
-            this.props.onCloseRequest();
-        }
-    },
-
-    /**
      * Update the Workbench search params to load strings that needs to be translated for a given locale
      *
      * @param {string} bcp47Tag
@@ -62,9 +53,6 @@ let DropDetail = React.createClass({
 
         return (
                 <div>
-                    <div className="title">
-                        <Button className="close" onClick={this.onClickClose}>×</Button>
-                    </div>
                     <div className="side-bar-content-container">
                         <Table className="repo-stats-table">
                             <thead>

@@ -233,7 +233,7 @@ let Drops = React.createClass({
                 <td>{status}</td>
                 <td>
                     <Label className="clickable label label-primary show-details-button mts"
-                           onClick={this.onClickDropDetails.bind(this, drop)}>
+                           onClick={this.onToggleDropDetails.bind(this, drop)}>
                         <Glyphicon glyph="option-horizontal"/>
                     </Label>
                 </td>
@@ -244,18 +244,15 @@ let Drops = React.createClass({
     /**
      * @param {Drop} drop
      */
-    onClickDropDetails(drop) {
-
-        let isSideBarShown = true;
-
-        if (this.state.selectedDrop && this.state.selectedDrop.getId() === drop.getId) {
-            isSideBarShown = !this.state.isSideBarShown;
+    onToggleDropDetails(drop) {
+        if (this.state.isSideBarShown && drop.id === this.state.selectedDrop.getId()) {
+            this.onSideBarCloseRequest();
+        } else {
+            this.setState({
+                "isSideBarShown": true,
+                "selectedDrop": drop
+            });
         }
-
-        this.setState({
-            "isSideBarShown": isSideBarShown,
-            "selectedDrop": drop
-        });
     },
 
     /**
@@ -529,7 +526,7 @@ let Drops = React.createClass({
         let result = "";
 
         if (this.state.selectedDrop) {
-            result = <DropDetail drop={this.state.selectedDrop} onCloseRequest={this.onSideBarCloseRequest}/>;
+            result = <DropDetail drop={this.state.selectedDrop}/>;
         }
 
         return result;
