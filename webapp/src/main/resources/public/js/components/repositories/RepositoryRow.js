@@ -304,14 +304,17 @@ let RepositoryRow = React.createClass({
     /**
      * Handle when progress bar is clicked
      */
-    onClickShowLocalesButton() {
-        if (!this.state.isActive) {
+    onLocalesButtonToggle() {
+        if (this.state.isActive) {
+            this.setState({
+                "isActive": false
+            });
+        } else {
             this.setState({
                 "isActive": true
             });
-
-            this.props.onClickShowLocalesButton(this.props.rowData.id);
         }
+        this.props.onLocalesButtonToggle(this.props.rowData.id);
     },
 
     /**
@@ -358,7 +361,7 @@ let RepositoryRow = React.createClass({
                 <td>{this.getNeedsReviewLabel()}</td>
                 <td>
                     <Label className="clickable label label-primary show-details-button"
-                           onClick={this.onClickShowLocalesButton}><Glyphicon glyph="option-horizontal"/></Label>
+                           onClick={this.onLocalesButtonToggle}><Glyphicon glyph="option-horizontal"/></Label>
                 </td>
             </tr>
         );

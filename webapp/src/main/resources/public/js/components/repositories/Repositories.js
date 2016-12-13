@@ -34,12 +34,20 @@ let Repositories = React.createClass({
         let isBlurred = this.state.isLocaleStatsShown && (this.state.activeRepoId !== repoId);
 
         return (
-            <RepositoryRow key={repoId} rowData={rowData} onClickShowLocalesButton={this.onClickShowLocalesButton}
+            <RepositoryRow key={repoId} rowData={rowData} onLocalesButtonToggle={this.onLocalesButtonToggle}
                            isBlurred={isBlurred} ref={"repositoryRow" + repoId}/>
         );
     },
 
-    onClickShowLocalesButton(repoId) {
+    onLocalesButtonToggle(repoId) {
+        if (repoId === this.state.activeRepoId) {
+            this.onCloseRequestedRepoLocaleStats();
+        } else {
+            this.onShowRequestedRepoLocaleStats(repoId);
+        }
+    },
+
+    onShowRequestedRepoLocaleStats(repoId) {
         if (this.state.activeRepoId) {
             this.refs["repositoryRow" + this.state.activeRepoId].setInActive();
         }

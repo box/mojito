@@ -14,12 +14,6 @@ let RepositoryStatistics = React.createClass({
         return {};
     },
 
-    propTypes: {
-
-        /** @type {function} */
-        "onCloseRequest": React.PropTypes.func.isRequired
-    },
-
     getLocaleStatistics() {
         let repoId = this.props.repoId;
         let repo = RepositoryStore.getRepositoryById(repoId);
@@ -172,10 +166,6 @@ let RepositoryStatistics = React.createClass({
     render: function () {
         return (
             <div className="repo-stats-panel" ref="statsContainer">
-                <div className="title">
-                    <Button className="close"
-                            onClick={this.props.onCloseRequest ? this.props.onCloseRequest : null}>×</Button>
-                </div>
                 <div className="side-bar-content-container prl">
                     <Table className="repo-stats-table">
                         <thead>
