@@ -17,8 +17,6 @@ let DropDetail = React.createClass({
         /** @type {Drop} */
         "drop": React.PropTypes.object.isRequired,
 
-        /** @type {function} */
-        "onCloseRequest": React.PropTypes.func.isRequired
     },
 
     /**
