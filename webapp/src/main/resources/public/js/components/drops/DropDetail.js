@@ -17,17 +17,6 @@ let DropDetail = React.createClass({
         /** @type {Drop} */
         "drop": React.PropTypes.object.isRequired,
 
-        /** @type {function} */
-        "onCloseRequest": React.PropTypes.func.isRequired
-    },
-
-    /**
-     * Handle onClick close button
-     */
-    onClickClose() {
-        if (this.props.onCloseRequest) {
-            this.props.onCloseRequest();
-        }
     },
 
     /**
@@ -62,9 +51,6 @@ let DropDetail = React.createClass({
 
         return (
                 <div>
-                    <div className="title">
-                        <Button className="close" onClick={this.onClickClose}>×</Button>
-                    </div>
                     <div className="side-bar-content-container">
                         <Table className="repo-stats-table">
                             <thead>
