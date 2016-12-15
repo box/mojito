@@ -874,7 +874,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testLocalizeMacStringsKeysNotEnclosedInDoubleQuotes() throws Exception {
+    public void testLocalizeMacStringsNamessNotEnclosedInDoubleQuotes() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;

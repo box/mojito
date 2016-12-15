@@ -375,7 +375,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testMacStringsKeysWithoutDoubleQuotes() throws Exception {
+    public void testMacStringsNamesWithoutDoubleQuotes() throws Exception {
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
@@ -401,6 +401,45 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("NSUsageDescription 3", assetTextUnits.get(2).getName());
         assertEquals("Add to Folder 3", assetTextUnits.get(2).getContent());
         assertEquals(" Comment 3 ", assetTextUnits.get(2).getComment());
+
+    }
+
+    @Test
+    public void testMacStringsWithInvalidComments() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "/* Comment 1 */\n\n"
+                + "// Comment 1-1\n"
+                + "// Comment 1-2\n"
+                + "NSUsageDescription 1 = \"Add to Folder 1\";\n\n"
+                + "// Comment 2-1\n"
+                + "// Comment 2-2\n"
+                + "NSUsageDescription 2 = \"Add to Folder 2\";\n\n"
+                + "// Comment 3\n"
+                + "NSUsageDescription 3 = \"Add to Folder 3\";\n\n"
+                + "// Comment 4\n"
+                + "NSUsageDescription 4 = \"Add to Folder 4\";";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/en.lproj/Localizable.strings");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 4 text units", 4, assetTextUnits.size());
+        assertEquals("NSUsageDescription 1", assetTextUnits.get(0).getName());
+        assertEquals("Add to Folder 1", assetTextUnits.get(0).getContent());
+        assertEquals(" Comment 1-2", assetTextUnits.get(0).getComment());
+        assertEquals("NSUsageDescription 2", assetTextUnits.get(1).getName());
+        assertEquals("Add to Folder 2", assetTextUnits.get(1).getContent());
+        assertEquals(" Comment 2-2", assetTextUnits.get(1).getComment());
+        assertEquals("NSUsageDescription 3", assetTextUnits.get(2).getName());
+        assertEquals("Add to Folder 3", assetTextUnits.get(2).getContent());
+        assertEquals(" Comment 3", assetTextUnits.get(2).getComment());
+        assertEquals("NSUsageDescription 4", assetTextUnits.get(3).getName());
+        assertEquals("Add to Folder 4", assetTextUnits.get(3).getContent());
+        assertEquals(" Comment 4", assetTextUnits.get(3).getComment());
 
     }
 
