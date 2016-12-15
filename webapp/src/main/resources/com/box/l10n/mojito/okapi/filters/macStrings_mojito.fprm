@@ -12,7 +12,7 @@ mimeType=text/plain
 ruleCount.i=4
 rule0.ruleName=Comments+String
 rule0.ruleType.i=0
-rule0.expr=/\*(.*?)\*/\n\"(.*?)\"\s*=(.*?);$
+rule0.expr=^\s*/\*(.*?)\*/\n\"?(.*?)\"?\s*=(.*?);$
 rule0.groupSource.i=3
 rule0.groupTarget.i=-1
 rule0.groupName.i=2
@@ -54,7 +54,7 @@ rule2.codeFinderRules.sample=
 rule2.codeFinderRules.useAllRulesWhenTesting.b=false
 rule3.ruleName=String
 rule3.ruleType.i=0
-rule3.expr=\"(.*?)\"\s*=(.*?);$
+rule3.expr=^\s*\"?(.*?)\"?\s*=(.*?);$
 rule3.groupSource.i=2
 rule3.groupTarget.i=-1
 rule3.groupName.i=1
