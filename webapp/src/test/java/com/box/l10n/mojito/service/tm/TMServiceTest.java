@@ -872,4 +872,43 @@ public class TMServiceTest extends ServiceTestBase {
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
+
+    @Test
+    public void testLocalizeMacStringsNamessNotEnclosedInDoubleQuotes() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "NSUsageDescription = \"Usage description:\";\n";
+        asset = assetService.createAsset(repo.getId(), assetContent, "en.lproj/Localizable.strings");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(1, textUnitDTOs.size());
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(assetContent, localizedAsset);
+    }
 }
