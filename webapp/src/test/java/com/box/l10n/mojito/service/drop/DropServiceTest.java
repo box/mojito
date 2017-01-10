@@ -33,10 +33,10 @@ import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.service.translationkit.TranslationKitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.XliffUtils;
-import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -635,10 +635,10 @@ public class DropServiceTest extends ServiceTestBase {
         Calendar cal = Calendar.getInstance();
         cal.set(2013, 0, 1, 0, 0, 0);
 
-        assertEquals("Week 48 (Tuesday) - 01 January 2013 - 00:00:00", dropService.getDropName(cal.getTime()));
+        assertEquals("Week 48 (Tuesday) - 01 January 2013 - 00.00.00", dropService.getDropName(cal.getTime()));
 
         cal.set(Calendar.WEEK_OF_YEAR, 6);
-        assertEquals("Week 1 (Tuesday) - 05 February 2013 - 00:00:00", dropService.getDropName(cal.getTime()));
+        assertEquals("Week 1 (Tuesday) - 05 February 2013 - 00.00.00", dropService.getDropName(cal.getTime()));
     }
 
     @Test
