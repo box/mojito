@@ -12,9 +12,9 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Rule;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class FileSystemDropExporterTest extends ServiceTestBase {
         logger.debug("Test initial creation");
         FileSystemDropExporter fileSystemDropExporter = new FileSystemDropExporter();
         String groupName = testIdWatcher.getEntityName("groupName");
-        String dropName = groupName + new SimpleDateFormat(" (EEEE) - dd MMMM YYYY - HH:mm:ss").format(new Date());
+        String dropName = groupName + new SimpleDateFormat(" (EEEE) - dd MMMM YYYY - HH.mm.ss").format(new Date());
         fileSystemDropExporter.init(groupName, dropName);
 
         logger.debug("Test re-creation from config");

@@ -55,7 +55,7 @@ public class BoxDropExporterTest extends ServiceTestBase {
         logger.debug("Test initial creation");
         BoxDropExporter boxDropExporter = new BoxDropExporter();
         String groupName = testIdWatcher.getEntityName("groupName");
-        String dropName = groupName + new SimpleDateFormat(" (EEEE) - dd MMMM YYYY - HH:mm:ss").format(new Date());
+        String dropName = groupName + new SimpleDateFormat(" (EEEE) - dd MMMM YYYY - HH.mm.ss").format(new Date());
         boxDropExporter.init(groupName, dropName);
 
         logger.debug("Test re-creation from config");

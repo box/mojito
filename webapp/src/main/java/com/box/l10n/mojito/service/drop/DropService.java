@@ -25,6 +25,10 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.UpdateTMWithXLIFFResult;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.exceptions.OkapiIOException;
 import org.joda.time.DateTime;
@@ -32,10 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Service to generate {@link Drop}s.
@@ -345,7 +345,7 @@ public class DropService {
         currentWeek.setTime(uploadTime);
         currentWeek.set(Calendar.WEEK_OF_YEAR, currentWeek.get(Calendar.WEEK_OF_YEAR) - dropServiceConfig.getDropNameWeekOffset());
 
-        return "Week " + currentWeek.get(Calendar.WEEK_OF_YEAR) + new SimpleDateFormat(" (EEEE) - dd MMMM YYYY - HH:mm:ss").format(uploadTime);
+        return "Week " + currentWeek.get(Calendar.WEEK_OF_YEAR) + new SimpleDateFormat(" (EEEE) - dd MMMM YYYY - HH.mm.ss").format(uploadTime);
     }
 
 
