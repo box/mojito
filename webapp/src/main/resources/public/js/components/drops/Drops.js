@@ -210,6 +210,12 @@ let Drops = React.createClass({
             case Drop.STATUS_TYPE.CANCELED:
                 status = this.props.intl.formatMessage({id: "drops.status.canceled"});
                 break;
+            case Drop.STATUS_TYPE.EXPORT_FAILED:
+                status = this.props.intl.formatMessage({id: "drops.status.exportFailed"});
+                break;
+            case Drop.STATUS_TYPE.IMPORT_FAILED:
+                status = this.props.intl.formatMessage({id: "drops.status.importFailed"});
+                break;
         }
 
         let wordCount = this.getWordCountsForAllTranslationKits(drop.translationKits);

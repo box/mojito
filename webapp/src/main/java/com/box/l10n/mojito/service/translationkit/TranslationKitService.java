@@ -20,9 +20,9 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
-import java.nio.charset.StandardCharsets;
 import com.google.common.base.Objects;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,18 +137,41 @@ public class TranslationKitService {
      */
     public List<TextUnitDTO> getTextUnitDTOsForTranslationKit(Long translationKitId, TranslationKit.Type type) {
 
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitId);
+        int retry = 1;
+        int maxRetry = 3;
+        List<TextUnitDTO> textUnitDTOs = null;
 
-        logger.debug("Get TextUnitDTOs for translation kit: {}", translationKit.getId());
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        while (retry <= maxRetry) {
+            TranslationKit translationKit = translationKitRepository.findOne(translationKitId);
 
-        //TODO(P1) handle "deltas"
-        textUnitSearcherParameters.setRepositoryIds(translationKit.getDrop().getRepository().getId());
-        textUnitSearcherParameters.setLocaleId(translationKit.getLocale().getId());
-        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-        textUnitSearcherParameters.setStatusFilter(TranslationKit.Type.TRANSLATION.equals(type) ? StatusFilter.FOR_TRANSLATION : StatusFilter.REVIEW_NEEDED);
+            try {
+                logger.debug("Get TextUnitDTOs for translation kit: {}", translationKit.getId());
+                TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-        return textUnitSearcher.search(textUnitSearcherParameters);
+                //TODO(P1) handle "deltas"
+                textUnitSearcherParameters.setRepositoryIds(translationKit.getDrop().getRepository().getId());
+                textUnitSearcherParameters.setLocaleId(translationKit.getLocale().getId());
+                textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+                textUnitSearcherParameters.setStatusFilter(TranslationKit.Type.TRANSLATION.equals(type) ? StatusFilter.FOR_TRANSLATION : StatusFilter.REVIEW_NEEDED);
+
+                textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+                break;
+
+            } catch (IllegalArgumentException ex) {
+                if (retry == maxRetry) {
+                    throw ex;
+                } else {
+                    logger.warn("Unexpected exception for {} at retry {}: {}", translationKit.getLocale().getBcp47Tag(), retry, ex.getMessage());
+                    try {
+                        Thread.sleep(retry * 1000);
+                    } catch (InterruptedException ex1) {
+                    }
+                    retry++;
+                }
+            }
+        }
+
+        return textUnitDTOs;
     }
 
     /**

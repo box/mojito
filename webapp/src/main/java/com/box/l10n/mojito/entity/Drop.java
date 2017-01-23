@@ -88,6 +88,14 @@ public class Drop extends AuditableEntity {
     @JsonView(View.DropSummary.class)
     protected User createdByUser;
 
+    @Column(name = "exportFailed")
+    @JsonView(View.DropSummary.class)
+    protected Boolean exportFailed = false;
+
+    @Column(name = "importFailed")
+    @JsonView(View.DropSummary.class)
+    protected Boolean importFailed = false;
+
     public User getCreatedByUser() {
         return createdByUser;
     }
@@ -168,4 +176,21 @@ public class Drop extends AuditableEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public Boolean getExportFailed() {
+        return exportFailed;
+    }
+
+    public void setExportFailed(Boolean exportFailed) {
+        this.exportFailed = exportFailed;
+    }
+
+    public Boolean getImportFailed() {
+        return importFailed;
+    }
+
+    public void setImportFailed(Boolean importFailed) {
+        this.importFailed = importFailed;
+    }
+
 }
