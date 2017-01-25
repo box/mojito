@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
+import static com.box.l10n.mojito.rest.drop.DropSpecification.isCanceled;
 import static com.box.l10n.mojito.rest.drop.DropSpecification.isImported;
 import static com.box.l10n.mojito.rest.drop.DropSpecification.repositoryIdEquals;
 import com.box.l10n.mojito.service.NormalizationUtils;
@@ -65,6 +66,9 @@ public class DropWS {
      * @param importedFilter optionally filter Drops that have been imported (
      * {@code null} no filter on imported status, {@code true} get only imported
      * {@code false} get only not imported)
+     * @param canceledFilter optionally filter by Drops that have been canceled (
+     * {@code null} no filter on canceled status, {@code true} get only canceled
+     * {@code false} get only not canceled)
      * @param pageable pagination information
      * @return list of {@link Drop}
      * @throws Exception
@@ -74,15 +78,17 @@ public class DropWS {
     public Page<Drop> getDrops(
             @RequestParam(value = "repositoryId", required = false) Long repositoryId,
             @RequestParam(value = "imported", required = false) Boolean importedFilter,
+            @RequestParam(value = "canceled", required = false) Boolean canceledFilter,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) throws Exception {
 
         Page<Drop> findAll = dropRepository.findAll(where(
                 ifParamNotNull(repositoryIdEquals(repositoryId))).and(
-                        ifParamNotNull(isImported(importedFilter))
-                ),
+                ifParamNotNull(isImported(importedFilter))).and(
+                ifParamNotNull(isCanceled(canceledFilter))
+        ),
                 pageable
         );
-        
+
         return new PageView<>(findAll);
     }
 

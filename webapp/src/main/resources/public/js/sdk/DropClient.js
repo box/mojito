@@ -12,11 +12,12 @@ class DropClient extends BaseClient {
      * @param {int} size
      * @return {*}
      */
-    getDrops(repoId = null, isImported = null, page = 0, size = 10) {
+    getDrops(repoId = null, isImported = null, isCanceled = null, page = 0, size = 10) {
 
         let promise = this.get(this.getUrl(), {
             "repositoryId": repoId,
-            "imported": isImported,           
+            "imported": isImported,
+            "canceled": isCanceled,
             "page": page,
             "size": size
         });

@@ -364,17 +364,7 @@ let Drops = React.createClass({
     },
 
     getDropTable() {
-        let rows = this.state.drops
-            .filter(drop => {
-                let toKeep = true;
-
-                if (this.state.filter !== Drops.FILTER.ALL) {
-                    toKeep = drop.status !== Drop.STATUS_TYPE.CANCELED;
-                }
-
-                return toKeep;
-            })
-            .map(this.getTableRow);
+        let rows = this.state.drops.map(this.getTableRow);
 
         return (
             <div>
