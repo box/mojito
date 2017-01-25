@@ -49,6 +49,12 @@ export default class Drop {
 
         /** @type {PollableTask} */
         this.exportPollableTask = null;
+
+        /** @type {Boolean|null} */
+        this.exportFailed = false;
+
+        /** @type {Boolean|null} */
+        this.importFailed = false;
     }
 
     getId() {
@@ -132,6 +138,10 @@ export default class Drop {
 
         if (this.canceled) {
             status = Drop.STATUS_TYPE.CANCELED;
+        } else if (this.exportFailed) {
+            status = Drop.STATUS_TYPE.EXPORT_FAILED;
+        } else if (this.importFailed) {
+            status = Drop.STATUS_TYPE.IMPORT_FAILED;
         } else if (this.isBeingExported()) {
             status = Drop.STATUS_TYPE.SENDING;
         } else if (this.isBeingImported()) {
@@ -196,6 +206,14 @@ export default class Drop {
             result.canceled = json.canceled;
         }
 
+        if (json.exportFailed) {
+            result.exportFailed = json.exportFailed;
+        }
+
+        if (json.importFailed) {
+            result.importFailed = json.importFailed;
+        }
+
         result.translationKits = TranslationKit.toTranslationKits(json.translationKits);
 
         result.importPollableTask = PollableTask.toPollableTask(json.importPollableTask);
@@ -230,5 +248,7 @@ Drop.STATUS_TYPE = {
     IN_REVIEW: Symbol(),
     IMPORTED: Symbol(),
     IMPORTING: Symbol(),
-    CANCELED: Symbol()
+    CANCELED: Symbol(),
+    EXPORT_FAILED: Symbol(),
+    IMPORT_FAILED: Symbol()
 };

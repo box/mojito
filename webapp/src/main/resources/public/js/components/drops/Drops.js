@@ -210,6 +210,12 @@ let Drops = React.createClass({
             case Drop.STATUS_TYPE.CANCELED:
                 status = this.props.intl.formatMessage({id: "drops.status.canceled"});
                 break;
+            case Drop.STATUS_TYPE.EXPORT_FAILED:
+                status = this.props.intl.formatMessage({id: "drops.status.exportFailed"});
+                break;
+            case Drop.STATUS_TYPE.IMPORT_FAILED:
+                status = this.props.intl.formatMessage({id: "drops.status.importFailed"});
+                break;
         }
 
         let wordCount = this.getWordCountsForAllTranslationKits(drop.translationKits);
@@ -358,17 +364,7 @@ let Drops = React.createClass({
     },
 
     getDropTable() {
-        let rows = this.state.drops
-            .filter(drop => {
-                let toKeep = true;
-
-                if (this.state.filter !== Drops.FILTER.ALL) {
-                    toKeep = drop.status !== Drop.STATUS_TYPE.CANCELED;
-                }
-
-                return toKeep;
-            })
-            .map(this.getTableRow);
+        let rows = this.state.drops.map(this.getTableRow);
 
         return (
             <div>

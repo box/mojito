@@ -131,7 +131,7 @@
         <dependency>
             <groupId>com.github.pnowy.nc</groupId>
             <artifactId>nativeCriteria-core</artifactId>
-            <version>1.4</version>
+            <version>2.0</version>
         </dependency>
         
         <dependency>

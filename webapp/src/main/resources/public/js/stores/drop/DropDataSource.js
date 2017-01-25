@@ -5,7 +5,7 @@ const DropDataSource = {
 
     getAllInProcess: {
         remote(dropStoreState, pageRequestParams) {
-            return DropClient.getDrops(null, false, pageRequestParams.page, pageRequestParams.size);
+            return DropClient.getDrops(null, false, false, pageRequestParams.page, pageRequestParams.size);
         },
         success: DropActions.getAllInProcessSuccess,
         error: DropActions.getAllInProcessError
@@ -13,7 +13,7 @@ const DropDataSource = {
     
     getAllImported: {
         remote(dropStoreState, pageRequestParams) {
-            return DropClient.getDrops(null, true, pageRequestParams.page, pageRequestParams.size);
+            return DropClient.getDrops(null, true, false, pageRequestParams.page, pageRequestParams.size);
         },
         success: DropActions.getAllImportedSuccess,
         error: DropActions.getAllImportedError
@@ -21,7 +21,7 @@ const DropDataSource = {
 
     getAll: {
         remote(dropStoreState, pageRequestParams) {
-            return DropClient.getDrops(null, null, pageRequestParams.page, pageRequestParams.size);
+            return DropClient.getDrops(null, null, null, pageRequestParams.page, pageRequestParams.size);
         },
         success: DropActions.getAllSuccess,
         error: DropActions.getAllError

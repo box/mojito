@@ -135,14 +135,20 @@ public class DropService {
 
         PollableFutureTaskResult<DropExporter> pollableFutureTaskResult = new PollableFutureTaskResult<>();
 
-        logger.debug("Update the expected sub-tasks number: 1 task to prepare the drop and as many tasks as there are languages");
-        pollableFutureTaskResult.setExpectedSubTaskNumberOverride(bcp47Tags.size() + 1);
+        try {
+            logger.debug("Update the expected sub-tasks number: 1 task to prepare the drop and as many tasks as there are languages");
+            pollableFutureTaskResult.setExpectedSubTaskNumberOverride(bcp47Tags.size() + 1);
 
-        DropExporter dropExporter = dropExporterService.createDropExporterAndUpdateDrop(drop, currentTask);
-        pollableFutureTaskResult.setResult(dropExporter);
+            DropExporter dropExporter = dropExporterService.createDropExporterAndUpdateDrop(drop, currentTask);
+            pollableFutureTaskResult.setResult(dropExporter);
 
-        for (String bcp47Tag : bcp47Tags) {
-            generateAndExportTranslationKit(bcp47Tag, type, drop, dropExporter, currentTask);
+            for (String bcp47Tag : bcp47Tags) {
+                generateAndExportTranslationKit(bcp47Tag, type, drop, dropExporter, currentTask);
+            }
+        } catch (Throwable t) {
+            drop.setExportFailed(Boolean.TRUE);
+            dropRepository.save(drop);
+            throw t;
         }
 
         return pollableFutureTaskResult;
@@ -207,28 +213,34 @@ public class DropService {
         drop.setImportPollableTask(currentTask);
         dropRepository.save(drop);
 
-        DropExporter dropExporter = dropExporterService.recreateDropExporter(drop);
-        DropImporter dropImporter = dropExporter.getDropImporter();
+        try {
+            DropExporter dropExporter = dropExporterService.recreateDropExporter(drop);
+            DropImporter dropImporter = dropExporter.getDropImporter();
 
-        List<DropFile> files = dropImporter.getFiles();
+            List<DropFile> files = dropImporter.getFiles();
 
-        logger.debug("Update the expected sub-tasks number: as many tasks as there are localized files");
-        pollableFutureTaskResult.setExpectedSubTaskNumberOverride(files.size());
+            logger.debug("Update the expected sub-tasks number: as many tasks as there are localized files");
+            pollableFutureTaskResult.setExpectedSubTaskNumberOverride(files.size());
 
-        int numberOfFailedImport = 0;
+            int numberOfFailedImport = 0;
 
-        for (DropFile file : files) {
-            try {
-                importFile(dropImporter, dropExporter, file, importStatus, currentTask, PollableTask.INJECT_CURRENT_TASK);
-            } catch (Throwable t) {
-                logger.debug("Error when importing file, keep importing other files", t);
-                ++numberOfFailedImport;
-                markLocalizedFileAsInvalid(dropExporter, file, t);
+            for (DropFile file : files) {
+                try {
+                    importFile(dropImporter, dropExporter, file, importStatus, currentTask, PollableTask.INJECT_CURRENT_TASK);
+                } catch (Throwable t) {
+                    logger.debug("Error when importing file, keep importing other files", t);
+                    ++numberOfFailedImport;
+                    markLocalizedFileAsInvalid(dropExporter, file, t);
+                }
             }
-        }
 
-        if (numberOfFailedImport > 0) {
-            throw new ImportDropException("Number of files not imported: " + numberOfFailedImport + ", check sub task for more information");
+            if (numberOfFailedImport > 0) {
+                throw new ImportDropException("Number of files not imported: " + numberOfFailedImport + ", check sub task for more information");
+            }
+        } catch (Throwable t) {
+            drop.setImportFailed(Boolean.TRUE);
+            dropRepository.save(drop);
+            throw t;
         }
 
         return pollableFutureTaskResult;
