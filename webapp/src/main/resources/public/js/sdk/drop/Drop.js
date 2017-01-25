@@ -176,6 +176,24 @@ export default class Drop {
     }
 
     /**
+     * @return {boolean}
+     */
+    cancelable() {
+        return !this.isBeingExported() &&
+               !this.isBeingImported() &&
+               this.status !== Drop.STATUS_TYPE.IMPORTED &&
+               this.status !== Drop.STATUS_TYPE.CANCELED;
+    }
+
+    /**
+     * @return {boolean}
+     */
+    importable() {
+        return this.status !== Drop.STATUS_TYPE.EXPORT_FAILED &&
+               this.status !== Drop.STATUS_TYPE.CANCELED;
+    }
+
+    /**
      * Convert JSON Drop object
      *
      * @param {Object} json

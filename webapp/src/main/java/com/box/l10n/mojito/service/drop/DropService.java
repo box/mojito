@@ -211,6 +211,7 @@ public class DropService {
         Drop drop = dropRepository.findOne(dropId);
         drop.setLastImportedDate(new DateTime());
         drop.setImportPollableTask(currentTask);
+        drop.setImportFailed(null);
         dropRepository.save(drop);
 
         try {

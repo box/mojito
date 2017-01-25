@@ -287,8 +287,17 @@ let Drops = React.createClass({
         let importTitle = <Tooltip><FormattedMessage id="drops.controlbar.button.tooltip.import"/></Tooltip>;
         let cancelTitle = <Tooltip><FormattedMessage id="drops.controlbar.button.tooltip.cancel"/></Tooltip>;
 
+        let importOverlay = "";
+        if (drop.importable()) {
+            importOverlay = (<OverlayTrigger placement="top" overlay={importTitle}>
+                <Button bsStyle="default" onClick={this.onClickImport.bind(this, dropId, repoId)}>
+                    <span className="glyphicon glyphicon-import" aria-label={importTitle}/>
+                </Button>
+            </OverlayTrigger>);
+        }
+
         let cancelOverlay = "";
-        if (!drop.isBeingExported() && !drop.isBeingImported()) {
+        if (drop.cancelable()) {
             cancelOverlay = (<OverlayTrigger placement="top" overlay={cancelTitle}>
                 <Button bsStyle="default" onClick={this.onClickCancel.bind(this, dropId, repoId)}>
                     <span className="glyphicon glyphicon-remove" aria-label={cancelTitle}/>
@@ -299,11 +308,7 @@ let Drops = React.createClass({
         return (
             <ButtonToolbar>
                 <ButtonGroup>
-                    <OverlayTrigger placement="top" overlay={importTitle}>
-                        <Button bsStyle="default" onClick={this.onClickImport.bind(this, dropId, repoId)}>
-                            <span className="glyphicon glyphicon-import" aria-label={importTitle}/>
-                        </Button>
-                    </OverlayTrigger>
+                    {importOverlay}
                     {cancelOverlay}
                 </ButtonGroup>
             </ButtonToolbar>

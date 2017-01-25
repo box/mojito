@@ -90,11 +90,11 @@ public class Drop extends AuditableEntity {
 
     @Column(name = "exportFailed")
     @JsonView(View.DropSummary.class)
-    protected Boolean exportFailed = false;
+    protected Boolean exportFailed;
 
     @Column(name = "importFailed")
     @JsonView(View.DropSummary.class)
-    protected Boolean importFailed = false;
+    protected Boolean importFailed;
 
     public User getCreatedByUser() {
         return createdByUser;

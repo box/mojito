@@ -33,7 +33,7 @@ public class DropSpecification {
 
                 if (imported) {
                     predicate = builder.and(builder.isNotNull(root.get(Drop_.lastImportedDate)),
-                            builder.isFalse(root.get(Drop_.importFailed)),
+                            builder.or(builder.isNull(root.get(Drop_.importFailed)), builder.isFalse(root.get(Drop_.importFailed))),
                             builder.isNotNull(root.get(Drop_.importPollableTask)),
                             builder.isNotNull(root.join(Drop_.importPollableTask, JoinType.LEFT).get(PollableTask_.finishedDate)));
                 } else {
@@ -63,8 +63,8 @@ public class DropSpecification {
                 if (canceled) {
                     return builder.isTrue(root.get(Drop_.canceled));
                 } else {
-                    return builder.or(builder.isFalse(root.get(Drop_.canceled)),
-                           builder.isNull(root.get(Drop_.canceled)));
+                    return builder.or(builder.isNull(root.get(Drop_.canceled)),
+                           builder.isFalse(root.get(Drop_.canceled)));
                 }
             }
         };
