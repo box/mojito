@@ -25,7 +25,6 @@
         <guava.version>19.0</guava.version>
         <hibernate.joda-time.version>1.3</hibernate.joda-time.version>
         <usertype.core.version>3.2.0.GA</usertype.core.version>
-        <nexus.baseUrl>http://maven-vip.dev.box.net:8150/nexus/</nexus.baseUrl>
     </properties>
 
     <dependencies>
@@ -86,9 +85,15 @@
 
             <!-- Deployment setup to push artifacts to Nexus -->
             <distributionManagement>
+                <!--<repository>
+                    <id>central</id>
+                    <name>box-releases</name>
+                    <url>https://box.artifactoryonline.com/box/box-maven-releases</url>
+                </repository>-->
                 <repository>
-                    <id>box-release</id>
-                    <url>${nexus.baseUrl}content/repositories/releases</url>
+                    <id>snapshots</id>
+                    <name>box-snapshots</name>
+                    <url>https://box.artifactoryonline.com/box/box-maven-snapshots</url>
                 </repository>
             </distributionManagement>
 
@@ -109,8 +114,8 @@
                         <artifactId>maven-deploy-plugin</artifactId>
                         <version>2.8.2</version>
                         <configuration>
-                            <deployAtEnd>true</deployAtEnd>
-                            <retryFailedDeploymentCount>3</retryFailedDeploymentCount>
+                            <deployAtEnd>false</deployAtEnd>
+                            <retryFailedDeploymentCount>0</retryFailedDeploymentCount>
                             <updateReleaseInfo>true</updateReleaseInfo>
                         </configuration>
                     </plugin>
