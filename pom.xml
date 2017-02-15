@@ -48,7 +48,7 @@
 
     <!-- SCM setup to push changes to the Github repo on release -->
     <scm>
-        <url>https://github.com/box/mojito</url>
+        <url>https://github.com/jeeyi/mojito</url>
         <connection>scm:git:git@github.com:box/mojito.git</connection>
         <developerConnection>scm:git:git@github.com:box/mojito.git</developerConnection>
         <tag>v0.65-SNAPSHOT</tag>
