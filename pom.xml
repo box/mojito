@@ -52,7 +52,7 @@
         <connection>scm:git:git@github.com:box/mojito.git</connection>
         <developerConnection>scm:git:git@github.com:box/mojito.git</developerConnection>
         <tag>v0.47</tag>
-  </scm>
+    </scm>
 
     <build>
         <plugins>
@@ -82,21 +82,6 @@
     <profiles>
         <profile>
             <id>release</id>
-
-            <!-- Deployment setup to push artifacts to Nexus -->
-            <distributionManagement>
-                <!--<repository>
-                    <id>central</id>
-                    <name>box-releases</name>
-                    <url>https://box.artifactoryonline.com/box/box-maven-releases</url>
-                </repository>-->
-                <repository>
-                    <id>snapshots</id>
-                    <name>box-snapshots</name>
-                    <url>https://box.artifactoryonline.com/box/box-maven-snapshots</url>
-                </repository>
-            </distributionManagement>
-
             <build>
                 <plugins>
                     <plugin>
@@ -110,14 +95,55 @@
 
                     <!-- Enable deployment of artifacts -->
                     <plugin>
+                        <groupId>org.jfrog.buildinfo</groupId>
+                        <artifactId>artifactory-maven-plugin</artifactId>
+                        <version>2.6.1</version>
+                        <inherited>false</inherited>
+                        <executions>
+                            <execution>
+                                <id>build-info</id>
+                                <goals>
+                                    <goal>publish</goal>
+                                </goals>
+                                <configuration>
+                                    <deployProperties>
+                                        <gradle>awesome</gradle>
+                                    </deployProperties>
+                                    <publisher>
+                                        <contextUrl>https://box.artifactoryonline.com/box</contextUrl>
+                                        <username>${username}</username>
+                                        <password>${password}</password>
+                                        <repoKey>box-maven-releases</repoKey>
+                                        <snapshotRepoKey>box-maven-snapshots</snapshotRepoKey>
+                                    </publisher>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Jar Signing -->
+                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-deploy-plugin</artifactId>
-                        <version>2.8.2</version>
-                        <configuration>
-                            <deployAtEnd>true</deployAtEnd>
-                            <retryFailedDeploymentCount>0</retryFailedDeploymentCount>
-                            <updateReleaseInfo>true</updateReleaseInfo>
-                        </configuration>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--batch</arg>
+                                        <arg>--passphrase-fd</arg>
+                                        <arg>0</arg>
+                                        <arg>--armor</arg>
+                                        <arg>--detach-sign</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
 
                     <!-- Generate sources and attach the artifact to the build -->
@@ -163,4 +189,14 @@
         <module>mavenplugin</module>
     </modules>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>bintray-plugins</name>
+            <url>http://jcenter.bintray.com</url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
