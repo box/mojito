@@ -7,7 +7,7 @@ permalink: /docs/guides/open-source-contributors/
 ---
 ## Prerequisites
 
-1. [JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html)
+1. [JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html#jdk-7u80-oth-JPR)
 2. Install [Maven](https://maven.apache.org/download.cgi)
 3. Git clone or download {{ site.mojito_green }} source code to ${PROJECT_DIR}
 
