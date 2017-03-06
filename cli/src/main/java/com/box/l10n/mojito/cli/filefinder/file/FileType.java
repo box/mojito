@@ -12,7 +12,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.LocaleType;
 public abstract class FileType {
 
     String fileExtension;
-    String baseNamePattern;
+    String baseNamePattern = ".+?";;
     String sourceFilePatternTemplate;
     String targetFilePatternTemplate;
     LocaleType localeType;

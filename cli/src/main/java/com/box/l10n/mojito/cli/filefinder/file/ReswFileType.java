@@ -16,7 +16,6 @@ public class ReswFileType extends FileType {
 
     public ReswFileType() {
         this.fileExtension = "resw";
-        this.baseNamePattern = ".+?";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + LOCALE + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = sourceFilePatternTemplate;
         this.localeType = new AnyLocaleType();
