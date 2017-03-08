@@ -14,7 +14,8 @@ public enum FileTypes {
     PROPERTIES(PropertiesFileType.class),
     PROPERTIES_NOBASENAME(PropertiesNoBasenameFileType.class),
     RESW(ReswFileType.class),
-    RESX(ResxFileType.class);
+    RESX(ResxFileType.class),
+    PO(POFileType.class);
 
     Class<? extends FileType> clazz;
 

@@ -360,5 +360,30 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
+    
+    @Test
+    public void pullPo() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath() );
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("messages.pot", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP" );
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP" );
+
+        checkExpectedGeneratedResources();
+    }
 
 }
