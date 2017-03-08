@@ -11,7 +11,7 @@ package com.box.l10n.mojito.cli.filefinder.file;
 public class XcodeXliffFileType extends LocaleAsFileNameType {
 
     public XcodeXliffFileType() {
-        this.fileExtension = "xliff";
+        this.sourceFileExtension = "xliff";
     }
 
 }

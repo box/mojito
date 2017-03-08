@@ -17,7 +17,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.AndroidLocaleType;
 public class AndroidStringsFileType extends FileType {
 
     public AndroidStringsFileType() {
-        this.fileExtension = "xml";
+        this.sourceFileExtension = "xml";
         this.baseNamePattern = "strings";
         this.subPath = "res/values";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";

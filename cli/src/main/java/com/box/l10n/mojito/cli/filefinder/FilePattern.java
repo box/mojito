@@ -157,7 +157,7 @@ public class FilePattern {
         if (FILE_EXTENSION.equals(group)) {
             
             if(forSourceFile) {
-                groupRegex = fileType.getFileExtension();
+                groupRegex = fileType.getSourceFileExtension();
             } else {
                 groupRegex = fileType.getTargetFileExtension();    
             }

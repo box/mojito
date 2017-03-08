@@ -6,7 +6,7 @@ package com.box.l10n.mojito.cli.filefinder.file;
 public class PropertiesFileType extends LocaleInNameFileType {
 
     public PropertiesFileType() {
-        this.fileExtension = "properties";
+        this.sourceFileExtension = "properties";
     }
     
 }

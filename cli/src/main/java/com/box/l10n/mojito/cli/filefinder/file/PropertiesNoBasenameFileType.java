@@ -12,7 +12,7 @@ package com.box.l10n.mojito.cli.filefinder.file;
 public class PropertiesNoBasenameFileType extends LocaleAsFileNameType {
 
     public PropertiesNoBasenameFileType() {
-        this.fileExtension = "properties";
+        this.sourceFileExtension = "properties";
     }
 
 }

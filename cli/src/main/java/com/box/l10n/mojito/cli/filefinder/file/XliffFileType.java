@@ -6,7 +6,7 @@ package com.box.l10n.mojito.cli.filefinder.file;
 public class XliffFileType extends LocaleInNameFileType {
 
     public XliffFileType() {
-        this.fileExtension = "xliff";
+        this.sourceFileExtension = "xliff";
     }
 
 }

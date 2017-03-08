@@ -16,7 +16,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.POLocaleType;
 public class POFileType extends FileType {
 
     public POFileType() {
-        this.fileExtension = "pot";
+        this.sourceFileExtension = "pot";
         this.targetFileExtension = "po";
         this.subPath = "LC_MESSAGES";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}" + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";

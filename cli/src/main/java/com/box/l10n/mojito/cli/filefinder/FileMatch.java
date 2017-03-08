@@ -77,7 +77,7 @@ public class FileMatch implements Comparable<FileMatch> {
 
         String res = fileType.getSourceFilePatternTemplate();
 
-        res = res.replace(getNamedPlaceholder(FILE_EXTENSION), fileType.getFileExtension());
+        res = res.replace(getNamedPlaceholder(FILE_EXTENSION), fileType.getSourceFileExtension());
         res = res.replace(getNamedPlaceholder(PARENT_PATH), getProperty(PARENT_PATH));
         res = res.replace(getNamedPlaceholder(SUB_PATH), getProperty(SUB_PATH));
         res = res.replace(getNamedPlaceholder(BASE_NAME), getProperty(BASE_NAME));

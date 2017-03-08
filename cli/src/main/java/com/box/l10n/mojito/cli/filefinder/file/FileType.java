@@ -11,7 +11,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.LocaleType;
  */
 public abstract class FileType {
 
-    String fileExtension;
+    String sourceFileExtension;
     String targetFileExtension;
     String baseNamePattern = ".+?";
     String sourceFilePatternTemplate;
@@ -20,12 +20,12 @@ public abstract class FileType {
     String parentPath = "(?:.+/)?";
     String subPath = "(?:.+/)?";
 
-    public String getFileExtension() {
-        return fileExtension;
+    public String getSourceFileExtension() {
+        return sourceFileExtension;
     }
 
-    public void setFileExtension(String fileExtension) {
-        this.fileExtension = fileExtension;
+    public void setSourceFileExtension(String sourceFileExtension) {
+        this.sourceFileExtension = sourceFileExtension;
     }
 
     /**
@@ -38,7 +38,7 @@ public abstract class FileType {
      * extension
      */
     public String getTargetFileExtension() {
-        return targetFileExtension == null ? getFileExtension() : targetFileExtension;
+        return targetFileExtension == null ? getSourceFileExtension() : targetFileExtension;
     }
 
     public void setTargetFileExtension(String targetFileExtension) {
