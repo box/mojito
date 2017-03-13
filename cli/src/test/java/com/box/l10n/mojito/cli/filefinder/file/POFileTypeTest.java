@@ -20,7 +20,6 @@ public class POFileTypeTest {
     public void testSourcePattern() {
         POFileType potFileType = new POFileType();
         FilePattern sourceFilePattern = potFileType.getSourceFilePattern();
-        System.out.println(potFileType.getSourceFilePattern().getPattern().toString());
         Matcher matcher = sourceFilePattern.getPattern().matcher("/source/messages.pot");
         Assert.assertTrue(matcher.matches());
         Assert.assertEquals("/source/", matcher.group(PARENT_PATH));
@@ -32,7 +31,6 @@ public class POFileTypeTest {
     public void testSourcePatternNoMatch() {
         POFileType potFileType = new POFileType();
         FilePattern sourceFilePattern = potFileType.getSourceFilePattern();
-        System.out.println(potFileType.getSourceFilePattern().getPattern().toString());
         Matcher matcher = sourceFilePattern.getPattern().matcher("/source/fr_FR/LC_MESSAGES/messages.po");
         Assert.assertFalse(matcher.matches());
     }

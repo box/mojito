@@ -91,11 +91,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
             }
         }
 
-        if (event.isTextUnit()) {
-            ITextUnit textUnit = event.getTextUnit();
-            logger.error(textUnit.getName());
-        }
-
         return event;
     }
 
