@@ -13,7 +13,7 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.PARENT_PATH;
 public class ResxFileType extends LocaleInNameFileType {
 
     public ResxFileType() {
-        this.fileExtension = "resx";
+        this.sourceFileExtension = "resx";
         this.targetFilePatternTemplate = "{" + PARENT_PATH + "}{" + BASE_NAME + "}" + DOT + "{" + LOCALE + "}" + DOT + "{" + FILE_EXTENSION + "}";
     }
 

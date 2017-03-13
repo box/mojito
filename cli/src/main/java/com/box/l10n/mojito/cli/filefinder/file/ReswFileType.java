@@ -15,8 +15,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleType;
 public class ReswFileType extends FileType {
 
     public ReswFileType() {
-        this.fileExtension = "resw";
-        this.baseNamePattern = ".+?";
+        this.sourceFileExtension = "resw";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + LOCALE + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = sourceFilePatternTemplate;
         this.localeType = new AnyLocaleType();

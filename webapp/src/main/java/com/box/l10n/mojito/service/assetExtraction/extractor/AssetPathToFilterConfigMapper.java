@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.assetExtraction.extractor;
 
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
+import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,13 +36,14 @@ public class AssetPathToFilterConfigMapper {
     public static final String ANDROIDSTRINGS_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-AndroidStrings";
     public static final String MACSTRINGS_FILTER_CONFIG_ID = MacStringsFilter.FILTER_CONFIG_ID + "-macStrings";
     public static final String RESX_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-resx";
-
+    
     private enum AssetFilterType {
         CSV(CSVFilter.FILTER_CONFIG_ID, "csv"),
         XLIFF(XLIFF_FILTER_CONFIG_ID, "xlf", "xliff", "sdlxliff", "mxliff"),
         PROPERTIES(PROPERTIES_FILTER_CONFIG_ID, "properties"),
         ANDROIDSTRINGS(ANDROIDSTRINGS_FILTER_CONFIG_ID, "xml"),
         MACSTRINGS(MACSTRINGS_FILTER_CONFIG_ID, "strings"),
+        PO(POFilter.FILTER_CONFIG_ID, "pot"),
         RESX(RESX_FILTER_CONFIG_ID, "resx", "resw");
 
         private String configId;

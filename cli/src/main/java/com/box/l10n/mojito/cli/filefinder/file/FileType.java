@@ -11,20 +11,38 @@ import com.box.l10n.mojito.cli.filefinder.locale.LocaleType;
  */
 public abstract class FileType {
 
-    String fileExtension;
-    String baseNamePattern;
+    String sourceFileExtension;
+    String targetFileExtension;
+    String baseNamePattern = ".+?";
     String sourceFilePatternTemplate;
     String targetFilePatternTemplate;
     LocaleType localeType;
     String parentPath = "(?:.+/)?";
     String subPath = "(?:.+/)?";
 
-    public String getFileExtension() {
-        return fileExtension;
+    public String getSourceFileExtension() {
+        return sourceFileExtension;
     }
 
-    public void setFileExtension(String fileExtension) {
-        this.fileExtension = fileExtension;
+    public void setSourceFileExtension(String sourceFileExtension) {
+        this.sourceFileExtension = sourceFileExtension;
+    }
+
+    /**
+     * Returns the target file extension.
+     *
+     * This is used with format (like PO files) that have different source and
+     * target file extension (eg. pot and po)
+     *
+     * @return the target file extension if defined else the source file
+     * extension
+     */
+    public String getTargetFileExtension() {
+        return targetFileExtension == null ? getSourceFileExtension() : targetFileExtension;
+    }
+
+    public void setTargetFileExtension(String targetFileExtension) {
+        this.targetFileExtension = targetFileExtension;
     }
 
     public String getBaseNamePattern() {

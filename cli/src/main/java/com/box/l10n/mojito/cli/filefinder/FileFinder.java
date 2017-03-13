@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.filefinder;
 import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.POFileType;
 import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
@@ -71,6 +72,7 @@ public class FileFinder {
         fileTypes.add(new MacStringsFileType());
         fileTypes.add(new ReswFileType());
         fileTypes.add(new ResxFileType());
+        fileTypes.add(new POFileType());
     }
 
     public Path getSourceDirectory() {

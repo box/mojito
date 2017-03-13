@@ -8,6 +8,7 @@ import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
+import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
@@ -72,7 +73,7 @@ public class AssetExtractor {
         String filterConfigId = getFilterConfigIdForAsset(asset);
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
-
+        
         driver.addBatchItem(rawDocument);
 
         logger.debug("Start processing batch");
@@ -91,6 +92,7 @@ public class AssetExtractor {
 
         // Adding custom filters mappings
         mapper.addConfigurations(CSVFilter.class.getName());
+        mapper.addConfigurations(POFilter.class.getName());
         mapper.addConfigurations(XMLFilter.class.getName());
         mapper.addConfigurations(MacStringsFilter.class.getName());
 

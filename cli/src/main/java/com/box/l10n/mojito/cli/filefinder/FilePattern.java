@@ -23,7 +23,7 @@ public class FilePattern {
      */
     static Logger logger = LoggerFactory.getLogger(FilePattern.class);
 
-    public static String FILE_EXTENSION = "fileExtension";
+    public static String FILE_EXTENSION = "fileExtension"; 
     public static String BASE_NAME = "baseName";
     public static String PARENT_PATH = "parentPath";
     public static String SUB_PATH = "subPath";
@@ -155,9 +155,14 @@ public class FilePattern {
         }
 
         if (FILE_EXTENSION.equals(group)) {
-            groupRegex = fileType.getFileExtension();
+            
+            if(forSourceFile) {
+                groupRegex = fileType.getSourceFileExtension();
+            } else {
+                groupRegex = fileType.getTargetFileExtension();    
+            }
         }
-
+        
         if (LOCALE.equals(group)) {
 
             if (forSourceFile) {

@@ -16,7 +16,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleType;
 public class MacStringsFileType extends FileType {
 
     public MacStringsFileType() {
-        this.fileExtension = "strings";
+        this.sourceFileExtension = "strings";
         this.baseNamePattern = "Localizable|InfoPlist";
         this.subPath = "lproj";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + LOCALE + "}" + DOT + "{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
