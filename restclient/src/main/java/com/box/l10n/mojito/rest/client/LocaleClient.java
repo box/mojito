@@ -47,7 +47,7 @@ public class LocaleClient extends BaseClient {
         Map<String, String> params = new HashMap<>();
         params.put("bcp47Tag", bcp47Tag);
 
-        List<Locale> localeAsList = authenticatedRestTemplate.getForObjectAsList(getBasePathForEntity(), Locale[].class, params);
+        List<Locale> localeAsList = authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(getBasePathForEntity(), Locale[].class, params);
 
         if (localeAsList.size() != 1) {
             throw new LocaleNotFoundException("Could not find locale with BCP47 tag: " + bcp47Tag);

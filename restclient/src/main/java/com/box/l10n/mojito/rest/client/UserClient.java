@@ -48,7 +48,7 @@ public class UserClient extends BaseClient {
             filterParams.put("username", username);
         }
         
-        return authenticatedRestTemplate.getForObjectAsList(
+        return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
                 getBasePathForEntity(),
                 User[].class,
                 filterParams);

@@ -67,7 +67,7 @@ public class DropClient extends BaseClient {
             params.put("size", size.toString());
         }
         
-        ResponseEntity<Page<Drop>> responseEntity = authenticatedRestTemplate.getForEntity(
+        ResponseEntity<Page<Drop>> responseEntity = authenticatedRestTemplate.getForEntityWithQueryParams(
                 getBasePathForEntity(),
                 new ParameterizedTypeReference<Page<Drop>>(){},
                 params);

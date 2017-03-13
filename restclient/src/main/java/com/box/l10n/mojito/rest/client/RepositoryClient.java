@@ -58,7 +58,7 @@ public class RepositoryClient extends BaseClient {
             filterParams.put("name", repositoryName);
         }
 
-        return authenticatedRestTemplate.getForObjectAsList(
+        return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
                 getBasePathForEntity(),
                 Repository[].class,
                 filterParams);
