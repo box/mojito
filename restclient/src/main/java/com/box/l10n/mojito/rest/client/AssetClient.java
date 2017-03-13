@@ -154,7 +154,7 @@ public class AssetClient extends BaseClient {
             filterParams.put("deleted", deleted.toString());
         }
         
-        return authenticatedRestTemplate.getForObjectAsList(getBasePathForEntity(), Asset[].class, filterParams);
+        return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(getBasePathForEntity(), Asset[].class, filterParams);
     }
 
     /**
@@ -219,6 +219,6 @@ public class AssetClient extends BaseClient {
             params.put("deleted", deleted.toString());
         }
 
-        return authenticatedRestTemplate.getForObjectAsList(uriBuilder.toUriString(), Long[].class, params);
+        return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(uriBuilder.toUriString(), Long[].class, params);
     }
 }

@@ -153,19 +153,19 @@ public class AuthenticatedRestTemplate {
      * It also adds any query parameter.
      *
      * @param resourcePath the resource path (possibly a full URI)
-     * @param uriVariables URI variables to add to the full URI
+     * @param queryStringParams parameters to construct the URI query string 
      * @return full URI of the REST WS
      */
-    public String getURIForResource(String resourcePath, Map<String, ?> uriVariables) {
+    protected URI getURIForResourceAndQueryStringParams(String resourcePath, Map<String, ?> queryStringParams) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                         .fromHttpUrl(getURIForResource(resourcePath));
 
-        for (Map.Entry<String, ?> entry : uriVariables.entrySet()) {
+        for (Map.Entry<String, ?> entry : queryStringParams.entrySet()) {
             uriBuilder.queryParam(entry.getKey(), entry.getValue());
         }
 
-        return uriBuilder.toUriString();
+        return uriBuilder.build(false).toUri();
     }
 
     /**
@@ -180,20 +180,8 @@ public class AuthenticatedRestTemplate {
         return restTemplate.getForObject(getURIForResource(resourcePath), responseType);
     }
 
-    /**
-     * Delegate, see {@link RestTemplate#getForObject(String, Class, Map)}
-     * }.
-     *
-     * @param resourcePath resource path transformed into final URI by this
-     *                     instance
-     * @param responseType
-     * @param uriVariables Query parameters
-     * @param <T>
-     * @return
-     * @throws RestClientException
-     */
-    public <T> T getForObject(String resourcePath, Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
-        return restTemplate.getForObject(getURIForResource(resourcePath, uriVariables), responseType);
+    protected <T> T getForObjectWithQueryStringParams(String resourcePath, Class<T> responseType, Map<String, ?> queryStringParams) throws RestClientException {
+        return restTemplate.getForObject(getURIForResourceAndQueryStringParams(resourcePath, queryStringParams), responseType);
     }
 
     /**
@@ -208,19 +196,9 @@ public class AuthenticatedRestTemplate {
     public <T> List<T> getForObjectAsList(String resourcePath, Class<T[]> responseType) throws RestClientException {
         return Arrays.asList(getForObject(resourcePath, responseType));
     }
-
-    /**
-     * @see AuthenticatedRestTemplate#getForObject(String, Class, Map)
-     *
-     * @param resourcePath resource path transformed into final URI by this instance
-     * @param responseType
-     * @param uriVariables Query parameters
-     * @param <T>
-     * @return
-     * @throws RestClientException
-     */
-    public <T> List<T> getForObjectAsList(String resourcePath, Class<T[]> responseType, Map<String, ?> uriVariables) throws RestClientException {
-        return Arrays.asList(getForObject(resourcePath, responseType, uriVariables));
+    
+    public <T> List<T> getForObjectAsListWithQueryStringParams(String resourcePath, Class<T[]> responseType, Map<String, ?> queryStringParams) throws RestClientException {
+        return Arrays.asList(getForObjectWithQueryStringParams(resourcePath, responseType, queryStringParams));
     }
 
     /**
@@ -235,21 +213,7 @@ public class AuthenticatedRestTemplate {
     public <T> ResponseEntity<T> getForEntity(String resourcePath, Class<T> responseType) throws RestClientException {
         return restTemplate.getForEntity(getURIForResource(resourcePath), responseType);
     }
-
-    /**
-     * @see RestTemplate#getForEntity(String, Class, Map)
-     *
-     * @param resourcePath resource path transformed into final URI by this instance
-     * @param responseType
-     * @param uriVariables Query parameters
-     * @param <T>
-     * @return
-     * @throws RestClientException
-     */
-    public <T> ResponseEntity<T> getForEntity(String resourcePath, Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
-        return restTemplate.getForEntity(getURIForResource(resourcePath, uriVariables), responseType);
-    }
-    
+  
     /**
      * Perform a GET request, using {@link ParameterizedTypeReference} to pass
      * a generic type as return type.
@@ -259,12 +223,12 @@ public class AuthenticatedRestTemplate {
      * @param <T> response body type
      * @param resourcePath resource path transformed into final URI by this instance
      * @param responseType
-     * @param uriVariables
+     * @param queryStringParams
      * @return
      * @throws RestClientException 
      */
-    public <T> ResponseEntity<T> getForEntity(String resourcePath, ParameterizedTypeReference<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
-        return restTemplate.exchange(getURIForResource(resourcePath, uriVariables), HttpMethod.GET, HttpEntity.EMPTY, responseType, uriVariables);
+    public <T> ResponseEntity<T> getForEntityWithQueryParams(String resourcePath, ParameterizedTypeReference<T> responseType, Map<String, ?> queryStringParams) throws RestClientException {
+        return restTemplate.exchange(getURIForResourceAndQueryStringParams(resourcePath, queryStringParams), HttpMethod.GET, HttpEntity.EMPTY, responseType);
     }
 
     /**
@@ -283,22 +247,6 @@ public class AuthenticatedRestTemplate {
     }
 
     /**
-     * Delegate, see {@link RestTemplate#postForObject(String, Object, Class, Map)
-     * }
-     *
-     * @param resourcePath resource path transformed into final URI by this instance
-     * @param request
-     * @param responseType
-     * @param uriVariables Query parameters
-     * @param <T>
-     * @return
-     * @throws RestClientException
-     */
-    public <T> T postForObject(String resourcePath, Object request, Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
-        return restTemplate.postForObject(getURIForResource(resourcePath, uriVariables), request, responseType);
-    }
-
-    /**
      * Delegate, see {@link RestTemplate#postForEntity(String, Object, Class, Object...)}
      *
      * @param resourcePath resource path transformed into final URI by this instance
@@ -312,54 +260,6 @@ public class AuthenticatedRestTemplate {
         return restTemplate.postForEntity(getURIForResource(resourcePath), request, responseType);
     }
 
-    /**
-     * Delegate, see {@link RestTemplate#postForEntity(String, Object, Class, Map)}
-     *
-     * @param resourcePath resource path transformed into final URI by this instance
-     * @param request
-     * @param responseType
-     * @param uriVariables Query parameters
-     * @param <T>
-     * @return
-     * @throws RestClientException
-     */
-    public <T> ResponseEntity<T> postForEntity(String resourcePath, Object request, Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
-        return restTemplate.postForEntity(getURIForResource(resourcePath, uriVariables), request, responseType);
-    }
-
-    /**
-     * Delegate, see {@link RestTemplate#postForLocation(String, Object, Object...) }
-     *
-     * @param resourcePath resource path transformed into final URI by this instance
-     * @param request
-     * @return
-     * @throws RestClientException
-     */
-    public URI postForLocation(String resourcePath, Object request) throws RestClientException {
-        return restTemplate.postForLocation(getURIForResource(resourcePath), request);
-    }
-
-    /**
-     * Delegate, see {@link RestTemplate#postForLocation(String, Object, Map) }
-     *
-     * @param resourcePath resource path transformed into final URI by this instance
-     * @param request
-     * @param uriVariables Query parameters
-     * @return
-     * @throws RestClientException
-     */
-    public URI postForLocation(String resourcePath, Object request, Map<String, ?> uriVariables) throws RestClientException {
-        return restTemplate.postForLocation(getURIForResource(resourcePath, uriVariables), request, uriVariables);
-    }
-
-    /**
-     * Delegate, see {@link RestTemplate#delete(String, Map)}
-     *
-     * @param resourcePath resource path transformed into final URI by this
-     * instance
-     * @param uriVariables Query parameters
-     * @throws RestClientException
-     */
     public void delete(String resourcePath, HttpEntity request) throws RestClientException {
         restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.DELETE, request,  Void.class);
     }
@@ -384,19 +284,6 @@ public class AuthenticatedRestTemplate {
      */
     public void patch(String resourcePath, Object request) throws RestClientException {
         restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.PATCH, new HttpEntity<>(request), Void.class);
-    }
-    
-    /**
-     * Perform a PATCH request, see {@link RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, java.lang.Class, java.util.Map) 
-     * }
-     *
-     * @param resourcePath resource path transformed into final URI by this instance
-     * @param request
-     * @param uriVariables
-     * @throws RestClientException
-     */
-    public void patch(String resourcePath, Object request, Map<String, ?> uriVariables) throws RestClientException {
-        restTemplate.exchange(getURIForResource(resourcePath, uriVariables), HttpMethod.PATCH, new HttpEntity<>(request), Void.class);
     }
     
     @VisibleForTesting

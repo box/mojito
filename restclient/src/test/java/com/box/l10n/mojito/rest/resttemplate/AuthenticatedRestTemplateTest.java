@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestClientException;
 import java.util.HashMap;
+import java.util.Map;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -36,19 +37,19 @@ public class AuthenticatedRestTemplateTest {
 
     @Autowired
     ResttemplateConfig resttemplateConfig;
-    
+
     @Autowired
     FormLoginConfig formLoginConfig;
 
-    protected static final String LOGIN_PAGE_HTML = "<html>\n" +
-            "<head>\n" +
-            "</head>\n" +
-            "<script type=\"text/javascript\">\n" +
-            "   CSRF_TOKEN = '87023b1d-0e6f-48dd-bb06-d80802954572';\n" +
-            "</script>\n" +
-            "<body>\n" +
-            "</body>\n" +
-            "</html>";
+    protected static final String LOGIN_PAGE_HTML = "<html>\n"
+            + "<head>\n"
+            + "</head>\n"
+            + "<script type=\"text/javascript\">\n"
+            + "   CSRF_TOKEN = '87023b1d-0e6f-48dd-bb06-d80802954572';\n"
+            + "</script>\n"
+            + "<body>\n"
+            + "</body>\n"
+            + "</html>";
 
     protected WireMockServer wireMockServer;
 
@@ -72,6 +73,24 @@ public class AuthenticatedRestTemplateTest {
     @After
     public void after() {
         wireMockServer.stop();
+    }
+
+    @Test
+    public void testDoubleEncodedUrlForGetForObject() {
+        initialAuthenticationMock();
+        mockCsrfTokenEndpoint();
+
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/assets?path=abc%5Cdef"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.FOUND.value())
+                        .withHeader("Location", "/api/assets?path=abc%5Cdefs")
+                        .withBody("")));
+
+        Map<String, String> uriVariables = new HashMap<>();
+        uriVariables.put("path", "abc\\def");
+        authenticatedRestTemplate.getForObjectWithQueryStringParams("/api/assets", String.class, uriVariables);
+
+        WireMock.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/api/assets?path=abc%5Cdef")));
     }
 
     @Test
