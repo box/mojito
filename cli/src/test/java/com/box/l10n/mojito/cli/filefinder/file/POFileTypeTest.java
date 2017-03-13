@@ -42,7 +42,6 @@ public class POFileTypeTest {
         Assert.assertTrue(matcher.matches());
         Assert.assertEquals("fr_FR", matcher.group(LOCALE));
         Assert.assertEquals("/source/", matcher.group(PARENT_PATH));
-        Assert.assertEquals("LC_MESSAGES", matcher.group(SUB_PATH));
         Assert.assertEquals("messages", matcher.group(BASE_NAME));
         Assert.assertEquals("po", matcher.group(FILE_EXTENSION));
     }
