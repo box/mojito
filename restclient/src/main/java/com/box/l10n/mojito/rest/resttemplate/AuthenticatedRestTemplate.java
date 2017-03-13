@@ -48,7 +48,7 @@ public class AuthenticatedRestTemplate {
 
     @Autowired
     ResttemplateConfig resttemplateConfig;
-    
+
     /**
      * Will delegate calls to the {@link RestTemplate} instance that was
      * configured
@@ -193,7 +193,7 @@ public class AuthenticatedRestTemplate {
      * @throws RestClientException
      */
     public <T> T getForObject(String resourcePath, Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
-        return restTemplate.getForObject(getURIForResource(resourcePath, uriVariables), responseType);
+        return restTemplate.getForObject(URI.create(getURIForResource(resourcePath, uriVariables)), responseType);
     }
 
     /**
@@ -249,19 +249,19 @@ public class AuthenticatedRestTemplate {
     public <T> ResponseEntity<T> getForEntity(String resourcePath, Class<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
         return restTemplate.getForEntity(getURIForResource(resourcePath, uriVariables), responseType);
     }
-    
+
     /**
      * Perform a GET request, using {@link ParameterizedTypeReference} to pass
      * a generic type as return type.
-     * 
-     * @see RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, org.springframework.core.ParameterizedTypeReference, java.util.Map) 
-     * 
+     *
+     * @see RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, org.springframework.core.ParameterizedTypeReference, java.util.Map)
+     *
      * @param <T> response body type
      * @param resourcePath resource path transformed into final URI by this instance
      * @param responseType
      * @param uriVariables
      * @return
-     * @throws RestClientException 
+     * @throws RestClientException
      */
     public <T> ResponseEntity<T> getForEntity(String resourcePath, ParameterizedTypeReference<T> responseType, Map<String, ?> uriVariables) throws RestClientException {
         return restTemplate.exchange(getURIForResource(resourcePath, uriVariables), HttpMethod.GET, HttpEntity.EMPTY, responseType, uriVariables);
@@ -373,9 +373,9 @@ public class AuthenticatedRestTemplate {
     public void delete(String resourcePath) throws RestClientException {
         restTemplate.delete(getURIForResource(resourcePath));
     }
-    
+
     /**
-     * Perform a PATCH request, see {@link RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, java.lang.Class, java.util.Map) 
+     * Perform a PATCH request, see {@link RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, java.lang.Class, java.util.Map)
      * }
      *
      * @param resourcePath resource path transformed into final URI by this instance
@@ -385,9 +385,9 @@ public class AuthenticatedRestTemplate {
     public void patch(String resourcePath, Object request) throws RestClientException {
         restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.PATCH, new HttpEntity<>(request), Void.class);
     }
-    
+
     /**
-     * Perform a PATCH request, see {@link RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, java.lang.Class, java.util.Map) 
+     * Perform a PATCH request, see {@link RestTemplate#exchange(java.lang.String, org.springframework.http.HttpMethod, org.springframework.http.HttpEntity, java.lang.Class, java.util.Map)
      * }
      *
      * @param resourcePath resource path transformed into final URI by this instance
@@ -398,7 +398,7 @@ public class AuthenticatedRestTemplate {
     public void patch(String resourcePath, Object request, Map<String, ?> uriVariables) throws RestClientException {
         restTemplate.exchange(getURIForResource(resourcePath, uriVariables), HttpMethod.PATCH, new HttpEntity<>(request), Void.class);
     }
-    
+
     @VisibleForTesting
     public CookieStoreRestTemplate getRestTemplate() {
         return restTemplate;

@@ -2,6 +2,8 @@ package com.box.l10n.mojito.rest.resttemplate;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -10,14 +12,13 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestClientException;
-import java.util.HashMap;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @Configuration
@@ -73,6 +74,27 @@ public class AuthenticatedRestTemplateTest {
     public void after() {
         wireMockServer.stop();
     }
+
+    @Test
+    public void testDoubleEncodedUrlForGetForObject() {
+        initialAuthenticationMock();
+        mockCsrfTokenEndpoint();
+
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/assets?path=abc%5Cdef"))
+                .willReturn(WireMock.aResponse()
+                    .withStatus(HttpStatus.FOUND.value())
+                    .withBody("")));
+
+        try {
+            Map<String, String> uriVariables = new HashMap<>();
+            uriVariables.put("path", "abc\\def");
+            authenticatedRestTemplate.getForObject("/api/assets", String.class, uriVariables);
+        } catch (Exception e) {
+            // ignore any exception for now.
+        }
+        WireMock.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/api/assets?path=abc%5Cdef")));
+    }
+
 
     @Test
     public void testUnPreparedAuthRestTemplateAndSessionTimeoutForGetForObject() {
