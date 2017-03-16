@@ -188,7 +188,7 @@ let TextUnit = React.createClass({
      */
     onKeyDownTextArea(e) {
         e.stopPropagation();
-        if (e.ctrlKey) {
+        if (keycode(e) == keycode(keycode("enter")) && e.ctrlKey) {
             e.preventDefault();
         }
     },
