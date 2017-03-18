@@ -5,7 +5,6 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import net.sf.okapi.common.resource.ITextUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 /**
@@ -26,10 +25,7 @@ public class ImportTranslationsByMd5Step extends AbstractImportTranslationsStep 
      * Logger
      */
     static Logger logger = LoggerFactory.getLogger(ImportTranslationsByMd5Step.class);
-
-    @Autowired
-    TextUnitUtils textUnitUtils;
-
+ 
     Repository repository;
 
     public ImportTranslationsByMd5Step(Repository repository) {
