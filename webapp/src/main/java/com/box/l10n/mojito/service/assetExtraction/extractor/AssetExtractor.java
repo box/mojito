@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
 import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
+import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
@@ -68,6 +69,7 @@ public class AssetExtractor {
 
         Asset asset = assetExtraction.getAsset();
         RawDocument rawDocument = new RawDocument(asset.getContent(), LocaleId.ENGLISH);
+        rawDocument.setAnnotation(new POExtraPluralAnnotation());
 
         //TODO(P1) I think Okapi already implement this logic
         String filterConfigId = getFilterConfigIdForAsset(asset);

@@ -17,6 +17,7 @@ import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
 import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
 import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.okapi.XLIFFWriter;
@@ -714,6 +715,9 @@ public class TMService {
 
         LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
+        
+        //TODO(P2) Find a better solution?
+        rawDocument.setAnnotation(new POExtraPluralAnnotation());
 
         //TODO(P1) see assetExtractor comments
         String filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
