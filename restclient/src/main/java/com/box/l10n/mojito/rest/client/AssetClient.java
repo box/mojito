@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
+import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
@@ -60,11 +61,11 @@ public class AssetClient extends BaseClient {
      * @param assetId {@link Asset#id}
      * @param localeId {@link Locale#id}
      * @param content the asset content to be localized
-     * @param outputBcp47tag  Optional, can be null. Allows to generate the file
+     * @param outputBcp47tag Optional, can be null. Allows to generate the file
      * for a bcp47 tag that is different from the repository locale (which is
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
-     * repository locale. 
+     * repository locale.
      * @return the localized asset content
      */
     public LocalizedAssetBody getLocalizedAssetForContent(Long assetId, Long localeId, String content, String outputBcp47tag) {
@@ -76,10 +77,46 @@ public class AssetClient extends BaseClient {
         LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
         localizedAssetBody.setContent(content);
         localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
-        
+
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 localizedAssetBody,
                 LocalizedAssetBody.class);
+    }
+
+    /**
+     * Imports a localized version of an asset. 
+     * 
+     * The target strings are checked against the source strings and if they 
+     * are equals the status of the imported translation is defined by 
+     * statusForSourceEqTarget. When SKIIPED is specified the import is actually
+     * skipped.
+     * 
+     * For not fully translated locales, targets are imported only if they are
+     * different from target of the parent locale.
+     *
+     * @param assetId {@link Asset#id}
+     * @param localeId {@link Locale#id}
+     * @param content the asset content to be localized
+     * @param statusForSourceEqTarget the status of the text unit variant 
+     * when the source equals the target
+     */
+    public void importLocalizedAssetForContent(
+            Long assetId,
+            Long localeId,
+            String content,
+            ImportLocalizedAssetBody.StatusForSourceEqTarget statusForSourceEqTarget) {
+        logger.debug("Import localized asset with asset id = {}, locale id = {}", assetId, localeId);
+
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder
+                .fromPath(getBasePathForResource(assetId, "localized", localeId, "import"));
+
+        ImportLocalizedAssetBody importLocalizedAssetBody = new ImportLocalizedAssetBody();
+        importLocalizedAssetBody.setContent(content);
+        importLocalizedAssetBody.setStatusSourceEqTarget(statusForSourceEqTarget);
+
+        authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
+                importLocalizedAssetBody,
+                Void.class);
     }
 
     /**
@@ -124,11 +161,11 @@ public class AssetClient extends BaseClient {
     public List<Asset> getAssetsByRepositoryId(Long repositoryId, Boolean deleted) {
         return getAssets(null, repositoryId, deleted);
     }
-    
+
     protected List<Asset> getAssets(String path, Long repositoryId) {
         return getAssets(path, repositoryId, null);
     }
-    
+
     /**
      * Get assets for a given path and repositoryId
      *
@@ -153,7 +190,7 @@ public class AssetClient extends BaseClient {
         if (deleted != null) {
             filterParams.put("deleted", deleted.toString());
         }
-        
+
         return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(getBasePathForEntity(), Asset[].class, filterParams);
     }
 
@@ -179,39 +216,39 @@ public class AssetClient extends BaseClient {
 
     /**
      * Deletes an {@link Asset} by the {@link Asset#id}
-     * 
+     *
      * @param assetId
      */
     public void deleteAssetById(Long assetId) {
         logger.debug("Deleting asset by id = [{}]", assetId);
         authenticatedRestTemplate.delete(getBasePathForResource(assetId));
     }
-    
+
     /**
      * Deletes multiple {@link Asset} by the list of {@link Asset#id}
-     * 
+     *
      * @param assetIds
      */
-    public void deleteAssetsByIds(Set<Long> assetIds) {      
+    public void deleteAssetsByIds(Set<Long> assetIds) {
         logger.debug("Deleting assets by asset ids = {}", assetIds.toString());
-          
+
         HttpEntity<Set<Long>> httpEntity = new HttpEntity<>(assetIds);
-        authenticatedRestTemplate.delete(getBasePathForEntity(), httpEntity);    
+        authenticatedRestTemplate.delete(getBasePathForEntity(), httpEntity);
     }
-    
+
     /**
      * Returns list of {@link Asset#id} for a given {@link Repository}
-     * 
+     *
      * @param repositoryId
      * @param deleted optional
-     * @return 
+     * @return
      */
     public List<Long> getAssetIds(Long repositoryId, Boolean deleted) {
         Assert.notNull(repositoryId);
-        
+
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromPath(getBasePathForEntity() + "/ids");
-        
+
         Map<String, String> params = new HashMap<>();
         params.put("repositoryId", repositoryId.toString());
 
