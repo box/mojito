@@ -29,7 +29,7 @@ public class ImportTranslationsByIdStep extends AbstractImportTranslationsStep {
     }
 
     @Override
-    TMTextUnit getTMTextUnit(ITextUnit textUnit) {
+    TMTextUnit getTMTextUnit() {
 
         TMTextUnit tmTextUnit = null;
 

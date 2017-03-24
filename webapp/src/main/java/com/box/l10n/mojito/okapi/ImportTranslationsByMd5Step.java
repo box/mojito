@@ -25,7 +25,7 @@ public class ImportTranslationsByMd5Step extends AbstractImportTranslationsStep 
      * Logger
      */
     static Logger logger = LoggerFactory.getLogger(ImportTranslationsByMd5Step.class);
- 
+
     Repository repository;
 
     public ImportTranslationsByMd5Step(Repository repository) {
@@ -44,7 +44,7 @@ public class ImportTranslationsByMd5Step extends AbstractImportTranslationsStep 
     }
 
     @Override
-    TMTextUnit getTMTextUnit(ITextUnit textUnit) {
+    TMTextUnit getTMTextUnit() {
         return tmTextUnitRepository.findFirstByTmAndMd5(repository.getTm(), md5);
     }
 }
