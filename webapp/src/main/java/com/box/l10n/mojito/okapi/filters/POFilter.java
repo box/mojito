@@ -1,12 +1,17 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
+import com.ibm.icu.text.PluralRules;
+import com.ibm.icu.util.ULocale;
 import java.util.ArrayList;
 import java.util.List;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
+import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
+import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,16 +63,28 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      * Event that contains an extra text unit for the 3rd plural form supported
      * by Gettext.
      */
-    Event extraPlural = null;
+    Event extraPluralEvent = null;
+    
+    /**
+     * Indicates if the target locale requires an extra plural form
+     */
+    boolean needsExtraPluralForm;
 
     @Override
-    public boolean hasNext() {
-        return extraPlural != null || super.hasNext();
+    public void open(RawDocument input) {
+        super.open(input);
+        boolean hasAnnotation = input.getAnnotation(POExtraPluralAnnotation.class) != null;
+        needsExtraPluralForm = hasAnnotation && needsExtraPluralForm(input.getTargetLocale());
     }
-
+    
+    @Override
+    public boolean hasNext() {
+        return extraPluralEvent != null || super.hasNext();
+    }
+ 
     /**
-     * Return the extraPlural textunit if needed or get the event from the
-     * parent filter.
+     * Return the extraPluralEvent textunit if needed or get the event from the
+ parent filter.
      *
      * TextUnits from the parents are modified to include context in the
      * textunit name.
@@ -77,9 +94,9 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     @Override
     public Event next() {
         Event event;
-        if (extraPlural != null) {
-            event = extraPlural;
-            extraPlural = null;
+        if (extraPluralEvent != null) {
+            event = extraPluralEvent;
+            extraPluralEvent = null;
         } else {
 
             event = super.next();
@@ -93,6 +110,28 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
         return event;
     }
+  
+
+    /**
+     * Indicates if a locale needs an extra plural form in PO files. 
+     * 
+     * If no target locale (source file) extra plural is needed as well as for
+     * language that requires more than 2 plural forms.
+     * 
+     * @param localeId from the input document
+     * @return if an extra plural text unit is needed or not
+     */
+    protected boolean needsExtraPluralForm(LocaleId localeId) {
+        boolean required = true;
+        
+        if (localeId != null && !LocaleId.EMPTY.equals(localeId)) {
+            ULocale ulocale = ULocale.forLanguageTag(localeId.toBCP47());
+            PluralRules pluralRules = PluralRules.forLocale(ulocale);
+            required = pluralRules.getKeywords().size() > 2;
+        }
+        
+        return required;
+    }
 
     /**
      * If the text unit correspond to the 2nd gettext entry of a plural, create
@@ -103,7 +142,8 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      * @param textUnit
      */
     private void addExtraPluralIfTextUnitIsSecondPluralForm(ITextUnit textUnit) {
-        if (textUnit.getName().endsWith("-1")) {
+
+        if (needsExtraPluralForm && textUnit.getName().endsWith("-1")) {
             ITextUnit clone = textUnit.clone();
             clone.setName(clone.getName().replace("-1", "-2"));
             GenericSkeleton genericSkeleton = (GenericSkeleton) clone.getSkeleton();
@@ -112,7 +152,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
             sb.replace(0, sb.length(), str);
 
             addContextToTextUnitName(clone);
-            extraPlural = new Event(EventType.TEXT_UNIT, clone);
+            extraPluralEvent = new Event(EventType.TEXT_UNIT, clone);
         }
     }
 
@@ -136,4 +176,9 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         }
     }
 
+    private void rewritePluralFormInHeader(ITextUnit textUnit) {
+        System.out.println(textUnit.getSkeleton());
+        
+    }
+   
 }

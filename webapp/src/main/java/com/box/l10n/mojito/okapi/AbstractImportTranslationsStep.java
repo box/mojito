@@ -17,6 +17,7 @@ import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
+import net.sf.okapi.common.resource.StartDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +78,11 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      */
     boolean documentReviewNeeded;
 
+    /**
+     * Indicates if the document that is processed is multilingual or not
+     */
+    boolean isMultilingual = false;
+
     @SuppressWarnings("deprecation")
     @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
     public void setTargetLocale(LocaleId targetLocale) {
@@ -93,6 +99,9 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
         logger.debug("Initialize statistics for the import");
         notFoundTextUnitIds = new HashSet<>();
 
+        StartDocument startDocument = event.getStartDocument();
+        isMultilingual = startDocument.isMultilingual();
+
         return super.handleStartDocument(event);
     }
 
@@ -102,30 +111,66 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
         return event;
     }
 
+    /**
+     * This step can be used to import translation from monolingual and 
+     * bi-lingual document. The text container that contains the translation
+     * to be imported is either the source or target container
+     *
+     * @return the text container that contains the translation to be imported
+     */
+    TextContainer getTargetTextContainer() {
+        TextContainer tc;
+
+        if (isMultilingual) {
+            tc = textUnit.getTarget(targetLocale);
+        } else {
+            tc = textUnit.getSource();
+        }
+
+        return tc;
+    }
+
+    /**
+     * Indicates if the target should be imported or not.
+     * 
+     * This is allow to define import strategies when the source and target
+     * are the same, etc.
+     * 
+     * @param tmTextUnit in which the target might be added
+     * @param target to potentially be imported
+     * @return is the translation should be added or not
+     */
+    protected boolean shouldImport(TMTextUnit tmTextUnit, TextContainer target) {
+        return tmTextUnit != null;
+    }
+
     @Override
     protected Event handleTextUnit(Event event) {
         event = super.handleTextUnit(event);
 
         if (textUnit.isTranslatable()) {
-
-            TMTextUnit tmTextUnit = getTMTextUnit(textUnit);
+            TMTextUnit tmTextUnit = getTMTextUnit();
 
             ImportNoteBuilder importNoteBuilder;
 
             XliffState xliffState = XliffState.NEEDS_TRANSLATION;
-            TextContainer target = textUnit.getTarget(targetLocale);
+            TextContainer target = getTargetTextContainer();
 
-            if (tmTextUnit != null) {
-                TMTextUnitVariant importTextUnit = importTextUnit(tmTextUnit.getId(), target);
-                importNoteBuilder = buildImportNoteBuilderFromVariant(importTextUnit);
-                xliffState = getXliffState(importTextUnit);
-            } else {
+            if (tmTextUnit == null) {
                 logger.debug("Could not find a TMTextUnit for id: {}. Skipping it...", textUnit.getId());
                 notFoundTextUnitIds.add(textUnit.getId());
                 importNoteBuilder = new ImportNoteBuilder();
                 importNoteBuilder.setMustReview(true);
                 importNoteBuilder.addError("Text unit for id: " + textUnit.getId() + ", Skipping it...");
                 documentReviewNeeded = true;
+            } else if (shouldImport(tmTextUnit, target)) {
+                TMTextUnitVariant importTextUnit = importTextUnit(tmTextUnit, target);
+                importNoteBuilder = buildImportNoteBuilderFromVariant(importTextUnit);
+                xliffState = getXliffState(importTextUnit);
+            } else {
+                logger.debug("Skip import for TMTextUnit id: {}", textUnit.getId());
+                importNoteBuilder = new ImportNoteBuilder();
+                importNoteBuilder.addInfo("Skip import for TMTextUnit id: " + textUnit.getId());
             }
 
             setTargetNoteProperty(textUnit, importNoteBuilder.toString());
@@ -229,7 +274,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      * @param hasError if error has been identified in the target
      * @return status to be used for adding a translation
      */
-    protected TMTextUnitVariant.Status getStatusForAddingTranslation(TextContainer target, boolean hasError) {
+    protected TMTextUnitVariant.Status getStatusForAddingTranslation(TextContainer target, boolean hasError, TMTextUnit tmTextUnit) {
 
         TMTextUnitVariant.Status status;
 
@@ -288,10 +333,11 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     }
 
     @Transactional
-    TMTextUnitVariant importTextUnit(Long tmTextUnitId, TextContainer target) {
+    TMTextUnitVariant importTextUnit(TMTextUnit tmTextUnit, TextContainer target) {
 
         String bcp47TagLowerCase = targetLocale.toBCP47();
         Long targetLocaleId = localeService.findByBcp47Tag(bcp47TagLowerCase).getId();
+        Long tmTextUnitId = tmTextUnit.getId();
 
         //TODO(P1) check text unit in translation kit translakit and complain? or not ...
         String targetString = target.toString();
@@ -311,7 +357,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
             documentReviewNeeded = true;
         }
 
-        TMTextUnitVariant.Status status = getStatusForAddingTranslation(target, !includedInLocalizedFile);
+        TMTextUnitVariant.Status status = getStatusForAddingTranslation(target, !includedInLocalizedFile, tmTextUnit);
 
         logger.debug("Adding TMTextUnitVariant for textUnitId: {}, localeId: {}, status: {}, target: {}", tmTextUnitId, targetLocaleId, status, targetString);
         TMTextUnitVariant addedTMTextUnitVariant;
@@ -363,7 +409,9 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      * @param textUnit a text unit that needs to be imported
      * @return the TMTextUnit in which the translation will be inserted.
      */
-    abstract TMTextUnit getTMTextUnit(ITextUnit textUnit);
+    //TODO probably don't need that anymore since some class don't even use it
+    // and fields are now available from Parent abstract class
+    abstract TMTextUnit getTMTextUnit();
 
     /**
      * Indicates if the translation to be added should be added as as current

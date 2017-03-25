@@ -145,7 +145,28 @@ public class AssetWS {
 
         return localizedAssetBody;
     }
+    
+    
+    //TODO(P1) It would be nice to put this to be POST on .../localized/{localeId}
+    // but it won't backward compatible so... The URL is taken by another POST 
+    // that is used as a GET because we needed to send the paylaod. Here would
+    // be the logic URL usage
+    @RequestMapping(value = "/api/assets/{assetId}/localized/{localeId}/import", method = RequestMethod.POST)
+    public void importLocalizedAsset(
+            @PathVariable("assetId") long assetId,
+            @PathVariable("localeId") long localeId,
+            @RequestBody ImportLocalizedAssetBody importLocalizedAssetBody) {
 
+        logger.debug("Import localized asset with id = {}, and locale id = {}", assetId, localeId);
+
+        Asset asset = assetRepository.getOne(assetId);
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
+
+        String normalizedContent = NormalizationUtils.normalize(importLocalizedAssetBody.getContent());
+
+        tmService.importLocalizedAsset(asset, normalizedContent, repositoryLocale, importLocalizedAssetBody.getSourceEqualTargetProcessing());
+    }
+    
     /**
      * Exports all the translations (used and unused) of an {@link Asset} into
      * XLIFF.

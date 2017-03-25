@@ -14,9 +14,12 @@ import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
 import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
 import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.okapi.XLIFFWriter;
@@ -715,6 +718,9 @@ public class TMService {
         LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
 
+        //TODO(P2) Find a better solution?
+        rawDocument.setAnnotation(new POExtraPluralAnnotation());
+
         //TODO(P1) see assetExtractor comments
         String filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
         rawDocument.setFilterConfigId(filterConfigId);
@@ -726,7 +732,59 @@ public class TMService {
         driver.processBatch();
 
         String localizedContent = filterEventsToInMemoryRawDocumentStep.getOutput(rawDocument);
-        
+
         return localizedContent;
+    }
+
+    /**
+     * Imports a localized version of an asset. 
+     * 
+     * The target strings are checked against the source strings and if they 
+     * are equals the status of the imported translation is defined by 
+     * statusForSourceEqTarget. When SKIIPED is specified the import is actually
+     * skipped.
+     * 
+     * For not fully translated locales, targets are imported only if they are
+     * different from target of the parent locale.
+     * 
+     * @param asset the asset for which the content will be imported
+     * @param content the localized asset content
+     * @param repositoryLocale the locale of the content to be imported
+     * @param statusForSourceEqTarget the status of the text unit variant 
+     * when the source equals the target
+     */
+    public void importLocalizedAsset(
+            Asset asset,
+            String content,
+            RepositoryLocale repositoryLocale,
+            StatusForSourceEqTarget statusForSourceEqTarget) {
+
+        String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
+
+        logger.debug("Configuring pipeline to import localized file");
+
+        IPipelineDriver driver = new PipelineDriver();
+
+        driver.addStep(new RawDocumentToFilterEventsStep());
+        driver.addStep(new CheckForDoNotTranslateStep());
+        driver.addStep(new ImportTranslationsFromLocalizedAssetStep(asset, repositoryLocale, statusForSourceEqTarget));
+
+        logger.debug("Adding all supported filters to the pipeline driver");
+        driver.setFilterConfigurationMapper(assetExtractor.getConfiguredFilterConfigurationMapper());
+
+        FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
+        driver.addStep(filterEventsToInMemoryRawDocumentStep);
+
+        LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
+        RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
+
+        String filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
+        rawDocument.setFilterConfigId(filterConfigId);
+        logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
+
+        driver.addBatchItem(rawDocument);
+
+        logger.debug("Start processing batch");
+        driver.processBatch();
     }
 }

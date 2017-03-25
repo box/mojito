@@ -22,7 +22,7 @@ public class ImportTranslationsStepTest {
         importTranslationsStep.importWithStatus = TMTextUnitVariant.Status.APPROVED;
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.APPROVED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
         assertEquals(expResult, result);
     }
 
@@ -35,7 +35,7 @@ public class ImportTranslationsStepTest {
         ImportTranslationsByIdStep importTranslationsStep = new ImportTranslationsByIdStep();
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.REVIEW_NEEDED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
         assertEquals(expResult, result);
     }
 
@@ -48,7 +48,7 @@ public class ImportTranslationsStepTest {
         ImportTranslationsByIdStep importTranslationsStep = new ImportTranslationsByIdStep();
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.APPROVED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
         assertEquals(expResult, result);
     }
 
@@ -61,7 +61,7 @@ public class ImportTranslationsStepTest {
         ImportTranslationsByIdStep importTranslationsStep = new ImportTranslationsByIdStep();
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.REVIEW_NEEDED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
         assertEquals(expResult, result);
     }
 

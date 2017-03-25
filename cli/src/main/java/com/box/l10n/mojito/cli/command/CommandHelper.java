@@ -11,13 +11,16 @@ import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.HashBiMap;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Map;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -43,16 +46,16 @@ public class CommandHelper {
      * Supported BOM
      */
     private final ByteOrderMark[] boms = {ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE};
-    
+
     @Autowired
     RepositoryClient repositoryClient;
-    
+
     @Autowired
     PollableTaskClient pollableTaskClient;
-    
+
     @Autowired
     CommandWaitForPollableTaskListener commandWaitForPollableTaskListener;
-    
+
     @Autowired
     ConsoleWriter consoleWriter;
 
@@ -61,7 +64,7 @@ public class CommandHelper {
      * @return
      */
     public Repository findRepositoryByName(String repositoryName) throws CommandException {
-        
+
         try {
             return repositoryClient.getRepositoryByName(repositoryName);
         } catch (RestClientException e) {
@@ -121,23 +124,23 @@ public class CommandHelper {
         fileFinder.setSourceDirectory(commandDirectories.getSourceDirectoryPath());
         fileFinder.setTargetDirectory(commandDirectories.getTargetDirectoryPath());
         fileFinder.setSourcePathFilterRegex(sourcePathFilterRegex);
-        
+
         if (fileType != null) {
             fileFinder.setFileTypes(fileType);
         }
-        
+
         if (!Strings.isNullOrEmpty(sourceLocale)) {
             for (FileType fileTypeForUpdate : fileFinder.getFileTypes()) {
                 fileTypeForUpdate.getLocaleType().setSourceLocale(sourceLocale);
             }
         }
-        
+
         try {
             fileFinder.find();
         } catch (FileFinderException e) {
             throw new CommandException(e.getMessage(), e);
         }
-        
+
         return fileFinder;
     }
 
@@ -210,9 +213,9 @@ public class CommandHelper {
      * @throws com.box.l10n.mojito.cli.command.CommandException
      */
     public void waitForPollableTask(Long pollableId) throws CommandException {
-        
+
         consoleWriter.newLine().a("Running, task id: ").fg(Ansi.Color.MAGENTA).a(pollableId).a(" ").println();
-        
+
         try {
             pollableTaskClient.waitForPollableTask(pollableId, PollableTaskClient.NO_TIMEOUT, commandWaitForPollableTaskListener);
         } catch (PollableTaskException e) {
@@ -229,6 +232,40 @@ public class CommandHelper {
      */
     String setPreserveSpaceInXliff(String assetContent) {
         return assetContent.replaceAll("<trans-unit id=\"(.*?)\">", "<trans-unit id=\"$1\" xml:space=\"preserve\">");
+    }
+
+    /**
+     * Gets the locale mapping given the locale mapping param
+     *
+     * @param localeMapppingParam locale mapping param coming from the CLI
+     * @return A map containing the locale mapping
+     */
+    public Map<String, String> getLocaleMapping(String localeMapppingParam) {
+
+        Map<String, String> localeMappings = null;
+        if (localeMapppingParam != null) {
+            localeMappings = Splitter.on(",").withKeyValueSeparator(":").split(localeMapppingParam);
+        }
+
+        return localeMappings;
+    }
+
+    /**
+     * Gets the inverse locale mapping given the locale mapping param
+     *
+     * @param localeMapppingParam locale mapping param coming from the CLI
+     * @return A map containing the inverse locale mapping
+     */
+    public Map<String, String> getInverseLocaleMapping(String localeMapppingParam) {
+
+        Map<String, String> inverseLocaleMapping = null;
+
+        if (localeMapppingParam != null) {
+            inverseLocaleMapping = HashBiMap.create(getLocaleMapping(localeMapppingParam)).inverse();
+
+        }
+
+        return inverseLocaleMapping;
     }
 
 }

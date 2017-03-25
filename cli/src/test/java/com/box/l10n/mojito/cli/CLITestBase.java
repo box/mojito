@@ -57,7 +57,7 @@ public class CLITestBase extends IOTestBase {
     AuthenticatedRestTemplate authenticatedRestTemplate;
 
     @Autowired
-    RepositoryService repositoryService;
+    protected RepositoryService repositoryService;
 
     @Autowired
     LocaleService localeService;
@@ -70,7 +70,7 @@ public class CLITestBase extends IOTestBase {
 
     @Autowired
     AssetRepository assetRepository;
-    
+
     @Rule
     public OutputCapture outputCapture = new OutputCapture();
 
@@ -103,7 +103,7 @@ public class CLITestBase extends IOTestBase {
     public Repository createTestRepoUsingRepoService() throws Exception {
         return createTestRepoUsingRepoService("repo");
     }
-
+ 
     public Repository createTestRepoUsingRepoService(String name) throws Exception {
 
         String repoName = testIdWatcher.getEntityName(name);
@@ -112,10 +112,10 @@ public class CLITestBase extends IOTestBase {
         repositoryService.addRepositoryLocale(repository, "fr-FR");
         repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);
         repositoryService.addRepositoryLocale(repository, "ja-JP");
-
+ 
         return repository;
     }
-    
+
     public void importTranslations(Long assetId, String baseName, String bcp47Tag) throws IOException {
         File file = new File(getInputResourcesTestDir("translations"), baseName + bcp47Tag + ".xliff");
         String fileContent = Files.toString(file, StandardCharsets.UTF_8);

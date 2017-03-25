@@ -9,7 +9,6 @@ import com.box.l10n.mojito.service.translationkit.TranslationKitService;
 import java.util.Map;
 import java.util.Objects;
 import net.sf.okapi.common.Event;
-import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.StartSubDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
@@ -88,7 +87,7 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
     }
 
     @Override
-    TMTextUnit getTMTextUnit(ITextUnit textUnit) {
+    TMTextUnit getTMTextUnit() {
 
         TMTextUnit tmTextUnit = null;
 
@@ -110,8 +109,8 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
      */
     @Override
     @Transactional
-    TMTextUnitVariant importTextUnit(Long tmTextUnitId, TextContainer target) {
-        TMTextUnitVariant importTextUnit = super.importTextUnit(tmTextUnitId, target);
+    TMTextUnitVariant importTextUnit(TMTextUnit tmTextUnit, TextContainer target) {
+        TMTextUnitVariant importTextUnit = super.importTextUnit(tmTextUnit, target);
         translationKitService.markTranslationKitTextUnitAsImported(translationKit, importTextUnit);
         return importTextUnit;
     }

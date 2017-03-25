@@ -13,7 +13,6 @@ import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import com.google.common.base.Splitter;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,7 +90,7 @@ public class PullCommand extends Command {
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
         setRepositoryLocalesWithoutRootLocale(repository);
-        setLocaleMapping(localeMappingParam);
+        localeMappings = commandHelper.getLocaleMapping(localeMappingParam);
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
 
@@ -224,17 +223,6 @@ public class PullCommand extends Command {
             return localizedAsset;
         } catch (AssetNotFoundException e) {
             throw new CommandException("Asset with path [" + sourceFileMatch.getSourcePath() + "] was not found in repo [" + repositoryParam + "]", e);
-        }
-    }
-
-    /**
-     * Sets the locale mapping given the locale mapping param
-     *
-     * @param localeMapppingParam locale mapping param coming from the CLI
-     */
-    private void setLocaleMapping(String localeMapppingParam) {
-        if (localeMapppingParam != null) {
-            localeMappings = Splitter.on(",").withKeyValueSeparator(":").split(localeMapppingParam);
         }
     }
 
