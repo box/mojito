@@ -15,7 +15,6 @@ import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForSourceE
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import com.google.common.collect.HashBiMap;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * @author wyau
+ * @author jaurambault
  */
 @Component
 @Scope("prototype")
