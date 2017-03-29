@@ -22,8 +22,10 @@ For full documentation, examples, and other information.
 
 ## Support
 
-Need to contact us directly? Email oss@box.com and be sure to include the name of this project in the subject.
+Need to contact us directly? 
+- [![Join the chat at https://gitter.im/box/mojito](https://badges.gitter.im/box/mojito.svg)](https://gitter.im/box/mojito?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 - [GitHub Issues](https://github.com/Box/Mojito/issues)
+- Email oss@box.com and be sure to include the name of this project in the subject.
 
 ### Team
 - Hanna Kanabiajeuskaja (@hkanabiajeuskaja)
