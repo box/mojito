@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<its:rules xmlns:its="http://www.w3.org/2005/11/its"
+           xmlns:xlink="http://www.w3.org/1999/xlink"
+           xmlns:itsx="http://www.w3.org/2008/12/its-extensions"
+           xmlns:okp="okapi-framework:xmlfilter-options"
+           its:translate="no" version="1.0">
+
+    <!-- This is a set of rules to process .xtb files. -->
+    <its:translateRule selector="/*" translate="no"/> 
+    <its:translateRule selector="translationbundle//translation[text()]" translate="yes" />
+    <its:idValueRule selector="translationbundle//translation" idValue="@key"/>
+    <its:locNoteRule selector="translationbundle//translation" locNoteType="description" locNotePointer="@desc"/>
+    <its:preserveSpaceRule selector="translationbundle//translation" space="preserve"/>
+ 
+    <okp:options escapeQuotes="no"/>
+    <okp:options escapeGT="no"/>
+    <okp:codeFinder useCodeFinder="no">#v1
+        count.i=1
+        rule0=&lt;(/?)\w[^&lt;]*?&gt;
+    </okp:codeFinder>
+</its:rules>

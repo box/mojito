@@ -77,4 +77,13 @@ public class AssetPathToFilterConfigMapperTest {
 
         assertEquals(AssetPathToFilterConfigMapper.RESX_FILTER_CONFIG_ID, filterConfigId);
     }
+
+    @Test
+    public void testGetFilterConfigIdFromTypeWithXtb() throws Exception {
+
+        AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
+        String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.xtb");
+
+        assertEquals(AssetPathToFilterConfigMapper.XTB_FILTER_CONFIG_ID, filterConfigId);
+    }
 }

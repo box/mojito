@@ -628,4 +628,35 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("This is note for Test", assetTextUnits.get(0).getComment());
 
     }
+
+    @Test
+    public void testXtb() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!DOCTYPE translationbundle>\n"
+                + "<translationbundle lang=\"en-GB\">\n"
+                + "	<translation id=\"0\" key=\"MSG_DIALOG_OK_\" source=\"lib/closure-library/closure/goog/ui/dialog.js\" desc=\"Standard caption for the dialog 'OK' button.\">OK</translation>\n"
+                + "     <translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">More</translation>\n"
+                + "     <translation id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\" desc=\"Instructions for the Gonstead method.\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
+                + "</translationbundle>";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/xtb/messages-en-US.xtb");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
+        assertEquals("MSG_DIALOG_OK_", assetTextUnits.get(0).getName());
+        assertEquals("OK", assetTextUnits.get(0).getContent());
+        assertEquals("Standard caption for the dialog 'OK' button.", assetTextUnits.get(0).getComment());
+        assertEquals("MSG_VIEWER_MENU", assetTextUnits.get(1).getName());
+        assertEquals("More", assetTextUnits.get(1).getContent());
+        assertEquals("Tooltip text for the \"More\" menu.", assetTextUnits.get(1).getComment());
+        assertEquals("MSG_GONSTEAD_STEP", assetTextUnits.get(2).getName());
+        assertEquals("Select the <strong>left Iliac crest</strong>", assetTextUnits.get(2).getContent());
+        assertEquals("Instructions for the Gonstead method.", assetTextUnits.get(2).getComment());
+    }
 }

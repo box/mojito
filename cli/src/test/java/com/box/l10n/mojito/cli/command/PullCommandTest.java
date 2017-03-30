@@ -386,4 +386,29 @@ public class PullCommandTest extends CLITestBase {
         checkExpectedGeneratedResources();
     }
 
+    @Test
+    public void pullXtb() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-sl", "en-US");
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("Resources-en-US.xtb", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-sl", "en-US");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-sl", "en-US");
+
+        checkExpectedGeneratedResources();
+    }
+
 }

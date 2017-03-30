@@ -30,7 +30,8 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
     public static final String FILTER_CONFIG_ID = "okf_xml@mojito";
     public static final String ANDROIDSTRINGS_CONFIG_FILE_NAME = "AndroidStrings_mojito.fprm";
     public static final String RESX_CONFIG_FILE_NAME = "resx_mojito.fprm";
-    
+    public static final String XTB_CONFIG_FILE_NAME = "xtb_mojito.fprm";
+
     @Override
     public String getName() {
         return FILTER_CONFIG_ID;
@@ -56,6 +57,12 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
                 "Android Strings",
                 "Configuration for Android Strings XML documents.",
                 ANDROIDSTRINGS_CONFIG_FILE_NAME));
+        list.add(new FilterConfiguration(getName() + "-xtb",
+                getMimeType(),
+                getClass().getName(),
+                "XTB",
+                "Configuration for XTB documents.",
+                XTB_CONFIG_FILE_NAME));
         return list;
     }
 

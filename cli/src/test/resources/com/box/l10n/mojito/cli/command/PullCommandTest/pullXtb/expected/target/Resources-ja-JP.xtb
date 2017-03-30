@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<translationbundle lang="en-US">
+    <translation id="1" key="100_character_description_" source="lib/test-1/dialog.js">100文字の説明：</translation>
+    <translation desc="File lock dialog duration" id="2" key="15_min_duration" source="lib/test-2/dialog.js">15分</translation>
+    <translation desc="File lock dialog duration" id="3" key="1_day_duration" source="lib/test-2/dialog.js">1日</translation>
+    <translation desc="File lock dialog duration" id="4" key="1_hour_duration" source="lib/test-2/dialog.js">1時間</translation>
+    <translation desc="File lock dialog duration" id="5" key="1_month_duration" source="lib/test-2/dialog.js">1か月</translation>  
+</translationbundle>

@@ -36,6 +36,7 @@ public class AssetPathToFilterConfigMapper {
     public static final String ANDROIDSTRINGS_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-AndroidStrings";
     public static final String MACSTRINGS_FILTER_CONFIG_ID = MacStringsFilter.FILTER_CONFIG_ID + "-macStrings";
     public static final String RESX_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-resx";
+    public static final String XTB_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-xtb";
     
     private enum AssetFilterType {
         CSV(CSVFilter.FILTER_CONFIG_ID, "csv"),
@@ -44,7 +45,8 @@ public class AssetPathToFilterConfigMapper {
         ANDROIDSTRINGS(ANDROIDSTRINGS_FILTER_CONFIG_ID, "xml"),
         MACSTRINGS(MACSTRINGS_FILTER_CONFIG_ID, "strings"),
         PO(POFilter.FILTER_CONFIG_ID, "pot"),
-        RESX(RESX_FILTER_CONFIG_ID, "resx", "resw");
+        RESX(RESX_FILTER_CONFIG_ID, "resx", "resw"),
+        XTB(XTB_FILTER_CONFIG_ID, "xtb");
 
         private String configId;
         private Set<String> supportedExtensions = new HashSet<>();
