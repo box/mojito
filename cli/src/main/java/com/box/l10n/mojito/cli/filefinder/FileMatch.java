@@ -47,6 +47,10 @@ public class FileMatch implements Comparable<FileMatch> {
      */
     Map<String, String> properties = new HashMap<>();
 
+    public FileType getFileType() {
+        return fileType;
+    }
+
     public void setFileType(FileType fileType) {
         this.fileType = fileType;
     }
@@ -95,7 +99,7 @@ public class FileMatch implements Comparable<FileMatch> {
     public String getTargetPath(String locale) {
 
         String res = fileType.getTargetFilePatternTemplate();
-        
+
         locale = fileType.getLocaleType().getTargetLocaleRepresentation(locale);
 
         res = res.replace(getNamedPlaceholder(FILE_EXTENSION), fileType.getTargetFileExtension());
