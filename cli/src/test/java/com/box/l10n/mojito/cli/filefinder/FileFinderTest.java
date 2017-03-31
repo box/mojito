@@ -9,6 +9,7 @@ import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
+import com.box.l10n.mojito.cli.filefinder.file.XtbFileType;
 import com.box.l10n.mojito.test.IOTestBase;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -393,6 +394,26 @@ public class FileFinderTest extends IOTestBase {
         } catch (FileFinderException ffe) {
             assertEquals(ffe.getMessage(), "Invalid target directory: something_that_doesnt_exist");
         }
+    }
+
+    @Test
+    public void findXtb() throws IOException, FileFinderException {
+        XtbFileType xtbFileType = new XtbFileType();
+        xtbFileType.getLocaleType().setSourceLocale("en-US");
+
+        FileFinder fileFinder = initFileFinder(true, xtbFileType);
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(getInputResourcesTestDir().toString() + "/FileFinder1-en-US.xtb", next.getPath().toString());
+        assertEquals("FileFinder1-fr.xtb", next.getTargetPath("fr"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir().toString() + "/FileFinder1-en-GB.xtb", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir().toString() + "/FileFinder1-fr.xtb", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
     }
 
     FileFinder initFileFinder(boolean targetSameAsSourceDirectory, FileType... fileTypes) throws FileFinderException {

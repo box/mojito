@@ -8,7 +8,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
-import static com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
 import com.box.l10n.mojito.okapi.filters.MacStringsEncoder;
 import com.box.l10n.mojito.okapi.filters.XMLEncoder;
 import com.box.l10n.mojito.service.asset.AssetCreationException;
@@ -921,7 +921,57 @@ public class TMServiceTest extends ServiceTestBase {
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
-    
+
+    @Test
+    public void testLocalizeXtb() throws Exception {
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!DOCTYPE translationbundle>\n"
+                + "<translationbundle lang=\"en-US\">\n"
+                + "	<translation id=\"0\" key=\"MSG_DIALOG_OK_\" source=\"lib/closure-library/closure/goog/ui/dialog.js\" desc=\"Standard caption for the dialog 'OK' button.\">OK</translation>\n"
+                + "     <translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">More</translation>\n"
+                + "     <translation id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\" desc=\"Instructions for the Gonstead method.\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
+                + "</translationbundle>";
+        String expectedContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<translationbundle lang=\"en-US\">\n"
+                + "	<translation desc=\"Standard caption for the dialog 'OK' button.\" id=\"0\" key=\"MSG_DIALOG_OK_\" source=\"lib/closure-library/closure/goog/ui/dialog.js\">OK</translation>\n"
+                + "     <translation desc=\"Tooltip text for the &quot;More&quot; menu.\" id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\">More</translation>\n"
+                + "     <translation desc=\"Instructions for the Gonstead method.\" id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
+                + "</translationbundle>";
+        asset = assetService.createAsset(repo.getId(), assetContent, "xtb/messages-en-US.xtb");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(3, textUnitDTOs.size());
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedContent, localizedAsset);
+    }
+
     @Test
     public void testImportLocalizedAssetXLIFFApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
         

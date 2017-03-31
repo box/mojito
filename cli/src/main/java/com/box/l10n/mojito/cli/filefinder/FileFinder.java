@@ -8,6 +8,7 @@ import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
+import com.box.l10n.mojito.cli.filefinder.file.XtbFileType;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -73,6 +74,7 @@ public class FileFinder {
         fileTypes.add(new ReswFileType());
         fileTypes.add(new ResxFileType());
         fileTypes.add(new POFileType());
+        fileTypes.add(new XtbFileType());
     }
 
     public Path getSourceDirectory() {

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE translationbundle>
+<translationbundle lang="en-US">
+    <translation id="1" key="100_character_description_" source="lib/test-1/dialog.js">100 character description:</translation>
+    <translation id="2" key="15_min_duration" source="lib/test-2/dialog.js" desc="File lock dialog duration">15 min</translation>
+    <translation id="4" key="1_hour_duration" source="lib/test-2/dialog.js" desc="File lock dialog duration">1 hour</translation>
+    <translation id="5" key="1_month_duration" source="lib/test-2/dialog.js" desc="File lock dialog duration">1 month</translation>
+    <translation id="6" key="something_new" source="lib/test-3/dialog.js" desc="File lock dialog duration">Something new</translation> 
+</translationbundle>
