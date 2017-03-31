@@ -247,4 +247,26 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
         checkExpectedGeneratedResources();
     }
 
+    @Test
+    public void importXtb() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-sl", "en-US");
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-sl", "en-US");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir().getAbsolutePath(),
+                "-sl", "en-US");
+
+        checkExpectedGeneratedResources();
+    }
+
 }
