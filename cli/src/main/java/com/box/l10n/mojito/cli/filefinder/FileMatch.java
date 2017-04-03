@@ -6,6 +6,7 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.LOCALE;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.PARENT_PATH;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.google.common.base.Strings;
 import java.nio.file.Path;
 import java.util.HashMap;

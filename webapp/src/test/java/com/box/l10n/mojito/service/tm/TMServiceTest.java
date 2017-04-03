@@ -401,7 +401,7 @@ public class TMServiceTest extends ServiceTestBase {
         tmService.addTMTextUnitCurrentVariant(tmTextUnit3.getId(), locale.getId(), "!?!?!?!?!", null, TMTextUnitVariant.Status.REVIEW_NEEDED, false);
         
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null);
         
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
@@ -432,7 +432,7 @@ public class TMServiceTest extends ServiceTestBase {
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
         
         String outputBcp47tag = "fr-FR";
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag, null);
         
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(outputBcp47tag, tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
@@ -662,7 +662,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
         
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -678,7 +678,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -716,7 +716,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
         
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -733,7 +733,7 @@ public class TMServiceTest extends ServiceTestBase {
             assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
         }
         
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
     }
@@ -767,7 +767,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
         
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -783,7 +783,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -813,7 +813,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
         
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -829,7 +829,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -862,7 +862,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
         
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -878,7 +878,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -900,7 +900,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
         
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -917,7 +917,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
         
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -950,7 +950,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -967,7 +967,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB");
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedContent, localizedAsset);
     }
@@ -1088,7 +1088,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
         
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED);
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null);
         
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1120,7 +1120,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repository.getTm().getId();
         
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath());
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1129,7 +1129,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetResult.get();
         
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, sourceEqualTargetProcessing);
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, sourceEqualTargetProcessing, null);
     }
     
 }

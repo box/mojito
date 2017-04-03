@@ -98,7 +98,8 @@ public class AssetWS {
         PollableFuture<Asset> assetFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(
                 sourceAsset.getRepositoryId(),
                 normalizedContent,
-                sourceAsset.getPath()
+                sourceAsset.getPath(),
+                sourceAsset.getFilterConfigIdOverride()
         );
 
         sourceAsset.setAddedAssetId(assetFuture.get().getId());
@@ -134,7 +135,13 @@ public class AssetWS {
 
         String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
-        String generateLocalized = tmService.generateLocalized(asset, normalizedContent, repositoryLocale, localizedAssetBody.getOutputBcp47tag());
+        String generateLocalized = tmService.generateLocalized(
+                asset, 
+                normalizedContent, 
+                repositoryLocale, 
+                localizedAssetBody.getOutputBcp47tag(), 
+                localizedAssetBody.getFilterConfigIdOverride());
+        
         localizedAssetBody.setContent(generateLocalized);
 
         if (localizedAssetBody.getOutputBcp47tag() != null) {
@@ -164,7 +171,12 @@ public class AssetWS {
 
         String normalizedContent = NormalizationUtils.normalize(importLocalizedAssetBody.getContent());
 
-        tmService.importLocalizedAsset(asset, normalizedContent, repositoryLocale, importLocalizedAssetBody.getSourceEqualTargetProcessing());
+        tmService.importLocalizedAsset(
+                asset, 
+                normalizedContent, 
+                repositoryLocale, 
+                importLocalizedAssetBody.getSourceEqualTargetProcessing(),
+                importLocalizedAssetBody.getFilterConfigIdOverride());
     }
     
     /**

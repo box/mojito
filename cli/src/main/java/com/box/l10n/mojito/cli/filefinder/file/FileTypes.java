@@ -13,6 +13,7 @@ public enum FileTypes {
     MAC_STRING(MacStringsFileType.class),
     PROPERTIES(PropertiesFileType.class),
     PROPERTIES_NOBASENAME(PropertiesNoBasenameFileType.class),
+    PROPERTIES_JAVA(PropertiesJavaFileType.class),
     RESW(ReswFileType.class),
     RESX(ResxFileType.class),
     PO(POFileType.class),

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
+import com.box.l10n.mojito.rest.entity.FilterConfigIdOverride;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
@@ -66,9 +67,16 @@ public class AssetClient extends BaseClient {
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
+     * @param filterConfigIdOverride Optional, can be null. Allows to specify
+     * a specific Okapi filter to use to process the asset
      * @return the localized asset content
      */
-    public LocalizedAssetBody getLocalizedAssetForContent(Long assetId, Long localeId, String content, String outputBcp47tag) {
+    public LocalizedAssetBody getLocalizedAssetForContent(
+            Long assetId, 
+            Long localeId,
+            String content, 
+            String outputBcp47tag,
+            FilterConfigIdOverride filterConfigIdOverride) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -77,6 +85,7 @@ public class AssetClient extends BaseClient {
         LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
         localizedAssetBody.setContent(content);
         localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
+        localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
 
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 localizedAssetBody,
@@ -104,7 +113,8 @@ public class AssetClient extends BaseClient {
             Long assetId,
             Long localeId,
             String content,
-            ImportLocalizedAssetBody.StatusForSourceEqTarget statusForSourceEqTarget) {
+            ImportLocalizedAssetBody.StatusForSourceEqTarget statusForSourceEqTarget,
+            FilterConfigIdOverride filterConfigIdOverride) {
         logger.debug("Import localized asset with asset id = {}, locale id = {}", assetId, localeId);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -113,6 +123,7 @@ public class AssetClient extends BaseClient {
         ImportLocalizedAssetBody importLocalizedAssetBody = new ImportLocalizedAssetBody();
         importLocalizedAssetBody.setContent(content);
         importLocalizedAssetBody.setStatusSourceEqTarget(statusForSourceEqTarget);
+        importLocalizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
 
         authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 importLocalizedAssetBody,

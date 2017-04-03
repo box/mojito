@@ -4,6 +4,8 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.rest.asset.SourceAsset;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.MsgArg;
@@ -59,12 +61,18 @@ public class AssetService {
      * contain the asset
      * @param assetContent Content of the asset
      * @param assetPath Remote path of the asset
+     * @param filterConfigIdOverride Optional, can be null. Allows to specify
+     * a specific Okapi filter to use to process the asset
      * @return The created asset
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public PollableFuture<Asset> addOrUpdateAssetAndProcessIfNeeded(Long repositoryId, String assetContent, String assetPath) throws ExecutionException, InterruptedException {
-        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, PollableTask.INJECT_CURRENT_TASK);
+    public PollableFuture<Asset> addOrUpdateAssetAndProcessIfNeeded(
+            Long repositoryId, 
+            String assetContent, 
+            String assetPath, 
+            FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException {
+        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
     }
 
     /**
@@ -85,6 +93,7 @@ public class AssetService {
             Long repositoryId,
             String assetContent,
             String assetPath,
+            FilterConfigIdOverride filterConfigIdOverride,
             @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException {
 
         PollableFutureTaskResult<Asset> pollableFutureTaskResult = new PollableFutureTaskResult<>();
@@ -95,10 +104,10 @@ public class AssetService {
         // if an asset for the given path does not already exists or if its contents changed, start the extraction
         if (asset == null) {
             asset = createAsset(repositoryId, assetContent, assetPath, currentTask);
-            assetExtractionService.processAsset(asset.getId(), currentTask, PollableTask.INJECT_CURRENT_TASK);
+            assetExtractionService.processAsset(asset.getId(), filterConfigIdOverride, currentTask, PollableTask.INJECT_CURRENT_TASK);
         } else if (isAssetUpdateNeeded(asset, assetContent)) {
             updateAssetContent(asset, assetContent, currentTask);
-            assetExtractionService.processAsset(asset.getId(), currentTask, PollableTask.INJECT_CURRENT_TASK);
+            assetExtractionService.processAsset(asset.getId(), filterConfigIdOverride, currentTask, PollableTask.INJECT_CURRENT_TASK);
         } else {
             undeleteAssetIfDeleted(asset);
             logger.debug("Asset content has not changed. Reset number of expected sub task to 0");

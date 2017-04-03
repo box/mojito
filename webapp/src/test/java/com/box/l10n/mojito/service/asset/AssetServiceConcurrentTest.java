@@ -83,7 +83,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
             ));
             assetContents.add(assetContent);
 
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, assetPath);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, assetPath, null);
             assetResults.add(assetResult);
         }
 
@@ -133,7 +133,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         for (int i = 0; i < numThreads; i++) {
             String assetPath = "test_" + i + "/en.properties";
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null);
             assetResults.add(assetResult);
         }
 
@@ -183,7 +183,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         for (int i = 0; i < numThreads; i++) {
             String assetPath = "en.properties";
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null);
             assetResults.add(assetResult);
         }
 

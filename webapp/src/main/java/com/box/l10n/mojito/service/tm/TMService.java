@@ -25,6 +25,8 @@ import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
+import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.rest.asset.SourceAsset;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
@@ -689,7 +691,8 @@ public class TMService {
             Asset asset,
             String content,
             RepositoryLocale repositoryLocale,
-            String outputBcp47tag) {
+            String outputBcp47tag,
+            FilterConfigIdOverride filterConfigIdOverride) {
 
         String bcp47Tag;
 
@@ -722,7 +725,14 @@ public class TMService {
         rawDocument.setAnnotation(new POExtraPluralAnnotation());
 
         //TODO(P1) see assetExtractor comments
-        String filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
+        String filterConfigId;
+
+        if (filterConfigIdOverride != null) {
+            filterConfigId = filterConfigIdOverride.getOkapiFilterId();
+        } else {
+            filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
+        }
+
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
 
@@ -737,27 +747,28 @@ public class TMService {
     }
 
     /**
-     * Imports a localized version of an asset. 
-     * 
-     * The target strings are checked against the source strings and if they 
-     * are equals the status of the imported translation is defined by 
+     * Imports a localized version of an asset.
+     *
+     * The target strings are checked against the source strings and if they are
+     * equals the status of the imported translation is defined by
      * statusForSourceEqTarget. When SKIIPED is specified the import is actually
      * skipped.
-     * 
+     *
      * For not fully translated locales, targets are imported only if they are
      * different from target of the parent locale.
-     * 
+     *
      * @param asset the asset for which the content will be imported
      * @param content the localized asset content
      * @param repositoryLocale the locale of the content to be imported
-     * @param statusForSourceEqTarget the status of the text unit variant 
-     * when the source equals the target
+     * @param statusForSourceEqTarget the status of the text unit variant when
+     * the source equals the target
      */
     public void importLocalizedAsset(
             Asset asset,
             String content,
             RepositoryLocale repositoryLocale,
-            StatusForSourceEqTarget statusForSourceEqTarget) {
+            StatusForSourceEqTarget statusForSourceEqTarget,
+            FilterConfigIdOverride filterConfigIdOverride) {
 
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
@@ -778,7 +789,14 @@ public class TMService {
         LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
 
-        String filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
+        String filterConfigId;
+
+        if (filterConfigIdOverride != null) {
+            filterConfigId = filterConfigIdOverride.getOkapiFilterId();
+        } else {
+            filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
+        }
+
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
 

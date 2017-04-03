@@ -98,6 +98,7 @@ public class PushCommand extends Command {
             sourceAsset.setPath(sourcePath);
             sourceAsset.setContent(assetContent);
             sourceAsset.setRepositoryId(repository.getId());
+            sourceAsset.setFilterConfigIdOverride(sourceFileMatch.getFileType().getFilterConfigIdOverride());
            
             consoleWriter.a(" - Uploading: ").fg(Ansi.Color.CYAN).a(sourcePath).println();
 

@@ -19,6 +19,8 @@ public class ImportLocalizedAssetBody {
 
     ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget sourceEqualTargetProcessing;
 
+    FilterConfigIdOverride filterConfigIdOverride;
+
     public ImportLocalizedAssetBody() {
     }
 
@@ -49,6 +51,14 @@ public class ImportLocalizedAssetBody {
 
     public void setSourceEqualTargetProcessing(ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget sourceEqualTargetProcessing) {
         this.sourceEqualTargetProcessing = sourceEqualTargetProcessing;
+    }
+
+    public FilterConfigIdOverride getFilterConfigIdOverride() {
+        return filterConfigIdOverride;
+    }
+
+    public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
+        this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
 }

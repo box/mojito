@@ -17,9 +17,11 @@ public class ImportLocalizedAssetBody {
 
     StatusForSourceEqTarget statusSourceEqTarget;
 
+    FilterConfigIdOverride filterConfigIdOverride;
+
     public ImportLocalizedAssetBody() {
     }
-    
+
     public String getContent() {
         return content;
     }
@@ -34,6 +36,14 @@ public class ImportLocalizedAssetBody {
 
     public void setStatusSourceEqTarget(StatusForSourceEqTarget statusSourceEqTarget) {
         this.statusSourceEqTarget = statusSourceEqTarget;
+    }
+
+    public FilterConfigIdOverride getFilterConfigIdOverride() {
+        return filterConfigIdOverride;
+    }
+
+    public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
+        this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
 }

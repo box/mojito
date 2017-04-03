@@ -147,7 +147,7 @@ public class AssetServiceTest extends ServiceTestBase {
 
     private Asset addAssetAndWaitUntilDoneProcessing(Long repositoryId, String assetContent, String assetPath) throws Exception {
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, null);
 
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());

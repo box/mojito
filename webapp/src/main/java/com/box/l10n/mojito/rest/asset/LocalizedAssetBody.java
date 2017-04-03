@@ -25,6 +25,12 @@ public class LocalizedAssetBody {
      */
     String outputBcp47tag;
 
+    /**
+     * Optional, can be null. Allows to specify
+     * a specific Okapi filter to use to process the asset
+     */
+    FilterConfigIdOverride filterConfigIdOverride;
+
     public LocalizedAssetBody() {
     }
 
@@ -55,6 +61,14 @@ public class LocalizedAssetBody {
 
     public void setOutputBcp47tag(String outputBcp47tag) {
         this.outputBcp47tag = outputBcp47tag;
+    }
+
+    public FilterConfigIdOverride getFilterConfigIdOverride() {
+        return filterConfigIdOverride;
+    }
+
+    public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
+        this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
 }

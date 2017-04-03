@@ -208,7 +208,7 @@ public class PullCommand extends Command {
             // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
             // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
             // See Xcode bug http://www.openradar.me/23410569
-            if (fileType != null && fileType.getClass() == XcodeXliffFileType.class) {
+            if (sourceFileMatch.getFileType().getClass() == XcodeXliffFileType.class) {
                 assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
             }
 
@@ -216,7 +216,8 @@ public class PullCommand extends Command {
                     assetByPathAndRepositoryId.getId(),
                     repositoryLocale.getLocale().getId(),
                     assetContent,
-                    outputBcp47tag);
+                    outputBcp47tag,
+                    sourceFileMatch.getFileType().getFilterConfigIdOverride());
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 

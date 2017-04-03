@@ -4,6 +4,8 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.rest.asset.SourceAsset;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
@@ -67,6 +69,7 @@ public class AssetExtractionService {
     @Pollable(async = true, message = "Process asset: {assetId}", expectedSubTaskNumber = 2)
     public PollableFuture<Asset> processAsset(
             @MsgArg(name = "assetId") Long assetId,
+            FilterConfigIdOverride filterConfigIdOverride,
             @ParentTask PollableTask parentTask,
             @InjectCurrentTask PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
         
@@ -77,7 +80,7 @@ public class AssetExtractionService {
         
         AssetExtraction assetExtraction = createAssetExtraction(asset, currentTask);
 
-        assetExtractor.performAssetExtraction(assetExtraction, currentTask);
+        assetExtractor.performAssetExtraction(assetExtraction, filterConfigIdOverride, currentTask);
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), asset.getRepository().getTm().getId(), assetId, currentTask);
 

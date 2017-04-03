@@ -64,7 +64,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         Asset csvAsset = assetService.createAsset(repository.getId(), csvContent, "path/to/fake/file.csv");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(csvAsset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(csvAsset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -91,7 +91,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
         Asset xliffAsset = assetService.createAsset(repository.getId(), xliffContent, "path/to/fake/file.xliff");
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(xliffAsset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(xliffAsset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
 
         Asset processedAsset = processResult.get();
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -117,7 +117,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
         Asset xliffAsset = assetService.createAsset(repository.getId(), xliffContent, "path/to/fake/file.xliff");
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(xliffAsset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(xliffAsset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
 
         Asset processedAsset = processResult.get();
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -138,7 +138,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
         Asset asset = assetService.createAsset(repository.getId(), "fake-content", "path/to/fake/file-with-unsupported.ext");
-        PollableFuture<Asset> pollableTaskResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> pollableTaskResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
 
         // Wait for the processing to finish
         try {
@@ -166,7 +166,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</root>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/Test.resx");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -192,7 +192,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</root>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/Test.resw");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -215,7 +215,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -238,7 +238,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -264,7 +264,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -299,7 +299,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -329,7 +329,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -362,7 +362,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "\"Add to Folder\" = \"Add to Folder\";";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/en.lproj/Localizable.strings");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -386,7 +386,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "NSUsageDescription 3 = \"Add to Folder 3\";";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/en.lproj/Localizable.strings");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -422,7 +422,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "NSUsageDescription 4 = \"Add to Folder 4\";";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/en.lproj/Localizable.strings");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -452,7 +452,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "\"Comment\" = \"Comment\";";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/en.lproj/Localizable.strings");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -475,7 +475,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "\"thisline \\n nextline\" = \"thisline \\n nextline\";\n";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/en.lproj/Localizable.strings");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -502,7 +502,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -526,7 +526,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -548,7 +548,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</resources>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -580,7 +580,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</xliff>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/en.xliff");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -617,7 +617,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</xliff>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/en.xliff");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
@@ -643,7 +643,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</translationbundle>";
         Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/xtb/messages-en-US.xtb");
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
         Asset processedAsset = processResult.get();
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());

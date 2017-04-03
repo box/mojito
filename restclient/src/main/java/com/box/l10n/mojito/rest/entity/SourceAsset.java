@@ -18,6 +18,8 @@ public class SourceAsset {
     private String content;
     private Long addedAssetId;
     private PollableTask pollableTask;
+    private FilterConfigIdOverride filterConfigIdOverride;
+
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -49,6 +51,14 @@ public class SourceAsset {
 
     public void setAddedAssetId(Long addedAssetId) {
         this.addedAssetId = addedAssetId;
+    }
+
+    public FilterConfigIdOverride getFilterConfigIdOverride() {
+        return filterConfigIdOverride;
+    }
+
+    public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
+        this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
     @JsonProperty

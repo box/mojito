@@ -148,7 +148,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
             xliffDataFactory.createTextUnit(1L, "2_factor_challenge_buttom", "Submit" + assetVersion, null)
         ));
 
-        PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), xliff, assetPath);
+        PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), xliff, assetPath, null);
         pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
     }
 
