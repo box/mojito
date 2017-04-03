@@ -26,7 +26,7 @@ public class PullCommandTest extends CLITestBase {
 
     @Autowired
     AssetClient assetClient;
-    
+
     @Autowired
     TMTextUnitVariantRepository tmTextUnitVariantRepository;
 
@@ -103,7 +103,56 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
+    @Test
+    public void pullProperties() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath());
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void pullPropertiesJava() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "PROPERTIES_JAVA");
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-ft", "PROPERTIES_JAVA");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-ft", "PROPERTIES_JAVA");
+
+        checkExpectedGeneratedResources();
+    }
+
     @Test
     public void pullPropertiesNoBasenameEnUs() throws Exception {
 
@@ -207,7 +256,7 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void pullMacStrings() throws Exception {
 
@@ -230,7 +279,7 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void pullResw() throws Exception {
 
@@ -255,7 +304,7 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void pullResx() throws Exception {
 
@@ -278,7 +327,7 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void pullResxSourceRegex() throws Exception {
 
@@ -307,7 +356,7 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void testLatestTMTextUnitVariant() throws Exception {
         Repository repository1 = createTestRepoUsingRepoService("repo1");
@@ -329,7 +378,7 @@ public class PullCommandTest extends CLITestBase {
         Asset asset2 = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository2.getId());
         importTranslations(asset2.getId(), "source-xliff_", "fr-FR");
         TMTextUnitVariant tmTextUnitVariant = tmTextUnitVariantRepository.findTopByTmTextUnitTmIdOrderByCreatedDateDesc(repository1.getTm().getId());
-        assertEquals("should have returned the same TMTextUnitVariant as above latestTmTextUnitVariantOfRepository1", 
+        assertEquals("should have returned the same TMTextUnitVariant as above latestTmTextUnitVariantOfRepository1",
                 latestTmTextUnitVariantOfRepository1.getId(), tmTextUnitVariant.getId());
     }
 
@@ -360,14 +409,14 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void pullPo() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", getInputResourcesTestDir("source").getAbsolutePath() );
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
         Asset asset = assetClient.getAssetByPathAndRepositoryId("messages.pot", repository.getId());
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -376,12 +425,12 @@ public class PullCommandTest extends CLITestBase {
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir("target").getAbsolutePath(),
-                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP" );
+                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
                 "-t", getTargetTestDir("target_modified").getAbsolutePath(),
-                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP" );
+                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
 
         checkExpectedGeneratedResources();
     }

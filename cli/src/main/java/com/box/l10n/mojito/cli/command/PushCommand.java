@@ -90,7 +90,7 @@ public class PushCommand extends Command {
             // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
             // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
             // See Xcode bug http://www.openradar.me/23410569
-            if (fileType != null && fileType.getClass() == XcodeXliffFileType.class) {
+            if (XcodeXliffFileType.class == sourceFileMatch.getFileType().getClass()) {
                 assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
             }
 
@@ -98,7 +98,8 @@ public class PushCommand extends Command {
             sourceAsset.setPath(sourcePath);
             sourceAsset.setContent(assetContent);
             sourceAsset.setRepositoryId(repository.getId());
-
+            sourceAsset.setFilterConfigIdOverride(sourceFileMatch.getFileType().getFilterConfigIdOverride());
+           
             consoleWriter.a(" - Uploading: ").fg(Ansi.Color.CYAN).a(sourcePath).println();
 
             SourceAsset assetAfterSend = assetClient.sendSourceAsset(sourceAsset);

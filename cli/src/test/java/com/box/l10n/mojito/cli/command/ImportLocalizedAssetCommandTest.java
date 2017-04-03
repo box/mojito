@@ -139,7 +139,29 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
     }
 
     @Test
-    public void importPropertiesNoBasename() throws Exception {
+    public void importPropertiesJava() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "PROPERTIES_JAVA");
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-ft", "PROPERTIES_JAVA");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "PROPERTIES_JAVA",
+                "-t", getTargetTestDir().getAbsolutePath());
+
+        checkExpectedGeneratedResources();
+    }
+    
+    @Test
+    public void importPropertiesNoBaseName() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
 

@@ -6,6 +6,7 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.LOCALE;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.PARENT_PATH;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.google.common.base.Strings;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -46,6 +47,10 @@ public class FileMatch implements Comparable<FileMatch> {
      * A map of properties associated with the match.
      */
     Map<String, String> properties = new HashMap<>();
+
+    public FileType getFileType() {
+        return fileType;
+    }
 
     public void setFileType(FileType fileType) {
         this.fileType = fileType;
@@ -95,7 +100,7 @@ public class FileMatch implements Comparable<FileMatch> {
     public String getTargetPath(String locale) {
 
         String res = fileType.getTargetFilePatternTemplate();
-        
+
         locale = fileType.getLocaleType().getTargetLocaleRepresentation(locale);
 
         res = res.replace(getNamedPlaceholder(FILE_EXTENSION), fileType.getTargetFileExtension());

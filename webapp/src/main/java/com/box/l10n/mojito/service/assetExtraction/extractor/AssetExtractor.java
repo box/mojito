@@ -11,6 +11,8 @@ import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
+import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.rest.asset.SourceAsset;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import net.sf.okapi.common.LocaleId;
@@ -48,12 +50,15 @@ public class AssetExtractor {
      * The CSV format should follow the old Box WebApp syntax.
      *
      * @param assetExtraction the Asset extraction
+     * @param filterConfigIdOverride Optional, can be null. Allows to specify
+     * a specific Okapi filter to use to process the asset
      * @param parentTask
      */
     @Transactional
     @Pollable(message = "Extracting text units from asset")
     public void performAssetExtraction(
             AssetExtraction assetExtraction,
+            FilterConfigIdOverride filterConfigIdOverride,
             @ParentTask PollableTask parentTask) {
 
         logger.debug("Configuring pipeline");
@@ -72,7 +77,14 @@ public class AssetExtractor {
         rawDocument.setAnnotation(new POExtraPluralAnnotation());
 
         //TODO(P1) I think Okapi already implement this logic
-        String filterConfigId = getFilterConfigIdForAsset(asset);
+        String filterConfigId;
+        
+        if (filterConfigIdOverride != null) {
+            filterConfigId = filterConfigIdOverride.getOkapiFilterId();
+        } else {
+            filterConfigId = getFilterConfigIdForAsset(asset);
+        }
+        
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
         
