@@ -78,7 +78,7 @@ public class PseudoLocalization {
 
 		StringBuilder sb = new StringBuilder();
 
-		if (Strings.isNullOrEmpty(string)) {
+		if (!Strings.isNullOrEmpty(string)) {
 			String str = convertAsciiToDiacritics(string);
 			sb.append(expand(str));
 			sb.insert(0,'⟦');
