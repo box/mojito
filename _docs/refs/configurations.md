@@ -9,12 +9,14 @@ permalink: /docs/refs/configurations/
 
 {{ site.mojito_green }} configuration loaded from the following files in order:
 
-    classpath:/application.properties                           # default config
-    /usr/local/etc/mojito/cli/application.properties            # override config
+    classpath:/application.properties                    # default config
+    /usr/local/etc/mojito/cli/application.properties     # override config for mojito cli
+    /usr/local/etc/mojito/webapp/application.properties  # override config for mojito webapp
 
 To override default configurations of {{ site.mojito_green }}, add them in
 
-    /usr/local/etc/mojito/cli/application.properties
+    /usr/local/etc/mojito/cli/application.properties     # for mojito cli
+    /usr/local/etc/mojito/webapp/application.properties  # for mojito webapp
 
 If you want to use different path to store the override configuration, you can specify the following extra parameter when you start {{ site.mojito_green }} server and when you run {{ site.mojito_green }} CLI.  For example,
 
@@ -37,7 +39,7 @@ You can override the database configuration with MySQL.
 First, install MySQL from http://dev.mysql.com/doc/refman/5.7/en/installing.html.  Then Configure MySQL.
 Connect to MySQL DB as root user
 
-    mysql -uroot
+    mysql -u root
 
 Create user `${DB_USERNAME}` with `${DB_PASSWORD}`
 

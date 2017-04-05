@@ -63,7 +63,7 @@ The port can be changed with the `server.port` property.
 
 Connect to MySQL DB as root user
 
-    mysql -uroot
+    mysql -u root
 
 Create user `${DB_USERNAME}` with `${DB_PASSWORD}`
 

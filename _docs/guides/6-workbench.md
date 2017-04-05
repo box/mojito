@@ -48,7 +48,7 @@ Use Workbench to fix bugs, communicate context to translation teams and manage g
 
 ![Add or Change Translations](./images/AddOrChangeTranslation.gif)
 
-To add or edit a translation, select the text unit you would like to edit. Then click on `Add new translation` or on the existing translation. Enter a new translation and hit `Save.`
+To add or edit a translation, select the text unit you would like to edit. Then click on `Enter new translation` or on the existing translation. Enter a new translation and hit `Save.`
 
 Warning! Every time you add or edit a translation through workbench, it is marked as `final`. If you want the translation to go through additional workflow steps, you need to mark it for translation or for `review`.
 
