@@ -81,9 +81,9 @@ public class PseudoLocalization {
 	        sb.append(expand(str));
 	        sb.insert(0,'⟦');
 	        sb.append('⟧');
-        }
+	    }
 
-        return sb.toString();
+	    return sb.toString();
 	}
 
 	/**
@@ -152,8 +152,8 @@ public class PseudoLocalization {
 	        int randomIndex = (int)(Math.random() * maxIndex);
 
 	        mappedChar = mappingCharsForChar.charAt(randomIndex);
-        }
+	    }
 
-        return mappedChar;
+	    return mappedChar;
 	}
 }
