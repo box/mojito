@@ -15,55 +15,55 @@ public class PseudoLocalization {
 
 	private static Map<Character, String> pseudoLocMap = new HashMap<>();
 	static {
-        pseudoLocMap.put('a', "àáâãäåāăąǻάαа");
-        pseudoLocMap.put('A', "ÀÁÂÃÄÅĀĂĄǺΆΑА");
-        pseudoLocMap.put('b', "вьъ");
-        pseudoLocMap.put('B', "ΒßβБВ");
-        pseudoLocMap.put('c', "¢çćĉċčсς");
-        pseudoLocMap.put('C', "ÇĆĈĊČС");
-        pseudoLocMap.put('d', "ďđ");
-        pseudoLocMap.put('D', "ÐĎĐ");
-        pseudoLocMap.put('e', "èéêëēĕėęěέεеёє℮");
-        pseudoLocMap.put('E', "ÈÉÊËĒĔĖĘĚΈΕΣЕЁЄЄ");
-        pseudoLocMap.put('f', "ƒ");
-        pseudoLocMap.put('F', "₣");
-        pseudoLocMap.put('g', "ĝğġģ");
-        pseudoLocMap.put('G', "ĜĞĠĢ");
-        pseudoLocMap.put('h', "ĥħнћ");
-        pseudoLocMap.put('H', "ĤĦΉΗН");
-        pseudoLocMap.put('i', "ìíîïĩīĭįίιϊіїΐ");
-        pseudoLocMap.put('I', "ÌÍÎĨĪĬĮİΊΪІЇ");
-        pseudoLocMap.put('j', "ĵј");
-        pseudoLocMap.put('J', "ĴЈ");
-        pseudoLocMap.put('k', "ķĸκкќ");
-        pseudoLocMap.put('K', "ĶΚЌК");
-        pseudoLocMap.put('l', "ĺļľł");
-        pseudoLocMap.put('L', "ĹĻĽĿŁ");
-        pseudoLocMap.put('m', "mм");
-        pseudoLocMap.put('M', "ΜМм");
-        pseudoLocMap.put('n', "ийлпπήηńņňŉŋñ");
-        pseudoLocMap.put('N', "ÑŃŅŇŊΝИЙП");
-        pseudoLocMap.put('o', "òóôõöøōŏőοσόоǿ");
-        pseudoLocMap.put('O', "ÒÓÔÕÖØŌŎŐǾΌΘΟО");
-        pseudoLocMap.put('p', "ρр");
-        pseudoLocMap.put('p', "ΡР");
-        pseudoLocMap.put('r', "ŕŗřяѓґгř");
-        pseudoLocMap.put('R', "ŔŖŘЯΓЃҐГ");
-        pseudoLocMap.put('s', "śŝşѕš");
-        pseudoLocMap.put('S', "ŚŜŞЅŠ");
-        pseudoLocMap.put('t', "ţťŧτт");
-        pseudoLocMap.put('T', "ŢŤŦΤТ");
-        pseudoLocMap.put('u', "µùúûüũūŭůűųцμџ");
-        pseudoLocMap.put('U', "ÙÚÛÜŨŪŬŮŰŲЏЦ");
-        pseudoLocMap.put('v', "ν");
-        pseudoLocMap.put('w', "ŵωώшщẁẃẅ");
-        pseudoLocMap.put('W', "ŴШЩẀẂẄ");
-        pseudoLocMap.put('x', "×хж");
-        pseudoLocMap.put('X', "ΧχХЖ");
-        pseudoLocMap.put('y', "ýÿŷγУўỳу");
-        pseudoLocMap.put('Y', "ÝŶΎΥΫỲЎ");
-        pseudoLocMap.put('z', "źżž");
-        pseudoLocMap.put('Z', "ŹŻΖŽ");
+	    pseudoLocMap.put('a', "àáâãäåāăąǻάαа");
+	    pseudoLocMap.put('A', "ÀÁÂÃÄÅĀĂĄǺΆΑА");
+	    pseudoLocMap.put('b', "вьъ");
+	    pseudoLocMap.put('B', "ΒßβБВ");
+	    pseudoLocMap.put('c', "¢çćĉċčсς");
+	    pseudoLocMap.put('C', "ÇĆĈĊČС");
+	    pseudoLocMap.put('d', "ďđ");
+	    pseudoLocMap.put('D', "ÐĎĐ");
+	    pseudoLocMap.put('e', "èéêëēĕėęěέεеёє℮");
+	    pseudoLocMap.put('E', "ÈÉÊËĒĔĖĘĚΈΕΣЕЁЄЄ");
+	    pseudoLocMap.put('f', "ƒ");
+	    pseudoLocMap.put('F', "₣");
+	    pseudoLocMap.put('g', "ĝğġģ");
+	    pseudoLocMap.put('G', "ĜĞĠĢ");
+	    pseudoLocMap.put('h', "ĥħнћ");
+	    pseudoLocMap.put('H', "ĤĦΉΗН");
+	    pseudoLocMap.put('i', "ìíîïĩīĭįίιϊіїΐ");
+	    pseudoLocMap.put('I', "ÌÍÎĨĪĬĮİΊΪІЇ");
+	    pseudoLocMap.put('j', "ĵј");
+	    pseudoLocMap.put('J', "ĴЈ");
+	    pseudoLocMap.put('k', "ķĸκкќ");
+	    pseudoLocMap.put('K', "ĶΚЌК");
+	    pseudoLocMap.put('l', "ĺļľł");
+	    pseudoLocMap.put('L', "ĹĻĽĿŁ");
+	    pseudoLocMap.put('m', "mм");
+	    pseudoLocMap.put('M', "ΜМм");
+	    pseudoLocMap.put('n', "ийлпπήηńņňŉŋñ");
+	    pseudoLocMap.put('N', "ÑŃŅŇŊΝИЙП");
+	    pseudoLocMap.put('o', "òóôõöøōŏőοσόоǿ");
+	    pseudoLocMap.put('O', "ÒÓÔÕÖØŌŎŐǾΌΘΟО");
+	    pseudoLocMap.put('p', "ρр");
+	    pseudoLocMap.put('p', "ΡР");
+	    pseudoLocMap.put('r', "ŕŗřяѓґгř");
+	    pseudoLocMap.put('R', "ŔŖŘЯΓЃҐГ");
+	    pseudoLocMap.put('s', "śŝşѕš");
+	    pseudoLocMap.put('S', "ŚŜŞЅŠ");
+	    pseudoLocMap.put('t', "ţťŧτт");
+	    pseudoLocMap.put('T', "ŢŤŦΤТ");
+	    pseudoLocMap.put('u', "µùúûüũūŭůűųцμџ");
+	    pseudoLocMap.put('U', "ÙÚÛÜŨŪŬŮŰŲЏЦ");
+	    pseudoLocMap.put('v', "ν");
+	    pseudoLocMap.put('w', "ŵωώшщẁẃẅ");
+	    pseudoLocMap.put('W', "ŴШЩẀẂẄ");
+	    pseudoLocMap.put('x', "×хж");
+	    pseudoLocMap.put('X', "ΧχХЖ");
+	    pseudoLocMap.put('y', "ýÿŷγУўỳу");
+	    pseudoLocMap.put('Y', "ÝŶΎΥΫỲЎ");
+	    pseudoLocMap.put('z', "źżž");
+	    pseudoLocMap.put('Z', "ŹŻΖŽ");
 	}
 
 	/**
@@ -73,15 +73,14 @@ public class PseudoLocalization {
 	 * @param string string to be pseudo localized
 	 * @return pseudo localized string
 	 */
-	public String convertStringToPseudoLoc(String string)
-	{
-        StringBuilder sb = new StringBuilder();
+	public String convertStringToPseudoLoc(String string) {
+	    StringBuilder sb = new StringBuilder();
 
-        if (!Strings.isNullOrEmpty(string)) {
-            String str = convertAsciiToDiacritics(string);
-            sb.append(expand(str));
-            sb.insert(0,'⟦');
-            sb.append('⟧');
+	    if (!Strings.isNullOrEmpty(string)) {
+	        String str = convertAsciiToDiacritics(string);
+	        sb.append(expand(str));
+	        sb.insert(0,'⟦');
+	        sb.append('⟧');
         }
 
         return sb.toString();
@@ -94,30 +93,29 @@ public class PseudoLocalization {
 	 * @return
 	 */
 	public String expand(String string) {
+	    int expandedStringLength = (int) Math.ceil(string.length() * EXPANSION_FACTOR / 100.0);
 
-        int expandedStringLength = (int) Math.ceil(string.length() * EXPANSION_FACTOR / 100.0);
+	    StringBuilder sb = new StringBuilder();
 
-        StringBuilder sb = new StringBuilder();
+	    for (int i = 0; i < expandedStringLength; i++) {
+	        if (i == (expandedStringLength - 1)) {
+	            sb.append(" ");
+	        } else {
+	            sb.append(BEGINNING_CHAR);
+	        }
+	    }
 
-        for (int i = 0; i < expandedStringLength; i++) {
-            if (i == (expandedStringLength - 1)) {
-                sb.append(" ");
-            } else {
-                sb.append(BEGINNING_CHAR);
-            }
-        }
+	    sb.append(string);
 
-        sb.append(string);
+	    for (int i = 0; i < expandedStringLength; i++) {
+	        if (i == 0) {
+	            sb.append(" ");
+	        } else {
+	            sb.append(ENDING_CHAR);
+	        }
+	    }
 
-        for (int i = 0; i < expandedStringLength; i++) {
-            if (i == 0) {
-                sb.append(" ");
-            } else {
-                sb.append(ENDING_CHAR);
-            }
-        }
-
-        return sb.toString();
+	    return sb.toString();
 	}
 
 	/**
@@ -127,14 +125,15 @@ public class PseudoLocalization {
 	 * @return
 	 */
 	public String convertAsciiToDiacritics(String string) {
-        int stringLength = string.length();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < stringLength; i++) {
-            char character = string.charAt(i);
-            sb.append(getMappingCharFromMap(character));
-        }
+	    int stringLength = string.length();
 
-        return sb.toString();
+	    StringBuilder sb = new StringBuilder();
+	    for (int i = 0; i < stringLength; i++) {
+	        char character = string.charAt(i);
+	        sb.append(getMappingCharFromMap(character));
+	    }
+
+	    return sb.toString();
 	}
 
 	/**
@@ -144,16 +143,15 @@ public class PseudoLocalization {
 	 * @return Non ASCII character or character itself
 	 */
 	private char getMappingCharFromMap(char character) {
-        char mappedChar = character;
+	    char mappedChar = character;
 
-        String mappingCharsForChar = pseudoLocMap.get(mappedChar);
+	    String mappingCharsForChar = pseudoLocMap.get(mappedChar);
 
-        if (mappingCharsForChar != null) {
+	    if (mappingCharsForChar != null) {
+	        int maxIndex = mappingCharsForChar.length() - 1;
+	        int randomIndex = (int)(Math.random() * maxIndex);
 
-            int maxIndex = mappingCharsForChar.length() - 1;
-            int randomIndex = (int)(Math.random() * maxIndex);
-
-            mappedChar = mappingCharsForChar.charAt(randomIndex);
+	        mappedChar = mappingCharsForChar.charAt(randomIndex);
         }
 
         return mappedChar;
