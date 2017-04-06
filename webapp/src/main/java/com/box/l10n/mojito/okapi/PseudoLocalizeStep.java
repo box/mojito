@@ -13,10 +13,11 @@ import net.sf.okapi.common.resource.TextContainer;
  *
  * @author srizvi
  */
-public abstract class PseudoLocalizeStep extends BasePipelineStep {
+public class PseudoLocalizeStep extends BasePipelineStep {
 
     protected String source;
     protected ITextUnit textUnit;
+    protected PseudoLocalization pseudoloc;
 
     private LocaleId targetLocale;
 
@@ -27,14 +28,22 @@ public abstract class PseudoLocalizeStep extends BasePipelineStep {
     }
 
     @Override
+    public String getName() {
+        return "Pseudolocalize a string";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Takes a string in english and pseudolocalizes it.";
+    }
+
+    @Override
     protected Event handleTextUnit(Event event) {
         textUnit = event.getTextUnit();
 
         if (textUnit.isTranslatable()) {
-            PseudoLocalization pseudoLoc = new PseudoLocalization();
-
             source = textUnit.getSource().toString();
-            String pseudoTranslation = pseudoLoc.convertStringToPseudoLoc(source);
+            String pseudoTranslation = pseudoloc.convertStringToPseudoLoc(source);
             textUnit.setTarget(targetLocale, new TextContainer(pseudoTranslation));
         }
 
