@@ -3,23 +3,25 @@ package com.box.l10n.mojito.okapi;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.resource.ITextUnit;
-import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.TextContainer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
+import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
 
 /**
  *
  * @author srizvi
  */
+@Configurable
 public class PseudoLocalizeStep extends BasePipelineStep {
 
-    protected String source;
-    protected ITextUnit textUnit;
-    protected PseudoLocalization pseudoloc;
-
     private LocaleId targetLocale;
+
+    @Autowired
+    PseudoLocalization pseudoLocalization;
 
     @SuppressWarnings("deprecation")
     @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
@@ -39,11 +41,11 @@ public class PseudoLocalizeStep extends BasePipelineStep {
 
     @Override
     protected Event handleTextUnit(Event event) {
-        textUnit = event.getTextUnit();
+        ITextUnit textUnit = event.getTextUnit();
 
         if (textUnit.isTranslatable()) {
-            source = textUnit.getSource().toString();
-            String pseudoTranslation = pseudoloc.convertStringToPseudoLoc(source);
+            String source = textUnit.getSource().toString();
+            String pseudoTranslation = pseudoLocalization.convertStringToPseudoLoc(source);
             textUnit.setTarget(targetLocale, new TextContainer(pseudoTranslation));
         }
 
