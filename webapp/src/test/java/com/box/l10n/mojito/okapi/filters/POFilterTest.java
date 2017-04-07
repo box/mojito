@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import com.ibm.icu.text.PluralRules;
+import java.util.Locale;
 import net.sf.okapi.common.LocaleId;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -15,7 +17,7 @@ public class POFilterTest {
         POFilter poFilter = new POFilter();
         assertTrue(poFilter.needsExtraPluralForm(null));
     }
-    
+
     @Test
     public void testNeedsExtraPluralEmpty() {
         POFilter poFilter = new POFilter();
