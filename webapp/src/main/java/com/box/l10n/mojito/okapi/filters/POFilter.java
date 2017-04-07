@@ -9,12 +9,17 @@ import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
+import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
+import net.sf.okapi.common.pipeline.annotations.StepParameterType;
+import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  * Extends {@link net.sf.okapi.filters.po.POFilter} to somehow support gettext
@@ -33,6 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author jaurambualt
  */
+@Configurable
 public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     /**
@@ -41,6 +47,9 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     static Logger logger = LoggerFactory.getLogger(POFilter.class);
 
     public static final String FILTER_CONFIG_ID = "okf_po@mojito";
+
+    @Autowired
+    PoPluralRules poPluralRules;
 
     @Override
     public String getName() {
@@ -64,27 +73,30 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      * by Gettext.
      */
     Event extraPluralEvent = null;
-    
+
     /**
      * Indicates if the target locale requires an extra plural form
      */
     boolean needsExtraPluralForm;
 
+    LocaleId targetLocale;
+
     @Override
     public void open(RawDocument input) {
         super.open(input);
-        boolean hasAnnotation = input.getAnnotation(POExtraPluralAnnotation.class) != null;
-        needsExtraPluralForm = hasAnnotation && needsExtraPluralForm(input.getTargetLocale());
+        targetLocale = input.getTargetLocale();
+        boolean hasAnnotation = input.getAnnotation(POExtraPluralAnnotation.class) != null; 
+        needsExtraPluralForm = hasAnnotation && needsExtraPluralForm(targetLocale);
     }
-    
+
     @Override
     public boolean hasNext() {
         return extraPluralEvent != null || super.hasNext();
     }
- 
+
     /**
      * Return the extraPluralEvent textunit if needed or get the event from the
- parent filter.
+     * parent filter.
      *
      * TextUnits from the parents are modified to include context in the
      * textunit name.
@@ -105,31 +117,32 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
                 ITextUnit textUnit = event.getTextUnit();
                 addExtraPluralIfTextUnitIsSecondPluralForm(textUnit);
                 addContextToTextUnitName(textUnit);
+            } else if (event.isDocumentPart()) {
+                rewritePluralFormInHeader(event.getDocumentPart());
             }
         }
 
         return event;
     }
-  
 
     /**
-     * Indicates if a locale needs an extra plural form in PO files. 
-     * 
+     * Indicates if a locale needs an extra plural form in PO files.
+     *
      * If no target locale (source file) extra plural is needed as well as for
      * language that requires more than 2 plural forms.
-     * 
+     *
      * @param localeId from the input document
      * @return if an extra plural text unit is needed or not
      */
     protected boolean needsExtraPluralForm(LocaleId localeId) {
         boolean required = true;
-        
+
         if (localeId != null && !LocaleId.EMPTY.equals(localeId)) {
             ULocale ulocale = ULocale.forLanguageTag(localeId.toBCP47());
             PluralRules pluralRules = PluralRules.forLocale(ulocale);
             required = pluralRules.getKeywords().size() > 2;
         }
-        
+
         return required;
     }
 
@@ -176,9 +189,16 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         }
     }
 
-    private void rewritePluralFormInHeader(ITextUnit textUnit) {
-        System.out.println(textUnit.getSkeleton());
-        
+    /**
+     * Rewrite the plural forms if processing a target locale.
+     *
+     * @param documentPart
+     */
+    private void rewritePluralFormInHeader(DocumentPart documentPart) {
+        if (targetLocale != null && !LocaleId.EMPTY.equals(targetLocale)) {
+            PoPluralRules.Rules rulesForBcp47Tag = poPluralRules.getRulesForBcp47Tag(targetLocale.toBCP47());
+            documentPart.setProperty(new Property("pluralforms", rulesForBcp47Tag.getRule()));
+        }
     }
-   
+
 }
