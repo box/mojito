@@ -14,6 +14,7 @@ msgstr ""
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
  
@@ -52,5 +53,11 @@ msgstr "1か月"
 msgctxt "car"
 msgid "There is {number} car"
 msgid_plural "There are {number} cars"
-msgstr[0] "There is {number} car"
-msgstr[1] "There are {number} cars" 
+msgstr[0] "{number}台の車があります"
+
+#. Okapi bug when followed by a normal string
+#: file.js:24
+msgctxt "somestring ctx"
+msgid "somestring id"
+msgstr "jp-somestring id"
+

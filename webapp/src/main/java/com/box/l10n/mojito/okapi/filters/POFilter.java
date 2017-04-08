@@ -9,8 +9,6 @@ import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
-import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
-import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
@@ -39,7 +37,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * @author jaurambualt
  */
 @Configurable
-public class POFilter extends net.sf.okapi.filters.po.POFilter {
+public class POFilter extends PofilterPatched {
 
     /**
      * logger
@@ -79,14 +77,17 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      */
     boolean needsExtraPluralForm;
 
+    boolean needsToRemoveExtraPluralForm;
+
     LocaleId targetLocale;
 
     @Override
     public void open(RawDocument input) {
         super.open(input);
         targetLocale = input.getTargetLocale();
-        boolean hasAnnotation = input.getAnnotation(POExtraPluralAnnotation.class) != null; 
+        boolean hasAnnotation = input.getAnnotation(POExtraPluralAnnotation.class) != null;
         needsExtraPluralForm = hasAnnotation && needsExtraPluralForm(targetLocale);
+        needsToRemoveExtraPluralForm = hasAnnotation && needsToRemoveExtraPluralForm(targetLocale);
     }
 
     @Override
@@ -115,7 +116,13 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
             if (event.isTextUnit()) {
                 ITextUnit textUnit = event.getTextUnit();
-                addExtraPluralIfTextUnitIsSecondPluralForm(textUnit);
+
+                if (needsToRemoveExtraPluralForm && textUnit.getName().endsWith("-1")) {
+                    event = super.next();
+                } else {
+                    addExtraPluralIfTextUnitIsSecondPluralForm(textUnit);
+                }
+                
                 addContextToTextUnitName(textUnit);
             } else if (event.isDocumentPart()) {
                 rewritePluralFormInHeader(event.getDocumentPart());
@@ -169,6 +176,21 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         }
     }
 
+    private void removeExtraPluralIfTextUnitIsSecondPluralForm(ITextUnit textUnit) {
+
+        if (needsExtraPluralForm && textUnit.getName().endsWith("-1")) {
+            ITextUnit clone = textUnit.clone();
+            clone.setName(clone.getName().replace("-1", "-2"));
+            GenericSkeleton genericSkeleton = (GenericSkeleton) clone.getSkeleton();
+            StringBuilder sb = genericSkeleton.getFirstPart().getData();
+            String str = sb.toString().replace("msgstr[1]", "msgstr[2]");
+            sb.replace(0, sb.length(), str);
+
+            addContextToTextUnitName(clone);
+            extraPluralEvent = new Event(EventType.TEXT_UNIT, clone);
+        }
+    }
+
     /**
      * If context is present, add it to the text unit name. We keep the
      * generated ID by Okapi for prefix of the text unit name allows to
@@ -199,6 +221,17 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
             PoPluralRules.Rules rulesForBcp47Tag = poPluralRules.getRulesForBcp47Tag(targetLocale.toBCP47());
             documentPart.setProperty(new Property("pluralforms", rulesForBcp47Tag.getRule()));
         }
+    }
+
+    private boolean needsToRemoveExtraPluralForm(LocaleId localeId) {
+        boolean required = false;
+        if (targetLocale != null && !LocaleId.EMPTY.equals(targetLocale)) {
+            ULocale ulocale = ULocale.forLanguageTag(localeId.toBCP47());
+            PluralRules pluralRules = PluralRules.forLocale(ulocale);
+            required = pluralRules.getKeywords().size() == 1;
+        }
+
+        return required;
     }
 
 }

@@ -26,3 +26,9 @@ msgid "There is {number} car"
 msgid_plural "There are {number} cars"
 msgstr[0] ""
 msgstr[1] ""
+
+#. Okapi bug when followed by a normal string
+#: file.js:24
+msgctxt "somestring ctx"
+msgid "somestring id"
+msgstr "somestring str"
