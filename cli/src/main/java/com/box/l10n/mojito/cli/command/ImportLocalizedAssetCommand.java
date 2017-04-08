@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -104,7 +105,7 @@ public class ImportLocalizedAssetCommand extends Command {
         inverseLocaleMapping = commandHelper.getInverseLocaleMapping(localeMappingParam);
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
-            for (Locale locale : getSortedRepositoryLocales()) {
+            for (Locale locale : getLocalesForImport()) {
                 doImportFileMatch(sourceFileMatch, locale);
             }
         }
@@ -136,6 +137,31 @@ public class ImportLocalizedAssetCommand extends Command {
         }
     }
 
+    public List<Locale> getLocalesForImport() {
+        List<Locale> sortedRepositoryLocales = getSortedRepositoryLocales();
+        filterLocalesWithMapping(sortedRepositoryLocales);
+        return sortedRepositoryLocales;
+    }
+    
+    private void filterLocalesWithMapping(List<Locale> locales) {
+
+        if (inverseLocaleMapping != null) {
+            Iterator<Locale> iterator = locales.iterator();
+            while (iterator.hasNext()) {
+                Locale l = iterator.next();
+                if (!inverseLocaleMapping.containsKey(l.getBcp47Tag())) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the repository locales sorted so that parent are before child 
+     * locales.
+     * 
+     * @return
+     */
     protected List<Locale> getSortedRepositoryLocales() {
         List<Locale> locales = new ArrayList<>();
 
