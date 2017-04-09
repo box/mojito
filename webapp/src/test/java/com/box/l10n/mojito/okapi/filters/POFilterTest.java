@@ -15,7 +15,7 @@ public class POFilterTest {
         POFilter poFilter = new POFilter();
         assertTrue(poFilter.needsExtraPluralForm(null));
     }
-    
+
     @Test
     public void testNeedsExtraPluralEmpty() {
         POFilter poFilter = new POFilter();

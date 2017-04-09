@@ -20,7 +20,6 @@ msgstr ""
    
 #. Test plural
 #: file.js:20
-
 msgctxt "car"
 msgid "There is {number} car"
 msgid_plural "There are {number} cars"

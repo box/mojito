@@ -14,7 +14,7 @@ msgstr ""
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
  
@@ -24,6 +24,11 @@ msgstr ""
 msgctxt "car"
 msgid "There is {number} car"
 msgid_plural "There are {number} cars"
-msgstr[0] "ru0-There is {number} car"
-msgstr[1] "ru1-There are {number} cars"
-msgstr[2] "ru2-There are {number} cars"
+msgstr[0] "Il y a {number} voiture"
+msgstr[1] "Il y a {number} voitures"
+
+#. Okapi bug when followed by a normal string
+#: file.js:24
+msgctxt "somestring ctx"
+msgid "somestring id"
+msgstr "fr-somestring id"

@@ -14,15 +14,44 @@ msgstr ""
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n>1;\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
  
+
+#: file.js:2
+msgctxt "100_character_description_"
+msgid "100 character description:"
+msgstr "Description de 100 caractères :"
+
+#. File lock dialog duration
+#: file.js:4
+msgctxt "15_min_duration"
+msgid "15 min"
+msgstr "15 min"
+  
+#. File lock dialog duration
+#: file.js:6
+msgctxt "1_day_duration"
+msgid "1 day"
+msgstr "1 jour"
+
+#. File lock dialog duration
+#: file.js:8
+msgctxt "1_hour_duration"
+msgid "1 hour"
+msgstr "1 heure"
+
+#. File lock dialog duration
+#: file.js:10
+msgctxt "1_month_duration"
+msgid "1 month"
+msgstr "1 mois"
    
 #. Test plural
 #: file.js:20
 msgctxt "car"
 msgid "There is {number} car"
 msgid_plural "There are {number} cars"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Il y a {number} voiture"
+msgstr[1] "Il y a {number} voitures"
