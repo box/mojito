@@ -116,7 +116,7 @@ public class DropWSTest extends WSTestBase {
 
         String xliffWithTranslationForNonExistingTextUnit = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                + "<file original=\"en.properties\" source-language=\"en\" target-language=\"fr-fr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                + "<file original=\"en.properties\" source-language=\"en\" target-language=\"fr-FR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                 + "<body>\n"
                 + "<trans-unit id=\"\" resname=\"fake\">\n"
                 + "<source xml:lang=\"en\">fake</source>\n"
@@ -132,11 +132,11 @@ public class DropWSTest extends WSTestBase {
 
         String expectedXliff = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                + "<file original=\"en.properties\" source-language=\"en\" target-language=\"fr-fr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                + "<file original=\"en.properties\" source-language=\"en\" target-language=\"fr-FR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                 + "<body>\n"
                 + "<trans-unit id=\"\" resname=\"fake\">\n"
                 + "<source xml:lang=\"en\">fake</source>\n"
-                + "<target xml:lang=\"fr-fr\" state=\"needs-translation\">fake</target>\n"
+                + "<target xml:lang=\"fr-FR\" state=\"needs-translation\">fake</target>\n"
                 + "<note annotates=\"target\" from=\"automation\">MUST REVIEW\n"
                 + "[ERROR] Text unit for id: , Skipping it...</note>\n"
                 + "</trans-unit>\n"

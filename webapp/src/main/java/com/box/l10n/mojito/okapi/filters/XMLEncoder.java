@@ -3,7 +3,6 @@ package com.box.l10n.mojito.okapi.filters;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.okapi.common.encoder.EncoderContext;
-import net.sf.okapi.filters.its.Parameters;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -30,6 +29,9 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
     private static final Pattern START_WITH_DOUBLE_QUOTE = Pattern.compile("(^\")");
     private static final Pattern UNESCAPED_SINGLE_QUOTE = Pattern.compile("([^\\\\])(')");
     private static final Pattern START_WITH_SINGLE_QUOTE = Pattern.compile("(^')");
+    
+    
+    boolean androidStrings = false;
 
     @Override
     public String encode(String text, EncoderContext context) {
@@ -40,15 +42,15 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
         return encoded;
     }
 
-    private boolean isAndroidStrings() {
-        Parameters params = (Parameters) getParameters();
-        if (params != null && params.getURI() != null && StringUtils.endsWith(params.getURI().toString(), XMLFilter.ANDROIDSTRINGS_CONFIG_FILE_NAME)) {
-            return true;
-        } else {
-            return false;
-        }
+    public boolean isAndroidStrings() {
+        return androidStrings;
     }
 
+    public void setAndroidStrings(boolean androidStrings) {
+        this.androidStrings = androidStrings;
+    }
+  
+    
     public String escapeAndroid(String text) {
         boolean enclosedInDoubleQuotes = StringUtils.startsWith(text, "\"") && StringUtils.endsWith(text, "\"");
         if (enclosedInDoubleQuotes) {

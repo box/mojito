@@ -4,6 +4,8 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.tm.ImportExportNote;
 import java.io.IOException;
 import java.util.Objects;
+import net.sf.okapi.common.annotation.XLIFFNote;
+import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.TextUnit;
@@ -34,7 +36,21 @@ public class TextUnitUtils {
      * @return the note or {@code null} if none
      */
     public String getNote(ITextUnit textUnit) {
-        return Objects.toString(textUnit.getProperty(Property.NOTE), null);
+
+        String note = null;
+
+        if (textUnit != null) {
+
+            XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
+
+            if (xliffNoteAnnotation == null) {
+                note = Objects.toString(textUnit.getProperty(Property.NOTE), null);
+            } else {
+                note = xliffNoteAnnotation.getNote(0).getNoteText();
+            }
+        }
+
+        return note;
     }
 
     /**
@@ -75,7 +91,19 @@ public class TextUnitUtils {
      * @param importExportNote to be converted into a JSON string for the note
      */
     public void setImportExportNote(ITextUnit textUnit, ImportExportNote importExportNote) {
-        textUnit.setProperty(new Property(Property.NOTE, objectMapper.writeValueAsStringUnsafe(importExportNote)));
+
+        String importExportNoteStr = objectMapper.writeValueAsStringUnsafe(importExportNote);
+
+        textUnit.setProperty(new Property(Property.NOTE, importExportNoteStr));
+
+        XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
+
+        if (xliffNoteAnnotation == null) {
+            xliffNoteAnnotation = new XLIFFNoteAnnotation();
+            textUnit.setAnnotation(xliffNoteAnnotation);
+        }
+
+        xliffNoteAnnotation.add(new XLIFFNote(importExportNoteStr));
     }
 
 }

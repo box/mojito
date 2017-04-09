@@ -14,10 +14,13 @@ import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.exceptions.OkapiIOException;
 import net.sf.okapi.common.filters.FilterConfiguration;
+import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.StartDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -26,6 +29,11 @@ import org.xml.sax.SAXException;
  * @author jyi
  */
 public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
+
+    /**
+     * logger
+     */
+    static Logger logger = LoggerFactory.getLogger(XMLFilter.class);
 
     public static final String FILTER_CONFIG_ID = "okf_xml@mojito";
     public static final String ANDROIDSTRINGS_CONFIG_FILE_NAME = "AndroidStrings_mojito.fprm";
@@ -39,7 +47,8 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
 
     /**
      * Overriding to include only resx and AndroidStrings filters
-     * @return 
+     *
+     * @return
      */
     @Override
     public List<FilterConfiguration> getConfigurations() {
@@ -75,6 +84,21 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
         DocumentBuilderFactory fact = DocumentBuilderFactory.newInstance();
         fact.setNamespaceAware(true);
         fact.setValidating(false);
+
+        // security concern. Turn off DTD processing
+        // https://www.owasp.org/index.php/XML_External_Entity_%28XXE%29_Processing
+        try {
+            // Xerces 1 - http://xerces.apache.org/xerces-j/features.html#external-general-entities
+            // Xerces 2 - http://xerces.apache.org/xerces2-j/features.html#external-general-entities
+            fact.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        } catch (ParserConfigurationException e) {
+            // Tried an unsupported feature. This may indicate that a different XML processor is being
+            // used. If so, then its features need to be researched and applied correctly.
+            // For example, using the Xerces 2 feature above on a Xerces 1 processor will throw this
+            // exception.
+            logger.warn("Unsupported DocumentBuilderFactory feature. Possible security vulnerabilities.", e);
+        }
+
         // Expand entity references only if we do not protect them
         // "Expand entity" means don't have ENTITY_REFERENCE
         fact.setExpandEntityReferences(!params.protectEntityRef);
@@ -109,11 +133,11 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
         try {
             InputSource is = new InputSource(input.getStream());
             //InputSource is = new InputSource(new BOMInputStream(input.getStream(), false));
-            
+
             //--Fix to handle UTF-16 encoding
             //If input encoding is UTF-16, we need to explictly set encoding on the InputSource
             is.setEncoding(encoding);
-            
+
             doc = docBuilder.parse(is);
         } catch (SAXException e) {
             throw new OkapiIOException("Parsing error.\n" + e.getMessage(), e);
@@ -138,8 +162,8 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
 
     /**
      * Overriding to use xml encoding from the input xml document
-     * 
-     * @param startDoc 
+     *
+     * @param startDoc
      */
     @Override
     protected void createStartDocumentSkeleton(StartDocument startDoc) {
@@ -154,21 +178,21 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
             skel.add("?>" + lineBreak);
         }
     }
-    
+
     @Override
     public Event next() {
         Event event = super.next();
-        
-        if (input.getFilterConfigId().equals(AssetPathToFilterConfigMapper.ANDROIDSTRINGS_FILTER_CONFIG_ID) 
+
+        if (input.getFilterConfigId().equals(AssetPathToFilterConfigMapper.ANDROIDSTRINGS_FILTER_CONFIG_ID)
                 && event.getEventType() == EventType.TEXT_UNIT) {
             // if source has escaped double-quotes, single-quotes, \r or \n, unescape
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             String sourceString = textUnit.getSource().toString();
             String unescapedSourceString = unescape(sourceString);
             TextContainer source = new TextContainer(unescapedSourceString);
-            textUnit.setSource(source);   
+            textUnit.setSource(source);
         }
-        
+
         return event;
     }
 
@@ -178,13 +202,20 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
         unescapedText = unescapedText.replaceAll("\\\\r", "\r");
         return unescapedText;
     }
-    
+
     @Override
     public EncoderManager getEncoderManager() {
         if (encoderManager == null) {
-            encoderManager = new EncoderManager();  
+            encoderManager = new EncoderManager();
         }
-        encoderManager.setMapping(getMimeType(), "com.box.l10n.mojito.okapi.filters.XMLEncoder");
+
+        XMLEncoder xmlEncoder = new XMLEncoder();
+
+        if (input.getFilterConfigId().equals(getName() + "-AndroidStrings")) {
+            xmlEncoder.setAndroidStrings(true);
+        }
+        
+        encoderManager.setMapping(getMimeType(), xmlEncoder);
         return encoderManager;
     }
 }
