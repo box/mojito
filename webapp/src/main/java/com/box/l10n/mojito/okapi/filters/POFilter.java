@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Configurable;
  * @author jaurambualt
  */
 @Configurable
-public class POFilter extends PofilterPatched {
+public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     /**
      * logger
