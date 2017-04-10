@@ -576,9 +576,9 @@ public class XLIFFWriter implements IFilterWriter {
                 
                 if (annotation != null) {
                     XLIFFNote note = annotation.getNote(0);
-                        writer.writeStartElement("note"); 
-			writer.writeString(note.getNoteText());
-			writer.writeEndElementLineBreak(); 
+                    writer.writeStartElement("note"); 
+                    writer.writeString(note.getNoteText());
+                    writer.writeEndElementLineBreak(); 
                 }
                 
                 if ( tu.hasProperty(com.box.l10n.mojito.okapi.Property.TARGET_COMMENT) ) {
