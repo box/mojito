@@ -20,6 +20,8 @@ import net.sf.okapi.common.annotation.GenericAnnotations;
 import net.sf.okapi.common.annotation.ITSLQIAnnotations;
 import net.sf.okapi.common.annotation.ITSProvenanceAnnotations;
 import net.sf.okapi.common.annotation.TermsAnnotation;
+import net.sf.okapi.common.annotation.XLIFFNote;
+import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
 import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.filterwriter.IFilterWriter;
 import net.sf.okapi.common.filterwriter.ITSContent;
@@ -570,6 +572,15 @@ public class XLIFFWriter implements IFilterWriter {
                 
                 
                 //CHANGES FOR MOJITO
+                XLIFFNoteAnnotation annotation = tu.getAnnotation(XLIFFNoteAnnotation.class);
+                
+                if (annotation != null) {
+                    XLIFFNote note = annotation.getNote(0);
+                    writer.writeStartElement("note"); 
+                    writer.writeString(note.getNoteText());
+                    writer.writeEndElementLineBreak(); 
+                }
+                
                 if ( tu.hasProperty(com.box.l10n.mojito.okapi.Property.TARGET_COMMENT) ) {
 			writer.writeStartElement("note");
 			writer.writeAttributeString("annotates", "target");

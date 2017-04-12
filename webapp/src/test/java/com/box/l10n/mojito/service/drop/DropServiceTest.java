@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
+/** 
  * @author jaurambault
  */
 public class DropServiceTest extends ServiceTestBase {
@@ -366,7 +366,7 @@ public class DropServiceTest extends ServiceTestBase {
                 localizedContent = localizedContent.replaceAll("</body>",
                         "<trans-unit id=\"badid\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                         + "<source xml:lang=\"en\">Content2</source>\n"
-                        + "<target xml:lang=\"ko-kr\">Import Drop" + round + " - Content2 ko-kr</target>\n"
+                        + "<target xml:lang=\"ko-KR\">Import Drop" + round + " - Content2 ko-KR</target>\n"
                         + "</trans-unit>\n"
                         + "</body>");
             } else if (sourceFile.getName().startsWith("it-IT")) {
@@ -428,15 +428,15 @@ public class DropServiceTest extends ServiceTestBase {
             logger.debug(importedContent);
             
             String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
-            logger.debug(xliffWithoutIds);
+            logger.error(xliffWithoutIds);
             
             assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                     + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                    + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"fr-fr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                    + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"fr-FR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                     + "<body>\n"
                     + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                     + "<source xml:lang=\"en\">Content2</source>\n"
-                    + "<target xml:lang=\"fr-fr\" state=\"needs-review-translation\">Import Drop" + round + " - Content2 fr-fr</target>\n"
+                    + "<target xml:lang=\"fr-FR\" state=\"needs-review-translation\">Import Drop" + round + " - Content2 fr-FR</target>\n"
                     + "<note>Comment2</note>\n"
                     + "<note annotates=\"target\" from=\"automation\">OK\n"
                     + "[INFO] tuv id: replaced-id</note>\n"
@@ -455,11 +455,11 @@ public class DropServiceTest extends ServiceTestBase {
             if (round == 1) {
                 assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-kr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-KR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                         + "<body>\n"
                         + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                         + "<source xml:lang=\"en\">Content2</source>\n"
-                        + "<target xml:lang=\"ko-kr\" state=\"needs-review-translation\">Content2</target>\n"
+                        + "<target xml:lang=\"ko-KR\" state=\"needs-review-translation\">Content2</target>\n"
                         + "<note>Comment2</note>\n"
                         + "<note annotates=\"target\" from=\"automation\">NEEDS REVIEW\n"
                         + "[INFO] tuv id: replaced-id\n"
@@ -467,7 +467,7 @@ public class DropServiceTest extends ServiceTestBase {
                         + "</trans-unit>\n"
                         + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                         + "<source xml:lang=\"en\">Content2</source>\n"
-                        + "<target xml:lang=\"ko-kr\" state=\"needs-translation\">Import Drop" + round + " - Content2 ko-kr</target>\n"
+                        + "<target xml:lang=\"ko-KR\" state=\"needs-translation\">Import Drop" + round + " - Content2 ko-KR</target>\n"
                         + "<note annotates=\"target\" from=\"automation\">MUST REVIEW\n"
                         + "[ERROR] Text unit for id: badid, Skipping it...</note>\n"
                         + "</trans-unit>\n"
@@ -477,11 +477,11 @@ public class DropServiceTest extends ServiceTestBase {
             } else {
                 assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-kr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-KR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                         + "<body>\n"
                         + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                         + "<source xml:lang=\"en\">Content2</source>\n"
-                        + "<target xml:lang=\"ko-kr\" state=\"needs-review-translation\">Content2</target>\n"
+                        + "<target xml:lang=\"ko-KR\" state=\"needs-review-translation\">Content2</target>\n"
                         + "<note>Comment2</note>\n"
                         + "<note annotates=\"target\" from=\"automation\">NEEDS REVIEW\n"
                         + "[INFO] tuv id: replaced-id\n"
@@ -490,7 +490,7 @@ public class DropServiceTest extends ServiceTestBase {
                         + "</trans-unit>\n"
                         + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                         + "<source xml:lang=\"en\">Content2</source>\n"
-                        + "<target xml:lang=\"ko-kr\" state=\"needs-translation\">Import Drop2 - Content2 ko-kr</target>\n"
+                        + "<target xml:lang=\"ko-KR\" state=\"needs-translation\">Import Drop2 - Content2 ko-KR</target>\n"
                         + "<note annotates=\"target\" from=\"automation\">MUST REVIEW\n"
                         + "[ERROR] Text unit for id: badid, Skipping it...</note>\n"
                         + "</trans-unit>\n"
@@ -508,18 +508,18 @@ public class DropServiceTest extends ServiceTestBase {
             
             assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                     + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                    + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ja-jp\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                    + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ja-JP\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                     + "<body>\n"
                     + "<trans-unit id=\"replaced-id\" resname=\"zuora_error_message_verify_state_province\" xml:space=\"preserve\">\n"
                     + "<source xml:lang=\"en\">Please enter a valid state, region or province</source>\n"
-                    + "<target xml:lang=\"ja-jp\" state=\"needs-review-translation\">Import Drop" + round + " - Please enter a valid state, region or province ja-jp</target>\n"
+                    + "<target xml:lang=\"ja-JP\" state=\"needs-review-translation\">Import Drop" + round + " - Please enter a valid state, region or province ja-JP</target>\n"
                     + "<note>Comment1</note>\n"
                     + "<note annotates=\"target\" from=\"automation\">OK\n"
                     + "[INFO] tuv id: replaced-id</note>\n"
                     + "</trans-unit>\n"
                     + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                     + "<source xml:lang=\"en\">Content2</source>\n"
-                    + "<target xml:lang=\"ja-jp\" state=\"needs-review-translation\">Import Drop" + round + " - Content2 ja-jp</target>\n"
+                    + "<target xml:lang=\"ja-JP\" state=\"needs-review-translation\">Import Drop" + round + " - Content2 ja-JP</target>\n"
                     + "<note>Comment2</note>\n"
                     + "<note annotates=\"target\" from=\"automation\">OK\n"
                     + "[INFO] tuv id: replaced-id</note>\n"
@@ -555,11 +555,11 @@ public class DropServiceTest extends ServiceTestBase {
 
                 assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"fr-fr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"fr-FR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                         + "<body>\n"
                         + "<trans-unit id=\"replaced-id\" resname=\"zuora_error_message_verify_state_province\" xml:space=\"preserve\">\n"
                         + "<source xml:lang=\"en\">Please enter a valid state, region or province</source>\n"
-                        + "<target xml:lang=\"fr-fr\" state=\"final\">Veuillez indiquer un état, une région ou une province valide.</target>\n"
+                        + "<target xml:lang=\"fr-FR\" state=\"final\">Veuillez indiquer un état, une région ou une province valide.</target>\n"
                         + "<note>Comment1</note>\n"
                         + "<note annotates=\"target\" from=\"automation\">OK\n"
                         + "[INFO] tuv id: replaced-id</note>\n"
@@ -577,7 +577,7 @@ public class DropServiceTest extends ServiceTestBase {
 
                 assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-kr\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ko-KR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                         + "<body>\n"
                         + "</body>\n"
                         + "</file>\n"
@@ -593,7 +593,7 @@ public class DropServiceTest extends ServiceTestBase {
 
                 assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ja-jp\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                        + "<file original=\"replaced-original\" source-language=\"en\" target-language=\"ja-JP\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
                         + "<body>\n"
                         + "</body>\n"
                         + "</file>\n"

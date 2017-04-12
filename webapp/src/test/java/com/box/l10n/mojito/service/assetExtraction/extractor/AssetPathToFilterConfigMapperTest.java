@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.assetExtraction.extractor;
 
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
+import com.box.l10n.mojito.okapi.filters.POFilter;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -50,7 +51,7 @@ public class AssetPathToFilterConfigMapperTest {
         String okapiConfigId = new XLIFFFilter().getName();
         assertEquals(AssetPathToFilterConfigMapper.XLIFF_FILTER_CONFIG_ID, okapiConfigId);
     }
-    
+
     @Test
     public void testGetFilterConfigIdFromTypeWithAndroidStrings() throws Exception {
 
@@ -59,7 +60,7 @@ public class AssetPathToFilterConfigMapperTest {
 
         assertEquals(AssetPathToFilterConfigMapper.ANDROIDSTRINGS_FILTER_CONFIG_ID, filterConfigId);
     }
-    
+
     @Test
     public void testGetFilterConfigIdFromTypeWithMacStrings() throws Exception {
 
@@ -68,7 +69,7 @@ public class AssetPathToFilterConfigMapperTest {
 
         assertEquals(AssetPathToFilterConfigMapper.MACSTRINGS_FILTER_CONFIG_ID, filterConfigId);
     }
-    
+
     @Test
     public void testGetFilterConfigIdFromTypeWithResx() throws Exception {
 
@@ -85,5 +86,22 @@ public class AssetPathToFilterConfigMapperTest {
         String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.xtb");
 
         assertEquals(AssetPathToFilterConfigMapper.XTB_FILTER_CONFIG_ID, filterConfigId);
+    }
+
+    @Test
+    public void testGetFilterConfigIdFromTypeWithProperties() throws Exception {
+
+        AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
+        String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.properties");
+
+        assertEquals(AssetPathToFilterConfigMapper.PROPERTIES_FILTER_CONFIG_ID, filterConfigId);
+    }
+
+    @Test
+    public void testGetFilterConfigIdFromTypeWithPo() throws Exception {
+
+        AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
+        String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.pot");
+        assertEquals(POFilter.FILTER_CONFIG_ID, filterConfigId);
     }
 }

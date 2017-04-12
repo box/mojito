@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
-<file original="replaced-original" source-language="en" target-language="ja-jp" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<file original="replaced-original" source-language="en" target-language="ja-JP" datatype="x-undefined" okp:inputEncoding="UTF-8">
 <body>
 <trans-unit id="replaced-id" resname="100_character_description_" xml:space="preserve">
 <source xml:lang="en">100 character description:</source>
-<target xml:lang="ja-jp" state="needs-review-translation">Import Xliff Drop - 100 character description: ja-jp</target>
+<target xml:lang="ja-JP" state="needs-review-translation">Import Xliff Drop - 100 character description: ja-JP</target>
 <note annotates="target" from="automation">OK
 [INFO] tuv id: replaced-id</note>
 </trans-unit>
 <trans-unit id="replaced-id" resname="15_min_duration" xml:space="preserve">
 <source xml:lang="en">15 min</source>
-<target xml:lang="ja-jp" state="needs-review-translation">Import Xliff Drop - 15 min ja-jp</target>
+<target xml:lang="ja-JP" state="needs-review-translation">Import Xliff Drop - 15 min ja-JP</target>
 <note>File lock dialog duration</note>
 <note annotates="target" from="automation">OK
 [INFO] tuv id: replaced-id</note>
 </trans-unit>
 <trans-unit id="replaced-id" resname="1_day_duration" xml:space="preserve">
 <source xml:lang="en">1 day</source>
-<target xml:lang="ja-jp" state="needs-review-translation">Import Xliff Drop - 1 day ja-jp</target>
+<target xml:lang="ja-JP" state="needs-review-translation">Import Xliff Drop - 1 day ja-JP</target>
 <note>File lock dialog duration</note>
 <note annotates="target" from="automation">OK
 [INFO] tuv id: replaced-id</note>

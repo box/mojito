@@ -90,17 +90,13 @@ public class XliffDataFactory {
 
         boolean isTargetXliff = (targetBcp47Tag != null);
 
-        String xliff = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-        if (!isTargetXliff) {
-            // Okapi does not indent code properly...
-            xliff += "\n";
-        }
+        String xliff = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
         xliff += "<xliff xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" version=\"2.0\">\n";
 
         if (targetBcp47Tag == null) {
             xliff += " <file original=\"\" source-language=\"en\" datatype=\"x-undefined\">\n";
         } else {
-            xliff += " <file original=\"\" source-language=\"en\" datatype=\"x-undefined\" target-language=\"" + targetBcp47Tag.toLowerCase() + "\">\n";
+            xliff += " <file original=\"\" source-language=\"en\" datatype=\"x-undefined\" target-language=\"" + targetBcp47Tag + "\">\n";
         }
 
         xliff += "  <body>\n";
@@ -110,7 +106,7 @@ public class XliffDataFactory {
             xliff += "    <source>" + textUnit.getSource().toString() + "</source>\n";
 
             if (targetBcp47Tag != null) {
-                xliff += "    <target xml:lang=\"" + targetBcp47Tag.toLowerCase() + "\"";
+                xliff += "    <target xml:lang=\"" + targetBcp47Tag  + "\"";
 
                 Property state = textUnit.getProperty("state");
                 if (state != null) {

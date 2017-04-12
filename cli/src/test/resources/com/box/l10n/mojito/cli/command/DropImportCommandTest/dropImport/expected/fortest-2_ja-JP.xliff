@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions">
-<file original="source2-xliff.xliff" source-language="en" target-language="ja-jp" datatype="x-undefined" okp:inputEncoding="UTF-8">
+<file original="source2-xliff.xliff" source-language="en" target-language="ja-JP" datatype="x-undefined" okp:inputEncoding="UTF-8">
 <body>
 <trans-unit id="" resname="100_character_description_" xml:space="preserve">
 <source xml:lang="en">100 character description:</source>
-<target xml:lang="ja-jp">Import Drop - 100 character description: ja-jp</target>
+<target xml:lang="ja-JP">Import Drop - 100 character description: ja-JP</target>
 <note>{"sourceComment":null,"targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[]}</note>
 </trans-unit>
 <trans-unit id="" resname="15_min_duration" xml:space="preserve">
 <source xml:lang="en">15 min</source>
-<target xml:lang="ja-jp">Import Drop - 15 min ja-jp</target>
+<target xml:lang="ja-JP">Import Drop - 15 min ja-JP</target>
 <note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[]}</note>
 </trans-unit>
 <trans-unit id="" resname="1_day_duration" xml:space="preserve">
 <source xml:lang="en">1 day</source>
-<target xml:lang="ja-jp">Import Drop - 1 day ja-jp</target>
+<target xml:lang="ja-JP">Import Drop - 1 day ja-JP</target>
 <note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"REVIEW_NEEDED","variantComments":[]}</note>
 </trans-unit>
 <trans-unit id="" resname="1_hour_duration" xml:space="preserve">
 <source xml:lang="en">1 hour</source>
-<target xml:lang="ja-jp">1時間 (in source2)</target>
+<target xml:lang="ja-JP">1時間 (in source2)</target>
 <note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[]}</note>
 </trans-unit>
 <trans-unit id="" resname="1_month_duration" xml:space="preserve">
 <source xml:lang="en">1 month</source>
-<target xml:lang="ja-jp">1か月 (in source2)</target>
+<target xml:lang="ja-JP">1か月 (in source2)</target>
 <note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[]}</note>
 </trans-unit>
 </body>

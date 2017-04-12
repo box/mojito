@@ -17,6 +17,8 @@ import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.IParameters;
 import net.sf.okapi.common.LocaleId;
+import net.sf.okapi.common.annotation.XLIFFNote;
+import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
 import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.filters.IFilter;
@@ -214,6 +216,11 @@ public class TranslationKitFilter implements IFilter {
 
         if (textUnitDTO.getComment() != null) {
             textUnit.setProperty(new Property(Property.NOTE, textUnitDTO.getComment()));
+            
+            XLIFFNoteAnnotation xliffNoteAnnotation = new XLIFFNoteAnnotation();
+            XLIFFNote xliffNote = new XLIFFNote(textUnitDTO.getComment());
+            xliffNoteAnnotation.add(xliffNote);
+            textUnit.getSource().setAnnotation(xliffNoteAnnotation);
         }
 
         return textUnit;
