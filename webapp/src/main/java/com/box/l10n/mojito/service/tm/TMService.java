@@ -19,6 +19,7 @@ import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.Status
 import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
 import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.PseudoLocalizeStep;
 import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.TranslateStep;
@@ -709,7 +710,11 @@ public class TMService {
 
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        driver.addStep(new TranslateStep(asset, repositoryLocale, InheritanceMode.USE_PARENT));
+        if (bcp47Tag.equals("en-x-psaccent")) {
+            driver.addStep(new PseudoLocalizeStep());
+        } else {
+            driver.addStep(new TranslateStep(asset, repositoryLocale, InheritanceMode.USE_PARENT));
+        }
 
         //TODO(P1) see assetExtractor comments
         logger.debug("Adding all supported filters to the pipeline driver");
