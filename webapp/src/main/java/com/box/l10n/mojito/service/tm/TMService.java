@@ -685,7 +685,6 @@ public class TMService {
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
-     *
      * @return the localized asset
      */
     public String generateLocalized(
@@ -706,15 +705,61 @@ public class TMService {
 
         logger.debug("Configuring pipeline for localized XLIFF generation");
 
+        BasePipelineStep translateStep = (BasePipelineStep) new TranslateStep(asset, repositoryLocale, InheritanceMode.USE_PARENT);
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47Tag, translateStep);
+    }
+
+    /**
+     * Parses the given content and adds the pseudo localization for every text unit.
+     * Returns the pseudolocalized content.
+     * 
+     * @param asset The {@link Asset} used to get translations
+     * @param content The content to be localized
+     * @param repositoryLocale the repository locale used to fetch the
+     * translation. Also used for the output tag if outputBcp47tag is null.
+     * @param outputBcp47tag Optional, can be null. Allows to generate the file
+     * for a bcp47 tag that is different from the repository locale (which is
+     * still used to fetch the translations). This can be used to generate a
+     * file with tag "fr" even if the translations are stored with fr-FR
+     * repository locale.
+     * @return the localized asset
+     */
+    public String generatePseudoLocalized(
+            Asset asset,
+            String content,
+            RepositoryLocale repositoryLocale,
+            String outputBcp47tag,
+            FilterConfigIdOverride filterConfigIdOverride) {
+
+        String bcp47Tag;
+
+        if (outputBcp47tag == null) {
+            bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
+        } else {
+            logger.debug("An output bcp47 tag: {} is specified (won't use the default tag (from the repository locale)", outputBcp47tag);
+            bcp47Tag = outputBcp47tag;
+        }
+
+        BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep();
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47Tag, pseudoLocalizedStep);
+    }
+
+    /**
+     *
+     * @param asset
+     * @param content
+     * @param filterConfigIdOverride
+     * @param bcp47Tag
+     * @param step
+     * @return
+     */
+    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride, String bcp47Tag, BasePipelineStep step) {
+
         IPipelineDriver driver = new PipelineDriver();
 
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        if (bcp47Tag.equals("en-x-psaccent")) {
-            driver.addStep(new PseudoLocalizeStep());
-        } else {
-            driver.addStep(new TranslateStep(asset, repositoryLocale, InheritanceMode.USE_PARENT));
-        }
+        driver.addStep(step);
 
         //TODO(P1) see assetExtractor comments
         logger.debug("Adding all supported filters to the pipeline driver");

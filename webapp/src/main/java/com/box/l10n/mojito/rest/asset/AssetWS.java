@@ -172,7 +172,7 @@ public class AssetWS {
         String bcp47tag = "en-x-psaccent";
         String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
-        String generateLocalized = tmService.generateLocalized(
+        String generateLocalized = tmService.generatePseudoLocalized(
                 asset,
                 normalizedContent,
                 null,
