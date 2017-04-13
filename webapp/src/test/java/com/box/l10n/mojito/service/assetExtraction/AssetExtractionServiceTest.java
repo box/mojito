@@ -558,6 +558,44 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", assetTextUnits.get(0).getContent());
 
     }
+    
+     @Test
+    public void testAndroidStringsWithDescriptionInXMLComments() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <!-- comment for hello -->\n"
+                + "  <string name=\"hello\">Hello</string>\n"
+                + "  <!-- this shouldn't override -->\n"
+                + "  <string name=\"hello2\" description=\"comment for hello2\">Hello2</string>\n"
+                + "  <!-- line 1 -->\n"
+                + "  <!-- line 2 -->\n"
+                + "  <!-- line 3 -->\n"
+                + "  <string name=\"hello3\">Hello3</string>\n"
+                + "</resources>";
+        Asset asset = assetService.createAsset(repository.getId(), content, "path/to/fake/res/strings.xml");
+
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
+        assertEquals("hello", assetTextUnits.get(0).getName());
+        assertEquals("Hello", assetTextUnits.get(0).getContent());
+        assertEquals("comment for hello", assetTextUnits.get(0).getComment());
+        
+        assertEquals("hello2", assetTextUnits.get(1).getName());
+        assertEquals("Hello2", assetTextUnits.get(1).getContent());
+        assertEquals("comment for hello2", assetTextUnits.get(1).getComment());
+        
+        assertEquals("hello3", assetTextUnits.get(2).getName());
+        assertEquals("Hello3", assetTextUnits.get(2).getContent());
+        assertEquals("line 1 line 2 line 3", assetTextUnits.get(2).getComment());
+
+    }
 
     @Test
     public void testXliffNoResname() throws Exception {
