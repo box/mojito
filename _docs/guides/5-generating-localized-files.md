@@ -89,8 +89,11 @@ By default, {{ site.mojito_green }} searches source resource files from current 
 
 {{ site.mojito_green }} processes all supported source resource files in the working directory by default.  If your working directory has many types of source resource files and if you want to only process specific type, you can use `-ft` parameter.  The above example only generates localized files for Java Properties file.
 
-Available file types are `XLIFF`, `MAC_STRING`, `ANDROID_STRINGS`, `PROPERTIES`, `PROPERTIES_NOBASENAME`, `RESW`, `RESX`.  The difference between `PROPERTIES` and `PROPERTIES_NOBASENAME` is that the source resource file of `PROPERTIES_NOBASENAME` has source locale name as the file name. For example, `strings.properties` vs. `en.properties`.
+Available file types are `XLIFF`, `MAC_STRING`, `ANDROID_STRINGS`, `PROPERTIES`, `PROPERTIES_NOBASENAME`, `PROPERTIES_JAVA`, `RESW`, `RESX`.
 
+The difference between `PROPERTIES` and `PROPERTIES_NOBASENAME` is that the source resource file of `PROPERTIES_NOBASENAME` has source locale name as the file name. For example, `strings.properties` vs. `en.properties`.
+
+`PROPERTIES_JAVA` is to generate files for `Java` (locale names with `_` and using `Unicode escape`).
 
 
 ### Overriding Source Locale
