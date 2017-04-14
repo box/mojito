@@ -715,15 +715,8 @@ public class TMService {
      * Returns the pseudolocalized content.
      *
      * @param asset The {@link Asset} used to get translations
-     * @param content The content to be localized
-     * @param repositoryLocale the repository locale used to fetch the
-     * translation. Also used for the output tag if outputBcp47tag is null.
-     * @param outputBcp47tag Optional, can be null. Allows to generate the file
-     * for a bcp47 tag that is different from the repository locale (which is
-     * still used to fetch the translations). This can be used to generate a
-     * file with tag "fr" even if the translations are stored with fr-FR
-     * repository locale.
-     * @return the localized asset
+     * @param content The content to be pseudolocalized
+     * @return the pseudolocalized asset
      */
     public String generatePseudoLocalized(
             Asset asset,
@@ -737,15 +730,23 @@ public class TMService {
     }
 
     /**
+     * Parses the given content and adds the translation for every text unit.
+     * Returns the content of the localized content.
      *
-     * @param asset
-     * @param content
+     * TODO(P1) This needs to support other file formats
+     *
+     * @param asset The {@link Asset} used to get translations
+     * @param content The content to be localized
      * @param filterConfigIdOverride
-     * @param bcp47Tag
+     * @param outputBcp47tag Optional, can be null. Allows to generate the file
+     * for a bcp47 tag that is different from the repository locale (which is
+     * still used to fetch the translations). This can be used to generate a
+     * file with tag "fr" even if the translations are stored with fr-FR
+     * repository locale.
      * @param step
-     * @return
+     * @return the localized asset
      */
-    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride, String bcp47Tag, BasePipelineStep step) {
+    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride, String outputBcp47tag, BasePipelineStep step) {
 
         IPipelineDriver driver = new PipelineDriver();
 
@@ -760,7 +761,7 @@ public class TMService {
         FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
         driver.addStep(filterEventsToInMemoryRawDocumentStep);
 
-        LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
+        LocaleId targetLocaleId = LocaleId.fromBCP47(outputBcp47tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
 
         //TODO(P2) Find a better solution?
