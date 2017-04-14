@@ -7,10 +7,10 @@ import java.util.Locale;
  * @author jaurambault
  */
 public class POLocaleType extends LocaleType {
-
+    
     @Override
     public String getTargetLocaleRegex() {
-        return ".*?";
+        return "(?!LC_MESSAGES)(?:[^/]+)";
     }
 
     @Override
