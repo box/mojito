@@ -727,12 +727,12 @@ public class TMService {
     public String generatePseudoLocalized(
             Asset asset,
             String content,
-            RepositoryLocale repositoryLocale,
-            String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride) {
 
+        String bcp47tag = "en-x-psaccent";
+
         BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep();
-        return generateLocalizedBase(asset, content, filterConfigIdOverride, outputBcp47tag, pseudoLocalizedStep);
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47tag, pseudoLocalizedStep);
     }
 
     /**

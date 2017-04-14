@@ -169,14 +169,11 @@ public class AssetWS {
         logger.debug("Pseudo localizing content payload with asset id = {}", assetId);
 
         Asset asset = assetRepository.getOne(assetId);
-        String bcp47tag = "en-x-psaccent";
         String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
         String generateLocalized = tmService.generatePseudoLocalized(
                 asset,
                 normalizedContent,
-                null,
-                bcp47tag,
                 localizedAssetBody.getFilterConfigIdOverride());
 
         localizedAssetBody.setContent(generateLocalized);
