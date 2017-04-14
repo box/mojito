@@ -36,7 +36,10 @@ The default database configuration of {{ site.mojito_green }} is in-memory HSQL 
 
 
 You can override the database configuration with MySQL.
-First, install MySQL from http://dev.mysql.com/doc/refman/5.7/en/installing.html.  Then Configure MySQL.
+
+
+[Install MySQL](http://dev.mysql.com/doc/refman/5.7/en/installing.html) and then create a database for {{ site.mojito_green }}.
+
 Connect to MySQL DB as root user
 
     mysql -u root
@@ -51,7 +54,7 @@ Create database `${DB_NAME}` and give `${DB_USERNAME}` full access to the databa
     mysql> GRANT ALL ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
     mysql> FLUSH PRIVILEGES;
 
-Configure {{ site.mojito_green }} to use MySQL.  When using MySQL, Flyway must be turned on.
+Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be turned on.
 
     flyway.enabled=true
     l10n.flyway.clean=false
@@ -62,6 +65,19 @@ Configure {{ site.mojito_green }} to use MySQL.  When using MySQL, Flyway must b
     spring.datasource.username=${DB_USERNAME}
     spring.datasource.password=${DB_PASSWORD}
     spring.datasource.driverClassName=com.mysql.jdbc.Driver
+
+
+Note that `utf8mb4` setup has been tested on MySQL `5.7`. The server will probably needs some configuration too, for
+example by editing `my.cnf` (if installed with brew: `/usr/local/etc/my.cnf`) with something like:
+
+    [client]
+    default-character-set = utf8mb4
+
+    [mysqld]
+    character-set-server = utf8mb4
+
+If using a older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
+instead `utf8mb4` but it has its limitation in term of character support.
 
 
 ## Server Configuration

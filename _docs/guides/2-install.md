@@ -86,7 +86,19 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
     spring.datasource.username=${DB_USERNAME}
     spring.datasource.password=${DB_PASSWORD}
     spring.datasource.driverClassName=com.mysql.jdbc.Driver
-    
+
+
+Note that `utf8mb4` setup has been tested on MySQL `5.7`. The server will probably needs some configuration too, for
+example by editing `my.cnf` (if installed with brew: `/usr/local/etc/my.cnf`) with something like:
+
+    [client]
+    default-character-set = utf8mb4
+
+    [mysqld]
+    character-set-server = utf8mb4
+
+If using a older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
+instead `utf8mb4` but it has its limitation in term of character support.
     
 ### CLI
 
