@@ -41,6 +41,7 @@ import java.util.Objects;
 import javax.persistence.EntityManager;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
+import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
