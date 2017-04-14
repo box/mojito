@@ -153,7 +153,34 @@ public class AssetWS {
         return localizedAssetBody;
     }
     
-    
+    /**
+     * Pseudo localizes the payload content with translations of a given {@link Asset}.
+     *
+     * @param assetId {@link Asset#id}
+     * @param localizedAssetBody the payload to be localized with optional
+     * parameters
+     * @return the pseudo localized payload as a {@link LocalizedAssetBody}
+     */
+    @RequestMapping(value = "/api/assets/{assetId}/pseudo", method = RequestMethod.POST)
+    public LocalizedAssetBody getPseudoLocalizedAssetForContent(
+            @PathVariable("assetId") long assetId,
+            @RequestBody LocalizedAssetBody localizedAssetBody) {
+
+        logger.debug("Pseudo localizing content payload with asset id = {}", assetId);
+
+        Asset asset = assetRepository.getOne(assetId);
+        String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
+
+        String generateLocalized = tmService.generatePseudoLocalized(
+                asset,
+                normalizedContent,
+                localizedAssetBody.getFilterConfigIdOverride());
+
+        localizedAssetBody.setContent(generateLocalized);
+
+        return localizedAssetBody;
+    }
+
     //TODO(P1) It would be nice to put this to be POST on .../localized/{localeId}
     // but it won't backward compatible so... The URL is taken by another POST 
     // that is used as a GET because we needed to send the paylaod. Here would

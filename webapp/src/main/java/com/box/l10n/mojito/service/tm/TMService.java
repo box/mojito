@@ -19,6 +19,7 @@ import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.Status
 import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
 import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.PseudoLocalizeStep;
 import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.TranslateStep;
@@ -40,6 +41,7 @@ import java.util.Objects;
 import javax.persistence.EntityManager;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
+import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
@@ -684,7 +686,6 @@ public class TMService {
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
-     *
      * @return the localized asset
      */
     public String generateLocalized(
@@ -705,11 +706,53 @@ public class TMService {
 
         logger.debug("Configuring pipeline for localized XLIFF generation");
 
+        BasePipelineStep translateStep = (BasePipelineStep) new TranslateStep(asset, repositoryLocale, InheritanceMode.USE_PARENT);
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47Tag, translateStep);
+    }
+
+    /**
+     * Parses the given content and adds the pseudo localization for every text unit.
+     * Returns the pseudolocalized content.
+     *
+     * @param asset The {@link Asset} used to get translations
+     * @param content The content to be pseudolocalized
+     * @return the pseudolocalized asset
+     */
+    public String generatePseudoLocalized(
+            Asset asset,
+            String content,
+            FilterConfigIdOverride filterConfigIdOverride) {
+
+        String bcp47tag = "en-x-psaccent";
+
+        BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep();
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47tag, pseudoLocalizedStep);
+    }
+
+    /**
+     * Parses the given content and adds the translation for every text unit.
+     * Returns the content of the localized content.
+     *
+     * TODO(P1) This needs to support other file formats
+     *
+     * @param asset The {@link Asset} used to get translations
+     * @param content The content to be localized
+     * @param filterConfigIdOverride
+     * @param outputBcp47tag Optional, can be null. Allows to generate the file
+     * for a bcp47 tag that is different from the repository locale (which is
+     * still used to fetch the translations). This can be used to generate a
+     * file with tag "fr" even if the translations are stored with fr-FR
+     * repository locale.
+     * @param step
+     * @return the localized asset
+     */
+    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride, String outputBcp47tag, BasePipelineStep step) {
+
         IPipelineDriver driver = new PipelineDriver();
 
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        driver.addStep(new TranslateStep(asset, repositoryLocale, InheritanceMode.USE_PARENT));
+        driver.addStep(step);
 
         //TODO(P1) see assetExtractor comments
         logger.debug("Adding all supported filters to the pipeline driver");
@@ -718,7 +761,7 @@ public class TMService {
         FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
         driver.addStep(filterEventsToInMemoryRawDocumentStep);
 
-        LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
+        LocaleId targetLocaleId = LocaleId.fromBCP47(outputBcp47tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
 
         //TODO(P2) Find a better solution?
