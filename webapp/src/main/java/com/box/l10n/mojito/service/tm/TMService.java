@@ -712,7 +712,7 @@ public class TMService {
     /**
      * Parses the given content and adds the pseudo localization for every text unit.
      * Returns the pseudolocalized content.
-     * 
+     *
      * @param asset The {@link Asset} used to get translations
      * @param content The content to be localized
      * @param repositoryLocale the repository locale used to fetch the
@@ -731,17 +731,8 @@ public class TMService {
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride) {
 
-        String bcp47Tag;
-
-        if (outputBcp47tag == null) {
-            bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
-        } else {
-            logger.debug("An output bcp47 tag: {} is specified (won't use the default tag (from the repository locale)", outputBcp47tag);
-            bcp47Tag = outputBcp47tag;
-        }
-
         BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep();
-        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47Tag, pseudoLocalizedStep);
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, outputBcp47tag, pseudoLocalizedStep);
     }
 
     /**
