@@ -409,7 +409,7 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-
+     
     @Test
     public void pullPo() throws Exception {
 
@@ -418,7 +418,7 @@ public class PullCommandTest extends CLITestBase {
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
-        Asset asset = assetClient.getAssetByPathAndRepositoryId("messages.pot", repository.getId());
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("LC_MESSAGES/messages.pot", repository.getId());
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
         importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
