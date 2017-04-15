@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetExtraction.extractor;
 
+import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
@@ -58,7 +59,7 @@ public class AssetPathToFilterConfigMapperTest {
         AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
         String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/strings.xml");
 
-        assertEquals(AssetPathToFilterConfigMapper.ANDROIDSTRINGS_FILTER_CONFIG_ID, filterConfigId);
+        assertEquals(AndroidFilter.FILTER_CONFIG_ID, filterConfigId);
     }
 
     @Test

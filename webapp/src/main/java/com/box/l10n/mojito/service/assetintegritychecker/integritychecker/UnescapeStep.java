@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetPathToFilterConfigMapper;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -73,7 +74,7 @@ public class UnescapeStep extends BasePipelineStep {
                 asset = tmTextUnit.getAsset();
                 try {
                     String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath(asset.getPath());
-                    if (AssetPathToFilterConfigMapper.ANDROIDSTRINGS_FILTER_CONFIG_ID.equals(filterConfigId)
+                    if (AndroidFilter.FILTER_CONFIG_ID.equals(filterConfigId)
                             || AssetPathToFilterConfigMapper.MACSTRINGS_FILTER_CONFIG_ID.equals(filterConfigId)) {
                         String targetContent = textUnit.getTarget(targetLocale).toString();
                         targetContent = unescape(targetContent);
