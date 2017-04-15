@@ -7,12 +7,12 @@ import org.junit.Test;
  *
  * @author jeanaurambault
  */
-public class XMLFilterTest {
+public class AndroidFilterTest {
 
     @Test
     public void testGetNoteFromXMLCommentsInSkeletonNoComment() {
         String skeleton = "no comments";
-        XMLFilter instance = new XMLFilter();
+        AndroidFilter instance = new AndroidFilter();
         String expResult = null;
         String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
         assertEquals(expResult, result);
@@ -21,7 +21,7 @@ public class XMLFilterTest {
     @Test
     public void testGetNoteFromXMLCommentsInSkeletonComment() {
         String skeleton = "blalbala <!-- a comment --> blalba";
-        XMLFilter instance = new XMLFilter();
+        AndroidFilter instance = new AndroidFilter();
         String expResult = "a comment";
         String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
         assertEquals(expResult, result);
@@ -30,7 +30,7 @@ public class XMLFilterTest {
     @Test
     public void testGetNoteFromXMLCommentsInSkeletonMultiline() {
         String skeleton = "blalbala <!-- line 1 --> <!-- line 2 -->  <!-- line 3 --> blalba";
-        XMLFilter instance = new XMLFilter();
+        AndroidFilter instance = new AndroidFilter();
         String expResult = "line 1 line 2 line 3";
         String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
         assertEquals(expResult, result);
