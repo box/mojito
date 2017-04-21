@@ -93,6 +93,37 @@ public class AssetClient extends BaseClient {
     }
 
     /**
+     * Gets a pseudo localized version of provided content, the content is related to a
+     * given Asset.
+     *
+     * The content can be a new version of the asset stored in the TMS. This is
+     * used to pseudo localize files during development with usually minor changes done
+     * to the persisted asset.
+     *
+     * @param assetId {@link Asset#id}
+     * @param content the asset content to be pseudolocalized
+     * @param filterConfigIdOverride Optional, can be null. Allows to specify
+     * a specific Okapi filter to use to process the asset
+     * @return the pseudloocalized asset content
+     */
+    public LocalizedAssetBody getPseudoLocalizedAssetForContent(Long assetId, String content, FilterConfigIdOverride filterConfigIdOverride) {
+
+        String outputBcp47tag = "en-x-psaccent";
+
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder
+                       .fromPath(getBasePathForResource(assetId, "pseudo"));
+
+        LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
+        localizedAssetBody.setContent(content);
+        localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
+        localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
+
+        return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
+                localizedAssetBody,
+                LocalizedAssetBody.class);
+    }
+
+    /**
      * Imports a localized version of an asset. 
      * 
      * The target strings are checked against the source strings and if they 
