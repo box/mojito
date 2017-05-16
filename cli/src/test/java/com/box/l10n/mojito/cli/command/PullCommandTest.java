@@ -409,7 +409,7 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-     
+
     @Test
     public void pullPo() throws Exception {
 
@@ -456,6 +456,28 @@ public class PullCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
                 "-t", getTargetTestDir("target_modified").getAbsolutePath(),
                 "-sl", "en-US");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void pullCsv() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.csv", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath());
 
         checkExpectedGeneratedResources();
     }
