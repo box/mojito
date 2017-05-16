@@ -8,11 +8,16 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.IOTestBase;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -70,6 +75,9 @@ public class CLITestBase extends IOTestBase {
 
     @Autowired
     AssetRepository assetRepository;
+    
+    @Autowired
+    TextUnitSearcher textUnitSearcher;
 
     @Rule
     public OutputCapture outputCapture = new OutputCapture();
@@ -103,7 +111,7 @@ public class CLITestBase extends IOTestBase {
     public Repository createTestRepoUsingRepoService() throws Exception {
         return createTestRepoUsingRepoService("repo");
     }
- 
+
     public Repository createTestRepoUsingRepoService(String name) throws Exception {
 
         String repoName = testIdWatcher.getEntityName(name);
@@ -112,14 +120,26 @@ public class CLITestBase extends IOTestBase {
         repositoryService.addRepositoryLocale(repository, "fr-FR");
         repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);
         repositoryService.addRepositoryLocale(repository, "ja-JP");
- 
+
         return repository;
     }
 
     public void importTranslations(Long assetId, String baseName, String bcp47Tag) throws IOException {
         File file = new File(getInputResourcesTestDir("translations"), baseName + bcp47Tag + ".xliff");
         String fileContent = Files.toString(file, StandardCharsets.UTF_8);
-        tmImportService.importXLIFF(assetId, fileContent, true);
+        try {
+            tmImportService.importXLIFF(assetId, fileContent, true);
+        } catch (RuntimeException re) {
+            TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+            textUnitSearcherParameters.setAssetId(assetId);
+            textUnitSearcherParameters.setLocaleTags(Arrays.asList("en"));
+            
+            List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+            for (TextUnitDTO textUnitDTO : search) {
+                logger.info("name[{}], source[{}], target[{}], comment[{}]", textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getTarget(), textUnitDTO.getComment());
+            }
+        }
+
     }
 
 }

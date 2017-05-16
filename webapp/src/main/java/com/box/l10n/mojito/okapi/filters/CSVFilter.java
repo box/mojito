@@ -16,6 +16,7 @@ public class CSVFilter extends CommaSeparatedValuesFilter {
     public CSVFilter() {
         super();
 
+        
         setName(FILTER_NAME);
         addConfiguration(
                 false, // Inherit configurations from CommaSeparatedValuesFilter

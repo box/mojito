@@ -1,10 +1,10 @@
 #v1
 fieldDelimiter=,
 textQualifier="
-sourceIdColumns=5
+sourceIdColumns=1
 sourceColumns=2
-targetColumns=4
-commentColumns=7
+targetColumns=3
+commentColumns=4
 sourceIdSourceRefs=2
 targetSourceRefs=2
 commentSourceRefs=2
