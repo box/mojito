@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.filefinder;
 
 import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.CSVFileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
 import com.box.l10n.mojito.cli.filefinder.file.POFileType;
@@ -75,6 +76,7 @@ public class FileFinder {
         fileTypes.add(new ResxFileType());
         fileTypes.add(new POFileType());
         fileTypes.add(new XtbFileType());
+        fileTypes.add(new CSVFileType());
     }
 
     public Path getSourceDirectory() {

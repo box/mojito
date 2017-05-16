@@ -75,13 +75,13 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-  
+
     @Test
     public void importPoPlural() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
         repositoryService.addRepositoryLocale(repository, "ru-RU");
-       
+
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
@@ -97,7 +97,6 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-     
 
     @Test
     public void importProperties() throws Exception {
@@ -139,7 +138,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void importPropertiesNoBaseName() throws Exception {
 
@@ -267,6 +266,25 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir().getAbsolutePath(),
                 "-sl", "en-US");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void importCsv() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir().getAbsolutePath());
 
         checkExpectedGeneratedResources();
     }
