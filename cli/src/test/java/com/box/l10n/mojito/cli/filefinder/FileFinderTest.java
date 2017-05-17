@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.filefinder;
 
 import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.CSVFileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
 import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
@@ -413,6 +414,26 @@ public class FileFinderTest extends IOTestBase {
         Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
         assertEquals(getInputResourcesTestDir().toString() + "/FileFinder1-en-GB.xtb", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/FileFinder1-fr.xtb", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
+    }
+    
+    @Test
+    public void findCsv() throws IOException, FileFinderException {
+        
+        CSVFileType csvFileType = new CSVFileType();
+        
+        FileFinder fileFinder = initFileFinder(true, csvFileType);
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(getInputResourcesTestDir().toString() + "/demo.csv", next.getPath().toString());
+        assertEquals("demo_fr-FR.csv", next.getTargetPath("fr-FR"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir().toString() + "/demo_en-GB.csv", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir().toString() + "/demo_fr-FR.csv", itTargets.next().getPath().toString());
         assertFalse(itTargets.hasNext());
     }
 

@@ -112,7 +112,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     }
 
     /**
-     * This step can be used to import translation from monolingual and 
+     * This step can be used to import translation from monolingual and
      * bi-lingual document. The text container that contains the translation
      * to be imported is either the source or target container
      *
@@ -132,10 +132,10 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
 
     /**
      * Indicates if the target should be imported or not.
-     * 
+     *
      * This is allow to define import strategies when the source and target
      * are the same, etc.
-     * 
+     *
      * @param tmTextUnit in which the target might be added
      * @param target to potentially be imported
      * @return is the translation should be added or not
@@ -162,6 +162,12 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
                 importNoteBuilder = new ImportNoteBuilder();
                 importNoteBuilder.setMustReview(true);
                 importNoteBuilder.addError("Text unit for id: " + textUnit.getId() + ", Skipping it...");
+                documentReviewNeeded = true;
+            } else if (target == null) {
+                logger.debug("Missing target container for TMTextUnit with id: {}. Skipping it...", textUnit.getId());
+                importNoteBuilder = new ImportNoteBuilder();
+                importNoteBuilder.setMustReview(true);
+                importNoteBuilder.addError("Target missing for text unit with id: " + textUnit.getId() + ", Skipping it...");
                 documentReviewNeeded = true;
             } else if (shouldImport(tmTextUnit, target)) {
                 TMTextUnitVariant importTextUnit = importTextUnit(tmTextUnit, target);
@@ -196,7 +202,9 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      * @param xliffState
      */
     void setStateProperty(TextContainer target, XliffState xliffState) {
-        target.setProperty(new Property(com.box.l10n.mojito.okapi.Property.STATE, xliffState.toString()));
+        if (target != null) {
+            target.setProperty(new Property(com.box.l10n.mojito.okapi.Property.STATE, xliffState.toString()));
+        }
     }
 
     /**

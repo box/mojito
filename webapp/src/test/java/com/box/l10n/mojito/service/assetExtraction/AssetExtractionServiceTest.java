@@ -56,9 +56,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     @Test
     public void testProcessAssetShouldProcessCsvFiles() throws Exception {
 
-        String csvContent = "e7341f2db0cfe6a630057bff0eed1394,\"Application description:\",,,Application_description_with_colon,d41d8cd98f00b204e9800998ecf8427e,\"Description of application\"\n"
-                + "ce306a623fba4c0873a3325d5cce3333,\"Box View API key successfully created!\",0,\"Clé Box View API créée !\",Box_view_api_key_successfully_created_,471e627327b00962376364c4af54c889,\n"
-                + "d2fda97e68866012bafc01dbdbe7ddc7,\"Content API Access Only:\",0,\"Accès à Content API uniquement :\",Content_API_Access_Only,7df9b9d8a801c1365393a522e93cba18,\"this is saying the application can only be used with the content API\"";
+        String csvContent = "german_shepherd,german shepherd,Berger allemand,,\n"
+                + "husky,husky,Husky,,\n"
+                + "fox_cub,fox cub,renardeau,fox cub description,";
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
@@ -72,9 +72,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
 
         AssetTextUnit assetTextUnit = assetTextUnits.get(2);
-        assertEquals("Content_API_Access_Only", assetTextUnit.getName());
-        assertEquals("Content API Access Only:", assetTextUnit.getContent());
-        assertEquals("this is saying the application can only be used with the content API", assetTextUnit.getComment());
+        assertEquals("fox_cub", assetTextUnit.getName());
+        assertEquals("fox cub", assetTextUnit.getContent());
+        assertEquals("fox cub description", assetTextUnit.getComment());
         assertNotNull(assetTextUnit.getMd5());
         assertNotNull(assetTextUnit.getContentMd5());
     }
@@ -177,7 +177,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("Test label", assetTextUnits.get(0).getComment());
 
     }
-    
+
     @Test
     public void testResw() throws Exception {
 
@@ -203,7 +203,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("Test label", assetTextUnits.get(0).getComment());
 
     }
-    
+
     @Test
     public void testAndroidStrings() throws Exception {
 
@@ -226,7 +226,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("Test label", assetTextUnits.get(0).getComment());
 
     }
-    
+
     @Test
     public void testAndroidStringsWithSpecialCharacters() throws Exception {
 
@@ -248,7 +248,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("Make sure you'd \"escaped\" <b>special</b> characters like quotes & ampersands.\n", assetTextUnits.get(0).getContent());
 
     }
-    
+
     @Test
     public void testAndroidStringsArray() throws Exception {
 
@@ -270,11 +270,11 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
 
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
-        
+
         assertEquals("$x_Collaborators_0", assetTextUnits.get(0).getName());
         assertEquals("No people", assetTextUnits.get(0).getContent());
         assertEquals("Reference to number of collaborators in folders", assetTextUnits.get(0).getComment());
-        
+
         assertEquals("$x_Collaborators_1", assetTextUnits.get(1).getName());
         assertEquals("1 person", assetTextUnits.get(1).getContent());
         assertEquals("Reference to number of collaborators in folders", assetTextUnits.get(1).getComment());
@@ -283,7 +283,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("%1$d people", assetTextUnits.get(2).getContent());
         assertEquals("Reference to number of collaborators in folders", assetTextUnits.get(2).getComment());
     }
-    
+
     @Test
     public void testAndroidStringsArrayWithEmptyItem() throws Exception {
 
@@ -305,14 +305,14 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
 
         assertEquals("Processing should have extracted 2 text units", 2, assetTextUnits.size());
-        
+
         assertEquals("N_items_failed_to_move_1", assetTextUnits.get(0).getName());
         assertEquals("1 item failed to move", assetTextUnits.get(0).getContent());
 
         assertEquals("N_items_failed_to_move_2", assetTextUnits.get(1).getName());
         assertEquals("%1$d items failed to move", assetTextUnits.get(1).getContent());
     }
-    
+
     @Test
     public void testAndroidStringsPlural() throws Exception {
 
@@ -335,7 +335,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
 
         assertEquals("Processing should have extracted 4 text units", 4, assetTextUnits.size());
-        
+
         assertEquals("numberOfCollaborators_zero", assetTextUnits.get(0).getName());
         assertEquals("No people", assetTextUnits.get(0).getContent());
         assertEquals("Example of plurals", assetTextUnits.get(0).getComment());
@@ -343,16 +343,16 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("numberOfCollaborators_one", assetTextUnits.get(1).getName());
         assertEquals("1 person", assetTextUnits.get(1).getContent());
         assertEquals("Example of plurals", assetTextUnits.get(1).getComment());
-        
+
         assertEquals("numberOfCollaborators_few", assetTextUnits.get(2).getName());
         assertEquals("few people", assetTextUnits.get(2).getContent());
         assertEquals("Example of plurals", assetTextUnits.get(2).getComment());
-        
+
         assertEquals("numberOfCollaborators_other", assetTextUnits.get(3).getName());
         assertEquals("%1$d people", assetTextUnits.get(3).getContent());
         assertEquals("Example of plurals", assetTextUnits.get(3).getComment());
     }
-    
+
     @Test
     public void testMacStrings() throws Exception {
 
@@ -558,8 +558,8 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", assetTextUnits.get(0).getContent());
 
     }
-    
-     @Test
+
+    @Test
     public void testAndroidStringsWithDescriptionInXMLComments() throws Exception {
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
@@ -586,11 +586,11 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("hello", assetTextUnits.get(0).getName());
         assertEquals("Hello", assetTextUnits.get(0).getContent());
         assertEquals("comment for hello", assetTextUnits.get(0).getComment());
-        
+
         assertEquals("hello2", assetTextUnits.get(1).getName());
         assertEquals("Hello2", assetTextUnits.get(1).getContent());
         assertEquals("comment for hello2", assetTextUnits.get(1).getComment());
-        
+
         assertEquals("hello3", assetTextUnits.get(2).getName());
         assertEquals("Hello3", assetTextUnits.get(2).getContent());
         assertEquals("line 1 line 2 line 3", assetTextUnits.get(2).getComment());
