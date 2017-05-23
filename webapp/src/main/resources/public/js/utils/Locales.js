@@ -19,6 +19,27 @@ Cldr.load(require('cldr-data/main/ko/territories.json'));
 Cldr.load(require('cldr-data/main/ru/languages.json'));
 Cldr.load(require('cldr-data/main/ru/territories.json'));
 
+Cldr.load(require('cldr-data/main/de/languages.json'));
+Cldr.load(require('cldr-data/main/de/territories.json'));
+
+Cldr.load(require('cldr-data/main/es/languages.json'));
+Cldr.load(require('cldr-data/main/es/territories.json'));
+
+Cldr.load(require('cldr-data/main/it/languages.json'));
+Cldr.load(require('cldr-data/main/it/territories.json'));
+
+Cldr.load(require('cldr-data/main/ja/languages.json'));
+Cldr.load(require('cldr-data/main/ja/territories.json'));
+
+Cldr.load(require('cldr-data/main/pt/languages.json'));
+Cldr.load(require('cldr-data/main/pt/territories.json'));
+
+Cldr.load(require('cldr-data/main/zh-Hans/languages.json'));
+Cldr.load(require('cldr-data/main/zh-Hans/territories.json'));
+
+Cldr.load(require('cldr-data/main/zh-Hant/languages.json'));
+Cldr.load(require('cldr-data/main/zh-Hant/territories.json'));
+
 class Locales {
 
     constructor() {
@@ -38,10 +59,17 @@ class Locales {
     getSupportedLocales() {
         return [
             'be',
+            'de',
             'en',
+            'es',
             'fr',
+            'it',
+            'ja',
             'ko',
-            'ru'
+            'pt',
+            'ru',
+            'zh-Hans',
+            'zh-Hant'
         ];
     }
 
