@@ -25,7 +25,13 @@ import fr from 'react-intl/locale-data/fr';
 import be from 'react-intl/locale-data/be';
 import ko from 'react-intl/locale-data/ko';
 import ru from 'react-intl/locale-data/ru';
-addLocaleData([...en, ...fr, ...be, ...ko, ...ru]);
+import de from 'react-intl/locale-data/de';
+import es from 'react-intl/locale-data/es';
+import it from 'react-intl/locale-data/it';
+import ja from 'react-intl/locale-data/ja';
+import pt from 'react-intl/locale-data/pt';
+import zh from 'react-intl/locale-data/zh';
+addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
 let history = createHistory();
 
