@@ -139,16 +139,15 @@ class Locales {
     }
 
     /**
-     * Gets the native display name of a locale given its bcp47 tag. Native means in the locale language of the given
-     * locale, eg. getNativeDispalyName('be-BE') -> беларуская
+     * Gets the native display name of a language.
+     * Eg. getNativeDispalyName('be') -> беларуская
      *
-     * @param bcp47Tag bcp47 tag of the locale
+     * @param language language
      * @returns {string} the native display name
      */
-    getNativeDispalyName(bcp47Tag) {
-        const targetCldr = new Cldr(bcp47Tag);
+    getNativeDispalyName(language) {
+        const targetCldr = new Cldr(language);
 
-        const language = targetCldr.attributes.language;
         const languageDisplay = targetCldr.main("localeDisplayNames/languages/" + language);
 
         return languageDisplay;
