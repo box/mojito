@@ -161,6 +161,7 @@ public class FileFinderTest extends IOTestBase {
         assertFalse(itSources.hasNext());
 
         Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir().toString() + "/filefinder_en.properties", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/filefinder_fr.properties", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/filefinder_fr_FR.properties", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/sub/filefinder2_fr.properties", itTargets.next().getPath().toString());

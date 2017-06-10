@@ -7,7 +7,7 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.LOCALE;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.PARENT_PATH;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.PATH_SEPERATOR;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
-import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleType;
+import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleTargetNotSourceType;
 
 /**
  *
@@ -21,7 +21,7 @@ public class MacStringsFileType extends FileType {
         this.subPath = "lproj";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + LOCALE + "}" + DOT + "{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = sourceFilePatternTemplate;
-        this.localeType = new AnyLocaleType();
+        this.localeType = new AnyLocaleTargetNotSourceType();
     }
 
 }
