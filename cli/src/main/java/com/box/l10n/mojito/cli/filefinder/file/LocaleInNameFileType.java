@@ -15,7 +15,6 @@ import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleType;
 public abstract class LocaleInNameFileType extends FileType {
 
     public LocaleInNameFileType() {
-        this.baseNamePattern = ".+?";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = "{" + PARENT_PATH + "}{" + BASE_NAME + "}" + UNDERSCORE + "{" + LOCALE + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.localeType = new AnyLocaleType();
