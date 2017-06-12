@@ -110,7 +110,7 @@
                                         <gradle>awesome</gradle>
                                     </deployProperties>
                                     <publisher>
-                                        <contextUrl>https://box.artifactoryonline.com/box</contextUrl>
+                                        <contextUrl>https://box.jfrog.io/box</contextUrl>
                                         <username>${env.artifactory_username}</username>
                                         <password>${env.artifactory_password}</password>
                                         <repoKey>box-maven-releases</repoKey>
