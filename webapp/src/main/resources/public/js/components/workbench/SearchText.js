@@ -1,4 +1,4 @@
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 import keycode from "keycode";
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";

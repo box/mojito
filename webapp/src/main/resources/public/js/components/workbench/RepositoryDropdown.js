@@ -1,7 +1,7 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import {DropdownButton, MenuItem} from "react-bootstrap";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import RepositoriesStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
@@ -244,7 +244,7 @@ let RepositoryDropDown = React.createClass({
 
         return (
                 <span className="mlm repository-dropdown">
-                <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
+                <DropdownButton id="WorkbenchRepositoryDropdown" title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
                     <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.repository.selectAll"/></MenuItem>
                     <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.repository.selectNone"/></MenuItem>
                     <MenuItem divider/>

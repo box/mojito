@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React from "react";
 import {FormattedMessage, FormattedNumber} from 'react-intl';
-import { History } from "react-router";
+import { withRouter } from "react-router";
 
 import LocaleSelectorModal from "./LocaleSelectorModal";
 import Locales from "../../utils/Locales";
@@ -15,8 +15,6 @@ import {Navbar, Nav, NavItem, NavDropdown, MenuItem, Glyphicon, FormControl} fro
 import {Router, Link} from "react-router";
 
 let Header = React.createClass({
-
-    mixins: [History],
 
     getInitialState() {
         return {
@@ -63,13 +61,13 @@ let Header = React.createClass({
                     <img src="/img/logo.png" className="logo" alt="Box Mojito" />
                 </a>
                 <Nav>
-                    <li className={(this.history.isActive("/repositories")) ? "active" : ""}>
+                    <li className={(this.props.router.isActive("/repositories")) ? "active" : ""}>
                         <Link onClick={RepositoryActions.getAllRepositories} to="/repositories"><FormattedMessage id="header.repositories" /></Link>
                     </li>
-                    <li className={(this.history.isActive("/workbench")) ? "active" : ""}>
+                    <li className={(this.props.router.isActive("/workbench")) ? "active" : ""}>
                         <Link onClick={this.updateSearchParamsForDefaultView} to="/workbench"><FormattedMessage id="header.workbench" /></Link>
                     </li>
-                    <li className={(this.history.isActive("/project-requests")) ? "active" : ""}>
+                    <li className={(this.props.router.isActive("/project-requests")) ? "active" : ""}>
                         <Link onClick={this.updateSearchParamsForDefaultView} to="/project-requests"><FormattedMessage id="header.projectRequests" /></Link>
                     </li>
                 </Nav>
@@ -98,4 +96,4 @@ let Header = React.createClass({
     }
 });
 
-export default Header;
+export default withRouter(Header);

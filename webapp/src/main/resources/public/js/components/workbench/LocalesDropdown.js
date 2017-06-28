@@ -3,7 +3,7 @@ import _ from "lodash";
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
 import {DropdownButton, MenuItem} from "react-bootstrap";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 
 import RepositoryStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
@@ -277,7 +277,7 @@ let LocalesDropDown = React.createClass({
 
         return (
                 <span className="mlm locale-dropdown">
-                <DropdownButton title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
+                <DropdownButton id="WorkbenchLocaleDropdown" title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
                     <MenuItem active={this.isToBeFullyTranslatedActive()} onSelect={this.onSelectToBeFullyTranslated}><FormattedMessage id="search.locale.selectToBeFullyTranslated"/></MenuItem>
                     <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.locale.selectAll"/></MenuItem>
                     <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.locale.selectNone"/></MenuItem>

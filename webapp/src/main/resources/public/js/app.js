@@ -1,9 +1,8 @@
 import $ from "jquery";
 import React from "react";
 import ReactDOM from "react-dom";
-import {Router, Route, IndexRoute} from "react-router";
+import {Router, Route, IndexRoute, browserHistory} from "react-router";
 import {Modal, Button} from "react-bootstrap";
-import {createHistory} from "history";
 import {FormattedMessage, IntlProvider, addLocaleData} from "react-intl";
 import App from "./components/App";
 import BaseClient from "./sdk/BaseClient";
@@ -33,8 +32,6 @@ import pt from 'react-intl/locale-data/pt';
 import zh from 'react-intl/locale-data/zh';
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
-let history = createHistory();
-
 if (!global.Intl) {
     // NOTE: require.ensure would have been nice to use to do module loading
     // but webpack doesn't support ES6 so after Babel transcompile,
@@ -51,25 +48,24 @@ if (!global.Intl) {
 
 function startApp() {
     ReactDOM.render(
-        <IntlProvider locale={LOCALE} messages={MESSAGES}>
-            <Router history={history}>
-                <Route component={Main}>
-                    <Route path="/" component={App}>
-                        <Route path="workbench" component={Workbench} onLeave={onLeaveWorkbench}/>
-                        <Route path="repositories" component={Repositories}/>
-                        <Route path="project-requests" component={Drops}/>
-                        <Route path="settings" component={Settings}/>
-                        <IndexRoute component={Repositories}/>
+            <IntlProvider locale={LOCALE} messages={MESSAGES}>
+                <Router history={browserHistory}>
+                    <Route component={Main}>
+                        <Route path="/" component={App}>
+                            <Route path="workbench" component={Workbench} onLeave={onLeaveWorkbench}/>
+                            <Route path="repositories" component={Repositories} />
+                            <Route path="project-requests" component={Drops}/>
+                            <Route path="settings" component={Settings}/>
+                            <IndexRoute component={Repositories}/>
+                        </Route>
+                        <Route path="login" component={Login}></Route>
                     </Route>
-                    <Route path="login" component={Login}></Route>
-                </Route>
-
-            </Router>
-        </IntlProvider>
-        , document.getElementById("app")
-    );
+            
+                </Router>
+            </IntlProvider>
+            , document.getElementById("app")
+            );
 }
-
 
 /**
  * When leaving the workbench, reset the search param so that when reloading the workbench will start from the
@@ -81,13 +77,24 @@ function onLeaveWorkbench() {
     });
 }
 
-/**
- * Listen to history changes, when doing a POP for the workbench, initialize the SearchParamStore from the query string
- */
-history.listen(location => {
+function loadBasedOnLocation(location) {
     if (location.pathname === '/workbench' && location.action === 'POP') {
         WorkbenchActions.searchParamsChanged(SearchParamsStore.convertQueryToSearchParams(location.query));
     }
+}
+
+/**
+ * Listen to history changes, when doing a POP for the workbench, initialize 
+ * the SearchParamStore from the query string
+ * For the first load the listener is not active, need to access the current
+ * location via getCurrentLocation
+ */
+let currentLocation = browserHistory.getCurrentLocation();
+
+loadBasedOnLocation(currentLocation);
+
+browserHistory.listen(location => {
+    loadBasedOnLocation(location);
 });
 
 /**
@@ -105,21 +112,21 @@ BaseClient.authenticateHandler = function () {
     }
 
     ReactDOM.render(
-        <IntlProvider locale={LOCALE} messages={MESSAGES}>
-            <Modal show={true}>
-                <Modal.Header closeButton={true}>
-                    <Modal.Title>
-                        <FormattedMessage id="error.modal.header.title" />
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <FormattedMessage id="error.modal.message.loggedOut" />
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button bsStyle="primary" onClick={okOnClick}>Okay</Button>
-              </Modal.Footer>
-            </Modal>
-        </IntlProvider>
-    , document.getElementById(containerId));
+            <IntlProvider locale={LOCALE} messages={MESSAGES}>
+                <Modal show={true}>
+                    <Modal.Header closeButton={true}>
+                        <Modal.Title>
+                            <FormattedMessage id="error.modal.header.title" />
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <FormattedMessage id="error.modal.message.loggedOut" />
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button bsStyle="primary" onClick={okOnClick}>Okay</Button>
+                    </Modal.Footer>
+                </Modal>
+            </IntlProvider>
+            , document.getElementById(containerId));
 };
 

@@ -1,7 +1,8 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, ListGroupItem, ListGroup, Modal, Table} from "react-bootstrap";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 import ExportDropConfig from "../../sdk/drop/ExportDropConfig";
 import RepositoryStore from "../../stores/RepositoryStore";
 import DropActions from "../../actions/drop/dropActions";
@@ -15,9 +16,9 @@ let NewDropModal = React.createClass({
     },
 
     propTypes: {
-        "onTranslationRequest": React.PropTypes.func.isRequired,
-        "onReviewRequest": React.PropTypes.func.isRequired,
-        "onClose": React.PropTypes.func.isRequired
+        "onTranslationRequest": PropTypes.func.isRequired,
+        "onReviewRequest": PropTypes.func.isRequired,
+        "onClose": PropTypes.func.isRequired
     },
 
     getInitialState() {

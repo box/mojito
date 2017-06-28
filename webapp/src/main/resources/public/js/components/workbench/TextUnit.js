@@ -1,7 +1,8 @@
 import $ from "jquery";
 import _ from "lodash";
 import keycode from "keycode";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
+import PropTypes from 'prop-types';
 import React from "react";
 import ReactDOM from "react-dom";
 import {FormattedMessage, injectIntl} from "react-intl";
@@ -44,25 +45,25 @@ let TextUnit = React.createClass({
 
     propTypes: {
         /** @type {TextUnit} */
-        "textUnit": React.PropTypes.object.isRequired,
+        "textUnit": PropTypes.object.isRequired,
 
         /** @type {string} Since we don't have immutable objects, and the textunit object is mutated everywhere, this is
          * the best way to ensure we get the freshest translation from the parent.  Always use this instead of the textunit.getTarget()
          * The benefit here is that when the translation prop changes, the component will automatically re-render
          */
-        "translation": React.PropTypes.string,
+        "translation": PropTypes.string,
 
         /** @type {function} */
-        "onEditModeSetToTrue": React.PropTypes.func,
+        "onEditModeSetToTrue": PropTypes.func,
 
         /** @type {function} */
-        "onEditModeSetToFalse": React.PropTypes.func,
+        "onEditModeSetToFalse": PropTypes.func,
 
         /** @type {number} */
-        "textUnitIndex": React.PropTypes.number,
+        "textUnitIndex": PropTypes.number,
 
         /** @type {boolean} */
-        "isActive": React.PropTypes.bool
+        "isActive": PropTypes.bool
     },
 
     /**

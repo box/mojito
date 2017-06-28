@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, ButtonGroup, ButtonToolbar, FormControl, Modal} from "react-bootstrap";
@@ -7,7 +8,7 @@ let TextUnitsreviewModal = React.createClass({
 
     propTypes() {
         return {
-            "isShowModal": React.PropTypes.bool.isRequired
+            "isShowModal": PropTypes.bool.isRequired
         };
     },
 

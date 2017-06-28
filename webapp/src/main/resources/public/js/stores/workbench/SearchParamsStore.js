@@ -173,10 +173,7 @@ class SearchParamsStore {
         //TODO merge this with SEARCHTEXT_CHANGED
 
         if (repoIds !== null) {
-            this.repoIds = [];
-            for (let repoId of repoIds) {
-                this.repoIds.push(repoId);
-            }
+            this.repoIds = repoIds.slice();
         }
 
         if (bcp47Tags !== null) {
@@ -221,14 +218,29 @@ class SearchParamsStore {
      */
     static convertQueryToSearchParams(query) {
 
-        let { repoIds, bcp47Tags,
+        let {
             searchAttribute, searchText, searchType,
             status, used, unUsed,
             pageSize, currentPageNumber, pageOffset } = query;
-
+        
+        let repoIds = query["repoIds[]"];
+        let bcp47Tags = query["bcp47Tags[]"];
+        
+        if (typeof repoIds !== "undefined") {
+            if (Array.isArray(repoIds)) {
+                repoIds = repoIds.map((value) => parseInt(value));
+            } else {
+                repoIds = [parseInt(repoIds)];
+            }
+        }
+        
+        if (typeof bcp47Tags !== "undefined"&& ! Array.isArray(bcp47Tags)) {
+            bcp47Tags = [bcp47Tags];
+        }
+        
         let converted = {
             "changedParam": SearchConstants.UPDATE_ALL,
-            "repoIds": typeof repoIds !== "undefined" ? repoIds.map((value) => parseInt(value)) : null,
+            "repoIds":  typeof repoIds !== "undefined" ? repoIds : null,
             "bcp47Tags": typeof bcp47Tags !== "undefined" ? bcp47Tags : null,
             "searchAttribute": typeof  searchAttribute !== "undefined" ? searchAttribute : null,
             "searchText": typeof  searchText !== "undefined" ? searchText : null,
@@ -240,7 +252,7 @@ class SearchParamsStore {
             "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
             "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null
         };
-
+        
         return converted;
     }
 

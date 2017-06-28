@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import {Table, ProgressBar, Button, Label} from "react-bootstrap";
 import {History, Link} from "react-router";
@@ -15,7 +16,7 @@ let DropDetail = React.createClass({
 
     propTypes: {
         /** @type {Drop} */
-        "drop": React.PropTypes.object.isRequired,
+        "drop": PropTypes.object.isRequired,
 
     },
 
