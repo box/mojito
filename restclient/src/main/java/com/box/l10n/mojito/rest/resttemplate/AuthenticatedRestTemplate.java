@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
@@ -130,22 +131,26 @@ public class AuthenticatedRestTemplate {
      * @return full URI of the REST WS
      */
     public String getURIForResource(String resourcePath) {
-
-        String uri;
+        
+        StringBuilder uri = new StringBuilder();
 
         if (resourcePath.startsWith(resttemplateConfig.getScheme())) {
-            uri = resourcePath;
+            uri.append(resourcePath);
         } else {
-            uri = resttemplateConfig.getScheme() + "://" + resttemplateConfig.getHost();
+            uri.append(resttemplateConfig.getScheme()).append("://").append(resttemplateConfig.getHost());
 
             if (resttemplateConfig.getPort() != 80) {
-                uri += ":" + resttemplateConfig.getPort();
+                uri.append(":").append(resttemplateConfig.getPort());
+            }
+            
+            if (!Strings.isNullOrEmpty(resttemplateConfig.getContextPath())) {
+                uri.append(resttemplateConfig.getContextPath());
             }
 
-            uri += "/" + resourcePath;
+            uri.append("/").append(resourcePath);
         }
 
-        return uri;
+        return uri.toString();
     }
 
     /**

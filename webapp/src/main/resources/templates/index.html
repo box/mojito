@@ -4,23 +4,24 @@
         <title>Mojito</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
-        <link rel="stylesheet" type="text/css" href="/css/mojito.css" />
-        <link rel="stylesheet" type="text/css" href="/css/bootstrap-multiselect.css" />
-        <link rel="stylesheet" type="text/css" href="/css/animate.min.css">
+        <link rel="stylesheet" type="text/css" href="{{contextPath}}/css/mojito.css" />
+        <link rel="stylesheet" type="text/css" href="{{contextPath}}/css/bootstrap-multiselect.css" />
+        <link rel="stylesheet" type="text/css" href="{{contextPath}}/css/animate.min.css">
 
         <script type="text/javascript">
             LOCALE = '{{locale}}';
             CSRF_TOKEN = '{{csrfToken}}';
             USERNAME = '{{username}}';
+            CONTEXT_PATH = '{{contextPath}}';
         </script>
 
-        <script src="/intl/{{locale}}.js"></script>
+        <script src="{{contextPath}}/intl/{{locale}}.js"></script>
 
     </head>
 
     <body>
         <div id="app"></div>
-        <script type="text/javascript" src="/js/bundle.min.js"></script>
+        <script type="text/javascript" src="{{contextPath}}/js/bundle.min.js"></script>
     </body>
 
 </html>

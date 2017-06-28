@@ -15,6 +15,7 @@ import TextUnitsReviewModal from "./TextUnitsReviewModal";
 import TextUnitSelectorCheckBox from "./TextUnitSelectorCheckBox";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import ReviewTextUnitsDTO from "../../stores/workbench/ReviewTextUnitsDTO";
+import UrlHelper from "../../utils/UrlHelper";
 
 let SearchResults = React.createClass({
 
@@ -574,23 +575,27 @@ let SearchResults = React.createClass({
 
         if (!this.state.isSearching) {
             if (!this.state.isReadyForSearching) {
-                result = (
-                    <div className="empty-search-container text-center center-block">
-                        <FormattedMessage id="search.result.selectRepoAndLocale"/>
-                    </div>
-                );
+                result = this.getEmptyStateContainerContent("search.result.selectRepoAndLocale");
             }
             else if (this.state.searchHadNoResults) {
-                result = (
-                    <div className="empty-search-container text-center center-block">
-                        <FormattedMessage id="search.result.empty"/>
-                    </div>);
+                result = this.getEmptyStateContainerContent("search.result.empty");
             }
         }
 
         return result;
     },
       
+    /**
+     * @param {string} messageId message id of the message to be displayed 
+     * @returns {JSX}
+     */
+    getEmptyStateContainerContent(messageId) {
+        return <div className="empty-search-container text-center center-block">
+                    <div><FormattedMessage id={messageId}/></div>
+                    <img className="empty-search-container-img" src={UrlHelper.getUrlWithContextPath('/img/magnifying-glass.svg')} />
+            </div>;
+    },
+
     render() {
         return (
             <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>

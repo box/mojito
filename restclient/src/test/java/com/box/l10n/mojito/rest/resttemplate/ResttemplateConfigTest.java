@@ -32,6 +32,7 @@ public class ResttemplateConfigTest {
         assertEquals("http", resttemplateConfig.getScheme());
         assertEquals("admin", resttemplateConfig.getAuthentication().getUsername());
         assertEquals("ChangeMe", resttemplateConfig.getAuthentication().getPassword());
+        assertEquals("", resttemplateConfig.getContextPath());
     }
 
 }

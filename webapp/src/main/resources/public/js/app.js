@@ -1,7 +1,8 @@
 import $ from "jquery";
 import React from "react";
 import ReactDOM from "react-dom";
-import {Router, Route, IndexRoute, browserHistory} from "react-router";
+import {Router, Route, IndexRoute, useRouterHistory} from "react-router";
+import { createHistory } from 'history'
 import {Modal, Button} from "react-bootstrap";
 import {FormattedMessage, IntlProvider, addLocaleData} from "react-intl";
 import App from "./components/App";
@@ -14,6 +15,7 @@ import Drops from "./components/drops/Drops";
 import Settings from "./components/settings/Settings";
 import WorkbenchActions from "./actions/workbench/WorkbenchActions";
 import SearchConstants from "./utils/SearchConstants";
+import UrlHelper from "./utils/UrlHelper";
 import SearchParamsStore from "./stores/workbench/SearchParamsStore";
 
 // NOTE this way of adding locale data is only recommeneded if there are a few locales.
@@ -32,13 +34,15 @@ import pt from 'react-intl/locale-data/pt';
 import zh from 'react-intl/locale-data/zh';
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
+const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
+
 if (!global.Intl) {
     // NOTE: require.ensure would have been nice to use to do module loading
     // but webpack doesn't support ES6 so after Babel transcompile,
     // require.ensure is no longer available.
     // https://webpack.github.io/docs/code-splitting.html#es6-modules
-    $.getScript('/webjars/Intl.js/dist/Intl.min.js', () => {
-        $.getScript('/webjars/Intl.js/locale-data/jsonp/' + LOCALE + '.js', () => {
+    $.getScript(getUrlWithContextPath('/webjars/Intl.js/dist/Intl.min.js'), () => {
+        $.getScript(getUrlWithContextPath('/webjars/Intl.js/locale-data/jsonp/') + LOCALE + '.js', () => {
             startApp();
         });
     });
@@ -108,7 +112,7 @@ BaseClient.authenticateHandler = function () {
         let pathNameStrippedLeadingSlash = location.pathname.substr(1, location.pathname.length);
         let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
 
-        window.location.href = "/login?" + $.param({"showPage": currentLocation});
+        window.location.href = UrlHelper.getUrlWithContextPath("/login?") + $.param({"showPage": currentLocation});
     }
 
     ReactDOM.render(

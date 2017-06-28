@@ -2,6 +2,7 @@ import $ from "jquery";
 import React from "react";
 import {FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
 import {FormControl, Button} from "react-bootstrap";
+import UrlHelper from "../utils/UrlHelper";
 
 let Login = React.createClass({
 
@@ -42,7 +43,7 @@ let Login = React.createClass({
      * @return {string}
      */
     getLoginFormPostUrl: function (showPage) {
-        let result = '/login';
+        let result = UrlHelper.getUrlWithContextPath('/login');
 
         if (showPage) {
             result += '?' + $.param({"showPage": showPage});
@@ -62,7 +63,7 @@ let Login = React.createClass({
             <div className="container login-container">
                 <div className="row">
                     <div className="center-block login-logo-container">
-                        <img src="/img/logo-login.png" className="logo mbm" alt="Mojito"/>
+                        <img src={UrlHelper.getUrlWithContextPath("/img/logo-login.png")} className="logo mbm" alt="Mojito"/>
                     </div>
                     <div className="center-block login-form-container">
                         <form action={loginFormPostUrl} method="post">

@@ -15,6 +15,7 @@ public class ResttemplateConfig {
     String host = "localhost";
     Integer port = 8080;
     String scheme = "http";
+    String contextPath = "";
 
     Authentication authentication = new Authentication();
 
@@ -88,4 +89,11 @@ public class ResttemplateConfig {
         this.authentication = authentication;
     }
 
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
 }
