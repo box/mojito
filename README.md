@@ -5,7 +5,7 @@ Mojito
 [![Project Status](http://opensource.box.com/badges/active.svg)](http://opensource.box.com/badges)
 [![Build Status](https://travis-ci.org/box/mojito.svg?branch=master)](https://travis-ci.org/box/mojito/branches)
 
-Mojito is a continuous localization platform. Rely on continuous integration to collect all of your software strings in one place. Check what products need localization—in real time. Create and import translation packages—with a single click. Search and edit translations—across all products and languages! And if you have a small dedicated translation team, they can work directly in mojito.
+Mojito is a continuous localization platform. Rely on continuous integration to collect all of your software strings in one place. Check what products need localization in real time. Create and import translation packages with a single click. Search and edit translations across all products and languages! And if you have a small dedicated translation team, they can work directly in mojito.
 
 ### Features:
 - Extract (push) strings from your repository to be translated
