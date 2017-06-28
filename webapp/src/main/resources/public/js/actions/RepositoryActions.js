@@ -1,18 +1,15 @@
-import $ from "jquery";
 import alt from "../alt";
+import RepositoryClient from "../sdk/RepositoryClient";
 
 class RepositoryActions {
 
     init() {
-        this.actions.getAllRepositories();
+        this.getAllRepositories();
     }
 
     getAllRepositories() {
-
-        //TODO this is not good it must use the SDK'
-
-        $.get("/api/repositories").then(response => {
-           this.dispatch(response);
+        return (dispatch) => RepositoryClient.getRepositories().then(response => {
+           dispatch(response);
         });
     }
 }
