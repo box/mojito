@@ -12,7 +12,7 @@ services:
       MYSQL_PASSWORD: ChangeMe
     command:
       - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
+      - --collation-server=utf8mb4_bin
   webapp:
     depends_on:
       - db
