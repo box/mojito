@@ -234,7 +234,7 @@ class SearchParamsStore {
             }
         }
         
-        if (typeof bcp47Tags !== "undefined"&& ! Array.isArray(bcp47Tags)) {
+        if (typeof bcp47Tags !== "undefined" && ! Array.isArray(bcp47Tags)) {
             bcp47Tags = [bcp47Tags];
         }
         

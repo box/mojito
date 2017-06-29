@@ -123,7 +123,9 @@ BaseClient.authenticateHandler = function () {
                         <FormattedMessage id="error.modal.message.loggedOut" />
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button bsStyle="primary" onClick={okOnClick}>Okay</Button>
+                        <Button bsStyle="primary" onClick={okOnClick}>
+                            <FormattedMessage id="label.okay" />
+                        </Button>
                     </Modal.Footer>
                 </Modal>
             </IntlProvider>

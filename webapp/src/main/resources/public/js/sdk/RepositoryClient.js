@@ -9,7 +9,6 @@ class RepositoryClient extends BaseClient {
     getEntityName() {
         return 'repositories';
     }
-}
-;
+};
 
 export default new RepositoryClient();
