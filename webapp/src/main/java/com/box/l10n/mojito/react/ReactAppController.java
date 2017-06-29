@@ -4,18 +4,19 @@ import com.box.l10n.mojito.rest.security.CsrfTokenController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * The controller used to serve the React application.
@@ -48,7 +49,10 @@ public class ReactAppController {
 
     @Autowired
     CsrfTokenController csrfTokenController;
-
+    
+    @Value("${server.contextPath:}")
+    String contextPath = "";
+   
     //TODO(P1) For now, client routes must be copied in this controller
     @RequestMapping({
         "/",
@@ -66,6 +70,7 @@ public class ReactAppController {
         index.addObject("locale", getValidLocaleFromCookie(localeCookieValue));
         index.addObject("csrfToken", csrfTokenController.getCsrfToken(httpServletRequest));
         index.addObject("username", getUsername());
+        index.addObject("contextPath", contextPath);
 
         return index;
     }

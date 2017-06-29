@@ -5,6 +5,7 @@ import { withRouter } from "react-router";
 
 import LocaleSelectorModal from "./LocaleSelectorModal";
 import Locales from "../../utils/Locales";
+import UrlHelper from "../../utils/UrlHelper";
 
 import RepositoryActions from "../../actions/RepositoryActions";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
@@ -58,7 +59,7 @@ let Header = React.createClass({
         return (
             <Navbar fluid={true}>
                 <a className="navbar-brand">
-                    <img src="/img/logo.png" className="logo" alt="Box Mojito" />
+                    <img src={UrlHelper.getUrlWithContextPath('/img/logo.png')} className="logo" alt="Box Mojito" />
                 </a>
                 <Nav>
                     <li className={(this.props.router.isActive("/repositories")) ? "active" : ""}>
@@ -84,7 +85,7 @@ let Header = React.createClass({
 
                         <MenuItem divider />
                         <MenuItem onSelect={this.logoutSelected}>
-                            <form action="/logout" method="post" ref="logoutForm">
+                            <form action={UrlHelper.getUrlWithContextPath("/logout")} method="post" ref="logoutForm">
                                 <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
                                 <FormattedMessage id="header.loggedInUser.logout" />
                             </form>

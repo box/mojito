@@ -1,4 +1,5 @@
 import $ from "jquery";
+import UrlHelper from "./UrlHelper";
 
 class LocationHistory {
 
@@ -13,7 +14,7 @@ class LocationHistory {
      * @param {object} params params to build the query string
      */
     updateLocation(router, pathname, params) {
-        if (window.location.pathname === pathname) {
+        if (window.location.pathname === UrlHelper.getUrlWithContextPath(pathname)) {
             let newQuery = this.buildQuery(params);
 
             if (window.location.search === "") {

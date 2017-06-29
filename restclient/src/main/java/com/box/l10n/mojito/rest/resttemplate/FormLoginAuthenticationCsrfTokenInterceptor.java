@@ -56,6 +56,9 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
      */
     @Autowired
     AuthenticatedRestTemplate authRestTemplate;
+    
+    @Autowired
+    ResttemplateConfig resttemplateConfig;
 
     /**
      * This is used for the authentication flow to keep things separate from the
@@ -274,7 +277,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
         // hacky. Bascailly it says that authentication is successful if a 302 is returned
         // and the redirect (from location header) maps to the login redirect path from the config. 
         URI locationURI = URI.create(postLoginResponseEntity.getHeaders().get("Location").get(0));
-        String expectedLocation = "/" + formLoginConfig.getLoginRedirectPath();
+        String expectedLocation = resttemplateConfig.getContextPath() + "/" + formLoginConfig.getLoginRedirectPath();
         
         if (postLoginResponseEntity.getStatusCode().equals(HttpStatus.FOUND)
                 && expectedLocation.equals(locationURI.getPath())) {
@@ -286,7 +289,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
         } else {
             throw new SessionAuthenticationException("Authentication failed.  Post login status code = " + postLoginResponseEntity.getStatusCode()
-                    + ", location = [" + locationURI.getPath() + "], expected location = [" + formLoginConfig.getLoginRedirectPath()+ "]");
+                    + ", location = [" + locationURI.getPath() + "], expected location = [" + expectedLocation + "]");
         }
     }
 

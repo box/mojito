@@ -2,8 +2,7 @@ import $ from "jquery";
 
 class BaseClient {
     constructor() {
-        //TODO configure this!!
-        this.baseUrl = location.origin + '/api/';
+        this.baseUrl = location.origin + CONTEXT_PATH +  '/api/';
     }
 
     /**

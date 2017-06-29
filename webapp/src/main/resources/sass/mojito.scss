@@ -634,14 +634,15 @@ label.current-pageNumber {
 }
 
 .empty-search-container {
-  background-image: url("/img/magnifying-glass.svg");
-  background-repeat: no-repeat;
-  background-size: 125px;
-  background-position: center;
   width: 600px;
   height: 300px;
   opacity: 0.5;
   margin-top: 80px;
+}
+
+.empty-search-container-img {
+    margin-top: 20px;
+    width: 125px;
 }
 
 .search-text .glyphicon-refresh.spinning {
