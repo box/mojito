@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, Modal, ListGroup, ListGroupItem} from "react-bootstrap";
@@ -7,7 +8,7 @@ import Locales from "../../utils/Locales";
 let LocaleSelectorModal = React.createClass({
 
     propTypes: {
-        "onClose": React.PropTypes.func.isRequired
+        "onClose": PropTypes.func.isRequired
     },
 
     getInitialState() {

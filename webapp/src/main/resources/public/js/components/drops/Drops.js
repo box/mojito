@@ -14,7 +14,7 @@ import {
 } from "react-bootstrap";
 import {FormattedMessage, FormattedDate, FormattedNumber, injectIntl} from "react-intl";
 import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 import PageRequestParams from "../../sdk/PageRequestParams";
 import CancelDropConfig from "../../sdk/drop/CancelDropConfig";
 import Drop from "../../sdk/drop/Drop";

@@ -2,10 +2,10 @@ import $ from "jquery";
 import _ from "lodash";
 
 import React from "react";
-import { History } from "react-router";
+import { withRouter } from "react-router";
 import {FormattedMessage, FormattedNumber} from 'react-intl';
 
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 
 import LocalesDropdown from "./LocalesDropdown";
 
@@ -21,9 +21,11 @@ import SearchConstants from "../../utils/SearchConstants";
 
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
+import LocationHistory from "../../utils/LocationHistory";
+
 let Workbench = React.createClass({
 
-    mixins: [FluxyMixin, History],
+    mixins: [FluxyMixin],
 
     statics: {
         storeListeners: {
@@ -53,17 +55,7 @@ let Workbench = React.createClass({
      * @param {object} searchParams The SearchParamsStore state
      */
     updateLocationForSearchParam(searchParams) {
-
-        if (window.location.pathname === "/workbench") {
-
-            let newQuery = this.buildQuery(searchParams);
-
-            if (window.location.search === "") {
-                this.history.replaceState(null, "/workbench?" + newQuery, null);
-            } else if ( !this.isCurrentQueryEqual("?" + newQuery)) {
-                this.history.pushState(null, "/workbench?" + newQuery, null);
-            }
-        }
+        LocationHistory.updateLocation(this.props.router, "/workbench", searchParams);
     },
 
     /**
@@ -107,4 +99,4 @@ let Workbench = React.createClass({
     }
 });
 
-export default Workbench;
+export default withRouter(Workbench);

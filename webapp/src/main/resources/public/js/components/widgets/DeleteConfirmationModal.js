@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
@@ -5,10 +6,10 @@ import {Button, Modal} from "react-bootstrap";
 let DeleteConfirmationModal = React.createClass({
 
     propTypes: {
-        "showModal": React.PropTypes.bool.isRequired,
-        "modalBodyMessage": React.PropTypes.string.isRequired,
-        "onDeleteCancelledCallback": React.PropTypes.func.isRequired,
-        "onDeleteClickedCallback": React.PropTypes.func.isRequired
+        "showModal": PropTypes.bool.isRequired,
+        "modalBodyMessage": PropTypes.string.isRequired,
+        "onDeleteCancelledCallback": PropTypes.func.isRequired,
+        "onDeleteClickedCallback": PropTypes.func.isRequired
     },
 
     getDefaultProps() {

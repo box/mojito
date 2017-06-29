@@ -1,5 +1,5 @@
 import _ from "lodash";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 import keycode from "keycode";
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
@@ -590,7 +590,7 @@ let SearchResults = React.createClass({
 
         return result;
     },
-
+      
     render() {
         return (
             <div onKeyUp={this.onKeyUpSearchResults} onClick={this.onChangeSearchResults}>

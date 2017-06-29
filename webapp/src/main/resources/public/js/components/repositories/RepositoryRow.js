@@ -1,15 +1,13 @@
 import React from "react";
 import {ProgressBar, Tooltip, OverlayTrigger, Label, Glyphicon} from "react-bootstrap";
 import {FormattedMessage, FormattedDate, FormattedNumber} from "react-intl";
-import {History, Link} from "react-router";
+import {Link} from "react-router";
 import RepositoryStore from "../../stores/RepositoryStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
 let RepositoryRow = React.createClass({
-
-    mixins: [History],
 
     /**
      * @return {{percent: number}}

@@ -2,7 +2,7 @@ import _ from "lodash";
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
 import {DropdownButton, MenuItem} from "react-bootstrap";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
@@ -131,7 +131,7 @@ let StatusDropdown = React.createClass({
     render() {
 
         return (
-            <DropdownButton title={this.props.intl.formatMessage({ id: "search.statusDropdown.title" })}>
+            <DropdownButton id="WorkbenchStatusDropdown" title={this.props.intl.formatMessage({ id: "search.statusDropdown.title" })}>
 
                 <MenuItem header><FormattedMessage id="search.statusDropdown.status" /></MenuItem>
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.ALL)}

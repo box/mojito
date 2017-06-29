@@ -1,6 +1,6 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
-import FluxyMixin from "alt/mixins/FluxyMixin";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 import {Button, Collapse, Modal, Label, OverlayTrigger, Tooltip} from "react-bootstrap";
 import BoxSDKConfigActions from "../../actions/boxsdk/BoxSDKConfigActions";
 import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
