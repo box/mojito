@@ -63,7 +63,11 @@ let Header = React.createClass({
                 </a>
                 <Nav>
                     <li className={(this.props.router.isActive("/repositories")) ? "active" : ""}>
-                        <Link onClick={RepositoryActions.getAllRepositories} to="/repositories"><FormattedMessage id="header.repositories" /></Link>
+                        <Link onClick={() => {
+                            if (this.props.router.isActive("/repositories")) {
+                                  RepositoryActions.getAllRepositories();
+                            }}}
+                         to="/repositories"><FormattedMessage id="header.repositories" /></Link>
                     </li>
                     <li className={(this.props.router.isActive("/workbench")) ? "active" : ""}>
                         <Link onClick={this.updateSearchParamsForDefaultView} to="/workbench"><FormattedMessage id="header.workbench" /></Link>

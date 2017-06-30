@@ -45,7 +45,6 @@ class BaseClient {
      * @param {Response} response
      */
     handleUnauthenticatedResponse(response) {
-        console.log(response.status);
         if (response.status === 401) {
             BaseClient.authenticateHandler();
         }

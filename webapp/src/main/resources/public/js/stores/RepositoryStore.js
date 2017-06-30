@@ -1,19 +1,21 @@
 import alt from "../alt";
 import RepositoryActions from "../actions/RepositoryActions";
+import RepositoryDataSource from "../actions/RepositoryDataSource";
 import RepositoryLocale from "../sdk/entity/RepositoryLocale";
 
 class RepositoryStore {
 
     constructor() {
-
-        this.repositories = [];
-
-        this.bindListeners({
-            handleUpdateRepositories: RepositoryActions.GET_ALL_REPOSITORIES
-        });
+        this.repositories = [];        
+        this.bindActions(RepositoryActions);
+        this.registerAsync(RepositoryDataSource);
     }
 
-    handleUpdateRepositories(repositories) {
+    getAllRepositories() {
+        this.getInstance().getAllRepositories();
+    }
+
+    getAllRepositoriesSuccess(repositories) {
         this.repositories = repositories;
     }
 

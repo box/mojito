@@ -32,7 +32,6 @@ let RepositoryDropDown = React.createClass({
      * Handler for when RepositoryStore is updated
      */
     onRepositoriesFetched() {
-
         let searchParams = SearchParamsStore.getState();
 
         if (searchParams.changedParam === SearchConstants.REPOSITORIES_CHANGED ||

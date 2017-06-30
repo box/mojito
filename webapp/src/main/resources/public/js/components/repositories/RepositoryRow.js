@@ -347,7 +347,7 @@ let RepositoryRow = React.createClass({
 
         return (
             <tr className={rowClass}>
-                <td className="repo-name" overlay={descriptionTooltip}>
+                <td className="repo-name">
                     <OverlayTrigger placement="right" overlay={descriptionTooltip}>
                         <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)}
                               to='/workbench'>{this.props.rowData.name}</Link>

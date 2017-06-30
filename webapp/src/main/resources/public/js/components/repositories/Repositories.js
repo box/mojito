@@ -7,26 +7,31 @@ import RepositoryHeaderColumn from "./RepositoryHeaderColumn";
 import RepositoryRow from "./RepositoryRow";
 import RepositoryActions from "../../actions/RepositoryActions";
 import RepositoryStatistic from "../../components/repositories/RepositoryStatistic";
+import FluxyMixin from "alt-mixins/FluxyMixin";
 
 let Repositories = React.createClass({
 
+    mixins: [FluxyMixin],
+
+    statics: {
+        storeListeners: {
+            "onRepositoryStoreChanged": RepositoryStore
+        }
+    },
+
     getInitialState: function () {
         let state = RepositoryStore.getState();
-
         state.isLocaleStatsShown = false;
         state.activeRepoId = null;
-
         return state;
     },
 
     componentDidMount: function () {
-        RepositoryActions.init();
-
-        RepositoryStore.listen(this.dataChanged);
+        RepositoryActions.getAllRepositories();
     },
-
-    componentWillUnmount: function () {
-        RepositoryStore.unlisten(this.dataChanged);
+    
+    onRepositoryStoreChanged: function () {
+        this.setState(RepositoryStore.getState());
     },
 
     getTableRow: function (rowData) {
@@ -105,12 +110,7 @@ let Repositories = React.createClass({
                 </ReactSidebarResponsive>
             </div>
         );
-    },
-
-    dataChanged: function (state) {
-        this.setState(state);
     }
-
 });
 
 export default Repositories;
