@@ -23,7 +23,17 @@ var config = {
 };
 
 if (minimize) {
+    
+    config.plugins.push(
+    new webpack.DefinePlugin({
+      'process.env': {
+        'NODE_ENV': JSON.stringify('production')
+      }
+    }));
+    
+    config.plugins.push(new webpack.optimize.DedupePlugin()); 
     config.plugins.push(new webpack.optimize.UglifyJsPlugin());
+    config.plugins.push(new webpack.optimize.AggressiveMergingPlugin());
 }
 
 if (inlineSourceMap) {
