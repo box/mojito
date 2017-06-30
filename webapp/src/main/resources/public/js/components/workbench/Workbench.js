@@ -11,7 +11,7 @@ import LocalesDropdown from "./LocalesDropdown";
 
 import RepositoryActions from "../../actions/RepositoryActions";
 import RepositoryDropDown from "./RepositoryDropdown";
-import RepositoriesStore from "../../stores/RepositoryStore";
+import RepositoryStore from "../../stores/RepositoryStore";
 
 import SearchResults from "./SearchResults";
 import StatusDropdown from "./StatusDropdown";
@@ -45,7 +45,7 @@ let Workbench = React.createClass({
     onSearchParamsStoreChanged: function (searchParams) {
         this.updateLocationForSearchParam(searchParams);
     },
-
+    
     /**
      * Updates the browser location based to reflect search
      *
@@ -79,7 +79,6 @@ let Workbench = React.createClass({
     },
 
     render: function () {
-        
         return (
             <div>
                 <div className="pull-left">

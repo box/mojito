@@ -69,7 +69,6 @@ let Drops = React.createClass({
 
     componentDidMount() {
         RepositoryActions.getAllRepositories();
-
         this.fetchDrops();
     },
 
