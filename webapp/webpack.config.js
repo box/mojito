@@ -1,43 +1,83 @@
-var path = require("path"),
-    webpack = require("webpack"),
-    minimize = process.argv.indexOf("--minimize") !== -1,
-    inlineSourceMap = process.argv.indexOf("--inline-source-map") !== -1;
+var path = require('path');
+var webpack = require("webpack");
 
-var config = {
-    entry: "./src/main/resources/public/js/app.js",
-    output: {path: "./target/classes/public/js", filename: "bundle.min.js"},
-    module: {
-        loaders: [
-            {
-                test: /\.jsx?$/,
-                loader: "babel-loader",
-                exclude: /node_modules/,
-                query: {
-                    presets: ["es2015", "react"]
+module.exports = function (env) {
+
+    env = env || {};
+
+    var config = {
+        entry: {
+            app: path.resolve(__dirname, './src/main/resources/public/js/app.js')
+        },
+        output: {
+            path: path.resolve(__dirname, './target/classes/public'),
+            publicPath: '{{contextPath}}',
+            filename: 'js/[name]-[hash].js'
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.jsx?$/,
+                    exclude: /node_modules/,
+                    use: {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: ['es2015', 'react']
+                        }
+                    }
+                },
+                {
+                    test: /\.(gif|png|jpe?g|svg)$/i,
+                    loaders: [
+                        {
+                            loader: 'file-loader',
+                            options: {
+                               name: 'img/[name]-[hash].[ext]',
+                            }
+                        },
+                        {
+                            loader: 'image-webpack-loader',
+                            query: {
+                                name: 'img/[name]-[hash].[ext]',
+                                progressive: true,
+                                optimizationLevel: 7,
+                                interlaced: false,
+                                pngquant: {
+                                    quality: '65-90',
+                                    speed: 4
+                                }
+                            }
+                        }
+                    ]
                 }
-            },
-            {test: /\.json$/, loader: "json"}
-        ]
-    },
-    plugins: []
-};
+            ]
+        },
+        plugins: []
+    };
 
-if (minimize) {
-    
-    config.plugins.push(
-    new webpack.DefinePlugin({
-      'process.env': {
-        'NODE_ENV': JSON.stringify('production')
-      }
+
+    var HtmlWebpackPlugin = require('html-webpack-plugin');
+    config.plugins.push(new HtmlWebpackPlugin({
+        filename: path.resolve(__dirname, './target/classes/templates/index.html'),
+        template: 'src/main/resources/templates/index.html'
     }));
-    
-    config.plugins.push(new webpack.optimize.DedupePlugin()); 
-    config.plugins.push(new webpack.optimize.UglifyJsPlugin());
-    config.plugins.push(new webpack.optimize.AggressiveMergingPlugin());
-}
 
-if (inlineSourceMap) {
-    config.devtool = "inline-source-map";
-}
+    if (env.minimize) {
+        config.plugins.push(
+                new webpack.DefinePlugin({
+                    'process.env': {
+                        'NODE_ENV': JSON.stringify('production')
+                    }
+                }));
 
-module.exports = config;
+        config.plugins.push(new webpack.optimize.DedupePlugin());
+        config.plugins.push(new webpack.optimize.UglifyJsPlugin());
+        config.plugins.push(new webpack.optimize.AggressiveMergingPlugin());
+    }
+
+    if (env.inlineSourceMap) {
+        config.devtool = "inline-source-map";
+    }
+
+    return config;
+};

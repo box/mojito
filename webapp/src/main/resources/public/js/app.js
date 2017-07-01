@@ -34,6 +34,8 @@ import pt from 'react-intl/locale-data/pt';
 import zh from 'react-intl/locale-data/zh';
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
+__webpack_public_path__ = CONTEXT_PATH + "/";
+
 const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
 
 if (!global.Intl) {
