@@ -3,7 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import {Router, Route, IndexRoute, useRouterHistory} from "react-router";
 import { createHistory } from 'history'
-import {Modal, Button} from "react-bootstrap";
+        import {Modal, Button} from "react-bootstrap";
 import {FormattedMessage, IntlProvider, addLocaleData} from "react-intl";
 import App from "./components/App";
 import BaseClient from "./sdk/BaseClient";
@@ -38,23 +38,36 @@ __webpack_public_path__ = CONTEXT_PATH + "/";
 
 const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
 
-if (!global.Intl) {
-    // NOTE: require.ensure would have been nice to use to do module loading
-    // but webpack doesn't support ES6 so after Babel transcompile,
-    // require.ensure is no longer available.
-    // https://webpack.github.io/docs/code-splitting.html#es6-modules
-    $.getScript(getUrlWithContextPath('/webjars/Intl.js/dist/Intl.min.js'), () => {
-        $.getScript(getUrlWithContextPath('/webjars/Intl.js/locale-data/jsonp/') + LOCALE + '.js', () => {
-            startApp();
+import(
+  /* webpackChunkName: "[request]", webpackMode: "lazy" */
+  `../../properties/${LOCALE}.properties`).then(messages => {
+    
+    if (!global.Intl) {
+        // NOTE: require.ensure would have been nice to use to do module loading
+        // but webpack doesn't support ES6 so after Babel transcompile,
+        // require.ensure is no longer available.
+        // https://webpack.github.io/docs/code-splitting.html#es6-modules
+        $.getScript(getUrlWithContextPath('/webjars/Intl.js/dist/Intl.min.js'), () => {
+            $.getScript(getUrlWithContextPath('/webjars/Intl.js/locale-data/jsonp/') + LOCALE + '.js', () => {
+                startApp(getMergedMessages(messages));
+            });
         });
-    });
-} else {
-    startApp();
+    } else {
+        startApp(getMergedMessages(messages));
+    }
+});
+
+
+//TODO should implement merging logic as part of the build in a specific loader
+var enMessages = require(`../../properties/en.properties`);
+
+function getMergedMessages(messages) {
+    return messages = _.merge(enMessages, messages);
 }
 
-function startApp() {
+function startApp(messages) {
     ReactDOM.render(
-            <IntlProvider locale={LOCALE} messages={MESSAGES}>
+            <IntlProvider locale={LOCALE} messages={messages}>
                 <Router history={browserHistory}>
                     <Route component={Main}>
                         <Route path="/" component={App}>

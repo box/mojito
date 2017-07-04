@@ -7,12 +7,13 @@ module.exports = function (env) {
 
     var config = {
         entry: {
-            app: path.resolve(__dirname, './src/main/resources/public/js/app.js')
+            'app' : path.resolve(__dirname, './src/main/resources/public/js/app.js'),
         },
         output: {
             path: path.resolve(__dirname, './target/classes/public'),
-            publicPath: '{{contextPath}}',
-            filename: 'js/[name]-[hash].js'
+            publicPath: '/',
+            filename: 'js/[name]-[hash].js',
+            chunkFilename: 'js/[name]-[chunkhash]'
         },
         module: {
             rules: [
@@ -22,7 +23,7 @@ module.exports = function (env) {
                     use: {
                         loader: 'babel-loader',
                         options: {
-                            presets: ['es2015', 'react']
+                            presets: ['es2015', 'react', 'stage-0']
                         }
                     }
                 },
@@ -49,7 +50,17 @@ module.exports = function (env) {
                             }
                         }
                     ]
-                }
+                },
+                {
+                    test: /\.properties$/,
+                    exclude: /node_modules/,
+                    loaders: [
+                        {
+                            loader: 'java-properties-flat-loader'
+                        }
+                    ]
+                    
+                }   
             ]
         },
         plugins: []
@@ -59,7 +70,8 @@ module.exports = function (env) {
     var HtmlWebpackPlugin = require('html-webpack-plugin');
     config.plugins.push(new HtmlWebpackPlugin({
         filename: path.resolve(__dirname, './target/classes/templates/index.html'),
-        template: 'src/main/resources/templates/index.html'
+        template: 'src/main/resources/templates/index.html',
+        inject: false
     }));
 
     if (env.minimize) {
