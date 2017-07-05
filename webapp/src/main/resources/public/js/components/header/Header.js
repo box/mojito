@@ -28,7 +28,7 @@ let Header = React.createClass({
     },
 
     settingsSelected: function () {
-        location.href = "/settings";
+        location.href = UrlHelper.getUrlWithContextPath("/settings");
     },
 
     openLocaleSelectorModal: function () {
