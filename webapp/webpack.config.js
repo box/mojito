@@ -33,20 +33,28 @@ module.exports = function (env) {
                         {
                             loader: 'file-loader',
                             options: {
-                               name: 'img/[name]-[hash].[ext]',
+                                name: 'img/[name]-[hash].[ext]',
                             }
                         },
                         {
                             loader: 'image-webpack-loader',
                             query: {
                                 name: 'img/[name]-[hash].[ext]',
-                                progressive: true,
-                                optimizationLevel: 7,
-                                interlaced: false,
-                                pngquant: {
-                                    quality: '65-90',
-                                    speed: 4
-                                }
+                                query: {
+                                    mozjpeg: {
+                                        progressive: true
+                                    },
+                                    gifsicle: {
+                                        interlaced: false
+                                    },
+                                    optipng: {
+                                        optimizationLevel: 4
+                                    },
+                                    pngquant: {
+                                        quality: '75-90',
+                                        speed: 3
+                                    },
+                                },
                             }
                         }
                     ]
