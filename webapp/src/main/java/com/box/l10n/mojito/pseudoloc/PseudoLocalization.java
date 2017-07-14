@@ -3,10 +3,12 @@ package com.box.l10n.mojito.pseudoloc;
 import java.util.HashMap;
 import java.util.Map;
 import com.google.common.base.Strings;
+import org.springframework.stereotype.Component;
 
 /**
  * @author srizvi
  */
+@Component
 public class PseudoLocalization {
     private static final int EXPANSION_FACTOR = 30;
     private static final String BEGINNING_CHAR = "萬";
