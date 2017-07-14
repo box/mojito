@@ -78,7 +78,9 @@ public class PseudoLocCommand extends Command {
     @Override
     public void execute() throws CommandException {
         consoleWriter.newLine().a("Pull pseudo localized asset from repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
+
         repository = commandHelper.findRepositoryByName(repositoryParam);
+
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
