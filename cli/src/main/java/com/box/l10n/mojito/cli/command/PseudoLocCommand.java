@@ -69,7 +69,7 @@ public class PseudoLocCommand extends Command {
 
     CommandDirectories commandDirectories;
 
-    public static final String outputBcp47tag = "en-x-pseudo";
+    public static final String OUTPUT_BCP47_TAG = "en-x-pseudo";
 
     /**
      * Contains a map of locale for generating localized file a locales defined
@@ -87,20 +87,19 @@ public class PseudoLocCommand extends Command {
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
             consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
-            generatePseudoLocalizedFiles(repository, sourceFileMatch);
+            generatePseudoLocalizedFile(repository, sourceFileMatch);
         }
         consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
     }
 
     /**
-     * Default generation, uses the locales defined in the repository to
-     * generate the pseudo localized files.
+     * Generates the pseudo localized file
      *
      * @param repository
      * @param sourceFileMatch
      * @throws CommandException
      */
-    void generatePseudoLocalizedFiles(Repository repository, FileMatch sourceFileMatch) throws CommandException {
+    void generatePseudoLocalizedFile(Repository repository, FileMatch sourceFileMatch) throws CommandException {
         logger.debug("Generate pseudo localzied files");
 
         LocalizedAssetBody localizedAsset = getPseudoLocalizedAsset(repository, sourceFileMatch);
@@ -121,7 +120,7 @@ public class PseudoLocCommand extends Command {
     }
 
     LocalizedAssetBody getPseudoLocalizedAsset(Repository repository, FileMatch sourceFileMatch) throws CommandException {
-        consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(outputBcp47tag).print();
+        consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(OUTPUT_BCP47_TAG).print();
 
         try {
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(sourceFileMatch.getSourcePath(), repository.getId());

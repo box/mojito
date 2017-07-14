@@ -31,7 +31,7 @@ public class AssetClient extends BaseClient {
      */
     static Logger logger = LoggerFactory.getLogger(AssetClient.class);
 
-    public static final String outputBcp47tag = "en-x-pseudo";
+    public static final String OUTPUT_BCP47_TAG = "en-x-pseudo";
 
     @Override
     public String getEntityName() {
@@ -116,7 +116,7 @@ public class AssetClient extends BaseClient {
 
         LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
         localizedAssetBody.setContent(content);
-        localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
+        localizedAssetBody.setOutputBcp47tag(OUTPUT_BCP47_TAG);
         localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
 
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
