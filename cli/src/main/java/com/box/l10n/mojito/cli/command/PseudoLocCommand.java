@@ -69,6 +69,8 @@ public class PseudoLocCommand extends Command {
 
     CommandDirectories commandDirectories;
 
+    public static final String outputBcp47tag = "en-x-pseudo";
+
     /**
      * Contains a map of locale for generating localized file a locales defined
      * in the repository.
@@ -85,29 +87,28 @@ public class PseudoLocCommand extends Command {
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
             consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
-            generateLocalizedFiles(repository, sourceFileMatch);
+            generatePseudoLocalizedFiles(repository, sourceFileMatch);
         }
         consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
     }
 
     /**
      * Default generation, uses the locales defined in the repository to
-     * generate the localized files.
+     * generate the pseudo localized files.
      *
      * @param repository
      * @param sourceFileMatch
      * @throws CommandException
      */
-    void generateLocalizedFiles(Repository repository, FileMatch sourceFileMatch) throws CommandException {
+    void generatePseudoLocalizedFiles(Repository repository, FileMatch sourceFileMatch) throws CommandException {
         logger.debug("Generate pseudo localzied files");
 
-        LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch);
-        writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
+        LocalizedAssetBody localizedAsset = getPseudoLocalizedAsset(repository, sourceFileMatch);
+        writePseudoLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
 
     }
 
-    void writeLocalizedAssetToTargetDirectory(LocalizedAssetBody localizedAsset, FileMatch sourceFileMatch) throws CommandException {
-        String outputBcp47tag = "en-x-psaccent";
+    void writePseudoLocalizedAssetToTargetDirectory(LocalizedAssetBody localizedAsset, FileMatch sourceFileMatch) throws CommandException {
         localizedAsset.setBcp47Tag(outputBcp47tag);
 
         Path targetPath = commandDirectories.getTargetDirectoryPath().resolve(sourceFileMatch.getTargetPath(localizedAsset.getBcp47Tag()));
@@ -119,8 +120,8 @@ public class PseudoLocCommand extends Command {
         consoleWriter.a(" --> ").fg(Color.MAGENTA).a(relativeTargetFilePath.toString()).println();
     }
 
-    LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch) throws CommandException {
-        consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a("en-usx").print();
+    LocalizedAssetBody getPseudoLocalizedAsset(Repository repository, FileMatch sourceFileMatch) throws CommandException {
+        consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(outputBcp47tag).print();
 
         try {
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(sourceFileMatch.getSourcePath(), repository.getId());

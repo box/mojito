@@ -31,6 +31,8 @@ public class AssetClient extends BaseClient {
      */
     static Logger logger = LoggerFactory.getLogger(AssetClient.class);
 
+    public static final String outputBcp47tag = "en-x-pseudo";
+
     @Override
     public String getEntityName() {
         return "assets";
@@ -108,8 +110,6 @@ public class AssetClient extends BaseClient {
      * @return the pseudoloocalized asset content
      */
     public LocalizedAssetBody getPseudoLocalizedAssetForContent(Long assetId, String content, FilterConfigIdOverride filterConfigIdOverride) {
-
-        String outputBcp47tag = "en-x-psaccent";
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                        .fromPath(getBasePathForResource(assetId, "pseudo"));
