@@ -107,7 +107,7 @@ public class PseudoLocCommand extends Command {
     }
 
     void writeLocalizedAssetToTargetDirectory(LocalizedAssetBody localizedAsset, FileMatch sourceFileMatch) throws CommandException {
-        String outputBcp47tag = "en-USX";
+        String outputBcp47tag = "en-x-psaccent";
         localizedAsset.setBcp47Tag(outputBcp47tag);
 
         Path targetPath = commandDirectories.getTargetDirectoryPath().resolve(sourceFileMatch.getTargetPath(localizedAsset.getBcp47Tag()));
