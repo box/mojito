@@ -108,7 +108,7 @@ public class PseudoLocCommand extends Command {
     }
 
     void writePseudoLocalizedAssetToTargetDirectory(LocalizedAssetBody localizedAsset, FileMatch sourceFileMatch) throws CommandException {
-        localizedAsset.setBcp47Tag(outputBcp47tag);
+        localizedAsset.setBcp47Tag(OUTPUT_BCP47_TAG);
 
         Path targetPath = commandDirectories.getTargetDirectoryPath().resolve(sourceFileMatch.getTargetPath(localizedAsset.getBcp47Tag()));
 
