@@ -159,7 +159,7 @@ public class CommandHelper {
             if (inputStream.hasBOM()) {
                 fileContent = IOUtils.toString(inputStream, inputStream.getBOMCharsetName());
             } else {
-                fileContent = IOUtils.toString(inputStream);
+                fileContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             }
             return fileContent;
         } catch (IOException e) {
