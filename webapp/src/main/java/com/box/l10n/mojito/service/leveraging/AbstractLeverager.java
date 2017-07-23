@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
+import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -140,22 +141,27 @@ public abstract class AbstractLeverager {
 
         for (TextUnitDTO translation : translations) {
 
-            TMTextUnitCurrentVariant addTMTextUnitCurrentVariant = tmService.addTMTextUnitCurrentVariant(
-                    tmTextUnit.getId(),
+            AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult = tmService.addTMTextUnitCurrentVariantWithResult(tmTextUnit.getId(),
                     translation.getLocaleId(),
                     translation.getTarget(),
                     translation.getTargetComment(),
                     translationNeeded ? TMTextUnitVariant.Status.TRANSLATION_NEEDED : translation.getStatus(),
-                    translation.isIncludedInLocalizedFile());
+                    translation.isIncludedInLocalizedFile(),
+                    null);
+            
+            TMTextUnitCurrentVariant addTMTextUnitCurrentVariant = addTMTextUnitCurrentVariantWithResult.getTmTextUnitCurrentVariant();
+            
+            if (addTMTextUnitCurrentVariantWithResult.isTmTextUnitCurrentVariantUpdated()) {
+                logger.debug("Changed were made to the TmTextUnitCurrentVariant, need to copy comments and add the leveraging comment");
+                tmTextUnitVariantCommentService.copyComments(translation.getTmTextUnitVariantId(), addTMTextUnitCurrentVariant.getTmTextUnitVariant().getId());
 
-            tmTextUnitVariantCommentService.copyComments(translation.getTmTextUnitVariantId(), addTMTextUnitCurrentVariant.getTmTextUnitVariant().getId());
-
-            tmTextUnitVariantCommentService.addComment(
-                    addTMTextUnitCurrentVariant.getTmTextUnitVariant(),
-                    TMTextUnitVariantComment.Type.LEVERAGING,
-                    TMTextUnitVariantComment.Severity.INFO,
-                    getLeverageComment(translation, uniqueTMTextUnitMatched));
-
+                tmTextUnitVariantCommentService.addComment(
+                        addTMTextUnitCurrentVariant.getTmTextUnitVariant(),
+                        TMTextUnitVariantComment.Type.LEVERAGING,
+                        TMTextUnitVariantComment.Severity.INFO,
+                        getLeverageComment(translation, uniqueTMTextUnitMatched));
+            }
+            
             logger.debug("Added leveraged translation, id: {}", addTMTextUnitCurrentVariant.getId());
         }
     }

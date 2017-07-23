@@ -27,7 +27,6 @@ import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
-import com.box.l10n.mojito.rest.asset.SourceAsset;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
@@ -335,12 +334,52 @@ public class TMService {
             boolean includedInLocalizedFile,
             DateTime createdDate) {
 
+        return addTMTextUnitCurrentVariantWithResult(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate).getTmTextUnitCurrentVariant();
+    }
+
+    /**
+     * Adds a current {@link TMTextUnitVariant} in a {@link TMTextUnit} for a
+     * locale other than the default locale.
+     * <p/>
+     * Also checks for an existing {@link TMTextUnitCurrentVariant} and if it
+     * references a {@link TMTextUnitVariant} that has same content, the
+     * {@link TMTextUnitVariant} is returned and no entities are created.
+     *
+     * @param tmTextUnitId the text unit that will contains the translation
+     * @param localeId locale id of the translation (default locale not
+     * accepted)
+     * @param content the translation content
+     * @param comment the translation comment, can be {@code null}
+     * @param status the translation status
+     * @param includedInLocalizedFile indicate if the translation should be
+     * included or not in the localized files
+     * @param createdDate to specify a creation date (can be used to re-import
+     * old TM), can be {@code null}
+     * @return the result that contains the {@link TMTextUnitCurrentVariant} 
+     * and indicates if it was updated or not. The 
+     * {@link TMTextUnitCurrentVariant} holds the created
+     * {@link TMTextUnitVariant} or an existing one with same content
+     * @throws DataIntegrityViolationException If tmTextUnitId or localeId are
+     * invalid
+     */
+    public AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult(
+            Long tmTextUnitId,
+            Long localeId,
+            String content,
+            String comment,
+            TMTextUnitVariant.Status status,
+            boolean includedInLocalizedFile,
+            DateTime createdDate) {
+
         if (localeService.getDefaultLocaleId().equals(localeId)) {
             throw new RuntimeException("Cannot add text unit variant for the default locale");
         }
 
+        boolean noUpdate = false;
+        
         logger.debug("Check if there is a current TMTextUnitVariant");
         TMTextUnitCurrentVariant tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnitId);
+       
         TMTextUnitVariant tmTextUnitVariant = null;
 
         if (tmTextUnitCurrentVariant == null) {
@@ -375,10 +414,11 @@ public class TMService {
                 tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
             } else {
                 logger.debug("The current text unit variant has same content, comment and review status, don't add entities and return it instead");
+                noUpdate = true;
             }
         }
-
-        return tmTextUnitCurrentVariant;
+        
+        return new AddTMTextUnitCurrentVariantResult(!noUpdate, tmTextUnitCurrentVariant);
     }
 
     /**
@@ -711,8 +751,8 @@ public class TMService {
     }
 
     /**
-     * Parses the given content and adds the pseudo localization for every text unit.
-     * Returns the pseudolocalized content.
+     * Parses the given content and adds the pseudo localization for every text
+     * unit. Returns the pseudolocalized content.
      *
      * @param asset The {@link Asset} used to get translations
      * @param content The content to be pseudolocalized

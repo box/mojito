@@ -124,5 +124,31 @@ public class LeveragingServiceTest extends ServiceTestBase {
         Assert.assertFalse(itSource.hasNext());
 
     }
+    
+    @Test
+    public void checkCommentsAreNotCopiedIfTmTextUnitCurrentVariantNotChanged() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException {
+
+        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+
+        Repository sourceRepository = tmTestDataSource.repository;
+
+        logger.debug("Create the target repository");
+        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+
+        TM tm = targetRepository.getTm();
+
+        Asset asset = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test");
+        Long assetId = asset.getId();
+
+        tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province_update", "Please enter a valid state, region or province", "Comment1");
+        tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
+        tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+
+        leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(sourceRepository, targetRepository).get();
+        leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(sourceRepository, targetRepository).get();
+
+        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository); 
+        Assert.assertEquals(1, targetTranslations.get(2).getTmTextUnitVariantComments().size());
+    }
 
 }
