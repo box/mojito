@@ -592,7 +592,7 @@ let SearchResults = React.createClass({
     getEmptyStateContainerContent(messageId) {
         return <div className="empty-search-container text-center center-block">
                     <div><FormattedMessage id={messageId}/></div>
-                    <img className="empty-search-container-img" src={UrlHelper.getUrlWithContextPath('/img/magnifying-glass.svg')} />
+                    <img className="empty-search-container-img" src={require('../../../img/magnifying-glass.svg')} />
             </div>;
     },
 

@@ -104,6 +104,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Configuring web security");
 
+        http.headers().cacheControl().disable();
         http.authorizeRequests()
                 // TODO (move img to images)
                 // TODO (move intl to js/intl)

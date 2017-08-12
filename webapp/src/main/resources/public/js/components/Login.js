@@ -63,7 +63,7 @@ let Login = React.createClass({
             <div className="container login-container">
                 <div className="row">
                     <div className="center-block login-logo-container">
-                        <img src={UrlHelper.getUrlWithContextPath("/img/logo-login.png")} className="logo mbm" alt="Mojito"/>
+                        <img src={require("../../img/logo-login.png")} className="logo mbm" alt="Mojito"/>
                     </div>
                     <div className="center-block login-form-container">
                         <form action={loginFormPostUrl} method="post">

@@ -59,7 +59,7 @@ let Header = React.createClass({
         return (
             <Navbar fluid={true}>
                 <a className="navbar-brand">
-                    <img src={UrlHelper.getUrlWithContextPath('/img/logo.png')} className="logo" alt="Box Mojito" />
+                    <img src={require('../../../img/logo.png')} className="logo" alt="Box Mojito" />
                 </a>
                 <Nav>
                     <li className={(this.props.router.isActive("/repositories")) ? "active" : ""}>
