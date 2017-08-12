@@ -14,14 +14,11 @@
             USERNAME = '{{username}}';
             CONTEXT_PATH = '{{contextPath}}';
         </script>
-
-        <script src="{{contextPath}}/intl/{{locale}}.js"></script>
-
     </head>
 
     <body>
         <div id="app"></div>
-        
+        <script type="text/javascript" src="{{contextPath}}<%= htmlWebpackPlugin.files.js[0] %>"></script>
     </body>
 
 </html>
