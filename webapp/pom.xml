@@ -670,16 +670,6 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>npm build-rb</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <phase>compile</phase>
-                                <configuration>
-                                    <arguments>run build-rb</arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
                                 <id>npm build</id>
                                 <goals>
                                     <goal>npm</goal>
