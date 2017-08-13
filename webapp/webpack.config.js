@@ -82,7 +82,7 @@ module.exports = function (env) {
         inject: false
     }));
 
-    if (env.minimize) {
+    if (env.production) {
         config.plugins.push(
                 new webpack.DefinePlugin({
                     'process.env': {
@@ -90,9 +90,7 @@ module.exports = function (env) {
                     }
                 }));
 
-        config.plugins.push(new webpack.optimize.DedupePlugin());
         config.plugins.push(new webpack.optimize.UglifyJsPlugin());
-        config.plugins.push(new webpack.optimize.AggressiveMergingPlugin());
     }
 
     if (env.inlineSourceMap) {

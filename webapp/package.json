@@ -87,7 +87,7 @@
     "watch-js": "webpack --progress --colors --watch --env.inlineSourceMap",
     "watch-rb": "mojito-rb-gen -w -s src/main/resources/properties/ -o target/classes/public/intl/ -t js",
     "build-rb": "mojito-rb-gen -s src/main/resources/properties/ -o target/classes/public/intl/ -t js",
-    "build": "webpack --config webpack.config.js --progress --env.minimize",
+    "build": "webpack --config webpack.config.js --progress --env.production",
     "tests": "./node_modules/karma/bin/karma start --singleRun=true",
     "mojito-tm-import": "java -jar ../cli/target/mojito-cli-*.jar tm-import -r Mojito -s src/main/resources/xliff/",
     "mojito-tm-export": "java -jar ../cli/target/mojito-cli-*.jar tm-export -r Mojito -t src/main/resources/xliff/",
