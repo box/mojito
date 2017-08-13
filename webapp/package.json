@@ -72,6 +72,7 @@
     "sinon-chai": "^2.8.0",
     "style-loader": "^0.18.2",
     "uglify-js": "~2.4.15",
+    "url-loader": "^0.5.9",
     "webpack": "^2.6.1"
   },
   "repository": {
@@ -82,7 +83,7 @@
     "start-dev": "npm run start-server & npm run watch",
     "start-server": "mvn spring-boot:run -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
     "start-server-debug": "mvn spring-boot:run -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005\" -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
-    "watch": "npm run watch-rb & grunt watch & npm run watch-js",
+    "watch": "npm run watch-js",
     "watch-resources": "nodemon --watch src/main/resources/ -e html,css --exec 'mvn resources:resources'",
     "watch-js": "webpack --progress --colors --watch --env.inlineSourceMap",
     "watch-rb": "mojito-rb-gen -w -s src/main/resources/properties/ -o target/classes/public/intl/ -t js",

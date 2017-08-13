@@ -689,16 +689,7 @@
                                     <arguments>run build</arguments>
                                 </configuration>
                             </execution>
-                            <execution>
-                                <id>grunt build</id>
-                                <goals>
-                                    <goal>grunt</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>--no-color --force</arguments>
-                                </configuration>
-                            </execution>
-
+                            
                             <!--disable for now, because it requires Chrome and doesn't run on the CI-->
                             <!--<execution>-->
                             <!--<id>mocha tests</id>-->
