@@ -201,6 +201,7 @@ let TextUnit = React.createClass({
      * @param {SyntheticEvent} e The onChange event of the checkbox.
      */
     onChangeTextUnitCheckbox(e) {
+        e.persist();
         e.textUnitIndex = this.props.textUnitIndex;
         WorkbenchActions.textUnitSelection(this.getCloneOfTextUnitFromProps());
     },
