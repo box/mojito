@@ -778,7 +778,7 @@ let TextUnit = React.createClass({
                         <Row className='show-grid'>
                             <Col xs={11}>
                                 <span className="mrxs">
-                                    <input type="checkbox" checked={isSelected}/>
+                                    <input type="checkbox" checked={isSelected} readOnly={true}/>
                                 </span>
                                 <Label bsStyle='primary' bsSize='large' className="mrxs mtl clickable"
                                        onClick={this.onLocaleLabelClick}>
