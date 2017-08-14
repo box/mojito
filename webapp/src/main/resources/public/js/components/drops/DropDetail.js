@@ -39,7 +39,7 @@ let DropDetail = React.createClass({
         let translationKits = Locales.sortByDisplayName(this.props.drop.translationKits, translationKit => translationKit.locale.bcp47Tag);
 
         let rows = translationKits.map(tk => {
-            return <tr>
+            return <tr key={"DropDetail.row." + tk.localeDisplayName}>
                 <td>
                     <div>
                         <Link onClick={this.updateSearchParamsForLocale.bind(this, tk.locale.bcp47Tag)}
