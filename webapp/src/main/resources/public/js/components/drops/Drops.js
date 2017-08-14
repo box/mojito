@@ -229,7 +229,7 @@ let Drops = React.createClass({
         }
 
         return (
-            <tr className={rowClass}>
+            <tr key={"Drops.reposiotryRow." + drop.name} className={rowClass}>
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
                 <td>{drop.repository.name}</td>
                 <td><FormattedNumber value={wordCount}/></td>
@@ -283,8 +283,8 @@ let Drops = React.createClass({
         let dropId = drop.id;
         let repoId = drop.repository.id;
 
-        let importTitle = <Tooltip><FormattedMessage id="drops.controlbar.button.tooltip.import"/></Tooltip>;
-        let cancelTitle = <Tooltip><FormattedMessage id="drops.controlbar.button.tooltip.cancel"/></Tooltip>;
+        let importTitle = <Tooltip id="Drops.tooltip.import"><FormattedMessage id="drops.controlbar.button.tooltip.import"/></Tooltip>;
+        let cancelTitle = <Tooltip id="Drops.tooltip.cancel"><FormattedMessage id="drops.controlbar.button.tooltip.cancel"/></Tooltip>;
 
         let importOverlay = "";
         if (drop.importable()) {
