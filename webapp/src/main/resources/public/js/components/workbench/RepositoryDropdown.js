@@ -232,7 +232,7 @@ let RepositoryDropDown = React.createClass({
     renderRepositories() {
         return this.getSortedRepositories().map(
                 (repository) =>
-                        <MenuItem eventKey={repository} active={repository.selected} onSelect={this.onRepositorySelected}>{repository.name}</MenuItem>
+                        <MenuItem key={"WorkbenchRepositoryDropdown." + repository.name} eventKey={repository} active={repository.selected} onSelect={this.onRepositorySelected}>{repository.name}</MenuItem>
         );
     },
 
@@ -244,9 +244,9 @@ let RepositoryDropDown = React.createClass({
         return (
                 <span className="mlm repository-dropdown">
                 <DropdownButton id="WorkbenchRepositoryDropdown" title={this.getButtonText()} onToggle={this.onDropdownToggle} open={this.state.isDropdownOpenned}>
-                    <MenuItem active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.repository.selectAll"/></MenuItem>
-                    <MenuItem active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.repository.selectNone"/></MenuItem>
-                    <MenuItem divider/>
+                    <MenuItem id="WorkbenchRepositoryDropdown.selectAll" active={this.isAllActive()} onSelect={this.onSelectAll}><FormattedMessage id="search.repository.selectAll"/></MenuItem>
+                    <MenuItem id ="WorkbenchRepositoryDropdown.selectNone" active={this.isNoneActive()} onSelect={this.onSelectNone}><FormattedMessage id="search.repository.selectNone"/></MenuItem>
+                    <MenuItem id="WorkbenchRepositoryDropdown.divider" divider/>
                     {this.renderRepositories()}
                 </DropdownButton>
                 </span>
