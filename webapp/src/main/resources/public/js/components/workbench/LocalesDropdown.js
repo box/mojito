@@ -266,7 +266,7 @@ let LocalesDropDown = React.createClass({
     renderLocales() {
         return this.getSortedLocales().map(
                 (locale) =>
-                        <MenuItem eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
+                        <MenuItem key={"Workbench.LocaleDropdown." + locale.displayName} eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
         );
     },
 

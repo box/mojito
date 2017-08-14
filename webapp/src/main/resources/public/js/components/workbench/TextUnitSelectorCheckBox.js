@@ -43,7 +43,7 @@ let TextUnitSelectorCheckBox = React.createClass({
 
     render() {
         return (
-            <DropdownButton title={this.getTitle()} className="mrl" onSelect={this.selectionChanged}>
+            <DropdownButton id="Text" title={this.getTitle()} className="mrl" onSelect={this.selectionChanged}>
                 <MenuItem eventKey={this.SELECT_ALL_IN_PAGE}><FormattedMessage id="workbench.toolbar.selectAllInPage"/></MenuItem>
                 <MenuItem eventKey={this.CLEAR_ALL_IN_PAGE}><FormattedMessage
                     id="workbench.toolbar.clearAllInPage"/></MenuItem>

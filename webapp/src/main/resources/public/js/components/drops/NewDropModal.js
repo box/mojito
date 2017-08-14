@@ -27,14 +27,6 @@ let NewDropModal = React.createClass({
         };
     },
 
-    componentDidMount() {
-
-    },
-
-    componentWillUnmount() {
-
-    },
-
     /**
      *
      * @param {string} repoId
@@ -51,7 +43,7 @@ let NewDropModal = React.createClass({
         let reposListGroupItems = repos.map(repo => {
             let isActive = repo.id === this.state.selectedRepoId;
             return (
-                <ListGroupItem active={isActive} onClick={this.onRepoClick.bind(this, repo.id)}>
+                <ListGroupItem key={"NewDropModal." + repo.name} active={isActive} onClick={this.onRepoClick.bind(this, repo.id)}>
                     {repo.name}
                 </ListGroupItem>
             );
