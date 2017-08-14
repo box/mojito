@@ -2,6 +2,7 @@ import _ from "lodash";
 import React from "react";
 import {FormattedMessage, FormattedNumber} from 'react-intl';
 import { withRouter } from "react-router";
+import {LinkContainer} from "react-router-bootstrap";
 
 import LocaleSelectorModal from "./LocaleSelectorModal";
 import Locales from "../../utils/Locales";
@@ -62,19 +63,12 @@ let Header = React.createClass({
                     <img src={require('../../../img/logo.png')} className="logo" alt="Box Mojito" />
                 </a>
                 <Nav>
-                    <li className={(this.props.router.isActive("/repositories")) ? "active" : ""}>
-                        <Link onClick={() => {
+                    <LinkContainer to="/repositories" onClick={() => {
                             if (this.props.router.isActive("/repositories")) {
                                   RepositoryActions.getAllRepositories();
-                            }}}
-                         to="/repositories"><FormattedMessage id="header.repositories" /></Link>
-                    </li>
-                    <li className={(this.props.router.isActive("/workbench")) ? "active" : ""}>
-                        <Link onClick={this.updateSearchParamsForDefaultView} to="/workbench"><FormattedMessage id="header.workbench" /></Link>
-                    </li>
-                    <li className={(this.props.router.isActive("/project-requests")) ? "active" : ""}>
-                        <Link onClick={this.updateSearchParamsForDefaultView} to="/project-requests"><FormattedMessage id="header.projectRequests" /></Link>
-                    </li>
+                            }}}><NavItem><FormattedMessage id="header.repositories" /></NavItem></LinkContainer>
+                    <LinkContainer to="/workbench"><NavItem><FormattedMessage id="header.workbench" /></NavItem></LinkContainer>
+                    <LinkContainer to="/project-requests"><NavItem><FormattedMessage id="header.projectRequests" /></NavItem></LinkContainer>
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={USERNAME} id="user-menu">
