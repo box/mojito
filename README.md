@@ -25,7 +25,7 @@ For full documentation, examples, and other information.
 Need to contact us directly? 
 - [![Join the chat at https://gitter.im/box/mojito](https://badges.gitter.im/box/mojito.svg)](https://gitter.im/box/mojito?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 - [GitHub Issues](https://github.com/Box/Mojito/issues)
-- [Email Discussion Group](mailto:mojito-gobal@googlegroups.com)
+- [Email Discussion Group](mailto:mojito-global@googlegroups.com)
 
 ### Team
 - Hanna Kanabiajeuskaja (@hkanabiajeuskaja)
