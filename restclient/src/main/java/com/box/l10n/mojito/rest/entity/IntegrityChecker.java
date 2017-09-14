@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import java.util.Comparator;
 
 /**
  * Entity that assign an integrity check for a type of asset.
@@ -47,5 +48,16 @@ public class IntegrityChecker {
 
     public void setIntegrityCheckerType(IntegrityCheckerType integrityCheckerType) {
         this.integrityCheckerType = integrityCheckerType;
+    }
+
+    public static Comparator<IntegrityChecker> getComparator() {
+        return new Comparator<IntegrityChecker>() {
+            @Override
+            public int compare(IntegrityChecker integrityChecker1, IntegrityChecker integrityChecker2) {
+                String extension1 = integrityChecker1.getAssetExtension();
+                String extension2 = integrityChecker2.getAssetExtension();
+                return extension1.compareTo(extension2);
+            }
+        };
     }
 }
