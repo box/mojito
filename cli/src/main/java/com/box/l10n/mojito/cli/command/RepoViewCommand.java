@@ -9,7 +9,6 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -54,14 +53,7 @@ public class RepoViewCommand extends RepoCommand {
         if (repository.getIntegrityCheckers() != null && !repository.getIntegrityCheckers().isEmpty()) {
             List<IntegrityChecker> integrityCheckers = new ArrayList<>();
             integrityCheckers.addAll(repository.getIntegrityCheckers());
-            Collections.sort(integrityCheckers, new Comparator<IntegrityChecker>() {
-                @Override
-                public int compare(IntegrityChecker integrityChecker1, IntegrityChecker integrityChecker2) {
-                    String extension1 = integrityChecker1.getAssetExtension();
-                    String extension2 = integrityChecker2.getAssetExtension();
-                    return extension1.compareTo(extension2);
-                }
-            });
+            Collections.sort(integrityCheckers, IntegrityChecker.getComparator());
 
             consoleWriter.newLine().a("Integrity checkers --> ").fg(Ansi.Color.MAGENTA);
             for (int i = 0; i < integrityCheckers.size(); i++) {
@@ -81,14 +73,7 @@ public class RepoViewCommand extends RepoCommand {
         if (repository.getRepositoryLocales() != null && !repository.getRepositoryLocales().isEmpty()) {
             List<RepositoryLocale> repositoryLocales = new ArrayList<>();
             repositoryLocales.addAll(repository.getRepositoryLocales());
-            Collections.sort(repositoryLocales, new Comparator<RepositoryLocale>() {
-                @Override
-                public int compare(RepositoryLocale repositoryLocale1, RepositoryLocale repositoryLocale2) {
-                    String bcp47Tag1 = repositoryLocale1.getLocale().getBcp47Tag();
-                    String bcp47Tag2 = repositoryLocale2.getLocale().getBcp47Tag();
-                    return bcp47Tag1.compareTo(bcp47Tag2);
-                }
-            });
+            Collections.sort(repositoryLocales, RepositoryLocale.getComparator());
 
             consoleWriter.newLine().a("Repository locales --> ").fg(Ansi.Color.MAGENTA);
             for (int j = 0; j < repositoryLocales.size(); j++) {

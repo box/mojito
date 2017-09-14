@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import java.util.Comparator;
 
 /**
  *
@@ -57,5 +58,16 @@ public class RepositoryLocale {
 
     public void setParentLocale(RepositoryLocale parentLocale) {
         this.parentLocale = parentLocale;
+    }
+
+    public static Comparator<RepositoryLocale> getComparator() {
+        return new Comparator<RepositoryLocale>() {
+            @Override
+            public int compare(RepositoryLocale repositoryLocale1, RepositoryLocale repositoryLocale2) {
+                String bcp47Tag1 = repositoryLocale1.getLocale().getBcp47Tag();
+                String bcp47Tag2 = repositoryLocale2.getLocale().getBcp47Tag();
+                return bcp47Tag1.compareTo(bcp47Tag2);
+            }
+        };
     }
 }
