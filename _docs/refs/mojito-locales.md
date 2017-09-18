@@ -55,6 +55,7 @@ permalink: /docs/refs/mojito-locales/
 | en-US	        | English (United States) |
 | en-ZA	        | English (South Africa) |
 | en-ZW	        | English (Zimbabwe) |
+| en-419	        | Spanish (Latin America) |
 | es-AR	        | Spanish (Argentina) |
 | es-BO	        | Spanish (Bolivia) |
 | es-CL	        | Spanish (Chile) |
