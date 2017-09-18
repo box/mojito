@@ -44,6 +44,7 @@ insert into locale (id, bcp47_tag) values (329, 'en-TT');
 insert into locale (id, bcp47_tag) values (333, 'en-US'); 
 insert into locale (id, bcp47_tag) values (337, 'en-ZA'); 
 insert into locale (id, bcp47_tag) values (341, 'en-ZW'); 
+insert into locale (id, bcp47_tag) values (797, 'es-419');
 insert into locale (id, bcp47_tag) values (345, 'es-AR'); 
 insert into locale (id, bcp47_tag) values (349, 'es-BO'); 
 insert into locale (id, bcp47_tag) values (353, 'es-CL'); 
