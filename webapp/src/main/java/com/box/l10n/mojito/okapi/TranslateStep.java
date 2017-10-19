@@ -103,6 +103,8 @@ public class TranslateStep extends AbstractMd5ComputationStep {
             String translation = null;
 
             logger.debug("Look for a translation in target locale: {} for text unit with name: {}", targetLocale.toBCP47(), name);
+            logger.trace("comments: {}\nsource: {}", comments, source);
+            
             TextUnitDTO textUnitDTO = getTextUnitDTO(md5, repositoryLocale.getLocale().getId());
 
             if (textUnitDTO != null) {

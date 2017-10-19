@@ -20,7 +20,6 @@ import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import org.hibernate.annotations.NamedNativeQueries;
 import org.hibernate.annotations.NamedNativeQuery;
-import org.joda.time.DateTime;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -41,7 +40,9 @@ import org.springframework.data.annotation.CreatedBy;
                         @ColumnResult(name = "usedTextUnitWordCount", type = Long.class),
                         @ColumnResult(name = "unusedTextUnitCount", type = Long.class),
                         @ColumnResult(name = "unusedTextUnitWordCount", type = Long.class),
-                        @ColumnResult(name = "uncommentedTextUnitCount", type = Long.class)
+                        @ColumnResult(name = "uncommentedTextUnitCount", type = Long.class),
+                        @ColumnResult(name = "pluralTextUnitCount", type = Long.class),
+                        @ColumnResult(name = "pluralTextUnitWordCount", type = Long.class)
                     }
             )
         }
@@ -54,7 +55,9 @@ import org.springframework.data.annotation.CreatedBy;
                 + "   coalesce(sum(case when map.id is not null and a.deleted = false then tu.word_count else 0 end), 0) as usedTextUnitWordCount, "
                 + "   coalesce(sum(case when map.id is null or a.deleted = true then 1 else 0 end), 0) as unusedTextUnitCount, "
                 + "   coalesce(sum(case when map.id is null or a.deleted = true then tu.word_count else 0 end), 0) as unusedTextUnitWordCount, "
-                + "   coalesce(sum(case when (map.id is not null and tu.comment is null) then 1 else 0 end), 0) as uncommentedTextUnitCount "
+                + "   coalesce(sum(case when (map.id is not null and tu.comment is null) then 1 else 0 end), 0) as uncommentedTextUnitCount, "
+                + "   coalesce(sum(case when (map.id is not null and tu.plural_form_id is not null) then 1 else 0 end), 0) / 6 as pluralTextUnitCount, "
+                + "   coalesce(sum(case when (map.id is not null and tu.plural_form_id is not null) then tu.word_count else 0 end), 0) / 6 as pluralTextUnitWordCount "
                 + " "
                 + "from tm_text_unit tu "
                 + "   inner join asset a on a.id = tu.asset_id "
@@ -89,6 +92,18 @@ public class RepositoryStatistic extends AuditableEntity {
     private Long unusedTextUnitWordCount = 0L;
 
     /**
+     * The number of text unit for plural forms
+     */
+    @JsonView(View.RepositorySummary.class)
+    private Long pluralTextUnitCount = 0L;
+    
+    /**
+     * The number of words for plural forms
+     */
+    @JsonView(View.RepositorySummary.class)
+     private Long pluralTextUnitWordCount = 0L;
+
+    /**
      * The number of text unit without comments
      */
     private Long uncommentedTextUnitCount = 0L;
@@ -119,13 +134,17 @@ public class RepositoryStatistic extends AuditableEntity {
             Long usedTextUnitWordCount,
             Long unusedTextUnitCount,
             Long unusedTextUnitWordCount,
-            Long uncommentedTextUnitCount) {
+            Long uncommentedTextUnitCount,
+            Long pluralTextUnitCount,
+            Long pluralTextUnitWordCount) {
 
         this.usedTextUnitCount = usedTextUnitCount;
         this.usedTextUnitWordCount = usedTextUnitWordCount;
         this.unusedTextUnitCount = unusedTextUnitCount;
         this.unusedTextUnitWordCount = unusedTextUnitWordCount;
         this.uncommentedTextUnitCount = uncommentedTextUnitCount;
+        this.pluralTextUnitCount = pluralTextUnitCount;
+        this.pluralTextUnitWordCount = pluralTextUnitWordCount;
     }
 
     @JsonIgnore
@@ -190,6 +209,22 @@ public class RepositoryStatistic extends AuditableEntity {
         this.unusedTextUnitWordCount = unusedTextUnitWordCount;
     }
 
+    public Long getPluralTextUnitCount() {
+        return pluralTextUnitCount;
+    }
+
+    public void setPluralTextUnitCount(Long pluralTextUnitCount) {
+        this.pluralTextUnitCount = pluralTextUnitCount;
+    }
+
+    public Long getPluralTextUnitWordCount() {
+        return pluralTextUnitWordCount;
+    }
+
+    public void setPluralTextUnitWordCount(Long pluralTextUnitWordCount) {
+        this.pluralTextUnitWordCount = pluralTextUnitWordCount;
+    }
+    
     /**
      * @return the repositoryLocaleStatistics
      */
@@ -217,8 +252,5 @@ public class RepositoryStatistic extends AuditableEntity {
     public void setUncommentedTextUnitCount(Long uncommentedTextUnitCount) {
         this.uncommentedTextUnitCount = uncommentedTextUnitCount;
     }
-
-    public void setLastModifiedDate(DateTime lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
-    }
+    
 }

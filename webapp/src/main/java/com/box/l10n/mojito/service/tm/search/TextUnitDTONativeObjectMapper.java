@@ -44,6 +44,8 @@ public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUni
         t.setCreatedDate(new DateTime(cr.getDate(idx++)));
         String assetDeleted = cr.getString(idx++);
         t.setAssetDeleted(Boolean.valueOf(assetDeleted));
+        t.setPluralForm(cr.getString(idx++));
+        t.setPluralFormOther(cr.getString(idx++));
 
         return t;
     }
