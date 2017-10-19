@@ -1,6 +1,9 @@
 package com.box.l10n.mojito.okapi;
 
+import com.box.l10n.mojito.entity.PluralForm;
+import com.box.l10n.mojito.okapi.filters.PluralFormAnnotation;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import java.util.HashSet;
 import java.util.Set;
 import net.sf.okapi.common.Event;
@@ -35,6 +38,9 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
 
     Set<String> assetTextUnitMD5s;
 
+    @Autowired
+    PluralFormService pluralFormService;
+
     /**
      * @param assetExtractionId ID of the assetExtraction object to associate
      * this step with
@@ -68,7 +74,17 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
         if (textUnit.isTranslatable()) {
             if (!assetTextUnitMD5s.contains(md5)) {
                 assetTextUnitMD5s.add(md5);
-                assetExtractionService.createAssetTextUnit(assetExtractionId, name, source, comments);
+
+                PluralFormAnnotation annotation = textUnit.getAnnotation(PluralFormAnnotation.class);
+                PluralForm pluralForm = null;
+                String pluralFormOther = null;
+
+                if (annotation != null) {
+                    pluralForm = pluralFormService.findByPluralFormString(annotation.getName());
+                    pluralFormOther = annotation.getOtherName();
+                }
+
+                assetExtractionService.createAssetTextUnit(assetExtractionId, name, source, comments, pluralForm, pluralFormOther);
             } else {
                 logger.debug("Duplicate assetTextUnit found, skip it");
             }

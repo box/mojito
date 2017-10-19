@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.tm;
 import com.box.l10n.mojito.common.StreamUtil;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TM;
@@ -11,6 +12,7 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
 import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
+import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
@@ -20,7 +22,6 @@ import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
 import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.PseudoLocalizeStep;
-import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.okapi.XLIFFWriter;
@@ -114,7 +115,7 @@ public class TMService {
      */
     @Transactional
     public TMTextUnit addTMTextUnit(Long tmId, Long assetId, String name, String content, String comment) {
-        return addTMTextUnit(tmId, assetId, name, content, comment, null);
+        return addTMTextUnit(tmId, assetId, name, content, comment, null, null, null);
     }
 
     /**
@@ -133,7 +134,15 @@ public class TMService {
      * invalid
      */
     @Transactional
-    public TMTextUnit addTMTextUnit(Long tmId, Long assetId, String name, String content, String comment, DateTime createdDate) {
+    public TMTextUnit addTMTextUnit(
+            Long tmId, 
+            Long assetId, 
+            String name, 
+            String content, 
+            String comment, 
+            DateTime createdDate, 
+            PluralForm puralForm,
+            String pluralFormOther) {
 
         logger.debug("Add TMTextUnit in tmId: {} with name: {}, content: {}, comment: {}", tmId, name, content, comment);
         TMTextUnit tmTextUnit = new TMTextUnit();
@@ -148,6 +157,8 @@ public class TMService {
         tmTextUnit.setWordCount(wordCountService.getEnglishWordCount(content));
         tmTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         tmTextUnit.setCreatedDate(createdDate);
+        tmTextUnit.setPluralForm(puralForm);
+        tmTextUnit.setPluralFormOther(pluralFormOther);
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
         logger.trace("TMTextUnit saved");
@@ -803,10 +814,7 @@ public class TMService {
 
         LocaleId targetLocaleId = LocaleId.fromBCP47(outputBcp47tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
-
-        //TODO(P2) Find a better solution?
-        rawDocument.setAnnotation(new POExtraPluralAnnotation());
-
+        
         //TODO(P1) see assetExtractor comments
         String filterConfigId;
 
@@ -871,6 +879,7 @@ public class TMService {
 
         LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
+        rawDocument.setAnnotation(new CopyFormsOnImport());
 
         String filterConfigId;
 
