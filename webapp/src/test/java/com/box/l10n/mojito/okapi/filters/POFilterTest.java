@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import net.sf.okapi.common.LocaleId;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -11,33 +10,27 @@ import static org.junit.Assert.*;
 public class POFilterTest {
 
     @Test
-    public void testNeedsExtraPluralNull() {
+    public void getPoPluralFormFromTextUnitName() {
         POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(null));
+        POFilter.PoPluralsHolder pluralsHolder = poFilter. new PoPluralsHolder() ;
+        assertEquals("0", pluralsHolder.getPoPluralFormFromTextUnitName("[bla-0]"));
+        assertEquals("1", pluralsHolder.getPoPluralFormFromTextUnitName("[bla-1]"));
+        assertEquals("2", pluralsHolder.getPoPluralFormFromTextUnitName("[bla-2] some context"));
     }
-
+    
     @Test
-    public void testNeedsExtraPluralEmpty() {
+    public void getNewTextUnitName() {
         POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(LocaleId.EMPTY));
+        POFilter.PoPluralsHolder pluralsHolder = poFilter. new PoPluralsHolder() ;
+        assertEquals("[bla-one]", pluralsHolder.getNewTextUnitName("[bla-1]", "one"));   
+        assertEquals("[bla-many] some context", pluralsHolder.getNewTextUnitName("[bla-2] some context", "many"));   
     }
-
+        
     @Test
-    public void testNeedsExtraPluralArAr() {
+    public void loadMsgIDPluralFromParent() {
         POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(LocaleId.fromBCP47("ar-AR")));
-    }
-
-    @Test
-    public void testNeedsExtraPluralRuRu() {
-        POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(LocaleId.fromBCP47("ru-RU")));
-    }
-
-    @Test
-    public void testNeedsExtraPluralFrFr() {
-        POFilter poFilter = new POFilter();
-        assertFalse(poFilter.needsExtraPluralForm(LocaleId.fromBCP47("fr-FR")));
+        poFilter.loadMsgIDPluralFromParent();
+        assertNull(poFilter.msgIDPlural);
     }
 
 }

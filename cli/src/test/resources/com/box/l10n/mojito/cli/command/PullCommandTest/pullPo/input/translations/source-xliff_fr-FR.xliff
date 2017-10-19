@@ -26,19 +26,14 @@
                 <target>1 mois</target>
                 <note>File lock dialog duration</note>
             </trans-unit>
-            <trans-unit id="" resname="[NA8AD643F-0] car" datatype="x-javascript+php">
+            <trans-unit id="" resname="[NA8AD643F-one] car" datatype="x-javascript+php">
                 <source>There is {number} car</source>
                 <target>Il y a {number} voiture</target>
                 <note>Test plural</note>
             </trans-unit>
-            <trans-unit id="" resname="[NA8AD643F-1] car" datatype="x-javascript+php">
+            <trans-unit id="" resname="[NA8AD643F-other] car" datatype="x-javascript+php">
                 <source>There are {number} cars</source>
                 <target>Il y a {number} voitures</target>
-                <note>Test plural</note>
-            </trans-unit>
-            <trans-unit id="" resname="[NA8AD643F-2] car" datatype="x-javascript+php">
-                <source>There are {number} cars</source>
-                <target>This won't be use in french</target>
                 <note>Test plural</note>
             </trans-unit>
         </body>

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
@@ -10,6 +11,7 @@ import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.translationkit.TranslationKitRepository;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
 import com.google.common.base.Strings;
@@ -66,6 +68,9 @@ public class ImportExportedXliffStep extends BasePipelineStep {
 
     @Autowired
     TextUnitUtils textUnitUtils;
+
+    @Autowired
+    PluralFormService pluralFormService;
 
     private LocaleId targetLocaleId;
     private LocaleId sourceLocaleId;
@@ -327,7 +332,23 @@ public class ImportExportedXliffStep extends BasePipelineStep {
         String sourceContent = textUnit.getSource().toString();
         ImportExportNote importExportNote = textUnitUtils.getImportExportNote(textUnit);
 
-        tmService.addTMTextUnit(asset.getRepository().getTm().getId(), asset.getId(), name, sourceContent, importExportNote.getSourceComment(), importExportNote.getCreatedDate());
+        PluralForm pluralForm = null;
+        String pluralFormOther = null;
+
+        if (importExportNote.getPluralForm() != null) {
+            pluralForm = pluralFormService.findByPluralFormString(importExportNote.getPluralForm());
+            pluralFormOther = importExportNote.getPluralFormOther();
+        }
+
+        tmService.addTMTextUnit(
+                asset.getRepository().getTm().getId(),
+                asset.getId(),
+                name,
+                sourceContent,
+                importExportNote.getSourceComment(),
+                importExportNote.getCreatedDate(),
+                pluralForm,
+                pluralFormOther);
     }
 
     @Override
