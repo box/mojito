@@ -47,7 +47,12 @@ class TextUnitSearcherParameters {
         this.params.target = target;
         return this;
     }
-
+    
+    pluralFormOther(pluralFormOther) {
+        this.params.pluralFormOther = pluralFormOther;
+        return this;
+    }
+    
     searchType(searchType) {
         this.params.searchType = searchType;
         return this;

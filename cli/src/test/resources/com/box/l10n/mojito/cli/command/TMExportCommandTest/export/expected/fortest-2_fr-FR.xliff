@@ -5,17 +5,17 @@
 <trans-unit id="" resname="100_character_description_" xml:space="preserve">
 <source xml:lang="en">100 character description:</source>
 <target xml:lang="fr-FR">Description de 100 caractères : (in source2)</target>
-<note>{"sourceComment":null,"targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[]}</note>
+<note>{"sourceComment":null,"targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"pluralForm":null,"pluralFormOther":null}</note>
 </trans-unit>
 <trans-unit id="" resname="15_min_duration" xml:space="preserve">
 <source xml:lang="en">15 min</source>
 <target xml:lang="fr-FR">15 min (in source2)</target>
-<note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[]}</note>
+<note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"pluralForm":null,"pluralFormOther":null}</note>
 </trans-unit>
 <trans-unit id="" resname="1_day_duration" xml:space="preserve">
 <source xml:lang="en">1 day</source>
 <target xml:lang="fr-FR">1 jour (in source2)</target>
-<note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[]}</note>
+<note>{"sourceComment":"File lock dialog duration","targetComment":null,"includedInLocalizedFile":true,"status":"APPROVED","variantComments":[],"pluralForm":null,"pluralFormOther":null}</note>
 </trans-unit>
 </body>
 </file>

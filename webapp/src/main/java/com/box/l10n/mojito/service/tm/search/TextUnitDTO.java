@@ -27,6 +27,8 @@ public class TextUnitDTO {
     private boolean includedInLocalizedFile;
     private DateTime createdDate;
     private boolean assetDeleted;
+    private String pluralForm;
+    private String pluralFormOther;
 
     public Long getTmTextUnitId() {
         return tmTextUnitId;
@@ -174,4 +176,19 @@ public class TextUnitDTO {
         this.assetDeleted = assetDeleted;
     }
 
+    public String getPluralForm() {
+        return pluralForm;
+    }
+
+    public void setPluralForm(String pluralForm) {
+        this.pluralForm = pluralForm;
+    } 
+
+    public String getPluralFormOther() {
+        return pluralFormOther;
+    }
+   
+    public void setPluralFormOther(String pluralFormOther) {
+        this.pluralFormOther = pluralFormOther;
+    }   
 }
