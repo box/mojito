@@ -388,6 +388,23 @@ let TextUnit = React.createClass({
     },
 
     /**
+     * Returns the label to show plural form or empty string if textunit has none.
+     * @returns {Label}
+     */
+    renderPluralFormLabel() {
+
+        let rendered = '';
+        if (this.props.textUnit.getPluralForm() != null) {
+            rendered = (
+                <Label bsStyle="default" className="mrxs clickable" onClick={this.onPluralFormLabelClick}>
+                    {this.props.textUnit.getPluralForm()}
+                </Label>
+            );
+        }
+        return rendered;
+    },
+
+    /**
      * Returns the JSX to show the status of reviewNeeded for textunit
      * @returns {JSX}
      */
@@ -547,6 +564,27 @@ let TextUnit = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": SearchParamsStore.getState().repoIds,
             "bcp47Tags": [this.props.textUnit.getTargetLocale()],
+        });
+    },
+
+    /**
+     * Handle click on the plural form label: stop event propagation (no need to 
+     * bubble up as we're reloading the workbench with new data) and update the 
+     * search parameter to show all plural forms for the string 
+     * 
+     * @param {SyntheticEvent} e
+     */
+    onPluralFormLabelClick(e) {
+
+        e.stopPropagation();
+
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": SearchParamsStore.getState().repoIds,
+            "searchText": this.props.textUnit.getPluralFormOther(),
+            "searchAttribute": SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER,
+            "searchType": SearchParamsStore.SEARCH_TYPES.EXACT,
+            "bcp47Tags": [this.props.textUnit.getTargetLocale()]
         });
     },
 
@@ -785,6 +823,7 @@ let TextUnit = React.createClass({
                                     {this.props.textUnit.getTargetLocale()}
                                 </Label>
                                 {this.renderUnusedLabel()}
+                                {this.renderPluralFormLabel()}
                                 <span className="clickable"
                                       onClick={this.onStringIdClick}>{this.props.textUnit.getName()}</span>
                             </Col>

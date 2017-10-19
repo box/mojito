@@ -209,7 +209,9 @@ public class TMExportFilter implements IFilter {
         importExportNote.setIncludedInLocalizedFile(textUnitDTO.isIncludedInLocalizedFile());
         importExportNote.setCreatedDate(textUnitDTO.getCreatedDate());
         importExportNote.setVariantComments(textUnitDTO.getTmTextUnitVariantComments());
-
+        importExportNote.setPluralForm(textUnitDTO.getPluralForm());
+        importExportNote.setPluralFormOther(textUnitDTO.getPluralFormOther());
+        
         textUnit.setProperty(new Property(Property.NOTE, objectMapper.writeValueAsStringUnsafe(importExportNote)));
         textUnit.setPreserveWhitespaces(true);
         return textUnit;

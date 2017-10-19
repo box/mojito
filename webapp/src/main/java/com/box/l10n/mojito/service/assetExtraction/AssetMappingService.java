@@ -44,19 +44,19 @@ public class AssetMappingService {
 
     @Autowired
     LeveragingService leveragingService;
-    
+
     @Autowired
     AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
-    
+
     @Autowired
     EntityManager entityManager;
-    
+
     @Autowired
     AssetExtractionRepository assetExtractionRepository;
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
-    
+
     /**
      * Maps the {@link AssetTextUnit}s extracted during the extraction process
      * to the existing {@link TMTextUnit}s. If no mapping is found, a new
@@ -73,7 +73,7 @@ public class AssetMappingService {
         logger.debug("Map exact matches a first time to map to existing text units");
         long mapExactMatches = mapExactMatches(assetExtractionId, tmId, assetId);
         logger.debug("{} text units were mapped the first time for asset extraction id: {} and tmId: {}", mapExactMatches, assetExtractionId, tmId);
-
+        
         logger.debug("Create text units for unmapped asset text units");
         List<TMTextUnit> newlyCreatedTMTextUnits = createTMTextUnitForUnmappedAssetTextUnits(assetExtractionId, tmId, assetId);
 
@@ -86,7 +86,7 @@ public class AssetMappingService {
 
         logger.debug("Asset text unit and tm text unit mapping complete");
     }
-
+    
     /**
      * Creates {@link TMTextUnit} for {@link AssetTextUnit}s that don't have a
      * MD5 matches.
@@ -103,7 +103,16 @@ public class AssetMappingService {
         List<TMTextUnit> newlyCreatedTMTextUnits = new ArrayList<>();
 
         for (AssetTextUnit unmappedAssetTextUnit : assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtractionId)) {
-            TMTextUnit addTMTextUnit = tmService.addTMTextUnit(tmId, assetId, unmappedAssetTextUnit.getName(), unmappedAssetTextUnit.getContent(), unmappedAssetTextUnit.getComment());
+            TMTextUnit addTMTextUnit = tmService.addTMTextUnit(
+                    tmId,
+                    assetId,
+                    unmappedAssetTextUnit.getName(),
+                    unmappedAssetTextUnit.getContent(),
+                    unmappedAssetTextUnit.getComment(),
+                    null,
+                    unmappedAssetTextUnit.getPluralForm(),
+                    unmappedAssetTextUnit.getPluralFormOther());
+
             newlyCreatedTMTextUnits.add(addTMTextUnit);
         }
 
@@ -111,11 +120,10 @@ public class AssetMappingService {
 
         return newlyCreatedTMTextUnits;
     }
-    
+
     /**
-     * Maps exact matches by mapping {@link AssetTextUnit} to
-     * {@link TMTextUnit} based on MD5s for a given {@link AssetExtraction} and
-     * {@link TM}.
+     * Maps exact matches by mapping {@link AssetTextUnit} to {@link TMTextUnit}
+     * based on MD5s for a given {@link AssetExtraction} and {@link TM}.
      *
      * <p/>
      * The relationship is 1 to 1 because of the unique constraint on the
@@ -123,57 +131,58 @@ public class AssetMappingService {
      * {@link AssetTextUnit} can be map uniquely to a {@link TMTextUnit}.
      *
      * <p/>
-     * The select statement looks for all {@link AssetTextUnit}s that are not yet
-     * mapped and try to find a match by MD5 in a specified {@link TM}.
+     * The select statement looks for all {@link AssetTextUnit}s that are not
+     * yet mapped and try to find a match by MD5 in a specified {@link TM}.
      *
      * @param assetExtractionId {@link AssetExtraction} id
      * @param tmId {@link TM} id
      * @param assetId {@link Asset} id
      * @return number of exact matches
      */
-    protected int mapExactMatches(Long assetExtractionId, Long tmId, Long assetId) {   
+    protected int mapExactMatches(Long assetExtractionId, Long tmId, Long assetId) {
         List<AssetMappingDTO> exactMatches = getExactMatches(assetExtractionId, tmId, assetId);
         return saveExactMatches(exactMatches);
     }
-    
+
     /**
-     * Finds exact matches that are not mapped in {@link AssetTextUnitToTMTextUnit}.
-     * It maps {@link AssetTextUnit} to {@link TMTextUnit} based on MD5s 
-     * for a given {@link AssetExtraction} and {@link TM}.
-     * 
+     * Finds exact matches that are not mapped in
+     * {@link AssetTextUnitToTMTextUnit}. It maps {@link AssetTextUnit} to
+     * {@link TMTextUnit} based on MD5s for a given {@link AssetExtraction} and
+     * {@link TM}.
+     *
      * @param assetExtractionId
      * @param tmId
      * @param assetId
-     * @return 
+     * @return
      */
     @Transactional
     protected List<AssetMappingDTO> getExactMatches(Long assetExtractionId, Long tmId, Long assetId) {
         Query createNativeQuery = entityManager.createNamedQuery("AssetTextUnitToTMTextUnit.getExactMatches");
         createNativeQuery.setParameter(1, assetExtractionId);
         createNativeQuery.setParameter(2, tmId);
-        createNativeQuery.setParameter(3, assetId); 
+        createNativeQuery.setParameter(3, assetId);
         return createNativeQuery.getResultList();
     }
-    
+
     /**
      * Saves exact matches in {@link AssetTextUnitToTMTextUnit}.
-     * 
+     *
      * @param exactMatches to be saved
-     * @return 
+     * @return
      */
     @Transactional
-    protected int saveExactMatches(List<AssetMappingDTO> exactMatches) {   
+    protected int saveExactMatches(List<AssetMappingDTO> exactMatches) {
         List<AssetTextUnitToTMTextUnit> assetTextUnitToTMTextUnits = new ArrayList<>();
-        for (AssetMappingDTO exactMatch : exactMatches) { 
+        for (AssetMappingDTO exactMatch : exactMatches) {
             AssetTextUnitToTMTextUnit assetTextUnitToTMTextUnit = new AssetTextUnitToTMTextUnit();
-            
+
             assetTextUnitToTMTextUnit.setAssetExtraction(assetExtractionRepository.getOne(exactMatch.getAssetExtractionId()));
             assetTextUnitToTMTextUnit.setAssetTextUnit(assetTextUnitRepository.getOne(exactMatch.getAssetTextUnitId()));
             assetTextUnitToTMTextUnit.setTmTextUnit(tmTextUnitRepository.getOne(exactMatch.getTmTextUnitId()));
             assetTextUnitToTMTextUnits.add(assetTextUnitToTMTextUnit);
-        } 
+        }
         assetTextUnitToTMTextUnits = assetTextUnitToTMTextUnitRepository.save(assetTextUnitToTMTextUnits);
         return assetTextUnitToTMTextUnits.size();
     }
-      
+
 }

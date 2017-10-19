@@ -177,7 +177,7 @@ class Locales {
      * Returns sorted objects by the locale display name
      *
      * @param {Object[]} objects array of object that contains locale
-     * @param {Function} getBcp45Tag function to retrieve bcp47Tag from the object
+     * @param {Function} getBcp47Tag function to retrieve bcp47Tag from the object
      * @returns {Object[]} sorted objects
      */
     sortByDisplayName(objects, getBcp47Tag) {
