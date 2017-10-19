@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetExtraction.extractor;
 
+import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
@@ -32,8 +33,7 @@ public class AssetPathToFilterConfigMapper {
     //TODO(P1) check if we want escaped or not, potentially configurable.
     //TODO(P1) Trim comment coming from this PropertiesFilter? # comment gives " comment"
     public static final String PROPERTIES_FILTER_CONFIG_ID = "okf_properties-outputNotEscaped";
-    
-    public static final String ANDROIDSTRINGS_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-AndroidStrings";
+     
     public static final String MACSTRINGS_FILTER_CONFIG_ID = MacStringsFilter.FILTER_CONFIG_ID + "-macStrings";
     public static final String RESX_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-resx";
     public static final String XTB_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-xtb";
@@ -42,7 +42,7 @@ public class AssetPathToFilterConfigMapper {
         CSV(CSVFilter.FILTER_CONFIG_ID, "csv"),
         XLIFF(XLIFF_FILTER_CONFIG_ID, "xlf", "xliff", "sdlxliff", "mxliff"),
         PROPERTIES(PROPERTIES_FILTER_CONFIG_ID, "properties"),
-        ANDROIDSTRINGS(ANDROIDSTRINGS_FILTER_CONFIG_ID, "xml"),
+        ANDROIDSTRINGS(AndroidFilter.FILTER_CONFIG_ID, "xml"),
         MACSTRINGS(MACSTRINGS_FILTER_CONFIG_ID, "strings"),
         PO(POFilter.FILTER_CONFIG_ID, "pot"),
         RESX(RESX_FILTER_CONFIG_ID, "resx", "resw"),

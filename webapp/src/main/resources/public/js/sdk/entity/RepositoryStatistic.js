@@ -30,9 +30,15 @@ export default class RepositoryStatistic {
 
         /** @type {Number} */
         this.usedTextUnitWordCount = 0;
-
+        
         /** @type {Number} */
         this.reviewNeededCount = 0;
+        
+        /** @type {Number} */
+        this.pluralTextUnitCount = 0;
+        
+        /** @type {Number} */
+        this.pluralTextUnitWordCount = 0;
     }
 
     /**
@@ -58,6 +64,9 @@ export default class RepositoryStatistic {
             this.usedTextUnitCount = json.usedTextUnitCount;
             this.usedTextUnitWordCount = json.usedTextUnitWordCount;
             this.reviewNeededCount = json.reviewNeededCount;
+            this.pluralTextUnitCount = json.pluralTextUnitCount;
+            this.pluralTextUnitWordCount = json.pluralTextUnitWordCount;
+            
         }
         return result;
     }

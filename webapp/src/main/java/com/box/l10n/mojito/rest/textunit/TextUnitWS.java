@@ -68,6 +68,7 @@ public class TextUnitWS {
      * @param name optional
      * @param source optional
      * @param target optional
+     * @param pluralFormOther optional
      * @param searchType optional, default is EXACT match
      * @param localeTags optional
      * @param usedFilter optional
@@ -84,6 +85,7 @@ public class TextUnitWS {
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
+            @RequestParam(value = "pluralFormOther", required = false) String pluralFormOther,
             @RequestParam(value = "searchType", required = false, defaultValue = "EXACT") SearchType searchType,
             @RequestParam(value = "localeTags[]", required = false) ArrayList<String> localeTags,
             @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
@@ -97,6 +99,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setName(name);
         textUnitSearcherParameters.setSource(source);
         textUnitSearcherParameters.setTarget(target);
+        textUnitSearcherParameters.setPluralFormOther(pluralFormOther);
         textUnitSearcherParameters.setSearchType(searchType);
 
         if (localeTags != null) {

@@ -15,6 +15,7 @@ public class TextUnitSearcherParameters {
     String name;
     String source;
     String target;
+    String pluralFormOther;
     SearchType searchType;
     List<Long> repositoryIds;
     List<String> localeTags;
@@ -29,7 +30,7 @@ public class TextUnitSearcherParameters {
     String md5;
     boolean rootLocaleExcluded = true;
     boolean untranslatedOrTranslationNeeded = false;
-
+    
     public String getName() {
         return name;
     }
@@ -162,4 +163,12 @@ public class TextUnitSearcherParameters {
         this.statusFilter = statusFilter;
     }
 
+    public String getPluralFormOther() {
+        return pluralFormOther;
+    }
+
+    public void setPluralFormOther(String pluralFormOther) {
+        this.pluralFormOther = pluralFormOther;
+    }
+   
 }

@@ -29,6 +29,9 @@ export default class RepositoryLocaleStatistic {
 
         /** @type {Number} */
         this.includeInFileWordCount = 0;
+        
+         /** @type {Number} */
+        this.diffToSourcePluralCount = 0;
     }
 
     /**
@@ -47,6 +50,7 @@ export default class RepositoryLocaleStatistic {
         result.reviewNeededWordCount = json.reviewNeededWordCount;
         result.includeInFileCount = json.includeInFileCount;
         result.includeInFileWordCount = json.includeInFileWordCount;
+        result.diffToSourcePluralCount = json.diffToSourcePluralCount;
 
         return result;
     }

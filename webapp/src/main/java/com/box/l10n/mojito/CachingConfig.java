@@ -25,9 +25,10 @@ public class CachingConfig extends CachingConfigurerSupport {
     public CacheManager cacheManager() {
         Cache defaultCache = new ConcurrentMapCache("default");
         Cache localesCache = new ConcurrentMapCache("locales");
+        Cache pluralForm = new ConcurrentMapCache("pluralForms");
 
         SimpleCacheManager manager = new SimpleCacheManager();
-        manager.setCaches(Arrays.asList(defaultCache, localesCache));
+        manager.setCaches(Arrays.asList(defaultCache, localesCache, pluralForm));
 
         return manager;
     }

@@ -1,38 +1,38 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
-import com.ibm.icu.text.PluralRules;
-import com.ibm.icu.util.ULocale;
+import com.box.l10n.mojito.okapi.CopyFormsOnImport;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.po.PoPluralRule;
+import com.google.common.collect.Multimap;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
-import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.RawDocument;
+import net.sf.okapi.common.resource.TextContainer;
+import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
+import net.sf.okapi.common.skeleton.GenericSkeletonPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * Extends {@link net.sf.okapi.filters.po.POFilter} to somehow support gettext
  * plural and surface message context as part of the textunit name.
  *
- * We create the 3 textunits for the 3 possible forms supported by Gettext.
- *
- * This is far from ideal as many languages need only 2 forms but it allows 3
- * forms for others. Note that 3 forms is not enough for some languages either
- * but that's the maximum supported by Gettext anyway (so no need to create 6
- * textunits say to support arabic).
- *
- * This is somewhat a hacky solution but will provide basic support for plural
- * with gettext. End of the day people shouldn't use that plural support anyway
- * as it is too limited.
+ * Maps po plural form to cldr using {@link PoPluralRuleHelper
  *
  * @author jaurambualt
  */
@@ -46,8 +46,10 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     public static final String FILTER_CONFIG_ID = "okf_po@mojito";
 
+    static final Pattern PO_PLURAL_FORM_PATTERN = Pattern.compile("(.*?\\-)(.*?)(])");
+
     @Autowired
-    PoPluralRules poPluralRules;
+    TextUnitUtils textUnitUtils;
 
     @Override
     public String getName() {
@@ -66,129 +68,229 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         return list;
     }
 
-    /**
-     * Event that contains an extra text unit for the 3rd plural form supported
-     * by Gettext.
-     */
-    Event extraPluralEvent = null;
-
-    /**
-     * Indicates if the target locale requires an extra plural form
-     */
-    boolean needsExtraPluralForm;
-
-    boolean needsToRemoveExtraPluralForm;
+    List<Event> eventQueue = new ArrayList<>();
 
     LocaleId targetLocale;
+
+    PoPluralRule poPluralRule;
+
+    boolean hasCopyFormsOnImport = false;
+
+    boolean isProcessingPlural = false;
+
+    String msgIDPlural;
 
     @Override
     public void open(RawDocument input) {
         super.open(input);
         targetLocale = input.getTargetLocale();
-        boolean hasAnnotation = input.getAnnotation(POExtraPluralAnnotation.class) != null;
-        needsExtraPluralForm = hasAnnotation && needsExtraPluralForm(targetLocale);
-        needsToRemoveExtraPluralForm = hasAnnotation && needsToRemoveExtraPluralForm(targetLocale);
+        hasCopyFormsOnImport = input.getAnnotation(CopyFormsOnImport.class) != null;
+        poPluralRule = PoPluralRule.fromBcp47Tag(targetLocale.toBCP47());
     }
 
     @Override
     public boolean hasNext() {
-        return extraPluralEvent != null || super.hasNext();
+        return !eventQueue.isEmpty() || super.hasNext();
     }
 
-    /**
-     * Return the extraPluralEvent textunit if needed or get the event from the
-     * parent filter.
-     *
-     * TextUnits from the parents are modified to include context in the
-     * textunit name.
-     *
-     * @return
-     */
     @Override
     public Event next() {
         Event event;
-        if (extraPluralEvent != null) {
-            event = extraPluralEvent;
-            extraPluralEvent = null;
-        } else {
 
-            event = super.next();
-
-            if (event.isTextUnit()) {
-                ITextUnit textUnit = event.getTextUnit();
-
-                if (needsToRemoveExtraPluralForm && textUnit.getName().endsWith("-1")) {
-                    event = super.next();
-                } else {
-                    addExtraPluralIfTextUnitIsSecondPluralForm(textUnit);
-                }
-                
-                addContextToTextUnitName(textUnit);
-            } else if (event.isDocumentPart()) {
-                rewritePluralFormInHeader(event.getDocumentPart());
-            }
+        if (eventQueue.isEmpty()) {
+            readNextEvents();
         }
+
+        event = eventQueue.remove(0);
 
         return event;
     }
 
-    /**
-     * Indicates if a locale needs an extra plural form in PO files.
-     *
-     * If no target locale (source file) extra plural is needed as well as for
-     * language that requires more than 2 plural forms.
-     *
-     * @param localeId from the input document
-     * @return if an extra plural text unit is needed or not
-     */
-    protected boolean needsExtraPluralForm(LocaleId localeId) {
-        boolean required = true;
+    void readNextEvents() {
+        Event next = getNextWithProcess();
 
-        if (localeId != null && !LocaleId.EMPTY.equals(localeId)) {
-            ULocale ulocale = ULocale.forLanguageTag(localeId.toBCP47());
-            PluralRules pluralRules = PluralRules.forLocale(ulocale);
-            required = pluralRules.getKeywords().size() > 2;
-        }
-
-        return required;
-    }
-
-    /**
-     * If the text unit correspond to the 2nd gettext entry of a plural, create
-     * a clone of the textunit to make it an extra text unit to support the 3
-     * gettext plural forms. Create an event with that new textunit to be
-     * returned next.
-     *
-     * @param textUnit
-     */
-    private void addExtraPluralIfTextUnitIsSecondPluralForm(ITextUnit textUnit) {
-
-        if (needsExtraPluralForm && textUnit.getName().endsWith("-1")) {
-            ITextUnit clone = textUnit.clone();
-            clone.setName(clone.getName().replace("-1", "-2"));
-            GenericSkeleton genericSkeleton = (GenericSkeleton) clone.getSkeleton();
-            StringBuilder sb = genericSkeleton.getFirstPart().getData();
-            String str = sb.toString().replace("msgstr[1]", "msgstr[2]");
-            sb.replace(0, sb.length(), str);
-
-            addContextToTextUnitName(clone);
-            extraPluralEvent = new Event(EventType.TEXT_UNIT, clone);
+        if (isPluralGroupStarting(next)) {
+            readPlurals(next);
+        } else {
+            if (next.isDocumentPart()) {
+                rewritePluralFormInHeader(next.getDocumentPart());
+            }
+            eventQueue.add(next);
         }
     }
 
-    private void removeExtraPluralIfTextUnitIsSecondPluralForm(ITextUnit textUnit) {
-
-        if (needsExtraPluralForm && textUnit.getName().endsWith("-1")) {
-            ITextUnit clone = textUnit.clone();
-            clone.setName(clone.getName().replace("-1", "-2"));
-            GenericSkeleton genericSkeleton = (GenericSkeleton) clone.getSkeleton();
-            StringBuilder sb = genericSkeleton.getFirstPart().getData();
-            String str = sb.toString().replace("msgstr[1]", "msgstr[2]");
-            sb.replace(0, sb.length(), str);
-
-            addContextToTextUnitName(clone);
-            extraPluralEvent = new Event(EventType.TEXT_UNIT, clone);
+    void processTextUnit(Event event) {
+        if (event != null && event.isTextUnit()) {
+            TextUnit textUnit = (TextUnit) event.getTextUnit();
+            addContextToTextUnitName(textUnit);
         }
+    }
+
+    boolean isPluralGroupStarting(Event event) {
+        return event != null && event.isStartGroup() && "x-gettext-plurals".equals(event.getStartGroup().getType());
+    }
+
+    boolean isPluralGroupEnding(Event event) {
+        return isProcessingPlural && event != null && event.isEndGroup();
+    }
+
+    Event getNextWithProcess() {
+        Event next = super.next();
+        processTextUnit(next);
+        return next;
+    }
+
+    void readPlurals(Event next) {
+
+        logger.debug("First event is the start group, load msgidplural from parent and move to next");
+        loadMsgIDPluralFromParent();
+        eventQueue.add(next);
+        next = getNextWithProcess();
+
+        List<Event> pluralEvents = new ArrayList<>();
+
+        isProcessingPlural = true;
+
+        // add the start event
+        pluralEvents.add(next);
+
+        next = getNextWithProcess();
+
+        // read others until the end
+        while (next != null && !isPluralGroupEnding(next)) {
+            pluralEvents.add(next);
+            next = getNextWithProcess();
+        }
+
+        // that doesn't contain last
+        pluralEvents = adaptPlurals(pluralEvents);
+
+        eventQueue.addAll(pluralEvents);
+
+        if (isPluralGroupStarting(next)) {
+            readPlurals(next);
+        } else {
+            eventQueue.add(next);
+        }
+    }
+
+    List<Event> adaptPlurals(List<Event> pluralEvents) {
+        logger.debug("Adapt plural forms if needed");
+        PluralsHolder pluralsHolder = new PoPluralsHolder();
+        pluralsHolder.loadEvents(pluralEvents);
+        List<Event> completedForms = pluralsHolder.getCompletedForms(targetLocale);
+        return completedForms;
+    }
+
+    class PoPluralsHolder extends PluralsHolder {
+
+        @Override
+        public List<Event> getCompletedForms(LocaleId localeId) {
+
+            if (other == null) {
+                logger.debug("Other is not defined, means it is for a language where few can be copied like Russian");
+                other = createCopyOf(few, "few", "other");
+            }
+
+            return super.getCompletedForms(localeId);
+        }
+
+        @Override
+        void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
+
+            renameTextUnit(textUnit, cldrPluralForm);
+
+            if (!"one".equals(cldrPluralForm)) {
+                // source should always be plural form unless for "one" form, this is need for language with only one entry like japanese: [0] --> other
+                logger.debug("Set message plural: {}", msgIDPlural);
+                textUnit.setSource(new TextContainer(msgIDPlural));
+            }
+        }
+
+        @Override
+        String getCldrPluralFormOfEvent(Event event) {
+            String pluralForm = null;
+            String poPluralFormFromName = getPoPluralFormFromTextUnitName(event.getTextUnit().getName());
+
+            if (poPluralFormFromName != null) {
+                pluralForm = poPluralRule.poFormToCldrForm(poPluralFormFromName);
+            }
+
+            return pluralForm;
+        }
+
+        String getPoPluralFormFromTextUnitName(String name) {
+            logger.debug("getPoPluralFormFromName: {}", name);
+
+            String poPluralForm = null;
+            Matcher matcher = PO_PLURAL_FORM_PATTERN.matcher(name);
+
+            if (matcher.find()) {
+                poPluralForm = matcher.group(2);
+            }
+
+            return poPluralForm;
+        }
+
+        @Override
+        String getNewTextUnitName(String name, String targetForm) {
+
+            Matcher matcher = PO_PLURAL_FORM_PATTERN.matcher(name);
+
+            StringBuffer sb = new StringBuffer();
+
+            if (matcher.find()) {
+                matcher.appendReplacement(sb, "$1" + targetForm + "$3");
+            }
+
+            matcher.appendTail(sb);
+
+            String newName = sb.toString();
+
+            logger.debug("Rename textunit ({}) to: {}. Plural form: {}", name, newName, targetForm);
+            return newName;
+        }
+
+        @Override
+        void replaceFormInSkeleton(GenericSkeleton genericSkeleton, String sourceForm, String targetForm) {
+            logger.debug("Replace in skeleton form: {} to {} ({})", sourceForm, targetForm, poPluralRule.cldrFormToPoForm(targetForm));
+
+            String cldrFormToGettextForm = poPluralRule.cldrFormToPoForm(targetForm);
+
+            if (cldrFormToGettextForm != null) {
+                for (GenericSkeletonPart part : genericSkeleton.getParts()) {
+                    StringBuilder sb = part.getData();
+                    //TODO make more flexible
+                    String str = sb.toString().replaceAll("msgstr\\[\\d\\]", "msgstr[" + cldrFormToGettextForm + "]");
+                    sb.replace(0, sb.length(), str);
+                }
+            } else {
+                logger.debug("No replacement, no PO idx for CLDR form: {}", targetForm);
+            }
+        }
+
+        @Override
+        Multimap<String, String> getFormsToCopy(LocaleId localeId) {
+            Multimap<String, String> formsToCopy = super.getFormsToCopy(localeId);
+
+            if (hasCopyFormsOnImport) {
+                logger.debug("Copy required form for import");
+                for (Map.Entry<String, String> entry : poPluralRule.getFormsToCopyOnImport().getFormMap().entries()) {
+                    formsToCopy.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            return formsToCopy;
+        }
+
+        @Override
+        void retainForms(LocaleId localeId, List<String> pluralForms) {
+            if (localeId != null && !LocaleId.EMPTY.equals(localeId)) {
+                Set<String> cldrRules = poPluralRule.getCldrForms();
+                pluralForms.retainAll(cldrRules);
+            }
+        }
+
     }
 
     /**
@@ -203,8 +305,9 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      *
      * @param textUnit
      */
-    private void addContextToTextUnitName(ITextUnit textUnit) {
+    void addContextToTextUnitName(ITextUnit textUnit) {
         Property property = textUnit.getProperty(POFilter.PROPERTY_CONTEXT);
+
         textUnit.setName("[" + textUnit.getName() + "] ");
         if (property != null) {
             textUnit.setName(textUnit.getName() + property.getValue());
@@ -216,22 +319,21 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      *
      * @param documentPart
      */
-    private void rewritePluralFormInHeader(DocumentPart documentPart) {
+    void rewritePluralFormInHeader(DocumentPart documentPart) {
         if (targetLocale != null && !LocaleId.EMPTY.equals(targetLocale)) {
-            PoPluralRules.Rules rulesForBcp47Tag = poPluralRules.getRulesForBcp47Tag(targetLocale.toBCP47());
-            documentPart.setProperty(new Property("pluralforms", rulesForBcp47Tag.getRule()));
+            documentPart.setProperty(new Property("pluralforms", poPluralRule.getRule()));
+
         }
     }
 
-    private boolean needsToRemoveExtraPluralForm(LocaleId localeId) {
-        boolean required = false;
-        if (targetLocale != null && !LocaleId.EMPTY.equals(targetLocale)) {
-            ULocale ulocale = ULocale.forLanguageTag(localeId.toBCP47());
-            PluralRules pluralRules = PluralRules.forLocale(ulocale);
-            required = pluralRules.getKeywords().size() == 1;
+    void loadMsgIDPluralFromParent() {
+        Field msgIDPluralParent = ReflectionUtils.findField(net.sf.okapi.filters.po.POFilter.class,
+                "msgIDPlural");
+        ReflectionUtils.makeAccessible(msgIDPluralParent);
+        try {
+            msgIDPlural = (String) msgIDPluralParent.get(this);
+        } catch (IllegalAccessException | IllegalArgumentException e) {
+            throw new RuntimeException(e);
         }
-
-        return required;
     }
-
 }

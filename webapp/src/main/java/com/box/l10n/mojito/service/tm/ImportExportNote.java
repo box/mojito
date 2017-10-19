@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.joda.time.DateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
  *
  * @author jaurambault
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ImportExportNote {
 
     String sourceComment;
@@ -24,6 +26,8 @@ public class ImportExportNote {
     TMTextUnitVariant.Status status = TMTextUnitVariant.Status.APPROVED;
     List<TMTextUnitVariantComment> variantComments = new ArrayList<>();
     DateTime createdDate;
+    String pluralForm;
+    String pluralFormOther;
 
     public String getSourceComment() {
         return sourceComment;
@@ -72,4 +76,21 @@ public class ImportExportNote {
     public void setCreatedDate(DateTime createdDate) {
         this.createdDate = createdDate;
     }
+
+    public String getPluralForm() {
+        return pluralForm;
+    }
+
+    public void setPluralForm(String pluralForm) {
+        this.pluralForm = pluralForm;
+    }
+
+    public String getPluralFormOther() {
+        return pluralFormOther;
+    }
+
+    public void setPluralFormOther(String pluralFormOther) {
+        this.pluralFormOther = pluralFormOther;
+    }
+
 }

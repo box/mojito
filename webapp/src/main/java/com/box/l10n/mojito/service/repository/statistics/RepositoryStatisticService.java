@@ -8,6 +8,8 @@ import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.ibm.icu.text.PluralRules;
+import com.ibm.icu.util.ULocale;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import org.joda.time.DateTime;
@@ -74,6 +76,9 @@ public class RepositoryStatisticService {
         repositoryStatistic.setUsedTextUnitWordCount(newRepositoryStatistics.getUsedTextUnitWordCount());
         repositoryStatistic.setUnusedTextUnitCount(newRepositoryStatistics.getUnusedTextUnitCount());
         repositoryStatistic.setUnusedTextUnitWordCount(newRepositoryStatistics.getUnusedTextUnitWordCount());
+        repositoryStatistic.setPluralTextUnitCount(newRepositoryStatistics.getPluralTextUnitCount());
+        repositoryStatistic.setPluralTextUnitWordCount(newRepositoryStatistics.getPluralTextUnitWordCount());
+        
         //TODO(P1) This should be updated by spring but it's not, needs review
         repositoryStatistic.setLastModifiedDate(DateTime.now());
 
@@ -118,7 +123,8 @@ public class RepositoryStatisticService {
         repositoryLocaleStatistic.setTranslatedWordCount(newRepositoryLocaleStatistic.getTranslatedWordCount());
         repositoryLocaleStatistic.setTranslationNeededCount(newRepositoryLocaleStatistic.getTranslationNeededCount());
         repositoryLocaleStatistic.setTranslationNeededWordCount(newRepositoryLocaleStatistic.getTranslationNeededWordCount());
-
+        repositoryLocaleStatistic.setDiffToSourcePluralCount(newRepositoryLocaleStatistic.getDiffToSourcePluralCount());
+        
         repositoryLocaleStatisticRepository.save(repositoryLocaleStatistic);
     }
 
@@ -158,8 +164,15 @@ public class RepositoryStatisticService {
 
         logger.debug("Replace POJO with a reference object");
         repositoryLocaleStatistic.setLocale(repositoryLocale.getLocale());
-
+        repositoryLocaleStatistic.setDiffToSourcePluralCount(computeDiffToSourceLocaleCount(repositoryLocale.getLocale().getBcp47Tag()));
+      
         return repositoryLocaleStatistic;
+    }
+
+    private Long computeDiffToSourceLocaleCount(String targetLocaleBcp47Tag) {
+          ULocale targetLocale = ULocale.forLanguageTag(targetLocaleBcp47Tag);
+          PluralRules pluralRulesTargetLocale = PluralRules.forLocale(targetLocale);
+          return 6L - pluralRulesTargetLocale.getKeywords().size();
     }
 
 }

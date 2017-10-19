@@ -26,13 +26,15 @@ const SearchDataSource = {
                     textUnitSearcherParameters.source(searchParams.searchText);
                 } else if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.TARGET) {
                     textUnitSearcherParameters.target(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER) {
+                    textUnitSearcherParameters.pluralFormOther(searchParams.searchText);
                 } else {
                     textUnitSearcherParameters.name(searchParams.searchText);
                 }
 
                 textUnitSearcherParameters.searchType(searchParams.searchType.toUpperCase());
             }
-
+            
             if (searchParams.status) {
                 textUnitSearcherParameters.statusFilter(searchParams.status);
             }
