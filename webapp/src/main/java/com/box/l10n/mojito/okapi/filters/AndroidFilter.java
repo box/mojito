@@ -1,21 +1,32 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import com.box.l10n.mojito.okapi.CopyFormsOnImport;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
+import net.sf.okapi.common.IResource;
+import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
+import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
+import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
+import net.sf.okapi.common.skeleton.GenericSkeleton;
+import net.sf.okapi.common.skeleton.GenericSkeletonPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  *
  * @author jaurambault
  */
+@Configurable
 public class AndroidFilter extends XMLFilter {
 
     /**
@@ -29,6 +40,9 @@ public class AndroidFilter extends XMLFilter {
 
     private static final String XML_COMMENT_PATTERN = "<!--(?<comment>.*?)-->";
     private static final String XML_COMMENT_GROUP_NAME = "comment";
+
+    @Autowired
+    TextUnitUtils textUnitUtils;
 
     @Override
     public String getName() {
@@ -48,11 +62,39 @@ public class AndroidFilter extends XMLFilter {
         return list;
     }
 
+    LocaleId targetLocale;
+
+    boolean hasAnnotation;
+
+    @Override
+    public void open(RawDocument input) {
+        super.open(input);
+        targetLocale = input.getTargetLocale();
+        hasAnnotation = input.getAnnotation(CopyFormsOnImport.class) != null;
+    }
+
+    List<Event> eventQueue = new ArrayList<>();
+
+    @Override
+    public boolean hasNext() {
+        return !eventQueue.isEmpty() || super.hasNext();
+    }
+
     @Override
     public Event next() {
-        Event event = super.next();
+        Event event;
 
-        if (event.isTextUnit()) {
+        if (eventQueue.isEmpty()) {
+            readNextEvents();
+        }
+
+        event = eventQueue.remove(0);
+
+        return event;
+    }
+
+    private void processTextUnit(Event event) {
+        if (event != null && event.isTextUnit()) {
             // if source has escaped double-quotes, single-quotes, \r or \n, unescape
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             String sourceString = textUnit.getSource().toString();
@@ -61,8 +103,22 @@ public class AndroidFilter extends XMLFilter {
             textUnit.setSource(source);
             extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
         }
+    }
 
-        return event;
+    protected boolean isPluralGroupStarting(IResource resource) {
+        String toString = resource.getSkeleton().toString();
+        Pattern p = Pattern.compile("<plurals");
+        Matcher matcher = p.matcher(toString);
+        boolean startPlural = matcher.find();
+        return startPlural;
+    }
+
+    protected boolean isPluralGroupEnding(IResource resource) {
+        String toString = resource.getSkeleton().toString();
+        Pattern p = Pattern.compile("</plurals>");
+        Matcher matcher = p.matcher(toString);
+        boolean endPlural = matcher.find();
+        return endPlural;
     }
 
     /**
@@ -127,4 +183,154 @@ public class AndroidFilter extends XMLFilter {
         xmlEncoder.setAndroidStrings(true);
         return xmlEncoder;
     }
+
+    private void readNextEvents() {
+        Event next = getNextWithProcess();
+
+        if (next.isTextUnit() && isPluralGroupStarting(next.getResource())) {
+            readPlurals(next);
+        } else {
+            eventQueue.add(next);
+        }
+    }
+
+    private Event getNextWithProcess() {
+        Event next = super.next();
+        processTextUnit(next);
+        return next;
+    }
+
+    private void readPlurals(Event next) {
+
+        List<Event> pluralEvents = new ArrayList<>();
+
+        // add the start event
+        pluralEvents.add(next);
+
+        next = getNextWithProcess();
+
+        // read others until the end
+        while (next != null && !isPluralGroupEnding(next.getResource())) {
+            pluralEvents.add(next);
+            next = getNextWithProcess();
+        }
+
+        // that doesn't contain last
+        pluralEvents = adaptPlurals(pluralEvents);
+
+        eventQueue.addAll(pluralEvents);
+
+        if (isPluralGroupStarting(next.getResource())) {
+            readPlurals(next);
+        } else {
+            eventQueue.add(next);
+        }
+    }
+
+    protected List<Event> adaptPlurals(List<Event> pluralEvents) {
+        logger.debug("Adapt plural forms if needed");
+        PluralsHolder pluralsHolder = new AndroidPluralsHolder();
+        pluralsHolder.loadEvents(pluralEvents);
+        List<Event> completedForms = pluralsHolder.getCompletedForms(targetLocale);
+        return completedForms;
+    }
+
+    class AndroidPluralsHolder extends PluralsHolder {
+
+        String firstForm = null;
+        String comments = null;
+
+        @Override
+        protected void loadEvents(List<Event> pluralEvents) {
+
+            if (!pluralEvents.isEmpty()) {
+                Event firstEvent = pluralEvents.get(0);
+                firstForm = getPluralFormFromSkeleton(firstEvent.getResource());
+                ITextUnit firstTextUnit = firstEvent.getTextUnit();
+                comments = textUnitUtils.getNote(firstTextUnit);
+            }
+
+            super.loadEvents(pluralEvents);
+        }
+
+        @Override
+        public List<Event> getCompletedForms(LocaleId localeId) {
+            List<Event> completedForms = super.getCompletedForms(localeId);
+            swapSkeletonBetweenOldFirstAndNewFirst(getPluralFormFromSkeleton(completedForms.get(0).getResource()));
+
+            for (Event newForm : completedForms) {
+                if (comments != null) {
+                    newForm.getTextUnit().setProperty(new Property(Property.NOTE, comments));
+                }
+            }
+
+            return completedForms;
+        }
+
+        void swapSkeletonBetweenOldFirstAndNewFirst(String newFirstForm) {
+            if (newFirstForm != null && !newFirstForm.equals(firstForm)) {
+                logger.debug("Swapping the old first form with the new first form, as it contains the skeleton");
+                Event oldFirst = getEventForPluralForm(firstForm);
+                Event newFirst = getEventForPluralForm(newFirstForm);
+
+                GenericSkeleton oldSkeleton = (GenericSkeleton) oldFirst.getTextUnit().getSkeleton();
+                replaceFormInSkeleton(oldSkeleton, firstForm, newFirstForm);
+
+                GenericSkeleton newSkeleton = (GenericSkeleton) newFirst.getTextUnit().getSkeleton();
+                replaceFormInSkeleton(newSkeleton, newFirstForm, firstForm);
+
+                oldFirst.getTextUnit().setSkeleton(newSkeleton);
+                newFirst.getTextUnit().setSkeleton(oldSkeleton);
+            }
+        }
+
+        @Override
+        String getCldrPluralFormOfEvent(Event pluralEvent) {
+
+            String pluralForm = null;
+
+            Pattern p = Pattern.compile(".*_(.*?)$");
+            Matcher matcher = p.matcher(pluralEvent.getTextUnit().getName());
+
+            if (matcher.find()) {
+                pluralForm = matcher.group(1);
+            }
+
+            return pluralForm;
+        }
+
+        @Override
+        String getNewTextUnitName(String name, String targetForm) {
+            Pattern p = Pattern.compile("_other$");
+            Matcher matcher = p.matcher(name);
+            String newName = matcher.replaceAll("_" + targetForm);
+            return newName;
+        }
+
+        @Override
+        void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
+        }
+
+        @Override
+        void replaceFormInSkeleton(GenericSkeleton genericSkeleton, String sourceForm, String targetForm) {
+            for (GenericSkeletonPart part : genericSkeleton.getParts()) {
+                StringBuilder sb = part.getData();
+                //TODO make more flexible
+                String str = sb.toString().replace(sourceForm + "\"", targetForm + "\"");
+                sb.replace(0, sb.length(), str);
+            }
+        }
+
+        String getPluralFormFromSkeleton(IResource resource) {
+            String toString = resource.getSkeleton().toString();
+            Pattern p = Pattern.compile("<.*?item.+?quantity.+?\"(.+?)\"");
+            Matcher matcher = p.matcher(toString);
+            String res = null;
+            if (matcher.find()) {
+                res = matcher.group(1);
+            }
+            return res;
+        }
+
+    } 
 }

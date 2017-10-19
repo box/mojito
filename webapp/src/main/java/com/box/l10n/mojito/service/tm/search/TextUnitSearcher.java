@@ -102,7 +102,14 @@ public class TextUnitSearcher {
         c.addJoin(new NativeJoin("asset_text_unit_to_tm_text_unit", "map", NativeJoin.JoinType.LEFT_OUTER, onClauseAssetTextUnit));
 
         c.addJoin(NativeExps.leftJoin("asset_text_unit", "atu", "atu.id", "map.asset_text_unit_id"));
-
+        
+        // check plural form for language
+        NativeJunctionExp onClausePluralForm = NativeExps.conjunction();
+        onClausePluralForm.add(new NativeColumnEqExp("pffl.plural_form_id", "tu.plural_form_id"));
+        onClausePluralForm.add(new NativeColumnEqExp("pffl.locale_id", "l.id"));
+        c.addJoin(new NativeJoin("plural_form_for_locale", "pffl", NativeJoin.JoinType.LEFT_OUTER, onClausePluralForm));
+        c.addJoin(NativeExps.leftJoin("plural_form", "pf", "pffl.plural_form_id", "pf.id"));
+        
         logger.debug("Set projections");
 
         //TODO(P1) Might want to some of those projection as optional for perf reason
@@ -124,12 +131,20 @@ public class TextUnitSearcher {
                 addProjection("tuv.status", "status").
                 addProjection("tuv.included_in_localized_file", "includedInLocalizedFile").
                 addProjection("tuv.created_date", "createdDate").
-                addProjection("a.deleted", "assetDeleted")
+                addProjection("a.deleted", "assetDeleted").
+                addProjection("pf.name", "pluralForm").
+                addProjection("tu.plural_form_other", "pluralFormOther")   
         );
 
         logger.debug("Add search filters");
         NativeJunctionExp conjunction = NativeExps.conjunction();
-
+        
+        // get ride of uncessary plural form per language
+        NativeJunctionExp pluralFormForLocale = NativeExps.disjunction();
+        pluralFormForLocale.add(NativeExps.isNotNull("pffl.plural_form_id"));
+        pluralFormForLocale.add(NativeExps.isNull("tu.plural_form_id"));
+        conjunction.add(pluralFormForLocale);
+        
         if (searchParameters.getRepositoryIds() != null && !searchParameters.getRepositoryIds().isEmpty()) {
             conjunction.add(NativeExps.in("r.id", searchParameters.getRepositoryIds()));
         }
@@ -144,6 +159,10 @@ public class TextUnitSearcher {
 
         if (searchParameters.getMd5() != null) {
             conjunction.add(NativeExps.eq("tu.md5", searchParameters.getMd5()));
+        }
+        
+        if (searchParameters.getPluralFormOther() != null) {
+            conjunction.add(getSearchTypeNativeExp(searchParameters.getSearchType(), "tu.plural_form_other", searchParameters.getPluralFormOther()));
         }
 
         if (searchParameters.getTarget() != null) {

@@ -24,6 +24,8 @@ class SearchParamsStore {
         this.searchAttribute = SearchParamsStore.SEARCH_ATTRIBUTES.TARGET;
         this.searchType = SearchParamsStore.SEARCH_TYPES.CONTAINS;
 
+        this.pluralFormOther = null;
+
         // 'Filter by' related
         this.status = SearchParamsStore.STATUS.ALL;
         this.used = true;
@@ -167,7 +169,8 @@ class SearchParamsStore {
     updateAllParameters({
         repoIds = null, bcp47Tags = null, searchText = null, searchAttribute = null,
         searchType = null, status = null, used = null, unUsed = null,
-        pageSize = null, currentPageNumber = null, pageOffset = null
+        pageSize = null, currentPageNumber = null, pageOffset = null, 
+        pluralFormOther = null
         } = {}) {
 
         //TODO merge this with SEARCHTEXT_CHANGED
@@ -178,6 +181,10 @@ class SearchParamsStore {
 
         if (bcp47Tags !== null) {
             this.bcp47Tags = bcp47Tags;
+        }
+        
+        if (pluralFormOther !== null) {
+            this.pluralFormOther = pluralFormOther;
         }
 
         if (searchText !== null)
@@ -221,7 +228,8 @@ class SearchParamsStore {
         let {
             searchAttribute, searchText, searchType,
             status, used, unUsed,
-            pageSize, currentPageNumber, pageOffset } = query;
+            pageSize, currentPageNumber, pageOffset,
+            pluralFormOther} = query;
         
         let repoIds = query["repoIds[]"];
         let bcp47Tags = query["bcp47Tags[]"];
@@ -250,7 +258,8 @@ class SearchParamsStore {
             "unUsed": typeof unUsed !== "undefined" ? (unUsed === "true") : null,
             "pageSize": typeof pageSize !== "undefined" ? parseInt(pageSize) : null,
             "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
-            "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null
+            "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null,
+            "pluralFormOther": typeof pluralFormOther !== "undefined" ? pluralFormOther : null
         };
         
         return converted;
@@ -309,7 +318,8 @@ SearchParamsStore.SEARCH_TYPES = {
 SearchParamsStore.SEARCH_ATTRIBUTES = {
     "STRING_ID": "stringId",
     "SOURCE": "source",
-    "TARGET": "target"
+    "TARGET": "target",
+    "PLURAL_FORM_OTHER": "pluralFormOther"
 };
 
 SearchParamsStore.STATUS = {
