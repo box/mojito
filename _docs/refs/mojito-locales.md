@@ -29,6 +29,7 @@ permalink: /docs/refs/mojito-locales/
 | az-AZ	        | Azeri (Azerbaijan) |
 | be-BY	        | Belarusian (Belarus) |
 | bg-BG	        | Bulgarian (Bulgaria) |
+| bn-IN	        | Bengali (India) |
 | bs-BA	        | Bosnian (Bosnia and Herzegovina) |
 | ca-ES	        | Catalan (Spain) |
 | cs-CZ	        | Czech (Czech Republic) |
