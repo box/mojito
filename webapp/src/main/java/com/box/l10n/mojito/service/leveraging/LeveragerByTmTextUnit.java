@@ -7,27 +7,33 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Configurable;
 
 /**
- *
+ * Performs leveraging based using the provided TmTextUnit id
+ * 
  * @author jaurambault
  */
-@Component
-public class LeveragerByMd5 extends AbstractLeverager {
+@Configurable
+public class LeveragerByTmTextUnit extends AbstractLeverager {
 
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(LeveragerByMd5.class);
+    static Logger logger = LoggerFactory.getLogger(LeveragerByTmTextUnit.class);
+    
+    Long tmTextUnitId;
 
+    public LeveragerByTmTextUnit(Long tmTextUnitId) {
+        this.tmTextUnitId = tmTextUnitId;
+    }
+    
     @Override
     public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
-        logger.debug("Get TextUnitDTOs for leveraging by MD5");
+        logger.debug("Get TextUnitDTOs for leveraging with TmTextUnit");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setMd5(tmTextUnit.getMd5());
-        textUnitSearcherParameters.setTmId(sourceTmId);
+        textUnitSearcherParameters.setTmTextUnitId(tmTextUnitId);
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
 
         return textUnitSearcher.search(textUnitSearcherParameters);
@@ -35,12 +41,12 @@ public class LeveragerByMd5 extends AbstractLeverager {
 
     @Override
     public boolean isTranslationNeededIfUniqueMatch() {
-        return false;
+        return true;
     }
 
     @Override
     public String getType() {
-        return "Leverage by source Md5";
+        return "Leverage with TmTextUnit";
     }
 
 }

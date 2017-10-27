@@ -36,6 +36,7 @@ public class PluralFormForLocaleService {
         List<Locale> locales = localeRepository.findAll();
         
         for (Locale locale : locales) {
+            
             ULocale forLanguageTag = ULocale.forLanguageTag(locale.getBcp47Tag());
             
             PluralRules pluralRules = PluralRules.forLocale(forLanguageTag);

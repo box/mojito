@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.virtualEquals;
 
 /**
  * @author aloison
@@ -65,17 +66,20 @@ public class AssetWS {
      * @param repositoryId {@link Repository#id}
      * @param path {@link Asset#path}
      * @param deleted
+     * @param virtualContent
      * @return the list of {@link Asset} for a given {@link Repository}
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.GET)
     public List<Asset> getAssets(@RequestParam(value = "repositoryId") Long repositoryId,
             @RequestParam(value = "path", required = false) String path,
-            @RequestParam(value = "deleted", required = false) Boolean deleted) {
+            @RequestParam(value = "deleted", required = false) Boolean deleted,
+            @RequestParam(value = "virtual", required = false) Boolean virtualContent) {
 
-        return assetRepository.findAll(
-                where(ifParamNotNull(repositoryIdEquals(repositoryId)))
-                .and(ifParamNotNull(pathEquals(path)))
-                .and(ifParamNotNull(deletedEquals(deleted)))
+        return assetRepository.findAll(where(ifParamNotNull(repositoryIdEquals(repositoryId)))
+                 .and(ifParamNotNull(pathEquals(path)))
+                 .and(ifParamNotNull(deletedEquals(deleted)))
+                 .and(ifParamNotNull(virtualEquals(virtualContent))
+                )
         );
     }
 
@@ -88,7 +92,7 @@ public class AssetWS {
      * @throws java.lang.InterruptedException
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.POST)
-    public SourceAsset importSourceAsset(@RequestBody SourceAsset sourceAsset) throws ExecutionException, InterruptedException {
+    public SourceAsset importSourceAsset(@RequestBody SourceAsset sourceAsset) throws Throwable {
         logger.debug("Importing source asset");
 
         // ********************************************
@@ -102,7 +106,12 @@ public class AssetWS {
                 sourceAsset.getFilterConfigIdOverride()
         );
 
-        sourceAsset.setAddedAssetId(assetFuture.get().getId());
+        try {
+            sourceAsset.setAddedAssetId(assetFuture.get().getId());
+        } catch (ExecutionException ee) {
+            throw ee.getCause();
+        }
+        
         sourceAsset.setPollableTask(assetFuture.getPollableTask());
 
         return sourceAsset;
@@ -136,12 +145,12 @@ public class AssetWS {
         String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
         String generateLocalized = tmService.generateLocalized(
-                asset, 
-                normalizedContent, 
-                repositoryLocale, 
-                localizedAssetBody.getOutputBcp47tag(), 
+                asset,
+                normalizedContent,
+                repositoryLocale,
+                localizedAssetBody.getOutputBcp47tag(),
                 localizedAssetBody.getFilterConfigIdOverride());
-        
+
         localizedAssetBody.setContent(generateLocalized);
 
         if (localizedAssetBody.getOutputBcp47tag() != null) {
@@ -152,9 +161,10 @@ public class AssetWS {
 
         return localizedAssetBody;
     }
-    
+
     /**
-     * Pseudo localizes the payload content with translations of a given {@link Asset}.
+     * Pseudo localizes the payload content with translations of a given
+     * {@link Asset}.
      *
      * @param assetId {@link Asset#id}
      * @param localizedAssetBody the payload to be localized with optional
@@ -199,13 +209,13 @@ public class AssetWS {
         String normalizedContent = NormalizationUtils.normalize(importLocalizedAssetBody.getContent());
 
         tmService.importLocalizedAsset(
-                asset, 
-                normalizedContent, 
-                repositoryLocale, 
+                asset,
+                normalizedContent,
+                repositoryLocale,
                 importLocalizedAssetBody.getSourceEqualTargetProcessing(),
                 importLocalizedAssetBody.getFilterConfigIdOverride());
     }
-    
+
     /**
      * Exports all the translations (used and unused) of an {@link Asset} into
      * XLIFF.

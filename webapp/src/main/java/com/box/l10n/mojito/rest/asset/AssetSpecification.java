@@ -61,4 +61,21 @@ public class AssetSpecification {
             }   
         };
     }
+    
+    /**
+     * A {@link Specification} that checks if {@link Asset} has virtualContent
+     * 
+     * @param virtual
+     * @return {@link Specification}
+     */
+    public static SingleParamSpecification<Asset> virtualEquals(final Boolean virtual) {
+        return new SingleParamSpecification<Asset>(virtual) {
+            @Override
+            public Predicate toPredicate(Root<Asset> root, 
+                                         CriteriaQuery<?> query, 
+                                         CriteriaBuilder builder) {
+                return builder.equal(root.get(Asset_.virtual), virtual);
+            }   
+        };
+    }
 }
