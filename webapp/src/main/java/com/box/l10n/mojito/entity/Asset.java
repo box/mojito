@@ -47,6 +47,9 @@ public class Asset extends AuditableEntity {
     @Column(name = "content_md5", length = 32)
     private String contentMd5;
 
+    @Column(name = "`virtual`", nullable=false)
+    private Boolean virtual = false;
+    
     @OneToOne
     @JoinColumn(name = "last_successful_asset_extraction_id", foreignKey = @ForeignKey(name = "FK__ASSET__ASSET_EXTRACTION__ID"))
     private AssetExtraction lastSuccessfulAssetExtraction;
@@ -117,5 +120,12 @@ public class Asset extends AuditableEntity {
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
     }
-    
+
+    public Boolean getVirtual() {
+        return virtual;
+    }
+
+    public void setVirtual(Boolean virtual) {
+        this.virtual = virtual;
+    }
 }

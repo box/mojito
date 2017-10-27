@@ -55,6 +55,10 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
             }
             md5 = tmService.computeTMTextUnitMD5(name, source, comments);
         }
+        
+        if (logger.isDebugEnabled()) {
+            logger.debug("Handle text unit with name: {}\nsource: {}\ncomments: {}\nmd5: {}", name, source, comments, md5);
+        }
 
         return event;
     }    
