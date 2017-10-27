@@ -117,9 +117,9 @@ public class PushCommand extends Command {
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }
-
+ 
         logger.debug("process deleted assets here");
-        Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false));
+        Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false));
         assetIds.removeAll(usedAssetIds);
         if (!assetIds.isEmpty()) {
             assetClient.deleteAssetsByIds(assetIds);

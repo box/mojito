@@ -50,11 +50,18 @@ public class PluralFormService {
     /**
      * Returns the PluralForm for the given plural form string.
      *
-     * @param pluralForm the plural form string
+     * @param pluralFormString the plural form string
      * @return The corresponding plural form or {@code null} if none found
      */
-    public PluralForm findByPluralFormString(String pluralForm) {
-        return getPluralFormMap().get(pluralForm);
+    public PluralForm findByPluralFormString(String pluralFormString) {
+        
+        PluralForm pluralForm = null;
+        
+        if (pluralFormString != null) {
+            pluralForm = getPluralFormMap().get(pluralFormString.toLowerCase());
+        }
+        
+        return pluralForm;
     }
 
     /**

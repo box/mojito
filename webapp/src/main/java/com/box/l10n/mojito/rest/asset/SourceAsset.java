@@ -18,7 +18,6 @@ public class SourceAsset {
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
 
-
     public Long getRepositoryId() {
         return repositoryId;
     }
