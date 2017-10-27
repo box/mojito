@@ -11,9 +11,9 @@ import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
 import com.box.l10n.mojito.okapi.filters.MacStringsEncoder;
 import com.box.l10n.mojito.okapi.filters.XMLEncoder;
-import com.box.l10n.mojito.service.asset.AssetCreationException;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -245,6 +245,12 @@ public class TMServiceTest extends ServiceTestBase {
     public void testComputeTMTextUnitMD5() throws IOException {
         String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
         assertEquals("3063c39d3cf8ab69bcabbbc5d7187dc9", computeTMTextUnitMD5);
+    }
+    
+    @Test
+    public void testComputeTMTextUnitMD5Null() throws IOException {
+        String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5(null, "this is the content", null);
+        assertEquals("ad549ec93687843d638c9a712dff0238", computeTMTextUnitMD5);
     }
 
     @Test
@@ -1347,7 +1353,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetXLIFFApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
 
@@ -1373,7 +1379,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFReviewNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetXLIFFReviewNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForSourceEqTarget.REVIEW_NEEDED);
 
@@ -1400,7 +1406,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFTranslationNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetXLIFFTranslationNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForSourceEqTarget.TRANSLATION_NEEDED);
 
@@ -1427,7 +1433,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFSkip() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetXLIFFSkip() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForSourceEqTarget.SKIPPED);
 
@@ -1450,7 +1456,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetNotFullyTranslated() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetNotFullyTranslated() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
 
@@ -1479,7 +1485,7 @@ public class TMServiceTest extends ServiceTestBase {
 
     }
 
-    private void baseTestImportLocalizedAsset(StatusForSourceEqTarget sourceEqualTargetProcessing) throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetCreationException, RuntimeException {
+    private void baseTestImportLocalizedAsset(StatusForSourceEqTarget sourceEqualTargetProcessing) throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetUpdateException, AssetUpdateException {
         repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;
         try {

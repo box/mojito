@@ -350,7 +350,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
         //TODO(P1) check text unit in translation kit translakit and complain? or not ...
         String targetString = target.toString();
 
-        logger.debug("Looking at TMTextUnitVariantCommentAnnotations to decide if translation should be included or needs review (by default included and no review");
+        logger.debug("Looking at TMTextUnitVariantCommentAnnotations to decide if translation should be included or needs review (by default included and no review)");
         TMTextUnitVariantCommentAnnotations tmTextUnitVariantCommentAnnotations = new TMTextUnitVariantCommentAnnotations(target);
 
         boolean includedInLocalizedFile = true;

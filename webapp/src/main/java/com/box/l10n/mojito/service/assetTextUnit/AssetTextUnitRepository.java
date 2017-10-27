@@ -37,4 +37,8 @@ public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Lo
     List<AssetTextUnit> getUnmappedAssetTextUnits(Long assetExtractionId);
 
     void deleteByAssetExtractionId(Long assetExtractionId);
+
+    public AssetTextUnit findByAssetExtractionIdAndName(Long assetExtractionId, String name);
+
+    public List<AssetTextUnit> findByAssetExtractionIdOrderByNameAsc(Long assetExtractionId);
 }

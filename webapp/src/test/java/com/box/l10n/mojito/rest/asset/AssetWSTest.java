@@ -158,12 +158,12 @@ public class AssetWSTest extends WSTestBase {
         assertTrue(assets.get(0).getPath().equals(path2) || assets.get(0).getPath().equals(path3));
         assertTrue(assets.get(1).getPath().equals(path2) || assets.get(1).getPath().equals(path3));
         
-        List<Long> assetIds = assetClient.getAssetIds(repository.getId(), null);
+        List<Long> assetIds = assetClient.getAssetIds(repository.getId(), null, null);
         assertEquals("There should be three asset ids for this repository", 3, assetIds.size());
-        assetIds = assetClient.getAssetIds(repository.getId(), false);
+        assetIds = assetClient.getAssetIds(repository.getId(), false, null);
         assertEquals("There should be one undeleted asset id for this repository", 1, assetIds.size());
         assertEquals(sourceAssetAfterPost1.getAddedAssetId(), assetIds.iterator().next());
-        assetIds = assetClient.getAssetIds(repository.getId(), true);
+        assetIds = assetClient.getAssetIds(repository.getId(), true, null);
         assertEquals("There should be two deleted asset ids for this repository", 2, assetIds.size());
         assertTrue(assetIds.iterator().next().equals(sourceAssetAfterPost2.getAddedAssetId()) || assetIds.iterator().next().equals(sourceAssetAfterPost3.getAddedAssetId()));  
         assertTrue(assetIds.iterator().next().equals(sourceAssetAfterPost2.getAddedAssetId()) || assetIds.iterator().next().equals(sourceAssetAfterPost3.getAddedAssetId()));  
