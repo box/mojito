@@ -8,11 +8,16 @@
 
 .mojito-ict-popup {
     width: 300px;
-    height: 200px;
 }
 
 #mojito-ict {
     @import './mojito.scss';
+
+    // from normalize
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -ms-text-size-adjust: 100%; // 2
+    -webkit-text-size-adjust: 100%; // 2    
+    margin: 0;
     outline: none;
 
     .mojito-ict-modal .selected {
