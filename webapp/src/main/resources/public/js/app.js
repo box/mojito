@@ -1,4 +1,5 @@
 import $ from "jquery";
+import _ from "lodash";
 import React from "react";
 import ReactDOM from "react-dom";
 import {Router, Route, IndexRoute, useRouterHistory} from "react-router";
@@ -67,14 +68,26 @@ function getMergedMessages(messages) {
 }
 
 function instrumentMessagesForIct(messages, locale) {
+    
+    var localesMap = {
+        //TODO: finish
+        'fr' : 'fr-FR',
+        'ko' : 'ko-KR',
+    };
+    
+    locale = _.get(localesMap, locale, locale);
+    
     Object.keys(messages).map((key) => {
-        messages[key] = IctMetadataBuilder.getTranslationWithMetadata("mojito", null, key, locale, messages[key]);
+        var stack = new Error().stack; // stack is useless here but for tests 
+        messages[key] = IctMetadataBuilder.getTranslationWithMetadata("mojito", null, key, locale, stack, messages[key]);
     });
 }
     
 function startApp(messages) {
     
-    //instrumentMessagesForIct(messages, LOCALE);
+    if (ICT) {
+        instrumentMessagesForIct(messages, LOCALE);
+    }
     
     ReactDOM.render(
             <IntlProvider locale={LOCALE} messages={messages}>
