@@ -17,7 +17,7 @@ import org.apache.maven.plugins.annotations.Parameter;
  * 
  * The command is passed through the "cmd" parameters.
  *
- * Usage: mvn com.box.l10n.mojito:mojito-maven-plugin:run -Dargs="pull -r Demo
+ * Usage: mvn com.box.l10n.mojito:mojito-maven-plugin:run -Dcmd="pull -r Demo
  * -localeMapping=\"fr:fr-FR,es:fr-FR\""
  *
  * @author jaurambault
