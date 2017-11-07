@@ -2,7 +2,7 @@ import TagsBlockDecoder from './TagsBlockDecoder';
 import IctMetadataBuilder from './IctMetadataBuilder';
 
 class IctMetadataExtractor {
-
+    
     getTextUnits(string) {
         var textUnits = [];
         var startIdxs = [];
@@ -36,6 +36,7 @@ class IctMetadataExtractor {
                         textUnit['assetName'] = spitTextUnitMetadata[1];
                         textUnit['textUnitName'] = spitTextUnitMetadata[2];
                         textUnit['locale'] = spitTextUnitMetadata[3];
+                        textUnit['stack'] = spitTextUnitMetadata[4];
                     } catch (e) {
                         console.log("Can't extract ict metadata from string: ", string, e);
                     }

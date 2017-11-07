@@ -1,26 +1,42 @@
 import React from 'react';
-import {Button, Modal} from "react-bootstrap";
+import {Button, Modal, Panel, Glyphicon, Label} from "react-bootstrap";
 import {FormattedMessage, injectIntl} from "react-intl";
 import ClassNames from "classnames";
 
 
-const ModalTextUnit = (props) => {
-    var textUnit = props.textUnit;
+class ModalTextUnit extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            showStack: false
+        };
+    }
+    
+    render() {
+        var textUnit = this.props.textUnit;
 
-    var className = ClassNames("mbs", "pbs", "pts", "pls", "prs",
-       {"selected": props.selected });
+        var className = ClassNames("mbs", "pbs", "pts", "pls", "prs",
+           {"selected": this.props.selected });
 
-    return (
-        <div className={className} 
-             onClick={() => props.onSelect(textUnit)}>
-
-            <div>Repository: {textUnit.repositoryName}</div>
-            <div>Asset: {textUnit.assetName ? textUnit.assetName : " - " }</div>
-            <div>String Id: {textUnit.textUnitName}</div>
-            <div>Locale: {textUnit.locale}</div>
-            <div>Translation: {textUnit.textUnitVariant}</div>
-        </div>
-    );    
+        return (
+            <div className={className} 
+                 onClick={() => this.props.onSelect(textUnit)}>
+                <div className="mbs">
+                    <Label className="mbs clickable label label-primary mrs">
+                        {textUnit.locale}            
+                    </Label>  
+                    <span className="color-gray-light3">{textUnit.textUnitName}</span>
+                </div>
+          
+                <div><Glyphicon glyph="folder-open" className="color-gray-light mrs"/>{textUnit.repositoryName}</div>
+                <div><Glyphicon glyph="file" className="color-gray-light mrs"/>{textUnit.assetName}</div>
+                
+                <div className="mts em color-gray-light">{textUnit.textUnitVariant}</div>
+                <Button className="mtm mbs" onClick={() => { this.setState({showStack: !this.state.showStack})}}>Stack</Button>
+                {this.state.showStack && <Panel collapsible expanded={this.state.showStack}>{textUnit.stack}</Panel> }
+            </div>
+        );   
+    } 
 };
 
 class IctModal extends React.Component {
