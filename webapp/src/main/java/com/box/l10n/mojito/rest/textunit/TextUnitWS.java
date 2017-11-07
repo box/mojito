@@ -103,6 +103,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setAssetPath(assetPath);
         textUnitSearcherParameters.setPluralFormOther(pluralFormOther);
         textUnitSearcherParameters.setSearchType(searchType);
+        textUnitSearcherParameters.setRootLocaleExcluded(false);
 
         if (localeTags != null) {
             logger.debug("locale tags: {}", localeTags.toString());
