@@ -152,7 +152,7 @@ public abstract class AbstractLeverager {
             TMTextUnitCurrentVariant addTMTextUnitCurrentVariant = addTMTextUnitCurrentVariantWithResult.getTmTextUnitCurrentVariant();
             
             if (addTMTextUnitCurrentVariantWithResult.isTmTextUnitCurrentVariantUpdated()) {
-                logger.debug("Changed were made to the TmTextUnitCurrentVariant, need to copy comments and add the leveraging comment");
+                logger.debug("Changed were made to the TmTextUnitCurrentVariant, copy comments and add the leveraging info");
                 tmTextUnitVariantCommentService.copyComments(translation.getTmTextUnitVariantId(), addTMTextUnitCurrentVariant.getTmTextUnitVariant().getId());
 
                 tmTextUnitVariantCommentService.addComment(
