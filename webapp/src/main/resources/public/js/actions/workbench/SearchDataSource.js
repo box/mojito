@@ -3,6 +3,7 @@ import SearchParamStore from "../../stores/workbench/SearchParamsStore.js";
 import TextUnitClient from "../../sdk/TextUnitClient";
 import TextUnitSearcherParameters from "../../sdk/TextUnitSearcherParameters";
 import WorkbenchActions from "./WorkbenchActions";
+import RepositoryStore from "../../stores/RepositoryStore";
 
 const SearchDataSource = {
     performSearch: {
@@ -12,7 +13,6 @@ const SearchDataSource = {
             let repositoryIds = searchParams.repoIds;
 
             let bcp47Tags = searchParams.bcp47Tags;
-
 
             let textUnitSearcherParameters = new TextUnitSearcherParameters();
 
@@ -36,7 +36,7 @@ const SearchDataSource = {
 
                 textUnitSearcherParameters.searchType(searchParams.searchType.toUpperCase());
             }
-            
+
             if (searchParams.status) {
                 textUnitSearcherParameters.statusFilter(searchParams.status);
             }
@@ -50,7 +50,7 @@ const SearchDataSource = {
             }
 
             textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags)
-                .offset(searchParams.pageOffset).limit(searchParams.pageSize);
+                    .offset(searchParams.pageOffset).limit(searchParams.pageSize);
 
             let promise;
 
