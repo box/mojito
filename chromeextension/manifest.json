@@ -1,0 +1,31 @@
+{
+    "manifest_version": 2,
+
+    "name": "Mojito Ict",
+    "description": "Extension to work with Mojito (localization platform)",
+    "version": "0.1",
+
+    "browser_action": {
+        "default_icon": "logo.png",
+        "default_popup": "popup.html"
+    },
+    "permissions": [
+        "activeTab",
+        "storage",
+        "<all_urls>",
+        "webRequest",
+        "webRequestBlocking",
+        "background"
+    ],
+    "content_scripts": [
+        {
+            "matches": ["*://*/*", "*://localhost/*", "*://jeanaurambault.pinterdev.com/*", "file:///*"], 
+            "js": ["ict-bundle.js"]
+        }
+    ],
+    "background" :{
+        "scripts" : ["background.js"]
+    }
+            
+}
+

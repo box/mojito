@@ -7,7 +7,8 @@ class IctModalContainer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            showModal: false
+            showModal: false,
+            mojitoBaseUrl: this.props.defaultMojitoBaseUrl
         };
     }
 
@@ -24,6 +25,12 @@ class IctModalContainer extends React.Component {
             showModal: false
         });
     }
+    
+    setMojitoBaseUrl(mojitoBaseUrl) {
+        this.setState({
+            mojitoBaseUrl: mojitoBaseUrl
+        });
+    }
 
     openWorkbench() {
         var query = queryString.stringify({
@@ -33,7 +40,7 @@ class IctModalContainer extends React.Component {
             'searchType': 'exact',
             'searchText': this.state.selectedTextUnit.textUnitName
         });
-        window.open(this.props.mojitoBaseUrl + "workbench?" + query);
+        window.open(this.state.mojitoBaseUrl + "workbench?" + query);
     }
 
     render() {

@@ -63,11 +63,14 @@ public class ReactAppController {
         "settings"
     })
     @ResponseBody
-    ModelAndView getIndex(HttpServletRequest httpServletRequest, @CookieValue(value = "locale", required = false, defaultValue = "en") String localeCookieValue) throws MalformedURLException, IOException {
+    ModelAndView getIndex(
+            HttpServletRequest httpServletRequest, 
+            @CookieValue(value = "locale", required = false, defaultValue = "en") String localeCookieValue) throws MalformedURLException, IOException {
 
         ModelAndView index = new ModelAndView("index");
 
         index.addObject("locale", getValidLocaleFromCookie(localeCookieValue));
+        index.addObject("ict", httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
         index.addObject("csrfToken", csrfTokenController.getCsrfToken(httpServletRequest));
         index.addObject("username", getUsername());
         index.addObject("contextPath", contextPath);

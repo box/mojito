@@ -8,13 +8,22 @@ import {IntlProvider} from "react-intl";
 class Ict {
 
     constructor(messages, locale) {
+        this.mojitoBaseUrl = 'http://localhost:8080/';
         this.messages = messages;
         this.locale = locale;
-        
         this.wrapped = {};
+    }
+    
+    activate() {
         this.installInDOM();
         this.addMutationObserver();
         this.addScheduledUpdates();
+    }
+    
+    setMojitoBaseUrl(mojitoBaseUrl) {
+        if (this.ictModalContainer) {
+            this.ictModalContainer.setMojitoBaseUrl(mojitoBaseUrl);
+        }
     }
 
     getNodesChildOf(node) {
@@ -70,7 +79,7 @@ class Ict {
         }
 
         if (node.classList.contains("mojito-ict-string")) {
-            console.log("skip adding mojito-ict-string");
+            console.log("skip adding m]ojito-ict-string");
         } else {
             try {
                 node.className += " mojito-ict-string";
@@ -91,7 +100,7 @@ class Ict {
                 <IntlProvider locale={this.locale} messages={this.messages}>
                     <IctModalContainer
                         ref={(child) => this.ictModalContainer = child}
-                        mojitoBaseUrl="http://localhost:8080/"
+                        defaultMojitoBaseUrl={this.mojitoBaseUrl}
                         locale={this.locale} />
                 </IntlProvider>,
                 divIct
