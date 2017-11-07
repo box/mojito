@@ -1022,8 +1022,7 @@ public class TMServiceTest extends ServiceTestBase {
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
-        
-//        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
+         
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);

@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import static com.box.l10n.mojito.okapi.filters.POFilter.logger;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.ibm.icu.text.PluralRules;
@@ -8,11 +7,15 @@ import com.ibm.icu.util.ULocale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Help with processing and completing plural form when working with Okapi
@@ -21,6 +24,11 @@ import net.sf.okapi.common.skeleton.GenericSkeleton;
  * @author jeanaurambault
  */
 public abstract class PluralsHolder {
+
+    /**
+     * logger
+     */
+    static Logger logger = LoggerFactory.getLogger(PluralsHolder.class);
 
     Event zero = null;
     Event one = null;
@@ -78,7 +86,6 @@ public abstract class PluralsHolder {
             }
             targetEvent.getTextUnit().setAnnotation(new PluralFormAnnotation(targetForm, otherName));
             newForms.add(targetEvent);
-
         }
 
         return newForms;
@@ -133,7 +140,7 @@ public abstract class PluralsHolder {
                 other = event;
                 break;
             default:
-                throw new RuntimeException("Invalid plural form");
+                throw new RuntimeException("Invalid plural form: " + pluralForm);
         }
 
         return event;
@@ -143,9 +150,11 @@ public abstract class PluralsHolder {
 
         for (Event pluralEvent : pluralEvents) {
             String cldrPluralForm = getCldrPluralFormOfEvent(pluralEvent);
-            if (null != cldrPluralForm) {
+            if (cldrPluralForm != null) {
                 adaptTextUnitToCLDRForm(pluralEvent.getTextUnit(), cldrPluralForm);
                 setEventForPluralForm(pluralEvent, cldrPluralForm);
+            } else {
+                logger.debug("cldrPluralForm null", pluralEvent.getTextUnit().getName());
             }
         }
     }
@@ -153,23 +162,44 @@ public abstract class PluralsHolder {
     Event createCopyOf(Event event, String sourceForm, String targetForm) {
         logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
         ITextUnit textUnit = event.getTextUnit().clone();
-        renameTextUnit(textUnit, targetForm);
+        renameTextUnit(textUnit, sourceForm, targetForm);
         replaceFormInSkeleton((GenericSkeleton) textUnit.getSkeleton(), sourceForm, targetForm);
         Event copyOfOther = new Event(EventType.TEXT_UNIT, textUnit);
         return copyOfOther;
     }
 
-    void renameTextUnit(ITextUnit textUnit, String targetForm) {
-        textUnit.setName(getNewTextUnitName(textUnit.getName(), targetForm));
+    void renameTextUnit(ITextUnit textUnit, String sourceForm, String targetForm) {
+        textUnit.setName(getNewTextUnitName(textUnit.getName(), sourceForm, targetForm));
     }
 
     boolean hasCopyFormsOnImport() {
         return false;
     }
 
-    abstract String getCldrPluralFormOfEvent(Event pluralEvent);
+    String getNewTextUnitName(String name, String sourceForm, String targetForm) {
+        Pattern p = Pattern.compile("_" + sourceForm + "$");
+        Matcher matcher = p.matcher(name);
+        String newName = matcher.replaceAll("_" + targetForm);
+        return newName;
+    }
 
-    abstract String getNewTextUnitName(String name, String targetForm);
+    String getCldrPluralFormOfEvent(Event pluralEvent) {
+
+        String pluralForm = null;
+
+        Pattern p = Pattern.compile(".*_(.*?)$");
+        Matcher matcher = p.matcher(pluralEvent.getTextUnit().getName());
+
+        if (matcher.find()) {
+            pluralForm = matcher.group(1);
+        }
+        
+        if ("null".equals(pluralForm)) {
+            pluralForm = null;
+        }
+
+        return pluralForm;
+    }
 
     abstract void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm);
 
