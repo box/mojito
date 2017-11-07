@@ -285,29 +285,6 @@ public class AndroidFilter extends XMLFilter {
         }
 
         @Override
-        String getCldrPluralFormOfEvent(Event pluralEvent) {
-
-            String pluralForm = null;
-
-            Pattern p = Pattern.compile(".*_(.*?)$");
-            Matcher matcher = p.matcher(pluralEvent.getTextUnit().getName());
-
-            if (matcher.find()) {
-                pluralForm = matcher.group(1);
-            }
-
-            return pluralForm;
-        }
-
-        @Override
-        String getNewTextUnitName(String name, String targetForm) {
-            Pattern p = Pattern.compile("_other$");
-            Matcher matcher = p.matcher(name);
-            String newName = matcher.replaceAll("_" + targetForm);
-            return newName;
-        }
-
-        @Override
         void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
         }
 
