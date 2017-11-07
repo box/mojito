@@ -3,7 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import {Router, Route, IndexRoute, useRouterHistory} from "react-router";
 import { createHistory } from 'history'
-        import {Modal, Button} from "react-bootstrap";
+import {Modal, Button} from "react-bootstrap";
 import {FormattedMessage, IntlProvider, addLocaleData} from "react-intl";
 import App from "./components/App";
 import BaseClient from "./sdk/BaseClient";
@@ -17,6 +17,7 @@ import WorkbenchActions from "./actions/workbench/WorkbenchActions";
 import SearchConstants from "./utils/SearchConstants";
 import UrlHelper from "./utils/UrlHelper";
 import SearchParamsStore from "./stores/workbench/SearchParamsStore";
+import IctMetadataBuilder from "./ict/IctMetadataBuilder";
 
 // NOTE this way of adding locale data is only recommeneded if there are a few locales.
 // if there are more, we should load it dynamically using script tags
@@ -65,7 +66,16 @@ function getMergedMessages(messages) {
     return messages = _.merge(enMessages, messages);
 }
 
+function instrumentMessagesForIct(messages, locale) {
+    Object.keys(messages).map((key) => {
+        messages[key] = IctMetadataBuilder.getTranslationWithMetadata("mojito", null, key, locale, messages[key]);
+    });
+}
+    
 function startApp(messages) {
+    
+    //instrumentMessagesForIct(messages, LOCALE);
+    
     ReactDOM.render(
             <IntlProvider locale={LOCALE} messages={messages}>
                 <Router history={browserHistory}>
