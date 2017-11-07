@@ -9,7 +9,7 @@
     "alt-container": "^1.0.2",
     "alt-mixins": "^1.0.0",
     "bootstrap-sass": "^3.3.7",
-    "cldr-data": "^28.0.2",
+    "cldr-data": "^31.0.2",
     "cldrjs": "^0.4.3",
     "jquery": "^2.1.4",
     "keycode": "^2.1.0",
