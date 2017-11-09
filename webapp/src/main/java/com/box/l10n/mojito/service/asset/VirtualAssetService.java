@@ -145,7 +145,7 @@ public class VirtualAssetService {
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
 
         if (repositoryLocale.getParentLocale() == null) {
-            logger.debug("Getting text unit for the root locale");
+            logger.debug("Getting text units for the root locale");
             virtualAssetTextUnits = getTextUnits(assetId);
         } else {
             virtualAssetTextUnits = getLoalizedTextUnitsForTargetLocale(asset, repositoryLocale, inheritanceMode);
@@ -154,8 +154,7 @@ public class VirtualAssetService {
         return virtualAssetTextUnits;
     }
 
-    @Transactional
-    public List<VirtualAssetTextUnit> getLoalizedTextUnitsForTargetLocale(
+    List<VirtualAssetTextUnit> getLoalizedTextUnitsForTargetLocale(
             Asset asset,
             RepositoryLocale repositoryLocale,
             InheritanceMode inheritanceMode) throws VirtualAssetRequiredException {
