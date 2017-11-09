@@ -120,7 +120,7 @@ public class VirtualAssetService {
 
         List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
 
-        Asset asset =  getVirtualAsset(assetId);
+        Asset asset = getVirtualAsset(assetId);
         Long lastSuccessfulAssetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
         List<AssetTextUnit> findByAssetExtractionAssetId = assetTextUnitRepository.findByAssetExtractionIdOrderByNameAsc(lastSuccessfulAssetExtractionId);
 
@@ -139,20 +139,36 @@ public class VirtualAssetService {
             InheritanceMode inheritanceMode) throws VirtualAssetRequiredException {
 
         logger.debug("Get localized virtual asset: {} for locale: {}", assetId, localeId);
-
-        List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
+        List<VirtualAssetTextUnit> virtualAssetTextUnits;
 
         Asset asset = getVirtualAsset(assetId);
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
+
+        if (repositoryLocale.getParentLocale() == null) {
+            logger.debug("Getting text units for the root locale");
+            virtualAssetTextUnits = getTextUnits(assetId);
+        } else {
+            virtualAssetTextUnits = getLoalizedTextUnitsForTargetLocale(asset, repositoryLocale, inheritanceMode);
+        }
+
+        return virtualAssetTextUnits;
+    }
+
+    List<VirtualAssetTextUnit> getLoalizedTextUnitsForTargetLocale(
+            Asset asset,
+            RepositoryLocale repositoryLocale,
+            InheritanceMode inheritanceMode) throws VirtualAssetRequiredException {
+
+        logger.debug("Get localized virtual asset for target locale");
+        List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
+
         Long lastSuccessfulAssetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
         List<AssetTextUnit> findByAssetExtractionAssetId = assetTextUnitRepository.findByAssetExtractionIdOrderByNameAsc(lastSuccessfulAssetExtractionId);
 
-        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
-
-        TranslatorWithInheritance translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, InheritanceMode.USE_PARENT);
+        TranslatorWithInheritance translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode);
 
         for (AssetTextUnit assetTextUnit : findByAssetExtractionAssetId) {
 
-            //fc765f49ba95dc2871caa83e7a8aab5a
             String translation = translatorWithInheritance.getTranslation(
                     assetTextUnit.getName(),
                     assetTextUnit.getContent(),
