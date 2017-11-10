@@ -48,6 +48,11 @@ class TextUnitSearcherParameters {
         return this;
     }
     
+    assetPath(assetPath) {
+        this.params.assetPath = assetPath;
+        return this;
+    }
+    
     pluralFormOther(pluralFormOther) {
         this.params.pluralFormOther = pluralFormOther;
         return this;
