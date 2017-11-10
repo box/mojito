@@ -168,6 +168,10 @@ public class TextUnitSearcher {
         if (searchParameters.getTarget() != null) {
             conjunction.add(getSearchTypeNativeExp(searchParameters.getSearchType(), "tuv.content", "tuv.content_md5", searchParameters.getTarget()));
         }
+        
+        if (searchParameters.getAssetPath()!= null) {
+            conjunction.add(getSearchTypeNativeExp(searchParameters.getSearchType(), "a.path", searchParameters.getAssetPath()));
+        }
 
         if (searchParameters.getAssetId() != null) {
             conjunction.add(NativeExps.eq("tu.asset_id", searchParameters.getAssetId()));
