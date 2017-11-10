@@ -15,6 +15,7 @@ public class TextUnitSearcherParameters {
     String name;
     String source;
     String target;
+    String assetPath;
     String pluralFormOther;
     SearchType searchType;
     List<Long> repositoryIds;
@@ -30,7 +31,7 @@ public class TextUnitSearcherParameters {
     String md5;
     boolean rootLocaleExcluded = true;
     boolean untranslatedOrTranslationNeeded = false;
-    
+
     public String getName() {
         return name;
     }
@@ -47,10 +48,6 @@ public class TextUnitSearcherParameters {
         this.source = NormalizationUtils.normalize(source);
     }
 
-    public String getTarget() {
-        return target;
-    }
-
     public SearchType getSearchType() {
         return searchType;
     }
@@ -59,8 +56,20 @@ public class TextUnitSearcherParameters {
         this.searchType = searchType;
     }
 
+    public String getTarget() {
+        return target;
+    }
+
     public void setTarget(String target) {
         this.target = NormalizationUtils.normalize(target);
+    }
+
+    public String getAssetPath() {
+        return assetPath;
+    }
+
+    public void setAssetPath(String assetPath) {
+        this.assetPath = assetPath;
     }
 
     public List<Long> getRepositoryIds() {
@@ -170,5 +179,5 @@ public class TextUnitSearcherParameters {
     public void setPluralFormOther(String pluralFormOther) {
         this.pluralFormOther = pluralFormOther;
     }
-   
+
 }
