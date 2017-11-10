@@ -85,6 +85,7 @@ public class TextUnitWS {
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
+            @RequestParam(value = "assetPath", required = false) String assetPath,
             @RequestParam(value = "pluralFormOther", required = false) String pluralFormOther,
             @RequestParam(value = "searchType", required = false, defaultValue = "EXACT") SearchType searchType,
             @RequestParam(value = "localeTags[]", required = false) ArrayList<String> localeTags,
@@ -99,6 +100,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setName(name);
         textUnitSearcherParameters.setSource(source);
         textUnitSearcherParameters.setTarget(target);
+        textUnitSearcherParameters.setAssetPath(assetPath);
         textUnitSearcherParameters.setPluralFormOther(pluralFormOther);
         textUnitSearcherParameters.setSearchType(searchType);
 

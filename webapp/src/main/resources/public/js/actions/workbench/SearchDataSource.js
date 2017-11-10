@@ -26,6 +26,8 @@ const SearchDataSource = {
                     textUnitSearcherParameters.source(searchParams.searchText);
                 } else if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.TARGET) {
                     textUnitSearcherParameters.target(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.ASSET) {
+                    textUnitSearcherParameters.assetPath(searchParams.searchText);
                 } else if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER) {
                     textUnitSearcherParameters.pluralFormOther(searchParams.searchText);
                 } else {

@@ -319,6 +319,7 @@ SearchParamsStore.SEARCH_ATTRIBUTES = {
     "STRING_ID": "stringId",
     "SOURCE": "source",
     "TARGET": "target",
+    "ASSET": "asset",
     "PLURAL_FORM_OTHER": "pluralFormOther"
 };
 
