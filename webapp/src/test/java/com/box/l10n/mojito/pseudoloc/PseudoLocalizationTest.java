@@ -1,13 +1,13 @@
 package com.box.l10n.mojito.pseudoloc;
 
 import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 /**
  *
  */
 public class PseudoLocalizationTest {
+
     @Test
     public void testExpandExpandsString() {
         PseudoLocalization ps = new PseudoLocalization();
@@ -43,5 +43,12 @@ public class PseudoLocalizationTest {
         PseudoLocalization ps = new PseudoLocalization();
         String pseudoLocalized = ps.convertStringToPseudoLoc("");
         assertEquals("The strings should be equal", "", pseudoLocalized);
+    }
+
+    @Test
+    public void testStringWithPlaceholder() {
+        PseudoLocalization ps = new PseudoLocalization();
+        String diacriticsString = ps.convertAsciiToDiacritics("English Sentence with {placeholder} which should not be pseudolocalized");
+        assertTrue(diacriticsString.contains("{placeholder}"));
     }
 }
