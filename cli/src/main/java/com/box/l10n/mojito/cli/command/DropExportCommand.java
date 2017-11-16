@@ -46,6 +46,9 @@ public class DropExportCommand extends Command {
     @Parameter(names = {"--locales", "-l"}, arity = 1, required = false, description = "List of locales to be exported, format: fr-FR,ja-JP")
     List<String> bcp47tagsParam;
 
+    @Parameter(names = {"--use-inheritance"}, required = false, description = "To export with translations inherited from parent locale (only used with REVIEW type)")
+    Boolean useInheritance = false;
+
     @Autowired
     CommandHelper commandHelper;
 
@@ -59,10 +62,15 @@ public class DropExportCommand extends Command {
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
+        if (useInheritance && typeParam != ExportDropConfig.Type.REVIEW) {
+            throw new CommandException("--use-inheritance can only be used with --type REVIEW");
+        }
+
         ExportDropConfig exportDropConfig = new ExportDropConfig();
         exportDropConfig.setRepositoryId(repository.getId());
         exportDropConfig.setType(typeParam);
         exportDropConfig.setBcp47Tags(getBcp47TagsForExport(repository));
+        exportDropConfig.setUseInheritance(useInheritance);
 
         exportDropConfig = dropClient.exportDrop(exportDropConfig);
 

@@ -49,6 +49,8 @@ public class ExportDropConfig {
 
     Type type = Type.TRANSLATION;
 
+    Boolean useInheritance = false;
+
     public Long getRepositoryId() {
         return repositoryId;
     }
@@ -108,6 +110,14 @@ public class ExportDropConfig {
 
     public void setType(Type type) {
         this.type = type;
+    }
+
+    public Boolean getUseInheritance() {
+        return useInheritance;
+    }
+
+    public void setUseInheritance(Boolean useInheritance) {
+        this.useInheritance = useInheritance;
     }
 
 }
