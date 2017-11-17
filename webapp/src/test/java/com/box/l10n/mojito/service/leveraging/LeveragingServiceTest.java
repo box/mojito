@@ -16,8 +16,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,8 +147,12 @@ public class LeveragingServiceTest extends ServiceTestBase {
         leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(sourceRepository, targetRepository).get();
         leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(sourceRepository, targetRepository).get();
 
-        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository); 
-        Assert.assertEquals(1, targetTranslations.get(2).getTmTextUnitVariantComments().size());
+        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository);
+        for (TMTextUnitVariant targetTranslation : targetTranslations) {
+            if (!"en".equals(targetTranslation.getLocale().getBcp47Tag())) {
+                Assert.assertEquals(1, targetTranslations.get(4).getTmTextUnitVariantComments().size());
+            }
+        }
     }
 
 }

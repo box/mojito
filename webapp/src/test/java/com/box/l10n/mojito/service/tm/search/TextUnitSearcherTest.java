@@ -8,25 +8,25 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.commons.lang.reflect.FieldUtils;
+import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import org.apache.commons.lang.reflect.FieldUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * TODO(P1) complete with test for the whole flow, document update and
@@ -187,7 +187,6 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         List<String> localeTags = new ArrayList<>();
         localeTags.add("ko-KR");
         localeTags.add("fr-FR");
-        localeTags.add("fr-CA");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
@@ -468,7 +467,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
     @Transactional
     @Test
     public void testILikeSearchTarget() {
-        testSearchText("target", "%C%E%", SearchType.ILIKE, Arrays.asList("Veuillez indiquer un état, une région ou une province valide.", "Content3 fr-FR"));
+        testSearchText("target", "%C%E%", SearchType.ILIKE, Arrays.asList("Veuillez indiquer un état, une région ou une province valide.", "Content2 fr-CA", "Content3 fr-CA", "Content3 fr-FR"));
     }
 
     public void testSearchText(String attribute, String value, SearchType searchType, List<String> expectedNames) {
