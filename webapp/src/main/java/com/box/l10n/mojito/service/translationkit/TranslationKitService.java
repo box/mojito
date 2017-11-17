@@ -328,11 +328,11 @@ public class TranslationKitService {
             if (currentLocaleId == localeId) {
                 // child locale
                 textUnitDTOs = getTextUnitDTOsForTranslationKit(repositoryId, currentLocaleId, StatusFilter.REVIEW_NEEDED);
-                logger.info("child locale {} has {} text units for review", currentLocaleId, textUnitDTOs.size());
+                logger.debug("child locale {} has {} text units for review", currentLocaleId, textUnitDTOs.size());
             } else {
                 // parent locale
                 textUnitDTOs = getTextUnitDTOsForTranslationKit(repositoryId, currentLocaleId, StatusFilter.TRANSLATED_AND_NOT_REJECTED);
-                logger.info("parent locale {} has {} text units that are translated and not rejected", currentLocaleId, textUnitDTOs.size());
+                logger.debug("parent locale {} has {} text units that are translated and not rejected", currentLocaleId, textUnitDTOs.size());
             }
             for (TextUnitDTO textUnitDTO : textUnitDTOs) {
                 mergedTextUnitDTOs.put(textUnitDTO.getTmTextUnitId(), textUnitDTO);
@@ -360,38 +360,18 @@ public class TranslationKitService {
 
     private List<TextUnitDTO> getTextUnitDTOsForTranslationKit(Long repositoryId, Long localeId, StatusFilter statusFilter) {
 
-        int retry = 1;
-        int maxRetry = 3;
         List<TextUnitDTO> textUnitDTOs = null;
 
-        while (retry <= maxRetry) {
-            try {
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-                TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-
-                //TODO(P1) handle "deltas"
-                textUnitSearcherParameters.setRepositoryIds(repositoryId);
-                textUnitSearcherParameters.setLocaleId(localeId);
-                textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-                if (statusFilter != null) {
-                    textUnitSearcherParameters.setStatusFilter(statusFilter);
-                }
-                textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
-                break;
-
-            } catch (IllegalArgumentException ex) {
-                if (retry == maxRetry) {
-                    throw ex;
-                } else {
-                    logger.warn("Unexpected exception for repository {} and locale {} at retry {}: {}", new Object[]{repositoryId, localeId, retry, ex.getMessage()});
-                    try {
-                        Thread.sleep(retry * 1000);
-                    } catch (InterruptedException ex1) {
-                    }
-                    retry++;
-                }
-            }
+        //TODO(P1) handle "deltas"
+        textUnitSearcherParameters.setRepositoryIds(repositoryId);
+        textUnitSearcherParameters.setLocaleId(localeId);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        if (statusFilter != null) {
+            textUnitSearcherParameters.setStatusFilter(statusFilter);
         }
+        textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
         return textUnitDTOs;
     }
