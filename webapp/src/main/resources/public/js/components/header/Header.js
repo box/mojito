@@ -10,6 +10,8 @@ import UrlHelper from "../../utils/UrlHelper";
 
 import RepositoryActions from "../../actions/RepositoryActions";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
+import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
+import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
 import SearchConstants from "../../utils/SearchConstants";
 
 import {Navbar, Nav, NavItem, NavDropdown, MenuItem, Glyphicon, FormControl} from 'react-bootstrap';
@@ -55,7 +57,7 @@ let Header = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL
         });
     },
-
+   
     render: function () {
         return (
             <Navbar fluid={true}>
@@ -64,11 +66,21 @@ let Header = React.createClass({
                 </a>
                 <Nav>
                     <LinkContainer to="/repositories" onClick={() => {
-                            if (this.props.router.isActive("/repositories")) {
-                                  RepositoryActions.getAllRepositories();
-                            }}}><NavItem><FormattedMessage id="header.repositories" /></NavItem></LinkContainer>
+                                if (this.props.router.isActive("/repositories")) {
+                                      RepositoryActions.getAllRepositories();
+                                }}}>
+                            <NavItem><FormattedMessage id="header.repositories" /></NavItem>
+                    </LinkContainer>
                     <LinkContainer to="/workbench"><NavItem><FormattedMessage id="header.workbench" /></NavItem></LinkContainer>
                     <LinkContainer to="/project-requests"><NavItem><FormattedMessage id="header.projectRequests" /></NavItem></LinkContainer>
+                    <LinkContainer to="/screenshots" onClick={() => {
+                                if (this.props.router.isActive("/screenshots")) {
+                                    ScreenshotsPageActions.resetScreenshotSearchParams();
+                                    ScreenshotsRepositoryActions.getAllRepositories();
+                                }}}><NavItem>
+                                
+                        
+                        <FormattedMessage id="header.screenshots" /></NavItem></LinkContainer>
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={USERNAME} id="user-menu">

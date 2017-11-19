@@ -9,8 +9,10 @@ import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.RestClientException;
+import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBiMap;
@@ -19,8 +21,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -266,6 +272,44 @@ public class CommandHelper {
         }
 
         return inverseLocaleMapping;
+    }
+    
+     /**
+     * Gets the repository locales sorted so that parent are before child 
+     * locales.
+     * 
+     * @param repository 
+     * @return
+     */
+    public Map<String, Locale> getSortedRepositoryLocales(Repository repository) {
+        
+        LinkedHashMap<String, Locale> locales = new LinkedHashMap<>();
+        
+        ArrayDeque<RepositoryLocale> toProcess = new ArrayDeque<>(repository.getRepositoryLocales());
+        Locale rootLocale = null;
+
+        for (RepositoryLocale rl : toProcess) {
+            if (rl.getParentLocale() == null) {
+                rootLocale = rl.getLocale();
+                toProcess.remove(rl);
+                break;
+            }
+        }
+
+        Set<Long> localeIds = new HashSet<>();
+
+        while (!toProcess.isEmpty()) {
+            RepositoryLocale rl = toProcess.removeFirst();
+            Long parentLocaleId = rl.getParentLocale().getLocale().getId();
+            if (parentLocaleId.equals(rootLocale.getId()) || localeIds.contains(parentLocaleId)) {
+                localeIds.add(rl.getLocale().getId());
+                locales.put(rl.getLocale().getBcp47Tag(), rl.getLocale());
+            } else {
+                toProcess.addLast(rl);
+            }
+        }
+
+        return locales;
     }
 
 }

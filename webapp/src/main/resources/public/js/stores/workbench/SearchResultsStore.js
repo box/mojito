@@ -46,7 +46,7 @@ class SearchResultsStore {
         this.waitFor(SearchParamsStore);
 
         let searchParamsStoreState = SearchParamsStore.getState();
-        console.log("onSearchParamsChanged", searchParamsStoreState);
+        
         if (SearchParamsStore.isReadyForSearching(searchParamsStoreState)) {
             let newState = {
                 "noMoreResults": false,
@@ -119,7 +119,7 @@ class SearchResultsStore {
      * @param {TextUnit[]} textUnits
      */
     onDeleteTextUnits(textUnits) {
-        console.log("SearchResultsStore::onDeleteTextUnits");
+        
         this.waitFor(textUnitStore.dispatchToken);
 
         textUnits.forEach(textUnit => {
@@ -226,7 +226,6 @@ class SearchResultsStore {
     }
    
     getAllRepositoriesSuccess(repositories) {
-        console.log("SearchResultStore::getAllRepositoriesSuccess");
         this.onSearchParamsChanged();
     }
 
