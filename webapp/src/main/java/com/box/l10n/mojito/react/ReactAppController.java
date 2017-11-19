@@ -60,7 +60,8 @@ public class ReactAppController {
         "repositories",
         "project-requests",
         "workbench",
-        "settings"
+        "settings",
+        "screenshots"
     })
     @ResponseBody
     ModelAndView getIndex(
@@ -116,5 +117,5 @@ public class ReactAppController {
 
         return username;
     }
-    
+
 }

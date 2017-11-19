@@ -15,9 +15,6 @@ public enum StatusFilter {
     /**
      * All TextUnits translated and not translated with any status.
      */
-    /**
-     * All TextUnits translated and not translated with any status.
-     */
     ALL,
     /**
      * All TextUnits that have a translation with any status

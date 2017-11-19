@@ -22,7 +22,6 @@ class RepositoryStore {
     }
     
     onSearchParamsChanged() {
-        console.log("let's get the repo when workbench search param change so that we can load the repo ids etc");
         this.getInstance().getAllRepositories();    
     }
 
@@ -54,8 +53,6 @@ class RepositoryStore {
         let state = this.getState();
         let result = null;
         
-        console.log("getbyname", state.repositories);
-
         for (let key of Object.keys(state.repositories)) {
             if (state.repositories[key].name === name) {
                 result = state.repositories[key];
