@@ -1,0 +1,13 @@
+{
+  "name": "anotherActivity-dialog",
+  "takenDate": 1497227081687,
+  "sequence": 1,
+  "textUnits": [
+    {
+      "renderedTarget": "abc_action_mode_done"
+    },
+    {
+      "renderedTarget": "Bonjour"
+    }
+  ]
+}

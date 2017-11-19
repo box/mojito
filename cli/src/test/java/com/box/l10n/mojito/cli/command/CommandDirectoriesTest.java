@@ -65,7 +65,7 @@ public class CommandDirectoriesTest extends IOTestBase {
 
         Path fileInSourceDirectory = Paths.get(getInputResourcesTestDir().toString(), "sub/file1");
         CommandDirectories instance = new CommandDirectories(getInputResourcesTestDir().toString(), getTargetTestDir().toString());
-        Path expResult =  getBaseDir().toPath().relativize(Paths.get(getTargetTestDir().toString(), "sub/file1"));
+        Path expResult = getBaseDir().toPath().relativize(Paths.get(getTargetTestDir().toString(), "sub/file1"));
         Path result = instance.resolveWithTargetDirectoryAndCreateParentDirectories(fileInSourceDirectory);
 
         assertEquals(expResult, result);
@@ -91,6 +91,22 @@ public class CommandDirectoriesTest extends IOTestBase {
         Collections.sort(result);
 
         assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testBuildGlobPatternForFileWithExtension() {
+        CommandDirectories commandDirectories = new CommandDirectories(null);
+        String expected = "glob:**.{jpg,JPG}";
+        String buildGlobPatternForFileWithExtension = commandDirectories.buildGlobPatternForFileWithExtensions("jpg");
+        assertEquals(expected, buildGlobPatternForFileWithExtension);
+    }
+
+    @Test
+    public void testBuildGlobPatternForFileWithExtensionMultiple() {
+        CommandDirectories commandDirectories = new CommandDirectories(null);
+        String expected = "glob:**.{jpg,JPG,png,PNG}";
+        String buildGlobPatternForFileWithExtension = commandDirectories.buildGlobPatternForFileWithExtensions("jpg", "png");
+        assertEquals(expected, buildGlobPatternForFileWithExtension);
     }
 
 }

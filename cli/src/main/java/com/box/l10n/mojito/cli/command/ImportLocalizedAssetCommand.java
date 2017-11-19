@@ -14,15 +14,10 @@ import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForSourceEqTarget;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +50,7 @@ public class ImportLocalizedAssetCommand extends Command {
     @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)
     String targetDirectoryParam;
 
-    @Parameter(names = {"--locale-mapping", "-lm"}, arity = 1, required = false, description = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
+    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
             + "The keys contain BCP47 tags of the generated files and the values indicate which repository locales are used to fetch the translations.")
     String localeMappingParam;
 
@@ -137,13 +132,13 @@ public class ImportLocalizedAssetCommand extends Command {
         }
     }
 
-    public List<Locale> getLocalesForImport() {
-        List<Locale> sortedRepositoryLocales = getSortedRepositoryLocales();
+    public Collection<Locale> getLocalesForImport() {
+        Collection<Locale> sortedRepositoryLocales = commandHelper.getSortedRepositoryLocales(repository).values();
         filterLocalesWithMapping(sortedRepositoryLocales);
         return sortedRepositoryLocales;
     }
     
-    private void filterLocalesWithMapping(List<Locale> locales) {
+    private void filterLocalesWithMapping(Collection<Locale> locales) {
 
         if (inverseLocaleMapping != null) {
             Iterator<Locale> iterator = locales.iterator();
@@ -154,42 +149,6 @@ public class ImportLocalizedAssetCommand extends Command {
                 }
             }
         }
-    }
-
-    /**
-     * Gets the repository locales sorted so that parent are before child 
-     * locales.
-     * 
-     * @return
-     */
-    protected List<Locale> getSortedRepositoryLocales() {
-        List<Locale> locales = new ArrayList<>();
-
-        ArrayDeque<RepositoryLocale> toProcess = new ArrayDeque<>(repository.getRepositoryLocales());
-        Locale rootLocale = null;
-
-        for (RepositoryLocale rl : toProcess) {
-            if (rl.getParentLocale() == null) {
-                rootLocale = rl.getLocale();
-                toProcess.remove(rl);
-                break;
-            }
-        }
-
-        Set<Long> localeIds = new HashSet<>();
-
-        while (!toProcess.isEmpty()) {
-            RepositoryLocale rl = toProcess.removeFirst();
-            Long parentLocaleId = rl.getParentLocale().getLocale().getId();
-            if (parentLocaleId.equals(rootLocale.getId()) || localeIds.contains(parentLocaleId)) {
-                localeIds.add(rl.getLocale().getId());
-                locales.add(rl.getLocale());
-            } else {
-                toProcess.addLast(rl);
-            }
-        }
-
-        return locales;
     }
 
     private Path getTargetPath(FileMatch fileMatch, Locale locale) throws CommandException {

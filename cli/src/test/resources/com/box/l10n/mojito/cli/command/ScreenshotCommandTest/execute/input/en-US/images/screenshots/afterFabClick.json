@@ -1,0 +1,13 @@
+{
+  "name": "afterFabClick",
+  "takenDate": 1497227078988,
+  "sequence": 3,
+  "textUnits": [
+    {
+      "renderedTarget": "Hello"
+    },
+    {
+      "renderedTarget": "Navigate"
+    }
+  ]
+}

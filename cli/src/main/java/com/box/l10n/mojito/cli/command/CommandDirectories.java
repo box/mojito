@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -136,17 +137,17 @@ public class CommandDirectories {
     /**
      * Lists files with a given extension in the source directory directory.
      *
-     * @param extension extension of files to be returned
+     * @param extensions extension of files to be returned
      * @return list of files with given extension
      * @throws CommandException
      */
-    public List<Path> listFilesWithExtensionInSourceDirectory(final String extension) throws CommandException {
+    public List<Path> listFilesWithExtensionInSourceDirectory(String... extensions) throws CommandException {
 
         final List<Path> paths = new ArrayList<>();
+        
+        final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(buildGlobPatternForFileWithExtensions(extensions));
 
         SimpleFileVisitor<Path> extensionFileVisitor = new SimpleFileVisitor<Path>() {
-
-            PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:**." + extension);
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
@@ -162,10 +163,37 @@ public class CommandDirectories {
         try {
             Files.walkFileTree(sourceDirectoryPath, extensionFileVisitor);
         } catch (IOException ioe) {
-            throw new CommandException("Error while listing the file for extension: " + extension, ioe);
+            throw new CommandException("Error while listing the file for extension: " + Arrays.toString(extensions), ioe);
         }
 
         return paths;
+    }
+
+    /**
+     * Build a Glob pattern that matches files with given extensions (case 
+     * insensitive) across boundaries: glob:**.{ext1,EXT1,ext2,EXT2 ...}.
+     * @param extensions extensions to be added in the pattern
+     * @return the glob pattern
+     */
+    String buildGlobPatternForFileWithExtensions(String... extensions) {
+        StringBuilder extensionsPattern = new StringBuilder("glob:**.{");
+        
+        boolean first = true;
+        
+        for (String extension : extensions) {
+            
+            if (!first) {
+                extensionsPattern.append(",");
+            } else {
+                first = false;
+            }
+            
+            extensionsPattern.append(extension.toLowerCase()).append(",").append(extension.toUpperCase());
+        }
+
+        extensionsPattern.append("}");
+
+        return extensionsPattern.toString();
     }
 
     public Path getSourceDirectoryPath() {

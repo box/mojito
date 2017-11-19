@@ -288,7 +288,6 @@ class SearchParamsStore {
     }
 
     getAllRepositoriesSuccess(repositories) {
-        console.log("SearchParamsStore::getAllRepositoriesSuccess");
         if (this.repoNames && this.repoNames.length > 0) {
             this.waitFor(RepositoryStore);
             this.repoIds = [];
