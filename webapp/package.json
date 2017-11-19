@@ -72,7 +72,7 @@
     "sinon": "^1.15.4",
     "sinon-chai": "^2.8.0",
     "style-loader": "^0.18.2",
-    "uglify-js": "~2.4.15",
+    "uglify-js": "^2.8.29",
     "url-loader": "^0.5.9",
     "webpack": "^2.6.1"
   },
