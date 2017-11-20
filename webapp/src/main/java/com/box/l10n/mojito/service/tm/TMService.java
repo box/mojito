@@ -32,6 +32,9 @@ import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pollableTask.Pollable;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Preconditions;
@@ -135,12 +138,12 @@ public class TMService {
      */
     @Transactional
     public TMTextUnit addTMTextUnit(
-            Long tmId, 
-            Long assetId, 
-            String name, 
-            String content, 
-            String comment, 
-            DateTime createdDate, 
+            Long tmId,
+            Long assetId,
+            String name,
+            String content,
+            String comment,
+            DateTime createdDate,
             PluralForm puralForm,
             String pluralFormOther) {
 
@@ -366,10 +369,10 @@ public class TMService {
      * included or not in the localized files
      * @param createdDate to specify a creation date (can be used to re-import
      * old TM), can be {@code null}
-     * @return the result that contains the {@link TMTextUnitCurrentVariant} 
-     * and indicates if it was updated or not. The 
-     * {@link TMTextUnitCurrentVariant} holds the created
-     * {@link TMTextUnitVariant} or an existing one with same content
+     * @return the result that contains the {@link TMTextUnitCurrentVariant} and
+     * indicates if it was updated or not. The {@link TMTextUnitCurrentVariant}
+     * holds the created {@link TMTextUnitVariant} or an existing one with same
+     * content
      * @throws DataIntegrityViolationException If tmTextUnitId or localeId are
      * invalid
      */
@@ -387,10 +390,10 @@ public class TMService {
         }
 
         boolean noUpdate = false;
-        
+
         logger.debug("Check if there is a current TMTextUnitVariant");
         TMTextUnitCurrentVariant tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnitId);
-       
+
         TMTextUnitVariant tmTextUnitVariant = null;
 
         if (tmTextUnitCurrentVariant == null) {
@@ -428,7 +431,7 @@ public class TMService {
                 noUpdate = true;
             }
         }
-        
+
         return new AddTMTextUnitCurrentVariantResult(!noUpdate, tmTextUnitCurrentVariant);
     }
 
@@ -814,7 +817,7 @@ public class TMService {
 
         LocaleId targetLocaleId = LocaleId.fromBCP47(outputBcp47tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
-        
+
         //TODO(P1) see assetExtractor comments
         String filterConfigId;
 
@@ -836,7 +839,7 @@ public class TMService {
 
         return localizedContent;
     }
-
+    
     /**
      * Imports a localized version of an asset.
      *
@@ -853,14 +856,20 @@ public class TMService {
      * @param repositoryLocale the locale of the content to be imported
      * @param statusForSourceEqTarget the status of the text unit variant when
      * the source equals the target
+     * @param filterConfigIdOverride to override the filter used to process the
+     * asset
+     * @return 
      */
-    public void importLocalizedAsset(
+    @Pollable(async = true, message = "Import localized asset")
+    public PollableFuture importLocalizedAsset(
             Asset asset,
             String content,
             RepositoryLocale repositoryLocale,
             StatusForSourceEqTarget statusForSourceEqTarget,
             FilterConfigIdOverride filterConfigIdOverride) {
 
+        PollableFuture pollableFuture = new PollableFutureTaskResult();
+        
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
         logger.debug("Configuring pipeline to import localized file");
@@ -896,5 +905,7 @@ public class TMService {
 
         logger.debug("Start processing batch");
         driver.processBatch();
+        
+        return pollableFuture;
     }
 }
