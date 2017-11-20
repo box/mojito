@@ -10,7 +10,9 @@ import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.LocaleClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
+import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.Asset;
+import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForSourceEqTarget;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
@@ -117,16 +119,20 @@ public class ImportLocalizedAssetCommand extends Command {
 
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
 
-            assetClient.importLocalizedAssetForContent(
+            ImportLocalizedAssetBody importLocalizedAssetForContent = assetClient.importLocalizedAssetForContent(
                     assetByPathAndRepositoryId.getId(),
                     locale.getId(),
                     commandHelper.getFileContent(targetPath),
                     statusForSourceEqTarget,
                     fileMatch.getFileType().getFilterConfigIdOverride());
 
-            consoleWriter.erasePreviouslyPrintedLines();
-            consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).fg(Ansi.Color.GREEN).a(" Done").println();
-
+            try {
+                commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());
+                consoleWriter.erasePreviouslyPrintedLines();
+                consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).fg(Ansi.Color.GREEN).a(" Done").println();
+            } catch (PollableTaskException e) {
+                throw new CommandException(e.getMessage(), e.getCause());
+            }
         } catch (AssetNotFoundException ex) {
             throw new CommandException("No asset for file [" + fileMatch.getPath() + "] into repo [" + repositoryParam + "]", ex);
         }
@@ -137,7 +143,7 @@ public class ImportLocalizedAssetCommand extends Command {
         filterLocalesWithMapping(sortedRepositoryLocales);
         return sortedRepositoryLocales;
     }
-    
+
     private void filterLocalesWithMapping(Collection<Locale> locales) {
 
         if (inverseLocaleMapping != null) {

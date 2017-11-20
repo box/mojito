@@ -595,7 +595,7 @@
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -XX:MaxPermSize=256m
                     </argLine>
                  
-                    <rerunFailingTestsCount>0</rerunFailingTestsCount>
+                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
                
                     <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
                

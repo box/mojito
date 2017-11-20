@@ -139,8 +139,10 @@ public class AssetClient extends BaseClient {
      * @param content the asset content to be localized
      * @param statusForSourceEqTarget the status of the text unit variant when
      * the source equals the target
+     * @param filterConfigIdOverride
+     * @return 
      */
-    public void importLocalizedAssetForContent(
+    public ImportLocalizedAssetBody importLocalizedAssetForContent(
             Long assetId,
             Long localeId,
             String content,
@@ -156,9 +158,9 @@ public class AssetClient extends BaseClient {
         importLocalizedAssetBody.setStatusSourceEqTarget(statusForSourceEqTarget);
         importLocalizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
 
-        authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
+        return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 importLocalizedAssetBody,
-                Void.class);
+                ImportLocalizedAssetBody.class);
     }
 
     /**
