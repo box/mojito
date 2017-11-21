@@ -115,7 +115,7 @@ public class ImportLocalizedAssetCommand extends Command {
             logger.info("Importing for locale: {}", locale.getBcp47Tag());
             Path targetPath = getTargetPath(fileMatch, locale);
 
-            consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).fg(Ansi.Color.YELLOW).a(" Running").println();
+            consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).println();
 
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
 
@@ -128,8 +128,6 @@ public class ImportLocalizedAssetCommand extends Command {
 
             try {
                 commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());
-                consoleWriter.erasePreviouslyPrintedLines();
-                consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).fg(Ansi.Color.GREEN).a(" Done").println();
             } catch (PollableTaskException e) {
                 throw new CommandException(e.getMessage(), e.getCause());
             }
