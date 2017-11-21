@@ -85,7 +85,16 @@ class Ict {
                 node.className += " mojito-ict-string";
             } catch (e) {
             }
+
             node.addEventListener("click", (e) => onClick(e, textUnits));
+            
+            node.addEventListener("mouseenter", (e) => {
+                e.target.classList.add("mojito-ict-string-active");
+            });
+
+            node.addEventListener("mouseleave", (e) => {
+                e.target.classList.remove("mojito-ict-string-active");
+            });
         }
     }
 
