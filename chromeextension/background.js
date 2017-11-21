@@ -7,6 +7,7 @@ var backgroundConfig = {
 
 chrome.storage.sync.get(backgroundConfig, (items) => {
     backgroundConfig = items;
+    chrome.storage.sync.set(backgroundConfig);
 });
 
 chrome.storage.onChanged.addListener((changes) => {
