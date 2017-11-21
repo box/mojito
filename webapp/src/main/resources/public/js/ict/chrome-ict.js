@@ -5,11 +5,11 @@ var enMessages = require(`../../../properties/en.properties`);
 var ict = new Ict(enMessages, 'en');
 
 var config = {
-    enabled: false
-}
+    enabled: false,
+    mojitoBaseUrl: ''
+};
 
 chrome.storage.sync.get(config, (items) => {
-    console.log(items);
     config = items;
     if (items.enabled) {
         ict.activate();
