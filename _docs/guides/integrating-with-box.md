@@ -79,5 +79,10 @@ Most of the time, the content of this folder will be used to exchange translatio
 To customize sharing of this folder to individuals, log into the **Box Developer Account** (or the **Enterprise** Admin user, for which you provided the **Enterprise ID**), navigate to the **Admin Console** ([https://app.box.com/master](https://app.box.com/master)), and follow instructions [here](https://community.box.com/t5/For-Admins/How-Do-I-Share-Files-And-Folders-From-The-Admin-Console/ta-p/211) to share with collaborators.
 
 ### Configuration in Properties
+
+By default {{ site.mojito_green }} exports to the file system. To enable exporting to Box the following property needs to be set
+
+    l10n.dropExporter.type=BOX
+    
 For more information about custom configuration, see [Configurations#box-platform-integration]({{ site.github.url }}/docs/refs/configurations/#box-platform-integration)
 
