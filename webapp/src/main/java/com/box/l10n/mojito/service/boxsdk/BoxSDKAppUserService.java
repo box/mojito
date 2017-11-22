@@ -8,6 +8,7 @@ import com.box.sdk.BoxUser;
 import com.box.sdk.CreateUserParams;
 import com.box.sdk.InMemoryLRUAccessTokenCache;
 import com.box.sdk.JWTEncryptionPreferences;
+import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,22 +40,24 @@ public class BoxSDKAppUserService {
     public BoxUser.Info createAppUser(String clientId, String clientSecret, String publicKeyId,
                 String privateKey, String privateKeyPassword, String enterpriseId) throws BoxSDKServiceException {
 
-        logger.debug("Creating Box App User: {}", MOJITO_APP_USER_NAME);
-        JWTEncryptionPreferences jwtEncryptionPreferences = boxSDKJWTProvider.getJWTEncryptionPreferences(publicKeyId, privateKey, privateKeyPassword);
-        BoxDeveloperEditionAPIConnection appEnterpriseConnection = BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(
-                enterpriseId,
-                clientId,
-                clientSecret,
-                jwtEncryptionPreferences,
-                new InMemoryLRUAccessTokenCache(5));
-
-        CreateUserParams createUserParams = new CreateUserParams();
-        createUserParams.setSpaceAmount(UNLIMITED_SPACE);
-
         try {
+            logger.debug("Creating Box App User: {}", MOJITO_APP_USER_NAME);
+            JWTEncryptionPreferences jwtEncryptionPreferences = boxSDKJWTProvider.getJWTEncryptionPreferences(publicKeyId, privateKey, privateKeyPassword);
+            BoxDeveloperEditionAPIConnection appEnterpriseConnection = BoxDeveloperEditionAPIConnection.getAppEnterpriseConnection(
+                    enterpriseId,
+                    clientId,
+                    clientSecret,
+                    jwtEncryptionPreferences,
+                    new InMemoryLRUAccessTokenCache(5));
+
+            CreateUserParams createUserParams = new CreateUserParams();
+            createUserParams.setSpaceAmount(UNLIMITED_SPACE);
+
             return BoxUser.createAppUser(appEnterpriseConnection, MOJITO_APP_USER_NAME, createUserParams);
         } catch (BoxAPIException e) {
-            throw new BoxSDKServiceException("Couldn't create App User", e);
+            String msg = MessageFormat.format("Couldn't create App User: {0}", e.getResponse());
+            logger.error(msg);
+            throw new BoxSDKServiceException(msg, e);
         }
     }
 }
