@@ -53,6 +53,10 @@ Otherwise, an exception like the folllowing will be thrown:
 >An alternative is to generate the key with the following:
 >
 >`openssl genrsa -aes128 -out private_key.pem 2048`
+>
+> To get the public key from the `pem` file:
+> `openssl rsa -aes128 -in private_key.pem -pubout > public_key`
+
 
 
 ### Fill in the Required Box Client Configurations in {{ site.mojito_green }}
