@@ -4,7 +4,6 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.okapi.InheritanceMode;
-import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
@@ -56,49 +55,56 @@ public class TranslatorWithInheritance {
      */
     Map<Long, Map<String, TextUnitDTO>> localeToTextUnitDTOsForLocaleMap = new HashMap<>();
 
-    /**
-     * Creates the {@link TranslateStep} for a given asset.
-     *
-     * @param asset {@link Asset} that will be used to lookup translations
-     * @param repositoryLocale used to fetch translations. It can be different
-     * from the locale used in the Okapi pipeline ({@link #targetLocale}) in
-     * case the file needs to be generated for a tag that is different from the
-     * locale used for translation.
-     * @param inheritanceMode
-     */
     public TranslatorWithInheritance(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode) {
         this.asset = asset;
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
     }
 
-    
     public String getTranslation(
             String name,
             String source,
-            String md5,
-            RepositoryLocale repositoryLocale,
-            InheritanceMode inheritanceMode) {
+            String md5) {
 
         String translation = null;
 
-        logger.debug("Look for a translation in target locale: {} for text unit with name: {}", repositoryLocale.getLocale().getBcp47Tag(), name);
-        TextUnitDTO textUnitDTO = getTextUnitDTO(md5, repositoryLocale.getLocale().getId());
+        TextUnitDTO textUnitDTO = getTextUnitDTO(name, source, md5);
 
         if (textUnitDTO != null) {
-            logger.debug("Found translation for target locale");
             translation = textUnitDTO.getTarget();
         } else if (InheritanceMode.USE_PARENT.equals(inheritanceMode)) {
-            logger.debug("No translation found for target locale, look for translations in parent locales");
-            translation = getTranslationWithInheritance(md5, source);
+            logger.debug("No TextUnitDTO, fallback to source");
+            translation = source;
         }
 
         return translation;
     }
+    
+    public TextUnitDTO getTextUnitDTO(
+            String name,
+            String source,
+            String md5) {
+
+        logger.debug("Look for a textUnitDTO in target locale: {} for text unit with name: {}", repositoryLocale.getLocale().getBcp47Tag(), name);
+        TextUnitDTO textUnitDTO = getTextUnitDTO(md5, repositoryLocale.getLocale().getId());
+
+        if (textUnitDTO != null) {
+            logger.debug("Found textUnitDTO for target locale");
+        } else if (InheritanceMode.USE_PARENT.equals(inheritanceMode)) {
+            logger.debug("No textUnitDTO found for target locale, look for translations in parent locales");
+            textUnitDTO = getTextUnitDTOFromParents(md5);
+        }
+
+        return textUnitDTO;
+    }
+    
+    public boolean hasTranslationWithoutInheritance() {
+        return !getTextUnitDTOsForLocaleMapFromCache(repositoryLocale.getLocale().getId()).isEmpty();
+    }
 
     /**
      * Look for a translation in parent locale excluding the root locale for a
-     * given MD5, if none is found it returns the source.
+     * given MD5.
      *
      * <p>
      * The root locale (repository locale with parent locale null) is excluded
@@ -107,37 +113,31 @@ public class TranslatorWithInheritance {
      *
      * @param md5 MD5 to lookup the translation
      * @param source the source to fallback to if there is no translation
-     * @return the translation from a parent locale or the source if no
-     * translation is found.
+     * @return the translation from a parent locale if it exists else null
      */
-    private String getTranslationWithInheritance(String md5, String source) {
+    private TextUnitDTO getTextUnitDTOFromParents(String md5) {
 
-        String translation = null;
+        TextUnitDTO textUnitDTOWithInheritance = null;
 
-        logger.debug("Get Translation with inheritance");
+        logger.debug("Get TextUnitDTO with inheritance");
         RepositoryLocale repositoryLocaleForFind = repositoryLocale.getParentLocale();
 
-        while (translation == null && repositoryLocaleForFind != null && repositoryLocaleForFind.getParentLocale() != null) {
+        while (textUnitDTOWithInheritance == null && repositoryLocaleForFind != null && repositoryLocaleForFind.getParentLocale() != null) {
 
-            logger.debug("Looking for a translation in locale: {}", repositoryLocaleForFind.getLocale().getBcp47Tag());
+            logger.debug("Looking for a TextUnitDTO in locale: {}", repositoryLocaleForFind.getLocale().getBcp47Tag());
             TextUnitDTO textUnitDTO = getTextUnitDTO(md5, repositoryLocaleForFind.getLocale().getId());
 
             if (textUnitDTO != null) {
-                logger.debug("Found a translation using inheritance in locale: {}", repositoryLocaleForFind.getLocale().getBcp47Tag());
-                translation = textUnitDTO.getTarget();
+                logger.debug("Found a TextUnitDTO using inheritance in locale: {}", repositoryLocaleForFind.getLocale().getBcp47Tag());
+                textUnitDTOWithInheritance = textUnitDTO;
             } else {
-                logger.debug("No inherited translation in locale: {}", repositoryLocaleForFind.getLocale().getBcp47Tag());
+                logger.debug("No inherited TextUnitDTO in locale: {}", repositoryLocaleForFind.getLocale().getBcp47Tag());
             }
 
             repositoryLocaleForFind = repositoryLocaleForFind.getParentLocale();
         }
 
-        if (translation == null) {
-            logger.debug("No translation using inheritance, fallback to source");
-            translation = source;
-        }
-
-        return translation;
+        return textUnitDTOWithInheritance;
     }
 
     /**
@@ -169,7 +169,7 @@ public class TranslatorWithInheritance {
 
         if (translationsForLocaleMap == null) {
             logger.debug("No map in cache, get the map and cache it");
-            translationsForLocaleMap = getTextUnitDTOsForLocaleByContentMD5(localeId);
+            translationsForLocaleMap = getTextUnitDTOsForLocaleByMD5(localeId);
             localeToTextUnitDTOsForLocaleMap.put(localeId, translationsForLocaleMap);
         }
 
@@ -184,7 +184,7 @@ public class TranslatorWithInheritance {
      * @return the map of {@link TextUnitDTO}s keyed by MD5 that contains all
      * current translations for a given locale
      */
-    private Map<String, TextUnitDTO> getTextUnitDTOsForLocaleByContentMD5(Long localeId) {
+    private Map<String, TextUnitDTO> getTextUnitDTOsForLocaleByMD5(Long localeId) {
 
         Map<String, TextUnitDTO> res = new HashMap<>();
 

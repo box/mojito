@@ -3,11 +3,15 @@ package com.box.l10n.mojito.okapi;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import net.sf.okapi.common.Event;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +38,11 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     RepositoryLocale repositoryLocale;
     StatusForSourceEqTarget statusForSourceEqTarget;
 
+    Map<String, TMTextUnit> textUnitsByMd5 = new HashMap<>();
+    Map<String, TMTextUnit> textUnitsByName = new HashMap<>();
+    TranslatorWithInheritance translatorWithInheritance;
+    boolean hasTranslationWithoutInheritance;
+
     public enum StatusForSourceEqTarget {
         SKIPPED,
         REVIEW_NEEDED,
@@ -47,7 +56,29 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
             StatusForSourceEqTarget sourceEqualTargetProcessing) {
         this.asset = asset;
         this.repositoryLocale = repositoryLocale;
-        this.statusForSourceEqTarget = sourceEqualTargetProcessing;        
+        this.statusForSourceEqTarget = sourceEqualTargetProcessing;
+    }
+
+    @Override
+    protected Event handleStartDocument(Event event) {
+        event = super.handleStartDocument(event);
+        initTmTextUnitsMapsForAsset();
+        translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, InheritanceMode.USE_PARENT);
+        hasTranslationWithoutInheritance = translatorWithInheritance.hasTranslationWithoutInheritance();
+        return event;
+    }
+
+    void initTmTextUnitsMapsForAsset() {
+        logger.debug("Init TmTextUnit maps for asset");
+        List<TMTextUnit> textUnits = tmTextUnitRepository.findByAsset(asset);
+
+        for (TMTextUnit tmTextUnit : textUnits) {
+            if (isMultilingual) {
+                textUnitsByMd5.put(tmTextUnit.getMd5(), tmTextUnit);
+            } else {
+                textUnitsByName.put(tmTextUnit.getName(), tmTextUnit);
+            }
+        }
     }
 
     @Override
@@ -66,87 +97,95 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
         TMTextUnit tmTextUnit;
         if (isMultilingual) {
-            tmTextUnit = tmTextUnitRepository.findFirstByAssetAndMd5(asset, md5);
+            tmTextUnit = textUnitsByMd5.get(md5);
         } else {
-            tmTextUnit = tmTextUnitRepository.findFirstByAssetAndName(asset, name);
+            tmTextUnit = textUnitsByName.get(name);
         }
 
         return tmTextUnit;
     }
 
-    /**
-     * Decide if the translation should be imported.
-     *
-     * For not fully translated locales, translations are imported only if they are
-     * different of the translation of the parent locale.
-     *
-     * If source = target the string is imported and will be marked as needs
-     * review. We could have an option to mark them as accept or skip import
-     *
-     * @param tmTextUnit
-     * @param target
-     * @return
-     */
     @Override
-    protected boolean shouldImport(TMTextUnit tmTextUnit, TextContainer target) {
+    protected TMTextUnitVariant.Status getStatusForImport(TMTextUnit tmTextUnit, TextContainer target) {
 
-        boolean shouldImport = true;
+        TMTextUnitVariant.Status status;
 
-        if (isSourceEqualsToTarget(target, tmTextUnit)) {
-            shouldImport = !StatusForSourceEqTarget.SKIPPED.equals(statusForSourceEqTarget) && repositoryLocale.isToBeFullyTranslated();
-        } else if (!repositoryLocale.isToBeFullyTranslated()) {
-            shouldImport = !isSameAsParentLocale(tmTextUnit, target);
+        TextUnitDTO currentTranslation = translatorWithInheritance.getTextUnitDTO(
+                tmTextUnit.getName(),
+                tmTextUnit.getContent(),
+                tmTextUnit.getMd5());
+        
+        boolean hasSameTarget;
+        String targetAsString = target.toString();
+
+        logger.debug("Check if new target: [{}] is different to either the current, parent or source string: [{}]",
+                targetAsString, currentTranslation);
+        
+        if (currentTranslation != null) {
+            hasSameTarget = targetAsString.equals(currentTranslation.getTarget());
+        } else {
+            logger.debug("No current or parent, compare with the source");
+            hasSameTarget = targetAsString.equals(tmTextUnit.getContent());
         }
 
-        return shouldImport;
-
+        if (hasSameTarget) {
+            logger.debug("Target is the same");
+            if (repositoryLocale.isToBeFullyTranslated()) {                
+                boolean isForTargetLocale = currentTranslation != null && currentTranslation.getLocaleId().equals(repositoryLocale.getLocale().getId());
+                status = getStatusForSameTargetAndFullyTranslated(isForTargetLocale);
+            } else {
+                logger.debug("Locale is not fully translated, skip target as it is the same");
+                status = null;
+            }
+        } else {
+            logger.debug("Target is different, import as approved");
+            status = TMTextUnitVariant.Status.APPROVED;
+        }
+        
+        return status;
     }
 
-    /**
-     * Check if the target to be imported is the same as the parent target.
-     * 
-     * @param tmTextUnit
-     * @param target
-     * @return if the target is the same as the parent target or not
-     */
-    boolean isSameAsParentLocale(TMTextUnit tmTextUnit, TextContainer target) {
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    TMTextUnitVariant.Status getStatusForSameTargetAndFullyTranslated(boolean isForTargetLocale) {
+        logger.debug("Get status when target is same for a fully translated locale");
         
-        textUnitSearcherParameters.setTmTextUnitId(tmTextUnit.getId());
-        textUnitSearcherParameters.setLocaleId(repositoryLocale.getParentLocale().getLocale().getId());
-        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+        TMTextUnitVariant.Status status;
         
-        return !search.isEmpty() && search.get(0).getTarget().equals(target.toString());
-    }
- 
-    @Override
-    protected TMTextUnitVariant.Status getStatusForAddingTranslation(TextContainer target, boolean hasError, TMTextUnit tmTextUnit) {
-        TMTextUnitVariant.Status status = TMTextUnitVariant.Status.APPROVED;
-
-        if (isSourceEqualsToTarget(target, tmTextUnit)) {
-            if (StatusForSourceEqTarget.APPROVED.equals(statusForSourceEqTarget)) {
-                status = TMTextUnitVariant.Status.APPROVED;
-            } else if (StatusForSourceEqTarget.TRANSLATION_NEEDED.equals(statusForSourceEqTarget)) {
-                status = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
-            } else if (StatusForSourceEqTarget.REVIEW_NEEDED.equals(statusForSourceEqTarget)) {
-                status = TMTextUnitVariant.Status.REVIEW_NEEDED;
-            } else if (StatusForSourceEqTarget.SKIPPED.equals(statusForSourceEqTarget)) {
-                throw new RuntimeException("Shouldn't be adding a translation with SKIP");
-            } 
-        } 
+        if(isForTargetLocale) {
+            logger.debug("Same target for target locale, skip");
+            status = null;
+        } else if (StatusForSourceEqTarget.TRANSLATION_NEEDED.equals(statusForSourceEqTarget)) {
+            status = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
+        } else if (StatusForSourceEqTarget.REVIEW_NEEDED.equals(statusForSourceEqTarget)) {
+            status = TMTextUnitVariant.Status.REVIEW_NEEDED;
+        } else if (StatusForSourceEqTarget.SKIPPED.equals(statusForSourceEqTarget)) {
+            status = null;
+        } else {
+            status = TMTextUnitVariant.Status.APPROVED;
+        }
         
         return status;
     }
 
     /**
-     * Indicates if the source is the same as the target
+     * Optimize by skipping the look up of the tmTextUnitCurrentVariant when then there is no translation.
      * 
-     * @param target
+     * This is to optimize for the first import of big projects, looking up for tmTextUnitCurrentVariants is expensive
+     * and not required as none is present yet.
+     * 
+     * @param localeId
      * @param tmTextUnit
-     * @return if the source is the same as the target or not
+     * @return 
      */
-    private boolean isSourceEqualsToTarget(TextContainer target, TMTextUnit tmTextUnit) {
-        return target.toString().equals(tmTextUnit.getContent());
+    @Override
+    TMTextUnitCurrentVariant getTMTextUnitCurrentVariant(Long localeId, TMTextUnit tmTextUnit) {
+        
+        TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
+        
+        if (hasTranslationWithoutInheritance) {
+            return super.getTMTextUnitCurrentVariant(localeId, tmTextUnit);
+        }
+        
+        return tmTextUnitCurrentVariant;
     }
-
+    
 }
