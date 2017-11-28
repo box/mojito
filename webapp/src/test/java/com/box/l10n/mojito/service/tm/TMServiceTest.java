@@ -1483,6 +1483,36 @@ public class TMServiceTest extends ServiceTestBase {
         assertFalse(iterator.hasNext());
 
     }
+    
+     @Test
+    public void testReImportLocalizedAsset() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
+
+        baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
+
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+        textUnitSearcherParameters.setLocaleId(repoLocale.getLocale().getId());
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        Iterator<TextUnitDTO> iterator = textUnitDTOs.iterator();
+        TextUnitDTO next = iterator.next();
+        assertEquals("Au revoir CA", next.getTarget());
+        assertEquals(TMTextUnitVariant.Status.APPROVED, next.getStatus());
+
+        assertFalse(iterator.hasNext());
+    }
 
     private void baseTestImportLocalizedAsset(StatusForSourceEqTarget sourceEqualTargetProcessing) throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetUpdateException, AssetUpdateException {
         repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
@@ -1604,6 +1634,6 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr \"jp test okapi bug\"\n"
                 + "\n"
                 + "";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
+            tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
     }
 }

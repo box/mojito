@@ -109,8 +109,8 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
      */
     @Override
     @Transactional
-    TMTextUnitVariant importTextUnit(TMTextUnit tmTextUnit, TextContainer target) {
-        TMTextUnitVariant importTextUnit = super.importTextUnit(tmTextUnit, target);
+    TMTextUnitVariant importTextUnit(TMTextUnit tmTextUnit, TextContainer target, TMTextUnitVariant.Status status) {
+        TMTextUnitVariant importTextUnit = super.importTextUnit(tmTextUnit, target, status);
         translationKitService.markTranslationKitTextUnitAsImported(translationKit, importTextUnit);
         return importTextUnit;
     }

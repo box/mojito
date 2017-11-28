@@ -172,9 +172,7 @@ public class VirtualAssetService {
             String translation = translatorWithInheritance.getTranslation(
                     assetTextUnit.getName(),
                     assetTextUnit.getContent(),
-                    assetTextUnit.getMd5(),
-                    repositoryLocale,
-                    inheritanceMode
+                    assetTextUnit.getMd5()
             );
 
             if (translation == null && InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
