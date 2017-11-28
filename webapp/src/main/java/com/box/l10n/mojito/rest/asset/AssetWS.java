@@ -213,7 +213,7 @@ public class AssetWS {
                 asset,
                 normalizedContent,
                 repositoryLocale,
-                importLocalizedAssetBody.getSourceEqualTargetProcessing(),
+                importLocalizedAssetBody.getStatusForEqualTarget(),
                 importLocalizedAssetBody.getFilterConfigIdOverride());
         
         importLocalizedAssetBody.setPollableTask(pollableFuture.getPollableTask());

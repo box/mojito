@@ -8,7 +8,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
-import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.filters.MacStringsEncoder;
 import com.box.l10n.mojito.okapi.filters.XMLEncoder;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -1045,7 +1045,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgid_plural \"repins\"\n"
                 + "msgstr[0] \"repin-jp\"\n";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForSourceEqTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1149,7 +1149,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[1] \"repins-ru-1\"\n"
                 + "msgstr[2] \"repins-ru-2\"\n";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForSourceEqTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1254,7 +1254,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[1] \"repins-cz-1\"\n"
                 + "msgstr[2] \"repins-cz-2\"\n";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForSourceEqTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1354,7 +1354,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testImportLocalizedAssetXLIFFApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1380,7 +1380,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testImportLocalizedAssetXLIFFReviewNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.REVIEW_NEEDED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.REVIEW_NEEDED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1407,7 +1407,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testImportLocalizedAssetXLIFFTranslationNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.TRANSLATION_NEEDED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.TRANSLATION_NEEDED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1434,7 +1434,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testImportLocalizedAssetXLIFFSkip() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.SKIPPED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.SKIPPED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1457,7 +1457,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testImportLocalizedAssetNotFullyTranslated() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
 
         RepositoryLocale repoLocale;
         try {
@@ -1467,7 +1467,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1487,7 +1487,7 @@ public class TMServiceTest extends ServiceTestBase {
      @Test
     public void testReImportLocalizedAsset() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
 
         RepositoryLocale repoLocale;
         try {
@@ -1497,8 +1497,8 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1514,7 +1514,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertFalse(iterator.hasNext());
     }
 
-    private void baseTestImportLocalizedAsset(StatusForSourceEqTarget sourceEqualTargetProcessing) throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetUpdateException, AssetUpdateException {
+    private void baseTestImportLocalizedAsset(StatusForEqualTarget statusForEqualTarget) throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetUpdateException, AssetUpdateException {
         repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;
         try {
@@ -1538,7 +1538,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetResult.get();
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, sourceEqualTargetProcessing, null).get();
+        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, statusForEqualTarget, null).get();
     }
 
     @Test
@@ -1634,6 +1634,6 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr \"jp test okapi bug\"\n"
                 + "\n"
                 + "";
-            tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null).get();
+            tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
     }
 }

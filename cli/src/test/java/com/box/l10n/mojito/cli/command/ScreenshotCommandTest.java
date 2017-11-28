@@ -28,7 +28,7 @@ public class ScreenshotCommandTest extends CLITestBase {
     @Test
     public void execute() throws Exception {
         String repoName = testIdWatcher.getEntityName("screenshot_execute");
-        Repository repository = repositoryService.createRepository("screenshot", repoName + " description");
+        Repository repository = repositoryService.createRepository(repoName, repoName + " description");
 
         repositoryService.addRepositoryLocale(repository, "fr-FR");
         repositoryService.addRepositoryLocale(repository, "ja-JP");

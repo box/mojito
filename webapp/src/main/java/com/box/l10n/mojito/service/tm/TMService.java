@@ -17,7 +17,7 @@ import com.box.l10n.mojito.okapi.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
-import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
 import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
 import com.box.l10n.mojito.okapi.InheritanceMode;
@@ -931,7 +931,7 @@ public class TMService {
      *
      * The target strings are checked against the source strings and if they are
      * equals the status of the imported translation is defined by
-     * statusForSourceEqTarget. When SKIIPED is specified the import is actually
+     * statusForEqualTarget. When SKIPED is specified the import is actually
      * skipped.
      *
      * For not fully translated locales, targets are imported only if they are
@@ -940,7 +940,7 @@ public class TMService {
      * @param asset the asset for which the content will be imported
      * @param content the localized asset content
      * @param repositoryLocale the locale of the content to be imported
-     * @param statusForSourceEqTarget the status of the text unit variant when
+     * @param statusForEqualtarget the status of the text unit variant when
      * the source equals the target
      * @param filterConfigIdOverride to override the filter used to process the
      * asset
@@ -951,7 +951,7 @@ public class TMService {
             Asset asset,
             String content,
             RepositoryLocale repositoryLocale,
-            StatusForSourceEqTarget statusForSourceEqTarget,
+            StatusForEqualTarget statusForEqualtarget,
             FilterConfigIdOverride filterConfigIdOverride) {
 
         PollableFuture pollableFuture = new PollableFutureTaskResult();
@@ -964,7 +964,7 @@ public class TMService {
 
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        driver.addStep(new ImportTranslationsFromLocalizedAssetStep(asset, repositoryLocale, statusForSourceEqTarget));
+        driver.addStep(new ImportTranslationsFromLocalizedAssetStep(asset, repositoryLocale, statusForEqualtarget));
 
         logger.debug("Adding all supported filters to the pipeline driver");
         driver.setFilterConfigurationMapper(assetExtractor.getConfiguredFilterConfigurationMapper());
