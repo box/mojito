@@ -13,7 +13,7 @@ import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
-import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForSourceEqTarget;
+import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForEqualTarget;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
@@ -66,9 +66,10 @@ public class ImportLocalizedAssetCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    @Parameter(names = {"--source-equals-target"}, required = false, description = "Status of the imported translation when the target is the same as the source (SKIPPED means no import)",
-            converter = ImportLocalizedAssetBodyStatusForSourceEqTarget.class)
-    StatusForSourceEqTarget statusForSourceEqTarget = null;
+    @Parameter(names = {"--status-equal-target"}, required = false, description = "Status of the imported translation when the target is the same as "
+            + "the parent (SKIPPED for no import). Applies only to fully translated locales",
+            converter = ImportLocalizedAssetBodyStatusForEqualTarget.class)
+    StatusForEqualTarget statusForEqualTarget = null;
 
     @Autowired
     AssetClient assetClient;
@@ -119,11 +120,10 @@ public class ImportLocalizedAssetCommand extends Command {
 
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
 
-            ImportLocalizedAssetBody importLocalizedAssetForContent = assetClient.importLocalizedAssetForContent(
-                    assetByPathAndRepositoryId.getId(),
+            ImportLocalizedAssetBody importLocalizedAssetForContent = assetClient.importLocalizedAssetForContent(assetByPathAndRepositoryId.getId(),
                     locale.getId(),
                     commandHelper.getFileContent(targetPath),
-                    statusForSourceEqTarget,
+                    statusForEqualTarget,
                     fileMatch.getFileType().getFilterConfigIdOverride());
 
             try {

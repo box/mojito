@@ -20,7 +20,7 @@ public class ImportLocalizedAssetBody {
      */
     String content;
 
-    ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget sourceEqualTargetProcessing;
+    ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget statusForEqualTarget;
 
     FilterConfigIdOverride filterConfigIdOverride;
 
@@ -66,12 +66,12 @@ public class ImportLocalizedAssetBody {
         this.content = content;
     }
 
-    public ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget getSourceEqualTargetProcessing() {
-        return sourceEqualTargetProcessing;
+    public ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget getStatusForEqualTarget() {
+        return statusForEqualTarget;
     }
 
-    public void setSourceEqualTargetProcessing(ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget sourceEqualTargetProcessing) {
-        this.sourceEqualTargetProcessing = sourceEqualTargetProcessing;
+    public void setStatusForEqualTarget(ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget statusForEqualTarget) {
+        this.statusForEqualTarget = statusForEqualTarget;
     }
 
     public FilterConfigIdOverride getFilterConfigIdOverride() {

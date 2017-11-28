@@ -36,14 +36,14 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
     Asset asset;
     RepositoryLocale repositoryLocale;
-    StatusForSourceEqTarget statusForSourceEqTarget;
+    StatusForEqualTarget statusForEqualTarget;
 
     Map<String, TMTextUnit> textUnitsByMd5 = new HashMap<>();
     Map<String, TMTextUnit> textUnitsByName = new HashMap<>();
     TranslatorWithInheritance translatorWithInheritance;
     boolean hasTranslationWithoutInheritance;
 
-    public enum StatusForSourceEqTarget {
+    public enum StatusForEqualTarget {
         SKIPPED,
         REVIEW_NEEDED,
         TRANSLATION_NEEDED,
@@ -53,10 +53,10 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     public ImportTranslationsFromLocalizedAssetStep(
             Asset asset,
             RepositoryLocale repositoryLocale,
-            StatusForSourceEqTarget sourceEqualTargetProcessing) {
+            StatusForEqualTarget statusForEqualTarget) {
         this.asset = asset;
         this.repositoryLocale = repositoryLocale;
-        this.statusForSourceEqTarget = sourceEqualTargetProcessing;
+        this.statusForEqualTarget = statusForEqualTarget;
     }
 
     @Override
@@ -153,11 +153,11 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
         if(isForTargetLocale) {
             logger.debug("Same target for target locale, skip");
             status = null;
-        } else if (StatusForSourceEqTarget.TRANSLATION_NEEDED.equals(statusForSourceEqTarget)) {
+        } else if (StatusForEqualTarget.TRANSLATION_NEEDED.equals(statusForEqualTarget)) {
             status = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
-        } else if (StatusForSourceEqTarget.REVIEW_NEEDED.equals(statusForSourceEqTarget)) {
+        } else if (StatusForEqualTarget.REVIEW_NEEDED.equals(statusForEqualTarget)) {
             status = TMTextUnitVariant.Status.REVIEW_NEEDED;
-        } else if (StatusForSourceEqTarget.SKIPPED.equals(statusForSourceEqTarget)) {
+        } else if (StatusForEqualTarget.SKIPPED.equals(statusForEqualTarget)) {
             status = null;
         } else {
             status = TMTextUnitVariant.Status.APPROVED;

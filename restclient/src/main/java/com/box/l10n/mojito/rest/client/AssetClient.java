@@ -128,7 +128,7 @@ public class AssetClient extends BaseClient {
      *
      * The target strings are checked against the source strings and if they are
      * equals the status of the imported translation is defined by
-     * statusForSourceEqTarget. When SKIIPED is specified the import is actually
+     * statusForEqualTarget. When SKIIED is specified the import is actually
      * skipped.
      *
      * For not fully translated locales, targets are imported only if they are
@@ -137,8 +137,8 @@ public class AssetClient extends BaseClient {
      * @param assetId {@link Asset#id}
      * @param localeId {@link Locale#id}
      * @param content the asset content to be localized
-     * @param statusForSourceEqTarget the status of the text unit variant when
-     * the source equals the target
+     * @param statusForEqualTarget the status of the text unit variant when
+     * the target is the same as the parent
      * @param filterConfigIdOverride
      * @return 
      */
@@ -146,7 +146,7 @@ public class AssetClient extends BaseClient {
             Long assetId,
             Long localeId,
             String content,
-            ImportLocalizedAssetBody.StatusForSourceEqTarget statusForSourceEqTarget,
+            ImportLocalizedAssetBody.StatusForEqualTarget statusForEqualTarget,
             FilterConfigIdOverride filterConfigIdOverride) {
         logger.debug("Import localized asset with asset id = {}, locale id = {}", assetId, localeId);
 
@@ -155,7 +155,7 @@ public class AssetClient extends BaseClient {
 
         ImportLocalizedAssetBody importLocalizedAssetBody = new ImportLocalizedAssetBody();
         importLocalizedAssetBody.setContent(content);
-        importLocalizedAssetBody.setStatusSourceEqTarget(statusForSourceEqTarget);
+        importLocalizedAssetBody.setStatusForEqualTarget(statusForEqualTarget);
         importLocalizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
 
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),

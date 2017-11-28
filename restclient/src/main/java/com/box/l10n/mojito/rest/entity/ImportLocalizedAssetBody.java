@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ImportLocalizedAssetBody {
 
-    public enum StatusForSourceEqTarget {
+    public enum StatusForEqualTarget {
         SKIPPED,
         REVIEW_NEEDED,
         TRANSLATION_NEEDED,
@@ -18,7 +18,7 @@ public class ImportLocalizedAssetBody {
 
     String content;
 
-    StatusForSourceEqTarget statusSourceEqTarget;
+    StatusForEqualTarget statusForEqualTarget;
 
     FilterConfigIdOverride filterConfigIdOverride;
         
@@ -35,12 +35,12 @@ public class ImportLocalizedAssetBody {
         this.content = content;
     }
 
-    public StatusForSourceEqTarget getStatusSourceEqTarget() {
-        return statusSourceEqTarget;
+    public StatusForEqualTarget getStatusForEqualTarget() {
+        return statusForEqualTarget;
     }
 
-    public void setStatusSourceEqTarget(StatusForSourceEqTarget statusSourceEqTarget) {
-        this.statusSourceEqTarget = statusSourceEqTarget;
+    public void setStatusForEqualTarget(StatusForEqualTarget statusForEqualTarget) {
+        this.statusForEqualTarget = statusForEqualTarget;
     }
 
     public FilterConfigIdOverride getFilterConfigIdOverride() {
