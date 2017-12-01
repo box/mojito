@@ -13,8 +13,8 @@ const IctPopup = function (props) {
         <Form horizontal>
             <ToggleButtonGroup className="mtm mbm" name="state" type="radio" value={props.enabled} 
                                onChange={props.onEnabledChanged} >
-                <ToggleButton  name="state" value={true}>On</ToggleButton>
-                <ToggleButton  name="state" value={false}>Off</ToggleButton>
+                <ToggleButton name="state" value={true}>On</ToggleButton>
+                <ToggleButton name="state" value={false}>Off</ToggleButton>
             </ToggleButtonGroup> 
             
             <FormGroup controlId="formHorizontalMojitoUrl">
@@ -26,7 +26,7 @@ const IctPopup = function (props) {
               </Col>
             </FormGroup>
             
-            <FormGroup controlId="formHorizontalMojitoUrl">
+            <FormGroup controlId="formHorizontalHeaderName">
                 <Col componentClass={ControlLabel} sm={2}>
                 Header Name
                 </Col>
@@ -35,13 +35,27 @@ const IctPopup = function (props) {
               </Col>
             </FormGroup>
             
-            <FormGroup controlId="formHorizontalMojitoUrl">
+            <FormGroup controlId="formHorizontalHeaderValue">
                 <Col componentClass={ControlLabel} sm={2}>
                 Header Value
                 </Col>
               <Col sm={10}>
                 <FormControl type="text" value={props.headerValue} onChange={(e) => props.onHeaderValueChanged(e.target.value)} />
               </Col>
+            </FormGroup>
+            
+            <FormGroup controlId="formHorizontalRemoveTagsBlock">
+                <Col componentClass={ControlLabel} sm={2}>
+                    Remove meta characters
+                </Col>
+                <Col sm={10}>
+                    <ToggleButtonGroup name="state" type="radio" 
+                               value={props.removeTagsBlock} 
+                               onChange={props.onRemoveTagsBlockChanged} >
+                        <ToggleButton name="state" value={true}>On</ToggleButton>
+                        <ToggleButton name="state" value={false}>Off</ToggleButton>
+                    </ToggleButtonGroup> 
+                 </Col>
             </FormGroup>
         </Form>
     </div>;
@@ -56,7 +70,8 @@ class IctPopupContainer extends React.Component {
             mojitoBaseUrl: '',
             enabled: false,
             headerName: '',
-            headerValue: ''
+            headerValue: '',
+            removeTagsBlock: true
         };
         
         this.loadStateFromStorage();
@@ -109,16 +124,28 @@ class IctPopupContainer extends React.Component {
         });
     }
     
+    onRemoveTagsBlockChanged(removeTagsBlock) {
+        this.setState({
+            removeTagsBlock: removeTagsBlock
+        });
+
+        chrome.storage.sync.set({
+            removeTagsBlock: removeTagsBlock
+        });
+    }
+    
     render() {
         return <IctPopup 
                     mojitoBaseUrl={this.state.mojitoBaseUrl}
                     enabled={this.state.enabled}
                     headerName={this.state.headerName}
                     headerValue={this.state.headerValue}
+                    removeTagsBlock={this.state.removeTagsBlock}
                     onMojitoBaseUrlChanged={url => this.onMojitoBaseUrlChanged(url)}
                     onHeaderNameChanged={name => this.onHeaderNameChanged(name)}
                     onHeaderValueChanged={value => this.onHeaderValueChanged(value)}
                     onEnabledChanged={enabled => this.onEnabledChanged(enabled)}
+                    onRemoveTagsBlockChanged={removeTagsBlock => this.onRemoveTagsBlockChanged(removeTagsBlock)}
                 />;
                     
     }

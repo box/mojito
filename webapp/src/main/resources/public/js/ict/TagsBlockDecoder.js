@@ -5,6 +5,10 @@ class TagsBlockDecoder {
         return this.b64DecodeUnicode(base64);
     }
     
+    removeTagsBlock(string) {
+        return string.replace(/\udb40[\udc00-\udc7e]/g, '');
+    }
+    
     tagsBlockToAscii(string) {
         var res = '';
 

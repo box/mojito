@@ -2,7 +2,8 @@ var backgroundConfig = {
     mojitoBaseUrl: 'http://localhost:8080/',
     enabled: false,
     headerName: 'X-Mojito-Ict',
-    headerValue: 'on'
+    headerValue: 'on',
+    removeTagsBlock: true
 };
 
 chrome.storage.sync.get(backgroundConfig, (items) => {

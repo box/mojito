@@ -89,6 +89,7 @@
     "watch": "webpack --config webpack.config.js --progress --colors --watch --env.inlineSourceMap",
     "watch-ict": "webpack --config webpack.config_ict.js --progress --colors --watch --env.inlineSourceMap",
     "build": "webpack --config webpack.config.js --progress --env.production",
+    "build-ict": "webpack --config webpack.config_ict.js --progress --env.production",
     "tests": "./node_modules/karma/bin/karma start --singleRun=true",
     "mojito-tm-import": "java -jar ../cli/target/mojito-cli-*.jar tm-import -r Mojito -s src/main/resources/xliff/",
     "mojito-tm-export": "java -jar ../cli/target/mojito-cli-*.jar tm-export -r Mojito -t src/main/resources/xliff/",

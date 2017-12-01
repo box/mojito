@@ -42,29 +42,37 @@ class ModalTextUnit extends React.Component {
 class IctModal extends React.Component {
       
     render() {
+        
+        // include <style> here because css can't have precendence over <style>
+        // from apps that override fonts, ect
         return (
-            <Modal show={this.props.show} onHide={this.props.onClose} container={this.props.container}>
-                <Modal.Header closeButton>
-                    <Modal.Title><FormattedMessage id="ict.modal.title" /></Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {this.props.textUnits && this.props.textUnits.map((textUnit) => 
-                        <ModalTextUnit 
-                            key={textUnit.textUnitName} 
-                            textUnit={textUnit} 
-                            selected={this.props.selectedTextUnit === textUnit}
-                            onSelect={this.props.onSelectTextUnit}/>
-                    )}           
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button bsStyle="primary" onClick={this.props.onOkay}>
-                        <FormattedMessage id="label.okay"/>
-                    </Button>
-                    <Button onClick={this.props.onClose}>
-                        <FormattedMessage id="label.cancel"/>
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <div>   
+                <style>
+                    {"#mojito-ict * {font-family: \"Helvetica Neue\", Helvetica, Arial, sans-serif, \"GLYPHICONS Halflings\" !important; margin: 0; outline: none; letter-spacing: normal !important;}"}
+                </style>
+                <Modal show={this.props.show} onHide={this.props.onClose} container={this.props.container}>
+                    <Modal.Header closeButton>
+                        <Modal.Title><FormattedMessage id="ict.modal.title" /></Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {this.props.textUnits && this.props.textUnits.map((textUnit) => 
+                            <ModalTextUnit 
+                                key={textUnit.textUnitName} 
+                                textUnit={textUnit} 
+                                selected={this.props.selectedTextUnit === textUnit}
+                                onSelect={this.props.onSelectTextUnit}/>
+                        )}           
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button bsStyle="primary" onClick={this.props.onOkay}>
+                            <FormattedMessage id="label.okay"/>
+                        </Button>
+                        <Button onClick={this.props.onClose}>
+                            <FormattedMessage id="label.cancel"/>
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </div>
         );
     }; 
 };
