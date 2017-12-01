@@ -33,10 +33,6 @@ let Workbench = React.createClass({
         }
     },
 
-    componentDidMount: function () { 
-        RepositoryActions.getAllRepositories();
-    },
-
     /**
      * Handler for SearchParamsStore changes
      *

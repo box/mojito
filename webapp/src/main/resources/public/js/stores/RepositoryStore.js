@@ -21,10 +21,6 @@ class RepositoryStore {
         this.repositories = repositories;
     }
     
-    onSearchParamsChanged() {
-        this.getInstance().getAllRepositories();    
-    }
-
     /**
      * Get the repository with the id from the state.
      * @param id of repository

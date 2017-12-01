@@ -16,6 +16,7 @@ import Drops from "./components/drops/Drops";
 import ScreenshotsPage from "./components/screenshots/ScreenshotsPage";
 import Settings from "./components/settings/Settings";
 import WorkbenchActions from "./actions/workbench/WorkbenchActions";
+import RepositoryActions from "./actions/RepositoryActions";
 import ScreenshotsPageActions from "./actions/screenshots/ScreenshotsPageActions";
 import ScreenshotsHistoryStore from "./stores/screenshots/ScreenshotsHistoryStore";
 import ScreenshotsRepositoryActions from "./actions/screenshots/ScreenshotsRepositoryActions";
@@ -99,10 +100,13 @@ function startApp(messages) {
             <IntlProvider locale={LOCALE} messages={messages}>
                 <Router history={browserHistory}>
                     <Route component={Main}>
-                        <Route path="/" component={App}>
+                        <Route path="/" component={App}
+                            onEnter={onEnterRoot}>
                             <Route path="workbench" component={Workbench} 
+                                   onEnter={getAllRepositoriesDeffered}
                                    onLeave={onLeaveWorkbench}/>
-                            <Route path="repositories" component={Repositories} />
+                            <Route path="repositories" component={Repositories}
+                                   onEnter={getAllRepositoriesDeffered}/>
                             <Route path="project-requests" component={Drops}/>
                             <Route path="screenshots" component={ScreenshotsPage} 
                                    onEnter={onEnterScreenshots}
@@ -166,10 +170,22 @@ function onLeaveWorkbench() {
     }, 1);
 }
 
+function getAllRepositoriesDeffered() {
+    setTimeout(() => {
+        RepositoryActions.getAllRepositories();
+    }, 1);
+}
+
 function onEnterScreenshots() {
     setTimeout(() => {
         ScreenshotsRepositoryActions.getAllRepositories();
     }, 1);
+}
+
+function onEnterRoot() {
+    if (location.pathname === '/') {
+        getAllRepositoriesDeffered();
+    }
 }
 
 function loadBasedOnLocation(location) {
