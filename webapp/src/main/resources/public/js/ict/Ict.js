@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 
 import IctMetadataExtractor from "./IctMetadataExtractor";
 import IctModalContainer from "./IctModalContainer";
+import TagsBlockDecoder from './TagsBlockDecoder';
 import {IntlProvider} from "react-intl";
 
 class Ict {
@@ -11,19 +12,25 @@ class Ict {
         this.mojitoBaseUrl = 'http://localhost:8080/';
         this.messages = messages;
         this.locale = locale;
+        this.removeTagsBlock = true;
         this.wrapped = {};
     }
-    
+
     activate() {
         this.installInDOM();
         this.addMutationObserver();
         this.addScheduledUpdates();
     }
-    
+
     setMojitoBaseUrl(mojitoBaseUrl) {
+        this.mojitoBaseUrl = mojitoBaseUrl;
         if (this.ictModalContainer) {
             this.ictModalContainer.setMojitoBaseUrl(mojitoBaseUrl);
         }
+    }
+    
+    setRemoveTagsBlock(removeTagsBlock) {
+        this.removeTagsBlock = removeTagsBlock;
     }
 
     getNodesChildOf(node) {
@@ -79,7 +86,7 @@ class Ict {
         }
 
         if (node.classList.contains("mojito-ict-string")) {
-            console.log("skip adding m]ojito-ict-string");
+            console.log("skip adding mojito-ict-string");
         } else {
             try {
                 node.className += " mojito-ict-string";
@@ -87,7 +94,7 @@ class Ict {
             }
 
             node.addEventListener("click", (e) => onClick(e, textUnits));
-            
+
             node.addEventListener("mouseenter", (e) => {
                 e.target.classList.add("mojito-ict-string-active");
             });
@@ -135,6 +142,19 @@ class Ict {
         if (hasMetaData && !isAlreadyProccessed) {
             this.wrapNode(node, this.onClickBehavior.bind(this));
             this.wrapped[node] = 1;
+        }
+
+        if (hasMetaData && this.removeTagsBlock) {
+            this.removeTagsBlockFromNode(node);
+        }
+    }
+
+    removeTagsBlockFromNode(node) {
+        if (this.isElementWithPlaceholder(node)) {
+            node.setAttribute('placeholder', TagsBlockDecoder.removeTagsBlock(node.getAttribute('placeholder')));
+        } else
+        if (node.textContent) {
+            node.textContent = TagsBlockDecoder.removeTagsBlock(node.textContent);
         }
     }
 
