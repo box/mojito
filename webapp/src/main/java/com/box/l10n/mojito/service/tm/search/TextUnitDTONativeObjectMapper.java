@@ -46,6 +46,8 @@ public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUni
         t.setAssetDeleted(Boolean.valueOf(assetDeleted));
         t.setPluralForm(cr.getString(idx++));
         t.setPluralFormOther(cr.getString(idx++));
+        t.setRepositoryName(cr.getString(idx++));
+        t.setAssetPath(cr.getString(idx++));
 
         return t;
     }

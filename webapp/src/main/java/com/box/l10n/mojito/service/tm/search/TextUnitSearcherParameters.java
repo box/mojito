@@ -19,6 +19,7 @@ public class TextUnitSearcherParameters {
     String pluralFormOther;
     SearchType searchType;
     List<Long> repositoryIds;
+    List<String> repositoryNames;
     List<String> localeTags;
     Long localeId;
     UsedFilter usedFilter;
@@ -178,6 +179,14 @@ public class TextUnitSearcherParameters {
 
     public void setPluralFormOther(String pluralFormOther) {
         this.pluralFormOther = pluralFormOther;
+    }
+
+    public List<String> getRepositoryNames() {
+        return repositoryNames;
+    }
+
+    public void setRepositoryNames(List<String> repositoryNames) {
+        this.repositoryNames = repositoryNames;
     }
 
 }
