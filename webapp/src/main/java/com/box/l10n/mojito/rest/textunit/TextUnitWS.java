@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * Webservices for the workbench. Allows to search for TextUnits and
@@ -64,10 +65,12 @@ public class TextUnitWS {
      * criteria are specified (search for specific locales, string
      * name|target|source, etc).
      *
-     * @param repositoryIds mandatory
+     * @param repositoryIds mandatory if repositoryNames not provided
+     * @param repositoryNames mandatory if repositoryIds not provided
      * @param name optional
      * @param source optional
      * @param target optional
+     * @param assetPath
      * @param pluralFormOther optional
      * @param searchType optional, default is EXACT match
      * @param localeTags optional
@@ -81,7 +84,8 @@ public class TextUnitWS {
     @RequestMapping(method = RequestMethod.GET, value = "/api/textunits")
     @ResponseStatus(HttpStatus.OK)
     public List<TextUnitDTO> getTextUnits(
-            @RequestParam(value = "repositoryIds[]", required = true) ArrayList<Long> repositoryIds,
+            @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
+            @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
@@ -95,8 +99,13 @@ public class TextUnitWS {
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-
+                        
+        if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames)) {
+            throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
+        }
+        
         textUnitSearcherParameters.setRepositoryIds(repositoryIds);
+        textUnitSearcherParameters.setRepositoryNames(repositoryNames);
         textUnitSearcherParameters.setName(name);
         textUnitSearcherParameters.setSource(source);
         textUnitSearcherParameters.setTarget(target);

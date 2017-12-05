@@ -133,7 +133,9 @@ public class TextUnitSearcher {
                 addProjection("tuv.created_date", "createdDate").
                 addProjection("a.deleted", "assetDeleted").
                 addProjection("pf.name", "pluralForm").
-                addProjection("tu.plural_form_other", "pluralFormOther")   
+                addProjection("tu.plural_form_other", "pluralFormOther").
+                addProjection("r.name", "repositoryName").
+                addProjection("a.path", "assetPath")         
         );
 
         logger.debug("Add search filters");
@@ -147,6 +149,10 @@ public class TextUnitSearcher {
         
         if (searchParameters.getRepositoryIds() != null && !searchParameters.getRepositoryIds().isEmpty()) {
             conjunction.add(NativeExps.in("r.id", searchParameters.getRepositoryIds()));
+        }
+        
+        if (searchParameters.getRepositoryNames()!= null && !searchParameters.getRepositoryNames().isEmpty()) {
+            conjunction.add(NativeExps.in("r.name", searchParameters.getRepositoryNames()));
         }
 
         if (searchParameters.getName() != null) {
