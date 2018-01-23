@@ -5,14 +5,13 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
 import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
-import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
+import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
-import com.box.l10n.mojito.rest.asset.SourceAsset;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import net.sf.okapi.common.LocaleId;
@@ -74,8 +73,7 @@ public class AssetExtractor {
 
         Asset asset = assetExtraction.getAsset();
         RawDocument rawDocument = new RawDocument(asset.getContent(), LocaleId.ENGLISH);
-        rawDocument.setAnnotation(new POExtraPluralAnnotation());
-
+        
         //TODO(P1) I think Okapi already implement this logic
         String filterConfigId;
         
@@ -106,6 +104,7 @@ public class AssetExtractor {
 
         // Adding custom filters mappings
         mapper.addConfigurations(CSVFilter.class.getName());
+        mapper.addConfigurations(AndroidFilter.class.getName());
         mapper.addConfigurations(POFilter.class.getName());
         mapper.addConfigurations(XMLFilter.class.getName());
         mapper.addConfigurations(MacStringsFilter.class.getName());

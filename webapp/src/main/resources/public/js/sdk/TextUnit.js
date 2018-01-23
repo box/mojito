@@ -192,6 +192,22 @@ class TextUnit {
         this.data.translated = translated;
     }
 
+    getPluralForm() {
+        return this.data.pluralForm;
+    }
+
+    setPluralForm(pluralForm) {
+        this.data.pluralForm = pluralForm;
+    }
+    
+    getPluralFormOther() {
+        return this.data.pluralFormOther;
+    }
+
+    setPluralFormOther(pluralFormOther) {
+        this.data.pluralFormOther = pluralFormOther;
+    }
+
     /**
      * According to the current implementation of the web service, the combination
      * of tmTextUnitId and localeId is a unique key for the TextUnit object. The

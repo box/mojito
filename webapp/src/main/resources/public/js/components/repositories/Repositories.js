@@ -25,10 +25,6 @@ let Repositories = React.createClass({
         state.activeRepoId = null;
         return state;
     },
-
-    componentDidMount: function () {
-        RepositoryActions.getAllRepositories();
-    },
     
     onRepositoryStoreChanged: function () {
         this.setState(RepositoryStore.getState());

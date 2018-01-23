@@ -1,0 +1,16 @@
+{
+  "name": "anotherActivity",
+  "takenDate": 1497227085656,
+  "sequence": 0,
+  "textUnits": [
+    {
+      "renderedTarget": "hello"
+    },
+    {
+      "renderedTarget": "show_dialog"
+    },
+    {
+      "renderedTarget": "title_activity_another"
+    }
+  ]
+}

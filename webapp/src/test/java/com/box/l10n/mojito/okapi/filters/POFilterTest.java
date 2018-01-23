@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import net.sf.okapi.common.LocaleId;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -11,33 +10,17 @@ import static org.junit.Assert.*;
 public class POFilterTest {
 
     @Test
-    public void testNeedsExtraPluralNull() {
+    public void loadMsgIDPluralFromParent() {
         POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(null));
+        poFilter.loadMsgIDPluralFromParent();
+        assertNull(poFilter.msgIDPlural);
     }
 
     @Test
-    public void testNeedsExtraPluralEmpty() {
+    public void loadMsgIDFromParent() {
         POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(LocaleId.EMPTY));
-    }
-
-    @Test
-    public void testNeedsExtraPluralArAr() {
-        POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(LocaleId.fromBCP47("ar-AR")));
-    }
-
-    @Test
-    public void testNeedsExtraPluralRuRu() {
-        POFilter poFilter = new POFilter();
-        assertTrue(poFilter.needsExtraPluralForm(LocaleId.fromBCP47("ru-RU")));
-    }
-
-    @Test
-    public void testNeedsExtraPluralFrFr() {
-        POFilter poFilter = new POFilter();
-        assertFalse(poFilter.needsExtraPluralForm(LocaleId.fromBCP47("fr-FR")));
+        poFilter.loadMsgIDFromParent();
+        assertNull(poFilter.msgID);
     }
 
 }

@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.tm;
 import com.box.l10n.mojito.common.StreamUtil;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TM;
@@ -11,16 +12,16 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
 import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
+import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
-import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
 import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.PseudoLocalizeStep;
-import com.box.l10n.mojito.okapi.POExtraPluralAnnotation;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.okapi.XLIFFWriter;
@@ -31,9 +32,13 @@ import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pollableTask.Pollable;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Preconditions;
+import com.ibm.icu.text.MessageFormat;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
@@ -114,7 +119,7 @@ public class TMService {
      */
     @Transactional
     public TMTextUnit addTMTextUnit(Long tmId, Long assetId, String name, String content, String comment) {
-        return addTMTextUnit(tmId, assetId, name, content, comment, null);
+        return addTMTextUnit(tmId, assetId, name, content, comment, null, null, null);
     }
 
     /**
@@ -133,7 +138,15 @@ public class TMService {
      * invalid
      */
     @Transactional
-    public TMTextUnit addTMTextUnit(Long tmId, Long assetId, String name, String content, String comment, DateTime createdDate) {
+    public TMTextUnit addTMTextUnit(
+            Long tmId,
+            Long assetId,
+            String name,
+            String content,
+            String comment,
+            DateTime createdDate,
+            PluralForm puralForm,
+            String pluralFormOther) {
 
         logger.debug("Add TMTextUnit in tmId: {} with name: {}, content: {}, comment: {}", tmId, name, content, comment);
         TMTextUnit tmTextUnit = new TMTextUnit();
@@ -148,6 +161,8 @@ public class TMService {
         tmTextUnit.setWordCount(wordCountService.getEnglishWordCount(content));
         tmTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         tmTextUnit.setCreatedDate(createdDate);
+        tmTextUnit.setPluralForm(puralForm);
+        tmTextUnit.setPluralFormOther(pluralFormOther);
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
         logger.trace("TMTextUnit saved");
@@ -355,14 +370,73 @@ public class TMService {
      * included or not in the localized files
      * @param createdDate to specify a creation date (can be used to re-import
      * old TM), can be {@code null}
-     * @return the result that contains the {@link TMTextUnitCurrentVariant} 
-     * and indicates if it was updated or not. The 
-     * {@link TMTextUnitCurrentVariant} holds the created
-     * {@link TMTextUnitVariant} or an existing one with same content
+     * @return the result that contains the {@link TMTextUnitCurrentVariant} and
+     * indicates if it was updated or not. The {@link TMTextUnitCurrentVariant}
+     * holds the created {@link TMTextUnitVariant} or an existing one with same
+     * content
      * @throws DataIntegrityViolationException If tmTextUnitId or localeId are
      * invalid
      */
     public AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult(
+            Long tmTextUnitId,
+            Long localeId,
+            String content,
+            String comment,
+            TMTextUnitVariant.Status status,
+            boolean includedInLocalizedFile,
+            DateTime createdDate) {
+
+        logger.debug("Check if there is a current TMTextUnitVariant");
+        TMTextUnitCurrentVariant currentTmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnitId);
+
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+
+        if (tmTextUnit == null) {
+            String msg = MessageFormat.format("Unable to find the TMTextUnit with ID: {0}. The TMTextUnitVariant and "
+                    + "TMTextUnitCurrentVariant will not be created.", tmTextUnitId);
+            throw new RuntimeException(msg);
+        }
+
+        return addTMTextUnitCurrentVariantWithResult(currentTmTextUnitCurrentVariant,
+                tmTextUnit.getTm().getId(),
+                tmTextUnitId,
+                localeId,
+                content,
+                comment,
+                status,
+                includedInLocalizedFile,
+                createdDate);
+    }
+
+    /**
+     * Adds a current {@link TMTextUnitVariant} in a {@link TMTextUnit} for a
+     * locale other than the default locale.
+     * <p/>
+     * Requires the {@link TMTextUnitCurrentVariant} and TM id for optimization
+     * purpose.
+     *
+     * @param tmTextUnitCurrentVariant current variant or null is there is none
+     * @param tmId the {@link TM} id in which the translation is added
+     * @param tmTextUnitId the text unit that will contains the translation
+     * @param localeId locale id of the translation (default locale not
+     * accepted)
+     * @param content the translation content
+     * @param comment the translation comment, can be {@code null}
+     * @param status the translation status
+     * @param includedInLocalizedFile indicate if the translation should be
+     * included or not in the localized files
+     * @param createdDate to specify a creation date (can be used to re-import
+     * old TM), can be {@code null}
+     * @return the result that contains the {@link TMTextUnitCurrentVariant} and
+     * indicates if it was updated or not. The {@link TMTextUnitCurrentVariant}
+     * holds the created {@link TMTextUnitVariant} or an existing one with same
+     * content
+     * @throws DataIntegrityViolationException If tmTextUnitId or localeId are
+     * invalid
+     */
+    public AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult(
+            TMTextUnitCurrentVariant tmTextUnitCurrentVariant,
+            Long tmId,
             Long tmTextUnitId,
             Long localeId,
             String content,
@@ -376,34 +450,30 @@ public class TMService {
         }
 
         boolean noUpdate = false;
-        
-        logger.debug("Check if there is a current TMTextUnitVariant");
-        TMTextUnitCurrentVariant tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnitId);
-       
-        TMTextUnitVariant tmTextUnitVariant = null;
+
+        TMTextUnitVariant tmTextUnitVariant;
 
         if (tmTextUnitCurrentVariant == null) {
             logger.debug("There is no currrent text unit variant, add entities");
+            tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate);
+            tmTextUnitCurrentVariant = makeTMTextUnitVariantCurrent(tmId, tmTextUnitId, localeId, tmTextUnitVariant.getId());
 
-            TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
-            if (tmTextUnit != null) {
-                tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate);
-                tmTextUnitCurrentVariant = makeTMTextUnitVariantCurrent(tmTextUnit.getTm().getId(), tmTextUnitId, localeId, tmTextUnitVariant.getId());
-
-                logger.trace("Put the actual tmTextUnitVariant instead of the proxy");
-                tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
-            } else {
-                logger.error("Unable to find the TMTextUnit with ID {}. The TMTextUnitVariant and TMTextUnitCurrentVariant will not be created.");
-            }
+            logger.trace("Put the actual tmTextUnitVariant instead of the proxy");
+            tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
         } else {
 
             logger.debug("There is a current text unit variant, check if an update is needed");
             TMTextUnitVariant currentTmTextUnitVariant = tmTextUnitCurrentVariant.getTmTextUnitVariant();
 
-            boolean updateNeeded = !(currentTmTextUnitVariant.getContentMD5().equals(DigestUtils.md5Hex(content))
-                    && currentTmTextUnitVariant.getStatus().equals(status)
-                    && currentTmTextUnitVariant.isIncludedInLocalizedFile() == includedInLocalizedFile
-                    && Objects.equals(currentTmTextUnitVariant.getComment(), comment));
+            boolean updateNeeded = isUpdateNeededForTmTextUnitVariant(
+                    currentTmTextUnitVariant.getStatus(),
+                    currentTmTextUnitVariant.getContentMD5(),
+                    currentTmTextUnitVariant.isIncludedInLocalizedFile(),
+                    currentTmTextUnitVariant.getComment(),
+                    status,
+                    DigestUtils.md5Hex(content),
+                    includedInLocalizedFile,
+                    comment);
 
             if (updateNeeded) {
                 logger.debug("The current text unit variant has different content, comment or needs review. Add entities");
@@ -417,8 +487,38 @@ public class TMService {
                 noUpdate = true;
             }
         }
-        
+
         return new AddTMTextUnitCurrentVariantResult(!noUpdate, tmTextUnitCurrentVariant);
+    }
+
+    /**
+     * Indicates if a {@link TMTextUnitVariant} should be updated by looking at
+     * new/old content, status, comments, etc
+     *
+     * @param currentStatus
+     * @param currentContentMd5
+     * @param currentIncludedInLocalizedFile
+     * @param currentComment
+     * @param newStatus
+     * @param newContentMd5
+     * @param newIncludedInLocalizedFile
+     * @param newComment
+     * @return
+     */
+    public boolean isUpdateNeededForTmTextUnitVariant(
+            TMTextUnitVariant.Status currentStatus,
+            String currentContentMd5,
+            boolean currentIncludedInLocalizedFile,
+            String currentComment,
+            TMTextUnitVariant.Status newStatus,
+            String newContentMd5,
+            boolean newIncludedInLocalizedFile,
+            String newComment) {
+
+        return !(currentContentMd5.equals(newContentMd5)
+                && currentStatus.equals(newStatus)
+                && currentIncludedInLocalizedFile == newIncludedInLocalizedFile
+                && Objects.equals(currentComment, newComment));
     }
 
     /**
@@ -804,9 +904,6 @@ public class TMService {
         LocaleId targetLocaleId = LocaleId.fromBCP47(outputBcp47tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
 
-        //TODO(P2) Find a better solution?
-        rawDocument.setAnnotation(new POExtraPluralAnnotation());
-
         //TODO(P1) see assetExtractor comments
         String filterConfigId;
 
@@ -834,7 +931,7 @@ public class TMService {
      *
      * The target strings are checked against the source strings and if they are
      * equals the status of the imported translation is defined by
-     * statusForSourceEqTarget. When SKIIPED is specified the import is actually
+     * statusForEqualTarget. When SKIPED is specified the import is actually
      * skipped.
      *
      * For not fully translated locales, targets are imported only if they are
@@ -843,15 +940,21 @@ public class TMService {
      * @param asset the asset for which the content will be imported
      * @param content the localized asset content
      * @param repositoryLocale the locale of the content to be imported
-     * @param statusForSourceEqTarget the status of the text unit variant when
+     * @param statusForEqualtarget the status of the text unit variant when
      * the source equals the target
+     * @param filterConfigIdOverride to override the filter used to process the
+     * asset
+     * @return
      */
-    public void importLocalizedAsset(
+    @Pollable(async = true, message = "Import localized asset")
+    public PollableFuture importLocalizedAsset(
             Asset asset,
             String content,
             RepositoryLocale repositoryLocale,
-            StatusForSourceEqTarget statusForSourceEqTarget,
+            StatusForEqualTarget statusForEqualtarget,
             FilterConfigIdOverride filterConfigIdOverride) {
+
+        PollableFuture pollableFuture = new PollableFutureTaskResult();
 
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
@@ -861,7 +964,7 @@ public class TMService {
 
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        driver.addStep(new ImportTranslationsFromLocalizedAssetStep(asset, repositoryLocale, statusForSourceEqTarget));
+        driver.addStep(new ImportTranslationsFromLocalizedAssetStep(asset, repositoryLocale, statusForEqualtarget));
 
         logger.debug("Adding all supported filters to the pipeline driver");
         driver.setFilterConfigurationMapper(assetExtractor.getConfiguredFilterConfigurationMapper());
@@ -871,6 +974,7 @@ public class TMService {
 
         LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
+        rawDocument.setAnnotation(new CopyFormsOnImport());
 
         String filterConfigId;
 
@@ -886,6 +990,14 @@ public class TMService {
         driver.addBatchItem(rawDocument);
 
         logger.debug("Start processing batch");
+        processBatchInTransaction(driver);
+
+        return pollableFuture;
+    }
+
+    @Transactional
+    void processBatchInTransaction(IPipelineDriver driver) {
         driver.processBatch();
     }
+
 }

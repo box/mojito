@@ -10,19 +10,16 @@ import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.LocaleClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
+import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForSourceEqTarget;
+import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
+import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForEqualTarget;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +52,7 @@ public class ImportLocalizedAssetCommand extends Command {
     @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)
     String targetDirectoryParam;
 
-    @Parameter(names = {"--locale-mapping", "-lm"}, arity = 1, required = false, description = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
+    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
             + "The keys contain BCP47 tags of the generated files and the values indicate which repository locales are used to fetch the translations.")
     String localeMappingParam;
 
@@ -69,9 +66,10 @@ public class ImportLocalizedAssetCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    @Parameter(names = {"--source-equals-target"}, required = false, description = "Status of the imported translation when the target is the same as the source (SKIPPED means no import)",
-            converter = ImportLocalizedAssetBodyStatusForSourceEqTarget.class)
-    StatusForSourceEqTarget statusForSourceEqTarget = null;
+    @Parameter(names = {"--status-equal-target"}, required = false, description = "Status of the imported translation when the target is the same as "
+            + "the parent (SKIPPED for no import). Applies only to fully translated locales",
+            converter = ImportLocalizedAssetBodyStatusForEqualTarget.class)
+    StatusForEqualTarget statusForEqualTarget = null;
 
     @Autowired
     AssetClient assetClient;
@@ -118,32 +116,33 @@ public class ImportLocalizedAssetCommand extends Command {
             logger.info("Importing for locale: {}", locale.getBcp47Tag());
             Path targetPath = getTargetPath(fileMatch, locale);
 
-            consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).fg(Ansi.Color.YELLOW).a(" Running").println();
+            consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).println();
 
             Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
 
-            assetClient.importLocalizedAssetForContent(
-                    assetByPathAndRepositoryId.getId(),
+            ImportLocalizedAssetBody importLocalizedAssetForContent = assetClient.importLocalizedAssetForContent(assetByPathAndRepositoryId.getId(),
                     locale.getId(),
                     commandHelper.getFileContent(targetPath),
-                    statusForSourceEqTarget,
+                    statusForEqualTarget,
                     fileMatch.getFileType().getFilterConfigIdOverride());
 
-            consoleWriter.erasePreviouslyPrintedLines();
-            consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).fg(Ansi.Color.GREEN).a(" Done").println();
-
+            try {
+                commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());
+            } catch (PollableTaskException e) {
+                throw new CommandException(e.getMessage(), e.getCause());
+            }
         } catch (AssetNotFoundException ex) {
             throw new CommandException("No asset for file [" + fileMatch.getPath() + "] into repo [" + repositoryParam + "]", ex);
         }
     }
 
-    public List<Locale> getLocalesForImport() {
-        List<Locale> sortedRepositoryLocales = getSortedRepositoryLocales();
+    public Collection<Locale> getLocalesForImport() {
+        Collection<Locale> sortedRepositoryLocales = commandHelper.getSortedRepositoryLocales(repository).values();
         filterLocalesWithMapping(sortedRepositoryLocales);
         return sortedRepositoryLocales;
     }
-    
-    private void filterLocalesWithMapping(List<Locale> locales) {
+
+    private void filterLocalesWithMapping(Collection<Locale> locales) {
 
         if (inverseLocaleMapping != null) {
             Iterator<Locale> iterator = locales.iterator();
@@ -154,42 +153,6 @@ public class ImportLocalizedAssetCommand extends Command {
                 }
             }
         }
-    }
-
-    /**
-     * Gets the repository locales sorted so that parent are before child 
-     * locales.
-     * 
-     * @return
-     */
-    protected List<Locale> getSortedRepositoryLocales() {
-        List<Locale> locales = new ArrayList<>();
-
-        ArrayDeque<RepositoryLocale> toProcess = new ArrayDeque<>(repository.getRepositoryLocales());
-        Locale rootLocale = null;
-
-        for (RepositoryLocale rl : toProcess) {
-            if (rl.getParentLocale() == null) {
-                rootLocale = rl.getLocale();
-                toProcess.remove(rl);
-                break;
-            }
-        }
-
-        Set<Long> localeIds = new HashSet<>();
-
-        while (!toProcess.isEmpty()) {
-            RepositoryLocale rl = toProcess.removeFirst();
-            Long parentLocaleId = rl.getParentLocale().getLocale().getId();
-            if (parentLocaleId.equals(rootLocale.getId()) || localeIds.contains(parentLocaleId)) {
-                localeIds.add(rl.getLocale().getId());
-                locales.add(rl.getLocale());
-            } else {
-                toProcess.addLast(rl);
-            }
-        }
-
-        return locales;
     }
 
     private Path getTargetPath(FileMatch fileMatch, Locale locale) throws CommandException {

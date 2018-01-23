@@ -2,43 +2,38 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
     <file original=""  source-language="en" target-language="fr-FR" datatype="x-undefined">
         <body>
-            <trans-unit id="" resname="[NEB3FBA77] 100_character_description_" datatype="php">
+            <trans-unit id="" resname="100 character description: --- 100_character_description_" datatype="php">
                 <source>100 character description:</source>
                 <target>Description de 100 caractères :</target>
             </trans-unit>
-            <trans-unit id="" resname="[P72285E66] 15_min_duration" datatype="x-javascript+php">
+            <trans-unit id="" resname="15 min --- 15_min_duration" datatype="x-javascript+php">
                 <source>15 min</source>
                 <target>15 min</target>
                 <note>File lock dialog duration</note>
             </trans-unit>
-            <trans-unit id="" resname="[P4B81491C] 1_day_duration" datatype="x-javascript+php">
+            <trans-unit id="" resname="1 day --- 1_day_duration" datatype="x-javascript+php">
                 <source>1 day</source>
                 <target>1 jour</target>
                 <note>File lock dialog duration</note>
             </trans-unit>
-            <trans-unit id="" resname="[N840D73A8] 1_hour_duration" datatype="x-javascript+php">
+            <trans-unit id="" resname="1 hour --- 1_hour_duration" datatype="x-javascript+php">
                 <source>1 hour</source>
                 <target>1 heure</target>
                 <note>File lock dialog duration</note>
             </trans-unit>
-            <trans-unit id="" resname="[P48F73D64] 1_month_duration" datatype="x-javascript+php">
+            <trans-unit id="" resname="1 month --- 1_month_duration" datatype="x-javascript+php">
                 <source>1 month</source>
                 <target>1 mois</target>
                 <note>File lock dialog duration</note>
             </trans-unit>
-            <trans-unit id="" resname="[NA8AD643F-0] car" datatype="x-javascript+php">
+            <trans-unit id="" resname="There is {number} car --- car _one" datatype="x-javascript+php">
                 <source>There is {number} car</source>
                 <target>Il y a {number} voiture</target>
                 <note>Test plural</note>
             </trans-unit>
-            <trans-unit id="" resname="[NA8AD643F-1] car" datatype="x-javascript+php">
+            <trans-unit id="" resname="There is {number} car --- car _other" datatype="x-javascript+php">
                 <source>There are {number} cars</source>
                 <target>Il y a {number} voitures</target>
-                <note>Test plural</note>
-            </trans-unit>
-            <trans-unit id="" resname="[NA8AD643F-2] car" datatype="x-javascript+php">
-                <source>There are {number} cars</source>
-                <target>This won't be use in french</target>
                 <note>Test plural</note>
             </trans-unit>
         </body>

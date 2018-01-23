@@ -66,7 +66,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
      * @throws InterruptedException
      */
     @Test
-    public void testConcurrencyForAssetExtraction() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException {
+    public void testConcurrencyForAssetExtraction() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException {
         logger.debug("Testing for concurrency when processing same asset with same/updated contents in parallel");
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
@@ -118,7 +118,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
      * @throws InterruptedException 
      */
     @Test
-    public void testConcurrentMultipleAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException {
+    public void testConcurrentMultipleAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException {
         logger.debug("Testing for concurrency when processing 10 different assets in parallel");
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
@@ -168,7 +168,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
      * @throws InterruptedException 
      */
     @Test
-    public void testConcurrentAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException {
+    public void testConcurrentAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException {
         logger.debug("Testing for concurrency when processing single new asset in parallel");
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));

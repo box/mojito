@@ -24,356 +24,356 @@ $icon-font-path: "../../../../node_modules/bootstrap-sass/assets/fonts/bootstrap
 @import "../../../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 
 body {
-  font-weight: $brand-font-weight;
+    font-weight: $brand-font-weight;
 }
 
 h4 {
-  color: $gray-light;
-  font-weight: 300;
+    color: $gray-light;
+    font-weight: 300;
 }
 
 button, .btn {
-  @include form-control-focus;
+    @include form-control-focus;
 }
 
 .navbar-default {
-  border-color: $brand-primary;
-  border-top: 0;
-  background-color: $color-white;
-  border-left: 0;
-  border-right: 0;
+    border-color: $brand-primary;
+    border-top: 0;
+    background-color: $color-white;
+    border-left: 0;
+    border-right: 0;
 }
 
 .navbar-default .navbar-nav > .active > a, .navbar-default .navbar-nav > .active > a:hover, .navbar-default .navbar-nav > .active > a:focus {
-  color: $brand-primary;
-  background-color: transparent;
+    color: $brand-primary;
+    background-color: transparent;
 }
 
 .navbar-brand {
-  padding-top: 10px;
-  padding-bottom: 0px;
-  padding-left: 15px;
-  padding-right: 15px;
+    padding-top: 10px;
+    padding-bottom: 0px;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .navbar-brand > img {
-  width: 30px;
-  height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 /**
  * LABEL
  */
 .label {
-  background-color: $color-white;
-  border: 1px solid $gray-base;
-  color: $gray-base;
-  font-weight: 200;
-  border-radius: 2px;
+    background-color: $color-white;
+    border: 1px solid $gray-base;
+    color: $gray-base;
+    font-weight: 200;
+    border-radius: 2px;
 }
 
 .label-primary {
-  border: 1px solid $brand-primary;
-  color: $brand-primary;
+    border: 1px solid $brand-primary;
+    color: $brand-primary;
 }
 
 .label-success {
-  border: 1px solid $brand-success;
-  color: $brand-success;
+    border: 1px solid $brand-success;
+    color: $brand-success;
 }
 
 .label-info {
-  border: 1px solid $brand-info;
-  color: $brand-info;
+    border: 1px solid $brand-info;
+    color: $brand-info;
 }
 
 .label-warning {
-  border: 1px solid $brand-warning;
-  color: $brand-warning;
+    border: 1px solid $brand-warning;
+    color: $brand-warning;
 }
 
 .label-danger {
-  border: 1px solid $brand-danger;
-  color: $brand-danger;
+    border: 1px solid $brand-danger;
+    color: $brand-danger;
 }
 
 .label.clickable:hover {
-  background-color: darken($gray-base, 15%);
-  color: $color-white;
+    background-color: darken($gray-base, 15%);
+    color: $color-white;
 }
 
 .label.label-success.clickable:hover {
-  background-color: darken($brand-success, 15%);
+    background-color: darken($brand-success, 15%);
 }
 
 .label.label-info.clickable:hover {
-  background-color: darken($brand-info, 15%);
+    background-color: darken($brand-info, 15%);
 }
 
 .label.label-warning.clickable:hover {
-  background-color: darken($brand-warning, 15%);
+    background-color: darken($brand-warning, 15%);
 }
 
 .label.label-danger.clickable:hover {
-  background-color: darken($brand-danger, 15%);
+    background-color: darken($brand-danger, 15%);
 }
 
 a.label-container:hover {
-  text-decoration: none !important;
+    text-decoration: none !important;
 }
 
 /** TABLE */
 .table > thead > tr > th, .table > thead > tr > td {
-  font-weight: 400;
-  font-size: 12px;
+    font-weight: 400;
+    font-size: 12px;
 }
 
 .table > tbody > tr > th, .table > tbody > tr > td {
-  color: $gray;
-  border-top: 1px solid $gray-lighter;
+    color: $gray;
+    border-top: 1px solid $gray-lighter;
 }
 
 .table > tbody > tr:first-child > th, .table > tbody > tr:first-child > td {
-  border-top: 0px;
+    border-top: 0px;
 }
 
 .table > thead > tr > th {
-  vertical-align: middle;
-  border-bottom: 1px solid $gray-lighter;
+    vertical-align: middle;
+    border-bottom: 1px solid $gray-lighter;
 }
 
 .table-padded-sides > tbody > tr > td:last-child, .table-padded-sides > thead > tr > th:last-child {
-  padding-right: $large-spacer;
+    padding-right: $large-spacer;
 }
 
 .table-padded-sides > tbody > tr > td:first-child, .table-padded-sides > thead > tr > th:first-child {
-  padding-left: $large-spacer;
+    padding-left: $large-spacer;
 }
 
 .row-active {
-  border: 1px solid $brand-primary;
+    border: 1px solid $brand-primary;
 }
 
 .row-blurred td {
-  opacity: 0.5;
+    opacity: 0.5;
 }
 
 .dropdown-menu {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 /** MODAL */
 .modal-content {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 /** emphasis */
 .em {
-  font-style: italic;
+    font-style: italic;
 }
 
 /** margin left extra small */
 .mlxs {
-  margin-left: 5px;
+    margin-left: 5px;
 }
 
 /** margin right extra small */
 .mrxs {
-  margin-right: 5px;
+    margin-right: 5px;
 }
 
 /** margin bottom extra small */
 .mbxs {
-  margin-bottom: 5px;
+    margin-bottom: 5px;
 }
 
 /** margin top extra small */
 .mtxs {
-  margin-top: 5px;
+    margin-top: 5px;
 }
 
 /** margin left small */
 .mls {
-  margin-left: 10px;
+    margin-left: 10px;
 }
 
 /** margin right small */
 .mrs {
-  margin-right: 10px;
+    margin-right: 10px;
 }
 
 /** margin bottom small */
 .mbs {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 /** margin top small */
 .mts {
-  margin-top: 10px;
+    margin-top: 10px;
 }
 
 /** margin left medium */
 .mlm {
-  margin-left: 15px;
+    margin-left: 15px;
 }
 
 /** margin right medium */
 .mrm {
-  margin-right: 15px;
+    margin-right: 15px;
 }
 
 /** margin bottom meidum */
 .mbm {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
 /** margin bottom medium */
 .mtm {
-  margin-top: 15px;
+    margin-top: 15px;
 }
 
 /** margin left large */
 .mll {
-  margin-left: 20px;
+    margin-left: 20px;
 }
 
 /** margin right large */
 .mrl {
-  margin-right: 20px;
+    margin-right: 20px;
 }
 
 /** margin bottom large */
 .mbl {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 /** margin top large */
 .mtl {
-  margin-top: 20px;
+    margin-top: 20px;
 }
 
 /** padding bottom medium */
 .pbm {
-  padding-bottom: 15px;
+    padding-bottom: 15px;
 }
 
 /** padding top medium */
 .ptm {
-  padding-top: 15px;
+    padding-top: 15px;
 }
 
 /** padding right medium */
 .prm {
-  padding-right: 15px;
+    padding-right: 15px;
 }
 
 .ptl {
-  padding-top: 20px;
+    padding-top: 20px;
 }
 
 .pbl {
-  padding-bottom: 20px;
+    padding-bottom: 20px;
 }
 
 .pll {
-  padding-left: 20px;
+    padding-left: 20px;
 }
 
 .prl {
-  padding-right: 20px;
+    padding-right: 20px;
 }
 
 /** padding left medium */
 .plm {
-  padding-left: 15px;
+    padding-left: 15px;
 }
 
 /** padding bottom small */
 .pbs {
-  padding-bottom: 5px;
+    padding-bottom: 5px;
 }
 
 /** padding top small */
 .pts {
-  padding-top: 5px;
+    padding-top: 5px;
 }
 
 /** padding right small */
 .prs {
-  padding-right: 5px;
+    padding-right: 5px;
 }
 
 /** padding left small */
 .pls {
-  padding-left: 5px;
+    padding-left: 5px;
 }
 
 /** padding left x-large */
 .plx {
-  padding-left: 30px;
+    padding-left: 30px;
 }
 
 /** padding left x-large */
 .prx {
-  padding-right: 30px;
+    padding-right: 30px;
 }
 
 .align-rtl {
-  direction: rtl;
+    direction: rtl;
 }
 
 .align-start {
-  text-align: left;
-  text-align: start; /* Experimental, IE10+ */
+    text-align: left;
+    text-align: start; /* Experimental, IE10+ */
 }
 
 .align-end {
-  text-align: right;
-  text-align: end; /* Experimental, IE10+ */
+    text-align: right;
+    text-align: end; /* Experimental, IE10+ */
 }
 
 .align-center {
-  text-align: center;
+    text-align: center;
 }
 
 .color-info {
-  color: $brand-info;
+    color: $brand-info;
 }
 
 .color-gray-light {
-  color: $gray-light;
+    color: $gray-light;
 }
 
 .color-gray-light2 {
-  color: $color-gray-light;
+    color: $color-gray-light;
 }
 
 .clickable {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .glyphicon.spinning {
-  opacity: 0.7;
-  animation: spin 1s infinite linear;
-  -webkit-animation: spin2 1s infinite linear;
+    opacity: 0.7;
+    animation: spin 1s infinite linear;
+    -webkit-animation: spin2 1s infinite linear;
 }
 
 @keyframes spin {
-  from {
-    transform: scale(1) rotate(0deg);
-  }
-  to {
-    transform: scale(1) rotate(360deg);
-  }
+    from {
+        transform: scale(1) rotate(0deg);
+    }
+    to {
+        transform: scale(1) rotate(360deg);
+    }
 }
 
 @-webkit-keyframes spin2 {
-  from {
-    -webkit-transform: rotate(0deg);
-  }
-  to {
-    -webkit-transform: rotate(360deg);
-  }
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
 }
 
 /**
@@ -382,124 +382,124 @@ a.label-container:hover {
 
 /* override  bootstrap css so that status dropdown options do not wrap in the workbench */
 div.statusDropdown {
-  min-width: 200px;
+    min-width: 200px;
 }
 
 .textunit {
-  position: initial;
-  border-bottom: 1px solid $color-gray-light;
-  border-left: 2px solid $color-white;
-  outline: none;
+    position: initial;
+    border-bottom: 1px solid $color-gray-light;
+    border-left: 2px solid $color-white;
+    outline: none;
 }
 
 .textunit:hover {
-  background: rgba($brand-primary, 0.03);;
+    background: rgba($brand-primary, 0.03);;
 }
 
 div.textunit.textunit-selected {
-  background-color: rgba($brand-primary, 0.1);;
+    background-color: rgba($brand-primary, 0.1);;
 }
 
 div.textunit.textunit-active {
-  border-left: 2px solid $brand-primary;
+    border-left: 2px solid $brand-primary;
 }
 
 div.textunit label {
-  font-weight: normal;
-  margin-left: 10px;
+    font-weight: normal;
+    margin-left: 10px;
 }
 
 .textunit-string {
-  width: 90%;
-  white-space: pre-wrap;
+    width: 90%;
+    white-space: pre-wrap;
 }
 
 .textunit-returnline {
-  color: $brand-primary;
-  font-size: 10px;
+    color: $brand-primary;
+    font-size: 10px;
 }
 
 .textunit-whitespaces {
-  color: $brand-primary;
-  font-size: 10px;
+    color: $brand-primary;
+    font-size: 10px;
 }
 
 .textunit-string.textunit-target {
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 5px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 5px;
 }
 
 .textunit-string.textunit-target:hover {
-  border: 1px dotted gray;
+    border: 1px dotted gray;
 }
 
 .textunit-actionbar {
-  position: absolute;
-  right: 0;
+    position: absolute;
+    right: 0;
 }
 
 div.textunit div.targetstring-container {
-  float: left;
-  width: 90%;
+    float: left;
+    width: 90%;
 }
 
 div.targetstring-container textarea {
-  max-width: 100%;
-  outline: invert;
+    max-width: 100%;
+    outline: invert;
 }
 
 /**
  * LOGIN
  */
 .login-container {
-  padding-top: 200px;
-  font-weight: $brand-font-weight;
+    padding-top: 200px;
+    font-weight: $brand-font-weight;
 }
 
 .login-logo-container {
-  width: 391px;
-  padding-left: 30px;
+    width: 391px;
+    padding-left: 30px;
 }
 
 .login-form-container {
-  width: 391px;
+    width: 391px;
 }
 
 .login-container .form-control {
-  height: 50px;
+    height: 50px;
 }
 
 /**
  * REPOSITORY
  */
 .repo-name {
-  word-break: break-all;
-  word-wrap: break-word;
-  width: 300px;
+    word-break: break-all;
+    word-wrap: break-word;
+    width: 300px;
 }
 
 .repo-counts {
-  font-weight: bold;
-  color: $brand-primary;
+    font-weight: bold;
+    color: $brand-primary;
 }
 
 .show-details-button {
-  transition: margin 0.2s;
-  color: $brand-primary;
-  float: right;
+    transition: margin 0.2s;
+    color: $brand-primary;
+    float: right;
 }
 
 .show-details-button:hover {
-  opacity: 0.9;
+    opacity: 0.9;
 }
 
 .repo-table > thead > tr > th, .repo-table > tbody > tr > th, .repo-table > tfoot > tr > th, .repo-table > thead > tr > td, .repo-table > tbody > tr > td, .repo-table > tfoot > tr > td {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 .repo-table a {
-  color: $gray-dark;
+    color: $gray-dark;
 }
 
 /**
@@ -507,138 +507,156 @@ div.targetstring-container textarea {
  */
 
 .repo-stats-table > tbody > tr > td {
-  vertical-align: middle;
+    vertical-align: middle;
 }
 
 .repo-stats-table a {
-  color: $gray-dark;
+    color: $gray-dark;
 }
 
 .repo-stats-row-blured {
-  opacity: 0.5;
+    opacity: 0.5;
 }
 
 /**
  * Bootstrap CSS makes text in all labels bold. Apply this class to get the default label rendered by the browser.
  */
 .default-label {
-  font-weight: normal;
+    font-weight: normal;
 }
 
 label.current-pageNumber {
-  width: 17px;
-  text-align: center;
+    width: 17px;
+    text-align: center;
 }
 
 .textunits-container {
-  position: absolute;
-  top: 170px;
-  bottom: 0px;
-  width: 98%;
-  overflow-y: auto;
+    position: absolute;
+    top: 170px;
+    bottom: 0px;
+    width: 98%;
+    overflow-y: auto;
 }
 
 .textunit-toolbar-clear {
-  clear: both;
+    clear: both;
 }
 
 @media (max-width: 780px) {
-  .textunits-container {
-    top: 320px;
-  }
+    .textunits-container {
+        top: 320px;
+    }
 }
 
 .drop-table > thead > tr > th, .drop-table > tbody > tr > th, .drop-table > tfoot > tr > th, .drop-table > thead > tr > td, .drop-table > tbody > tr > td, .drop-table > tfoot > tr > td {
-  line-height: 2.7;
+    line-height: 2.7;
 }
 
 .drop-table > tbody > tr > td {
-  position: relative;
+    position: relative;
 }
 
 .drop-table .btn-toolbar {
-  position: absolute;
-  right: 10px;
-  display: inline-block;
-  visibility: hidden;
+    position: absolute;
+    right: 10px;
+    display: inline-block;
+    visibility: hidden;
 }
 
 .drop-table > tbody > tr:hover .btn-toolbar {
-  visibility: visible;
+    visibility: visible;
 }
 
 .drop-title-bar {
-  position: relative;
+    position: relative;
 }
 
 .drop-alert {
-  width: 50%;
-  position: absolute;
-  top: -10px;
-  left: 25%;
+    width: 50%;
+    position: absolute;
+    top: -10px;
+    left: 25%;
 }
 
 .drop-alert .alert {
-  display: inline-block;
+    display: inline-block;
 }
 
 @media (max-width: 780px) {
-  .drop-alert {
-    top: -80px;
-    left: 5%;
-  }
+    .drop-alert {
+        top: -80px;
+        left: 5%;
+    }
 }
 
 .drop-pagination {
-  float: left;
+    float: left;
 }
 
 .side-bar-root-container {
-  top: 51px !important;
+    top: 51px !important;
+}
+
+.side-bar-root-container-screenshot {
+    top: 120px !important;
 }
 
 @media (max-width: 780px) {
-  .side-bar-root-container {
-    position: absolute !important;
-    top: 186px !important;
-  }
+    .side-bar-root-container {
+        position: absolute !important;
+        top: 186px !important;
+    }
+
+    .side-bar-root-container-screenshot {
+        position: absolute !important;
+        top: 280px !important;
+    }
 }
 
 .side-bar-main-content-container {
-  padding-top: 10px;
+    padding-top: 10px;
+}
+
+.side-bar-main-content-container-screenshot {  
+    padding-left: 10px; 
 }
 
 .side-bar-container {
-  min-width: 30%;
-  padding-top: 10px;
+    min-width: 30%;
+    padding-top: 10px;
+}
+
+.side-bar-container-screenshot {
+    width: 300px; 
+    padding-right: 10px;
 }
 
 .side-bar-content-container {
-  flex: 1 1;
-  overflow: scroll;
+    flex: 1 1;
+    overflow: scroll;
 }
 
 .locale-dropdown ul {
-  max-height: 400px;
-  overflow: scroll;
+    max-height: 400px;
+    overflow: scroll;
 }
 
 .repository-dropdown li > a {
-  max-width: 500px;
-  text-overflow: ellipsis;
-  overflow: hidden;
+    max-width: 500px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .repository-dropdown ul {
-  max-height: 400px;
-  overflow: scroll;
+    max-height: 400px;
+    overflow: scroll;
 }
 
 .empty-search-container {
-  width: 600px;
-  height: 300px;
-  opacity: 0.5;
-  margin-top: 80px;
+    width: 600px;
+    height: 300px;
+    opacity: 0.5;
+    margin-top: 80px;
 }
 
 .empty-search-container-img {
@@ -647,9 +665,58 @@ label.current-pageNumber {
 }
 
 .search-text .glyphicon-refresh.spinning {
-  color: $brand-primary;
-  position: absolute;
-  z-index: 3;
-  right: 10px;
-  top: 9px;
+    color: $brand-primary;
+    position: absolute;
+    z-index: 3;
+    right: 10px;
+    top: 9px;
+}
+
+.screenshot-textunit {
+    margin-bottom: 5px;
+    padding-left: 5px;
+    padding-bottom: 5px;
+    border-bottom: solid 1px $color-gray-light;
+}
+
+.screenshot-paginator {
+    float: right;
+}
+
+.screenshot {
+    float: left;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #559745;
+    outline: none
+}
+
+.screenshot-placeholder {
+    display: flex;
+    justify-content: center;
+    width: 300px;
+    height: 500px;   
+}
+
+.screenshot-placeholder img {
+    max-width: 100%;
+    max-height: 100%;
+}
+.screenshot-description {
+    background-color: #fff;
+    padding-top: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin-bottom: 4px;
+    display: inline-block
+}
+
+.screenshot-glyph {
+    float: right;
+}
+
+.screenshot-selected {
+    box-shadow: 3px 3px 3px #559745;
 }

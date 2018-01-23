@@ -17,8 +17,8 @@
     <properties>
         <start-class>com.box.l10n.mojito.Application</start-class>
         <frontend.maven.plugin.version>1.0</frontend.maven.plugin.version>
-        <node.version>v6.2.2</node.version>
-        <npm.version>3.10.3</npm.version>
+        <node.version>v8.8.1</node.version>
+        <npm.version>5.4.1</npm.version>
     </properties>
 
     <dependencies>
@@ -595,7 +595,7 @@
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -XX:MaxPermSize=256m
                     </argLine>
                  
-                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
                
                     <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
                

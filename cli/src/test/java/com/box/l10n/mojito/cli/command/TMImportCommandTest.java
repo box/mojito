@@ -49,9 +49,6 @@ public class TMImportCommandTest extends CLITestBase {
     TMService tmService;
 
     @Autowired
-    CommandHelper commandHelper;
-
-    @Autowired
     TMTextUnitVariantRepository tmTextUnitVariantRepository;
 
     @Autowired

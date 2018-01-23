@@ -4,6 +4,7 @@ import _ from "lodash";
 
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
+import RepositoryActions from "../../actions/RepositoryActions";
 
 import RepositoryStore from "../RepositoryStore";
 
@@ -13,16 +14,20 @@ class SearchParamsStore {
         this.changedParam = "";
         this.setDefaultParameters();
         this.bindActions(WorkbenchActions);
+        this.bindActions(RepositoryActions);
     }
 
     setDefaultParameters() {
 
         this.repoIds = [];
+        this.repoNames = [];
         this.bcp47Tags = [];
 
         this.searchText = "";
         this.searchAttribute = SearchParamsStore.SEARCH_ATTRIBUTES.TARGET;
         this.searchType = SearchParamsStore.SEARCH_TYPES.CONTAINS;
+
+        this.pluralFormOther = null;
 
         // 'Filter by' related
         this.status = SearchParamsStore.STATUS.ALL;
@@ -34,7 +39,6 @@ class SearchParamsStore {
         this.currentPageNumber = 1;
         this.pageOffset = 0;
     }
-
 
     /**
      * Filter the bcp47Tags to contain only tags that are part of the selected
@@ -127,8 +131,7 @@ class SearchParamsStore {
     updateArrayState(arrayState, isAdding, newValue) {
         if (isAdding) {
             this.pushIfNotExist(arrayState, newValue);
-        }
-        else {
+        } else {
             let foundIndex = arrayState.indexOf(newValue);
             if (foundIndex >= 0) {
                 arrayState.splice(foundIndex, 1);
@@ -164,11 +167,13 @@ class SearchParamsStore {
      * @param {int} currentPageNumber
      * @param {int} pageOffset
      */
-    updateAllParameters({
-        repoIds = null, bcp47Tags = null, searchText = null, searchAttribute = null,
-        searchType = null, status = null, used = null, unUsed = null,
-        pageSize = null, currentPageNumber = null, pageOffset = null
-        } = {}) {
+    updateAllParameters( {
+    repoIds = null, repoNames = null, bcp47Tags = null, searchText = null,
+            searchAttribute = null, searchType = null, status = null, used = null,
+            unUsed = null, pageSize = null, currentPageNumber = null,
+            pageOffset = null, pluralFormOther = null
+    } = {}) {
+
 
         //TODO merge this with SEARCHTEXT_CHANGED
 
@@ -176,8 +181,16 @@ class SearchParamsStore {
             this.repoIds = repoIds.slice();
         }
 
+        if (repoNames !== null) {
+            this.repoNames = repoNames.slice();
+        }
+
         if (bcp47Tags !== null) {
             this.bcp47Tags = bcp47Tags;
+        }
+
+        if (pluralFormOther !== null) {
+            this.pluralFormOther = pluralFormOther;
         }
 
         if (searchText !== null)
@@ -221,11 +234,13 @@ class SearchParamsStore {
         let {
             searchAttribute, searchText, searchType,
             status, used, unUsed,
-            pageSize, currentPageNumber, pageOffset } = query;
-        
+            pageSize, currentPageNumber, pageOffset,
+            pluralFormOther} = query;
+
         let repoIds = query["repoIds[]"];
+        let repoNames = query["repoNames[]"];
         let bcp47Tags = query["bcp47Tags[]"];
-        
+
         if (typeof repoIds !== "undefined") {
             if (Array.isArray(repoIds)) {
                 repoIds = repoIds.map((value) => parseInt(value));
@@ -233,29 +248,34 @@ class SearchParamsStore {
                 repoIds = [parseInt(repoIds)];
             }
         }
-        
-        if (typeof bcp47Tags !== "undefined" && ! Array.isArray(bcp47Tags)) {
+
+        if (typeof repoNames !== "undefined" && !Array.isArray(repoNames)) {
+            repoNames = [repoNames];
+        }
+
+        if (typeof bcp47Tags !== "undefined" && !Array.isArray(bcp47Tags)) {
             bcp47Tags = [bcp47Tags];
         }
-        
+
         let converted = {
             "changedParam": SearchConstants.UPDATE_ALL,
-            "repoIds":  typeof repoIds !== "undefined" ? repoIds : null,
+            "repoIds": typeof repoIds !== "undefined" ? repoIds : null,
+            "repoNames": typeof repoNames !== "undefined" ? repoNames : null,
             "bcp47Tags": typeof bcp47Tags !== "undefined" ? bcp47Tags : null,
-            "searchAttribute": typeof  searchAttribute !== "undefined" ? searchAttribute : null,
-            "searchText": typeof  searchText !== "undefined" ? searchText : null,
-            "searchType": typeof  searchType !== "undefined" ? searchType : null,
+            "searchAttribute": typeof searchAttribute !== "undefined" ? searchAttribute : null,
+            "searchText": typeof searchText !== "undefined" ? searchText : null,
+            "searchType": typeof searchType !== "undefined" ? searchType : null,
             "status": typeof status !== "undefined" ? status : null,
             "used": typeof used !== "undefined" ? (used === "true") : null,
             "unUsed": typeof unUsed !== "undefined" ? (unUsed === "true") : null,
             "pageSize": typeof pageSize !== "undefined" ? parseInt(pageSize) : null,
             "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
-            "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null
+            "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null,
+            "pluralFormOther": typeof pluralFormOther !== "undefined" ? pluralFormOther : null
         };
-        
+
         return converted;
     }
-
 
     onSearchResultsReceivedSuccess(searchResults) {
         if (searchResults.length === 0) {
@@ -265,6 +285,21 @@ class SearchParamsStore {
 
     onSearchResultsReceivedError(error) {
         // TODO: handle this.currentPageNumber when error is returned
+    }
+
+    getAllRepositoriesSuccess(repositories) {
+        if (this.repoNames && this.repoNames.length > 0) {
+            this.waitFor(RepositoryStore);
+            this.repoIds = [];
+            this.repoNames.forEach(repoName => {
+                var repositoryByName = RepositoryStore.getRepositoryByName(repoName);
+                if (repositoryByName) {
+                    this.repoIds.push(repositoryByName.id);
+                } else {
+                    console.log("Can't find repository for name: ", repoName);
+                }
+            });
+        }
     }
 
     updatePageOffset() {
@@ -309,7 +344,9 @@ SearchParamsStore.SEARCH_TYPES = {
 SearchParamsStore.SEARCH_ATTRIBUTES = {
     "STRING_ID": "stringId",
     "SOURCE": "source",
-    "TARGET": "target"
+    "TARGET": "target",
+    "ASSET": "asset",
+    "PLURAL_FORM_OTHER": "pluralFormOther"
 };
 
 SearchParamsStore.STATUS = {

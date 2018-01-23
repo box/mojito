@@ -69,14 +69,14 @@ public class AssetClient extends BaseClient {
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
-     * @param filterConfigIdOverride Optional, can be null. Allows to specify
-     * a specific Okapi filter to use to process the asset
+     * @param filterConfigIdOverride Optional, can be null. Allows to specify a
+     * specific Okapi filter to use to process the asset
      * @return the localized asset content
      */
     public LocalizedAssetBody getLocalizedAssetForContent(
-            Long assetId, 
+            Long assetId,
             Long localeId,
-            String content, 
+            String content,
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
@@ -94,25 +94,24 @@ public class AssetClient extends BaseClient {
                 LocalizedAssetBody.class);
     }
 
-
     /**
-     * Gets a pseudo localized version of provided content, the content is related to a
-     * given Asset.
+     * Gets a pseudo localized version of provided content, the content is
+     * related to a given Asset.
      *
      * The content can be a new version of the asset stored in the TMS. This is
-     * used to pseudo localize files during development with usually minor changes done
-     * to the persisted asset.
+     * used to pseudo localize files during development with usually minor
+     * changes done to the persisted asset.
      *
      * @param assetId {@link Asset#id}
      * @param content the asset content to be pseudolocalized
-     * @param filterConfigIdOverride Optional, can be null. Allows to specify
-     * a specific Okapi filter to use to process the asset
+     * @param filterConfigIdOverride Optional, can be null. Allows to specify a
+     * specific Okapi filter to use to process the asset
      * @return the pseudoloocalized asset content
      */
     public LocalizedAssetBody getPseudoLocalizedAssetForContent(Long assetId, String content, FilterConfigIdOverride filterConfigIdOverride) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
-                       .fromPath(getBasePathForResource(assetId, "pseudo"));
+                .fromPath(getBasePathForResource(assetId, "pseudo"));
 
         LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
         localizedAssetBody.setContent(content);
@@ -125,27 +124,29 @@ public class AssetClient extends BaseClient {
     }
 
     /**
-     * Imports a localized version of an asset. 
-     * 
-     * The target strings are checked against the source strings and if they 
-     * are equals the status of the imported translation is defined by 
-     * statusForSourceEqTarget. When SKIIPED is specified the import is actually
+     * Imports a localized version of an asset.
+     *
+     * The target strings are checked against the source strings and if they are
+     * equals the status of the imported translation is defined by
+     * statusForEqualTarget. When SKIIED is specified the import is actually
      * skipped.
-     * 
+     *
      * For not fully translated locales, targets are imported only if they are
      * different from target of the parent locale.
      *
      * @param assetId {@link Asset#id}
      * @param localeId {@link Locale#id}
      * @param content the asset content to be localized
-     * @param statusForSourceEqTarget the status of the text unit variant 
-     * when the source equals the target
+     * @param statusForEqualTarget the status of the text unit variant when
+     * the target is the same as the parent
+     * @param filterConfigIdOverride
+     * @return 
      */
-    public void importLocalizedAssetForContent(
+    public ImportLocalizedAssetBody importLocalizedAssetForContent(
             Long assetId,
             Long localeId,
             String content,
-            ImportLocalizedAssetBody.StatusForSourceEqTarget statusForSourceEqTarget,
+            ImportLocalizedAssetBody.StatusForEqualTarget statusForEqualTarget,
             FilterConfigIdOverride filterConfigIdOverride) {
         logger.debug("Import localized asset with asset id = {}, locale id = {}", assetId, localeId);
 
@@ -154,12 +155,12 @@ public class AssetClient extends BaseClient {
 
         ImportLocalizedAssetBody importLocalizedAssetBody = new ImportLocalizedAssetBody();
         importLocalizedAssetBody.setContent(content);
-        importLocalizedAssetBody.setStatusSourceEqTarget(statusForSourceEqTarget);
+        importLocalizedAssetBody.setStatusForEqualTarget(statusForEqualTarget);
         importLocalizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
 
-        authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
+        return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 importLocalizedAssetBody,
-                Void.class);
+                ImportLocalizedAssetBody.class);
     }
 
     /**
@@ -284,9 +285,10 @@ public class AssetClient extends BaseClient {
      *
      * @param repositoryId
      * @param deleted optional
+     * @param virtual optional
      * @return
      */
-    public List<Long> getAssetIds(Long repositoryId, Boolean deleted) {
+    public List<Long> getAssetIds(Long repositoryId, Boolean deleted, Boolean virtual) {
         Assert.notNull(repositoryId);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -297,6 +299,10 @@ public class AssetClient extends BaseClient {
 
         if (deleted != null) {
             params.put("deleted", deleted.toString());
+        }
+
+        if (virtual != null) {
+            params.put("virtual", virtual.toString());
         }
 
         return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(uriBuilder.toUriString(), Long[].class, params);

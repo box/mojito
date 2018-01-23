@@ -23,7 +23,7 @@ public class LeveragerByMd5 extends AbstractLeverager {
 
     @Override
     public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
-        logger.debug("Get TextUnitDTOs for leveraging by name");
+        logger.debug("Get TextUnitDTOs for leveraging by MD5");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setMd5(tmTextUnit.getMd5());

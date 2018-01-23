@@ -1,8 +1,9 @@
 import Error from "../../utils/Error";
-import SearchParamStore from "../../stores/workbench/SearchParamsStore.js";
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import TextUnitClient from "../../sdk/TextUnitClient";
 import TextUnitSearcherParameters from "../../sdk/TextUnitSearcherParameters";
 import WorkbenchActions from "./WorkbenchActions";
+import RepositoryStore from "../../stores/RepositoryStore";
 
 const SearchDataSource = {
     performSearch: {
@@ -13,19 +14,22 @@ const SearchDataSource = {
 
             let bcp47Tags = searchParams.bcp47Tags;
 
-
             let textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-            if (!SearchParamStore.isReadyForSearching(searchParams)) {
+            if (!SearchParamsStore.isReadyForSearching(searchParams)) {
                 returnEmpty = true;
             }
 
             if (searchParams.searchText) {
 
-                if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.SOURCE) {
+                if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.SOURCE) {
                     textUnitSearcherParameters.source(searchParams.searchText);
-                } else if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.TARGET) {
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.TARGET) {
                     textUnitSearcherParameters.target(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.ASSET) {
+                    textUnitSearcherParameters.assetPath(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER) {
+                    textUnitSearcherParameters.pluralFormOther(searchParams.searchText);
                 } else {
                     textUnitSearcherParameters.name(searchParams.searchText);
                 }
@@ -46,7 +50,7 @@ const SearchDataSource = {
             }
 
             textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags)
-                .offset(searchParams.pageOffset).limit(searchParams.pageSize);
+                    .offset(searchParams.pageOffset).limit(searchParams.pageSize);
 
             let promise;
 

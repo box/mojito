@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.factory.XliffDataFactory;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
@@ -85,7 +86,7 @@ public class WSTestDataFactory {
      * @param testIdWatcher
      * @return The {@link Repository}
      */
-    public Repository createRepoAndAssetAndTextUnits(TestIdWatcher testIdWatcher) throws RepositoryNameAlreadyUsedException {
+    public Repository createRepoAndAssetAndTextUnits(TestIdWatcher testIdWatcher) throws RepositoryNameAlreadyUsedException, AssetUpdateException {
         Repository repository = createRepository(testIdWatcher);
 
         try {

@@ -27,6 +27,10 @@ public class TextUnitDTO {
     private boolean includedInLocalizedFile;
     private DateTime createdDate;
     private boolean assetDeleted;
+    private String pluralForm;
+    private String pluralFormOther;
+    private String repositoryName;
+    private String assetPath;
 
     public Long getTmTextUnitId() {
         return tmTextUnitId;
@@ -172,6 +176,38 @@ public class TextUnitDTO {
 
     public void setAssetDeleted(boolean assetDeleted) {
         this.assetDeleted = assetDeleted;
+    }
+
+    public String getPluralForm() {
+        return pluralForm;
+    }
+
+    public void setPluralForm(String pluralForm) {
+        this.pluralForm = pluralForm;
+    }
+
+    public String getPluralFormOther() {
+        return pluralFormOther;
+    }
+
+    public void setPluralFormOther(String pluralFormOther) {
+        this.pluralFormOther = pluralFormOther;
+    }
+
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
+    public void setRepositoryName(String repositoryName) {
+        this.repositoryName = repositoryName;
+    }
+
+    public String getAssetPath() {
+        return assetPath;
+    }
+
+    public void setAssetPath(String assetPath) {
+        this.assetPath = assetPath;
     }
 
 }

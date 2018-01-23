@@ -1,4 +1,5 @@
 import $ from "jquery";
+import _ from "lodash";
 import React from "react";
 import ReactDOM from "react-dom";
 import {Router, Route, IndexRoute, useRouterHistory} from "react-router";
@@ -12,11 +13,20 @@ import Login from "./components/Login";
 import Workbench from "./components/workbench/Workbench";
 import Repositories from "./components/repositories/Repositories";
 import Drops from "./components/drops/Drops";
+import ScreenshotsPage from "./components/screenshots/ScreenshotsPage";
 import Settings from "./components/settings/Settings";
 import WorkbenchActions from "./actions/workbench/WorkbenchActions";
+import RepositoryActions from "./actions/RepositoryActions";
+import ScreenshotsPageActions from "./actions/screenshots/ScreenshotsPageActions";
+import ScreenshotsHistoryStore from "./stores/screenshots/ScreenshotsHistoryStore";
+import ScreenshotsRepositoryActions from "./actions/screenshots/ScreenshotsRepositoryActions";
+
 import SearchConstants from "./utils/SearchConstants";
 import UrlHelper from "./utils/UrlHelper";
 import SearchParamsStore from "./stores/workbench/SearchParamsStore";
+import IctMetadataBuilder from "./ict/IctMetadataBuilder";
+
+import LocationHistory from "./utils/LocationHistory";
 
 // NOTE this way of adding locale data is only recommeneded if there are a few locales.
 // if there are more, we should load it dynamically using script tags
@@ -39,9 +49,9 @@ __webpack_public_path__ = CONTEXT_PATH + "/";
 const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
 
 import(
-  /* webpackChunkName: "[request]", webpackMode: "lazy" */
-  `../../properties/${LOCALE}.properties`).then(messages => {
-    
+        /* webpackChunkName: "[request]", webpackMode: "lazy" */
+        `../../properties/${LOCALE}.properties`).then(messages => {
+
     if (!global.Intl) {
         // NOTE: require.ensure would have been nice to use to do module loading
         // but webpack doesn't support ES6 so after Babel transcompile,
@@ -57,7 +67,6 @@ import(
     }
 });
 
-
 //TODO should implement merging logic as part of the build in a specific loader
 var enMessages = require(`../../properties/en.properties`);
 
@@ -65,15 +74,43 @@ function getMergedMessages(messages) {
     return messages = _.merge(enMessages, messages);
 }
 
+function instrumentMessagesForIct(messages, locale) {
+
+    var localesMap = {
+        //TODO: finish
+        'fr': 'fr-FR',
+        'ko': 'ko-KR',
+    };
+
+    locale = _.get(localesMap, locale, locale);
+
+    Object.keys(messages).map((key) => {
+        var stack = new Error().stack; // stack is useless here but for tests 
+        messages[key] = IctMetadataBuilder.getTranslationWithMetadata("mojito", null, key, locale, stack, messages[key]);
+    });
+}
+
 function startApp(messages) {
+
+    if (ICT) {
+        instrumentMessagesForIct(messages, LOCALE);
+    }
+
     ReactDOM.render(
             <IntlProvider locale={LOCALE} messages={messages}>
                 <Router history={browserHistory}>
                     <Route component={Main}>
-                        <Route path="/" component={App}>
-                            <Route path="workbench" component={Workbench} onLeave={onLeaveWorkbench}/>
-                            <Route path="repositories" component={Repositories} />
+                        <Route path="/" component={App}
+                            onEnter={onEnterRoot}>
+                            <Route path="workbench" component={Workbench} 
+                                   onEnter={getAllRepositoriesDeffered}
+                                   onLeave={onLeaveWorkbench}/>
+                            <Route path="repositories" component={Repositories}
+                                   onEnter={getAllRepositoriesDeffered}/>
                             <Route path="project-requests" component={Drops}/>
+                            <Route path="screenshots" component={ScreenshotsPage} 
+                                   onEnter={onEnterScreenshots}
+                                   onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
                             <Route path="settings" component={Settings}/>
                             <IndexRoute component={Repositories}/>
                         </Route>
@@ -84,6 +121,41 @@ function startApp(messages) {
             </IntlProvider>
             , document.getElementById("app")
             );
+
+    /**
+     * Override handler to customise behavior
+     */
+    BaseClient.authenticateHandler = function () {
+        let containerId = "unauthenticated-container";
+        $("body").append("<div id=\"" + containerId + "\" />");
+
+        function okOnClick() {
+            let pathNameStrippedLeadingSlash = location.pathname.substr(1 + CONTEXT_PATH.length, location.pathname.length);
+            let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
+            window.location.href = UrlHelper.getUrlWithContextPath("/login?") + $.param({"showPage": currentLocation});
+        }
+
+        ReactDOM.render(
+                <IntlProvider locale={LOCALE} messages={messages}>
+                    <Modal show={true}>
+                        <Modal.Header closeButton={true}>
+                            <Modal.Title>
+                                <FormattedMessage id="error.modal.header.title" />
+                            </Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <FormattedMessage id="error.modal.message.loggedOut" />
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button bsStyle="primary" onClick={okOnClick}>
+                                <FormattedMessage id="label.okay" />
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+                </IntlProvider>
+                , document.getElementById(containerId));
+    };
+
 }
 
 /**
@@ -91,16 +163,50 @@ function startApp(messages) {
  * default state (avoid flickr and stale data).
  */
 function onLeaveWorkbench() {
-    WorkbenchActions.searchParamsChanged({
-        "changedParam": SearchConstants.UPDATE_ALL
-    });
+    setTimeout(() => {
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL
+        });
+    }, 1);
+}
+
+function getAllRepositoriesDeffered() {
+    setTimeout(() => {
+        RepositoryActions.getAllRepositories();
+    }, 1);
+}
+
+function onEnterScreenshots() {
+    setTimeout(() => {
+        ScreenshotsRepositoryActions.getAllRepositories();
+    }, 1);
+}
+
+function onEnterRoot() {
+    if (location.pathname === '/') {
+        getAllRepositoriesDeffered();
+    }
 }
 
 function loadBasedOnLocation(location) {
+
     if (location.pathname === '/workbench' && location.action === 'POP') {
         WorkbenchActions.searchParamsChanged(SearchParamsStore.convertQueryToSearchParams(location.query));
     }
+
+    if (location.pathname === '/screenshots' && location.action === 'POP') {
+        ScreenshotsHistoryStore.initStoreFromLocationQuery(location.query);
+    }
 }
+
+function onScreenshotsHistoryStoreChange() {
+    if (!ScreenshotsHistoryStore.getState().skipLocationHistoryUpdate) {
+        LocationHistory.updateLocation(browserHistory, "/screenshots", ScreenshotsHistoryStore.getQueryParams());
+    }
+}
+
+ScreenshotsHistoryStore.listen(() => onScreenshotsHistoryStoreChange());
+
 
 /**
  * Listen to history changes, when doing a POP for the workbench, initialize 
@@ -115,39 +221,3 @@ loadBasedOnLocation(currentLocation);
 browserHistory.listen(location => {
     loadBasedOnLocation(location);
 });
-
-/**
- * Override handler to customise behavior
- */
-BaseClient.authenticateHandler = function () {
-    let containerId = "unauthenticated-container";
-    $("body").append("<div id=\"" + containerId + "\" />");
-
-    function okOnClick() {
-        let pathNameStrippedLeadingSlash = location.pathname.substr(1, location.pathname.length);
-        let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
-
-        window.location.href = UrlHelper.getUrlWithContextPath("/login?") + $.param({"showPage": currentLocation});
-    }
-
-    ReactDOM.render(
-            <IntlProvider locale={LOCALE} messages={MESSAGES}>
-                <Modal show={true}>
-                    <Modal.Header closeButton={true}>
-                        <Modal.Title>
-                            <FormattedMessage id="error.modal.header.title" />
-                        </Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <FormattedMessage id="error.modal.message.loggedOut" />
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button bsStyle="primary" onClick={okOnClick}>
-                            <FormattedMessage id="label.okay" />
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
-            </IntlProvider>
-            , document.getElementById(containerId));
-};
-
