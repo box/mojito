@@ -12,7 +12,7 @@
     "classnames": "^2.2.5",
     "cldr-data": "^31.0.2",
     "cldrjs": "^0.4.3",
-    "jquery": "~3.0.0",
+    "jquery": "^3.0.0",
     "keycode": "^2.1.0",
     "keymirror": "~0.1.0",
     "lodash": "^3.10.1",
