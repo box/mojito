@@ -31,6 +31,7 @@ public class TextUnitDTO {
     private String pluralFormOther;
     private String repositoryName;
     private String assetPath;
+    private Long assetTextUnitId;
 
     public Long getTmTextUnitId() {
         return tmTextUnitId;
@@ -208,6 +209,14 @@ public class TextUnitDTO {
 
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;
+    }
+
+    public Long getAssetTextUnitId() {
+        return assetTextUnitId;
+    }
+
+    public void setAssetTextUnitId(Long assetTextUnitId) {
+        this.assetTextUnitId = assetTextUnitId;
     }
 
 }

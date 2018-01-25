@@ -1,7 +1,9 @@
 package com.box.l10n.mojito.rest.textunit;
 
+import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.collections.CollectionUtils;
 
 /**
@@ -57,6 +60,9 @@ public class TextUnitWS {
 
     @Autowired
     TMTextUnitIntegrityCheckService tmTextUnitIntegrityCheckService;
+
+    @Autowired
+    AssetTextUnitRepository assetTextUnitRepository;
 
     /**
      * Gets the TextUnits that matches the search parameters.
@@ -99,11 +105,11 @@ public class TextUnitWS {
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-                        
+
         if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames)) {
             throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
         }
-        
+
         textUnitSearcherParameters.setRepositoryIds(repositoryIds);
         textUnitSearcherParameters.setRepositoryNames(repositoryNames);
         textUnitSearcherParameters.setName(name);
@@ -122,7 +128,7 @@ public class TextUnitWS {
         if (usedFilter != null) {
             textUnitSearcherParameters.setUsedFilter(usedFilter);
         }
-        
+
         if (statusFilter != null) {
             textUnitSearcherParameters.setStatusFilter(statusFilter);
         }
@@ -172,7 +178,8 @@ public class TextUnitWS {
      * remove the translation from the system, it just removes it from being the
      * current translation.
      *
-     * @param textUnitId TextUnit id (maps to {@link TMTextUnitCurrentVariant#id})
+     * @param textUnitId TextUnit id (maps to
+     * {@link TMTextUnitCurrentVariant#id})
      */
     @Transactional
     @RequestMapping(method = RequestMethod.DELETE, value = "/api/textunits/{textUnitId}")
@@ -191,7 +198,7 @@ public class TextUnitWS {
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/check")
     public TMTextUnitIntegrityCheckResult checkTMTextUnit(@RequestParam(value = "textUnitId") Long textUnitId,
-                                                          @RequestParam(value = "contentToCheck") String contentToCheck) {
+            @RequestParam(value = "contentToCheck") String contentToCheck) {
         logger.debug("Checking TextUnit, id: {}", textUnitId);
 
         TMTextUnitIntegrityCheckResult result = new TMTextUnitIntegrityCheckResult();
@@ -205,4 +212,12 @@ public class TextUnitWS {
 
         return result;
     }
+    
+    @RequestMapping(method = RequestMethod.GET, value = "/api/assetTextUnits/{assetTextUnitId}/usages")
+    public Set<String> getAssetTextUnitUsages(@PathVariable Long assetTextUnitId) {
+        logger.debug("Get usages of asset text unit for id: {}", assetTextUnitId);
+        AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(assetTextUnitId);
+        return assetTextUnit.getUsages();
+    }
+
 }

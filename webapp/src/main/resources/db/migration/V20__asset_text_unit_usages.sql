@@ -1,0 +1,2 @@
+create table asset_text_unit_usages (asset_text_unit_id bigint not null, usages varchar(255));
+alter table asset_text_unit_usages add constraint FK__ASSET_TEXT_UNIT_USAGES__ASSET_TEXT_UNIT__ID foreign key (asset_text_unit_id) references asset_text_unit (id);
