@@ -6,9 +6,12 @@ import com.box.l10n.mojito.po.PoPluralRule;
 import com.google.common.collect.Multimap;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
@@ -44,6 +47,9 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     public static final String FILTER_CONFIG_ID = "okf_po@mojito";
 
+    static final String USAGE_LOCATION_GROUP_NAME = "location";
+    static final String USAGE_LOCATION_PATTERN = "#: (?<location>.*)";
+
     @Autowired
     TextUnitUtils textUnitUtils;
 
@@ -73,7 +79,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     boolean hasCopyFormsOnImport = false;
 
     String msgIDPlural;
-    
+
     String msgID;
 
     Integer poPluralForm;
@@ -122,6 +128,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         if (event != null && event.isTextUnit()) {
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             renameTextUnitWithSourceAndContent(textUnit);
+            addUsagesToTextUnit(textUnit);
         }
     }
 
@@ -145,10 +152,10 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         logger.debug("First event is the start group, load msgidplural from parent and move to next");
         loadMsgIDPluralFromParent();
         eventQueue.add(next);
-      
+
         List<Event> pluralEvents = new ArrayList<>();
         next = getNextWithProcess();
-        
+
         // add the start event 
         pluralEvents.add(next);
 
@@ -156,7 +163,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         next = getNextWithProcess();
 
         // read others until the end
-        while (next != null && !isPluralGroupEnding(next)) { 
+        while (next != null && !isPluralGroupEnding(next)) {
             pluralEvents.add(next);
             poPluralForm++;
             next = getNextWithProcess();
@@ -200,7 +207,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
         @Override
         void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
-            
+
             if (!"one".equals(cldrPluralForm)) {
                 // source should always be plural form unless for "one" form, 
                 // this is needed for language with only one entry like 
@@ -264,7 +271,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      * @param textUnit
      */
     void renameTextUnitWithSourceAndContent(ITextUnit textUnit) {
-        
+
         Property property = textUnit.getProperty(POFilter.PROPERTY_CONTEXT);
 
         StringBuilder newName = new StringBuilder(msgID);
@@ -302,7 +309,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
             throw new RuntimeException(e);
         }
     }
-    
+
     void loadMsgIDFromParent() {
         Field msgIDParent = ReflectionUtils.findField(net.sf.okapi.filters.po.POFilter.class,
                 "msgID");
@@ -313,4 +320,23 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
             throw new RuntimeException(e);
         }
     }
+
+    void addUsagesToTextUnit(TextUnit textUnit) {
+        Set<String> usageLocationsFromSkeleton = getUsagesFromSkeleton(textUnit.getSkeleton().toString());
+        textUnit.setAnnotation(new UsagesAnnotation((usageLocationsFromSkeleton)));
+    }
+
+    Set<String> getUsagesFromSkeleton(String skeleton) {
+        Set<String> locations = new LinkedHashSet<>();
+       
+        Pattern pattern = Pattern.compile(USAGE_LOCATION_PATTERN);
+        Matcher matcher = pattern.matcher(skeleton);
+
+        while (matcher.find()) {
+            locations.add(matcher.group(USAGE_LOCATION_GROUP_NAME));
+        }
+
+        return locations;
+    }
+
 }

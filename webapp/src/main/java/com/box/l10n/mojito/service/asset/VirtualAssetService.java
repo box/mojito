@@ -297,7 +297,8 @@ public class VirtualAssetService {
                     content,
                     comment,
                     pluralForm,
-                    pluralFormOther);
+                    pluralFormOther,
+                    null);
 
             logger.debug("Look for an existing TmTextunit");
             TMTextUnit tmTextUnit = tmTextUnitRepository.findFirstByAssetAndMd5(asset, assetTextUnit.getMd5());

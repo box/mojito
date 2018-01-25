@@ -2,6 +2,7 @@ package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.okapi.filters.PluralFormAnnotation;
+import com.box.l10n.mojito.okapi.filters.UsagesAnnotation;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import java.util.HashSet;
@@ -83,14 +84,34 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
                     pluralForm = pluralFormService.findByPluralFormString(annotation.getName());
                     pluralFormOther = annotation.getOtherName();
                 }
-
-                assetExtractionService.createAssetTextUnit(assetExtractionId, name, source, comments, pluralForm, pluralFormOther);
+                
+                assetExtractionService.createAssetTextUnit(
+                        assetExtractionId, 
+                        name, 
+                        source, 
+                        comments, 
+                        pluralForm, 
+                        pluralFormOther,
+                        getUsages());
+                
             } else {
                 logger.debug("Duplicate assetTextUnit found, skip it");
             }
         }
 
         return event;
+    }
+
+    Set<String> getUsages() {
+        Set<String> usages = null;
+        
+        UsagesAnnotation usagesAnnotation = textUnit.getAnnotation(UsagesAnnotation.class);
+        
+        if (usagesAnnotation != null) {
+            usages = usagesAnnotation.getUsages();
+        }
+        
+        return usages;
     }
 
 }

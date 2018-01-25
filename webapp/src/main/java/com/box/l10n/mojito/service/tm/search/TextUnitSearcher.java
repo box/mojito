@@ -135,7 +135,8 @@ public class TextUnitSearcher {
                 addProjection("pf.name", "pluralForm").
                 addProjection("tu.plural_form_other", "pluralFormOther").
                 addProjection("r.name", "repositoryName").
-                addProjection("a.path", "assetPath")         
+                addProjection("a.path", "assetPath").
+                addProjection("atu.id", "assetTextUnitId")         
         );
 
         logger.debug("Add search filters");
