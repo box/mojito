@@ -338,7 +338,8 @@ public class VirtualAssetService {
 
     TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment) throws VirtualAssetRequiredException {
         logger.debug("Add text unit variant to virtual assetId: {}, with name: {}", assetId, name);
-        TMTextUnit findFirstByAssetAndName = tmTextUnitRepository.findFirstByAssetAndName(assetRepository.getOne(assetId), name);
+        Asset asset = assetRepository.getOne(assetId);
+        TMTextUnit findFirstByAssetAndName = tmTextUnitRepository.findFirstByAssetAndName(asset, name);
         return tmService.addCurrentTMTextUnitVariant(findFirstByAssetAndName.getId(), localeId, content);
     }
 
