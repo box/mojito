@@ -109,6 +109,7 @@ insert into locale (id, bcp47_tag) values (585, 'nl-BE');
 insert into locale (id, bcp47_tag) values (101, 'nl-NL'); 
 insert into locale (id, bcp47_tag) values (593, 'nn-NO'); 
 insert into locale (id, bcp47_tag) values (597, 'ns-ZA'); 
+insert into locale (id, bcp47_tag) values (597, 'ny-MW'); 
 insert into locale (id, bcp47_tag) values (601, 'pa-IN'); 
 insert into locale (id, bcp47_tag) values (117, 'pl-PL'); 
 insert into locale (id, bcp47_tag) values (609, 'ps-AR'); 
@@ -539,3 +540,10 @@ insert into plural_form_for_locale (locale_id, plural_form_id) values (217, 6);
 insert into plural_form_for_locale (locale_id, plural_form_id) values (221, 6);
 insert into plural_form_for_locale (locale_id, plural_form_id) values (253, 6);
 insert into plural_form_for_locale (locale_id, plural_form_id) values (549, 6);
+insert into plural_form_for_locale (locale_id, plural_form_id) values (801, 1);
+insert into plural_form_for_locale (locale_id, plural_form_id) values (801, 5);
+insert into plural_form_for_locale (locale_id, plural_form_id) values (797, 1);
+insert into plural_form_for_locale (locale_id, plural_form_id) values (797, 5);
+insert into plural_form_for_locale (locale_id, plural_form_id) values (802, 1);
+insert into plural_form_for_locale (locale_id, plural_form_id) values (802, 5);
+ 
