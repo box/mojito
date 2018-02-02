@@ -109,7 +109,7 @@ insert into locale (id, bcp47_tag) values (585, 'nl-BE');
 insert into locale (id, bcp47_tag) values (101, 'nl-NL'); 
 insert into locale (id, bcp47_tag) values (593, 'nn-NO'); 
 insert into locale (id, bcp47_tag) values (597, 'ns-ZA'); 
-insert into locale (id, bcp47_tag) values (597, 'ny-MW'); 
+insert into locale (id, bcp47_tag) values (802, 'ny-MW'); 
 insert into locale (id, bcp47_tag) values (601, 'pa-IN'); 
 insert into locale (id, bcp47_tag) values (117, 'pl-PL'); 
 insert into locale (id, bcp47_tag) values (609, 'ps-AR'); 
