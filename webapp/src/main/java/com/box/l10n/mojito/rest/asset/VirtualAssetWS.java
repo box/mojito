@@ -5,6 +5,7 @@ import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.service.asset.VirtualAsset;
 import com.box.l10n.mojito.service.asset.VirtualAssetRequiredException;
 import com.box.l10n.mojito.service.asset.VirtualAssetService;
+import com.box.l10n.mojito.service.asset.VirutalAssetMissingTextUnitException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,7 @@ public class VirtualAssetWS {
     public void importLocalizedTextUnits(
             @PathVariable("assetId") long assetId,
             @PathVariable("localeId") long localeId,
-            @RequestBody List<VirtualAssetTextUnit> textUnitForVirtualAssets) throws VirtualAssetRequiredException {
+            @RequestBody List<VirtualAssetTextUnit> textUnitForVirtualAssets) throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
 
         virtualAssetService.importLocalizedTextUnits(assetId, localeId, textUnitForVirtualAssets);
     }

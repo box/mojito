@@ -24,6 +24,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.google.common.base.Strings;
+import com.ibm.icu.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -230,7 +231,8 @@ public class VirtualAssetService {
     public void importLocalizedTextUnits(
             long assetId,
             long localeId,
-            List<VirtualAssetTextUnit> textUnitForVirtualAssets) throws VirtualAssetRequiredException {
+            List<VirtualAssetTextUnit> textUnitForVirtualAssets)
+            throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
 
         logger.debug("Add text unit variants ({}) to virtual assetId: {}", textUnitForVirtualAssets.size(), assetId);
 
@@ -336,10 +338,18 @@ public class VirtualAssetService {
         }
     }
 
-    TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment) throws VirtualAssetRequiredException {
+    TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment)
+            throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
         logger.debug("Add text unit variant to virtual assetId: {}, with name: {}", assetId, name);
         Asset asset = assetRepository.getOne(assetId);
         TMTextUnit findFirstByAssetAndName = tmTextUnitRepository.findFirstByAssetAndName(asset, name);
+
+        if (findFirstByAssetAndName == null) {
+            String msg = MessageFormat.format("Missing TmTextUnit for assetId: {0} and name: {1}", assetId, name);
+            logger.debug(msg);
+            throw new VirutalAssetMissingTextUnitException(msg);
+        }
+
         return tmService.addCurrentTMTextUnitVariant(findFirstByAssetAndName.getId(), localeId, content);
     }
 
