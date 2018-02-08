@@ -639,7 +639,7 @@ let TextUnit = React.createClass({
             "searchText": this.props.textUnit.getAssetPath(),
             "searchAttribute": SearchParamsStore.SEARCH_ATTRIBUTES.ASSET,
             "searchType": SearchParamsStore.SEARCH_TYPES.EXACT,
-            "bcp47Tags": RepositoryStore.getAllBcp47TagsForRepositoryIds(SearchParamsStore.getState().repoIds),
+            "bcp47Tags": [this.props.textUnit.getTargetLocale()]
         });
     },
 
@@ -788,7 +788,7 @@ let TextUnit = React.createClass({
                       onClick={this.onStringIdClick}>
                     <span>{this.props.textUnit.getName()}</span>
                     <OverlayTrigger placement="top" overlay={assetPathTooltip}>
-                        <span className="textunit-assetpath glyphicon glyphicon-file mls" 
+                        <span className="textunit-assetpath glyphicon glyphicon-level-up mls" 
                                onClick={this.onAssetPathClick} />
                     </OverlayTrigger>
                 </span>

@@ -393,11 +393,11 @@ div.statusDropdown {
 }
 
 .textunit:hover {
-    background: rgba($brand-primary, 0.03);;
+    background: rgba($brand-primary, 0.03);
 }
 
 div.textunit.textunit-selected {
-    background-color: rgba($brand-primary, 0.1);;
+    background-color: rgba($brand-primary, 0.1);
 }
 
 div.textunit.textunit-active {
@@ -420,6 +420,7 @@ div.textunit label {
 
 .textunit-name .textunit-assetpath {
     visibility: hidden;
+    color: $brand-success;
 }
 
 .textunit-returnline {
