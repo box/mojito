@@ -414,6 +414,14 @@ div.textunit label {
     white-space: pre-wrap;
 }
 
+.textunit-name:hover .textunit-assetpath {
+    visibility: visible;
+}
+
+.textunit-name .textunit-assetpath {
+    visibility: hidden;
+}
+
 .textunit-returnline {
     color: $brand-primary;
     font-size: 10px;
