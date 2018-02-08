@@ -78,7 +78,14 @@ class TextUnit {
     setName(name) {
         this.data.name = name;
     }
+    
+    getAssetPath() {
+        return this.data.assetPath;
+    }
 
+    setAssetPath(assetPath) {
+        this.data.assetPath = assetPath;
+    }
 
     getSource() {
         return this.data.source;
@@ -95,7 +102,6 @@ class TextUnit {
     setComment(comment) {
         this.data.comment = comment;
     }
-
 
     /**
      * Target contains the translation
