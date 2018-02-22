@@ -36,3 +36,11 @@ chrome.storage.onChanged.addListener((changes) => {
         }
     }
 });
+
+chrome.extension.onMessage.addListener(function(request, sender, sendResponse) {
+    console.log('message listener');
+    if (request.name === 'prepareScreenshot') {
+        ict.processScreenshots();
+    }
+    return true;
+});

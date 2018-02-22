@@ -11,28 +11,31 @@ const IctPopup = function (props) {
     
     return <div className="mojito-ict-popup plm prm mbm">
         <Form horizontal>
+            
             <ToggleButtonGroup className="mtm mbm" name="state" type="radio" value={props.enabled} 
-                               onChange={props.onEnabledChanged} >
+                                   onChange={props.onEnabledChanged} >
                 <ToggleButton name="state" value={true}>On</ToggleButton>
                 <ToggleButton name="state" value={false}>Off</ToggleButton>
-            </ToggleButtonGroup> 
+            </ToggleButtonGroup>
+            
+            <Button bsStyle="primary" className="mtm mbm float-right" onClick={props.onScreenshotClick}>Screenshot</Button>
             
             <FormGroup controlId="formHorizontalMojitoUrl">
                 <Col componentClass={ControlLabel} sm={2}>
                 Mojito Base URL
                 </Col>
-              <Col sm={10}>
-                <FormControl type="text" value={props.mojitoBaseUrl} onChange={(e) => props.onMojitoBaseUrlChanged(e.target.value)} />
-              </Col>
+                <Col sm={10}>
+                    <FormControl type="text" value={props.mojitoBaseUrl} onChange={(e) => props.onMojitoBaseUrlChanged(e.target.value)} />
+                </Col>
             </FormGroup>
             
             <FormGroup controlId="formHorizontalHeaderName">
                 <Col componentClass={ControlLabel} sm={2}>
                 Header Name
                 </Col>
-              <Col sm={10}>
-                <FormControl type="text" value={props.headerName} onChange={(e) => props.onHeaderNameChanged(e.target.value)} />
-              </Col>
+                <Col sm={10}>
+                    <FormControl type="text" value={props.headerName} onChange={(e) => props.onHeaderNameChanged(e.target.value)} />
+                </Col>
             </FormGroup>
             
             <FormGroup controlId="formHorizontalHeaderValue">
@@ -133,6 +136,14 @@ class IctPopupContainer extends React.Component {
             removeTagsBlock: removeTagsBlock
         });
     }
+      
+    onScreenshotClick() {
+        console.log('onScreenshotClick')
+        chrome.tabs.query({currentWindow: true, active : true}, function(tabArray) {
+            chrome.tabs.sendMessage(tabArray[0].id, {name: 'prepareScreenshot'}, function(response) {
+            });
+        }); 
+    }
     
     render() {
         return <IctPopup 
@@ -146,6 +157,7 @@ class IctPopupContainer extends React.Component {
                     onHeaderValueChanged={value => this.onHeaderValueChanged(value)}
                     onEnabledChanged={enabled => this.onEnabledChanged(enabled)}
                     onRemoveTagsBlockChanged={removeTagsBlock => this.onRemoveTagsBlockChanged(removeTagsBlock)}
+                    onScreenshotClick={() => this.onScreenshotClick()}
                 />;
                     
     }

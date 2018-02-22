@@ -169,9 +169,20 @@ public class ScreenshotService {
     void completeScreenshotTextUnit(ScreenshotTextUnit screenshotTextUnit, Screenshot screenshot) {
         screenshotTextUnit.setScreenshot(screenshot);
 
-        List<TextUnitDTO> textUnitDTOs = getTextUnitsForScreenshotTextUnitRenderedTarget(
+        // TODO if coming from ICT we know repositoryName, assetPath, name, locale: for that we can map to an exact text unit
+        if (screenshotTextUnit.getName() != null) {
+            
+        }
+        
+        // else fallback to matching on the rendered text
+
+        
+        
+        
+        
+        List<TextUnitDTO> textUnitDTOs = getTextUnitsForScreenshotTextUnitName(
                 screenshot.getScreenshotRun().getRepository().getId(),
-                screenshotTextUnit.getRenderedTarget(),
+                screenshotTextUnit.getName(),
                 screenshot.getLocale().getId());
 
         screenshotTextUnit.setNumberOfMatch(textUnitDTOs.size());
@@ -194,6 +205,30 @@ public class ScreenshotService {
         textUnitSearcherParameters.setRepositoryIds(repositoryId);
         textUnitSearcherParameters.setLocaleId(localeId);
         textUnitSearcherParameters.setTarget(NormalizationUtils.normalize(renderedTarget));
+        textUnitSearcherParameters.setSearchType(SearchType.EXACT);
+
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        return textUnitDTOs;
+    }
+    
+    List<TextUnitDTO> getTextUnitsForScreenshotTextUnitName(Long repositoryId, String name, Long localeId) {
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repositoryId);
+        textUnitSearcherParameters.setLocaleId(localeId);
+        textUnitSearcherParameters.setName(NormalizationUtils.normalize(name));
+        textUnitSearcherParameters.setSearchType(SearchType.EXACT);
+
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        return textUnitDTOs;
+    }
+    
+    List<TextUnitDTO> getTextUnitsForScreenshotTextUni(String repositoryName, String assetPath, String name, Long localeId) {
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+//        textUnitSearcherParameters.setRepositoryIds(repositoryId);
+        textUnitSearcherParameters.setLocaleId(localeId);
+        textUnitSearcherParameters.setName(NormalizationUtils.normalize(name));
         textUnitSearcherParameters.setSearchType(SearchType.EXACT);
 
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);

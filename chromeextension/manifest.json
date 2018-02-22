@@ -15,7 +15,8 @@
         "<all_urls>",
         "webRequest",
         "webRequestBlocking",
-        "background"
+        "background",
+        "desktopCapture"
     ],
     "content_scripts": [
         {

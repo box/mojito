@@ -13,7 +13,7 @@ class Ict {
         this.messages = messages;
         this.locale = locale;
         this.removeTagsBlock = true;
-        this.wrapped = {};
+        this.wrappedNodes = [];
     }
 
     activate() {
@@ -28,7 +28,7 @@ class Ict {
             this.ictModalContainer.setMojitoBaseUrl(mojitoBaseUrl);
         }
     }
-    
+
     setRemoveTagsBlock(removeTagsBlock) {
         this.removeTagsBlock = removeTagsBlock;
     }
@@ -103,6 +103,24 @@ class Ict {
                 e.target.classList.remove("mojito-ict-string-active");
             });
         }
+
+        var boundingBox = node.getBoundingClientRect();
+
+        var nodeWithInfo = {
+            node: node,
+            boundingBox: {
+                x: boundingBox.left,
+                y: boundingBox.top,
+                width: boundingBox.width,
+                height: boundingBox.height,
+                windowOuterWidth: window.outerWidth,
+                windowOuterHeight: window.outerHeight
+            },
+
+            textUnits: textUnits
+        };
+
+        return nodeWithInfo;
     }
 
     installInDOM() {
@@ -140,8 +158,8 @@ class Ict {
                 node.parentNode.getAttribute('class').indexOf('mojito-ict-string') !== -1);
 
         if (hasMetaData && !isAlreadyProccessed) {
-            this.wrapNode(node, this.onClickBehavior.bind(this));
-            this.wrapped[node] = 1;
+            var wrappedNode = this.wrapNode(node, this.onClickBehavior.bind(this));
+            this.wrappedNodes.push(wrappedNode);
         }
 
         if (hasMetaData && this.removeTagsBlock) {
@@ -183,6 +201,54 @@ class Ict {
             }
         }, 200);
     }
+
+    processScreenshots() {
+        console.log("process screenshots --");
+
+        let screenshotTextUnits = [];
+        let screenshotRun = {
+
+            repository: {id: 312}, // need to send the name
+            name: 'run1',
+            screenshots: [{
+                    name: 'screen1',
+                    src: 'api/images/test.jpg',
+                    locale: {id: 57},
+                    textUnits: screenshotTextUnits,
+                    width: window.visualViewport.width,
+                    height: window.visualViewport.height
+                }
+            ]
+        };
+
+        // TODO check if a node is visible or not?
+
+        for (var wrappedNode of this.wrappedNodes) {
+
+            var boundingBox = wrappedNode.node.getBoundingClientRect();
+            
+            for (var textUnit of wrappedNode.textUnits) {
+                console.log(textUnit);
+                screenshotTextUnits.push({
+                    repositoryName: textUnit['repositoryName'],
+                    assetName: textUnit['assetName'],
+                    localeName: textUnit['localeName'],
+                    repositoryName: textUnit['textUnitName'],
+                    
+                    name: textUnit['textUnitName'],
+                    renderedTarget: textUnit['textUnitVariant'],
+                    x: boundingBox.left,
+                    y: boundingBox.top,
+                    width: boundingBox.width,
+                    height: boundingBox.height,
+                });
+            }
+        }
+
+        chrome.runtime.sendMessage({name: 'takeScreenshot', data: screenshotRun}, function (response) {
+        });
+    }
+
 }
 
 export default Ict;
