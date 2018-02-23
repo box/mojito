@@ -214,9 +214,14 @@ public class TextUnitWS {
     }
     
     @RequestMapping(method = RequestMethod.GET, value = "/api/assetTextUnits/{assetTextUnitId}/usages")
-    public Set<String> getAssetTextUnitUsages(@PathVariable Long assetTextUnitId) {
+    public Set<String> getAssetTextUnitUsages(@PathVariable Long assetTextUnitId) throws AssetTextUnitWithIdNotFoundException {
         logger.debug("Get usages of asset text unit for id: {}", assetTextUnitId);
         AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(assetTextUnitId);
+        
+        if (assetTextUnit == null) {
+            throw new AssetTextUnitWithIdNotFoundException(assetTextUnitId);
+        }
+        
         return assetTextUnit.getUsages();
     }
 
