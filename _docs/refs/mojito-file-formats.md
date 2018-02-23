@@ -14,6 +14,7 @@ permalink: /docs/refs/mojito-file-formats/
 | RESW                               | *.resw                                 |
 | RESX                               | *.resx                                 |
 | XLIFF                              | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
+| PO File                            | *.pot                                  |
 
 
 ### Android Strings Example
@@ -165,4 +166,51 @@ Localized Resource File (Spanish): resource_es-ES.xliff
 </xliff>   
 ```
 
+### PO File Example
+Source Resource File (English): messages.pot    
 
+
+```c
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-02-24 11:50-0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Greeting from Main UI
+#: file.js:2
+msgctxt "hello"
+msgid "Hello!"
+msgstr ""
+```
+
+Localized Resource File (Spanish): es-es/ ??? checkout!
+
+
+```c
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-02-24 11:50-0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Greeting from Main UI
+#: file.js:2
+msgctxt "hello"
+msgid "Hello!"
+msgstr "¡Hola!"
+```

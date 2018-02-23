@@ -4,9 +4,9 @@
   description: "
   Be agile.  Continuously develop and localize your application real-time.<br>
   New strings in the code flow into <font color=\"green\">mojito</font>, get translated, then flow back into the code. All automated!<br>
-  <small><i><font color=\"green\">mojito</font> supports Android, iOS, Java, Windows Resource files and xliff files using <a href=\"http://www.opentag.com/okapi/wiki/index.php\">Okapi Framework</a>.</i></small>"
+  <small><i><font color=\"green\">Mojito</font> supports Android, iOS, PO, Java, Windows Resource files and XLIFF files using <a href=\"http://www.opentag.com/okapi/wiki/index.php\">Okapi Framework</a>.</i></small>"
   screenshotContent: "<img src=\"images/screenshot-cl.png\" class=\"screenshot-cl\">"
-      
+
 - class: "section-2"
   type: "vertical"
   title: "Translation Searcher & Editor"
@@ -16,7 +16,7 @@
   Search specific strings across multiple repositories and languages.<br>
   "
   screenshotContent: "<img src=\"images/screenshot-workbench.png\" class=\"screenshot-workbench\">"
-  
+
 - class: "section-3"
   title: "Happy localization with <font color=\"green\">mojito</font>'s powerful features..."
   description: "<ul class=\"feature-list\">
