@@ -29,37 +29,38 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class UserWS {
-    
+
     /**
      * logger
      */
     static Logger logger = getLogger(UserWS.class);
-    
+
     @Autowired
     UserRepository userRepository;
-    
+
     @Autowired
     UserService userService;
-    
+
     /**
      * Returns list of {@link User}
-     * 
+     *
      * @param username
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/api/users", method = RequestMethod.GET)
     public List<User> getUsers(@RequestParam(value = "username", required = false) String username) {
-        List<User> users =  userRepository.findAll(
+        List<User> users = userRepository.findAll(
                 where(ifParamNotNull(usernameEquals(username)))
-                .and(enabledEquals(true)),
+                        .and(enabledEquals(true)),
                 new Sort(Sort.Direction.ASC, "username"));
         return users;
     }
-    
+
     /**
      * Creates a {@link User}
+     *
      * @param user
-     * @return 
+     * @return
      */
     @RequestMapping(value = "api/users", method = RequestMethod.POST)
     public ResponseEntity<User> createUser(@RequestBody User user) {
@@ -85,56 +86,48 @@ public class UserWS {
 
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
-    
+
     /**
      * Deletes a {@link User}
+     *
      * @param userId
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/api/users/{userId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteUserByUserId(@PathVariable Long userId) {    
+    public void deleteUserByUserId(@PathVariable Long userId) throws UserWithIdNotFoundException {
         logger.info("Deleting user [{}]", userId);
-        ResponseEntity result;
         User user = userRepository.findOne(userId);
 
-        if (user != null) {
-            userService.deleteUser(user);
-            result = new ResponseEntity(HttpStatus.OK);
-        } else {
-            result = new ResponseEntity(HttpStatus.NOT_FOUND);
+        if (user == null) {
+            throw new UserWithIdNotFoundException(userId);
         }
 
-        return result;
+        userService.deleteUser(user);
     }
-    
+
     /**
      * Updates {@link User}
-     * 
+     *
      * @param userId
      * @param user
-     * @return 
+     * @return
      */
     @RequestMapping(value = "/api/users/{userId}", method = RequestMethod.PATCH)
-    public ResponseEntity updateUserByUserId(@PathVariable Long userId, @RequestBody User user) {
+    public void updateUserByUserId(@PathVariable Long userId, @RequestBody User user) throws UserWithIdNotFoundException {
         logger.info("Updating user [{}]", userId);
-        ResponseEntity result;
         User userToUpdate = userRepository.findOne(userId);
 
-        if (userToUpdate != null) {
-
-            Role role = null;
-            if (user.getAuthorities() != null && !user.getAuthorities().isEmpty()) {
-                Authority authority = user.getAuthorities().iterator().next();
-                role = Role.valueOf(authority.getAuthority());
-            }
-            userService.saveUserWithRole(userToUpdate, user.getPassword(), role, user.getGivenName(), user.getSurname(), user.getCommonName());
-            result = new ResponseEntity(HttpStatus.OK);
-            
-        } else {
-            result = new ResponseEntity(HttpStatus.NOT_FOUND);
+        if (userToUpdate == null) {
+            throw new UserWithIdNotFoundException(userId);
         }
 
-        return result;
+        Role role = null;
+        if (user.getAuthorities() != null && !user.getAuthorities().isEmpty()) {
+            Authority authority = user.getAuthorities().iterator().next();
+            role = Role.valueOf(authority.getAuthority());
+        }
+        
+        userService.saveUserWithRole(userToUpdate, user.getPassword(), role, user.getGivenName(), user.getSurname(), user.getCommonName());
     }
-    
+
 }

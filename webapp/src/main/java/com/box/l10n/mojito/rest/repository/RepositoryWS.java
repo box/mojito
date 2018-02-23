@@ -53,17 +53,15 @@ public class RepositoryWS {
     RepositoryService repositoryService;
 
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
-    public ResponseEntity<Repository> getRepositoryById(@PathVariable Long repositoryId) {
+    public Repository getRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
         ResponseEntity<Repository> result;
         Repository repository = repositoryRepository.findOne(repositoryId);
 
-        if (repository != null) {
-            result = new ResponseEntity<>(repository, HttpStatus.OK);
-        } else {
-            result = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (repository == null) {
+            throw new RepositoryWithIdNotFoundException(repositoryId);
         }
 
-        return result;
+        return repository;
     }
 
     /**
@@ -167,19 +165,15 @@ public class RepositoryWS {
      * @return
      */
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteRepositoryById(@PathVariable Long repositoryId) {
+    public void deleteRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
         logger.info("Deleting repository [{}]", repositoryId);
-        ResponseEntity result;
         Repository repository = repositoryRepository.findOne(repositoryId);
 
-        if (repository != null) {
-            repositoryService.deleteRepository(repository);
-            result = new ResponseEntity(HttpStatus.OK);
-        } else {
-            result = new ResponseEntity(HttpStatus.NOT_FOUND);
+        if (repository == null) {
+            throw new RepositoryWithIdNotFoundException(repositoryId);
         }
 
-        return result;
+        repositoryService.deleteRepository(repository);
     }
 
     /**
@@ -191,22 +185,24 @@ public class RepositoryWS {
      */
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PATCH)
     public ResponseEntity updateRepository(@PathVariable Long repositoryId,
-            @RequestBody Repository repository) {
+            @RequestBody Repository repository) throws RepositoryWithIdNotFoundException {
         logger.info("Updating repository [{}]", repositoryId);
         ResponseEntity result;
         Repository repoToUpdate = repositoryRepository.findOne(repositoryId);
+        
+        if (repoToUpdate == null) {
+            throw new RepositoryWithIdNotFoundException(repositoryId);
+        }
 
         try {
-            if (repoToUpdate != null) {
-                repositoryService.updateRepository(repoToUpdate,
+            repositoryService.updateRepository(repoToUpdate,
                         repository.getName(),
                         repository.getDescription(),
                         repository.getRepositoryLocales(),
                         repository.getAssetIntegrityCheckers());
-                result = new ResponseEntity(HttpStatus.OK);
-            } else {
-                result = new ResponseEntity(HttpStatus.NOT_FOUND);
-            }
+            
+            result = new ResponseEntity(HttpStatus.OK);
+ 
         } catch (RepositoryNameAlreadyUsedException e) {
             logger.debug("Cannot create the repository", e);
             result = new ResponseEntity("Repository with name [" + repository.getName() + "] already exists", HttpStatus.CONFLICT);

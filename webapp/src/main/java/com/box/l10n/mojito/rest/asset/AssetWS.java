@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -244,20 +243,16 @@ public class AssetWS {
      * @return
      */
     @RequestMapping(value = "/api/assets/{assetId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteAssetById(@PathVariable Long assetId) {
+    public void deleteAssetById(@PathVariable Long assetId) throws AssetWithIdNotFoundException {
         logger.info("Deleting asset [{}]", assetId);
 
-        ResponseEntity result;
         Asset asset = assetRepository.findOne(assetId);
-
-        if (asset != null) {
-            assetService.deleteAsset(asset);
-            result = new ResponseEntity(HttpStatus.OK);
-        } else {
-            result = new ResponseEntity(HttpStatus.NOT_FOUND);
+        
+        if (asset == null) {
+            throw new AssetWithIdNotFoundException(assetId);
         }
 
-        return result;
+        assetService.deleteAsset(asset);
     }
 
     /**
@@ -267,10 +262,9 @@ public class AssetWS {
      * @return
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.DELETE)
-    public ResponseEntity deleteAssets(@RequestBody Set<Long> ids) {
+    public void deleteAssets(@RequestBody Set<Long> ids) {
         logger.info("Deleting assets: {}", ids.toString());
         assetService.deleteAssets(ids);
-        return new ResponseEntity(HttpStatus.OK);
     }
 
     /**
