@@ -47,9 +47,9 @@ public class LeveragingWS {
         PollableFuture pollableFuture;
 
         if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
-            pollableFuture = leveragingService.copyAllTranslationsWithMD5MatchBetweenRepositories(source, target);
+            pollableFuture = leveragingService.copyAllTranslationsWithMD5MatchBetweenRepositories(source, target, copyTmConfig.getNameRegex());
         } else {
-            pollableFuture = leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(source, target);
+            pollableFuture = leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(source, target, copyTmConfig.getNameRegex());
         }
 
         copyTmConfig.setPollableTask(pollableFuture.getPollableTask());

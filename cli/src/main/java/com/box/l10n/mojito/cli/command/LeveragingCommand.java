@@ -38,6 +38,9 @@ public class LeveragingCommand extends Command {
 
     @Parameter(names = {Param.TARGET_REPOSITORY_LONG, Param.TARGET_REPOSITORY_SHORT}, arity = 1, required = true, description = Param.TARGET_REPOSITORY_DESCRIPTION)
     String targetRepositoryParam;
+    
+    @Parameter(names = {"--name-regex", "-nr"}, arity = 1, required = false, description = "Leveraging will be performed only for target text units whose name matches provided regex")
+    String nameRegex;
 
     @Parameter(names = {"--mode", "-m"}, arity = 1, required = false, description = "Matching mode. "
             + "MD5 will perform matching based on the ID, content and comment. "
@@ -59,7 +62,7 @@ public class LeveragingCommand extends Command {
         Repository sourceRepository = commandHelper.findRepositoryByName(sourceRepositoryParam);
         Repository targetRepository = commandHelper.findRepositoryByName(targetRepositoryParam);
 
-        CopyTmConfig copyTM = leveragingClient.copyTM(sourceRepository.getId(), targetRepository.getId(), mode);
+        CopyTmConfig copyTM = leveragingClient.copyTM(sourceRepository.getId(), targetRepository.getId(), mode, nameRegex);
 
         PollableTask pollableTask = copyTM.getPollableTask();
         commandHelper.waitForPollableTask(pollableTask.getId());

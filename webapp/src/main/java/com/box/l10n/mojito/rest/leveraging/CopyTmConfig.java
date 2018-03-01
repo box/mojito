@@ -13,6 +13,7 @@ public class CopyTmConfig {
 
     Long sourceRepositoryId;
     Long targetRepositoryId;
+    String nameRegex;
 
     Mode mode = Mode.MD5;
 
@@ -56,6 +57,14 @@ public class CopyTmConfig {
 
     public void setMode(Mode mode) {
         this.mode = mode;
+    }
+
+    public String getNameRegex() {
+        return nameRegex;
+    }
+
+    public void setNameRegex(String nameRegex) {
+        this.nameRegex = nameRegex;
     }
 
     /**
