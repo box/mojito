@@ -120,8 +120,8 @@ public class LeveragingService {
      *
      * @param source the source repository
      * @param target the target repository
-     * @param nameRegex (optional) leverage is done only for text unit
-     * whose name matches provided regex
+     * @param nameRegex (optional) leverage is done only for text unit whose
+     * name matches provided regex
      */
     @Pollable(async = true, message = "Start copying all translations with exact match between repository")
     public PollableFuture copyAllTranslationsWithExactMatchBetweenRepositories(
@@ -131,7 +131,6 @@ public class LeveragingService {
 
         logger.debug("Get TmTextUnit that must be processed");
         List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(target.getTm().getId());
-        
         removeTmTextUnitsIfNameMatches(tmTextUnits, nameRegex);
 
         logger.debug("First perform leveraging by name and content (to give priority to string with same tags");
@@ -145,14 +144,16 @@ public class LeveragingService {
 
     void removeTmTextUnitsIfNameMatches(List<TMTextUnit> tmTextUnits, String tmTextUnitNameRegex) {
 
-        final Pattern pattern = Pattern.compile(tmTextUnitNameRegex);
+        if (tmTextUnitNameRegex != null) {
+            final Pattern pattern = Pattern.compile(tmTextUnitNameRegex);
 
-        Iterables.removeIf(tmTextUnits, new Predicate<TMTextUnit>() {
-            @Override
-            public boolean apply(TMTextUnit tmTextUnit) {
-                return pattern.matcher(tmTextUnit.getName()).matches();
-            }
-        });
+            Iterables.removeIf(tmTextUnits, new Predicate<TMTextUnit>() {
+                @Override
+                public boolean apply(TMTextUnit tmTextUnit) {
+                    return !pattern.matcher(tmTextUnit.getName()).matches();
+                }
+            });
+        }
     }
 
 }
