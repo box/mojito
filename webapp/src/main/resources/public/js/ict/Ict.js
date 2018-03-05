@@ -133,11 +133,15 @@ class Ict {
 
     processNode(node) {
         var hasMetaData = IctMetadataExtractor.hasMetadata(this.getStringFromNode(node));
-        var isAlreadyProccessed =
-                node.getAttribute && node.getAttribute('class').indexOf('mojito-ict-string') !== -1 || (
+        var isAlreadyProccessed = (
+                node.getAttribute &&
+                node.getAttribute('class') &&
+                node.getAttribute('class').indexOf('mojito-ict-string') !== -1
+                ) || (
                 node.parentNode &&
                 node.parentNode.getAttribute('class') &&
-                node.parentNode.getAttribute('class').indexOf('mojito-ict-string') !== -1);
+                node.parentNode.getAttribute('class').indexOf('mojito-ict-string') !== -1
+                );
 
         if (hasMetaData && !isAlreadyProccessed) {
             this.wrapNode(node, this.onClickBehavior.bind(this));
