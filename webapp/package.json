@@ -46,7 +46,6 @@
     "grunt-cli": "~0.1.13",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-eslint": "~17.1.0",
-    "grunt-sass": "^1.0.0",
     "html-webpack-plugin": "^2.29.0",
     "image-webpack-loader": "^3.3.1",
     "java-properties-flat-loader": "^1.0.0",
