@@ -436,6 +436,33 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void removeUntranslated() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("LC_MESSAGES/messages.pot", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-lm", "fr:fr-FR,ja:ja-JP",
+                "--inheritance-mode", "REMOVE_UNTRANSLATED");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-lm", "fr:fr-FR,ja:ja-JP",
+                "--inheritance-mode", "REMOVE_UNTRANSLATED");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void pullXtb() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
 

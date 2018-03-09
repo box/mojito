@@ -9,10 +9,8 @@ import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
-import com.box.l10n.mojito.rest.entity.Asset;
-import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import com.box.l10n.mojito.rest.entity.*;
+
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +59,11 @@ public class PullCommand extends Command {
 
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
+
+    @Parameter(names = {"--inheritance-mode"}, required = false, description = "How to handle missing translations "
+            + "the parent (USE_PARENT for using parent). ",
+            converter = LocalizedAssetBodyInheritanceMode.class)
+    LocalizedAssetBody.InheritanceMode inheritanceMode = null;
 
     @Autowired
     AssetClient assetClient;
@@ -217,7 +220,8 @@ public class PullCommand extends Command {
                     repositoryLocale.getLocale().getId(),
                     assetContent,
                     outputBcp47tag,
-                    sourceFileMatch.getFileType().getFilterConfigIdOverride());
+                    sourceFileMatch.getFileType().getFilterConfigIdOverride(),
+                    inheritanceMode);
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 

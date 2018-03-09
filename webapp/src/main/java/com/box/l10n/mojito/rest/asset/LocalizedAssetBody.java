@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.asset;
 
+import com.box.l10n.mojito.okapi.InheritanceMode;
+
 /**
  * @author wyau
  */
@@ -30,6 +32,8 @@ public class LocalizedAssetBody {
      * a specific Okapi filter to use to process the asset
      */
     FilterConfigIdOverride filterConfigIdOverride;
+
+    InheritanceMode inheritanceMode;
 
     public LocalizedAssetBody() {
     }
@@ -71,4 +75,11 @@ public class LocalizedAssetBody {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
+    public InheritanceMode getInheritanceMode() {
+        return inheritanceMode == null ? InheritanceMode.USE_PARENT : inheritanceMode ;
+    }
+
+    public void setInheritanceMode(InheritanceMode inheritanceMode) {
+        this.inheritanceMode = inheritanceMode;
+    }
 }
