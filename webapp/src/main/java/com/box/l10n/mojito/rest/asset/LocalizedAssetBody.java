@@ -33,7 +33,7 @@ public class LocalizedAssetBody {
      */
     FilterConfigIdOverride filterConfigIdOverride;
 
-    InheritanceMode inheritanceMode;
+    InheritanceMode inheritanceMode = InheritanceMode.USE_PARENT;
 
     public LocalizedAssetBody() {
     }
@@ -76,7 +76,7 @@ public class LocalizedAssetBody {
     }
 
     public InheritanceMode getInheritanceMode() {
-        return inheritanceMode == null ? InheritanceMode.USE_PARENT : inheritanceMode ;
+        return inheritanceMode;
     }
 
     public void setInheritanceMode(InheritanceMode inheritanceMode) {

@@ -6,24 +6,24 @@ import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 
 /**
  *
- * @author jaurambault
+ * @author dragosv
  */
 public class LocalizedAssetBodyInheritanceMode implements IStringConverter<LocalizedAssetBody.InheritanceMode> {
 
     @Override
     public LocalizedAssetBody.InheritanceMode convert(String string) {
 
-        LocalizedAssetBody.InheritanceMode statusEqualTarget = null;
+        LocalizedAssetBody.InheritanceMode inheritanceMode = null;
 
         if (string != null) {
             try {
-                statusEqualTarget = LocalizedAssetBody.InheritanceMode.valueOf(string.toUpperCase());
+                inheritanceMode = LocalizedAssetBody.InheritanceMode.valueOf(string.toUpperCase());
             } catch (IllegalArgumentException iae) {
-                throw new ParameterException("Invalid \"inheritance type\" processing type [" + string + "]");
+                throw new ParameterException("Invalid \"inheritance mode\" processing type [" + string + "]");
             }
         }
 
-        return statusEqualTarget;
+        return inheritanceMode;
     }
 
 }
