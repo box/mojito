@@ -17,8 +17,8 @@
     <properties>
         <start-class>com.box.l10n.mojito.Application</start-class>
         <frontend.maven.plugin.version>1.0</frontend.maven.plugin.version>
-        <node.version>v8.8.1</node.version>
-        <npm.version>5.4.1</npm.version>
+        <node.version>v9.5.0</node.version>
+        <npm.version>5.6.0</npm.version>
     </properties>
 
     <dependencies>
@@ -168,7 +168,7 @@
             <artifactId>langdetect</artifactId>
             <version>1.1-20120112</version>
         </dependency>
-
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
