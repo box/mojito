@@ -62,6 +62,10 @@ public class PullCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
+    @Parameter(names = {"--inheritance-mode"}, required = false, description = "Inheritance Mode. Used when there is no translations in the target locale for a text unit. (USE_PARENT to fallback to parent locale translation, REMOVE_TRANSLATED to remove the text unit from the file ",
+            converter = LocalizedAssetBodyInheritanceMode.class)
+    LocalizedAssetBody.InheritanceMode inheritanceMode = LocalizedAssetBody.InheritanceMode.USE_PARENT;
+
     @Autowired
     AssetClient assetClient;
 
@@ -217,7 +221,8 @@ public class PullCommand extends Command {
                     repositoryLocale.getLocale().getId(),
                     assetContent,
                     outputBcp47tag,
-                    sourceFileMatch.getFileType().getFilterConfigIdOverride());
+                    sourceFileMatch.getFileType().getFilterConfigIdOverride(),
+                    inheritanceMode);
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 

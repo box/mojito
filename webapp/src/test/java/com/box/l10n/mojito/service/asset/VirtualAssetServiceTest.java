@@ -350,6 +350,76 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void testImportLocalizedTextUnitsOneMissing() throws Exception {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddTextUnitVariant"));
+        RepositoryLocale repositoryLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
+        long frFRLocaleId = repositoryLocaleFrFR.getLocale().getId();
+
+        VirtualAsset virtualAsset = new VirtualAsset();
+        virtualAsset.setRepositoryId(repository.getId());
+        virtualAsset.setPath("default");
+        virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+
+        List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
+
+        VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name1");
+        virtualAssetTextUnit.setContent("content1");
+        virtualAssetTextUnit.setComment("comment1");
+        virtualAssetTextUnits.add(virtualAssetTextUnit);
+
+        virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name2");
+        virtualAssetTextUnit.setContent("content2");
+        virtualAssetTextUnit.setComment("comment2");
+        virtualAssetTextUnits.add(virtualAssetTextUnit);
+
+        virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name3_other");
+        virtualAssetTextUnit.setContent("content3");
+        virtualAssetTextUnit.setComment("comment3");
+        virtualAssetTextUnit.setPluralForm("other");
+        virtualAssetTextUnit.setPluralFormOther("name3_other");
+        virtualAssetTextUnits.add(virtualAssetTextUnit);
+
+        virtualAssetService.addTextUnits(virtualAssetTextUnits, virtualAsset.getId());
+
+        List<VirtualAssetTextUnit> localizedVirtualAssetTextUnits = new ArrayList<>();
+
+        virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name2");
+        virtualAssetTextUnit.setContent("content2-fr");
+        virtualAssetTextUnit.setComment("comment2-fr");
+        localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
+
+        virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name3_other");
+        virtualAssetTextUnit.setContent("content3-fr");
+        virtualAssetTextUnit.setComment("comment3-fr");
+        virtualAssetTextUnit.setPluralForm("other");
+        virtualAssetTextUnit.setPluralFormOther("name3_other");
+        localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
+
+        virtualAssetService.importLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, localizedVirtualAssetTextUnits);
+
+        List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLoalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
+        assertEquals(2, loalizedTextUnits.size());
+        int i = 0;
+        assertEquals("name2", loalizedTextUnits.get(i).getName());
+        assertEquals("content2-fr", loalizedTextUnits.get(i).getContent());
+        assertEquals("comment2", loalizedTextUnits.get(i).getComment());
+        assertNull(loalizedTextUnits.get(i).getPluralForm());
+        assertNull(loalizedTextUnits.get(i).getPluralFormOther());
+
+        i++;
+        assertEquals("name3_other", loalizedTextUnits.get(i).getName());
+        assertEquals("content3-fr", loalizedTextUnits.get(i).getContent());
+        assertEquals("comment3", loalizedTextUnits.get(i).getComment());
+        assertEquals("other", loalizedTextUnits.get(i).getPluralForm());
+        assertEquals("name3_other", loalizedTextUnits.get(i).getPluralFormOther());
+    }
+
+    @Test
     public void testDeleteTextUnit() throws Exception {
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddTextUnit"));
