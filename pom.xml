@@ -93,60 +93,6 @@
                         </configuration>
                     </plugin>
 
-                    <!-- Enable deployment of artifacts -->
-                    <plugin>
-                        <groupId>org.jfrog.buildinfo</groupId>
-                        <artifactId>artifactory-maven-plugin</artifactId>
-                        <version>2.6.1</version>
-                        <inherited>false</inherited>
-                        <executions>
-                            <execution>
-                                <id>build-info</id>
-                                <goals>
-                                    <goal>publish</goal>
-                                </goals>
-                                <configuration>
-                                    <deployProperties>
-                                        <gradle>awesome</gradle>
-                                    </deployProperties>
-                                    <publisher>
-                                        <contextUrl>https://box.jfrog.io/box</contextUrl>
-                                        <username>${env.artifactory_username}</username>
-                                        <password>${env.artifactory_password}</password>
-                                        <repoKey>box-maven-releases</repoKey>
-                                        <snapshotRepoKey>box-maven-snapshots</snapshotRepoKey>
-                                    </publisher>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <!-- Jar Signing -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                                <configuration>
-                                    <passphrase>${env.gpg_password}</passphrase>
-                                    <gpgArguments>
-                                        <arg>--batch</arg>
-                                        <arg>--passphrase-fd</arg>
-                                        <arg>0</arg>
-                                        <arg>--armor</arg>
-                                        <arg>--detach-sign</arg>
-                                    </gpgArguments>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
                     <!-- Generate sources and attach the artifact to the build -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -189,15 +135,4 @@
         <module>webapp</module>
         <module>mavenplugin</module>
     </modules>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-            <name>bintray-plugins</name>
-            <url>http://jcenter.bintray.com</url>
-        </pluginRepository>
-    </pluginRepositories>
 </project>
