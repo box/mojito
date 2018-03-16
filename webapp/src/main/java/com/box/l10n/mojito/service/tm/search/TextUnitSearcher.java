@@ -103,12 +103,12 @@ public class TextUnitSearcher {
 
         c.addJoin(NativeExps.leftJoin("asset_text_unit", "atu", "atu.id", "map.asset_text_unit_id"));
         
-        // check plural form for language
+        // Handle plural forms with potential filter per locale
+        c.addJoin(NativeExps.leftJoin("plural_form", "pf", "tu.plural_form_id", "pf.id"));      
         NativeJunctionExp onClausePluralForm = NativeExps.conjunction();
         onClausePluralForm.add(new NativeColumnEqExp("pffl.plural_form_id", "tu.plural_form_id"));
         onClausePluralForm.add(new NativeColumnEqExp("pffl.locale_id", "l.id"));
         c.addJoin(new NativeJoin("plural_form_for_locale", "pffl", NativeJoin.JoinType.LEFT_OUTER, onClausePluralForm));
-        c.addJoin(NativeExps.leftJoin("plural_form", "pf", "pffl.plural_form_id", "pf.id"));
         
         logger.debug("Set projections");
 
@@ -142,11 +142,12 @@ public class TextUnitSearcher {
         logger.debug("Add search filters");
         NativeJunctionExp conjunction = NativeExps.conjunction();
         
-        // get ride of uncessary plural form per language
-        NativeJunctionExp pluralFormForLocale = NativeExps.disjunction();
-        pluralFormForLocale.add(NativeExps.isNotNull("pffl.plural_form_id"));
-        pluralFormForLocale.add(NativeExps.isNull("tu.plural_form_id"));
-        conjunction.add(pluralFormForLocale);
+        if (searchParameters.isPluralFormsFiltered()) {
+            NativeJunctionExp pluralFormForLocale = NativeExps.disjunction();
+            pluralFormForLocale.add(NativeExps.isNotNull("pffl.plural_form_id"));
+            pluralFormForLocale.add(NativeExps.isNull("tu.plural_form_id"));
+            conjunction.add(pluralFormForLocale);
+        }
         
         if (searchParameters.getRepositoryIds() != null && !searchParameters.getRepositoryIds().isEmpty()) {
             conjunction.add(NativeExps.in("r.id", searchParameters.getRepositoryIds()));
