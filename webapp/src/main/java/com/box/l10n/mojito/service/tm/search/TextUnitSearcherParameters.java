@@ -32,6 +32,7 @@ public class TextUnitSearcherParameters {
     String md5;
     boolean rootLocaleExcluded = true;
     boolean untranslatedOrTranslationNeeded = false;
+    boolean pluralFormsFiltered = true;
 
     public String getName() {
         return name;
@@ -189,4 +190,11 @@ public class TextUnitSearcherParameters {
         this.repositoryNames = repositoryNames;
     }
 
+    public boolean isPluralFormsFiltered() {
+        return pluralFormsFiltered;
+    }
+
+    public void setPluralFormsFiltered(boolean pluralFormsFiltered) {
+        this.pluralFormsFiltered = pluralFormsFiltered;
+    }
 }
