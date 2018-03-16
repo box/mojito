@@ -191,7 +191,7 @@ msgid "Hello!"
 msgstr ""
 ```
 
-Localized Resource File (Spanish): es-es/ ??? checkout!
+Localized Resource File (Spanish): es_ES/LC_MESSAGES/messages.po
 
 
 ```c
