@@ -66,6 +66,10 @@ public class PullCommand extends Command {
             converter = LocalizedAssetBodyInheritanceMode.class)
     LocalizedAssetBody.InheritanceMode inheritanceMode = LocalizedAssetBody.InheritanceMode.USE_PARENT;
 
+    @Parameter(names = {"--translated-state"}, required = false, description = "Indicate what state represent a translated state. Used when using inheritance mode REMOVE_TRANSLATED. (INCLUDE_REVIEW_NEEDED to include both approved and needing review units, ONLY_APPROVED to include only approved",
+            converter = LocalizedAssetBodyTranslatedState.class)
+    LocalizedAssetBody.TranslatedState translatedState = LocalizedAssetBody.TranslatedState.INCLUDE_REVIEW_NEEDED;
+
     @Autowired
     AssetClient assetClient;
 
@@ -222,7 +226,8 @@ public class PullCommand extends Command {
                     assetContent,
                     outputBcp47tag,
                     sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-                    inheritanceMode);
+                    inheritanceMode,
+                    translatedState);
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 

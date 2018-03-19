@@ -66,9 +66,13 @@ public class TranslatorWithInheritance {
             String source,
             String md5) {
 
-        String translation = null;
-
         TextUnitDTO textUnitDTO = getTextUnitDTO(name, source, md5);
+
+        return getTranslationFromTextUnitDTO(textUnitDTO, source);
+    }
+
+    public String getTranslationFromTextUnitDTO(TextUnitDTO textUnitDTO, String source) {
+        String translation = null;
 
         if (textUnitDTO != null) {
             translation = textUnitDTO.getTarget();
@@ -79,7 +83,7 @@ public class TranslatorWithInheritance {
 
         return translation;
     }
-    
+
     public TextUnitDTO getTextUnitDTO(
             String name,
             String source,

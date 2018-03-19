@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.TranslatedState;
 
 /**
  * @author wyau
@@ -34,6 +35,8 @@ public class LocalizedAssetBody {
     FilterConfigIdOverride filterConfigIdOverride;
 
     InheritanceMode inheritanceMode = InheritanceMode.USE_PARENT;
+
+    TranslatedState translatedState = TranslatedState.INCLUDE_REVIEW_NEEDED;
 
     public LocalizedAssetBody() {
     }
@@ -82,4 +85,8 @@ public class LocalizedAssetBody {
     public void setInheritanceMode(InheritanceMode inheritanceMode) {
         this.inheritanceMode = inheritanceMode;
     }
+
+    public TranslatedState getTranslatedState() { return translatedState; }
+
+    public void setTranslatedState(TranslatedState translatedState) { this.translatedState = translatedState; }
 }

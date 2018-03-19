@@ -10,21 +10,8 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
-import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
-import com.box.l10n.mojito.okapi.CopyFormsOnImport;
-import com.box.l10n.mojito.okapi.FilterEventsToInMemoryRawDocumentStep;
-import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
-import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
-import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
+import com.box.l10n.mojito.okapi.*;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
-import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
-import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
-import com.box.l10n.mojito.okapi.InheritanceMode;
-import com.box.l10n.mojito.okapi.PseudoLocalizeStep;
-import com.box.l10n.mojito.okapi.RawDocument;
-import com.box.l10n.mojito.okapi.TranslateStep;
-import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
@@ -827,6 +814,7 @@ public class TMService {
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
      * @param inheritanceMode
+     * @param translatedState
      * @return the localized asset
      */
     public String generateLocalized(
@@ -835,7 +823,8 @@ public class TMService {
             RepositoryLocale repositoryLocale,
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride,
-            InheritanceMode inheritanceMode) {
+            InheritanceMode inheritanceMode,
+            TranslatedState translatedState) {
 
         String bcp47Tag;
 
@@ -848,7 +837,7 @@ public class TMService {
 
         logger.debug("Configuring pipeline for localized XLIFF generation");
 
-        BasePipelineStep translateStep = (BasePipelineStep) new TranslateStep(asset, repositoryLocale, inheritanceMode);
+        BasePipelineStep translateStep = (BasePipelineStep) new TranslateStep(asset, repositoryLocale, inheritanceMode, translatedState);
         return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47Tag, translateStep);
     }
 

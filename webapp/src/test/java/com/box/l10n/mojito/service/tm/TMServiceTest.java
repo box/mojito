@@ -10,6 +10,7 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.TranslatedState;
 import com.box.l10n.mojito.okapi.filters.MacStringsEncoder;
 import com.box.l10n.mojito.okapi.filters.XMLEncoder;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -414,7 +415,7 @@ public class TMServiceTest extends ServiceTestBase {
         tmService.addTMTextUnitCurrentVariant(tmTextUnit3.getId(), locale.getId(), "!?!?!?!?!", null, TMTextUnitVariant.Status.REVIEW_NEEDED, false);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
@@ -436,14 +437,42 @@ public class TMServiceTest extends ServiceTestBase {
         Locale locale = repositoryLocale.getLocale();
 
         tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
-        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application");
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
+
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
 
         // Adding current variant that failed integrity checks (should not be included in localized XLIFF)
         //TODO(P1) need to save in comments
         tmService.addTMTextUnitCurrentVariant(tmTextUnit3.getId(), locale.getId(), "!?!?!?!?!", null, TMTextUnitVariant.Status.REVIEW_NEEDED, false);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, TranslatedState.INCLUDE_REVIEW_NEEDED);
+
+        String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1), newTmTextUnitWithVariant(tmTextUnit2, variant2));
+        assertEquals(
+                removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
+        );
+    }
+
+    @Test
+    public void testGenerateLocalizedXLIFFRemoveUntranslatedOnlyApproved() throws RepositoryNameAlreadyUsedException {
+
+        createTestData();
+
+        TMTextUnit tmTextUnit1 = tmService.addTMTextUnit(tmId, assetId, "application_name", "Application Name", "This text is shown in the start screen of the application. Keep it short.");
+        TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tmId, assetId, "home", "Home", "This is the text displayed in the link that takes the user to the home page.");
+
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryAndLocale_Bcp47Tag(repository, "fr-FR");
+        Locale locale = repositoryLocale.getLocale();
+
+        tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application",  TMTextUnitVariant.Status.APPROVED,true);
+
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+
+        String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2));
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, TranslatedState.ONLY_APPROVED);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1));
         assertEquals(
@@ -474,7 +503,7 @@ public class TMServiceTest extends ServiceTestBase {
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
 
         String outputBcp47tag = "fr-FR";
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag, null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag, null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(outputBcp47tag, tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
@@ -749,7 +778,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -804,7 +833,7 @@ public class TMServiceTest extends ServiceTestBase {
             assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
     }
@@ -868,7 +897,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
 //        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
     }
@@ -918,7 +947,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -964,7 +993,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -1010,7 +1039,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.REMOVE_UNTRANSLATED);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.REMOVE_UNTRANSLATED, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(forImport, localizedAsset);
     }
@@ -1059,7 +1088,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -1134,7 +1163,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
          
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
 
@@ -1158,7 +1187,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
-        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT);
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized after import=\n{}", localizedAsset);
         assertEquals(forImport, localizedAsset);
     }
@@ -1222,7 +1251,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
         assetResult.get();
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
 
@@ -1245,7 +1274,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
-        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED);
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized after import=\n{}", localizedAsset);
         assertEquals(forImport, localizedAsset);
     }
@@ -1324,7 +1353,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
 //        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
 
@@ -1350,7 +1379,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
-        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, InheritanceMode.USE_PARENT);
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized after import=\n{}", localizedAsset);
 
         assertEquals(forImport, localizedAsset);
@@ -1429,7 +1458,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
 //        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
 
@@ -1455,7 +1484,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
-        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT);
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized after import=\n{}", localizedAsset);
 
         assertEquals(forImport, localizedAsset);
@@ -1495,7 +1524,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -1545,7 +1574,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedContent, localizedAsset);
     }
@@ -1583,7 +1612,7 @@ public class TMServiceTest extends ServiceTestBase {
             throw new RuntimeException(e);
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.REMOVE_UNTRANSLATED);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.REMOVE_UNTRANSLATED, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized=\n{}", localizedAsset);
         //assertEquals(expectedContent, localizedAsset);
 
@@ -1595,7 +1624,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
-        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED);
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, TranslatedState.INCLUDE_REVIEW_NEEDED);
         logger.debug("localized after import=\n{}", localizedAsset);
         assertEquals(forImport, localizedAsset);
 
