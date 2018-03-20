@@ -27,9 +27,19 @@ public enum StatusFilter {
     UNTRANSLATED,
     /**
      * All TextUnits that have a translation with any status
-     * ({@link TMTextUnitVariant.Status}.
+     * ({@link TMTextUnitVariant.Status} but not rejected.
      */
     TRANSLATED_AND_NOT_REJECTED,
+    /**
+     * TextUnits with status ({@link TMTextUnitVariant.Status#APPROVED})
+     * or ({@link TMTextUnitVariant.Status#REVIEW_NEEDED}) but not rejected.
+     */
+    APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED,
+     /**
+     * TextUnits with status ({@link TMTextUnitVariant.Status#APPROVED})
+     * or ({@link TMTextUnitVariant.Status#REVIEW_NEEDED}) but not rejected.
+     */
+    APPROVED_AND_NOT_REJECTED,
     /**
      * TextUnits that should be sent for translation.
      *
