@@ -1,8 +1,7 @@
 package com.box.l10n.mojito.okapi;
 
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
-import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
@@ -10,11 +9,14 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
+import net.sf.okapi.common.resource.StartDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +56,14 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
     TranslatorWithInheritance translatorWithInheritance;
 
+    Map<String, TMTextUnit> textUnitsByMd5 = new HashMap<>();
+    Map<String, TMTextUnit> textUnitsByName = new HashMap<>();
+
+    /**
+     * Indicates if the document that is processed is multilingual or not
+     */
+    boolean isMultilingual = false;
+
     /**
      * Cache that contains the translations required to translate the asset.
      */
@@ -74,6 +84,8 @@ public class TranslateStep extends AbstractMd5ComputationStep {
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
         this.translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode);
+
+        initTmTextUnitsMapsForAsset();
     }
 
     @SuppressWarnings("deprecation")
@@ -89,8 +101,33 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
     @Override
     public String getDescription() {
-        return "Populates the target with the translations of the TM."
+        return "Populates the target with the translations of the TM and state."
                 + " Expects: raw document. Sends back: original events.";
+    }
+
+    @Override
+    protected Event handleStartDocument(Event event) {
+        logger.debug("Initialize statistics for the import");
+
+        StartDocument startDocument = event.getStartDocument();
+        isMultilingual = startDocument.isMultilingual();
+
+        initTmTextUnitsMapsForAsset();
+
+        return super.handleStartDocument(event);
+    }
+
+    void initTmTextUnitsMapsForAsset() {
+        logger.debug("Init TmTextUnit maps for asset");
+        List<TMTextUnit> textUnits = tmTextUnitRepository.findByAsset(asset);
+
+        for (TMTextUnit tmTextUnit : textUnits) {
+            if (isMultilingual) {
+                textUnitsByMd5.put(tmTextUnit.getMd5(), tmTextUnit);
+            } else {
+                textUnitsByName.put(tmTextUnit.getName(), tmTextUnit);
+            }
+        }
     }
 
     @Override
@@ -105,11 +142,82 @@ public class TranslateStep extends AbstractMd5ComputationStep {
                 logger.debug("Remove untranslated text unit");
                 event = Event.NOOP_EVENT;
             } else {
+                Long targetLocaleId = getTargetLocaleId();
+
                 logger.debug("Set translation for text unit with name: {}, translation: {}", name, translation);
-                textUnit.setTarget(targetLocale, new TextContainer(translation));
+                TextContainer textContainer = new TextContainer(translation);
+
+                XliffState xliffState = XliffState.NEW;
+
+                TMTextUnit tmTextUnit =  getTMTextUnit();
+                TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
+                TMTextUnitVariant tmTextUnitVariant = null;
+
+                if (tmTextUnit != null) {
+                     tmTextUnitCurrentVariant = getTMTextUnitCurrentVariant(targetLocaleId, tmTextUnit);
+                }
+
+                if (tmTextUnitCurrentVariant != null) {
+                    tmTextUnitVariant = tmTextUnitCurrentVariant.getTmTextUnitVariant();
+                }
+
+                if (tmTextUnitVariant != null) {
+                    xliffState = getXliffState(tmTextUnitVariant);
+                }
+
+                setStateProperty(textContainer, xliffState);
+
+                textUnit.setTarget(targetLocale, textContainer);
             }
         }
 
         return event;
+    }
+
+    TMTextUnit getTMTextUnit() {
+
+        TMTextUnit tmTextUnit;
+        if (isMultilingual) {
+            tmTextUnit = textUnitsByMd5.get(md5);
+        } else {
+            tmTextUnit = textUnitsByName.get(name);
+        }
+
+        return tmTextUnit;
+    }
+
+    Long getTargetLocaleId() {
+        String bcp47TagLowerCase = targetLocale.toBCP47();
+        return localeService.findByBcp47Tag(bcp47TagLowerCase).getId();
+    }
+
+    XliffState getXliffState(TMTextUnitVariant tmTextUnitVariant) {
+
+        XliffState xliffState = XliffState.NEEDS_TRANSLATION;
+
+        if (tmTextUnitVariant.isIncludedInLocalizedFile()) {
+            if (TMTextUnitVariant.Status.APPROVED.equals(tmTextUnitVariant.getStatus())) {
+                xliffState = XliffState.FINAL;
+            } else if (tmTextUnitVariant.getStatus().equals(TMTextUnitVariant.Status.REVIEW_NEEDED)) {
+                xliffState = XliffState.NEEDS_REVIEW_TRANSLATION;
+            }
+        }
+
+        return xliffState;
+    }
+
+    TMTextUnitCurrentVariant getTMTextUnitCurrentVariant(Long localeId, TMTextUnit tmTextUnit) {
+        return tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnit.getId());
+    }
+
+    /**
+     *
+     * @param target
+     * @param xliffState
+     */
+    void setStateProperty(TextContainer target, XliffState xliffState) {
+        if (target != null) {
+            target.setProperty(new net.sf.okapi.common.resource.Property(com.box.l10n.mojito.okapi.Property.STATE, xliffState.toString()));
+        }
     }
 }
