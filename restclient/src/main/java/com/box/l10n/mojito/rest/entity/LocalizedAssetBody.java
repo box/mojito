@@ -20,6 +20,11 @@ public class LocalizedAssetBody {
         USE_PARENT
     }
 
+    public enum TranslatedState {
+        INCLUDE_REVIEW_NEEDED,
+        ONLY_APPROVED
+    }
+
     /**
      * bcp47 tag of the locale content
      */
@@ -47,6 +52,8 @@ public class LocalizedAssetBody {
     FilterConfigIdOverride filterConfigIdOverride;
 
     InheritanceMode inheritanceMode;
+
+    TranslatedState translatedState = TranslatedState.INCLUDE_REVIEW_NEEDED;
 
     public String getBcp47Tag() {
         return bcp47Tag;
@@ -87,4 +94,8 @@ public class LocalizedAssetBody {
     public InheritanceMode getInheritanceMode() {
         return inheritanceMode;
     }
+
+    public TranslatedState getTranslatedState() { return translatedState; }
+
+    public void setTranslatedState(TranslatedState translatedState) { this.translatedState = translatedState; }
 }
