@@ -224,6 +224,18 @@ public class TextUnitSearcher {
                 case TRANSLATED:
                     conjunction.add(NativeExps.isNotNull("tuv.id"));
                     break;
+                case APPROVED_AND_NOT_REJECTED:
+                    conjunction.add(NativeExps.eq("tuv.status", TMTextUnitVariant.Status.APPROVED.toString()));
+                    conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.TRUE));
+                    break;
+                case APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED:
+                    List<String> statuses = Arrays.asList(
+                            TMTextUnitVariant.Status.APPROVED.toString(), 
+                            TMTextUnitVariant.Status.REVIEW_NEEDED.toString()
+                    );
+                    conjunction.add(NativeExps.in("tuv.status", statuses));
+                    conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.TRUE));
+                    break;
                 case TRANSLATED_AND_NOT_REJECTED:
                     conjunction.add(NativeExps.isNotNull("tuv.id"));
                     conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.TRUE));

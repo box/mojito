@@ -7,10 +7,7 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import java.util.HashMap;
-import java.util.Map;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
@@ -53,12 +50,7 @@ public class TranslateStep extends AbstractMd5ComputationStep {
     RepositoryLocale repositoryLocale;
 
     TranslatorWithInheritance translatorWithInheritance;
-
-    /**
-     * Cache that contains the translations required to translate the asset.
-     */
-    Map<Long, Map<String, TextUnitDTO>> localeToTextUnitDTOsForLocaleMap = new HashMap<>();
-
+    
     /**
      * Creates the {@link TranslateStep} for a given asset.
      *
