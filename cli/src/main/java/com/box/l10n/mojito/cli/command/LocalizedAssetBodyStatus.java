@@ -8,22 +8,22 @@ import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
  *
  * @author dragosv
  */
-public class LocalizedAssetBodyTranslatedState implements IStringConverter<LocalizedAssetBody.TranslatedState> {
+public class LocalizedAssetBodyStatus implements IStringConverter<LocalizedAssetBody.Status> {
 
     @Override
-    public LocalizedAssetBody.TranslatedState convert(String string) {
+    public LocalizedAssetBody.Status convert(String string) {
 
-        LocalizedAssetBody.TranslatedState translatedState = null;
+        LocalizedAssetBody.Status status = null;
 
         if (string != null) {
             try {
-                translatedState = LocalizedAssetBody.TranslatedState.valueOf(string.toUpperCase());
+                status = LocalizedAssetBody.Status.valueOf(string.toUpperCase());
             } catch (IllegalArgumentException iae) {
                 throw new ParameterException("Invalid \"translated state\" processing type [" + string + "]");
             }
         }
 
-        return translatedState;
+        return status;
     }
 
 }

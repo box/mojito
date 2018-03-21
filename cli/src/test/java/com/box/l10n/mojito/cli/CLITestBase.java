@@ -93,8 +93,6 @@ public class CLITestBase extends IOTestBase {
     @Rule
     public OutputCapture outputCapture = new OutputCapture();
 
-    private Map<String, Long> localeMap = new HashMap<>();
-
     @Bean
     public ApplicationListener<EmbeddedServletContainerInitializedEvent> getApplicationListenerEmbeddedServletContainerInitializedEvent() {
 
@@ -164,7 +162,7 @@ public class CLITestBase extends IOTestBase {
 
         List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
         for (TextUnitDTO textUnitDTO : search) {
-            logger.info("name[{}], source[{}], target[{}], comment[{}]", textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getTarget(), textUnitDTO.getComment());
+            logger.debug("name[{}], source[{}], target[{}], comment[{}]", textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getTarget(), textUnitDTO.getComment());
 
             if (textUnitDTO.getTarget() != null) {
                 tmService.addCurrentTMTextUnitVariant(textUnitDTO.getTmTextUnitId(), locale.getId(), textUnitDTO.getTarget(), status, true);

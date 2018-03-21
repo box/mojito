@@ -150,7 +150,7 @@ public class AssetWS {
                 localizedAssetBody.getOutputBcp47tag(),
                 localizedAssetBody.getFilterConfigIdOverride(),
                 localizedAssetBody.getInheritanceMode(),
-                localizedAssetBody.getTranslatedState());
+                localizedAssetBody.getStatus());
 
         localizedAssetBody.setContent(generateLocalized);
 

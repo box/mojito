@@ -20,9 +20,10 @@ public class LocalizedAssetBody {
         USE_PARENT
     }
 
-    public enum TranslatedState {
-        INCLUDE_REVIEW_NEEDED,
-        ONLY_APPROVED
+    public enum Status {
+        ALL,
+        APPROVED_OR_NEEDS_REVIEW,
+        APPROVED
     }
 
     /**
@@ -53,7 +54,7 @@ public class LocalizedAssetBody {
 
     InheritanceMode inheritanceMode;
 
-    TranslatedState translatedState = TranslatedState.INCLUDE_REVIEW_NEEDED;
+    Status status = Status.APPROVED_OR_NEEDS_REVIEW;
 
     public String getBcp47Tag() {
         return bcp47Tag;
@@ -95,7 +96,7 @@ public class LocalizedAssetBody {
         return inheritanceMode;
     }
 
-    public TranslatedState getTranslatedState() { return translatedState; }
+    public Status getStatus() { return status; }
 
-    public void setTranslatedState(TranslatedState translatedState) { this.translatedState = translatedState; }
+    public void setStatus(Status status) { this.status = status; }
 }

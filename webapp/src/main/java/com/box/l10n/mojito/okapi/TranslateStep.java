@@ -49,7 +49,8 @@ public class TranslateStep extends AbstractMd5ComputationStep {
     InheritanceMode inheritanceMode;
 
     RepositoryLocale repositoryLocale;
-    private final TranslatedState translatedState;
+
+    private Status status;
 
     TranslatorWithInheritance translatorWithInheritance;
 
@@ -61,13 +62,13 @@ public class TranslateStep extends AbstractMd5ComputationStep {
      * case the file needs to be generated for a tag that is different from the
      * locale used for translation.
      * @param inheritanceMode
-     * @param translatedState
+     * @param status
      */
-    public TranslateStep(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, TranslatedState translatedState) {
+    public TranslateStep(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, Status status) {
         this.asset = asset;
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
-        this.translatedState = translatedState;
+        this.status = status;
 
         this.translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode);
     }
@@ -98,14 +99,14 @@ public class TranslateStep extends AbstractMd5ComputationStep {
             final TextUnitDTO textUnitDTO = translatorWithInheritance.getTextUnitDTO(name, source, md5);
             String translation = translatorWithInheritance.getTranslationFromTextUnitDTO(textUnitDTO, source);
 
-            TMTextUnitVariant.Status status = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
+            TMTextUnitVariant.Status tmStatus = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
 
             if (InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
                 if (textUnitDTO != null) {
-                    status = textUnitDTO.getStatus();
+                    tmStatus = textUnitDTO.getStatus();
                 }
 
-                if (translatedState == TranslatedState.ONLY_APPROVED && status != TMTextUnitVariant.Status.APPROVED) {
+                if (status == Status.APPROVED && tmStatus != TMTextUnitVariant.Status.APPROVED) {
                     translation = null;
                 }
 
@@ -116,16 +117,8 @@ public class TranslateStep extends AbstractMd5ComputationStep {
                 }
             }
 
-//            XliffState xliffState = getXliffState(status);
-//
-//            boolean approved = xliffState == XliffState.FINAL;
-
             logger.debug("Set translation for text unit with name: {}, translation: {}", name, translation);
             TextContainer targetContainer = new TextContainer(translation);
-
-//            setApprovedProperty(targetContainer, approved);
-//
-//            setStateProperty(targetContainer, xliffState);
 
             textUnit.setTarget(targetLocale, targetContainer);
         }
@@ -144,19 +137,5 @@ public class TranslateStep extends AbstractMd5ComputationStep {
         }
 
         return xliffState;
-    }
-
-    void setStateProperty(TextContainer target, XliffState xliffState) {
-        if (target != null) {
-            target.setProperty(new net.sf.okapi.common.resource.Property(Property.STATE, xliffState.toString()));
-        }
-    }
-
-    void setApprovedProperty(TextContainer target, boolean approved) {
-        if (target != null) {
-            String approvedString = approved ? "yes" : "no";
-
-            target.setProperty(new net.sf.okapi.common.resource.Property(Property.APPROVED, approvedString));
-        }
     }
 }
