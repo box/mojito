@@ -50,15 +50,22 @@ public class TranslatorWithInheritance {
 
     RepositoryLocale repositoryLocale;
 
+    private StatusFilter statusFilter;
+
     /**
      * Cache that contains the translations required to translate the asset.
      */
     Map<Long, Map<String, TextUnitDTO>> localeToTextUnitDTOsForLocaleMap = new HashMap<>();
 
     public TranslatorWithInheritance(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode) {
+        this(asset, repositoryLocale, inheritanceMode, StatusFilter.TRANSLATED_AND_NOT_REJECTED);
+    }
+
+    public TranslatorWithInheritance(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, StatusFilter statusFilter) {
         this.asset = asset;
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
+        this.statusFilter = statusFilter;
     }
 
     public String getTranslation(
@@ -66,9 +73,13 @@ public class TranslatorWithInheritance {
             String source,
             String md5) {
 
-        String translation = null;
-
         TextUnitDTO textUnitDTO = getTextUnitDTO(name, source, md5);
+
+        return getTranslationFromTextUnitDTO(textUnitDTO, source);
+    }
+
+    public String getTranslationFromTextUnitDTO(TextUnitDTO textUnitDTO, String source) {
+        String translation = null;
 
         if (textUnitDTO != null) {
             translation = textUnitDTO.getTarget();
@@ -79,7 +90,7 @@ public class TranslatorWithInheritance {
 
         return translation;
     }
-    
+
     public TextUnitDTO getTextUnitDTO(
             String name,
             String source,
@@ -192,7 +203,7 @@ public class TranslatorWithInheritance {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setLocaleId(localeId);
         textUnitSearcherParameters.setAssetId(asset.getId());
-        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED_AND_NOT_REJECTED);
+        textUnitSearcherParameters.setStatusFilter(statusFilter);
 
         logger.debug("Getting TextUnitDTOs");
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);

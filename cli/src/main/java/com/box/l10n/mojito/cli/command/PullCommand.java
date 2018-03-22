@@ -66,6 +66,10 @@ public class PullCommand extends Command {
             converter = LocalizedAssetBodyInheritanceMode.class)
     LocalizedAssetBody.InheritanceMode inheritanceMode = LocalizedAssetBody.InheritanceMode.USE_PARENT;
 
+    @Parameter(names = {"--status"}, required = false, description = "To choose the translations used to generate the file based on their status. ACCEPTED: only includes translations that are accepted. ACCEPTED_OR_NEEDS_REVIEW: includes translations that are accepted or that need review. ALL: includes all translations available even if they need re-translation (\"rejected\" translations are always excluded as they are considered harmful).",
+            converter = LocalizedAssetBodyStatus.class)
+    LocalizedAssetBody.Status status = LocalizedAssetBody.Status.ALL;
+
     @Autowired
     AssetClient assetClient;
 
@@ -222,7 +226,8 @@ public class PullCommand extends Command {
                     assetContent,
                     outputBcp47tag,
                     sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-                    inheritanceMode);
+                    inheritanceMode,
+                    status);
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 

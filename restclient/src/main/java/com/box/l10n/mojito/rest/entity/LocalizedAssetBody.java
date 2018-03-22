@@ -20,6 +20,12 @@ public class LocalizedAssetBody {
         USE_PARENT
     }
 
+    public enum Status {
+        ALL,
+        ACCEPTED_OR_NEEDS_REVIEW,
+        ACCEPTED
+    }
+
     /**
      * bcp47 tag of the locale content
      */
@@ -47,6 +53,8 @@ public class LocalizedAssetBody {
     FilterConfigIdOverride filterConfigIdOverride;
 
     InheritanceMode inheritanceMode;
+
+    Status status = Status.ALL;
 
     public String getBcp47Tag() {
         return bcp47Tag;
@@ -86,5 +94,13 @@ public class LocalizedAssetBody {
 
     public InheritanceMode getInheritanceMode() {
         return inheritanceMode;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

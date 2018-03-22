@@ -463,6 +463,41 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void onlyApproved() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("test.xliff", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        updateTranslationsStatus(asset.getId(), TMTextUnitVariant.Status.REVIEW_NEEDED, "fr-FR");
+        updateTranslationsStatus(asset.getId(), TMTextUnitVariant.Status.REVIEW_NEEDED, "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+                "--inheritance-mode", "REMOVE_UNTRANSLATED",
+                "--status", "ACCEPTED");
+
+        updateTranslationsStatus(asset.getId(), TMTextUnitVariant.Status.APPROVED, "fr-FR");
+        updateTranslationsStatus(asset.getId(), TMTextUnitVariant.Status.APPROVED, "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
+                "--inheritance-mode", "REMOVE_UNTRANSLATED",
+                "--status", "ACCEPTED");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void pullXtb() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
 

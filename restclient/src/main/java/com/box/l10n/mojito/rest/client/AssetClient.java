@@ -79,7 +79,8 @@ public class AssetClient extends BaseClient {
             String content,
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride,
-            LocalizedAssetBody.InheritanceMode inheritanceMode) {
+            LocalizedAssetBody.InheritanceMode inheritanceMode,
+            LocalizedAssetBody.Status status) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -90,6 +91,7 @@ public class AssetClient extends BaseClient {
         localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
         localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
         localizedAssetBody.setInheritanceMode(inheritanceMode);
+        localizedAssetBody.setStatus(status);
 
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 localizedAssetBody,

@@ -1,13 +1,18 @@
 package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.cli.command.L10nJCommander;
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
+import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -17,7 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -69,6 +77,9 @@ public class CLITestBase extends IOTestBase {
 
     @Autowired
     TMImportService tmImportService;
+
+    @Autowired
+    TMService tmService;
 
     @Autowired
     ResttemplateConfig resttemplateConfig;
@@ -142,4 +153,20 @@ public class CLITestBase extends IOTestBase {
 
     }
 
+    public void updateTranslationsStatus(Long assetId, TMTextUnitVariant.Status status, String bcp47Tag) throws IOException {
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setAssetId(assetId);
+        textUnitSearcherParameters.setLocaleTags(Arrays.asList(bcp47Tag));
+
+        Locale locale = localeService.findByBcp47Tag(bcp47Tag);
+
+        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+        for (TextUnitDTO textUnitDTO : search) {
+            logger.debug("name[{}], source[{}], target[{}], comment[{}]", textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getTarget(), textUnitDTO.getComment());
+
+            if (textUnitDTO.getTarget() != null) {
+                tmService.addCurrentTMTextUnitVariant(textUnitDTO.getTmTextUnitId(), locale.getId(), textUnitDTO.getTarget(), status, true);
+            }
+        }
+    }
 }
