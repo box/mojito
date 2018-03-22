@@ -22,8 +22,8 @@ public class LocalizedAssetBody {
 
     public enum Status {
         ALL,
-        APPROVED_OR_NEEDS_REVIEW,
-        APPROVED
+        ACCEPTED_OR_NEEDS_REVIEW,
+        ACCEPTED
     }
 
     /**

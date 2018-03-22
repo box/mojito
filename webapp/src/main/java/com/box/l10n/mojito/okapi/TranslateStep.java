@@ -65,10 +65,10 @@ public class TranslateStep extends AbstractMd5ComputationStep {
             case ALL:
                 statusFilter = StatusFilter.TRANSLATED_AND_NOT_REJECTED;
                 break;
-            case APPROVED:
+            case ACCEPTED:
                 statusFilter = StatusFilter.APPROVED_AND_NOT_REJECTED;
                 break;
-            case APPROVED_OR_NEEDS_REVIEW:
+            case ACCEPTED_OR_NEEDS_REVIEW:
                 statusFilter = StatusFilter.APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED;
                 break;
         }

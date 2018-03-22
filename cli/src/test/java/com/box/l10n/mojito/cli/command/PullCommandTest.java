@@ -482,7 +482,7 @@ public class PullCommandTest extends CLITestBase {
                 "-t", getTargetTestDir("target").getAbsolutePath(),
                 "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
                 "--inheritance-mode", "REMOVE_UNTRANSLATED",
-                "--status", "APPROVED");
+                "--status", "ACCEPTED");
 
         updateTranslationsStatus(asset.getId(), TMTextUnitVariant.Status.APPROVED, "fr-FR");
         updateTranslationsStatus(asset.getId(), TMTextUnitVariant.Status.APPROVED, "ja-JP");
@@ -492,7 +492,7 @@ public class PullCommandTest extends CLITestBase {
                 "-t", getTargetTestDir("target_modified").getAbsolutePath(),
                 "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
                 "--inheritance-mode", "REMOVE_UNTRANSLATED",
-                "--status", "APPROVED");
+                "--status", "ACCEPTED");
 
         checkExpectedGeneratedResources();
     }

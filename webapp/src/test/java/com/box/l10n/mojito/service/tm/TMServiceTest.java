@@ -472,7 +472,7 @@ public class TMServiceTest extends ServiceTestBase {
         TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2));
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.APPROVED);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ACCEPTED);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1));
         assertEquals(
@@ -501,7 +501,7 @@ public class TMServiceTest extends ServiceTestBase {
         TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve",  TMTextUnitVariant.Status.TRANSLATION_NEEDED,true);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.APPROVED_OR_NEEDS_REVIEW);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ACCEPTED_OR_NEEDS_REVIEW);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1), newTmTextUnitWithVariant(tmTextUnit2, variant2));
         assertEquals(
