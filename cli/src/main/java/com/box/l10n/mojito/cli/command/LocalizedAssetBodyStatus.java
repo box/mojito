@@ -19,7 +19,7 @@ public class LocalizedAssetBodyStatus implements IStringConverter<LocalizedAsset
             try {
                 status = LocalizedAssetBody.Status.valueOf(string.toUpperCase());
             } catch (IllegalArgumentException iae) {
-                throw new ParameterException("Invalid \"translated state\" processing type [" + string + "]");
+                throw new ParameterException("Invalid \"status\" processing type [" + string + "]");
             }
         }
 

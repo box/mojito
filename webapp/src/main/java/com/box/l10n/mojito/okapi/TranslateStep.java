@@ -89,7 +89,7 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
     @Override
     public String getDescription() {
-        return "Populates the target with the translations of the TM and state."
+        return "Populates the target with the translations of the TM."
                 + " Expects: raw document. Sends back: original events.";
     }
 

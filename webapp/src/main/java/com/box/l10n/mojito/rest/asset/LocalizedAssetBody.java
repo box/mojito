@@ -36,7 +36,7 @@ public class LocalizedAssetBody {
 
     InheritanceMode inheritanceMode = InheritanceMode.USE_PARENT;
 
-    Status status = Status.APPROVED_OR_NEEDS_REVIEW;
+    Status status = Status.ALL;
 
     public LocalizedAssetBody() {
     }
@@ -86,7 +86,11 @@ public class LocalizedAssetBody {
         this.inheritanceMode = inheritanceMode;
     }
 
-    public Status getStatus() { return status; }
+    public Status getStatus() {
+        return status;
+    }
 
-    public void setStatus(Status status) { this.status = status; }
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 }

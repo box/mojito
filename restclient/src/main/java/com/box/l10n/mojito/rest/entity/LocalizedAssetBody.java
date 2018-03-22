@@ -54,7 +54,7 @@ public class LocalizedAssetBody {
 
     InheritanceMode inheritanceMode;
 
-    Status status = Status.APPROVED_OR_NEEDS_REVIEW;
+    Status status = Status.ALL;
 
     public String getBcp47Tag() {
         return bcp47Tag;
@@ -96,7 +96,11 @@ public class LocalizedAssetBody {
         return inheritanceMode;
     }
 
-    public Status getStatus() { return status; }
+    public Status getStatus() {
+        return status;
+    }
 
-    public void setStatus(Status status) { this.status = status; }
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 }
