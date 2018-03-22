@@ -1,18 +1,14 @@
 package com.box.l10n.mojito.okapi;
 
-import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
-import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
-import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
-import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
-import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,29 +24,17 @@ public class TranslateStep extends AbstractMd5ComputationStep {
     static Logger logger = LoggerFactory.getLogger(TranslateStep.class);
 
     @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
-
-    @Autowired
-    TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
-
-    @Autowired
-    LocaleService localeService;
-
-    @Autowired
-    RepositoryLocaleRepository repositoryLocaleRepository;
-
-    @Autowired
     TextUnitSearcher textUnitSearcher;
 
     private LocaleId targetLocale;
 
+    private Status status;
+
+    private InheritanceMode inheritanceMode;
+
     Asset asset;
 
-    InheritanceMode inheritanceMode;
-
     RepositoryLocale repositoryLocale;
-
-    private Status status;
 
     TranslatorWithInheritance translatorWithInheritance;
 
@@ -68,9 +52,28 @@ public class TranslateStep extends AbstractMd5ComputationStep {
         this.asset = asset;
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
-        this.status = status;
 
-        this.translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode);
+        StatusFilter statusFilter = getStatusFilter(status);
+
+        this.translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode, statusFilter);
+    }
+
+    private StatusFilter getStatusFilter(Status status) {
+        StatusFilter statusFilter = StatusFilter.TRANSLATED_AND_NOT_REJECTED;
+
+        switch (status) {
+            case ALL:
+                statusFilter = StatusFilter.TRANSLATED_AND_NOT_REJECTED;
+                break;
+            case APPROVED:
+                statusFilter = StatusFilter.APPROVED_AND_NOT_REJECTED;
+                break;
+            case APPROVED_OR_NEEDS_REVIEW:
+                statusFilter = StatusFilter.APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED;
+                break;
+        }
+
+        return statusFilter;
     }
 
     @SuppressWarnings("deprecation")
@@ -96,46 +99,17 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
         if (textUnit.isTranslatable()) {
 
-            final TextUnitDTO textUnitDTO = translatorWithInheritance.getTextUnitDTO(name, source, md5);
-            String translation = translatorWithInheritance.getTranslationFromTextUnitDTO(textUnitDTO, source);
+            String translation = translatorWithInheritance.getTranslation(name, source, md5);
 
-            TMTextUnitVariant.Status tmStatus = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
-
-            if (InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
-                if (textUnitDTO != null) {
-                    tmStatus = textUnitDTO.getStatus();
-                }
-
-                if (status == Status.APPROVED && tmStatus != TMTextUnitVariant.Status.APPROVED) {
-                    translation = null;
-                }
-
-                if (translation == null ) {
-                    logger.debug("Remove untranslated text unit");
-
-                    return Event.NOOP_EVENT;
-                }
+            if (translation == null && InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
+                logger.debug("Remove untranslated text unit");
+                event = Event.NOOP_EVENT;
+            } else {
+                logger.debug("Set translation for text unit with name: {}, translation: {}", name, translation);
+                textUnit.setTarget(targetLocale, new TextContainer(translation));
             }
-
-            logger.debug("Set translation for text unit with name: {}, translation: {}", name, translation);
-            TextContainer targetContainer = new TextContainer(translation);
-
-            textUnit.setTarget(targetLocale, targetContainer);
         }
 
         return event;
-    }
-
-    XliffState getXliffState(TMTextUnitVariant.Status status) {
-
-        XliffState xliffState = XliffState.NEEDS_TRANSLATION;
-
-        if (TMTextUnitVariant.Status.APPROVED.equals(status)) {
-            xliffState = XliffState.FINAL;
-        } else if (status.equals(TMTextUnitVariant.Status.REVIEW_NEEDED)) {
-            xliffState = XliffState.NEEDS_REVIEW_TRANSLATION;
-        }
-
-        return xliffState;
     }
 }
