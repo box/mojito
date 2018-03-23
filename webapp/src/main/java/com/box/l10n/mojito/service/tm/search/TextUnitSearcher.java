@@ -203,7 +203,7 @@ public class TextUnitSearcher {
         }
         
         if (searchParameters.getPluralFormId() != null) {
-            conjunction.add(NativeExps.eq("pf.id", searchParameters.getPluralFormId()));
+            conjunction.add(NativeExps.eq("tu.plural_form_id", searchParameters.getPluralFormId()));
         }
 
         StatusFilter statusFilter = searchParameters.getStatusFilter();
