@@ -201,6 +201,10 @@ public class TextUnitSearcher {
         if (searchParameters.getTmId() != null) {
             conjunction.add(NativeExps.eq("tu.tm_id", searchParameters.getTmId()));
         }
+        
+        if (searchParameters.getPluralFormId() != null) {
+            conjunction.add(NativeExps.eq("pf.id", searchParameters.getPluralFormId()));
+        }
 
         StatusFilter statusFilter = searchParameters.getStatusFilter();
 
