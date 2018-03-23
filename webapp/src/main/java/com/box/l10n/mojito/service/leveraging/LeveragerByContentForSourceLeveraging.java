@@ -36,7 +36,9 @@ public class LeveragerByContentForSourceLeveraging extends AbstractLeverager {
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
         textUnitSearcherParameters.setAssetId(tmTextUnit.getAsset().getId());
-
+        if (tmTextUnit.getPluralForm() != null) {
+            textUnitSearcherParameters.setPluralFormId(tmTextUnit.getPluralForm().getId());
+        }
         return textUnitSearcher.search(textUnitSearcherParameters);
 
     }

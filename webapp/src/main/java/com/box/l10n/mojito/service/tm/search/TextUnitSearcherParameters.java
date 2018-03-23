@@ -33,6 +33,7 @@ public class TextUnitSearcherParameters {
     boolean rootLocaleExcluded = true;
     boolean untranslatedOrTranslationNeeded = false;
     boolean pluralFormsFiltered = true;
+    Long pluralFormId;
 
     public String getName() {
         return name;
@@ -196,5 +197,13 @@ public class TextUnitSearcherParameters {
 
     public void setPluralFormsFiltered(boolean pluralFormsFiltered) {
         this.pluralFormsFiltered = pluralFormsFiltered;
+    }
+
+    public Long getPluralFormId() {
+        return pluralFormId;
+    }
+
+    public void setPluralFormId(Long pluralFormId) {
+        this.pluralFormId = pluralFormId;
     }
 }
