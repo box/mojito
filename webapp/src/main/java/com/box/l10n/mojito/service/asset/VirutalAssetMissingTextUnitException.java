@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class VirutalAssetMissingTextUnitException extends Exception {
 
     public VirutalAssetMissingTextUnitException(String string) {
+        super(string);
     }
     
 }
