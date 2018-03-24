@@ -22,7 +22,11 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
+import com.box.l10n.mojito.service.tm.search.SearchType;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.google.common.base.Strings;
 import com.ibm.icu.text.MessageFormat;
 import java.util.ArrayList;
@@ -342,15 +346,28 @@ public class VirtualAssetService {
             throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
         logger.debug("Add text unit variant to virtual assetId: {}, with name: {}", assetId, name);
         Asset asset = assetRepository.getOne(assetId);
-        TMTextUnit findFirstByAssetAndName = tmTextUnitRepository.findFirstByAssetAndName(asset, name);
 
-        if (findFirstByAssetAndName == null) {
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setAssetId(asset.getId());
+        textUnitSearcherParameters.setName(name);
+        textUnitSearcherParameters.setSearchType(SearchType.EXACT);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setLimit(1);
+
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        if (textUnitDTOs.isEmpty()) {
+            textUnitSearcherParameters.setUsedFilter(UsedFilter.UNUSED);
+            textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        }
+        
+        if (textUnitDTOs.isEmpty()) {
             String msg = MessageFormat.format("Missing TmTextUnit for assetId: {0} and name: {1}", assetId, name);
             logger.debug(msg);
             throw new VirutalAssetMissingTextUnitException(msg);
         }
 
-        return tmService.addCurrentTMTextUnitVariant(findFirstByAssetAndName.getId(), localeId, content);
+        return tmService.addCurrentTMTextUnitVariant(textUnitDTOs.get(0).getTmTextUnitId(), localeId, content);
     }
 
     VirtualAssetTextUnit convertAssetTextUnitToVirtualAssetTextUnit(AssetTextUnit assetTextUnit) {
