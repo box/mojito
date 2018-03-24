@@ -345,10 +345,9 @@ public class VirtualAssetService {
     TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment)
             throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
         logger.debug("Add text unit variant to virtual assetId: {}, with name: {}", assetId, name);
-        Asset asset = assetRepository.getOne(assetId);
-
+         
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setAssetId(asset.getId());
+        textUnitSearcherParameters.setAssetId(assetId);
         textUnitSearcherParameters.setName(name);
         textUnitSearcherParameters.setSearchType(SearchType.EXACT);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
