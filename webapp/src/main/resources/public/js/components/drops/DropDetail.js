@@ -25,11 +25,10 @@ let DropDetail = React.createClass({
      *
      * @param {string} bcp47Tag
      */
-    updateSearchParamsForLocale(bcp47Tag) {
-
+    updateSearchParamsForLocale(repoId, bcp47Tag) {
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
-            "repoIds": [this.props.repoId],
+            "repoIds": [repoId],
             "bcp47Tags": [bcp47Tag],
             "status": SearchParamsStore.STATUS.ALL
         });
@@ -42,7 +41,7 @@ let DropDetail = React.createClass({
             return <tr key={"DropDetail.row." + tk.localeDisplayName}>
                 <td>
                     <div>
-                        <Link onClick={this.updateSearchParamsForLocale.bind(this, tk.locale.bcp47Tag)}
+                        <Link onClick={this.updateSearchParamsForLocale.bind(this, this.props.drop.repository.id, tk.locale.bcp47Tag)}
                               to='/workbench'>{tk.localeDisplayName}</Link>
                     </div>
                 </td>
