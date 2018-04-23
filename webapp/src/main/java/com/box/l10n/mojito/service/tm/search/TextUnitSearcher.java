@@ -250,7 +250,10 @@ public class TextUnitSearcher {
                 case FOR_TRANSLATION:
                     conjunction.add(NativeExps.disjunction(
                             Arrays.asList(
-                                    NativeExps.isNull("tuv.id"),
+                                    NativeExps.conjunction(Arrays.asList(
+                                            NativeExps.isNull("tuv.id"), 
+                                            NativeExps.eq("atu.do_not_translate", Boolean.FALSE))
+                                    ),
                                     NativeExps.eq("tuv.status", TMTextUnitVariant.Status.TRANSLATION_NEEDED.toString()),
                                     NativeExps.eq("tuv.included_in_localized_file", Boolean.FALSE)
                             )
@@ -273,7 +276,7 @@ public class TextUnitSearcher {
                     ));
             }
         }
-
+        
         if (!conjunction.toSQL().isEmpty()) {
             c.add(conjunction);
         }

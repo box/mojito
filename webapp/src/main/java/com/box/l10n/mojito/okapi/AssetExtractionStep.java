@@ -92,6 +92,7 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
                         comments, 
                         pluralForm, 
                         pluralFormOther,
+                        false,
                         getUsages());
                 
             } else {

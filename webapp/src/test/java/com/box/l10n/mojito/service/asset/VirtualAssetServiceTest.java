@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -103,7 +105,8 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
                 "content plural",
                 "comment plural",
                 pluralFormService.findByPluralFormString("other"),
-                "name_plural_other");
+                "name_plural_other",
+                false);
 
         virtualAssetService.addTextUnit(
                 virtualAsset.getId(),
@@ -111,9 +114,10 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
                 "content",
                 "comment",
                 null,
-                null);
+                null,
+                true);
 
-        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId());
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
         assertEquals(2, textUnits.size());
 
         int i = 0;
@@ -122,6 +126,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertEquals("comment", textUnits.get(i).getComment());
         assertNull(textUnits.get(i).getPluralForm());
         assertNull(textUnits.get(i).getPluralFormOther());
+        assertTrue(textUnits.get(i).getDoNotTranslate());
 
         i++;
         assertEquals("name_plural_other", textUnits.get(i).getName());
@@ -129,6 +134,76 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertEquals("comment plural", textUnits.get(i).getComment());
         assertEquals("other", textUnits.get(i).getPluralForm());
         assertEquals("name_plural_other", textUnits.get(i).getPluralFormOther());
+        assertFalse(textUnits.get(i).getDoNotTranslate());
+    }
+    
+    @Test
+    public void testGetTextunitWithDoNoTranslateFilter() throws Exception {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testGetTextunitWithDoNoTranslateFilter"));
+        VirtualAsset virtualAsset = new VirtualAsset();
+        virtualAsset.setRepositoryId(repository.getId());
+        virtualAsset.setPath("default");
+        virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name_plural_other",
+                "content plural",
+                "comment plural",
+                pluralFormService.findByPluralFormString("other"),
+                "name_plural_other",
+                true);
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name",
+                "content",
+                "comment",
+                null,
+                null,
+                false);
+
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        assertEquals(2, textUnits.size());
+
+        int i = 0;
+        assertEquals("name", textUnits.get(i).getName());
+        assertEquals("content", textUnits.get(i).getContent());
+        assertEquals("comment", textUnits.get(i).getComment());
+        assertNull(textUnits.get(i).getPluralForm());
+        assertNull(textUnits.get(i).getPluralFormOther());
+        assertFalse(textUnits.get(i).getDoNotTranslate());
+
+        i++;
+        assertEquals("name_plural_other", textUnits.get(i).getName());
+        assertEquals("content plural", textUnits.get(i).getContent());
+        assertEquals("comment plural", textUnits.get(i).getComment());
+        assertEquals("other", textUnits.get(i).getPluralForm());
+        assertEquals("name_plural_other", textUnits.get(i).getPluralFormOther());
+        assertTrue(textUnits.get(i).getDoNotTranslate());
+        
+        List<VirtualAssetTextUnit> doNotTranslateTextUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), true);
+        assertEquals(1, doNotTranslateTextUnits.size());
+
+        i = 0;
+        assertEquals("name_plural_other", doNotTranslateTextUnits.get(i).getName());
+        assertEquals("content plural", doNotTranslateTextUnits.get(i).getContent());
+        assertEquals("comment plural", doNotTranslateTextUnits.get(i).getComment());
+        assertEquals("other", doNotTranslateTextUnits.get(i).getPluralForm());
+        assertEquals("name_plural_other", doNotTranslateTextUnits.get(i).getPluralFormOther());
+        assertTrue(doNotTranslateTextUnits.get(i).getDoNotTranslate());
+        
+        
+        List<VirtualAssetTextUnit> translateTextUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), false);
+        assertEquals(1, translateTextUnits.size());
+
+        i = 0;
+        assertEquals("name", translateTextUnits.get(i).getName());
+        assertEquals("content", translateTextUnits.get(i).getContent());
+        assertEquals("comment", translateTextUnits.get(i).getComment());
+        assertNull(translateTextUnits.get(i).getPluralForm());
+        assertNull(translateTextUnits.get(i).getPluralFormOther());
+        assertFalse(translateTextUnits.get(i).getDoNotTranslate());
     }
 
     @Test(expected = VirtualAssetRequiredException.class)
@@ -142,7 +217,8 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
                 "content plural",
                 "comment plural",
                 pluralFormService.findByPluralFormString("other"),
-                "name_plural_other");
+                "name_plural_other",
+                false);
     }
 
     @Test
@@ -162,12 +238,13 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
                 "content plural",
                 "comment plural",
                 pluralFormService.findByPluralFormString("other"),
-                "name_plural_other");
+                "name_plural_other",
+                false);
 
         TMTextUnitVariant addTextUnitVariant = virtualAssetService.addTextUnitVariant(virtualAsset.getId(), frFRLocaleId, "name_plural_other", "content-fr", "comment-fr");
         Assert.assertNotNull(addTextUnitVariant.getId());
 
-        List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLoalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
+        List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
         assertEquals(1, loalizedTextUnits.size());
         int i = 0;
         assertEquals("name_plural_other", loalizedTextUnits.get(i).getName());
@@ -208,9 +285,9 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         virtualAssetTextUnit.setPluralFormOther("name3_other");
         virtualAssetTextUnits.add(virtualAssetTextUnit);
 
-        virtualAssetService.addTextUnits(virtualAssetTextUnits, virtualAsset.getId());
+        virtualAssetService.addTextUnits(virtualAsset.getId(), virtualAssetTextUnits);
 
-        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId());
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
 
         assertEquals(3, textUnits.size());
         int i = 0;
@@ -249,7 +326,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
 
         virtualAssetService.replaceTextUnits(virtualAsset.getId(), replaceVirtualAssetTextUnits);
 
-        List<VirtualAssetTextUnit> replacedTextUnits = virtualAssetService.getTextUnits(virtualAsset.getId());
+        List<VirtualAssetTextUnit> replacedTextUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
 
         assertEquals(2, replacedTextUnits.size());
         i = 0;
@@ -300,7 +377,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         virtualAssetTextUnit.setPluralFormOther("name3_other");
         virtualAssetTextUnits.add(virtualAssetTextUnit);
 
-        virtualAssetService.addTextUnits(virtualAssetTextUnits, virtualAsset.getId());
+        virtualAssetService.addTextUnits(virtualAsset.getId(), virtualAssetTextUnits);
 
         List<VirtualAssetTextUnit> localizedVirtualAssetTextUnits = new ArrayList<>();
         virtualAssetTextUnit = new VirtualAssetTextUnit();
@@ -325,7 +402,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
 
         virtualAssetService.importLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, localizedVirtualAssetTextUnits);
 
-        List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLoalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
+        List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
         assertEquals(3, loalizedTextUnits.size());
         int i = 0;
         assertEquals("name1", loalizedTextUnits.get(i).getName());
@@ -382,7 +459,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         virtualAssetTextUnit.setPluralFormOther("name3_other");
         virtualAssetTextUnits.add(virtualAssetTextUnit);
 
-        virtualAssetService.addTextUnits(virtualAssetTextUnits, virtualAsset.getId());
+        virtualAssetService.addTextUnits(virtualAsset.getId(), virtualAssetTextUnits);
 
         List<VirtualAssetTextUnit> localizedVirtualAssetTextUnits = new ArrayList<>();
 
@@ -402,7 +479,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
 
         virtualAssetService.importLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, localizedVirtualAssetTextUnits);
 
-        List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLoalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
+        List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
         assertEquals(2, loalizedTextUnits.size());
         int i = 0;
         assertEquals("name2", loalizedTextUnits.get(i).getName());
@@ -434,7 +511,8 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
                 "content plural",
                 "comment plural",
                 pluralFormService.findByPluralFormString("other"),
-                "name_plural_other");
+                "name_plural_other",
+                false);
 
         virtualAssetService.addTextUnit(
                 virtualAsset.getId(),
@@ -442,14 +520,15 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
                 "content",
                 "comment",
                 null,
-                null);
+                null,
+                false);
 
-        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId());
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
         assertEquals(2, textUnits.size());
 
         virtualAssetService.deleteTextUnit(virtualAsset.getId(), "name_plural_other");
 
-        textUnits = virtualAssetService.getTextUnits(virtualAsset.getId());
+        textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
         assertEquals(1, textUnits.size());
         assertEquals("name", textUnits.get(0).getName());
     }
