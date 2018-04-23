@@ -12,6 +12,8 @@ public class VirtualAssetTextUnit {
     String pluralForm;
     String pluralFormOther;
 
+    Boolean doNotTranslate;
+
     public String getName() {
         return name;
     }
@@ -52,4 +54,12 @@ public class VirtualAssetTextUnit {
         this.pluralFormOther = pluralFormOther;
     }
 
+    public Boolean getDoNotTranslate() {
+        return doNotTranslate;
+    }
+
+    public void setDoNotTranslate(Boolean doNotTranslate) {
+        this.doNotTranslate = doNotTranslate;
+    }
+    
 }

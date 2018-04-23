@@ -41,7 +41,7 @@ public class VirtualAssetWS {
             @PathVariable("assetId") long assetId,
             @RequestBody List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
 
-        virtualAssetService.addTextUnits(virtualAssetTextUnits, assetId);
+        virtualAssetService.addTextUnits(assetId, virtualAssetTextUnits);
     }
 
     @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.PUT)
@@ -69,8 +69,10 @@ public class VirtualAssetWS {
     }
 
     @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.GET)
-    public List<VirtualAssetTextUnit> getTextUnits(@PathVariable("assetId") long assetId) throws VirtualAssetRequiredException {
-        return virtualAssetService.getTextUnits(assetId);
+    public List<VirtualAssetTextUnit> getTextUnits(
+            @PathVariable("assetId") long assetId,
+            @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter) throws VirtualAssetRequiredException {
+        return virtualAssetService.getTextUnits(assetId, doNotTranslateFilter);
     }
     
     @RequestMapping(value = "/api/virtualAssets/{assetId}/locale/{localeId}/textUnits", method = RequestMethod.GET)
@@ -79,7 +81,7 @@ public class VirtualAssetWS {
             @PathVariable(value = "localeId") long localeId,
             @RequestParam(value = "inheritanceMode", defaultValue = "USE_PARENT") InheritanceMode inheritanceMode) throws VirtualAssetRequiredException {
 
-        return virtualAssetService.getLoalizedTextUnits(assetId, localeId, inheritanceMode);
+        return virtualAssetService.getLocalizedTextUnits(assetId, localeId, inheritanceMode);
     }
 
 }

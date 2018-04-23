@@ -60,6 +60,7 @@ public class AssetExtractionService {
      * If the asset type is supported, starts the text units extraction for the given asset.
      *
      * @param assetId {@link Asset#id} to extract text units from
+     * @param filterConfigIdOverride
      * @param parentTask The parent task to be updated
      * @param currentTask The current task, injected
      * @return A {@link Future}
@@ -139,7 +140,7 @@ public class AssetExtractionService {
      * @return The created AssetTextUnit
      */
     public AssetTextUnit createAssetTextUnit(Long assetExtractionId, String name, String content, String comment) {
-        return createAssetTextUnit(assetExtractionId, name, content, comment, null, null, null);
+        return createAssetTextUnit(assetExtractionId, name, content, comment, null, null, false, null);
     }
      
     /**
@@ -151,6 +152,7 @@ public class AssetExtractionService {
      * @param comment           Comment for the TextUnit
      * @param pluralForm        optional plural form
      * @param pluralFormOther   optional other plural form
+     * @param doNotTranslate    to indicate if the TextUnit should be translated
      * @param usages            optional usages in the code source
      * @return The created AssetTextUnit
      */
@@ -162,6 +164,7 @@ public class AssetExtractionService {
             String comment, 
             PluralForm pluralForm, 
             String pluralFormOther,
+            boolean doNotTranslate,
             Set<String> usages) {
 
         logger.debug("Adding AssetTextUnit for assetExtractionId: {}\nname: {}\ncontent: {}\ncomment: {}\n", assetExtractionId, name, content, comment);
@@ -175,6 +178,7 @@ public class AssetExtractionService {
         assetTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         assetTextUnit.setPluralForm(pluralForm);
         assetTextUnit.setPluralFormOther(pluralFormOther);
+        assetTextUnit.setDoNotTranslate(doNotTranslate);
         assetTextUnit.setUsages(usages);
 
         assetTextUnitRepository.save(assetTextUnit);

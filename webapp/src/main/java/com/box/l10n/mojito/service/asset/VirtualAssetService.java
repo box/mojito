@@ -10,6 +10,8 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.assetExtractionIdEquals;
+import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.doNotTranslateEquals;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
@@ -27,6 +29,8 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.ibm.icu.text.MessageFormat;
 import java.util.ArrayList;
@@ -34,6 +38,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,7 +125,7 @@ public class VirtualAssetService {
     }
 
     @Transactional
-    public List<VirtualAssetTextUnit> getTextUnits(long assetId) throws VirtualAssetRequiredException {
+    public List<VirtualAssetTextUnit> getTextUnits(long assetId, Boolean doNotTranslateFilter) throws VirtualAssetRequiredException {
 
         logger.debug("Get textunit for virtual asset: {}", assetId);
 
@@ -127,8 +133,8 @@ public class VirtualAssetService {
 
         Asset asset = getVirtualAsset(assetId);
         Long lastSuccessfulAssetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
-        List<AssetTextUnit> findByAssetExtractionAssetId = assetTextUnitRepository.findByAssetExtractionIdOrderByNameAsc(lastSuccessfulAssetExtractionId);
-
+        List<AssetTextUnit> findByAssetExtractionAssetId = findByAssetExtractionAssetIdAndDoNotTranslateFilter(lastSuccessfulAssetExtractionId, doNotTranslateFilter);
+        
         for (AssetTextUnit assetTextUnit : findByAssetExtractionAssetId) {
             VirtualAssetTextUnit textUnitForVirtualAsset = convertAssetTextUnitToVirtualAssetTextUnit(assetTextUnit);
             virtualAssetTextUnits.add(textUnitForVirtualAsset);
@@ -136,9 +142,17 @@ public class VirtualAssetService {
 
         return virtualAssetTextUnits;
     }
+    
+    
+    List<AssetTextUnit> findByAssetExtractionAssetIdAndDoNotTranslateFilter(Long assetExtractionId, Boolean doNotTranslateFilter) {
+        return assetTextUnitRepository.findAll(
+                where(assetExtractionIdEquals(assetExtractionId)).and(ifParamNotNull(doNotTranslateEquals(doNotTranslateFilter))),
+                new Sort(Sort.Direction.ASC, "name")
+        ); 
+    }
 
     @Transactional
-    public List<VirtualAssetTextUnit> getLoalizedTextUnits(
+    public List<VirtualAssetTextUnit> getLocalizedTextUnits(
             long assetId,
             long localeId,
             InheritanceMode inheritanceMode) throws VirtualAssetRequiredException {
@@ -151,7 +165,7 @@ public class VirtualAssetService {
 
         if (repositoryLocale.getParentLocale() == null) {
             logger.debug("Getting text units for the root locale");
-            virtualAssetTextUnits = getTextUnits(assetId);
+            virtualAssetTextUnits = getTextUnits(assetId, null);
         } else {
             virtualAssetTextUnits = getLoalizedTextUnitsForTargetLocale(asset, repositoryLocale, inheritanceMode);
         }
@@ -199,7 +213,7 @@ public class VirtualAssetService {
     }
 
     @Transactional
-    public void addTextUnits(List<VirtualAssetTextUnit> virtualAssetTextUnits, long assetId) throws VirtualAssetRequiredException {
+    public void addTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
 
         logger.debug("Add text units ({}) to virtual assetId: {}", virtualAssetTextUnits.size(), assetId);
 
@@ -213,7 +227,8 @@ public class VirtualAssetService {
                     virtualAssetTextUnit.getContent(),
                     virtualAssetTextUnit.getComment(),
                     pluralForm,
-                    virtualAssetTextUnit.getPluralFormOther());
+                    virtualAssetTextUnit.getPluralFormOther(),
+                    MoreObjects.firstNonNull(virtualAssetTextUnit.getDoNotTranslate(), false));
         }
     }
 
@@ -228,7 +243,7 @@ public class VirtualAssetService {
         asset.setLastSuccessfulAssetExtraction(createAssetExtraction);
         assetRepository.save(asset);
 
-        addTextUnits(virtualAssetTextUnits, assetId);
+        addTextUnits(assetId, virtualAssetTextUnits);
     }
 
     @Transactional
@@ -275,7 +290,8 @@ public class VirtualAssetService {
             String content,
             String comment,
             PluralForm pluralForm,
-            String pluralFormOther) throws VirtualAssetRequiredException {
+            String pluralFormOther,
+            boolean doNotTranslate) throws VirtualAssetRequiredException {
 
         logger.debug("Add text unit to virtual assetId: {}, with name: {}", assetId, name);
         Asset asset = getVirtualAsset(assetId);
@@ -304,6 +320,7 @@ public class VirtualAssetService {
                     comment,
                     pluralForm,
                     pluralFormOther,
+                    doNotTranslate,
                     null);
 
             logger.debug("Look for an existing TmTextunit");
@@ -342,7 +359,7 @@ public class VirtualAssetService {
         }
     }
 
-    TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment)
+    public TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment)
             throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
         logger.debug("Add text unit variant to virtual assetId: {}, with name: {}", assetId, name);
          
@@ -380,10 +397,11 @@ public class VirtualAssetService {
             virtualAssetTextUnit.setPluralForm(assetTextUnit.getPluralForm().getName());
         }
         virtualAssetTextUnit.setPluralFormOther(assetTextUnit.getPluralFormOther());
+        virtualAssetTextUnit.setDoNotTranslate(assetTextUnit.isDoNotTranslate());
 
         return virtualAssetTextUnit;
     }
-
+    
     void normalizeVirtualAssetTextUnit(VirtualAssetTextUnit virtualAssetTextUnit) {
         virtualAssetTextUnit.setName(NormalizationUtils.normalize(virtualAssetTextUnit.getName()));
         virtualAssetTextUnit.setContent(NormalizationUtils.normalize(Strings.nullToEmpty(virtualAssetTextUnit.getContent())));

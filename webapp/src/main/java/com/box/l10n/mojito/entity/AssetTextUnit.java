@@ -68,7 +68,10 @@ public class AssetTextUnit extends AuditableEntity {
     @CollectionTable(name = "asset_text_unit_usages",
             joinColumns = @JoinColumn(name = "asset_text_unit_id"), foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT_USAGES__ASSET_TEXT_UNIT__ID"))
     private Set<String> usages;
-
+        
+    @Column(name = "do_not_translate", nullable = false)
+    protected boolean doNotTranslate = false;
+    
     public User getCreatedByUser() {
         return createdByUser;
     }
@@ -149,4 +152,11 @@ public class AssetTextUnit extends AuditableEntity {
         this.usages = usages;
     }
 
+    public boolean isDoNotTranslate() {
+        return doNotTranslate;
+    }
+
+    public void setDoNotTranslate(boolean doNotTranslate) {
+        this.doNotTranslate = doNotTranslate;
+    }
 }
