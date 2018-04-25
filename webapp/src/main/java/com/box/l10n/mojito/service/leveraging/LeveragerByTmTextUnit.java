@@ -29,11 +29,12 @@ public class LeveragerByTmTextUnit extends AbstractLeverager {
     }
     
     @Override
-    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
+    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
         logger.debug("Get TextUnitDTOs for leveraging with TmTextUnit");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setTmTextUnitId(tmTextUnitId);
+        textUnitSearcherParameters.setAssetId(sourceAssetId);
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
 
         return textUnitSearcher.search(textUnitSearcherParameters);

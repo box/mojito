@@ -343,10 +343,10 @@ public class VirtualAssetService {
                 tmTextUnits.add(tmTextUnit);
 
                 if (previousAssetTextUnit != null) {
-                    new LeveragerByTmTextUnit(previousAssetTextUnit.getId()).performLeveragingFor(tmTextUnits, null);
+                    new LeveragerByTmTextUnit(previousAssetTextUnit.getId()).performLeveragingFor(tmTextUnits, null, null);
                 }
 
-                leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null);
+                leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
             }
 
             logger.debug("Map asset text unit to textunit");

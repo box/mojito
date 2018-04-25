@@ -12,6 +12,8 @@ public class CopyTmConfig {
 
     Long sourceRepositoryId;
     Long targetRepositoryId;
+    Long targetAssetId;
+    Long sourceAssetId;
     String nameRegex;
     Mode mode = Mode.MD5;
 
@@ -63,6 +65,22 @@ public class CopyTmConfig {
 
     public void setNameRegex(String nameRegex) {
         this.nameRegex = nameRegex;
+    }
+
+    public Long getSourceAssetId() {
+        return sourceAssetId;
+    }
+
+    public void setSourceAssetId(Long sourceAssetId) {
+        this.sourceAssetId = sourceAssetId;
+    }
+
+    public Long getTargetAssetId() {
+        return targetAssetId;
+    }
+
+    public void setTargetAssetId(Long targetAssetId) {
+        this.targetAssetId = targetAssetId;
     }
 
     /**

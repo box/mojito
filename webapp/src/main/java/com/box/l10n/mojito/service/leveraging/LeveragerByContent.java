@@ -24,11 +24,12 @@ public class LeveragerByContent extends AbstractLeverager {
     static Logger logger = LoggerFactory.getLogger(LeveragerByContent.class);
 
     @Override
-    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
+    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
         logger.debug("Get TextUnitDTOs for leveraging by content");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setTmId(sourceTmId);
+        textUnitSearcherParameters.setAssetId(sourceAssetId);
         textUnitSearcherParameters.setSource(tmTextUnit.getContent());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
         if (tmTextUnit.getPluralForm() != null) {

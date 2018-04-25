@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.leveraging;
 
-import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
+import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.leveraging.LeveragingService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -37,23 +38,10 @@ public class LeveragingWS {
      * @return the config updated with a pollable task
      */
     @RequestMapping(value = "/api/leveraging/copyTM", method = RequestMethod.POST)
-    public CopyTmConfig copyTM(@RequestBody CopyTmConfig copyTmConfig) {
-
-        logger.info("Copy repository TM");
-
-        Repository source = repositoryRepository.findOne(copyTmConfig.getSourceRepositoryId());
-        Repository target = repositoryRepository.findOne(copyTmConfig.getTargetRepositoryId());
-
-        PollableFuture pollableFuture;
-
-        if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
-            pollableFuture = leveragingService.copyAllTranslationsWithMD5MatchBetweenRepositories(source, target, copyTmConfig.getNameRegex());
-        } else {
-            pollableFuture = leveragingService.copyAllTranslationsWithExactMatchBetweenRepositories(source, target, copyTmConfig.getNameRegex());
-        }
-
+    public CopyTmConfig copyTM(@RequestBody CopyTmConfig copyTmConfig) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+        logger.debug("Copy repository TM");
+        PollableFuture pollableFuture = leveragingService.copyTm(copyTmConfig);
         copyTmConfig.setPollableTask(pollableFuture.getPollableTask());
-
         return copyTmConfig;
     }
 }

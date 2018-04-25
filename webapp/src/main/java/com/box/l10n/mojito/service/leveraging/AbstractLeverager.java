@@ -53,9 +53,11 @@ public abstract class AbstractLeverager {
      * @param tmTextUnit the {@link TMTextUnit}
      * @param sourceTmId the {@link TM#id} of TM to use to look for matches into
      * (can be null)
+     * @param sourceAssetId the {@link Asset#id} to use to look for matches into
+     * (can be null)
      * @return a list of {@link TextUnitDTO}s for leveraging
      */
-    public abstract List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId);
+    public abstract List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId);
 
     /**
      * Indicates if the translations must be re-translated regardless of if
@@ -88,8 +90,9 @@ public abstract class AbstractLeverager {
      * found are removed from the list to prevent further processing.
      * @param sourceTmId the {@link TM#id} of TM to use to look for matches into
      * (can be null)
+     * @param assetId
      */
-    public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId) {
+    public void performLeveragingFor(List<TMTextUnit> tmTextUnits, Long sourceTmId, Long assetId) {
 
         logger.debug("Perform leveraging: {}", getType());
 
@@ -98,11 +101,11 @@ public abstract class AbstractLeverager {
             TMTextUnit tmTextUnit = tmTextUnitsIterator.next();
 
             logger.debug("Get list of TextUnitDTOs (contains translations to be copied) for name: {}", tmTextUnit.getName());
-            List<TextUnitDTO> textUnitDTOsForLeveraging = getLeveragingMatches(tmTextUnit, sourceTmId);
+            List<TextUnitDTO> textUnitDTOsForLeveraging = getLeveragingMatches(tmTextUnit, sourceTmId, assetId);
 
             if (!textUnitDTOsForLeveraging.isEmpty()) {
 
-                logger.debug("Match found for this TMTextUnit wiht name: {}, remove from the list of TMTextUnit that needs leveraging", tmTextUnit.getName());
+                logger.debug("Match found for this TMTextUnit with name: {}, remove from the list of TMTextUnit that needs leveraging", tmTextUnit.getName());
                 tmTextUnitsIterator.remove();
 
                 logger.debug("Filters the translations and check for uniqueness of the matches");
