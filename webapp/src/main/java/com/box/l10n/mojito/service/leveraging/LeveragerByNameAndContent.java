@@ -26,12 +26,13 @@ public class LeveragerByNameAndContent extends AbstractLeverager {
     }
 
     @Override
-    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
+    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
 
         logger.debug("Get TextUnitDTOs for leveraging by name and content");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setTmId(sourceTmId);
+        textUnitSearcherParameters.setAssetId(sourceAssetId);
         textUnitSearcherParameters.setName(tmTextUnit.getName());
         textUnitSearcherParameters.setSource(tmTextUnit.getContent());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);

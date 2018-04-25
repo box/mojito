@@ -1,11 +1,17 @@
 package com.box.l10n.mojito.service.leveraging;
 
+import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
+import com.box.l10n.mojito.rest.leveraging.CopyTmConfig;
+import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
+import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -49,6 +55,12 @@ public class LeveragingService {
     @Autowired
     LeveragerByNameAndContent leveragerByNameAndContent;
 
+    @Autowired
+    RepositoryRepository repositoryRepository;
+
+    @Autowired
+    AssetRepository assetRepository;
+
     /**
      * Performs "source" leveraging for a list of {@link TMTextUnit}s.
      * <p/>
@@ -79,67 +91,89 @@ public class LeveragingService {
 
         logger.debug("Perform source leveraging for {} text units", tmTextUnits.size());
 
-        leveragerByNameAndContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null);
-        leveragerByNameForSourceLeveraging.performLeveragingFor(tmTextUnits, null);
-        leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null);
+        leveragerByNameAndContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
+        leveragerByNameForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
+        leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
     }
 
     /**
      * This will copy all translations from the source repository into the
-     * target repository, overriding any translation in the target repository.
+     * target repository (or asset), overriding any translation already
+     * existing.
      *
-     * Matches are performed based on MD5, if the repository has multiple text
-     * units with same MD5 the source will be arbitrarily chosen.
+     * 2 match modes are available:
      *
-     * @param source the source repository
-     * @param target the target repository
-     * @param nameRegex (optional) leverage is done only for text unit
-     */
-    @Pollable(async = true, message = "Start copying all translations with MD5 match between repository")
-    public PollableFuture copyAllTranslationsWithMD5MatchBetweenRepositories(
-            Repository source,
-            Repository target,
-            String nameRegex) {
-
-        logger.debug("Get TmTextUnit that must be processed");
-        List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(target.getTm().getId());
-        removeTmTextUnitsIfNameMatches(tmTextUnits, nameRegex);
-
-        leveragerByMd5.performLeveragingFor(tmTextUnits, source.getTm().getId());
-
-        return new PollableFutureTaskResult();
-    }
-
-    /**
-     * This will copy all translations from the source repository into the
-     * target repository, overriding any translation in the target repository.
+     * 1) Matches are performed based on MD5, if the repository has multiple
+     * text units with same MD5 the source will be arbitrarily chosen.
      *
-     * Matches are performed based on content only (exact match), if the
+     * 2) Matches are performed based on content only (exact match), if the
      * repository has multiple text units with same content it will first check
      * for string with same IDs and then the source will be arbitrarily chosen.
      *
-     * @param source the source repository
-     * @param target the target repository
-     * @param nameRegex (optional) leverage is done only for text unit whose
-     * name matches provided regex
+     * @param copyTmConfig
+     * @return
      */
-    @Pollable(async = true, message = "Start copying all translations with exact match between repository")
-    public PollableFuture copyAllTranslationsWithExactMatchBetweenRepositories(
-            Repository source,
-            Repository target,
-            String nameRegex) {
+    @Pollable(async = true, message = "Start copying translations between repository")
+    public PollableFuture copyTm(CopyTmConfig copyTmConfig) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
 
-        logger.debug("Get TmTextUnit that must be processed");
-        List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(target.getTm().getId());
-        removeTmTextUnitsIfNameMatches(tmTextUnits, nameRegex);
+        logger.debug("Copy TM, source repository: {}, source asset: {}, target repository: {}, target asset: {}",
+                copyTmConfig.getSourceRepositoryId(),
+                copyTmConfig.getSourceAssetId(),
+                copyTmConfig.getTargetRepositoryId(),
+                copyTmConfig.getTargetAssetId());
 
-        logger.debug("First perform leveraging by name and content (to give priority to string with same tags");
-        leveragerByNameAndContent.performLeveragingFor(tmTextUnits, source.getTm().getId());
+        Repository sourceRepository = getRepositoryForCopy(copyTmConfig.getSourceRepositoryId(), copyTmConfig.getSourceAssetId());
+        Repository targetRepository = getRepositoryForCopy(copyTmConfig.getTargetRepositoryId(), copyTmConfig.getTargetAssetId());
 
-        logger.debug("Now, perform leveraging only on the name");
-        leveragerByContent.performLeveragingFor(tmTextUnits, source.getTm().getId());
+        List<TMTextUnit> textUnitsForCopyTM = getTextUnitsForCopyTM(targetRepository, copyTmConfig.getTargetAssetId(), copyTmConfig.getNameRegex());
+
+        if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
+            leveragerByMd5.performLeveragingFor(textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+        } else {
+            logger.debug("First perform leveraging by name and content (to give priority to string with same tags");
+            leveragerByNameAndContent.performLeveragingFor(textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+
+            logger.debug("Now, perform leveraging only on the name");
+            leveragerByContent.performLeveragingFor(textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
+        }
 
         return new PollableFutureTaskResult();
+    }
+    
+    Repository getRepositoryForCopy(Long repositoryId, Long assetId) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+        
+        Repository repository;
+        
+        if (assetId == null) {
+            repository = repositoryRepository.findOne(repositoryId);
+            
+            if (repository == null) {
+                throw new RepositoryWithIdNotFoundException(repositoryId);
+            }
+        } else {
+            Asset asset = assetRepository.findOne(assetId);
+            if (asset == null) {
+                throw new AssetWithIdNotFoundException(assetId);
+            }
+            repository = asset.getRepository();
+        }
+
+        return repository;
+    }
+
+    List<TMTextUnit> getTextUnitsForCopyTM(Repository targetRepository, Long targetAssetId, String nameRegex) {
+        logger.debug("Get TmTextUnit that must be processed");
+        List<TMTextUnit> tmTextUnits;
+
+        if (targetAssetId != null) {
+            logger.debug("Process a single asset");
+            tmTextUnits = tmTextUnitRepository.findByAssetId(targetAssetId);
+        } else {
+            logger.debug("Process the whole TM");
+            tmTextUnits = tmTextUnitRepository.findByTm_id(targetRepository.getTm().getId());
+        }
+        removeTmTextUnitsIfNameMatches(tmTextUnits, nameRegex);
+        return tmTextUnits;
     }
 
     void removeTmTextUnitsIfNameMatches(List<TMTextUnit> tmTextUnits, String tmTextUnitNameRegex) {
