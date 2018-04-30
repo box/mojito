@@ -34,6 +34,7 @@ public class TextUnitSearcherParameters {
     boolean untranslatedOrTranslationNeeded = false;
     boolean pluralFormsFiltered = true;
     Long pluralFormId;
+    Boolean doNotTranslateFilter;
 
     public String getName() {
         return name;
@@ -205,5 +206,13 @@ public class TextUnitSearcherParameters {
 
     public void setPluralFormId(Long pluralFormId) {
         this.pluralFormId = pluralFormId;
+    }
+
+    public Boolean getDoNotTranslateFilter() {
+        return doNotTranslateFilter;
+    }
+
+    public void setDoNotTranslateFilter(Boolean doNotTranslateFilter) {
+        this.doNotTranslateFilter = doNotTranslateFilter;
     }
 }

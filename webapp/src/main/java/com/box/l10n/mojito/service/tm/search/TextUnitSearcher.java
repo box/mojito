@@ -205,6 +205,10 @@ public class TextUnitSearcher {
         if (searchParameters.getPluralFormId() != null) {
             conjunction.add(NativeExps.eq("tu.plural_form_id", searchParameters.getPluralFormId()));
         }
+        
+        if (searchParameters.getDoNotTranslateFilter() != null) {
+          conjunction.add(NativeExps.eq("atu.do_not_translate", searchParameters.getDoNotTranslateFilter()));
+        } 
 
         StatusFilter statusFilter = searchParameters.getStatusFilter();
 
