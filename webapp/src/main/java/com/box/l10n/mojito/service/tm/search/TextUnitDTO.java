@@ -32,7 +32,7 @@ public class TextUnitDTO {
     private String repositoryName;
     private String assetPath;
     private Long assetTextUnitId;
-
+   
     public Long getTmTextUnitId() {
         return tmTextUnitId;
     }

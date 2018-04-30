@@ -1,14 +1,17 @@
 package com.box.l10n.mojito.rest.textunit;
 
 import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitIntegrityCheckService;
+import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -63,6 +66,9 @@ public class TextUnitWS {
 
     @Autowired
     AssetTextUnitRepository assetTextUnitRepository;
+    
+    @Autowired
+    TextUnitBatchImporterService textUnitBatchImporterService;
 
     /**
      * Gets the TextUnits that matches the search parameters.
@@ -83,6 +89,7 @@ public class TextUnitWS {
      * @param localeTags optional
      * @param usedFilter optional
      * @param statusFilter optional
+     * @param doNotTranslateFilter
      * @param limit optional, default 10
      * @param offset optional, default 0
      * @return the TextUnits that matches the search parameters
@@ -103,6 +110,7 @@ public class TextUnitWS {
             @RequestParam(value = "localeTags[]", required = false) ArrayList<String> localeTags,
             @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
             @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
+            @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
@@ -136,6 +144,10 @@ public class TextUnitWS {
             textUnitSearcherParameters.setStatusFilter(statusFilter);
         }
         
+        if (doNotTranslateFilter != null) {
+            textUnitSearcherParameters.setDoNotTranslateFilter(doNotTranslateFilter);
+        }
+
         textUnitSearcherParameters.setLimit(limit);
         textUnitSearcherParameters.setOffset(offset);
 
@@ -172,6 +184,12 @@ public class TextUnitWS {
         textUnitDTO.setTmTextUnitCurrentVariantId(addTMTextUnitCurrentVariant.getId());
         textUnitDTO.setTmTextUnitVariantId(addTMTextUnitCurrentVariant.getTmTextUnitVariant().getId());
         return textUnitDTO;
+    }
+    
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textunitsBatch")
+    public PollableTask importTextUnitsByNames(@RequestBody List<TextUnitDTO> textUnitDTOs) {
+        PollableFuture pollableFuture = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOs);
+        return pollableFuture.getPollableTask();
     }
 
     /**
@@ -215,16 +233,16 @@ public class TextUnitWS {
 
         return result;
     }
-    
+
     @RequestMapping(method = RequestMethod.GET, value = "/api/assetTextUnits/{assetTextUnitId}/usages")
     public Set<String> getAssetTextUnitUsages(@PathVariable Long assetTextUnitId) throws AssetTextUnitWithIdNotFoundException {
         logger.debug("Get usages of asset text unit for id: {}", assetTextUnitId);
         AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(assetTextUnitId);
-        
+
         if (assetTextUnit == null) {
             throw new AssetTextUnitWithIdNotFoundException(assetTextUnitId);
         }
-        
+
         return assetTextUnit.getUsages();
     }
 
