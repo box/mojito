@@ -298,8 +298,22 @@ public class TextUnitSearcher {
         }
 
         logger.debug("Perform query");
-        List<TextUnitDTO> resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
-
+        List<TextUnitDTO> resultAsList;
+                
+        try {
+            resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
+        } catch(Exception e) {
+            //TODO(jean) find root cause, this seems to be transient, add a single
+            // retry and log for errors
+            logger.error("Unexcepted error when searching for text units, try once more", e);
+            try {
+                resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
+            } catch(Exception e2) {
+                logger.error("Retry didn't work", e2);
+                throw e2;
+            }
+        }
+        
         if (logger.isDebugEnabled()) {
             logger.debug("Query done, info: {}", c.getQueryInfo());
         }
