@@ -19,6 +19,7 @@ public class TextUnitForBatchImport {
     String comment;
     Long tmTextUnitId;
     TextUnitDTO currentTextUnit;
+    boolean includedInLocalizedFile;
 
     public Repository getRepository() {
         return repository;
@@ -82,6 +83,14 @@ public class TextUnitForBatchImport {
 
     public void setCurrentTextUnit(TextUnitDTO currentTextUnit) {
         this.currentTextUnit = currentTextUnit;
+    }
+
+    public boolean isIncludedInLocalizedFile() {
+        return includedInLocalizedFile;
+    }
+
+    public void setIncludedInLocalizedFile(boolean includedInLocalizedFile) {
+        this.includedInLocalizedFile = includedInLocalizedFile;
     }
 
 }
