@@ -7,6 +7,9 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
+import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -17,6 +20,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import java.util.ArrayList;
@@ -27,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +64,9 @@ public class TextUnitBatchImporterService {
     @Autowired
     LocaleService localeService;
 
+    @Autowired
+    IntegrityCheckerFactory integrityCheckerFactory;
+
     /**
      * Imports a batch of text units.
      *
@@ -86,6 +94,7 @@ public class TextUnitBatchImporterService {
                 List<TextUnitForBatchImport> textUnitsForBatchImport = textUnitsByAsset.getValue();
 
                 mapTextUnitsToImportWithExistingTextUnits(locale, asset, textUnitsForBatchImport);
+                applyIntegrityChecks(asset, textUnitsForBatchImport);
                 importTextUnitsOfLocaleAndAsset(locale, asset, textUnitsForBatchImport);
             }
         }
@@ -172,8 +181,8 @@ public class TextUnitBatchImporterService {
                         locale.getId(),
                         textUnitForBatchImport.getContent(),
                         textUnitForBatchImport.getComment(),
-                        TMTextUnitVariant.Status.APPROVED,
-                        true,
+                        textUnitForBatchImport.isIncludedInLocalizedFile() ? TMTextUnitVariant.Status.APPROVED : TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+                        textUnitForBatchImport.isIncludedInLocalizedFile(),
                         importTime);
 
             } else {
@@ -216,9 +225,28 @@ public class TextUnitBatchImporterService {
         return textUnitsForBatchImportByLocale;
     }
 
+    void applyIntegrityChecks(Asset asset, List<TextUnitForBatchImport> textUnitsForBatchImport) {
+
+        Set<TextUnitIntegrityChecker> textUnitCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);
+
+        for (TextUnitForBatchImport textUnitForBatchImport : textUnitsForBatchImport) {
+            for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
+                
+                Preconditions.checkNotNull(textUnitForBatchImport.getCurrentTextUnit(), "Current text unit must be set to apply integrity checks");
+             
+                try {
+                    textUnitChecker.check(textUnitForBatchImport.getCurrentTextUnit().getSource(), textUnitForBatchImport.getContent());
+                    textUnitForBatchImport.setIncludedInLocalizedFile(true);
+                } catch(IntegrityCheckException ice) {
+                    textUnitForBatchImport.setIncludedInLocalizedFile(false);
+                }
+            }
+        }
+    }
+
     List<TextUnitForBatchImport> skipOrConvertToTextUnitBatchs(List<TextUnitDTO> textUnitDTOs) {
 
-        List<TextUnitForBatchImport> textUnitBatches = new ArrayList<>();
+        List<TextUnitForBatchImport> textUnitsForBatchImport = new ArrayList<>();
 
         Map<String, Repository> repositoriesByName = new HashMap<>();
         Map<Repository, Map<String, Asset>> assetsByRepositoryAndPath = new HashMap<>();
@@ -263,10 +291,10 @@ public class TextUnitBatchImporterService {
             textUnitBatch.setContent(NormalizationUtils.normalize(textUnitDTO.getTarget()));
             textUnitBatch.setComment(textUnitDTO.getComment());
 
-            textUnitBatches.add(textUnitBatch);
+            textUnitsForBatchImport.add(textUnitBatch);
         }
 
-        return textUnitBatches;
+        return textUnitsForBatchImport;
     }
 
 }
