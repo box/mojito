@@ -5,9 +5,11 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.google.common.base.Joiner;
 import java.util.Arrays;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -21,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author jyi
  */
 public class RepoUpdateCommandTest extends CLITestBase {
-    
+
     /**
      * logger
      */
@@ -29,13 +31,13 @@ public class RepoUpdateCommandTest extends CLITestBase {
 
     @Autowired
     RepositoryRepository repositoryRepository;
-    
+
     @Test
     public void testUpdateName() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
         String testRepoName = repository.getName();
         String newName = testRepoName + "_updated";
-        
+
         getL10nJCommander().run(
                 "repo-update",
                 Param.REPOSITORY_NAME_SHORT, testRepoName,
@@ -43,15 +45,15 @@ public class RepoUpdateCommandTest extends CLITestBase {
         );
 
         assertTrue("Repository name is not updated successfully", outputCapture.toString().contains("updated --> repository name: "));
-        
+
         repository = repositoryRepository.findByName(testRepoName);
         assertNull("Should not find repository by old name", repository);
-        
+
         repository = repositoryRepository.findByName(newName);
         assertNotNull("Should find repository by the new name", repository);
-        
+
     }
-    
+
     @Test
     public void testUpdateLocale() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
@@ -66,15 +68,15 @@ public class RepoUpdateCommandTest extends CLITestBase {
         );
 
         assertTrue("Repository locales are not updated successfully", outputCapture.toString().contains("updated --> repository name: "));
-        
+
         repository = repositoryRepository.findByName(newName);
         assertEquals(2, repository.getRepositoryLocales().size());
         for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
             assertTrue("en".equals(repositoryLocale.getLocale().getBcp47Tag()) || "de-DE".equals(repositoryLocale.getLocale().getBcp47Tag()));
         }
-        
+
     }
-    
+
     @Test
     public void testUpdateLocalesWithInheritance() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
@@ -89,7 +91,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
         );
 
         assertTrue("Repository locales are not updated successfully", outputCapture.toString().contains("updated --> repository name: "));
-        
+
         List<String> expectedLocales = Arrays.asList("en", "en-GB", "en-CA", "en-AU", "fr-FR", "ko-KR");
         repository = repositoryRepository.findByName(newName);
         assertEquals(expectedLocales.size(), repository.getRepositoryLocales().size());
@@ -103,16 +105,16 @@ public class RepoUpdateCommandTest extends CLITestBase {
                 }
             }
         }
-        
+
     }
-    
+
     @Test
     public void testUpdateAll() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
         String testRepoName = repository.getName();
         String newName = testRepoName + "_updated";
         String newDescription = newName + "_description";
-        
+
         getL10nJCommander().run(
                 "repo-update",
                 Param.REPOSITORY_NAME_SHORT, testRepoName,
@@ -121,12 +123,12 @@ public class RepoUpdateCommandTest extends CLITestBase {
                 Param.REPOSITORY_LOCALES_SHORT, "de-DE",
                 RepoCommand.INTEGRITY_CHECK_SHORT_PARAM, "properties:MESSAGE_FORMAT"
         );
-        
+
         assertTrue("Repository is not updated successfully", outputCapture.toString().contains("updated --> repository name: "));
-        
+
         repository = repositoryRepository.findByName(testRepoName);
         assertNull("Should not find repository by old name", repository);
-        
+
         repository = repositoryRepository.findByName(newName);
         assertNotNull("Should find repository by the new name", repository);
         assertEquals("Repository description is not updated", newDescription, repository.getDescription());
@@ -135,15 +137,15 @@ public class RepoUpdateCommandTest extends CLITestBase {
             assertTrue("en".equals(repositoryLocale.getLocale().getBcp47Tag()) || "de-DE".equals(repositoryLocale.getLocale().getBcp47Tag()));
         }
         assertEquals(1, repository.getAssetIntegrityCheckers().size());
-        
+
     }
-    
+
     @Test
     public void testUpdateNonExistingRepo() throws Exception {
         String testRepoName = testIdWatcher.getEntityName("repository");
         String newName = testRepoName + "_updated";
         String newDescription = newName + "_description";
-        
+
         getL10nJCommander().run(
                 "repo-update",
                 Param.REPOSITORY_NAME_SHORT, testRepoName,
@@ -152,7 +154,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
                 Param.REPOSITORY_LOCALES_SHORT, "de-DE",
                 RepoCommand.INTEGRITY_CHECK_SHORT_PARAM, "properties:MESSAGE_FORMAT"
         );
-        
+
         assertTrue("Expecting error from updating non-existing repository", outputCapture.toString().contains("Repository with name [" + testRepoName + "] is not found"));
     }
 
@@ -185,7 +187,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
         assertEquals("COMPOSITE_FORMAT", repository.getAssetIntegrityCheckers().iterator().next().getIntegrityCheckerType().toString());
 
     }
-    
+
     @Test
     public void testDeleteExistingIntegrityChecker() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
@@ -229,6 +231,36 @@ public class RepoUpdateCommandTest extends CLITestBase {
         repository = repositoryRepository.findByName(testRepoNameUpdated);
         assertEquals("Integrity checker should have been deleted", 0, repository.getAssetIntegrityCheckers().size());
 
+    }
+
+    @Test(expected = CommandException.class)
+    public void testConflictingParameters() throws CommandException {
+        RepoUpdateCommand repoUpdateCommand = new RepoUpdateCommand();
+        repoUpdateCommand.nameParam = "repo1";
+        repoUpdateCommand.repositoryNames = Arrays.asList("repo2");
+        repoUpdateCommand.checkRepositoryParams();
+    }
+
+    @Test
+    public void testUpdateAllWithNameFilter() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+        String testRepoName = repository.getName();
+
+        Repository repository2 = createTestRepoUsingRepoService("repo2");
+        String testRepoName2 = repository2.getName();
+
+        Repository repository3 = createTestRepoUsingRepoService("repo3");
+        String testRepoName3 = repository3.getName();
+
+        getL10nJCommander().run(
+                "repo-update",
+                "-l", "fr-FR,ko-KR,ja-JP",
+                "-rns", Joiner.on(",").join(testRepoName, testRepoName3)
+        );
+
+        assertFalse("Repositories not updated correctly", outputCapture.toString().contains("updated --> repository name: " + testRepoName2));
+        assertTrue("Repositories not updated correctly", outputCapture.toString().contains("updated --> repository name: " + testRepoName));
+        assertTrue("Repositories not update correctly", outputCapture.toString().contains("updated --> repository name: " + testRepoName3));
     }
 
 }
