@@ -98,13 +98,12 @@ let RepositoryRow = React.createClass({
     getNumberOfNeedsTranslation(repoId) {
         let numberOfNeedsTranslation = 0;
         let repo = RepositoryStore.getRepositoryById(repoId);
-        let repoStats = repo.repositoryStatistic;
         let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
 
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfNeedsTranslation += (repoStats.usedTextUnitCount - repoLocaleStat.translatedCount + repoLocaleStat.translationNeededCount - repoLocaleStat.diffToSourcePluralCount * repoStats.pluralTextUnitCount);
+                numberOfNeedsTranslation += repoLocaleStat.forTranslationCount;
             }
         });
 
@@ -120,13 +119,12 @@ let RepositoryRow = React.createClass({
     getNumberOfWordNeedsTranslation(repoId) {
         let numberOfWordNeedsTranslation = 0;
         let repo = RepositoryStore.getRepositoryById(repoId);
-        let repoStats = repo.repositoryStatistic;
         let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
 
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfWordNeedsTranslation += (repoStats.usedTextUnitWordCount - repoLocaleStat.translatedWordCount + repoLocaleStat.translationNeededWordCount  - repoLocaleStat.diffToSourcePluralCount * repoStats.pluralTextUnitWordCount);
+                numberOfWordNeedsTranslation += repoLocaleStat.forTranslationWordCount;
             }
         });
 

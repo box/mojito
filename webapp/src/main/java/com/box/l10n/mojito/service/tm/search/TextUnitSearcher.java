@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.tm.search;
 
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.github.pnowy.nc.core.CriteriaResult;
 import com.github.pnowy.nc.core.NativeCriteria;
 import com.github.pnowy.nc.core.NativeExps;
 import com.github.pnowy.nc.core.expressions.NativeExp;
@@ -8,7 +9,9 @@ import com.github.pnowy.nc.core.expressions.NativeIsNotNullExp;
 import com.github.pnowy.nc.core.expressions.NativeJoin;
 import com.github.pnowy.nc.core.expressions.NativeJunctionExp;
 import com.github.pnowy.nc.core.expressions.NativeOrderExp;
+import com.github.pnowy.nc.core.expressions.NativeProjection;
 import com.github.pnowy.nc.core.jpa.JpaQueryProvider;
+import com.github.pnowy.nc.core.mappers.CriteriaResultTransformer;
 import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.List;
@@ -62,6 +65,25 @@ public class TextUnitSearcher {
      */
     private boolean ordered = false;
 
+    public TextUnitAndWordCount countTextUnitAndWordCount(TextUnitSearcherParameters searchParameters) {
+
+        NativeCriteria c = getCriteriaForSearch(searchParameters, false);
+        
+        c.setProjection(NativeExps.projection().
+                addAggregateProjection("tu.id", "tu_count", NativeProjection.AggregateProjection.COUNT).
+                addAggregateProjection("tu.word_count", "tu_word_count", NativeProjection.AggregateProjection.SUM));
+
+        TextUnitAndWordCount textUnitAndWordCount;
+
+        try {
+            textUnitAndWordCount = c.criteriaResult(new CriteriaResultTransformerTextUnitAndWordCount());
+        } catch (Exception e) {
+            logger.error("Unexcepted error when counting for text units, try once more", e);
+            textUnitAndWordCount = c.criteriaResult(new CriteriaResultTransformerTextUnitAndWordCount());
+        }
+        return textUnitAndWordCount;
+    }
+
     /**
      * Search/Build text units.
      *
@@ -71,6 +93,35 @@ public class TextUnitSearcher {
      */
     @Transactional
     public List<TextUnitDTO> search(TextUnitSearcherParameters searchParameters) {
+        
+        NativeCriteria c = getCriteriaForSearch(searchParameters, ordered);
+
+        logger.debug("Perform query");
+        List<TextUnitDTO> resultAsList;
+
+        try {
+            resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
+        } catch (Exception e) {
+            //TODO(jean) find root cause, this seems to be transient, add a single
+            // retry and log for errors
+            logger.error("Unexcepted error when searching for text units, try once more", e);
+            try {
+                resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
+            } catch (Exception e2) {
+                logger.error("Retry didn't work", e2);
+                throw e2;
+            }
+        }
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("Query done, info: {}", c.getQueryInfo());
+
+        }
+
+        return resultAsList;
+    }
+
+    NativeCriteria getCriteriaForSearch(TextUnitSearcherParameters searchParameters, boolean ordered) {
 
         Preconditions.checkNotNull(searchParameters, "Search parameters should not be null");
 
@@ -102,14 +153,14 @@ public class TextUnitSearcher {
         c.addJoin(new NativeJoin("asset_text_unit_to_tm_text_unit", "map", NativeJoin.JoinType.LEFT_OUTER, onClauseAssetTextUnit));
 
         c.addJoin(NativeExps.leftJoin("asset_text_unit", "atu", "atu.id", "map.asset_text_unit_id"));
-        
+
         // Handle plural forms with potential filter per locale
-        c.addJoin(NativeExps.leftJoin("plural_form", "pf", "tu.plural_form_id", "pf.id"));      
+        c.addJoin(NativeExps.leftJoin("plural_form", "pf", "tu.plural_form_id", "pf.id"));
         NativeJunctionExp onClausePluralForm = NativeExps.conjunction();
         onClausePluralForm.add(new NativeColumnEqExp("pffl.plural_form_id", "tu.plural_form_id"));
         onClausePluralForm.add(new NativeColumnEqExp("pffl.locale_id", "l.id"));
         c.addJoin(new NativeJoin("plural_form_for_locale", "pffl", NativeJoin.JoinType.LEFT_OUTER, onClausePluralForm));
-        
+
         logger.debug("Set projections");
 
         //TODO(P1) Might want to some of those projection as optional for perf reason
@@ -136,24 +187,24 @@ public class TextUnitSearcher {
                 addProjection("tu.plural_form_other", "pluralFormOther").
                 addProjection("r.name", "repositoryName").
                 addProjection("a.path", "assetPath").
-                addProjection("atu.id", "assetTextUnitId")         
+                addProjection("atu.id", "assetTextUnitId")
         );
 
         logger.debug("Add search filters");
         NativeJunctionExp conjunction = NativeExps.conjunction();
-        
+
         if (searchParameters.isPluralFormsFiltered()) {
             NativeJunctionExp pluralFormForLocale = NativeExps.disjunction();
             pluralFormForLocale.add(NativeExps.isNotNull("pffl.plural_form_id"));
             pluralFormForLocale.add(NativeExps.isNull("tu.plural_form_id"));
             conjunction.add(pluralFormForLocale);
         }
-        
+
         if (searchParameters.getRepositoryIds() != null && !searchParameters.getRepositoryIds().isEmpty()) {
             conjunction.add(NativeExps.in("r.id", searchParameters.getRepositoryIds()));
         }
-        
-        if (searchParameters.getRepositoryNames()!= null && !searchParameters.getRepositoryNames().isEmpty()) {
+
+        if (searchParameters.getRepositoryNames() != null && !searchParameters.getRepositoryNames().isEmpty()) {
             conjunction.add(NativeExps.in("r.name", searchParameters.getRepositoryNames()));
         }
 
@@ -168,7 +219,7 @@ public class TextUnitSearcher {
         if (searchParameters.getMd5() != null) {
             conjunction.add(NativeExps.eq("tu.md5", searchParameters.getMd5()));
         }
-        
+
         if (searchParameters.getPluralFormOther() != null) {
             conjunction.add(getSearchTypeNativeExp(searchParameters.getSearchType(), "tu.plural_form_other", searchParameters.getPluralFormOther()));
         }
@@ -176,8 +227,8 @@ public class TextUnitSearcher {
         if (searchParameters.getTarget() != null) {
             conjunction.add(getSearchTypeNativeExp(searchParameters.getSearchType(), "tuv.content", "tuv.content_md5", searchParameters.getTarget()));
         }
-        
-        if (searchParameters.getAssetPath()!= null) {
+
+        if (searchParameters.getAssetPath() != null) {
             conjunction.add(getSearchTypeNativeExp(searchParameters.getSearchType(), "a.path", searchParameters.getAssetPath()));
         }
 
@@ -201,14 +252,14 @@ public class TextUnitSearcher {
         if (searchParameters.getTmId() != null) {
             conjunction.add(NativeExps.eq("tu.tm_id", searchParameters.getTmId()));
         }
-        
+
         if (searchParameters.getPluralFormId() != null) {
             conjunction.add(NativeExps.eq("tu.plural_form_id", searchParameters.getPluralFormId()));
         }
-        
+
         if (searchParameters.getDoNotTranslateFilter() != null) {
-          conjunction.add(NativeExps.eq("atu.do_not_translate", searchParameters.getDoNotTranslateFilter()));
-        } 
+            conjunction.add(NativeExps.eq("atu.do_not_translate", searchParameters.getDoNotTranslateFilter()));
+        }
 
         StatusFilter statusFilter = searchParameters.getStatusFilter();
 
@@ -238,7 +289,7 @@ public class TextUnitSearcher {
                     break;
                 case APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED:
                     List<String> statuses = Arrays.asList(
-                            TMTextUnitVariant.Status.APPROVED.toString(), 
+                            TMTextUnitVariant.Status.APPROVED.toString(),
                             TMTextUnitVariant.Status.REVIEW_NEEDED.toString()
                     );
                     conjunction.add(NativeExps.in("tuv.status", statuses));
@@ -255,7 +306,7 @@ public class TextUnitSearcher {
                     conjunction.add(NativeExps.disjunction(
                             Arrays.asList(
                                     NativeExps.conjunction(Arrays.asList(
-                                            NativeExps.isNull("tuv.id"), 
+                                            NativeExps.isNull("tuv.id"),
                                             NativeExps.eq("atu.do_not_translate", Boolean.FALSE))
                                     ),
                                     NativeExps.eq("tuv.status", TMTextUnitVariant.Status.TRANSLATION_NEEDED.toString()),
@@ -273,14 +324,14 @@ public class TextUnitSearcher {
                 conjunction.add(NativeExps.eq("a.deleted", Boolean.FALSE));
             } else {
                 conjunction.add(NativeExps.disjunction(
-                            Arrays.asList(
-                                    NativeExps.isNull("atu.id"),
-                                    NativeExps.eq("a.deleted", Boolean.TRUE)
-                            )
-                    ));
+                        Arrays.asList(
+                                NativeExps.isNull("atu.id"),
+                                NativeExps.eq("a.deleted", Boolean.TRUE)
+                        )
+                ));
             }
         }
-        
+
         if (!conjunction.toSQL().isEmpty()) {
             c.add(conjunction);
         }
@@ -297,28 +348,7 @@ public class TextUnitSearcher {
             c.setOrder(NativeExps.order().add("tu.id", NativeOrderExp.OrderType.ASC).add("l.id", NativeOrderExp.OrderType.ASC));
         }
 
-        logger.debug("Perform query");
-        List<TextUnitDTO> resultAsList;
-                
-        try {
-            resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
-        } catch(Exception e) {
-            //TODO(jean) find root cause, this seems to be transient, add a single
-            // retry and log for errors
-            logger.error("Unexcepted error when searching for text units, try once more", e);
-            try {
-                resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
-            } catch(Exception e2) {
-                logger.error("Retry didn't work", e2);
-                throw e2;
-            }
-        }
-        
-        if (logger.isDebugEnabled()) {
-            logger.debug("Query done, info: {}", c.getQueryInfo());
-        }
-
-        return resultAsList;
+        return c;
     }
 
     /**
@@ -364,6 +394,15 @@ public class TextUnitSearcher {
         }
 
         return nativeExp;
+    }
+
+    private static class CriteriaResultTransformerTextUnitAndWordCount implements CriteriaResultTransformer<TextUnitAndWordCount> {
+
+        @Override
+        public TextUnitAndWordCount transform(CriteriaResult cr) {
+            cr.next();
+            return new TextUnitAndWordCount(cr.getLong(0), cr.getLong(1) == null ? 0 : cr.getLong(1));
+        }
     }
 
 }

@@ -30,10 +30,6 @@ let RepositoryStatistics = React.createClass({
             return this.getLocaleStatisticRow(
                     bcp47Tag, 
                     isFullyTranslated, 
-                    repoStat.usedTextUnitCount, 
-                    repoStat.usedTextUnitWordCount,
-                    repoStat.pluralTextUnitCount, 
-                    repoStat.pluralTextUnitWordCount,
                     repoLocaleStat);
         });
 
@@ -123,25 +119,15 @@ let RepositoryStatistics = React.createClass({
      * @param {RepositoryLocaleStatistic}
      * @return {XML}
      */
-    getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, pluralTextUnitCount, pluralTextUnitWordCount, repositoryLocaleStatistic) {
+    getNeedsTranslationLabel(bcp47Tag, repositoryLocaleStatistic) {
 
         let ui = "";
-                
-        let numberOfNeedsTranslation = usedTextUnitCount 
-                - repositoryLocaleStatistic.translatedCount 
-                + repositoryLocaleStatistic.translationNeededCount
-                - repositoryLocaleStatistic.diffToSourcePluralCount * pluralTextUnitCount;
-        
-        let numberOfWordNeedsTranslation = usedTextUnitWordCount 
-                - repositoryLocaleStatistic.translatedWordCount 
-                + repositoryLocaleStatistic.translationNeededWordCount
-                - repositoryLocaleStatistic.diffToSourcePluralCount * pluralTextUnitWordCount;
-
-        if (numberOfNeedsTranslation > 0) {
+       
+        if (repositoryLocaleStatistic.forTranslationCount > 0) {
             ui = (
                 <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, bcp47Tag)} to='/workbench'>
-                    <span className="repo-counts"><FormattedNumber value={numberOfNeedsTranslation}/>&nbsp;</span>
-                    (&nbsp;<FormattedNumber value={numberOfWordNeedsTranslation}/>&nbsp;)
+                    <span className="repo-counts"><FormattedNumber value={repositoryLocaleStatistic.forTranslationCount}/>&nbsp;</span>
+                    (&nbsp;<FormattedNumber value={repositoryLocaleStatistic.forTranslationWordCount}/>&nbsp;)
                 </Link>);
         }
 
@@ -160,10 +146,6 @@ let RepositoryStatistics = React.createClass({
     getLocaleStatisticRow(
             bcp47Tag, 
             isFullyTranslated, 
-            usedTextUnitCount, 
-            usedTextUnitWordCount,
-            pluralTextUnitCount,
-            pluralTextUnitWordCount,
             repositoryLocaleStatistic) {
 
         let rowClassName = "";
@@ -182,10 +164,6 @@ let RepositoryStatistics = React.createClass({
                 </td>
                 <td>{this.getNeedsTranslationLabel(
                         bcp47Tag, 
-                        usedTextUnitCount, 
-                        usedTextUnitWordCount, 
-                        pluralTextUnitCount, 
-                        pluralTextUnitWordCount, 
                         repositoryLocaleStatistic)}</td>
                 <td>{this.getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic)}</td>
             </tr>

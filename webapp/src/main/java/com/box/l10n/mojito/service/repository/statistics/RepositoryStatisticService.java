@@ -8,6 +8,11 @@ import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.tm.search.StatusFilter;
+import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.ibm.icu.text.PluralRules;
 import com.ibm.icu.util.ULocale;
 import javax.persistence.EntityManager;
@@ -51,6 +56,9 @@ public class RepositoryStatisticService {
 
     @Autowired
     EntityManager entityManager;
+    
+    @Autowired
+    TextUnitSearcher textUnitSearcher;
    
     /**
      * Updates the {@link RepositoryStatistic} of a given repository.
@@ -113,7 +121,7 @@ public class RepositoryStatisticService {
         }
 
         logger.debug("Compute new statistics for locale: {}", repositoryLocale.getLocale().getBcp47Tag());
-        RepositoryLocaleStatistic newRepositoryLocaleStatistic = computeLocaleStatistics(repositoryLocale.getId());
+        RepositoryLocaleStatistic newRepositoryLocaleStatistic = computeLocaleStatistics(repositoryLocale);
 
         repositoryLocaleStatistic.setIncludeInFileCount(newRepositoryLocaleStatistic.getIncludeInFileCount());
         repositoryLocaleStatistic.setIncludeInFileWordCount(newRepositoryLocaleStatistic.getIncludeInFileWordCount());
@@ -123,6 +131,8 @@ public class RepositoryStatisticService {
         repositoryLocaleStatistic.setTranslatedWordCount(newRepositoryLocaleStatistic.getTranslatedWordCount());
         repositoryLocaleStatistic.setTranslationNeededCount(newRepositoryLocaleStatistic.getTranslationNeededCount());
         repositoryLocaleStatistic.setTranslationNeededWordCount(newRepositoryLocaleStatistic.getTranslationNeededWordCount());
+        repositoryLocaleStatistic.setForTranslationCount(newRepositoryLocaleStatistic.getForTranslationCount());
+        repositoryLocaleStatistic.setForTranslationWordCount(newRepositoryLocaleStatistic.getForTranslationWordCount());
         repositoryLocaleStatistic.setDiffToSourcePluralCount(newRepositoryLocaleStatistic.getDiffToSourcePluralCount());
         
         repositoryLocaleStatisticRepository.save(repositoryLocaleStatistic);
@@ -148,25 +158,39 @@ public class RepositoryStatisticService {
     /**
      * Computes the locale statistics for a repository and a locale.
      *
-     * @param repositoryLocaleId {@link RepositoryLocale#id}
+     * @param repositoryLocale
      * @return the statistics of the repository locale
      */
-    public RepositoryLocaleStatistic computeLocaleStatistics(Long repositoryLocaleId) {
+    public RepositoryLocaleStatistic computeLocaleStatistics(RepositoryLocale repositoryLocale) {
 
-        logger.debug("Compute locale statistic for repositoryLocale id: {}", repositoryLocaleId);
-
-        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findOne(repositoryLocaleId);
+        logger.debug("Compute locale statistic for repositoryLocale id: {}", repositoryLocale.getId());
 
         Query createNativeQuery = entityManager.createNamedQuery("RepositoryLocaleStatistic.computeLocaleStatistics");
-        createNativeQuery.setParameter(1, repositoryLocaleId);
+        createNativeQuery.setParameter(1, repositoryLocale.getId());
 
         RepositoryLocaleStatistic repositoryLocaleStatistic = (RepositoryLocaleStatistic) createNativeQuery.getSingleResult();
 
         logger.debug("Replace POJO with a reference object");
         repositoryLocaleStatistic.setLocale(repositoryLocale.getLocale());
         repositoryLocaleStatistic.setDiffToSourcePluralCount(computeDiffToSourceLocaleCount(repositoryLocale.getLocale().getBcp47Tag()));
-      
+        
+        TextUnitAndWordCount countTextUnitAndWordCount = getForTranslationStatistics(repositoryLocale);
+        repositoryLocaleStatistic.setForTranslationCount(countTextUnitAndWordCount.getTextUnitCount());
+        repositoryLocaleStatistic.setForTranslationWordCount(countTextUnitAndWordCount.getTextUnitWordCount());
+        
         return repositoryLocaleStatistic;
+    }
+
+    TextUnitAndWordCount getForTranslationStatistics(RepositoryLocale repositoryLocale) {
+        logger.debug("Compute \"for translation\" statistics using textunitsearcher");
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repositoryLocale.getRepository().getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        textUnitSearcherParameters.setLocaleId(repositoryLocale.getLocale().getId());
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setDoNotTranslateFilter(false);
+        TextUnitAndWordCount countTextUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
+        return countTextUnitAndWordCount;
     }
 
     private Long computeDiffToSourceLocaleCount(String targetLocaleBcp47Tag) {

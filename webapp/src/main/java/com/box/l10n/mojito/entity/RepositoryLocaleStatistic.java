@@ -135,9 +135,15 @@ public class RepositoryLocaleStatistic extends BaseEntity {
      */
     @JsonView(View.RepositorySummary.class)
     private Long includeInFileWordCount = 0L;
-    
+
     @JsonView(View.RepositorySummary.class)
     private Long diffToSourcePluralCount = 0L;
+
+    @JsonView(View.RepositorySummary.class)
+    private Long forTranslationCount = 0L;
+
+    @JsonView(View.RepositorySummary.class)
+    private Long forTranslationWordCount = 0L;
 
     public RepositoryLocaleStatistic() {
     }
@@ -291,5 +297,21 @@ public class RepositoryLocaleStatistic extends BaseEntity {
     public void setDiffToSourcePluralCount(Long diffToSourcePluralCount) {
         this.diffToSourcePluralCount = diffToSourcePluralCount;
     }
-    
+
+    public Long getForTranslationCount() {
+        return forTranslationCount;
+    }
+
+    public void setForTranslationCount(Long forTranslationCount) {
+        this.forTranslationCount = forTranslationCount;
+    }
+
+    public Long getForTranslationWordCount() {
+        return forTranslationWordCount;
+    }
+
+    public void setForTranslationWordCount(Long forTranslationWordCount) {
+        this.forTranslationWordCount = forTranslationWordCount;
+    }
+
 }

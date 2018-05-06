@@ -128,8 +128,8 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         assertEquals(2L, (long) repositoryStatistic.getUnusedTextUnitCount());
         assertEquals(3L, (long) repositoryStatistic.getUnusedTextUnitWordCount());
 
-        RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR.getId());
-        RepositoryLocaleStatistic repositoryLocaleStatisticKoKR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleKoKR.getId());
+        RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
+        RepositoryLocaleStatistic repositoryLocaleStatisticKoKR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleKoKR);
 
         checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 1, 8, 0, 0, 0, 0);
         checkRepositoryLocaleStatistic(repositoryLocaleStatisticKoKR, "ko-KR", 1, 8, 1, 8, 0, 0, 0, 0);
@@ -141,7 +141,7 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
                 "test2 content fr-FR",
                 "");
 
-        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR.getId());
+        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
         checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 1, 8, 0, 0, 0, 0);
         
         tmService.addTMTextUnitCurrentVariant(
@@ -152,7 +152,7 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
                 TMTextUnitVariant.Status.TRANSLATION_NEEDED,
                 true);
         
-        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR.getId());
+        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
         checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 1, 8, 0, 0, 1, 2);
     }
 
@@ -186,13 +186,13 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
                 TMTextUnitVariant.Status.TRANSLATION_NEEDED,
                 true);
 
-        RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR.getId());
-        RepositoryLocaleStatistic repositoryLocaleStatisticKoKR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleKoKR.getId());
+        RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
+        RepositoryLocaleStatistic repositoryLocaleStatisticKoKR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleKoKR);
 
         checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 0, 0, 1, 8, 0, 0);
         checkRepositoryLocaleStatistic(repositoryLocaleStatisticKoKR, "ko-KR", 1, 8, 1, 8, 0, 0, 1, 8);
     }
-
+   
     private void checkRepositoryLocaleStatistic(
             RepositoryLocaleStatistic repositoryLocaleStatistic,
             String expectedBcp47tag,
