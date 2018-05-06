@@ -32,13 +32,17 @@ public class PluralFormUpdater {
 
     @Value("${spring.jpa.database}")
     String driver;
+    
+    @Value("${l10n.PluralFormUpdater:false}")
+    boolean enabled;
 
     @Scheduled(fixedDelay = 30000)
     private void updateTextUnitsWithMissingPluralForms() {
-
-        if ("HSQL".equals(driver)) {
-           logger.debug("Don't update (DB is HSQL)");
         
+        if (!enabled) {
+           logger.debug("PluralFormUpdater is disabled");    
+        } else if ("HSQL".equals(driver)) {
+           logger.debug("Don't update (DB is HSQL)");
         } else {
 
             logger.debug("Update old text unit with plural form that are now avaible with new plural support");
