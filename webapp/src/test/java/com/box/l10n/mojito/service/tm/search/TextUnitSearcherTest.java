@@ -6,6 +6,7 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.ArrayList;
@@ -52,6 +53,9 @@ public class TextUnitSearcherTest extends ServiceTestBase {
 
     @Autowired
     LocaleService localeService;
+
+    @Autowired
+    TMTextUnitRepository tmTextUnitRepository;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -408,12 +412,53 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
             assertNotEquals("The found variant should not be the one that needs review", reviewNeededTmTextUnitId, textUnitDTO.getTmTextUnitId());
         }
-        
+
         textUnitSearcherParameters.setStatusFilter(StatusFilter.REVIEW_NEEDED);
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
         assertEquals("The searcher should have returned only 1 excluded text unit DTO", 1, textUnitDTOs.size());
         assertEquals("The found variant should be the one that needs review", reviewNeededTmTextUnitId, textUnitDTOs.get(0).getTmTextUnitId());
+    }
+
+    @Test
+    public void testCountNone() throws Exception {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        textUnitSearcherParameters.setLocaleTags(Arrays.asList("fr-FR"));
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setDoNotTranslateFilter(false);
+        textUnitSearcherParameters.setName("name with no match");
+
+        TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
+        assertEquals("Should return no text unit hence count = 0", 0, textUnitAndWordCount.getTextUnitCount());
+        assertEquals("Should return no text unit hence word count = 0", 0, textUnitAndWordCount.getTextUnitWordCount());
+    }
+
+    @Test
+    public void testCount() throws Exception {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+
+        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+
+        long numberOfWords = 0;
+
+        for (TextUnitDTO textUnitDTO : search) {
+            numberOfWords += tmTextUnitRepository.findOne(textUnitDTO.getTmTextUnitId()).getWordCount();
+        }
+
+        TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
+        logger.info("for translation used from count: {}, {}", textUnitAndWordCount.getTextUnitCount(), textUnitAndWordCount.getTextUnitWordCount());
+        assertEquals(search.size(), textUnitAndWordCount.getTextUnitCount());
+        assertEquals(numberOfWords, textUnitAndWordCount.getTextUnitWordCount());
+
     }
 
     @Transactional
