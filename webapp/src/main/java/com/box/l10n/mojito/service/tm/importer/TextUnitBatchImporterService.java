@@ -290,7 +290,8 @@ public class TextUnitBatchImporterService {
             textUnitBatch.setName(textUnitDTO.getName());
             textUnitBatch.setContent(NormalizationUtils.normalize(textUnitDTO.getTarget()));
             textUnitBatch.setComment(textUnitDTO.getComment());
-
+            textUnitBatch.setIncludedInLocalizedFile(true);
+            
             textUnitsForBatchImport.add(textUnitBatch);
         }
 
