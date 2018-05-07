@@ -1,32 +1,38 @@
-package com.box.l10n.mojito.service.tm.search;
+package com.box.l10n.mojito.nativecriteria;
 
 import com.github.pnowy.nc.core.NativeQuery;
-import com.github.pnowy.nc.core.expressions.NativeExp;
+import com.github.pnowy.nc.core.expressions.NativeExp; 
 import com.github.pnowy.nc.utils.Strings;
-import com.github.pnowy.nc.utils.VarGenerator;
 
 /**
- * ILIKE expression.
+ *
+ * @author jeanaurambault
  */
-public class NativeILikeExp implements NativeExp {
-
+public class NativeEqExpFix implements NativeExp {
+    /**
+     * Column name.
+     */
     private String columnName;
+
+    /**
+     * Variable name.
+     */
     private String varName;
-    private String value;
+
+    /**
+     * Compared value.
+     */
+    private Object value;
 
     /**
      * @param columnName the column name
-     * @param value the value
+     * @param value      the value
      */
-    public NativeILikeExp(String columnName, String value) {
-        
-        if (Strings.isBlank(columnName)) {
+    public NativeEqExpFix(String columnName, Object value) {
+        if (Strings.isBlank(columnName))
             throw new IllegalStateException("columnName is null!");
-        }
-        
-        if (Strings.isBlank(value)) {
+        if (value == null)
             throw new IllegalStateException("value is null!");
-        }
 
         this.columnName = columnName;
         this.value = value;
@@ -35,12 +41,12 @@ public class NativeILikeExp implements NativeExp {
     @Override
     public String toSQL() {
         varName = VarGenerator.gen(columnName);
-        return "lower(" + columnName + ") LIKE :" + varName;
+        return columnName + " = :" + varName;
     }
 
     @Override
     public void setValues(NativeQuery query) {
-        query.setString(varName, value.toLowerCase());
+        query.setParameter(varName, value);
     }
 
 }

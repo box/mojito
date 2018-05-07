@@ -1,5 +1,6 @@
-package com.box.l10n.mojito.service.tm.search;
+package com.box.l10n.mojito.nativecriteria;
 
+import com.box.l10n.mojito.nativecriteria.NativeContainsExp;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
