@@ -20,6 +20,9 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,35 +56,42 @@ public class TextUnitSearcher {
     @Autowired
     EntityManager entityManager;
 
-    /**
-     * This is private and it must be used only for tests via reflection.
-     *
-     * HSQL and MYSQL return dataset in a different order and makes tests not
-     * reproducible depending on the DB being used.
-     *
-     * This shouldn't be used for the actual application because of the
-     * performance implication on large dataset.
-     *
-     */
-    private boolean ordered = false;
+    @Retryable(
+            value = {TextUnitSearcherError.class},
+            backoff = @Backoff(delay = 500, multiplier = 2))
+    public TextUnitAndWordCount countTextUnitAndWordCount(TextUnitSearcherParameters searchParameters) throws TextUnitSearcherError {
 
-    public TextUnitAndWordCount countTextUnitAndWordCount(TextUnitSearcherParameters searchParameters) {
+        NativeCriteria c = getCriteriaForSearch(searchParameters);
 
-        NativeCriteria c = getCriteriaForSearch(searchParameters, false);
-        
         c.setProjection(NativeExps.projection().
                 addAggregateProjection("tu.id", "tu_count", NativeProjection.AggregateProjection.COUNT).
                 addAggregateProjection("tu.word_count", "tu_word_count", NativeProjection.AggregateProjection.SUM));
 
-        TextUnitAndWordCount textUnitAndWordCount;
-
         try {
-            textUnitAndWordCount = c.criteriaResult(new CriteriaResultTransformerTextUnitAndWordCount());
+            TextUnitAndWordCount textUnitAndWordCount = c.criteriaResult(new CriteriaResultTransformerTextUnitAndWordCount());
+            return textUnitAndWordCount;
         } catch (Exception e) {
-            logger.error("Unexcepted error when counting for text units, try once more", e);
-            textUnitAndWordCount = c.criteriaResult(new CriteriaResultTransformerTextUnitAndWordCount());
+            logger.warn("TextUnitSearcher failed to count, query: {}", c.getQueryInfo().toString());
+            throw new TextUnitSearcherError(c, "count text unit", e);
         }
-        return textUnitAndWordCount;
+    }
+
+    @Recover
+    public TextUnitAndWordCount recoverCountTextUnitAndWordCount(TextUnitSearcherError textUnitSearcherError, TextUnitSearcherParameters searchParameters) throws Throwable {
+        logTextUnitSearcherError(textUnitSearcherError);
+        throw textUnitSearcherError.getCause();
+    }
+
+    @Recover
+    public List<TextUnitDTO> recoverSearch(TextUnitSearcherError textUnitSearcherError, TextUnitSearcherParameters searchParameters) throws Throwable {
+        logTextUnitSearcherError(textUnitSearcherError);
+        throw textUnitSearcherError.getCause();
+    }
+
+    void logTextUnitSearcherError(TextUnitSearcherError textUnitSearcherError) throws TextUnitSearcherError {
+        logger.error("TextUnitSearcher couldn't recover for \"call\": {}\n{}",
+                textUnitSearcherError.getMessage(),
+                textUnitSearcherError.nativeCriteria.getQueryInfo().toString());
     }
 
     /**
@@ -92,36 +102,29 @@ public class TextUnitSearcher {
      * @return the list of text units
      */
     @Transactional
+    @Retryable(
+            value = {TextUnitSearcherError.class},
+            backoff = @Backoff(delay = 500, multiplier = 2))
     public List<TextUnitDTO> search(TextUnitSearcherParameters searchParameters) {
-        
-        NativeCriteria c = getCriteriaForSearch(searchParameters, ordered);
 
-        logger.debug("Perform query");
-        List<TextUnitDTO> resultAsList;
+        NativeCriteria c = getCriteriaForSearch(searchParameters);
 
         try {
-            resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
-        } catch (Exception e) {
-            //TODO(jean) find root cause, this seems to be transient, add a single
-            // retry and log for errors
-            logger.error("Unexcepted error when searching for text units, try once more", e);
-            try {
-                resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
-            } catch (Exception e2) {
-                logger.error("Retry didn't work", e2);
-                throw e2;
+            logger.debug("Perform query");
+            List<TextUnitDTO> resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("Query done, info: {}", c.getQueryInfo());
             }
+
+            return resultAsList;
+        } catch (Exception e) {
+            logger.warn("TextUnitSearcher failed to search, query: {}", c.getQueryInfo().toString());
+            throw new TextUnitSearcherError(c, "search", e);
         }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Query done, info: {}", c.getQueryInfo());
-
-        }
-
-        return resultAsList;
     }
 
-    NativeCriteria getCriteriaForSearch(TextUnitSearcherParameters searchParameters, boolean ordered) {
+    NativeCriteria getCriteriaForSearch(TextUnitSearcherParameters searchParameters) {
 
         Preconditions.checkNotNull(searchParameters, "Search parameters should not be null");
 
@@ -344,8 +347,12 @@ public class TextUnitSearcher {
             c.setOffset(searchParameters.getOffset());
         }
 
-        if (ordered) {
-            c.setOrder(NativeExps.order().add("tu.id", NativeOrderExp.OrderType.ASC).add("l.id", NativeOrderExp.OrderType.ASC));
+        if (searchParameters instanceof TextUnitSearcherParametersForTesting) {
+            TextUnitSearcherParametersForTesting textUnitSearcherParametersForTesting = (TextUnitSearcherParametersForTesting) searchParameters;
+            
+            if (textUnitSearcherParametersForTesting.isOrdered()) {
+                c.setOrder(NativeExps.order().add("tu.id", NativeOrderExp.OrderType.ASC).add("l.id", NativeOrderExp.OrderType.ASC));
+            }
         }
 
         return c;

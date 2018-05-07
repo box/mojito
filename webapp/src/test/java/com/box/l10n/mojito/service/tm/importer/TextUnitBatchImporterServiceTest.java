@@ -19,17 +19,16 @@ import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParametersForTesting;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.lang.reflect.FieldUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -64,18 +63,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
 
     @Autowired
     VirtualAssetService virtualAssetService;
-
-    /**
-     * Set the ordered property to make test behave the same regardless of the
-     * database: HSQL or MYSQL.
-     *
-     * @throws IllegalAccessException
-     */
-    @Before
-    public void customizeTextUnitSearcher() throws IllegalAccessException {
-        FieldUtils.writeField(textUnitSearcher, "ordered", true, true);
-    }
-
+ 
     @Test
     public void testAsyncImportTextUnitsNameOnly() throws InterruptedException {
         TMTestData tmTestData = new TMTestData(testIdWatcher);
@@ -107,7 +95,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
 
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(tmTestData.repository.getName()));
         textUnitSearcherParameters.setAssetPath(tmTestData.asset.getPath());
         textUnitSearcherParameters.setLocaleTags(Arrays.asList("fr-FR"));
@@ -131,7 +119,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     public void testAsyncImportTextUnitsFromSearch() throws InterruptedException {
         TMTestData tmTestData = new TMTestData(testIdWatcher);
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(tmTestData.repository.getName()));
         textUnitSearcherParameters.setAssetPath(tmTestData.asset.getPath());
         textUnitSearcherParameters.setLocaleTags(Arrays.asList("fr-FR"));
@@ -188,7 +176,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
             virtualAssetService.addTextUnits(virtualAsset2.getId(), virtualAssetTextUnits);
         }
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(repository1.getName(), repository2.getName()));
 
         List<TextUnitDTO> textUnitDTOsForImport = textUnitSearcher.search(textUnitSearcherParameters);
@@ -228,7 +216,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit));
         virtualAssetService.replaceTextUnits(virtualAsset1.getId(), new ArrayList<VirtualAssetTextUnit>());
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(repository.getName()));
 
         TextUnitDTO textUnitDTO = new TextUnitDTO();
@@ -315,7 +303,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO));
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
         
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(repository.getName()));
         textUnitSearcherParameters.setName("name1");
         

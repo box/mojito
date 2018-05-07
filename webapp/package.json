@@ -80,7 +80,7 @@
     "url": "https://gitenterprise.inside-box.net/Box/l10n/webapp"
   },
   "scripts": {
-    "export-path" : "export PATH=./node/:$PATH",
+    "export-path": "export PATH=./node/:$PATH",
     "start-dev": "npm run export-path & npm run start-server & npm run watch",
     "start-server": "mvn spring-boot:run -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
     "start-server-nofe": "mvn spring-boot:run -P '!springbootconfigprocessor,!frontend' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER",
