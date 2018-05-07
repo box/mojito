@@ -1,6 +1,11 @@
 package com.box.l10n.mojito.service.tm.search;
 
+import com.box.l10n.mojito.nativecriteria.NativeContainsExp;
+import com.box.l10n.mojito.nativecriteria.NativeILikeExp;
+import com.box.l10n.mojito.nativecriteria.NativeColumnEqExp;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.nativecriteria.NativeEqExpFix;
+import com.box.l10n.mojito.nativecriteria.NativeInExpFix;
 import com.github.pnowy.nc.core.CriteriaResult;
 import com.github.pnowy.nc.core.NativeCriteria;
 import com.github.pnowy.nc.core.NativeExps;
@@ -204,11 +209,11 @@ public class TextUnitSearcher {
         }
 
         if (searchParameters.getRepositoryIds() != null && !searchParameters.getRepositoryIds().isEmpty()) {
-            conjunction.add(NativeExps.in("r.id", searchParameters.getRepositoryIds()));
+            conjunction.add(new NativeInExpFix("r.id", searchParameters.getRepositoryIds()));
         }
 
         if (searchParameters.getRepositoryNames() != null && !searchParameters.getRepositoryNames().isEmpty()) {
-            conjunction.add(NativeExps.in("r.name", searchParameters.getRepositoryNames()));
+            conjunction.add(new NativeInExpFix("r.name", searchParameters.getRepositoryNames()));
         }
 
         if (searchParameters.getName() != null) {
@@ -220,7 +225,7 @@ public class TextUnitSearcher {
         }
 
         if (searchParameters.getMd5() != null) {
-            conjunction.add(NativeExps.eq("tu.md5", searchParameters.getMd5()));
+            conjunction.add(new NativeEqExpFix("tu.md5", searchParameters.getMd5()));
         }
 
         if (searchParameters.getPluralFormOther() != null) {
@@ -236,32 +241,32 @@ public class TextUnitSearcher {
         }
 
         if (searchParameters.getAssetId() != null) {
-            conjunction.add(NativeExps.eq("tu.asset_id", searchParameters.getAssetId()));
+            conjunction.add(new NativeEqExpFix("tu.asset_id", searchParameters.getAssetId()));
         }
 
         if (searchParameters.getLocaleTags() != null && !searchParameters.getLocaleTags().isEmpty()) {
             //TODO(P1) probably want to work on ids only at this level, here for testing (see also moving to constant for locale id)
-            conjunction.add(NativeExps.in("l.bcp47_tag", searchParameters.getLocaleTags()));
+            conjunction.add(new NativeInExpFix("l.bcp47_tag", searchParameters.getLocaleTags()));
         }
 
         if (searchParameters.getLocaleId() != null) {
-            conjunction.add(NativeExps.eq("l.id", searchParameters.getLocaleId()));
+            conjunction.add(new NativeEqExpFix("l.id", searchParameters.getLocaleId()));
         }
 
         if (searchParameters.getTmTextUnitId() != null) {
-            conjunction.add(NativeExps.eq("tu.id", searchParameters.getTmTextUnitId()));
+            conjunction.add(new NativeEqExpFix("tu.id", searchParameters.getTmTextUnitId()));
         }
 
         if (searchParameters.getTmId() != null) {
-            conjunction.add(NativeExps.eq("tu.tm_id", searchParameters.getTmId()));
+            conjunction.add(new NativeEqExpFix("tu.tm_id", searchParameters.getTmId()));
         }
 
         if (searchParameters.getPluralFormId() != null) {
-            conjunction.add(NativeExps.eq("tu.plural_form_id", searchParameters.getPluralFormId()));
+            conjunction.add(new NativeEqExpFix("tu.plural_form_id", searchParameters.getPluralFormId()));
         }
 
         if (searchParameters.getDoNotTranslateFilter() != null) {
-            conjunction.add(NativeExps.eq("atu.do_not_translate", searchParameters.getDoNotTranslateFilter()));
+            conjunction.add(new NativeEqExpFix("atu.do_not_translate", searchParameters.getDoNotTranslateFilter()));
         }
 
         StatusFilter statusFilter = searchParameters.getStatusFilter();
@@ -272,13 +277,13 @@ public class TextUnitSearcher {
                 case ALL:
                     break;
                 case NOT_REJECTED:
-                    conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.TRUE));
+                    conjunction.add(new NativeEqExpFix("tuv.included_in_localized_file", Boolean.TRUE));
                     break;
                 case REJECTED:
-                    conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.FALSE));
+                    conjunction.add(new NativeEqExpFix("tuv.included_in_localized_file", Boolean.FALSE));
                     break;
                 case REVIEW_NEEDED:
-                    conjunction.add(NativeExps.eq("tuv.status", TMTextUnitVariant.Status.REVIEW_NEEDED.toString()));
+                    conjunction.add(new NativeEqExpFix("tuv.status", TMTextUnitVariant.Status.REVIEW_NEEDED.toString()));
                     break;
                 case REVIEW_NOT_NEEDED:
                     conjunction.add(NativeExps.notEq("tuv.status", TMTextUnitVariant.Status.REVIEW_NEEDED.toString()));
@@ -287,20 +292,20 @@ public class TextUnitSearcher {
                     conjunction.add(NativeExps.isNotNull("tuv.id"));
                     break;
                 case APPROVED_AND_NOT_REJECTED:
-                    conjunction.add(NativeExps.eq("tuv.status", TMTextUnitVariant.Status.APPROVED.toString()));
-                    conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.TRUE));
+                    conjunction.add(new NativeEqExpFix("tuv.status", TMTextUnitVariant.Status.APPROVED.toString()));
+                    conjunction.add(new NativeEqExpFix("tuv.included_in_localized_file", Boolean.TRUE));
                     break;
                 case APPROVED_OR_NEEDS_REVIEW_AND_NOT_REJECTED:
                     List<String> statuses = Arrays.asList(
                             TMTextUnitVariant.Status.APPROVED.toString(),
                             TMTextUnitVariant.Status.REVIEW_NEEDED.toString()
                     );
-                    conjunction.add(NativeExps.in("tuv.status", statuses));
-                    conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.TRUE));
+                    conjunction.add(new NativeInExpFix("tuv.status", statuses));
+                    conjunction.add(new NativeEqExpFix("tuv.included_in_localized_file", Boolean.TRUE));
                     break;
                 case TRANSLATED_AND_NOT_REJECTED:
                     conjunction.add(NativeExps.isNotNull("tuv.id"));
-                    conjunction.add(NativeExps.eq("tuv.included_in_localized_file", Boolean.TRUE));
+                    conjunction.add(new NativeEqExpFix("tuv.included_in_localized_file", Boolean.TRUE));
                     break;
                 case UNTRANSLATED:
                     conjunction.add(NativeExps.isNull("tuv.id"));
@@ -310,10 +315,10 @@ public class TextUnitSearcher {
                             Arrays.asList(
                                     NativeExps.conjunction(Arrays.asList(
                                             NativeExps.isNull("tuv.id"),
-                                            NativeExps.eq("atu.do_not_translate", Boolean.FALSE))
+                                            new NativeEqExpFix("atu.do_not_translate", Boolean.FALSE))
                                     ),
-                                    NativeExps.eq("tuv.status", TMTextUnitVariant.Status.TRANSLATION_NEEDED.toString()),
-                                    NativeExps.eq("tuv.included_in_localized_file", Boolean.FALSE)
+                                    new NativeEqExpFix("tuv.status", TMTextUnitVariant.Status.TRANSLATION_NEEDED.toString()),
+                                    new NativeEqExpFix("tuv.included_in_localized_file", Boolean.FALSE)
                             )
                     ));
                     break;
@@ -324,12 +329,12 @@ public class TextUnitSearcher {
         if (usedFilter != null) {
             if (UsedFilter.USED.equals(usedFilter)) {
                 conjunction.add(NativeExps.isNotNull("atu.id"));
-                conjunction.add(NativeExps.eq("a.deleted", Boolean.FALSE));
+                conjunction.add(new NativeEqExpFix("a.deleted", Boolean.FALSE));
             } else {
                 conjunction.add(NativeExps.disjunction(
                         Arrays.asList(
                                 NativeExps.isNull("atu.id"),
-                                NativeExps.eq("a.deleted", Boolean.TRUE)
+                                new NativeEqExpFix("a.deleted", Boolean.TRUE)
                         )
                 ));
             }
@@ -389,9 +394,9 @@ public class TextUnitSearcher {
         if (searchType == null || SearchType.EXACT.equals(searchType)) {
 
             if (columnNameForMd5Match == null) {
-                nativeExp = NativeExps.eq(columnName, value);
+                nativeExp = new NativeEqExpFix(columnName, value);
             } else {
-                nativeExp = NativeExps.eq(columnNameForMd5Match, DigestUtils.md5Hex(value));
+                nativeExp = new NativeEqExpFix(columnNameForMd5Match, DigestUtils.md5Hex(value));
             }
 
         } else if (SearchType.CONTAINS.equals(searchType)) {

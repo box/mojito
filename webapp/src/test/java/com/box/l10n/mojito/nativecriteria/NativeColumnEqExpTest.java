@@ -1,5 +1,6 @@
-package com.box.l10n.mojito.service.tm.search;
+package com.box.l10n.mojito.nativecriteria;
 
+import com.box.l10n.mojito.nativecriteria.NativeColumnEqExp;
 import org.junit.Assert;
 import org.junit.Test;
 

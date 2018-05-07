@@ -1,9 +1,8 @@
-package com.box.l10n.mojito.service.tm.search;
+package com.box.l10n.mojito.nativecriteria;
 
 import com.github.pnowy.nc.core.NativeQuery;
 import com.github.pnowy.nc.core.expressions.NativeExp;
 import com.github.pnowy.nc.utils.Strings;
-import com.github.pnowy.nc.utils.VarGenerator;
 
 /**
  * Contains expression (behave likes a "like" expression but wraps the value

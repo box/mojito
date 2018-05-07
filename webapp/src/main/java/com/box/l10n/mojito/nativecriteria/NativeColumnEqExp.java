@@ -1,15 +1,15 @@
-package com.box.l10n.mojito.service.tm.search;
+package com.box.l10n.mojito.nativecriteria;
 
 import com.github.pnowy.nc.core.NativeQuery;
 import com.github.pnowy.nc.core.expressions.NativeExp;
 import com.github.pnowy.nc.utils.Strings;
 
 /**
- * Add support to test that columns are different
+ * Add support to compare columns
  *
  * @author jaurambault
  */
-public class NativeColumnNotEqExp implements NativeExp {
+public class NativeColumnEqExp implements NativeExp {
 
     /**
      * Right column name.
@@ -26,7 +26,7 @@ public class NativeColumnNotEqExp implements NativeExp {
      * @param right right column name
      * @param left left column name
      */
-    public NativeColumnNotEqExp(String right, String left) {
+    public NativeColumnEqExp(String right, String left) {
         if (Strings.isBlank(right)) {
             throw new IllegalStateException("columnName is null!");
         }
@@ -41,7 +41,7 @@ public class NativeColumnNotEqExp implements NativeExp {
     @Override
     public String toSQL() {
 
-        return right + " != " + left;
+        return right + " = " + left;
     }
 
     @Override

@@ -57,7 +57,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
- 
+
     @Transactional
     @Test
     public void testAllFilters() {
