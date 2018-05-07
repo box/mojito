@@ -311,7 +311,7 @@ public class VirtualAssetService {
             }
 
             AssetTextUnit previousAssetTextUnit = assetTextUnit;
-
+            
             logger.debug("Create asset text unit for name: {}, in asset id: {}", name, assetId);
             assetTextUnit = assetExtractionService.createAssetTextUnit(
                     asset.getLastSuccessfulAssetExtraction().getId(),
@@ -343,7 +343,12 @@ public class VirtualAssetService {
                 tmTextUnits.add(tmTextUnit);
 
                 if (previousAssetTextUnit != null) {
-                    new LeveragerByTmTextUnit(previousAssetTextUnit.getId()).performLeveragingFor(tmTextUnits, null, null);
+                    
+                    TMTextUnit tmTextUnitForPreviousAssetTextunit = tmTextUnitRepository.findFirstByAssetAndMd5(
+                            previousAssetTextUnit.getAssetExtraction().getAsset(),
+                            previousAssetTextUnit.getMd5());
+                    
+                    new LeveragerByTmTextUnit(tmTextUnitForPreviousAssetTextunit.getId()).performLeveragingFor(tmTextUnits, null, null);
                 }
 
                 leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
