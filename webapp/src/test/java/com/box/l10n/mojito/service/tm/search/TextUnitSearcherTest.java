@@ -15,13 +15,11 @@ import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.apache.commons.lang.reflect.FieldUtils;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -59,18 +57,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
-
-    /**
-     * Set the ordered property to make test behave the same regardless of the
-     * database: HSQL or MYSQL.
-     *
-     * @throws IllegalAccessException
-     */
-    @Before
-    public void customizeTextUnitSearcher() throws IllegalAccessException {
-        FieldUtils.writeField(textUnitSearcher, "ordered", true, true);
-    }
-
+ 
     @Transactional
     @Test
     public void testAllFilters() {
@@ -80,7 +67,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         List<String> localeTags = new ArrayList<>();
         localeTags.add("ko-KR");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setName("zuora_error_message_verify_state_province");
         textUnitSearcherParameters.setLocaleTags(localeTags);
@@ -125,7 +112,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         localeTags.add("fr-FR");
         localeTags.add("fr-CA");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setName("zuora_error_message_verify_state_province");
@@ -192,7 +179,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         localeTags.add("ko-KR");
         localeTags.add("fr-FR");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleTags(localeTags);
@@ -233,7 +220,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         localeTags.add("fr-FR");
         localeTags.add("fr-CA");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleTags(localeTags);
@@ -292,7 +279,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         List<String> localeTags = new ArrayList<>();
         localeTags.add("fr-FR");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
@@ -359,7 +346,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         variants = tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(tmTestData.frFR.getId(), tmTestData.tm.getId());
         assertEquals("There should be 3 TMTextUnitVariants", 3, variants.size());
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleId(tmTestData.frFR.getId());
 
@@ -400,7 +387,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         variants = tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(tmTestData.frFR.getId(), tmTestData.tm.getId());
         assertEquals("There should be 3 TMTextUnitVariants", 3, variants.size());
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleId(tmTestData.frFR.getId());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.REVIEW_NOT_NEEDED);
@@ -518,7 +505,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
     public void testSearchText(String attribute, String value, SearchType searchType, List<String> expectedNames) {
         TMTestData tmTestData = new TMTestData(testIdWatcher);
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         if ("name".equals(attribute)) {
             textUnitSearcherParameters.setName(value);
