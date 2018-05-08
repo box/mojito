@@ -10,6 +10,7 @@ import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -21,6 +22,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -136,7 +138,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertEquals("name_plural_other", textUnits.get(i).getPluralFormOther());
         assertFalse(textUnits.get(i).getDoNotTranslate());
     }
-    
+
     @Test
     public void testGetTextunitWithDoNoTranslateFilter() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testGetTextunitWithDoNoTranslateFilter"));
@@ -181,7 +183,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertEquals("other", textUnits.get(i).getPluralForm());
         assertEquals("name_plural_other", textUnits.get(i).getPluralFormOther());
         assertTrue(textUnits.get(i).getDoNotTranslate());
-        
+
         List<VirtualAssetTextUnit> doNotTranslateTextUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), true);
         assertEquals(1, doNotTranslateTextUnits.size());
 
@@ -192,8 +194,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertEquals("other", doNotTranslateTextUnits.get(i).getPluralForm());
         assertEquals("name_plural_other", doNotTranslateTextUnits.get(i).getPluralFormOther());
         assertTrue(doNotTranslateTextUnits.get(i).getDoNotTranslate());
-        
-        
+
         List<VirtualAssetTextUnit> translateTextUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), false);
         assertEquals(1, translateTextUnits.size());
 
@@ -256,7 +257,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
 
     @Test
     public void testAddGetReplaceTextUnits() throws Exception {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddTextUnitVariant"));
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddGetReplaceTextUnits"));
 
         VirtualAsset virtualAsset = new VirtualAsset();
         virtualAsset.setRepositoryId(repository.getId());
@@ -346,7 +347,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
 
     @Test
     public void testImportLocalizedTextUnits() throws Exception {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddTextUnitVariant"));
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testImportLocalizedTextUnits"));
         RepositoryLocale repositoryLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
         long frFRLocaleId = repositoryLocaleFrFR.getLocale().getId();
 
@@ -428,7 +429,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
 
     @Test
     public void testImportLocalizedTextUnitsOneMissing() throws Exception {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddTextUnitVariant"));
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testImportLocalizedTextUnitsOneMissing"));
         RepositoryLocale repositoryLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
         long frFRLocaleId = repositoryLocaleFrFR.getLocale().getId();
 
@@ -499,7 +500,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
     @Test
     public void testDeleteTextUnit() throws Exception {
 
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddTextUnit"));
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testDeleteTextUnit"));
         VirtualAsset virtualAsset = new VirtualAsset();
         virtualAsset.setRepositoryId(repository.getId());
         virtualAsset.setPath("default");
@@ -531,5 +532,69 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
         assertEquals(1, textUnits.size());
         assertEquals("name", textUnits.get(0).getName());
+    }
+
+    @Transactional
+    @Test
+    public void testLeveragingByName() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testLeveragingByName"));
+        RepositoryLocale repositoryLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
+        long frFRLocaleId = repositoryLocaleFrFR.getLocale().getId();
+
+        VirtualAsset virtualAsset = new VirtualAsset();
+        virtualAsset.setRepositoryId(repository.getId());
+        virtualAsset.setPath("default");
+        virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name",
+                "content",
+                "comment",
+                null,
+                null,
+                false);
+
+        TMTextUnitVariant addTextUnitVariant = virtualAssetService.addTextUnitVariant(
+                virtualAsset.getId(),
+                frFRLocaleId,
+                "name",
+                "content-fr",
+                null);
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name",
+                "new content",
+                "comment",
+                null,
+                null,
+                false);
+
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        assertEquals(1, textUnits.size());
+        assertEquals("name", textUnits.get(0).getName());
+        assertEquals("new content", textUnits.get(0).getContent());
+
+        List<VirtualAssetTextUnit> localizedTextUnits = virtualAssetService.getLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
+        assertEquals(1, localizedTextUnits.size());
+        assertEquals("name", localizedTextUnits.get(0).getName());
+        assertEquals("content-fr", localizedTextUnits.get(0).getContent());
+
+        VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name");
+        virtualAssetTextUnit.setContent("new 2 content");
+        virtualAssetService.replaceTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit));
+
+        textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        assertEquals(1, textUnits.size());
+        assertEquals("name", textUnits.get(0).getName());
+        assertEquals("new 2 content", textUnits.get(0).getContent());
+
+        localizedTextUnits = virtualAssetService.getLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
+        assertEquals(1, localizedTextUnits.size());
+        assertEquals("name", localizedTextUnits.get(0).getName());
+        assertEquals("content-fr", localizedTextUnits.get(0).getContent());
     }
 }
