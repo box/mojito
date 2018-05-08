@@ -34,6 +34,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.ibm.icu.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -134,7 +135,7 @@ public class VirtualAssetService {
         Asset asset = getVirtualAsset(assetId);
         Long lastSuccessfulAssetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
         List<AssetTextUnit> findByAssetExtractionAssetId = findByAssetExtractionAssetIdAndDoNotTranslateFilter(lastSuccessfulAssetExtractionId, doNotTranslateFilter);
-        
+
         for (AssetTextUnit assetTextUnit : findByAssetExtractionAssetId) {
             VirtualAssetTextUnit textUnitForVirtualAsset = convertAssetTextUnitToVirtualAssetTextUnit(assetTextUnit);
             virtualAssetTextUnits.add(textUnitForVirtualAsset);
@@ -142,13 +143,12 @@ public class VirtualAssetService {
 
         return virtualAssetTextUnits;
     }
-    
-    
+
     List<AssetTextUnit> findByAssetExtractionAssetIdAndDoNotTranslateFilter(Long assetExtractionId, Boolean doNotTranslateFilter) {
         return assetTextUnitRepository.findAll(
                 where(assetExtractionIdEquals(assetExtractionId)).and(ifParamNotNull(doNotTranslateEquals(doNotTranslateFilter))),
                 new Sort(Sort.Direction.ASC, "name")
-        ); 
+        );
     }
 
     @Transactional
@@ -236,14 +236,29 @@ public class VirtualAssetService {
     public void replaceTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
 
         logger.debug("Replace text units (new: {}) in virtual assetId: {}", virtualAssetTextUnits.size(), assetId);
+        removeOldAssetTextUnits(virtualAssetTextUnits, assetId);
+        addTextUnits(assetId, virtualAssetTextUnits);
+    }
+
+    void removeOldAssetTextUnits(List<VirtualAssetTextUnit> newVirtualAssetTextUnits, long assetId) {
+        logger.debug("Remove old asset text units for asset id: {}", assetId);
+
         Asset asset = assetRepository.findOne(assetId);
 
-        logger.debug("Create a new AssetExtraction for virtual asset");
-        AssetExtraction createAssetExtraction = assetExtractionService.createAssetExtraction(asset, null);
-        asset.setLastSuccessfulAssetExtraction(createAssetExtraction);
-        assetRepository.save(asset);
+        List<String> newNames = new ArrayList<>();
 
-        addTextUnits(assetId, virtualAssetTextUnits);
+        for (VirtualAssetTextUnit virtualAssetTextUnit : newVirtualAssetTextUnits) {
+            newNames.add(virtualAssetTextUnit.getName());
+        }
+
+        List<String> oldNames = new ArrayList<>();
+
+        for (AssetTextUnit assetTextUnit : assetTextUnitRepository.findByAssetExtractionIdOrderByNameAsc(asset.getLastSuccessfulAssetExtraction().getId())) {
+            oldNames.add(assetTextUnit.getName());
+        }
+
+        oldNames.removeAll(newNames);
+        deleteTextUnits(asset, oldNames);
     }
 
     @Transactional
@@ -268,19 +283,26 @@ public class VirtualAssetService {
 
     @Transactional
     public void deleteTextUnit(Long assetId, String name) {
-
-        logger.debug("Try deleting text unit with name: {} from asset id: {}", name, assetId);
-
         Asset asset = assetRepository.findOne(assetId);
-        Long assetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
-        AssetTextUnit assetTextUnit = assetTextUnitRepository.findByAssetExtractionIdAndName(assetExtractionId, name);
+        deleteTextUnits(asset, Arrays.asList(name));
+    }
 
-        if (assetTextUnit != null) {
-            logger.debug("Asset text unit found, perform delete");
-            assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
-            assetTextUnitRepository.delete(assetTextUnit);
-        } else {
-            logger.debug("No asset text unit found for name: {} and asset id: {}. Skip delete", name, assetId);
+    public void deleteTextUnits(Asset asset, List<String> names) {
+
+        Long assetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
+
+        for (String name : names) {
+            logger.debug("Try deleting text unit with name: {} from asset: {}", name, asset.getPath());
+
+            AssetTextUnit assetTextUnit = assetTextUnitRepository.findByAssetExtractionIdAndName(assetExtractionId, name);
+
+            if (assetTextUnit != null) {
+                logger.debug("Asset text unit found, perform delete");
+                assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
+                assetTextUnitRepository.delete(assetTextUnit);
+            } else {
+                logger.debug("No asset text unit found for name: {} and asset: {}. Skip delete", name, asset.getPath());
+            }
         }
     }
 
@@ -311,7 +333,7 @@ public class VirtualAssetService {
             }
 
             AssetTextUnit previousAssetTextUnit = assetTextUnit;
-            
+
             logger.debug("Create asset text unit for name: {}, in asset id: {}", name, assetId);
             assetTextUnit = assetExtractionService.createAssetTextUnit(
                     asset.getLastSuccessfulAssetExtraction().getId(),
@@ -343,11 +365,11 @@ public class VirtualAssetService {
                 tmTextUnits.add(tmTextUnit);
 
                 if (previousAssetTextUnit != null) {
-                    
+
                     TMTextUnit tmTextUnitForPreviousAssetTextunit = tmTextUnitRepository.findFirstByAssetAndMd5(
                             previousAssetTextUnit.getAssetExtraction().getAsset(),
                             previousAssetTextUnit.getMd5());
-                    
+
                     new LeveragerByTmTextUnit(tmTextUnitForPreviousAssetTextunit.getId()).performLeveragingFor(tmTextUnits, null, null);
                 }
 
@@ -367,7 +389,7 @@ public class VirtualAssetService {
     public TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment)
             throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
         logger.debug("Add text unit variant to virtual assetId: {}, with name: {}", assetId, name);
-         
+
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setAssetId(assetId);
         textUnitSearcherParameters.setName(name);
@@ -381,7 +403,7 @@ public class VirtualAssetService {
             textUnitSearcherParameters.setUsedFilter(UsedFilter.UNUSED);
             textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         }
-        
+
         if (textUnitDTOs.isEmpty()) {
             String msg = MessageFormat.format("Missing TmTextUnit for assetId: {0} and name: {1}", assetId, name);
             logger.debug(msg);
@@ -406,7 +428,7 @@ public class VirtualAssetService {
 
         return virtualAssetTextUnit;
     }
-    
+
     void normalizeVirtualAssetTextUnit(VirtualAssetTextUnit virtualAssetTextUnit) {
         virtualAssetTextUnit.setName(NormalizationUtils.normalize(virtualAssetTextUnit.getName()));
         virtualAssetTextUnit.setContent(NormalizationUtils.normalize(Strings.nullToEmpty(virtualAssetTextUnit.getContent())));
