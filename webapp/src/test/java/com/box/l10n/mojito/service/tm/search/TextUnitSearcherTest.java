@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -445,7 +446,42 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         logger.info("for translation used from count: {}, {}", textUnitAndWordCount.getTextUnitCount(), textUnitAndWordCount.getTextUnitWordCount());
         assertEquals(search.size(), textUnitAndWordCount.getTextUnitCount());
         assertEquals(numberOfWords, textUnitAndWordCount.getTextUnitWordCount());
+    }
 
+    @Test
+    public void testCreatedDate() throws Exception {
+
+        DateTime now = DateTime.now();
+        DateTime secondsBefore = now.minusSeconds(2);
+        DateTime secondsAfter = now.plusSeconds(2);
+        
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+
+        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(8, search.size());
+
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(secondsBefore);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(0, search.size());
+
+        textUnitSearcherParameters.setTmTextUnitCreatedAfter(secondsBefore);
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(null);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(8, search.size());
+
+        textUnitSearcherParameters.setTmTextUnitCreatedAfter(secondsBefore);
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(secondsAfter);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(8, search.size());
+        
+        textUnitSearcherParameters.setTmTextUnitCreatedAfter(secondsAfter);
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(null);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(0, search.size());
+        
     }
 
     @Transactional

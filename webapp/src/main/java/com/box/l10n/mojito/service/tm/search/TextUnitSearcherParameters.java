@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.tm.search;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import java.util.Arrays;
 import java.util.List;
+import org.joda.time.DateTime;
 
 /**
  * Parameters for {@link TextUnitSearcher#search(com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters)
@@ -35,7 +36,9 @@ public class TextUnitSearcherParameters {
     boolean pluralFormsFiltered = true;
     Long pluralFormId;
     Boolean doNotTranslateFilter;
-
+    DateTime tmTextUnitCreatedBefore;
+    DateTime tmTextUnitCreatedAfter;
+    
     public String getName() {
         return name;
     }
@@ -214,5 +217,21 @@ public class TextUnitSearcherParameters {
 
     public void setDoNotTranslateFilter(Boolean doNotTranslateFilter) {
         this.doNotTranslateFilter = doNotTranslateFilter;
+    }
+
+    public DateTime getTmTextUnitCreatedBefore() {
+        return tmTextUnitCreatedBefore;
+    }
+
+    public void setTmTextUnitCreatedBefore(DateTime tmTextUnitCreatedBefore) {
+        this.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
+    }
+
+    public DateTime getTmTextUnitCreatedAfter() {
+        return tmTextUnitCreatedAfter;
+    }
+
+    public void setTmTextUnitCreatedAfter(DateTime tmTextUnitCreatedAfter) {
+        this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
     }
 }

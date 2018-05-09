@@ -4,6 +4,9 @@ import com.box.l10n.mojito.nativecriteria.NativeContainsExp;
 import com.box.l10n.mojito.nativecriteria.NativeILikeExp;
 import com.box.l10n.mojito.nativecriteria.NativeColumnEqExp;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.nativecriteria.JpaQueryProvider;
+import com.box.l10n.mojito.nativecriteria.NativeDateGteExp;
+import com.box.l10n.mojito.nativecriteria.NativeDateLteExp;
 import com.box.l10n.mojito.nativecriteria.NativeEqExpFix;
 import com.box.l10n.mojito.nativecriteria.NativeInExpFix;
 import com.github.pnowy.nc.core.CriteriaResult;
@@ -15,16 +18,13 @@ import com.github.pnowy.nc.core.expressions.NativeJoin;
 import com.github.pnowy.nc.core.expressions.NativeJunctionExp;
 import com.github.pnowy.nc.core.expressions.NativeOrderExp;
 import com.github.pnowy.nc.core.expressions.NativeProjection;
-import com.github.pnowy.nc.core.jpa.JpaQueryProvider;
 import com.github.pnowy.nc.core.mappers.CriteriaResultTransformer;
 import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.List;
-import javax.persistence.EntityManager;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -57,9 +57,6 @@ public class TextUnitSearcher {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(TextUnitSearcher.class);
-
-    @Autowired
-    EntityManager entityManager;
 
     @Retryable(
             value = {TextUnitSearcherError.class},
@@ -117,7 +114,7 @@ public class TextUnitSearcher {
         try {
             logger.debug("Perform query");
             List<TextUnitDTO> resultAsList = c.criteriaResult(new TextUnitDTONativeObjectMapper());
-
+            
             if (logger.isDebugEnabled()) {
                 logger.debug("Query done, info: {}", c.getQueryInfo());
             }
@@ -135,7 +132,7 @@ public class TextUnitSearcher {
 
         logger.debug("Creating the native criteria with joins");
 
-        NativeCriteria c = new NativeCriteria(new JpaQueryProvider(entityManager), "tm_text_unit", "tu");
+        NativeCriteria c = new NativeCriteria(new JpaQueryProvider(), "tm_text_unit", "tu");
         c.addJoin(NativeExps.crossJoin("locale", "l"));
         c.addJoin(NativeExps.innerJoin("asset", "a", "a.id", "tu.asset_id"));
         c.addJoin(NativeExps.innerJoin("repository", "r", "r.id", "a.repository_id"));
@@ -195,7 +192,8 @@ public class TextUnitSearcher {
                 addProjection("tu.plural_form_other", "pluralFormOther").
                 addProjection("r.name", "repositoryName").
                 addProjection("a.path", "assetPath").
-                addProjection("atu.id", "assetTextUnitId")
+                addProjection("atu.id", "assetTextUnitId").
+                addProjection("tu.created_date", "tmTextUnitCreatedDate")
         );
 
         logger.debug("Add search filters");
@@ -340,6 +338,14 @@ public class TextUnitSearcher {
             }
         }
 
+        if (searchParameters.getTmTextUnitCreatedBefore() != null) {
+            conjunction.add(new NativeDateLteExp("tu.created_date", searchParameters.getTmTextUnitCreatedBefore()));
+        }
+
+        if (searchParameters.getTmTextUnitCreatedAfter() != null) {
+            conjunction.add(new NativeDateGteExp("tu.created_date", searchParameters.getTmTextUnitCreatedAfter()));
+        }
+
         if (!conjunction.toSQL().isEmpty()) {
             c.add(conjunction);
         }
@@ -354,7 +360,7 @@ public class TextUnitSearcher {
 
         if (searchParameters instanceof TextUnitSearcherParametersForTesting) {
             TextUnitSearcherParametersForTesting textUnitSearcherParametersForTesting = (TextUnitSearcherParametersForTesting) searchParameters;
-            
+
             if (textUnitSearcherParametersForTesting.isOrdered()) {
                 c.setOrder(NativeExps.order().add("tu.id", NativeOrderExp.OrderType.ASC).add("l.id", NativeOrderExp.OrderType.ASC));
             }
