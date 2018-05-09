@@ -32,7 +32,8 @@ public class TextUnitDTO {
     private String repositoryName;
     private String assetPath;
     private Long assetTextUnitId;
-   
+    private DateTime tmTextUnitCreatedDate;
+
     public Long getTmTextUnitId() {
         return tmTextUnitId;
     }
@@ -217,6 +218,14 @@ public class TextUnitDTO {
 
     public void setAssetTextUnitId(Long assetTextUnitId) {
         this.assetTextUnitId = assetTextUnitId;
+    }
+
+    public DateTime getTmTextUnitCreatedDate() {
+        return tmTextUnitCreatedDate;
+    }
+
+    public void setTmTextUnitCreatedDate(DateTime tmTextUnitCreatedDate) {
+        this.tmTextUnitCreatedDate = tmTextUnitCreatedDate;
     }
 
 }
