@@ -18,7 +18,7 @@ permalink: /docs/refs/mojito-file-formats/
 
 
 ### Android Strings Example
-Source Resource File (English): res/values/strings.xml
+Source Resource File (English): `res/values/strings.xml`
 
 
 ```xml
@@ -28,7 +28,7 @@ Source Resource File (English): res/values/strings.xml
 </resources>
 ```
 
-Localized Resource File (Spanish): res/values-es/strings.xml
+Localized Resource File (Spanish): `res/values-es/strings.xml`
 
 
 ```xml
@@ -39,7 +39,7 @@ Localized Resource File (Spanish): res/values-es/strings.xml
 ```
 
 ### iOS/Mac Strings Example
-Source Resource File (English): en.lproj/Localizable.strings
+Source Resource File (English): `en.lproj/Localizable.strings`
 
 
 ```c++
@@ -47,7 +47,7 @@ Source Resource File (English): en.lproj/Localizable.strings
 "Hello!" = "Hello!";
 ```
 
-Localized Resource File (Spanish): es.lproj/Localizable.strings
+Localized Resource File (Spanish): `es.lproj/Localizable.strings`
 
 
 ```c++
@@ -57,7 +57,7 @@ Localized Resource File (Spanish): es.lproj/Localizable.strings
 
 
 ### Java Properties Example
-Source Resource File (English): en.properties
+Source Resource File (English): `en.properties`
 
 
 ```properties
@@ -65,7 +65,7 @@ Source Resource File (English): en.properties
 hello = Hello!
 ```
 
-Localized Resource File (Spanish): es.properties
+Localized Resource File (Spanish): `es.properties`
 
 
 ```properties
@@ -75,7 +75,7 @@ hello = ¡Hola!
 
 
 ### RESW Example
-Source Resource File (English): en/Resources.resw
+Source Resource File (English): `en/Resources.resw`
 
 
 ```xml
@@ -88,7 +88,7 @@ Source Resource File (English): en/Resources.resw
 </root>
 ```
 
-Localized Resource File (Spanish): es/Resources.resw
+Localized Resource File (Spanish): `es/Resources.resw`
 
 
 ```xml
@@ -103,7 +103,7 @@ Localized Resource File (Spanish): es/Resources.resw
 
 
 ### RESX Example
-Source Resource File (English): Resources.resx
+Source Resource File (English): `Resources.resx`
 
 
 ```xml
@@ -116,7 +116,7 @@ Source Resource File (English): Resources.resx
 </root>
 ```
 
-Localized Resource File (Spanish): Resources.es-ES.resx
+Localized Resource File (Spanish): `Resources.es-ES.resx`
 
 
 ```xml
@@ -131,7 +131,7 @@ Localized Resource File (Spanish): Resources.es-ES.resx
 
 
 ### XLIFF Example
-Source Resource File (English): resource.xliff    
+Source Resource File (English): `resource.xliff`  
 
 
 ```xml
@@ -148,7 +148,7 @@ Source Resource File (English): resource.xliff
 </xliff>   
 ```
 
-Localized Resource File (Spanish): resource_es-ES.xliff
+Localized Resource File (Spanish): `resource_es-ES.xliff`
 
 
 ```xml
@@ -167,7 +167,7 @@ Localized Resource File (Spanish): resource_es-ES.xliff
 ```
 
 ### PO File Example
-Source Resource File (English): messages.pot    
+Source Resource File (English): `messages.pot`   
 
 
 ```c
@@ -191,7 +191,7 @@ msgid "Hello!"
 msgstr ""
 ```
 
-Localized Resource File (Spanish): es_ES/LC_MESSAGES/messages.po
+Localized Resource File (Spanish): `es_ES/LC_MESSAGES/messages.po`
 
 
 ```c
