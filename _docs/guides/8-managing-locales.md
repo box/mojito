@@ -26,7 +26,7 @@ By default, all locales configured in the repository are required to be fully tr
 You can configure the locales to be partially translated.  English in United Kingdom (en-GB) is a good example because most of the strings do not need to be "translated".  Source strings can be used as-is in most cases and only some strings that are specific to English in United Kingdom need to be overriden.
 
 ```bash
-    mojito repo-update -n MyRepo -l "(en-GB)" es-ES fr-FR ja-JP zh-CN zh-TW
+mojito repo-update -n MyRepo -l "(en-GB)" es-ES fr-FR ja-JP zh-CN zh-TW
 ```
 
 The above example adds English in United Kingdome (en-GB) to `MyRepo` repository.  Having parenthesis around the locale excludes the locale from being fully translated.
@@ -38,7 +38,7 @@ The above example adds English in United Kingdome (en-GB) to `MyRepo` repository
 If the language is the same but the region is different, majority of the translations can be shared.  For example, French in Switzerland (fr-CH) can share translations of French in France (fr-FR).  In such case, you can set up locale inheritance so that translations of parent locale can be re-used as translations of child locale.  The translation requests only include parent locales and the children locales are also considered as partially translated locales.
 
 ```bash
-    mojito repo-update -n MyRepo -l "(fr-CH)->fr-FR" fr-FR ja-JP zh-CN zh-TW
+mojito repo-update -n MyRepo -l "(fr-CH)->fr-FR" fr-FR ja-JP zh-CN zh-TW
 ```
 
 The above example makes French in Switzerland (fr-CH) the child locale of French in France (fr-FR).
@@ -48,3 +48,11 @@ Note that the partially translated locales are displayed in grey color in locale
 
 
 ![Partially Translated Locales](./images/partially-translated-locales.png)
+
+### Update multiple repositories at once
+
+When adding support for a locale, it is likely that multiple repositories must be updated at the same time. The `repo-update` provides the `-rns` option to do so.
+
+```bash
+mojito repo-update -rns android ios -l "(en-GB)" es-ES fr-FR ja-JP zh-CN zh-TW
+```
