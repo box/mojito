@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -140,7 +141,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportMulipleRepositoryAssetAndLocale() throws InterruptedException, RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, VirtualAssetRequiredException {
+    public void testImportMulipleRepositoryAssetAndLocale() throws Exception {
         Repository repository1 = repositoryService.createRepository(testIdWatcher.getEntityName("testImportMulipleRepositoryAssetAndLocale1"));
         Repository repository2 = repositoryService.createRepository(testIdWatcher.getEntityName("testImportMulipleRepositoryAssetAndLocale2"));
 
@@ -172,8 +173,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
             virtualAssetTextUnit.setComment("comment2");
             virtualAssetTextUnits.add(virtualAssetTextUnit);
 
-            virtualAssetService.addTextUnits(virtualAsset1.getId(), virtualAssetTextUnits);
-            virtualAssetService.addTextUnits(virtualAsset2.getId(), virtualAssetTextUnits);
+            virtualAssetService.addTextUnits(virtualAsset1.getId(), virtualAssetTextUnits).get();
+            virtualAssetService.addTextUnits(virtualAsset2.getId(), virtualAssetTextUnits).get();
         }
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
@@ -185,8 +186,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
                     + ":" + textUnitDTO.getTargetLocale() + ":" + textUnitDTO.getName());
         }
 
-        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport);
-        pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
+        textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport).get();
 
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertFalse(textUnitDTOs.isEmpty());
@@ -198,7 +198,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testUnused() throws InterruptedException, RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, VirtualAssetRequiredException {
+    public void testUnused() throws InterruptedException, RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, VirtualAssetRequiredException, ExecutionException {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testUnused"));
         RepositoryLocale repositoryLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
 
@@ -213,9 +213,9 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         virtualAssetTextUnit.setComment("comment1");
 
         logger.debug("Create a first unused text unit for name1");
-        virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit));
-        virtualAssetService.replaceTextUnits(virtualAsset1.getId(), new ArrayList<VirtualAssetTextUnit>());
-
+        virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit)).get();
+        virtualAssetService.replaceTextUnits(virtualAsset1.getId(), new ArrayList<VirtualAssetTextUnit>()).get();
+        
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(repository.getName()));
 
@@ -226,8 +226,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         textUnitDTO.setTargetLocale("fr-FR");
         textUnitDTO.setTarget("v1");
 
-        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO));
-        pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
+        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO)).get();
 
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(1, textUnitDTOs.size());
@@ -240,9 +239,9 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         virtualAssetTextUnit.setComment("comment1");
 
         logger.debug("Create a second unused for text unit for name1");
-        virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit));
-        virtualAssetService.replaceTextUnits(virtualAsset1.getId(), new ArrayList<VirtualAssetTextUnit>());
-
+        virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit)).get();
+        virtualAssetService.replaceTextUnits(virtualAsset1.getId(), new ArrayList<VirtualAssetTextUnit>()).get();
+        
         textUnitDTO = new TextUnitDTO();
         textUnitDTO.setRepositoryName(repository.getName());
         textUnitDTO.setAssetPath("default");
@@ -250,8 +249,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         textUnitDTO.setTargetLocale("fr-FR");
         textUnitDTO.setTarget("v2");
 
-        asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO));
-        pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
+        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO)).get();
 
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(2, textUnitDTOs.size());
@@ -260,9 +258,8 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         assertEquals("content1 - v2", textUnitDTOs.get(1).getSource());
         assertNull("Should not import since there is 2 text unit for name1", textUnitDTOs.get(1).getTarget());
 
-        virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit));
-        asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO));
-        pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
+        virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit)).get();
+        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO)).get();
 
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(2, textUnitDTOs.size());
@@ -273,7 +270,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testIntegirtyChecker() throws InterruptedException, RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, VirtualAssetRequiredException {
+    public void testIntegirtyChecker() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testIntegirtyChecker"));
         RepositoryLocale repositoryLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
         Locale frFR = repositoryLocaleFrFR.getLocale();
@@ -286,7 +283,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
         virtualAssetTextUnit.setName("name1");
         virtualAssetTextUnit.setContent("with {placeholder}");
-        virtualAssetService.addTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit));
+        virtualAssetService.addTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit)).get();
 
         AssetIntegrityChecker assetIntegrityChecker = new AssetIntegrityChecker();
         assetIntegrityChecker.setAssetExtension("");

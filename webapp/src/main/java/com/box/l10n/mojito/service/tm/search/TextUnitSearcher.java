@@ -109,7 +109,7 @@ public class TextUnitSearcher {
             value = {TextUnitSearcherError.class},
             backoff = @Backoff(delay = 500, multiplier = 2))
     public List<TextUnitDTO> search(TextUnitSearcherParameters searchParameters) {
-
+   
         NativeCriteria c = getCriteriaForSearch(searchParameters);
 
         try {

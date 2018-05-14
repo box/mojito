@@ -1,11 +1,13 @@
 package com.box.l10n.mojito.rest.asset;
 
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.service.asset.VirtualAsset;
 import com.box.l10n.mojito.service.asset.VirtualAssetRequiredException;
 import com.box.l10n.mojito.service.asset.VirtualAssetService;
 import com.box.l10n.mojito.service.asset.VirutalAssetMissingTextUnitException;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +39,21 @@ public class VirtualAssetWS {
     }
 
     @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.POST)
-    public void addTextUnits(
+    public PollableTask addTextUnits(
             @PathVariable("assetId") long assetId,
             @RequestBody List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
 
-        virtualAssetService.addTextUnits(assetId, virtualAssetTextUnits);
+        PollableFuture addTextUnits = virtualAssetService.addTextUnits(assetId, virtualAssetTextUnits);
+        return addTextUnits.getPollableTask();
     }
 
     @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.PUT)
-    public void replaceTextUnits(
+    public PollableTask replaceTextUnits(
             @PathVariable("assetId") long assetId,
             @RequestBody List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
 
-        virtualAssetService.replaceTextUnits(assetId, virtualAssetTextUnits);
+        PollableFuture replaceTextUnitsTask = virtualAssetService.replaceTextUnits(assetId, virtualAssetTextUnits);
+        return replaceTextUnitsTask.getPollableTask();
     }
 
     @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.DELETE)
@@ -60,12 +64,13 @@ public class VirtualAssetWS {
     }
 
     @RequestMapping(value = "/api/virtualAssets/{assetId}/locale/{localeId}/textUnits", method = RequestMethod.POST)
-    public void importLocalizedTextUnits(
+    public PollableTask importLocalizedTextUnits(
             @PathVariable("assetId") long assetId,
             @PathVariable("localeId") long localeId,
             @RequestBody List<VirtualAssetTextUnit> textUnitForVirtualAssets) throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
 
-        virtualAssetService.importLocalizedTextUnits(assetId, localeId, textUnitForVirtualAssets);
+        PollableFuture importLocalizedTextUnits = virtualAssetService.importLocalizedTextUnits(assetId, localeId, textUnitForVirtualAssets);
+        return importLocalizedTextUnits.getPollableTask();
     }
 
     @RequestMapping(value = "/api/virtualAssets/{assetId}/textUnits", method = RequestMethod.GET)
@@ -74,7 +79,7 @@ public class VirtualAssetWS {
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter) throws VirtualAssetRequiredException {
         return virtualAssetService.getTextUnits(assetId, doNotTranslateFilter);
     }
-    
+
     @RequestMapping(value = "/api/virtualAssets/{assetId}/locale/{localeId}/textUnits", method = RequestMethod.GET)
     public List<VirtualAssetTextUnit> getLocalizedTextUnits(
             @PathVariable("assetId") long assetId,

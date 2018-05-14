@@ -8,6 +8,7 @@ import com.box.l10n.mojito.service.asset.VirtualAsset;
 import com.box.l10n.mojito.service.asset.VirtualAssetService;
 import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
@@ -119,8 +120,9 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         virtualAssetTextUnit3.setDoNotTranslate(Boolean.FALSE);
 
         virtualAssetService.addTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2, virtualAssetTextUnit3));
-        virtualAssetService.replaceTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2));
-
+        PollableFuture replaceTextUnits = virtualAssetService.replaceTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2));
+        replaceTextUnits.get();
+        
         RepositoryStatistic repositoryStatistic = repositoryStatisticService.computeBaseStatistics(tmTestData.repository.getId());
 
         assertEquals(3L, (long) repositoryStatistic.getUsedTextUnitCount());
