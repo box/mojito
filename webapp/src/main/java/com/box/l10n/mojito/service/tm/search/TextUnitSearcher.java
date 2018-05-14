@@ -14,6 +14,7 @@ import com.github.pnowy.nc.core.NativeCriteria;
 import com.github.pnowy.nc.core.NativeExps;
 import com.github.pnowy.nc.core.expressions.NativeExp;
 import com.github.pnowy.nc.core.expressions.NativeIsNotNullExp;
+import com.github.pnowy.nc.core.expressions.NativeIsNullExp;
 import com.github.pnowy.nc.core.expressions.NativeJoin;
 import com.github.pnowy.nc.core.expressions.NativeJunctionExp;
 import com.github.pnowy.nc.core.expressions.NativeOrderExp;
@@ -140,7 +141,9 @@ public class TextUnitSearcher {
         NativeJunctionExp onClauseRepositoryLocale = NativeExps.conjunction();
         onClauseRepositoryLocale.add(new NativeColumnEqExp("rl.locale_id", "l.id"));
         onClauseRepositoryLocale.add(new NativeColumnEqExp("rl.repository_id", "r.id"));
-        if (searchParameters.isRootLocaleExcluded()) {
+        if (searchParameters.isForRootLocale()) {
+            onClauseRepositoryLocale.add(new NativeIsNullExp("rl.parent_locale"));
+        } else if (searchParameters.isRootLocaleExcluded()) {
             onClauseRepositoryLocale.add(new NativeIsNotNullExp("rl.parent_locale"));
         }
         c.addJoin(NativeExps.innerJoin("repository_locale", "rl", onClauseRepositoryLocale));

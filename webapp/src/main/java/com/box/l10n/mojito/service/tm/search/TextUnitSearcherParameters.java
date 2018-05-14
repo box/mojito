@@ -31,6 +31,7 @@ public class TextUnitSearcherParameters {
     Long tmTextUnitId;
     Long tmId;
     String md5;
+    boolean forRootLocale = false;
     boolean rootLocaleExcluded = true;
     boolean untranslatedOrTranslationNeeded = false;
     boolean pluralFormsFiltered = true;
@@ -38,7 +39,7 @@ public class TextUnitSearcherParameters {
     Boolean doNotTranslateFilter;
     DateTime tmTextUnitCreatedBefore;
     DateTime tmTextUnitCreatedAfter;
-    
+
     public String getName() {
         return name;
     }
@@ -169,6 +170,14 @@ public class TextUnitSearcherParameters {
 
     public void setRootLocaleExcluded(boolean rootLocaleExcluded) {
         this.rootLocaleExcluded = rootLocaleExcluded;
+    }
+
+    public boolean isForRootLocale() {
+        return forRootLocale;
+    }
+
+    public void setForRootLocale(boolean forRootLocale) {
+        this.forRootLocale = forRootLocale;
     }
 
     public StatusFilter getStatusFilter() {
