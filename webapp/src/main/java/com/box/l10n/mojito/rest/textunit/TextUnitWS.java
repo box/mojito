@@ -92,6 +92,8 @@ public class TextUnitWS {
      * @param usedFilter optional
      * @param statusFilter optional
      * @param doNotTranslateFilter
+     * @param tmTextUnitCreatedBefore optional
+     * @param tmTExtunitCreatedAfter optional
      * @param limit optional, default 10
      * @param offset optional, default 0
      * @return the TextUnits that matches the search parameters
