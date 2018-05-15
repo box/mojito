@@ -49,19 +49,29 @@ const SearchDataSource = {
                 textUnitSearcherParameters.usedFilter(textUnitSearcherParameters.UNUSED);
             }
 
+            // ask for one extra text unit to know if there are more text units
+            let limit = searchParams.pageSize + 1;
+
             textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags)
-                    .offset(searchParams.pageOffset).limit(searchParams.pageSize);
+                    .offset(searchParams.pageOffset).limit(limit);
 
             let promise;
 
             if (returnEmpty) {
                 promise = new Promise(function (resolve, reject) {
-                    resolve([]);
+                    resolve({textUnits: [], hasMore: false});
                 });
             } else {
-                promise = TextUnitClient.getTextUnits(textUnitSearcherParameters).then(function (results) {
+                promise = TextUnitClient.getTextUnits(textUnitSearcherParameters).then(function (textUnits) {
 
-                    return results;
+                    let hasMore = false;
+
+                    if (textUnits.length === limit) {
+                        hasMore = true;
+                        textUnits = textUnits.slice(0, limit -1);
+                    }
+
+                    return {textUnits, hasMore};
                 });
             }
 
