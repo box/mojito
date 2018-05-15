@@ -5,7 +5,7 @@ categories: guides
 permalink: /docs/guides/getting-started/
 ---
 
-For this guide, we use [Brew](http://brew.sh/) to install {{ site.mojito_green }} Webapp and CLI.
+For this guide, we use [Brew](http://brew.sh/) to install {{ site.mojito_green }} Webapp and CLI (`Java 1.7` or `1.8` is required).
 
 ### Setup and install
 
