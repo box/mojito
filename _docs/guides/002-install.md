@@ -30,7 +30,7 @@ Default configuration location:
             
 ### Using Executable Jars
 
-Executable Jars can be downloaded in the [release section](https://github.com/box/mojito/releases/).
+`Java 1.7` or `1.8` is required. Executable Jars can be downloaded in the [release section](https://github.com/box/mojito/releases/).
 
 Run the Webapp with:
 
