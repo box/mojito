@@ -277,16 +277,6 @@ class SearchParamsStore {
         return converted;
     }
 
-    onSearchResultsReceivedSuccess(searchResults) {
-        if (searchResults.length === 0) {
-            this.setCurrentPageNumber(this.currentPageNumber - 1);
-        }
-    }
-
-    onSearchResultsReceivedError(error) {
-        // TODO: handle this.currentPageNumber when error is returned
-    }
-
     getAllRepositoriesSuccess(repositories) {
         if (this.repoNames && this.repoNames.length > 0) {
             this.waitFor(RepositoryStore);

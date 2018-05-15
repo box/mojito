@@ -77,10 +77,10 @@ class SearchResultsStore {
     onSearchResultsReceivedSuccess(response) {
         this.waitFor(SearchParamsStore);
         let paramsStoreState = SearchParamsStore.getState();
-        this.noMoreResults = response.length < paramsStoreState.pageSize;
-        this.searchResults = response;
+        this.noMoreResults = !response.hasMore;
+        this.searchResults = response.textUnits;
         this.isSearching = false;
-        this.searchHadNoResults = (response.length === 0);
+        this.searchHadNoResults = (response.textUnits.length === 0);
     }
 
     /**
