@@ -61,4 +61,13 @@ Finally, this generates the updated localized files with the new translation.
 
 ![update localized filwa](./images/update-localized.gif)
 
+### What's next?
 
+We have covered the main commands of {{ site.mojito_green }} using a demo project that was created with `demo-create` command.
+The next step is to do the setup for a real application.
+
+First, you want to look at how to create a repository in more details with the [repo-create command]({{ site.github.url }}/docs/guides/creating-repository/).
+We recommend to use one repository by application localized: `IOS`, `Android`, `Webapp`, etc.
+
+If your application already has localized files, checkout the [import command]({{ site.github.url }}/docs/guides/import-localized-files/).
+This command allows you to import your previous translation.
