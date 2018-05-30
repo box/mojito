@@ -132,7 +132,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
             logger.debug("Target is the same");
             if (repositoryLocale.isToBeFullyTranslated()) {                
                 boolean isForTargetLocale = currentTranslation != null && currentTranslation.getLocaleId().equals(repositoryLocale.getLocale().getId());
-                status = getStatusForSameTargetAndFullyTranslated(isForTargetLocale);
+                status = getStatusForSameTargetAndFullyTranslated(isForTargetLocale, currentTranslation);
             } else {
                 logger.debug("Locale is not fully translated, skip target as it is the same");
                 status = null;
@@ -145,15 +145,12 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
         return status;
     }
 
-    TMTextUnitVariant.Status getStatusForSameTargetAndFullyTranslated(boolean isForTargetLocale) {
+    TMTextUnitVariant.Status getStatusForSameTargetAndFullyTranslated(boolean isForTargetLocale, TextUnitDTO currentTranslation) {
         logger.debug("Get status when target is same for a fully translated locale");
         
         TMTextUnitVariant.Status status;
         
-        if(isForTargetLocale) {
-            logger.debug("Same target for target locale, skip");
-            status = null;
-        } else if (StatusForEqualTarget.TRANSLATION_NEEDED.equals(statusForEqualTarget)) {
+        if (StatusForEqualTarget.TRANSLATION_NEEDED.equals(statusForEqualTarget)) {
             status = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
         } else if (StatusForEqualTarget.REVIEW_NEEDED.equals(statusForEqualTarget)) {
             status = TMTextUnitVariant.Status.REVIEW_NEEDED;
@@ -161,6 +158,10 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
             status = null;
         } else {
             status = TMTextUnitVariant.Status.APPROVED;
+        }
+        
+        if (isForTargetLocale && status != null && status.equals(currentTranslation.getStatus())) {
+            logger.debug("Same target for target locale and same status, skip");
         }
         
         return status;
