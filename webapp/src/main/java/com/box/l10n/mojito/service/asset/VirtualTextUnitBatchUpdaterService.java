@@ -99,7 +99,7 @@ public class VirtualTextUnitBatchUpdaterService {
             md5ToVirtualTextUnits.put(md5, virtualAssetTextUnit);
         }
 
-        HashMap<TMTextUnit, VirtualAssetTextUnit> savedTextUnits = saveVirtualTextUnits(md5ToVirtualTextUnits, md5ToTextUnitDTOs, nameToUsedtextUnitDTOs, asset);
+        HashMap<TMTextUnit, VirtualAssetTextUnit> savedTextUnits = saveVirtualTextUnits(md5ToVirtualTextUnits, md5ToTextUnitDTOs, nameToUsedtextUnitDTOs, asset, replace);
 
         performLeveraging(savedTextUnits, nameToUsedtextUnitDTOs, contentToTextUnitDTOs);
 
@@ -118,7 +118,7 @@ public class VirtualTextUnitBatchUpdaterService {
             TextUnitDTO matchByContent = contentToUsedtextUnitDTOs.get(entry.getValue().getContent());
             List<TMTextUnit> toBeLeveraged = new ArrayList<>();
             toBeLeveraged.add(entry.getKey());
-            
+
             if (matchByName != null) {
                 logger.debug("Found previous version by name, apply leveraging");
                 new LeveragerByTmTextUnit(matchByName.getTmTextUnitId()).performLeveragingFor(toBeLeveraged, null, null);
@@ -133,7 +133,8 @@ public class VirtualTextUnitBatchUpdaterService {
             HashMap<String, VirtualAssetTextUnit> md5ToVirtualTextUnits,
             HashMap<String, TextUnitDTO> md5ToTextUnitDTOs,
             HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs,
-            Asset asset) {
+            Asset asset,
+            boolean replace) {
 
         HashMap<TMTextUnit, VirtualAssetTextUnit> addedTmTextUnits = new HashMap<>();
 
@@ -153,6 +154,11 @@ public class VirtualTextUnitBatchUpdaterService {
                 } else {
                     logger.debug("Exact match not used, need to create an asset text unit and map it to the tm text unit");
                     createMappedAssetTextUnit(asset, virtualAssetTextUnit, pluralForm, doNotTranslate, exactMatch.getTmTextUnitId());
+                    
+                    if (!replace) {
+                        logger.debug("Not in replace mode, need to remove the previous entry (when in replace mode that operation will be done by deleteOldAssetTextUnits())");
+                        removePreviousEntryWithSameName(nameToUsedtextUnitDTOs, virtualAssetTextUnit);
+                    }
                 }
             } else {
                 logger.debug("No exact match, create asset and tm text units");
@@ -165,21 +171,24 @@ public class VirtualTextUnitBatchUpdaterService {
                         null,
                         pluralForm,
                         virtualAssetTextUnit.getPluralFormOther());
-                
-                TextUnitDTO previousByName = nameToUsedtextUnitDTOs.get(virtualAssetTextUnit.getName());
-                
-                if (previousByName != null) {
-                    logger.debug("Asset text unit has changed, remove all previous entries");
-                    assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(previousByName.getAssetTextUnitId());
-                    assetTextUnitRepository.delete(previousByName.getAssetTextUnitId());
-                }
-                
+
+                removePreviousEntryWithSameName(nameToUsedtextUnitDTOs, virtualAssetTextUnit);
                 createMappedAssetTextUnit(asset, virtualAssetTextUnit, pluralForm, doNotTranslate, tmTextUnit.getId());
                 addedTmTextUnits.put(tmTextUnit, virtualAssetTextUnit);
             }
         }
 
         return addedTmTextUnits;
+    }
+
+    void removePreviousEntryWithSameName(HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs, VirtualAssetTextUnit virtualAssetTextUnit) {
+        TextUnitDTO previousByName = nameToUsedtextUnitDTOs.get(virtualAssetTextUnit.getName());
+        
+        if (previousByName != null) {
+            logger.debug("Asset text unit has changed, remove all previous entries");
+            assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(previousByName.getAssetTextUnitId());
+            assetTextUnitRepository.delete(previousByName.getAssetTextUnitId());
+        }
     }
 
     void deleteOldAssetTextUnits(HashMap<String, TextUnitDTO> md5ToTextUnitDTOs, HashMap<String, VirtualAssetTextUnit> md5ToVirtualTextUnits) {

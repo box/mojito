@@ -3,11 +3,8 @@ package com.box.l10n.mojito.service.asset;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
-import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.RepositoryLocale;
-import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.service.NormalizationUtils;
@@ -18,7 +15,6 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
-import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -294,7 +290,7 @@ public class VirtualAssetService {
             String name,
             String content,
             String comment,
-            PluralForm pluralForm,
+            String pluralForm,
             String pluralFormOther,
             boolean doNotTranslate) throws VirtualAssetRequiredException {
 
@@ -307,81 +303,22 @@ public class VirtualAssetService {
             String name,
             String content,
             String comment,
-            PluralForm pluralForm,
+            String pluralForm,
             String pluralFormOther,
             boolean doNotTranslate) throws VirtualAssetRequiredException {
 
-        logger.debug("Add text unit to virtual asset: {}, with name: {}", asset.getPath(), name);
-
-        TextUnitDTO textUnitDTO = new TextUnitDTO();
-        textUnitDTO.getAssetTextUnitId();
-
-        Long assetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
-        AssetTextUnit assetTextUnit = assetTextUnitRepository.findByAssetExtractionIdAndName(assetExtractionId, name);
-        String newTMTextUnitMD5 = tmService.computeTMTextUnitMD5(name, content, comment);
-
-        if (assetTextUnit != null && newTMTextUnitMD5.equals(assetTextUnit.getMd5())) {
-            logger.debug("Asset text unit unchanged, do nothing");
-        } else {
-
-            if (assetTextUnit != null) {
-                logger.debug("Asset text unit has changed, remove all previous entries");
-                assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
-                assetTextUnitRepository.delete(assetTextUnit);
-            }
-
-            AssetTextUnit previousAssetTextUnit = assetTextUnit;
-
-            logger.debug("Create asset text unit for name: {}, in asset: {}", name, asset.getPath());
-            assetTextUnit = assetExtractionService.createAssetTextUnit(
-                    asset.getLastSuccessfulAssetExtraction().getId(),
-                    name,
-                    content,
-                    comment,
-                    pluralForm,
-                    pluralFormOther,
-                    doNotTranslate,
-                    null);
-
-            logger.debug("Look for an existing TmTextunit");
-            TMTextUnit tmTextUnit = tmTextUnitRepository.findFirstByAssetAndMd5(asset, assetTextUnit.getMd5());
-
-            if (tmTextUnit == null) {
-                logger.debug("Create TmTextUnit");
-                tmTextUnit = tmService.addTMTextUnit(
-                        asset.getRepository().getTm().getId(),
-                        asset.getId(),
-                        name,
-                        content,
-                        comment,
-                        null,
-                        pluralForm,
-                        pluralFormOther);
-
-                logger.debug("Perform leveraging");
-                List<TMTextUnit> tmTextUnits = new ArrayList<>();
-                tmTextUnits.add(tmTextUnit);
-
-                if (previousAssetTextUnit != null) {
-
-                    TMTextUnit tmTextUnitForPreviousAssetTextunit = tmTextUnitRepository.findFirstByAssetAndMd5(
-                            previousAssetTextUnit.getAssetExtraction().getAsset(),
-                            previousAssetTextUnit.getMd5());
-
-                    new LeveragerByTmTextUnit(tmTextUnitForPreviousAssetTextunit.getId()).performLeveragingFor(tmTextUnits, null, null);
-                }
-
-                leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
-            }
-
-            logger.debug("Map asset text unit to textunit");
-            AssetTextUnitToTMTextUnit assetTextUnitToTMTextUnit = new AssetTextUnitToTMTextUnit();
-            assetTextUnitToTMTextUnit.setAssetExtraction(assetExtractionRepository.getOne(assetExtractionId));
-            assetTextUnitToTMTextUnit.setAssetTextUnit(assetTextUnit);
-            assetTextUnitToTMTextUnit.setTmTextUnit(tmTextUnit);
-            assetTextUnitToTMTextUnitRepository.save(assetTextUnitToTMTextUnit);
-
-        }
+        VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName(name);
+        virtualAssetTextUnit.setContent(content);
+        virtualAssetTextUnit.setComment(comment);
+        virtualAssetTextUnit.setPluralForm(pluralForm);
+        virtualAssetTextUnit.setPluralFormOther(pluralFormOther);
+        virtualAssetTextUnit.setDoNotTranslate(doNotTranslate);        
+        
+        List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
+        virtualAssetTextUnits.add(virtualAssetTextUnit);
+        
+        virtualTextUnitBatchUpdaterService.updateTextUnits(asset, virtualAssetTextUnits, false);
     }
 
     public TMTextUnitVariant addTextUnitVariant(long assetId, long localeId, String name, String content, String comment)
