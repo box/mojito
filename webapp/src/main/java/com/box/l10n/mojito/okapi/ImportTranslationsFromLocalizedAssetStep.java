@@ -162,6 +162,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
         
         if (isForTargetLocale && status != null && status.equals(currentTranslation.getStatus())) {
             logger.debug("Same target for target locale and same status, skip");
+            status = null;    
         }
         
         return status;
