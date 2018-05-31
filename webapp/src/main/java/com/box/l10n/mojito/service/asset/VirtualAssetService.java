@@ -270,16 +270,14 @@ public class VirtualAssetService {
         Long assetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
 
         for (String name : names) {
-            logger.debug("Try deleting text unit with name: {} from asset: {}", name, asset.getPath());
+            logger.debug("Try deleting text units with name: {} from asset: {}", name, asset.getPath());
 
-            AssetTextUnit assetTextUnit = assetTextUnitRepository.findByAssetExtractionIdAndName(assetExtractionId, name);
-
-            if (assetTextUnit != null) {
-                logger.debug("Asset text unit found, perform delete");
+            List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtractionIdAndName(assetExtractionId, name);
+            
+            for (AssetTextUnit assetTextUnit : assetTextUnits) {
+                logger.debug("Asset text unit found for name: {} and asset: {}, perform delete", name, asset.getPath());
                 assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
                 assetTextUnitRepository.delete(assetTextUnit);
-            } else {
-                logger.debug("No asset text unit found for name: {} and asset: {}. Skip delete", name, asset.getPath());
             }
         }
     }
