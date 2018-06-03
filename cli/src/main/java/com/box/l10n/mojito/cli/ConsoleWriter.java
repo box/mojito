@@ -113,6 +113,18 @@ public class ConsoleWriter {
         ansi.a(value);
         return this;
     }
+    
+    /**
+     * See {@link Ansi#a() }
+     *
+     * @param value
+     * @return this instance
+     */
+    public ConsoleWriter a(Double value) {
+        stringBuilder.append(value);
+        ansi.a(value);
+        return this;
+    }
 
     /**
      * See {@link Ansi#a() }
