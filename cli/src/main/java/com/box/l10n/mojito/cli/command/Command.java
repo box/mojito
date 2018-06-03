@@ -13,8 +13,14 @@ import java.util.List;
  */
 public abstract class Command {
 
-    @Parameter(names = {"--help", "-h"}, help = true, description = "Show help")
+    static final String HELP_LONG = "--help";
+    static final String HELP_SHORT = "-h";
+    static final String HELP_DESCRIPTION = "Show help";
+
+    @Parameter(names = {HELP_LONG, HELP_SHORT}, help = true, description = HELP_DESCRIPTION)
     private boolean help;
+
+    public List<String> originalArgs;
 
     /**
      * Method to be overridden to implement the business logic of this command
@@ -31,11 +37,20 @@ public abstract class Command {
      * @throws CommandException
      */
     public void run() throws CommandException {
-        if (help) {
+        if (shouldShowUsage()) {
             showUsage();
         } else {
             execute();
         }
+    }
+
+    /**
+     * Indicates if the command usage should be shown
+     *
+     * @return
+     */
+    public boolean shouldShowUsage() {
+        return help;
     }
 
     /**
@@ -47,8 +62,8 @@ public abstract class Command {
 
     /**
      * Gets the {@link Parameters} annotation from the command.
-     * 
-     * @return  the {@link Parameters} annotation
+     *
+     * @return the {@link Parameters} annotation
      */
     Parameters getParameters() {
         Parameters parameters = this.getClass().getAnnotation(Parameters.class);
@@ -58,8 +73,8 @@ public abstract class Command {
 
     /**
      * Gets the command description from the {@link Parameters} annotation.
-     * 
-     * @return the command description 
+     *
+     * @return the command description
      */
     public String getDescription() {
         return getParameters().commandDescription();
@@ -92,4 +107,7 @@ public abstract class Command {
         return names.get(0);
     }
 
+    public void setOriginalArgs(List<String> originalArgs) {
+        this.originalArgs = originalArgs;
+    }
 }
