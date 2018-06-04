@@ -65,6 +65,8 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
     spring.datasource.username=${DB_USERNAME}
     spring.datasource.password=${DB_PASSWORD}
     spring.datasource.driverClassName=com.mysql.jdbc.Driver
+    spring.datasource.testOnBorrow=true
+    spring.datasource.validationQuery=SELECT 1
 
 
 Note that `utf8mb4` setup has been tested on MySQL `5.7`. The server will probably needs some configuration too, for
@@ -212,8 +214,3 @@ You can also optionally use it in production by setting the following configurat
    Follow instructions [here](https://community.box.com/t5/For-Admins/How-Do-I-Share-Files-And-Folders-From-The-Admin-Console/ta-p/211) to share with collaborators.
 
    Tips: Access the Box Account as the Admin of the enterprise using the credentials for the Box Developer Account you created.
-
-
-
-
-
