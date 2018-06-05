@@ -48,7 +48,15 @@ const SearchDataSource = {
             } else if (!searchParams.used && searchParams.unUsed) {
                 textUnitSearcherParameters.usedFilter(textUnitSearcherParameters.UNUSED);
             }
-
+            
+            if (!searchParams.translate && !searchParams.doNotTranslate) {
+                returnEmptry = true;
+            } else if (searchParams.translate && !searchParams.doNotTranslate) {
+                textUnitSearcherParameters.doNotTranslateFilter(false);
+            } else if (!searchParams.translate && searchParams.doNotTranslate) {
+                textUnitSearcherParameters.doNotTranslateFilter(true);
+            }
+            
             // ask for one extra text unit to know if there are more text units
             let limit = searchParams.pageSize + 1;
 

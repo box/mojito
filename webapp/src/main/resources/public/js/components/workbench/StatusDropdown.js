@@ -27,6 +27,8 @@ let StatusDropdown = React.createClass({
             "status": searchParams.status,
             "used": searchParams.used,
             "unUsed": searchParams.unUsed,
+            "translate" : searchParams.translate,
+            "doNotTranslate" : searchParams.doNotTranslate,
         });
     },
 
@@ -35,6 +37,8 @@ let StatusDropdown = React.createClass({
             "status": this.getInitialStatus(),
             "used": false,
             "unUsed": false,
+            "translate" : false,
+            "doNotTranslate" : false,
         };
     },
 
@@ -145,6 +149,12 @@ let StatusDropdown = React.createClass({
                 <MenuItem header><FormattedMessage id="search.statusDropdown.used" /></MenuItem>
                     {this.renderFilterMenuItem("used", true)}
                     {this.renderFilterMenuItem("unUsed", false)}
+
+                <MenuItem divider />
+
+                <MenuItem header><FormattedMessage id="search.statusDropdown.translate" /></MenuItem>
+                    {this.renderFilterMenuItem("translate", true)}
+                    {this.renderFilterMenuItem("doNotTranslate", false)}
 
             </DropdownButton>
         );

@@ -33,7 +33,10 @@ class SearchParamsStore {
         this.status = SearchParamsStore.STATUS.ALL;
         this.used = true;
         this.unUsed = false;
-
+        
+        this.translate = true;
+        this.doNotTranslate = false;
+        
         // pagination related attributes
         this.pageSize = 10;
         this.currentPageNumber = 1;
@@ -171,7 +174,8 @@ class SearchParamsStore {
     repoIds = null, repoNames = null, bcp47Tags = null, searchText = null,
             searchAttribute = null, searchType = null, status = null, used = null,
             unUsed = null, pageSize = null, currentPageNumber = null,
-            pageOffset = null, pluralFormOther = null
+            pageOffset = null, pluralFormOther = null, translate = null, 
+            doNotTranslate = null
     } = {}) {
 
 
@@ -210,7 +214,13 @@ class SearchParamsStore {
 
         if (unUsed !== null)
             this.unUsed = unUsed;
-
+        
+        if (translate !== null)
+            this.translate = translate;
+        
+        if (doNotTranslate !== null)
+            this.doNotTranslate = doNotTranslate;
+        
         if (pageSize !== null)
             this.pageSize = pageSize;
 
@@ -226,14 +236,15 @@ class SearchParamsStore {
      *
      * @param {string} query The query string from location.query
      * @return {{repoIds: number[], bcp47Tags: string[], searchAttribute: string, searchText: string,
-     * searchType: string, used: boolean, unUsed: boolean, status: SearchParamsStore.STATUS,
+     * searchType: string, used: boolean, unUsed: boolean, translate: boolean,
+     * doNotTranslate: boolean, status: SearchParamsStore.STATUS,
      * pageSize: Number, currentPageNumber: Number, pageOffset: Number }}
      */
     static convertQueryToSearchParams(query) {
 
         let {
             searchAttribute, searchText, searchType,
-            status, used, unUsed,
+            status, used, unUsed, translate, doNotTranslate,
             pageSize, currentPageNumber, pageOffset,
             pluralFormOther} = query;
 
@@ -268,6 +279,8 @@ class SearchParamsStore {
             "status": typeof status !== "undefined" ? status : null,
             "used": typeof used !== "undefined" ? (used === "true") : null,
             "unUsed": typeof unUsed !== "undefined" ? (unUsed === "true") : null,
+            "translate": typeof translate !== "undefined" ? (translate === "true") : null,
+            "doNotTranslate": typeof doNotTranslate !== "undefined" ? (doNotTranslate === "true") : null,
             "pageSize": typeof pageSize !== "undefined" ? parseInt(pageSize) : null,
             "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
             "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null,
