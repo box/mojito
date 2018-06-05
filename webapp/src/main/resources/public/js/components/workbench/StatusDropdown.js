@@ -115,6 +115,8 @@ let StatusDropdown = React.createClass({
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.all" });
             case SearchParamsStore.STATUS.TRANSLATED:
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.translated" });
+            case SearchParamsStore.STATUS.UNTRANSLATED:
+                return this.props.intl.formatMessage({ id: "search.statusDropdown.untranslated" });
             case SearchParamsStore.STATUS.FOR_TRANSLATION:
                 return this.props.intl.formatMessage({ id: "search.statusDropdown.forTranslation" });
             case SearchParamsStore.STATUS.REVIEW_NEEDED:
@@ -140,6 +142,7 @@ let StatusDropdown = React.createClass({
                 <MenuItem header><FormattedMessage id="search.statusDropdown.status" /></MenuItem>
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.ALL)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.TRANSLATED)}
+                    {this.renderStatusMenuItem(SearchParamsStore.STATUS.UNTRANSLATED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.FOR_TRANSLATION)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REVIEW_NEEDED)}
                     {this.renderStatusMenuItem(SearchParamsStore.STATUS.REJECTED)}
