@@ -67,6 +67,11 @@ class TextUnitSearcherParameters {
         this.params.usedFilter = usedFilter;
         return this;
     }
+    
+    doNotTranslateFilter(doNotTranslateFilter) {
+        this.params.doNotTranslateFilter = doNotTranslateFilter;
+        return this;
+    }
 
     statusFilter(statusFilter) {
         this.params.statusFilter = statusFilter;
