@@ -22,6 +22,8 @@ $large-spacer: 20px;
 
 $icon-font-path: "../../../../node_modules/bootstrap-sass/assets/fonts/bootstrap/";
 @import "../../../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
+@import "../../../../node_modules/react-datetime/css/react-datetime.css";
+
 
 body {
     font-weight: $brand-font-weight;

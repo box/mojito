@@ -72,6 +72,11 @@ class TextUnitSearcherParameters {
         this.params.doNotTranslateFilter = doNotTranslateFilter;
         return this;
     }
+    
+    tmTextUnitCreatedBefore(tmTextUnitCreatedBefore) {
+        this.params.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
+        return this;
+    }
 
     statusFilter(statusFilter) {
         this.params.statusFilter = statusFilter;
