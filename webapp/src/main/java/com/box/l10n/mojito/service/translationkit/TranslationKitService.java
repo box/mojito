@@ -367,7 +367,8 @@ public class TranslationKitService {
         //TODO(P1) handle "deltas"
         textUnitSearcherParameters.setRepositoryIds(repositoryId);
         textUnitSearcherParameters.setLocaleId(localeId);
-        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);        
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);  
+        textUnitSearcherParameters.setDoNotTranslateFilter(Boolean.FALSE);
         if (statusFilter != null) {
             textUnitSearcherParameters.setStatusFilter(statusFilter);
         }

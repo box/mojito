@@ -314,10 +314,7 @@ public class TextUnitSearcher {
                 case FOR_TRANSLATION:
                     conjunction.add(NativeExps.disjunction(
                             Arrays.asList(
-                                    NativeExps.conjunction(Arrays.asList(
-                                            NativeExps.isNull("tuv.id"),
-                                            new NativeEqExpFix("atu.do_not_translate", Boolean.FALSE))
-                                    ),
+                                    NativeExps.isNull("tuv.id"),
                                     new NativeEqExpFix("tuv.status", TMTextUnitVariant.Status.TRANSLATION_NEEDED.toString()),
                                     new NativeEqExpFix("tuv.included_in_localized_file", Boolean.FALSE)
                             )
