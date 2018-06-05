@@ -48,7 +48,7 @@ const SearchDataSource = {
             } else if (!searchParams.used && searchParams.unUsed) {
                 textUnitSearcherParameters.usedFilter(textUnitSearcherParameters.UNUSED);
             }
-            
+
             if (!searchParams.translate && !searchParams.doNotTranslate) {
                 returnEmptry = true;
             } else if (searchParams.translate && !searchParams.doNotTranslate) {
@@ -56,7 +56,11 @@ const SearchDataSource = {
             } else if (!searchParams.translate && searchParams.doNotTranslate) {
                 textUnitSearcherParameters.doNotTranslateFilter(true);
             }
-            
+
+            if (searchParams.tmTextUnitCreatedBefore) {
+                textUnitSearcherParameters.tmTextUnitCreatedBefore(searchParams.tmTextUnitCreatedBefore);
+            }
+
             // ask for one extra text unit to know if there are more text units
             let limit = searchParams.pageSize + 1;
 
@@ -76,7 +80,7 @@ const SearchDataSource = {
 
                     if (textUnits.length === limit) {
                         hasMore = true;
-                        textUnits = textUnits.slice(0, limit -1);
+                        textUnits = textUnits.slice(0, limit - 1);
                     }
 
                     return {textUnits, hasMore};

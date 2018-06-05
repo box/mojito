@@ -37,6 +37,8 @@ class SearchParamsStore {
         this.translate = true;
         this.doNotTranslate = false;
         
+        this.tmTextUnitCreatedBefore = null;
+        
         // pagination related attributes
         this.pageSize = 10;
         this.currentPageNumber = 1;
@@ -175,7 +177,7 @@ class SearchParamsStore {
             searchAttribute = null, searchType = null, status = null, used = null,
             unUsed = null, pageSize = null, currentPageNumber = null,
             pageOffset = null, pluralFormOther = null, translate = null, 
-            doNotTranslate = null
+            doNotTranslate = null, tmTextUnitCreatedBefore = null
     } = {}) {
 
 
@@ -221,6 +223,9 @@ class SearchParamsStore {
         if (doNotTranslate !== null)
             this.doNotTranslate = doNotTranslate;
         
+        if (tmTextUnitCreatedBefore !== null)
+            this.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
+        
         if (pageSize !== null)
             this.pageSize = pageSize;
 
@@ -237,14 +242,15 @@ class SearchParamsStore {
      * @param {string} query The query string from location.query
      * @return {{repoIds: number[], bcp47Tags: string[], searchAttribute: string, searchText: string,
      * searchType: string, used: boolean, unUsed: boolean, translate: boolean,
-     * doNotTranslate: boolean, status: SearchParamsStore.STATUS,
+     * doNotTranslate: boolean, status: SearchParamsStore.STATUS, 
+     * tmTextUnitCreatedBefore: SearchParamsStore.CREATED_BEFORE
      * pageSize: Number, currentPageNumber: Number, pageOffset: Number }}
      */
     static convertQueryToSearchParams(query) {
 
         let {
             searchAttribute, searchText, searchType,
-            status, used, unUsed, translate, doNotTranslate,
+            status, used, unUsed, translate, doNotTranslate, tmTextUnitCreatedBefore,
             pageSize, currentPageNumber, pageOffset,
             pluralFormOther} = query;
 
@@ -281,6 +287,7 @@ class SearchParamsStore {
             "unUsed": typeof unUsed !== "undefined" ? (unUsed === "true") : null,
             "translate": typeof translate !== "undefined" ? (translate === "true") : null,
             "doNotTranslate": typeof doNotTranslate !== "undefined" ? (doNotTranslate === "true") : null,
+            "tmTextUnitCreatedBefore": typeof tmTextUnitCreatedBefore !== "undefined" ? tmTextUnitCreatedBefore : null,
             "pageSize": typeof pageSize !== "undefined" ? parseInt(pageSize) : null,
             "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
             "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null,
