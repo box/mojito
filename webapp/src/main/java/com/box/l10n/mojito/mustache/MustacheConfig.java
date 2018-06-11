@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.react;
+package com.box.l10n.mojito.mustache;
 
 import com.samskivert.mustache.Mustache;
 import org.springframework.context.annotation.Bean;
