@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.repository;
+package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
@@ -9,9 +9,8 @@ import com.box.l10n.mojito.service.asset.VirtualAssetService;
 import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.test.TestIdWatcher;
