@@ -1,21 +1,23 @@
 package com.box.l10n.mojito.converter;
 
-import org.joda.time.LocalTime;
+import org.joda.time.Period;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 /**
- * Converts a String to a {@link LocalTime}.
- * 
+ * Converts a String to a @{link Period}.
+ *
  * @author jaurambault
  */
 @Component
 @ConfigurationPropertiesBinding
-public class LocalTimeConverter implements Converter<String, LocalTime> {
+public class PeriodConverter implements Converter<String, Period> {
 
     @Override
-    public LocalTime convert(String source) {
-        return new LocalTime(source);
+    public Period convert(String source) {
+        long sourceAsLong = Long.valueOf(source);
+        return new Period(sourceAsLong);
     }
+
 }
