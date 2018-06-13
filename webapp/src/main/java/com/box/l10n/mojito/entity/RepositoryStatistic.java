@@ -20,6 +20,8 @@ import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import org.hibernate.annotations.NamedNativeQueries;
 import org.hibernate.annotations.NamedNativeQuery;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
 import org.springframework.data.annotation.CreatedBy;
 
 /**
@@ -97,12 +99,28 @@ public class RepositoryStatistic extends AuditableEntity {
      */
     @JsonView(View.RepositorySummary.class)
     private Long pluralTextUnitCount = 0L;
-    
+
     /**
      * The number of words for plural forms
      */
     @JsonView(View.RepositorySummary.class)
-     private Long pluralTextUnitWordCount = 0L;
+    private Long pluralTextUnitWordCount = 0L;
+
+    /**
+     * The number of OOSLA text unit
+     */
+    @JsonView(View.RepositorySummary.class)
+    private Long ooslaTextUnitCount = 0L;
+
+    /**
+     * The number of OOSLA words
+     */
+    @JsonView(View.RepositorySummary.class)
+    private Long ooslaTextUnitWordCount = 0L;
+
+    @JsonView(View.RepositorySummary.class)
+    @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
+    private DateTime ooslaCreatedBefore;
 
     /**
      * The number of text unit without comments
@@ -225,7 +243,31 @@ public class RepositoryStatistic extends AuditableEntity {
     public void setPluralTextUnitWordCount(Long pluralTextUnitWordCount) {
         this.pluralTextUnitWordCount = pluralTextUnitWordCount;
     }
-    
+
+    public Long getOoslaTextUnitCount() {
+        return ooslaTextUnitCount;
+    }
+
+    public void setOoslaTextUnitCount(Long ooslaTextUnitCount) {
+        this.ooslaTextUnitCount = ooslaTextUnitCount;
+    }
+
+    public Long getOoslaTextUnitWordCount() {
+        return ooslaTextUnitWordCount;
+    }
+
+    public void setOoslaTextUnitWordCount(Long ooslaTextUnitWordCount) {
+        this.ooslaTextUnitWordCount = ooslaTextUnitWordCount;
+    }
+
+    public DateTime getOoslaCreatedBefore() {
+        return ooslaCreatedBefore;
+    }
+
+    public void setOoslaCreatedBefore(DateTime ooslaCreatedBefore) {
+        this.ooslaCreatedBefore = ooslaCreatedBefore;
+    }
+
     /**
      * @return the repositoryLocaleStatistics
      */
@@ -253,5 +295,5 @@ public class RepositoryStatistic extends AuditableEntity {
     public void setUncommentedTextUnitCount(Long uncommentedTextUnitCount) {
         this.uncommentedTextUnitCount = uncommentedTextUnitCount;
     }
-    
+
 }

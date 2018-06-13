@@ -8,6 +8,7 @@ import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.sla.DropScheduleService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -21,7 +22,9 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service to compute and update {@link Repository} statistics
@@ -56,10 +59,16 @@ public class RepositoryStatisticService {
 
     @Autowired
     EntityManager entityManager;
-    
+
     @Autowired
     TextUnitSearcher textUnitSearcher;
-   
+
+    @Autowired
+    DropScheduleService dropScheduleService;
+
+    @Value("${l10n.repositoryStatistics.computeOutOfSla:false}")
+    boolean computeOutOfSla;
+
     /**
      * Updates the {@link RepositoryStatistic} of a given repository.
      *
@@ -86,18 +95,21 @@ public class RepositoryStatisticService {
         repositoryStatistic.setUnusedTextUnitWordCount(newRepositoryStatistics.getUnusedTextUnitWordCount());
         repositoryStatistic.setPluralTextUnitCount(newRepositoryStatistics.getPluralTextUnitCount());
         repositoryStatistic.setPluralTextUnitWordCount(newRepositoryStatistics.getPluralTextUnitWordCount());
-        
+        repositoryStatistic.setOoslaCreatedBefore(newRepositoryStatistics.getOoslaCreatedBefore());
+        repositoryStatistic.setOoslaTextUnitCount(newRepositoryStatistics.getOoslaTextUnitCount());
+        repositoryStatistic.setOoslaTextUnitWordCount(newRepositoryStatistics.getOoslaTextUnitWordCount());
+
         //TODO(P1) This should be updated by spring but it's not, needs review
         repositoryStatistic.setLastModifiedDate(DateTime.now());
 
         repositoryStatisticRepository.save(repositoryStatistic);
-      
+
         logger.debug("Update locale statistics");
         for (RepositoryLocale repositoryLocale : repositoryService.getRepositoryLocalesWithoutRootLocale(repository)) {
             updateLocaleStatistics(repositoryLocale, repositoryStatistic);
         }
-        
-        logger.debug("Stats updated"); 
+
+        logger.debug("Stats updated");
     }
 
     /**
@@ -134,7 +146,7 @@ public class RepositoryStatisticService {
         repositoryLocaleStatistic.setForTranslationCount(newRepositoryLocaleStatistic.getForTranslationCount());
         repositoryLocaleStatistic.setForTranslationWordCount(newRepositoryLocaleStatistic.getForTranslationWordCount());
         repositoryLocaleStatistic.setDiffToSourcePluralCount(newRepositoryLocaleStatistic.getDiffToSourcePluralCount());
-        
+
         repositoryLocaleStatisticRepository.save(repositoryLocaleStatistic);
     }
 
@@ -152,7 +164,10 @@ public class RepositoryStatisticService {
         Query createNativeQuery = entityManager.createNamedQuery("RepositoryStatistic.computeBaseStatistics");
         createNativeQuery.setParameter(1, repositoryId);
 
-        return (RepositoryStatistic) createNativeQuery.getSingleResult();
+        RepositoryStatistic repositoryStatistic = (RepositoryStatistic) createNativeQuery.getSingleResult();
+        updateRepositoryStatisticWithOutOfSla(repositoryId, repositoryStatistic);
+
+        return repositoryStatistic;
     }
 
     /**
@@ -173,11 +188,11 @@ public class RepositoryStatisticService {
         logger.debug("Replace POJO with a reference object");
         repositoryLocaleStatistic.setLocale(repositoryLocale.getLocale());
         repositoryLocaleStatistic.setDiffToSourcePluralCount(computeDiffToSourceLocaleCount(repositoryLocale.getLocale().getBcp47Tag()));
-        
+
         TextUnitAndWordCount countTextUnitAndWordCount = getForTranslationStatistics(repositoryLocale);
         repositoryLocaleStatistic.setForTranslationCount(countTextUnitAndWordCount.getTextUnitCount());
         repositoryLocaleStatistic.setForTranslationWordCount(countTextUnitAndWordCount.getTextUnitWordCount());
-        
+
         return repositoryLocaleStatistic;
     }
 
@@ -193,10 +208,32 @@ public class RepositoryStatisticService {
         return countTextUnitAndWordCount;
     }
 
+    TextUnitAndWordCount getUntranslatedTextUnitsCountBeforeCreatedDate(Long repositoryId, DateTime createdBefore) {
+        logger.debug("Get untranslated text unit for repository id: {} and before date: {}", repositoryId, createdBefore);
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repositoryId);
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.UNTRANSLATED);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setDoNotTranslateFilter(false);
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(createdBefore);
+        return textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
+    }
+
+    void updateRepositoryStatisticWithOutOfSla(Long repositoryId, RepositoryStatistic repositoryStatistic) {
+        if (computeOutOfSla) {
+            logger.debug("Update repository statistic with out of SLA statistics");
+            DateTime lastDropCreatedDate = dropScheduleService.getLastDropCreatedDate();
+            TextUnitAndWordCount countTextUnitAndWordCount = getUntranslatedTextUnitsCountBeforeCreatedDate(repositoryId, lastDropCreatedDate);
+            repositoryStatistic.setOoslaTextUnitCount(countTextUnitAndWordCount.getTextUnitCount());
+            repositoryStatistic.setOoslaTextUnitWordCount(countTextUnitAndWordCount.getTextUnitWordCount());
+            repositoryStatistic.setOoslaCreatedBefore(lastDropCreatedDate);
+        }
+    }
+
     private Long computeDiffToSourceLocaleCount(String targetLocaleBcp47Tag) {
-          ULocale targetLocale = ULocale.forLanguageTag(targetLocaleBcp47Tag);
-          PluralRules pluralRulesTargetLocale = PluralRules.forLocale(targetLocale);
-          return 6L - pluralRulesTargetLocale.getKeywords().size();
+        ULocale targetLocale = ULocale.forLanguageTag(targetLocaleBcp47Tag);
+        PluralRules pluralRulesTargetLocale = PluralRules.forLocale(targetLocale);
+        return 6L - pluralRulesTargetLocale.getKeywords().size();
     }
 
 }
