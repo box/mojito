@@ -227,6 +227,7 @@ public class RepositoryStatisticService {
             repositoryStatistic.setOoslaTextUnitCount(countTextUnitAndWordCount.getTextUnitCount());
             repositoryStatistic.setOoslaTextUnitWordCount(countTextUnitAndWordCount.getTextUnitWordCount());
             repositoryStatistic.setOoslaCreatedBefore(lastDropCreatedDate);
+            logger.debug("Number of out of sla text unit: {}", countTextUnitAndWordCount.getTextUnitCount());
         }
     }
 
