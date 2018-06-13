@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class DateTimeUtils {
 
+    public DateTime now() {
+        return new DateTime();
+    }
+
     public DateTime now(DateTimeZone dateTimeZone) {
         return new DateTime(dateTimeZone);
     }

@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <style>
+            #body {
+                background: #559745;
+            }
+
+            table {
+                border-collapse: collapse;
+            }
+
+            td {
+                text-align: center;
+                padding: 8px;
+            }
+
+            .odd {
+                background-color: rgba(85, 151, 69, 0.1);
+            }
+
+            thead {
+                background-color: #559745;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+        <p>Incident #{{incidentId}}</p>
+        <p>There are out of SLA strings, check <a href="{{mojitoUrl}}">Mojito's dashboard.</a></p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <td>Repository</td>
+                    <td>Out of SLA</td>
+                </tr>
+            </thead>
+            <tbody>
+                {{#repositories}}
+                <tr class="{{#odd}}0{{/odd}}">
+                    <td>{{name}}</td>
+                    <td>{{repositoryStatistic.ooslaTextUnitWordCount}}</td>
+                </tr>
+                {{/repositories}}
+            </tbody>
+        </table>
+    </body>
+</html>
