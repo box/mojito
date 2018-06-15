@@ -313,7 +313,6 @@ public class TextUnitBatchImporterService {
             textUnitBatch.setContent(NormalizationUtils.normalize(textUnitDTO.getTarget()));
             textUnitBatch.setComment(textUnitDTO.getComment());
             textUnitBatch.setIncludedInLocalizedFile(textUnitDTO.isIncludedInLocalizedFile());
-
             textUnitBatch.setStatus(textUnitDTO.getStatus() == null ? TMTextUnitVariant.Status.APPROVED : textUnitDTO.getStatus());
 
             textUnitsForBatchImport.add(textUnitBatch);
