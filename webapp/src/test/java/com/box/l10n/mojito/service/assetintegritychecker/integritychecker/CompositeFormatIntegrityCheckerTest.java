@@ -51,6 +51,36 @@ public class CompositeFormatIntegrityCheckerTest {
         checker.check(source, target);
     }
 
+    @Test
+    public void testMustache() {
+        CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
+
+        String source = "A {{mustache}} template";
+        String target = "Un modėle {{mustache}}";
+
+        checker.check(source, target);
+    }
+
+    @Test(expected = CompositeFormatIntegrityCheckerException.class)
+    public void testMustacheInvalidMissingCurlyBraces() {
+        CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
+
+        String source = "A {{mustache}} template";
+        String target = "Un modėle {mustache}";
+
+        checker.check(source, target);
+    }
+
+    @Test(expected = CompositeFormatIntegrityCheckerException.class)
+    public void testMustacheInvalidMissingPlaceholder() {
+        CompositeFormatIntegrityChecker checker = new CompositeFormatIntegrityChecker();
+
+        String source = "A {{mustache}} template";
+        String target = "Un modėle";
+
+        checker.check(source, target);
+    }
+
     @Test(expected = CompositeFormatIntegrityCheckerException.class)
     public void testMissingPlaceholder() throws CompositeFormatIntegrityCheckerException {
 
