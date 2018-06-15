@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.tm.importer;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 
 /**
@@ -20,6 +21,7 @@ public class TextUnitForBatchImport {
     Long tmTextUnitId;
     TextUnitDTO currentTextUnit;
     boolean includedInLocalizedFile;
+    private TMTextUnitVariant.Status status;
 
     public Repository getRepository() {
         return repository;
@@ -93,4 +95,11 @@ public class TextUnitForBatchImport {
         this.includedInLocalizedFile = includedInLocalizedFile;
     }
 
+    public TMTextUnitVariant.Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(TMTextUnitVariant.Status status) {
+        this.status = status;
+    }
 }

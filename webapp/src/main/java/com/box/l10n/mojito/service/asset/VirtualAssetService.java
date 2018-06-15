@@ -253,6 +253,7 @@ public class VirtualAssetService {
             textUnitDTO.setName(textUnitForVirtualAsset.getName());
             textUnitDTO.setTarget(textUnitForVirtualAsset.getContent());
             textUnitDTO.setComment(textUnitForVirtualAsset.getComment());
+            textUnitDTO.setIncludedInLocalizedFile(true);
             textUnitDTOs.add(textUnitDTO);
         }
 
