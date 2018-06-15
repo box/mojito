@@ -23,17 +23,20 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import java.util.ArrayList;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.joda.time.DateTime;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.joda.time.DateTime;
-import org.springframework.stereotype.Component;
+
 
 /**
  * @author jaurambault
@@ -69,13 +72,16 @@ public class TextUnitBatchImporterService {
 
     /**
      * Imports a batch of text units.
-     *
+     * <p>
      * Assumes the text units have the following mandatory attributes:
      * repository name, target locale, asset path, name, target
-     *
+     * <p>
      * Optional attribute: tm text unit id, comment
-     *
+     * <p>
      * If mandatory attributes are missing the text unit will be skipped
+     * <p>
+     * Integrity checks are applied and will determine the {@link TMTextUnitVariant.Status}. Any string that passes the
+     * integrity check will be imported as approved. If it doesn't pass the test it will be need translation.
      *
      * @param textUnitDTOs text units to import
      * @return
@@ -105,12 +111,11 @@ public class TextUnitBatchImporterService {
     /**
      * Maps text units to import with existing text units by first looking up
      * the tm text unit id then the name of used text unit and finally the name
-     * of unused text unit (if there is only one of them for a given name) *
+     * of unused text unit (if there is only one of them for a given name)
      *
      * @param locale
      * @param asset
-     * @param textUnitsToImport text units to which the current text units must
-     * be added
+     * @param textUnitsToImport text units to which the current text units must be added
      */
     void mapTextUnitsToImportWithExistingTextUnits(Locale locale, Asset asset, List<TextUnitForBatchImport> textUnitsToImport) {
 
@@ -165,7 +170,7 @@ public class TextUnitBatchImporterService {
                 logger.debug("No matching text unit for name: {}", textUnitForBatchImport.getName());
             } else if (textUnitForBatchImport.getContent() == null) {
                 logger.error("Content can't be null, skip for name: {}", textUnitForBatchImport.getName());
-            } else if (!textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget())) {
+            } else if (isUpdateNeeded(textUnitForBatchImport)) {
                 logger.debug("Add translation: {} --> {}", textUnitForBatchImport.getName(), textUnitForBatchImport.getContent());
 
                 TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
@@ -181,14 +186,29 @@ public class TextUnitBatchImporterService {
                         locale.getId(),
                         textUnitForBatchImport.getContent(),
                         textUnitForBatchImport.getComment(),
-                        textUnitForBatchImport.isIncludedInLocalizedFile() ? TMTextUnitVariant.Status.APPROVED : TMTextUnitVariant.Status.TRANSLATION_NEEDED,
+                        textUnitForBatchImport.getStatus(),
                         textUnitForBatchImport.isIncludedInLocalizedFile(),
                         importTime);
 
             } else {
-                logger.debug("Same targets, skip: {}", textUnitForBatchImport.getName());
+                logger.debug("Update not needed, skip: {}", textUnitForBatchImport.getName());
             }
         }
+    }
+
+    boolean isUpdateNeeded(TextUnitForBatchImport textUnitForBatchImport) {
+
+        TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
+
+        return currentTextUnit.getTarget() == null || tmService.isUpdateNeededForTmTextUnitVariant(
+                currentTextUnit.getStatus(),
+                DigestUtils.md5Hex(currentTextUnit.getTarget()),
+                currentTextUnit.isIncludedInLocalizedFile(),
+                currentTextUnit.getComment(),
+                textUnitForBatchImport.getStatus(),
+                DigestUtils.md5Hex(textUnitForBatchImport.getContent()),
+                textUnitForBatchImport.isIncludedInLocalizedFile(),
+                textUnitForBatchImport.getComment());
     }
 
     List<TextUnitDTO> getTextUnitTDOsForLocaleAndAsset(Locale locale, Asset asset) {
@@ -231,14 +251,16 @@ public class TextUnitBatchImporterService {
 
         for (TextUnitForBatchImport textUnitForBatchImport : textUnitsForBatchImport) {
             for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
-                
+
                 Preconditions.checkNotNull(textUnitForBatchImport.getCurrentTextUnit(), "Current text unit must be set to apply integrity checks");
-             
+
                 try {
                     textUnitChecker.check(textUnitForBatchImport.getCurrentTextUnit().getSource(), textUnitForBatchImport.getContent());
                     textUnitForBatchImport.setIncludedInLocalizedFile(true);
-                } catch(IntegrityCheckException ice) {
+                    textUnitForBatchImport.setStatus(TMTextUnitVariant.Status.APPROVED);
+                } catch (IntegrityCheckException ice) {
                     textUnitForBatchImport.setIncludedInLocalizedFile(false);
+                    textUnitForBatchImport.setStatus(TMTextUnitVariant.Status.TRANSLATION_NEEDED);
                 }
             }
         }
@@ -290,8 +312,10 @@ public class TextUnitBatchImporterService {
             textUnitBatch.setName(textUnitDTO.getName());
             textUnitBatch.setContent(NormalizationUtils.normalize(textUnitDTO.getTarget()));
             textUnitBatch.setComment(textUnitDTO.getComment());
-            textUnitBatch.setIncludedInLocalizedFile(true);
-            
+            textUnitBatch.setIncludedInLocalizedFile(textUnitDTO.isIncludedInLocalizedFile());
+
+            textUnitBatch.setStatus(textUnitDTO.getStatus() == null ? TMTextUnitVariant.Status.APPROVED : textUnitDTO.getStatus());
+
             textUnitsForBatchImport.add(textUnitBatch);
         }
 

@@ -230,6 +230,16 @@ public class TextUnitWS {
         return textUnitDTO;
     }
 
+    /**
+     * Imports batch of text units.
+     *
+     * Note that the status of the text unit is not taken in account nor the included in localized file attribute. For
+     * now, the integrity checker is always applied and is used to determine the
+     * {@link TMTextUnitVariant.Status}. TODO later we want to change that to look at the status provided.
+     *
+     * @param textUnitDTOs
+     * @return
+     */
     @RequestMapping(method = RequestMethod.POST, value = "/api/textunitsBatch")
     public PollableTask importTextUnitsByNames(@RequestBody List<TextUnitDTO> textUnitDTOs) {
         PollableFuture pollableFuture = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOs);
