@@ -2,6 +2,7 @@ import BaseClient from "./BaseClient";
 import TextUnit from "./TextUnit";
 import TextUnitIntegrityCheckRequest from "./textunit/TextUnitIntegrityCheckRequest";
 import TextUnitIntegrityCheckResult from "./textunit/TextUnitIntegrityCheckResult";
+import PollableTaskClient from "./PollableTaskClient";
 
 
 class TextUnitClient extends BaseClient {
@@ -63,6 +64,36 @@ class TextUnitClient extends BaseClient {
             return new TextUnitIntegrityCheckResult(jsonTextUnit);
         });
     }
+
+    /**
+     * Saves a VirtualAssetTextUnit build of TextUnit information.
+     *
+     * @param {TextUnit} textUnit
+     * @returns
+     */
+    saveVirtualAssetTextUnit(textUnit) {
+        return this.post(this.getAssetTextUnitsUrl(textUnit.getAssetId()), [{
+            name: textUnit.getName(),
+            content: textUnit.getSource(),
+            comment: textUnit.getComment(),
+            pluralForm : textUnit.getPluralForm(),
+            pluralFormOther: textUnit.getPluralFormOther(),
+            doNotTranslate: textUnit.getDoNotTranslate(),
+        }]).then(function(pollableTask) {
+            return PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id).then(function(pollableTask) {
+                if (pollableTask.errorMessage) {
+                    throw new Error(pollableTask.errorMessage);
+                }
+
+                return textUnit;
+            });
+        });
+    }
+
+    getAssetTextUnitsUrl(assetId) {
+        return this.baseUrl + 'virtualAssets/' + assetId + '/textUnits';
+    }
+
 
     getEntityName() {
         return 'textunits';

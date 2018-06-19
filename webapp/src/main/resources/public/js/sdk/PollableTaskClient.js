@@ -1,7 +1,4 @@
 import BaseClient from './BaseClient';
-import Drop from './drop/Drop';
-import ExportDropConfig from './drop/ExportDropConfig';
-import PageRequestResults from "./PageRequestResults";
 import PollableTask from "./entity/PollableTask";
 
 /**
@@ -46,6 +43,8 @@ class PollableTaskClient extends BaseClient {
             if (!pollableTask.isAllFinished) {
                 return delay(500).then(this.doWaitForPollableTaskToFinish.bind(this, pollableId, timeoutTime));
             }
+
+            return pollableTask;
         });
     }
 

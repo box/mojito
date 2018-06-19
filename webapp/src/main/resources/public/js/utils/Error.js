@@ -34,7 +34,8 @@ Error.IDS = keymirror({
     "TEXTUNIT_CHECK_AND_SAVE_FAILED": null,
     "TEXTUNIT_CHECK_FAILED": null,
     "TEXTUNIT_DELETE_FAILED": null,
-    "SEARCH_QUERY_FAILED": null
+    "SEARCH_QUERY_FAILED": null,
+    "VIRTUAL_ASSET_TEXTUNIT_SAVE_FAILED": null
 });
 
 /**
@@ -45,6 +46,7 @@ Error.MESSAGEKEYS_MAP = {
     "TEXTUNIT_CHECK_AND_SAVE_FAILED": "textUnit.checkandsave.failed",
     "TEXTUNIT_CHECK_FAILED": "textUnit.check.failed",
     "TEXTUNIT_DELETE_FAILED": "textUnit.delete.failed",
+    "VIRTUAL_ASSET_TEXTUNIT_SAVE_FAILED": "textUnit.saveVirtualAssetTextUnit.failed",
     "SEARCH_QUERY_FAILED": "search.query.failed"
 };
 
