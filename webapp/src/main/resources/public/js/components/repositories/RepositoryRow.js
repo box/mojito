@@ -158,7 +158,8 @@ let RepositoryRow = React.createClass({
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
-            "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId)
+            "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
+            "doNotTranslate": true
         });
     },
     
