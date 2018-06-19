@@ -5,7 +5,9 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.TMTextUnit;
+
 import static com.box.l10n.mojito.service.asset.VirtualAssetService.logger;
+
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
@@ -13,6 +15,7 @@ import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsUpdatedReactor;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -20,18 +23,19 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
  * @author aurambaj
  */
 @Component
@@ -63,6 +67,9 @@ public class VirtualTextUnitBatchUpdaterService {
 
     @Autowired
     PluralFormService pluralFormService;
+
+    @Autowired
+    RepositoryStatisticsUpdatedReactor repositoryStatisticsUpdatedReactor;
 
     @Autowired
     EntityManager entityManager;
@@ -150,11 +157,21 @@ public class VirtualTextUnitBatchUpdaterService {
                 logger.debug("Found exact match for: {}", virtualAssetTextUnit.getName());
 
                 if (exactMatch.isUsed()) {
-                    logger.debug("Exact match is used, nothing to do");
+
+                    if (exactMatch.isDoNotTranslate() == doNotTranslate) {
+                        logger.debug("Exact match is used and no change to doNotTranslate, nothing to do");
+                    } else {
+                        logger.debug("Exact match is used but doNotTranslate changed, update AssetTextUnit");
+                        AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(exactMatch.getAssetTextUnitId());
+                        assetTextUnit.setDoNotTranslate(virtualAssetTextUnit.getDoNotTranslate());
+                        assetTextUnitRepository.save(assetTextUnit);
+
+                        repositoryStatisticsUpdatedReactor.setRepositoryStatsOutOfDate(asset.getRepository().getId());
+                    }
                 } else {
                     logger.debug("Exact match not used, need to create an asset text unit and map it to the tm text unit");
                     createMappedAssetTextUnit(asset, virtualAssetTextUnit, pluralForm, doNotTranslate, exactMatch.getTmTextUnitId());
-                    
+
                     if (!replace) {
                         logger.debug("Not in replace mode, need to remove the previous entry (when in replace mode that operation will be done by deleteOldAssetTextUnits())");
                         removePreviousEntryWithSameName(nameToUsedtextUnitDTOs, virtualAssetTextUnit);
@@ -183,7 +200,7 @@ public class VirtualTextUnitBatchUpdaterService {
 
     void removePreviousEntryWithSameName(HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs, VirtualAssetTextUnit virtualAssetTextUnit) {
         TextUnitDTO previousByName = nameToUsedtextUnitDTOs.get(virtualAssetTextUnit.getName());
-        
+
         if (previousByName != null) {
             logger.debug("Asset text unit has changed, remove all previous entries");
             assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(previousByName.getAssetTextUnitId());
