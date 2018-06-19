@@ -48,7 +48,8 @@ let RepositoryStatistics = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [this.props.repoId],
             "bcp47Tags": [bcp47Tag],
-            "status": SearchParamsStore.STATUS.ALL
+            "status": SearchParamsStore.STATUS.ALL,
+            "doNotTranslate": true
         });
     },
 
