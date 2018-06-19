@@ -390,6 +390,21 @@ let TextUnit = React.createClass({
     },
 
     /**
+     * Returns the label to show do translate status or empty string if textunit is to be translated.
+     * @returns {Label}
+     */
+    renderDoNotTranslateLabel() {
+
+        let rendered = '';
+        if (this.props.textUnit.getDoNotTranslate()) {
+            rendered = (
+                <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.doNotTranslate"/></Label>
+            );
+        }
+        return rendered;
+    },
+
+    /**
      * Returns the label to show plural form or empty string if textunit has none.
      * @returns {Label}
      */
@@ -875,6 +890,7 @@ let TextUnit = React.createClass({
                                     {this.props.textUnit.getTargetLocale()}
                                 </Label>
                                 {this.renderUnusedLabel()}
+                                {this.renderDoNotTranslateLabel()}
                                 {this.renderPluralFormLabel()}
                                 {this.renderName()}
                             </Col>
