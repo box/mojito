@@ -33,6 +33,7 @@ public class TextUnitDTO {
     private String assetPath;
     private Long assetTextUnitId;
     private DateTime tmTextUnitCreatedDate;
+    private boolean doNotTranslate;
 
     public Long getTmTextUnitId() {
         return tmTextUnitId;
@@ -228,4 +229,11 @@ public class TextUnitDTO {
         this.tmTextUnitCreatedDate = tmTextUnitCreatedDate;
     }
 
+    public boolean isDoNotTranslate() {
+        return doNotTranslate;
+    }
+
+    public void setDoNotTranslate(boolean doNotTranslate) {
+        this.doNotTranslate = doNotTranslate;
+    }
 }

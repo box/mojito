@@ -196,7 +196,8 @@ public class TextUnitSearcher {
                 addProjection("r.name", "repositoryName").
                 addProjection("a.path", "assetPath").
                 addProjection("atu.id", "assetTextUnitId").
-                addProjection("tu.created_date", "tmTextUnitCreatedDate")
+                addProjection("tu.created_date", "tmTextUnitCreatedDate").
+                addProjection("atu.do_not_translate", "doNotTranslate")
         );
 
         logger.debug("Add search filters");
