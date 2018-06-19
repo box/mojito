@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 /**
  * Used to communicate with textunits WS (search for translated/untranslated strings, create/update new translation)
  *
@@ -212,6 +214,14 @@ class TextUnit {
 
     setPluralFormOther(pluralFormOther) {
         this.data.pluralFormOther = pluralFormOther;
+    }
+
+    getDoNotTranslate() {
+        return this.data.doNotTranslate;
+    }
+
+    setDoNotTranslate(doNotTranslate) {
+        this.data.doNotTranslate = doNotTranslate;
     }
 
     /**
