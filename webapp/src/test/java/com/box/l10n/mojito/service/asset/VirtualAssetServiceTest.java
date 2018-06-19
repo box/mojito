@@ -769,7 +769,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
     @Test
     public void testRemovePreviousWhenExactMatches() throws Exception {
         
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testAddTextUnit"));
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testRemovePreviousWhenExactMatches"));
         VirtualAsset virtualAsset = new VirtualAsset();
         virtualAsset.setRepositoryId(repository.getId());
         virtualAsset.setPath("default");
@@ -835,6 +835,57 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertNull(textUnits.get(i).getPluralForm());
         assertNull(textUnits.get(i).getPluralFormOther());
         assertTrue(textUnits.get(i).getDoNotTranslate());
+    }
+
+
+    @Test
+    public void testChangeDoNotTranslateWhenExactMatches() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testChangeDoNotTranslateWhenExactMatches"));
+        VirtualAsset virtualAsset = new VirtualAsset();
+        virtualAsset.setRepositoryId(repository.getId());
+        virtualAsset.setPath("default");
+        virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name",
+                "content",
+                "comment",
+                null,
+                null,
+                true);
+
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        assertEquals(1, textUnits.size());
+
+        int i = 0;
+        assertEquals("name", textUnits.get(i).getName());
+        assertEquals("content", textUnits.get(i).getContent());
+        assertEquals("comment", textUnits.get(i).getComment());
+        assertNull(textUnits.get(i).getPluralForm());
+        assertNull(textUnits.get(i).getPluralFormOther());
+        assertTrue(textUnits.get(i).getDoNotTranslate());
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name",
+                "content",
+                "comment",
+                null,
+                null,
+                false);
+
+        textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        assertEquals(1, textUnits.size());
+
+        i = 0;
+        assertEquals("name", textUnits.get(i).getName());
+        assertEquals("content", textUnits.get(i).getContent());
+        assertEquals("comment", textUnits.get(i).getComment());
+        assertNull(textUnits.get(i).getPluralForm());
+        assertNull(textUnits.get(i).getPluralFormOther());
+        assertFalse(textUnits.get(i).getDoNotTranslate());
     }
 
 }
