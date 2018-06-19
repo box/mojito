@@ -156,6 +156,14 @@ class SearchResultsStore {
     }
 
     /**
+     *
+     * @param {TextUnit} textUnit
+     */
+    onSaveVirtualAssetTextUnitSuccess(textUnit) {
+        this.updateSearchResultsWithTextUnit(textUnit);
+    }
+
+    /**
      * When the error modal is closed, the state of the store must be updated accordingly
      * to set the isErrorOccurred to false.
      */
