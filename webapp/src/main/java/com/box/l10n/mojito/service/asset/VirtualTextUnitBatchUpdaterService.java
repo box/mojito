@@ -163,7 +163,7 @@ public class VirtualTextUnitBatchUpdaterService {
                     } else {
                         logger.debug("Exact match is used but doNotTranslate changed, update AssetTextUnit");
                         AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(exactMatch.getAssetTextUnitId());
-                        assetTextUnit.setDoNotTranslate(virtualAssetTextUnit.getDoNotTranslate());
+                        assetTextUnit.setDoNotTranslate(doNotTranslate);
                         assetTextUnitRepository.save(assetTextUnit);
 
                         repositoryStatisticsUpdatedReactor.setRepositoryStatsOutOfDate(asset.getRepository().getId());
