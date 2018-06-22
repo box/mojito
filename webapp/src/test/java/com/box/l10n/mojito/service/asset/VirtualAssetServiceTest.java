@@ -888,4 +888,55 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertFalse(textUnits.get(i).getDoNotTranslate());
     }
 
+    @Test
+    public void testFetchAllPluralForm() throws Exception {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testFetchAllPluralForm"));
+
+        VirtualAsset virtualAsset = new VirtualAsset();
+        virtualAsset.setRepositoryId(repository.getId());
+        virtualAsset.setPath("default");
+        virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+
+        List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
+
+        VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
+
+        virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name1_other");
+        virtualAssetTextUnit.setContent("content1");
+        virtualAssetTextUnit.setComment("comment1");
+        virtualAssetTextUnit.setPluralForm("other");
+        virtualAssetTextUnit.setPluralFormOther("name1_other");
+        virtualAssetTextUnits.add(virtualAssetTextUnit);
+
+        virtualAssetTextUnit = new VirtualAssetTextUnit();
+        virtualAssetTextUnit.setName("name1_zero");
+        virtualAssetTextUnit.setContent("content1");
+        virtualAssetTextUnit.setComment("comment1");
+        virtualAssetTextUnit.setPluralForm("zero");
+        virtualAssetTextUnit.setPluralFormOther("name1_other");
+        virtualAssetTextUnits.add(virtualAssetTextUnit);
+
+        virtualAssetService.addTextUnits(virtualAsset.getId(), virtualAssetTextUnits).get();
+        virtualAssetService.addTextUnits(virtualAsset.getId(), virtualAssetTextUnits).get();
+
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+
+        assertEquals(2, textUnits.size());
+        int i = 0;
+
+        assertEquals("name1_other", textUnits.get(i).getName());
+        assertEquals("content1", textUnits.get(i).getContent());
+        assertEquals("comment1", textUnits.get(i).getComment());
+        assertEquals("other", textUnits.get(i).getPluralForm());
+        assertEquals("name1_other", textUnits.get(i).getPluralFormOther());
+
+        i++;
+        assertEquals("name1_zero", textUnits.get(i).getName());
+        assertEquals("content1", textUnits.get(i).getContent());
+        assertEquals("comment1", textUnits.get(i).getComment());
+        assertEquals("zero", textUnits.get(i).getPluralForm());
+        assertEquals("name1_other", textUnits.get(i).getPluralFormOther());
+    }
+
 }
