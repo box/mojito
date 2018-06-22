@@ -83,6 +83,7 @@ public class VirtualTextUnitBatchUpdaterService {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setAssetId(asset.getId());
         textUnitSearcherParameters.setForRootLocale(true);
+        textUnitSearcherParameters.setPluralFormsFiltered(false);
         List<TextUnitDTO> allAssetTextUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
         HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs = new HashMap<>();
