@@ -7,16 +7,26 @@ permalink: /docs/guides/open-source-contributors/
 ---
 ## Prerequisites
 
-1. [JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html#jdk-7u80-oth-JPR)
-2. Install [Maven](https://maven.apache.org/download.cgi)
+1. [JDK 7](http://www.oracle.com/technetwork/java/javase/downloads/java-archive-downloads-javase7-521261.html#jdk-7u80-oth-JPR) 
+    or [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) 
+           (9 & 10 are not supported)
+2. Install [Maven](https://maven.apache.org/download.cgi) (or use the project Maven wrapper `mvnw`)
 3. Git clone or download {{ site.mojito_green }} source code to ${PROJECT_DIR}
 
+You can also [use docker](#docker-image) to setup the build environment.
+
 ## Build
-    cd ${PROJECT_DIR}/l10n
+    cd ${PROJECT_DIR}
     mvn clean install -DskipTests=true
 
+## Setup `npm`
+
+It is advised to reuse the `npm` version that was downloaded during build. Else make sure the global `npm` is compatible
+ 
+    export PATH=$(pwd)/webapp/node:$PATH
+
 ## Run {{ site.mojito_green }}
-    cd ${PROJECT_DIR}/l10n/webapp
+    cd ${PROJECT_DIR}/webapp
     npm run start-dev
 
 {{ site.mojito_green }} should be running on [http://localhost:8080/login](http://localhost:8080/login).  You can login with admin/ChangeMe.
@@ -26,13 +36,13 @@ permalink: /docs/guides/open-source-contributors/
 ## Add Demo Data in {{ site.mojito_green }}
 Make sure {{ site.mojito_green }} is up and running.
 
-    cd ${PROJECT_DIR}/l10n/webapp
+    cd ${PROJECT_DIR}/webapp
     npm run create-demo-data
 
 This creates Demo repository in {{ site.mojito_green }} with 21 languages.  17 languages are fully translated.  A Demo directory is created in ${Project_DIR} with source file.
 
 ## Run Unit Tests
-    cd ${PROJECT_DIR}/l10n
+    cd ${PROJECT_DIR}
     mvn test
 
 ## DB migration
@@ -55,6 +65,60 @@ Set the properties `l10n.flyway.clean=true` to have Flyway clean the schema firs
 - Move the update file to: `src/main/resources/db/migration`, rename the file (`x` is the version, `yy_zz` to provide a description: `yy zz`)
 - Test the migration script
 
+## Docker image
 
+The `aurambaj/mojito-dev` docker image comes with Java, Maven and some other build dependencies required to build the project easily.
+
+Build reusing host Maven repository (Recommanded):
+    
+    cd ${PROJECT_DIR}
+    docker run -v $(pwd):/mnt/mojito -v ~/.m2:/root/.m2 -it aurambaj/mojito-dev mvn install -DskipTests
+
+Or start the container and run build commands in it
+
+    docker run -v $(pwd):/mnt/mojito -v ~/.m2:/root/.m2 -P -it aurambaj/mojito-dev bash
+    
+    # and then build commands
+    mvn install -DskipTests
+    npm run start-dev
+    
+    
+To build from a clean slate:
+
+    docker run -v $(pwd):/mnt/mojito -it aurambaj/mojito-dev mvn install -DskipTests
+    
+    
+## Troubleshooting
+
+### Check Java version 
+
+Make sure you have Java 7 or 8 installed:
+
+```sh
+[11:05:13] ~/code/mojito (fix_add_text_unit_plural) $ java -version
+java version "1.8.0_121"
+Java(TM) SE Runtime Environment (build 1.8.0_121-b13)
+Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
+```
+
+### Check Maven version
+
+Maven 3.5+ should work fine. Consider trying the Maven wrapper `mvnw` from the project if you have any issue with Maven or don't want to install it.
+    
+If you have multiple version of Java installed, make sure Maven uses the right version (forth line):
+
+```sh
+[01:21:31] ~ $ mvn -version
+Apache Maven 3.5.2 (138edd61fd100ec658bfa2d307c43b76940a5d7d; 2017-10-18T00:58:13-07:00)
+Maven home: /usr/local/Cellar/maven/3.5.2/libexec
+Java version: 1.8.0_121, vendor: Oracle Corporation
+Java home: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre
+Default locale: en_US, platform encoding: UTF-8
+OS name: "mac os x", version: "10.13.5", arch: "x86_64", family: "mac"
+```
+
+### `Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException`
+
+You most likely have a wrong version of Java. Java 7 or 8 is required. See [Check Java version](#check-java-version)
 
 
