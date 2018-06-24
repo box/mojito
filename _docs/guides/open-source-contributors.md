@@ -21,9 +21,12 @@ You can also [use docker](#docker-image) to setup the build environment.
 
 ## Setup `npm`
 
-It is advised to reuse the `npm` version that was downloaded during build. Else make sure the global `npm` is compatible
- 
+It is advised to reuse the `npm` version that was downloaded during {{ site.mojito_green }}'s build.
+
     export PATH=$(pwd)/webapp/node:$PATH
+
+Else, make sure the global `npm` is compatible.
+ 
 
 ## Run {{ site.mojito_green }}
     cd ${PROJECT_DIR}/webapp
