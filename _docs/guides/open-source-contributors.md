@@ -76,10 +76,11 @@ Build reusing host Maven repository (Recommanded):
 
 Or start the container and run build commands in it
 
-    docker run -v $(pwd):/mnt/mojito -v ~/.m2:/root/.m2 -P -it aurambaj/mojito-dev bash
+    docker run -v $(pwd):/mnt/mojito -v ~/.m2:/root/.m2 -p 8080:8080 -it aurambaj/mojito-dev bash
     
     # and then build commands
     mvn install -DskipTests
+    cd webapp/
     npm run start-dev
     
     
