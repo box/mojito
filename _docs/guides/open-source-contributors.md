@@ -23,7 +23,7 @@ You can also [use docker](#docker-image) to setup the build environment.
 
 It is advised to reuse the `npm` version that was downloaded during {{ site.mojito_green }}'s build.
 
-    export PATH=$(pwd)/webapp/node:$PATH
+    source webapp/use_local_npm.sh
 
 Else, make sure the global `npm` is compatible.
  
