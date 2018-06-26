@@ -4,7 +4,7 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
 
 
 /**
@@ -76,18 +78,23 @@ public class TextUnitBatchImporterService {
      * Assumes the text units have the following mandatory attributes:
      * repository name, target locale, asset path, name, target
      * <p>
-     * Optional attribute: tm text unit id, comment
+     * Optional attribute: tm text unit id, comment, status, includedInFile
      * <p>
      * If mandatory attributes are missing the text unit will be skipped
      * <p>
-     * Integrity checks are applied and will determine the {@link TMTextUnitVariant.Status}. Any string that passes the
-     * integrity check will be imported as approved. If it doesn't pass the test it will be need translation.
+     * Integrity checks are applied and will determine the {@link Status}. Any string that passes the
+     * integrity check will be imported as approved. If it doesn't pass the test it will be need translation or
+     * the previous status when target is the same and the option is integrityCheckKeepStatusIfFailedAndSameTarget is
+     * passed
      *
      * @param textUnitDTOs text units to import
      * @return
      */
     @Pollable(async = true)
-    public PollableFuture asyncImportTextUnits(List<TextUnitDTO> textUnitDTOs) {
+    public PollableFuture asyncImportTextUnits(List<TextUnitDTO> textUnitDTOs,
+                                               boolean integrityCheckSkipped,
+                                               boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
+
         logger.debug("Import {} text units", textUnitDTOs.size());
         List<TextUnitForBatchImport> skipOrConvertToTextUnitBatch = skipOrConvertToTextUnitBatchs(textUnitDTOs);
         Map<Locale, Map<Asset, List<TextUnitForBatchImport>>> textUnitsByLocales = groupTextUnitsByLocale(skipOrConvertToTextUnitBatch);
@@ -100,7 +107,11 @@ public class TextUnitBatchImporterService {
                 List<TextUnitForBatchImport> textUnitsForBatchImport = textUnitsByAsset.getValue();
 
                 mapTextUnitsToImportWithExistingTextUnits(locale, asset, textUnitsForBatchImport);
-                applyIntegrityChecks(asset, textUnitsForBatchImport);
+
+                if (!integrityCheckSkipped) {
+                    applyIntegrityChecks(asset, textUnitsForBatchImport, integrityCheckKeepStatusIfFailedAndSameTarget);
+                }
+
                 importTextUnitsOfLocaleAndAsset(locale, asset, textUnitsForBatchImport);
             }
         }
@@ -169,7 +180,7 @@ public class TextUnitBatchImporterService {
             if (currentTextUnit == null) {
                 logger.debug("No matching text unit for name: {}", textUnitForBatchImport.getName());
             } else if (textUnitForBatchImport.getContent() == null) {
-                logger.error("Content can't be null, skip for name: {}", textUnitForBatchImport.getName());
+                logger.debug("Content can't be null, skip for name: {}", textUnitForBatchImport.getName());
             } else if (isUpdateNeeded(textUnitForBatchImport)) {
                 logger.debug("Add translation: {} --> {}", textUnitForBatchImport.getName(), textUnitForBatchImport.getContent());
 
@@ -245,22 +256,40 @@ public class TextUnitBatchImporterService {
         return textUnitsForBatchImportByLocale;
     }
 
-    void applyIntegrityChecks(Asset asset, List<TextUnitForBatchImport> textUnitsForBatchImport) {
+    void applyIntegrityChecks(
+            Asset asset,
+            List<TextUnitForBatchImport> textUnitsForBatchImport,
+            boolean keepStatusIfCheckFailedAndSameTarget) {
 
         Set<TextUnitIntegrityChecker> textUnitCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);
 
         for (TextUnitForBatchImport textUnitForBatchImport : textUnitsForBatchImport) {
+
+            TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
+
+            if (currentTextUnit == null) {
+                continue;
+            }
+
+            textUnitForBatchImport.setIncludedInLocalizedFile(true);
+            textUnitForBatchImport.setStatus(APPROVED);
+
             for (TextUnitIntegrityChecker textUnitChecker : textUnitCheckers) {
-
-                Preconditions.checkNotNull(textUnitForBatchImport.getCurrentTextUnit(), "Current text unit must be set to apply integrity checks");
-
                 try {
-                    textUnitChecker.check(textUnitForBatchImport.getCurrentTextUnit().getSource(), textUnitForBatchImport.getContent());
-                    textUnitForBatchImport.setIncludedInLocalizedFile(true);
-                    textUnitForBatchImport.setStatus(TMTextUnitVariant.Status.APPROVED);
+                    textUnitChecker.check(currentTextUnit.getSource(), textUnitForBatchImport.getContent());
                 } catch (IntegrityCheckException ice) {
-                    textUnitForBatchImport.setIncludedInLocalizedFile(false);
-                    textUnitForBatchImport.setStatus(TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+
+                    boolean hasSameTarget = textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
+
+                    if (hasSameTarget && keepStatusIfCheckFailedAndSameTarget) {
+                        textUnitForBatchImport.setIncludedInLocalizedFile(currentTextUnit.isIncludedInLocalizedFile());
+                        textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
+                    } else {
+                        textUnitForBatchImport.setIncludedInLocalizedFile(false);
+                        textUnitForBatchImport.setStatus(Status.TRANSLATION_NEEDED);
+                    }
+
+                    break;
                 }
             }
         }
@@ -308,12 +337,17 @@ public class TextUnitBatchImporterService {
                 continue;
             }
 
+            if (textUnitDTO.getTarget() == null) {
+                logger.debug("Skip, target is null");
+                continue;
+            }
+
             textUnitBatch.setLocale(locale);
             textUnitBatch.setName(textUnitDTO.getName());
             textUnitBatch.setContent(NormalizationUtils.normalize(textUnitDTO.getTarget()));
             textUnitBatch.setComment(textUnitDTO.getComment());
             textUnitBatch.setIncludedInLocalizedFile(textUnitDTO.isIncludedInLocalizedFile());
-            textUnitBatch.setStatus(textUnitDTO.getStatus() == null ? TMTextUnitVariant.Status.APPROVED : textUnitDTO.getStatus());
+            textUnitBatch.setStatus(textUnitDTO.getStatus() == null ? APPROVED : textUnitDTO.getStatus());
 
             textUnitsForBatchImport.add(textUnitBatch);
         }
