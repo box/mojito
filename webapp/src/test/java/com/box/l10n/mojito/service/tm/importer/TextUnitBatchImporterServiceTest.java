@@ -92,7 +92,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
 
         List<TextUnitDTO> textUnitDTOsForImport = Arrays.asList(textUnitDTO, textUnitDTO2, textUnitDTO3);
 
-        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport);
+        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
 
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
@@ -130,7 +130,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
             textUnitDTO.setTarget(textUnitDTO.getName() + " from import");
         }
 
-        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport);
+        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
 
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
@@ -186,7 +186,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
                     + ":" + textUnitDTO.getTargetLocale() + ":" + textUnitDTO.getName());
         }
 
-        textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport).get();
+        textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false).get();
 
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertFalse(textUnitDTOs.isEmpty());
@@ -226,7 +226,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         textUnitDTO.setTargetLocale("fr-FR");
         textUnitDTO.setTarget("v1");
 
-        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO)).get();
+        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false).get();
 
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(1, textUnitDTOs.size());
@@ -249,7 +249,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         textUnitDTO.setTargetLocale("fr-FR");
         textUnitDTO.setTarget("v2");
 
-        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO)).get();
+        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false).get();
 
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(2, textUnitDTOs.size());
@@ -259,7 +259,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         assertNull("Should not import since there is 2 text unit for name1", textUnitDTOs.get(1).getTarget());
 
         virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit)).get();
-        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO)).get();
+        textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false).get();
 
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(2, textUnitDTOs.size());
@@ -297,7 +297,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         textUnitDTO.setName("name1");
         textUnitDTO.setTarget("with some broken {placeholder");
 
-        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO));
+        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false);
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
         
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
@@ -311,7 +311,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         assertFalse("Should be excluded with broken placeholder", textUnitDTOs.get(0).isIncludedInLocalizedFile());
         
         textUnitDTO.setTarget("with fixed {placeholder}");
-        asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO));
+        asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false);
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
         
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);

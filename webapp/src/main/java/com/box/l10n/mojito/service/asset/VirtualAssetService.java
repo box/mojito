@@ -8,6 +8,8 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.service.NormalizationUtils;
+
+import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
 import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.assetExtractionIdEquals;
 import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.doNotTranslateEquals;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
@@ -254,10 +256,11 @@ public class VirtualAssetService {
             textUnitDTO.setTarget(textUnitForVirtualAsset.getContent());
             textUnitDTO.setComment(textUnitForVirtualAsset.getComment());
             textUnitDTO.setIncludedInLocalizedFile(true);
+            textUnitDTO.setStatus(APPROVED);
             textUnitDTOs.add(textUnitDTO);
         }
 
-        return textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOs);
+        return textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOs, false, false);
     }
 
     @Transactional

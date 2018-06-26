@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.textunit;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
@@ -19,6 +20,8 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -241,8 +244,30 @@ public class TextUnitWS {
      * @return
      */
     @RequestMapping(method = RequestMethod.POST, value = "/api/textunitsBatch")
-    public PollableTask importTextUnitsByNames(@RequestBody List<TextUnitDTO> textUnitDTOs) {
-        PollableFuture pollableFuture = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOs);
+    public PollableTask importTextUnitBatch(@RequestBody String string) {
+
+        ImportTextUnitsBatch importTextUnitsBatch = new ImportTextUnitsBatch();
+
+        // TODO remove when  clients are migrated
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try {
+            List<TextUnitDTO>  textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>(){});
+            importTextUnitsBatch.setTextUnits(textUnitDTOs);
+        }  catch (Exception e) {
+            logger.debug("can't convert to list, try new formatTextUnitBatchImporterServiceTest", e);
+            try {
+                importTextUnitsBatch = objectMapper.readValue(string, ImportTextUnitsBatch.class);
+            }  catch (Exception e2) {
+                throw new IllegalArgumentException("Can't deserialize text unit batch", e2);
+            }
+        }
+
+        PollableFuture pollableFuture = textUnitBatchImporterService.asyncImportTextUnits(
+                importTextUnitsBatch.getTextUnits(),
+                importTextUnitsBatch.isIntegrityCheckSkipped(),
+                importTextUnitsBatch.isIntegrityCheckKeepStatusIfFailedAndSameTarget());
+
         return pollableFuture.getPollableTask();
     }
 
