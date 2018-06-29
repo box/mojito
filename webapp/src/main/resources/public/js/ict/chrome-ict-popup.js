@@ -25,7 +25,7 @@ const IctPopup = function (props) {
                 <FormControl type="text" value={props.mojitoBaseUrl} onChange={(e) => props.onMojitoBaseUrlChanged(e.target.value)} />
               </Col>
             </FormGroup>
-            
+
             <FormGroup controlId="formHorizontalHeaderName">
                 <Col componentClass={ControlLabel} sm={2}>
                 Header Name
@@ -84,7 +84,6 @@ class IctPopupContainer extends React.Component {
     }
  
     onMojitoBaseUrlChanged(mojitoBaseUrl) {
-        
         this.setState({
             mojitoBaseUrl:  mojitoBaseUrl
         });
@@ -135,7 +134,7 @@ class IctPopupContainer extends React.Component {
     }
     
     render() {
-        return <IctPopup 
+        return <IctPopup
                     mojitoBaseUrl={this.state.mojitoBaseUrl}
                     enabled={this.state.enabled}
                     headerName={this.state.headerName}

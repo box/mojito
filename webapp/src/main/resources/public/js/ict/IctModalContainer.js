@@ -8,7 +8,8 @@ class IctModalContainer extends React.Component {
         super(props);
         this.state = {
             showModal: false,
-            mojitoBaseUrl: this.props.defaultMojitoBaseUrl
+            mojitoBaseUrl: this.props.defaultMojitoBaseUrl,
+            actionButtons: this.props.actionButtons
         };
     }
 
@@ -32,6 +33,12 @@ class IctModalContainer extends React.Component {
         });
     }
 
+    setActionButtons(actionButtons) {
+        this.setState({
+            actionButtons: actionButtons
+        });
+    }
+
     openWorkbench() {
         var query = queryString.stringify({
             'repoNames[]': this.state.selectedTextUnit.repositoryName,
@@ -43,13 +50,24 @@ class IctModalContainer extends React.Component {
         window.open(this.state.mojitoBaseUrl + "workbench?" + query);
     }
 
+    openActionInNewWindow(url) {
+        var query = queryString.stringify({
+            'repoName': this.state.selectedTextUnit.repositoryName,
+            'locales': this.state.selectedTextUnit.locale,
+            'searchText': this.state.selectedTextUnit.textUnitName
+        });
+        window.open(url + query);
+    }
+
     render() {
         return (
                 <div className="mojito-ict-modal">
                     <IctModal
                         show={this.state.showModal}
+                        actionButtons={this.state.actionButtons}
                         onClose={() => this.closeModal()}
                         onOkay={() => this.openWorkbench()}
+                        onOpenAction={(url) => this.openActionInNewWindow(url)}
                         onSelectTextUnit={(textUnit) => this.setState({selectedTextUnit : textUnit})} 
                         textUnits={this.state.textUnits}
                         selectedTextUnit={this.state.selectedTextUnit}
