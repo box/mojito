@@ -3,7 +3,8 @@ var backgroundConfig = {
     enabled: false,
     headerName: 'X-Mojito-Ict',
     headerValue: 'on',
-    removeTagsBlock: true
+    removeTagsBlock: true,
+    actionButtons: []
 };
 
 chrome.storage.sync.get(backgroundConfig, (items) => {

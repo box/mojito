@@ -40,10 +40,19 @@ class ModalTextUnit extends React.Component {
 };
 
 class IctModal extends React.Component {
-      
+    showButtons(actionButtons) {
+        var buttons = "";
+        if (Array.isArray(actionButtons)) {
+            buttons = actionButtons.map((button) =>
+                <Button key={button.text} onClick={() => this.props.onOpenAction(button.url)}>
+                    {button['text']}
+                </Button>
+            );
+        }
+        return buttons;
+    }
     render() {
-        
-        // include <style> here because css can't have precendence over <style>
+        // include <style> here because css can't have precedence over <style>
         // from apps that override fonts, ect
         return (
             <div>   
@@ -64,6 +73,7 @@ class IctModal extends React.Component {
                         )}           
                     </Modal.Body>
                     <Modal.Footer>
+                        {this.showButtons(this.props.actionButtons)}
                         <Button bsStyle="primary" onClick={this.props.onOkay}>
                             <FormattedMessage id="label.okay"/>
                         </Button>

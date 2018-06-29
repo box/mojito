@@ -14,6 +14,7 @@ class Ict {
         this.locale = locale;
         this.removeTagsBlock = true;
         this.wrapped = {};
+        this.actionButtons = [];
     }
 
     activate() {
@@ -26,6 +27,13 @@ class Ict {
         this.mojitoBaseUrl = mojitoBaseUrl;
         if (this.ictModalContainer) {
             this.ictModalContainer.setMojitoBaseUrl(mojitoBaseUrl);
+        }
+    }
+
+    setActionButtons(actionButtons) {
+        this.actionButtons = actionButtons;
+        if (this.ictModalContainer) {
+            this.ictModalContainer.setActionButtons(actionButtons);
         }
     }
     
@@ -117,6 +125,7 @@ class Ict {
                     <IctModalContainer
                         ref={(child) => this.ictModalContainer = child}
                         defaultMojitoBaseUrl={this.mojitoBaseUrl}
+                        actionButtons={this.actionButtons}
                         locale={this.locale} />
                 </IntlProvider>,
                 divIct
