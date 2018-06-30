@@ -54,10 +54,11 @@ let Header = React.createClass({
      */
     updateSearchParamsForDefaultView: function () {
         WorkbenchActions.searchParamsChanged({
-            "changedParam": SearchConstants.UPDATE_ALL
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "doNotTranslate": true
         });
     },
-   
+
     render: function () {
         return (
             <Navbar fluid={true}>
@@ -71,16 +72,16 @@ let Header = React.createClass({
                                 }}}>
                             <NavItem><FormattedMessage id="header.repositories" /></NavItem>
                     </LinkContainer>
-                    <LinkContainer to="/workbench"><NavItem><FormattedMessage id="header.workbench" /></NavItem></LinkContainer>
+                    <LinkContainer to="/workbench" onClick={() => {
+                            if (this.props.router.isActive("/workbench")) {
+                                this.updateSearchParamsForDefaultView();
+                            }}}><NavItem><FormattedMessage id="header.workbench" /></NavItem></LinkContainer>
                     <LinkContainer to="/project-requests"><NavItem><FormattedMessage id="header.projectRequests" /></NavItem></LinkContainer>
                     <LinkContainer to="/screenshots" onClick={() => {
                                 if (this.props.router.isActive("/screenshots")) {
                                     ScreenshotsPageActions.resetScreenshotSearchParams();
                                     ScreenshotsRepositoryActions.getAllRepositories();
-                                }}}><NavItem>
-                                
-                        
-                        <FormattedMessage id="header.screenshots" /></NavItem></LinkContainer>
+                                }}}><NavItem><FormattedMessage id="header.screenshots" /></NavItem></LinkContainer>
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={USERNAME} id="user-menu">
