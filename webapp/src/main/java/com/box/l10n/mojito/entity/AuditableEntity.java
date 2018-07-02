@@ -12,6 +12,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serializable;
+
 /**
  * This class adds support for entity listener. It will track the creation date and modification date
  * of the entity extending this class.
@@ -20,7 +22,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
  */
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-public abstract class AuditableEntity extends BaseEntity {
+public abstract class AuditableEntity extends BaseEntity implements Serializable {
 
     @CreatedDate
     @Column(name = "created_date")

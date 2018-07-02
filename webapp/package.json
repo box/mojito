@@ -87,6 +87,7 @@
     "start-server-nofe": "mvn spring-boot:run -P '!springbootconfigprocessor,!frontend' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER -Duser.timezone=UTC",
     "start-server-debug": "mvn spring-boot:run -P '!springbootconfigprocessor' -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER -Duser.timezone=UTC\"",
     "start-server-nofe-debug": "mvn spring-boot:run -P '!springbootconfigprocessor,!frontend' -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER -Duser.timezone=UTC\"",
+    "start-server-nofe-debugn": "mvn spring-boot:run -P '!springbootconfigprocessor,!frontend' -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER -Duser.timezone=UTC\"",
     "watch": "webpack --config webpack.config.js --progress --colors --watch --env.inlineSourceMap",
     "watch-ict": "webpack --config webpack.config_ict.js --progress --colors --watch --env.inlineSourceMap",
     "build": "webpack --config webpack.config.js --progress --env.production",
