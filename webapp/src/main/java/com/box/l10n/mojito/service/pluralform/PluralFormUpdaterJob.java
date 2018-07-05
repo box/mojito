@@ -1,48 +1,54 @@
 package com.box.l10n.mojito.service.pluralform;
 
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobDetail;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.quartz.JobDetailFactoryBean;
+import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
+import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * This is to update all text units with missing plural form since the
  * introduction of the new plural form support.
- *
+ * <p>
  * Instead of a scheduler it could be called during asset extraction but this
  * way don't impact the standard workflow.
- *
+ * <p>
  * This task could be removed later when everything as been migrated.
  *
  * @author jaurambault
  */
-@Service
-public class PluralFormUpdater {
+@Configuration
+@Component
+@DisallowConcurrentExecution
+public class PluralFormUpdaterJob implements Job {
 
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(PluralFormUpdater.class);
+    static Logger logger = LoggerFactory.getLogger(PluralFormUpdaterJob.class);
 
     @Autowired
     JdbcTemplate jdbcTemplate;
 
     @Value("${spring.jpa.database}")
     String driver;
-    
-    @Value("${l10n.PluralFormUpdater:false}")
-    boolean enabled;
 
-    @Scheduled(fixedDelay = 30000)
-    private void updateTextUnitsWithMissingPluralForms() {
-        
-        if (!enabled) {
-           logger.debug("PluralFormUpdater is disabled");    
-        } else if ("HSQL".equals(driver)) {
-           logger.debug("Don't update (DB is HSQL)");
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+
+        if ("HSQL".equals(driver)) {
+            logger.debug("Don't update (DB is HSQL)");
         } else {
 
             logger.debug("Update old text unit with plural form that are now avaible with new plural support");
@@ -66,4 +72,23 @@ public class PluralFormUpdater {
             }
         }
     }
+
+    @Bean(name = "jobDetailPluralFromUpdater")
+    JobDetailFactoryBean jobDetailPluralFromUpdater() {
+        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+        jobDetailFactory.setJobClass(PluralFormUpdaterJob.class);
+        jobDetailFactory.setDescription("Update plural forms in text units");
+        jobDetailFactory.setDurability(true);
+        return jobDetailFactory;
+    }
+
+    @Bean
+    SimpleTriggerFactoryBean triggerPluralFormUpdater(@Qualifier("jobDetailPluralFromUpdater") JobDetail job) {
+        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
+        trigger.setJobDetail(job);
+        trigger.setRepeatInterval(1);
+        trigger.setRepeatCount(0);
+        return trigger;
+    }
+
 }
