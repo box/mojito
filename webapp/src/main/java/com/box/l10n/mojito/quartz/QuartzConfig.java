@@ -33,7 +33,6 @@ public class QuartzConfig {
     @Autowired
     JobDetail[] jobDetails;
 
-
     /**
      * Starts the scheduler after having removed outdated trigger/jobs
      * @throws SchedulerException

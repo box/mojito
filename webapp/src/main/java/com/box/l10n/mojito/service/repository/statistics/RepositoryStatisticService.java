@@ -1,9 +1,11 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
+import com.box.l10n.mojito.aspect.StopWatch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
+import com.box.l10n.mojito.quartz.QuartzConfig;
 import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -11,20 +13,34 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.sla.DropScheduleService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.ibm.icu.text.PluralRules;
 import com.ibm.icu.util.ULocale;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.joda.time.DateTime;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.TriggerBuilder;
+import org.quartz.TriggerKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+
+import java.util.List;
+
+import static com.box.l10n.mojito.quartz.QuartzConfig.DYNAMIC_GROUP_NAME;
 
 /**
  * Service to compute and update {@link Repository} statistics
@@ -65,6 +81,9 @@ public class RepositoryStatisticService {
 
     @Autowired
     DropScheduleService dropScheduleService;
+
+    @Autowired
+    Scheduler scheduler;
 
     @Value("${l10n.repositoryStatistics.computeOutOfSla:false}")
     boolean computeOutOfSla;
@@ -116,9 +135,9 @@ public class RepositoryStatisticService {
      * Updates the {@link RepositoryLocaleStatistic} for a given locale and
      * repository.
      *
-     * @param repositoryLocale the repository locale
+     * @param repositoryLocale    the repository locale
      * @param repositoryStatistic the parent entity that old the repository
-     * statistics
+     *                            statistics
      */
     void updateLocaleStatistics(RepositoryLocale repositoryLocale, RepositoryStatistic repositoryStatistic) {
 
@@ -214,6 +233,7 @@ public class RepositoryStatisticService {
         textUnitSearcherParameters.setRepositoryIds(repositoryId);
         textUnitSearcherParameters.setStatusFilter(StatusFilter.UNTRANSLATED);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setToBeFullyTranslatedFilter(true);
         textUnitSearcherParameters.setDoNotTranslateFilter(false);
         textUnitSearcherParameters.setTmTextUnitCreatedBefore(createdBefore);
         return textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
@@ -235,6 +255,49 @@ public class RepositoryStatisticService {
         ULocale targetLocale = ULocale.forLanguageTag(targetLocaleBcp47Tag);
         PluralRules pluralRulesTargetLocale = PluralRules.forLocale(targetLocale);
         return 6L - pluralRulesTargetLocale.getKeywords().size();
+    }
+
+    @StopWatch
+    public void addJobIfMissing(Long repositoryId) {
+        try {
+            String keyName = "repositoryStatisticJob_" + repositoryId;
+
+            TriggerKey triggerKey = new TriggerKey(keyName, DYNAMIC_GROUP_NAME);
+            JobKey jobKey = new JobKey(keyName, DYNAMIC_GROUP_NAME);
+
+            JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+
+            if (jobDetail == null) {
+                logger.debug("Job doesn't exist, create");
+                jobDetail = JobBuilder.newJob().ofType(RepositoryStatisticsJob.class)
+                        .withIdentity(keyName, DYNAMIC_GROUP_NAME)
+                        .withDescription("Re compute repository stastics if needed")
+                        .storeDurably()
+                        .build();
+
+                scheduler.addJob(jobDetail, true);
+            }
+
+
+            logger.debug("Schedule a job for repository id: {}", repositoryId);
+            Trigger trigger = TriggerBuilder.newTrigger()
+                    .startNow()
+                    .forJob(jobDetail)
+                    .usingJobData("repositoryId", repositoryId.toString())
+                    .withIdentity(triggerKey).build();
+
+            if (!scheduler.checkExists(triggerKey)) {
+                scheduler.scheduleJob(trigger);
+            } else {
+                logger.debug("Job already scheduled for repository id: {}", repositoryId);
+
+                scheduler.rescheduleJob(triggerKey, trigger);
+
+
+            }
+        } catch (SchedulerException se) {
+            logger.error("Couldn't schedule a job for repository id: " + repositoryId, se);
+        }
     }
 
 }
