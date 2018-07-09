@@ -73,7 +73,7 @@ let Drops = React.createClass({
     },
 
     /**
-     * Fetch drops from action given the fitler status.
+     * Fetch drops from action given the filter status.
      *
      * @param {Drops.FILTER} filter
      * @param {Number} currentPageNumber
@@ -229,7 +229,7 @@ let Drops = React.createClass({
         }
 
         return (
-            <tr key={"Drops.reposiotryRow." + drop.name} className={rowClass}>
+            <tr key={`Drops.repositoryRow.${drop.name}.${drop.repository.name}`} className={rowClass}>
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
                 <td>{drop.repository.name}</td>
                 <td><FormattedNumber value={wordCount}/></td>
