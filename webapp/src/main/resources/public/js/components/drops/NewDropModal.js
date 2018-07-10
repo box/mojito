@@ -23,7 +23,7 @@ let NewDropModal = React.createClass({
 
     getInitialState() {
         return {
-            "selectedRepoId": null
+            "selectedRepoSet": new Set()
         };
     },
 
@@ -32,16 +32,24 @@ let NewDropModal = React.createClass({
      * @param {string} repoId
      */
     onRepoClick(repoId) {
+        let repoSet = this.state.selectedRepoSet;
+        if (repoSet.has(repoId)) {
+            repoSet.delete(repoId);
+        } else {
+            repoSet.add(repoId);
+        }
         this.setState({
-            "selectedRepoId": repoId
+            "selectedRepoSet": repoSet
         });
     },
 
     getRepoListGroup() {
         let repos = RepositoryStore.getState().repositories;
 
+        let repoSet = this.state.selectedRepoSet;
+
         let reposListGroupItems = repos.map(repo => {
-            let isActive = repo.id === this.state.selectedRepoId;
+            let isActive = repoSet.has(repo.id);
             return (
                 <ListGroupItem key={"NewDropModal." + repo.name} active={isActive} onClick={this.onRepoClick.bind(this, repo.id)}>
                     {repo.name}
@@ -75,13 +83,14 @@ let NewDropModal = React.createClass({
      * @param {StatusFilter} exportType
      */
     onSaveClicked(exportType) {
-        let repoId = this.state.selectedRepoId;
+        let repoSet = this.state.selectedRepoSet;
+        repoSet.forEach((repoId) => {
+            let exportDropConfig = new ExportDropConfig(repoId, 0, RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId), null, null);
+            exportDropConfig.type = exportType;
 
-        let exportDropConfig = new ExportDropConfig(repoId, 0, RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId), null, null);
-        exportDropConfig.type = exportType;
-
-        DropActions.createNewRequest(exportDropConfig);
-
+            DropActions.createNewRequest(exportDropConfig);
+        });
+        this.state.selectedRepoSet.clear();
         this.close();
     },
 
@@ -96,7 +105,10 @@ let NewDropModal = React.createClass({
         let tableClass = "";
         let isButtonDisabled = true;
 
-        if (this.state.selectedRepoId) {
+        // enable the button if there are any entries in the set
+        const iterator = this.state.selectedRepoSet.entries();
+        let n = iterator.next();
+        if (n && !n.done) {
             isButtonDisabled = false;
         }
 
