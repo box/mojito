@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
@@ -30,6 +31,8 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -40,6 +43,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import net.sf.okapi.common.resource.TextUnit;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.proxy.HibernateProxy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -53,11 +58,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * @author jaurambault
@@ -1974,5 +1974,32 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\n"
                 + "";
             tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
+    }
+
+    @Test
+    public void testExportAssetAsXLIFFAsync() throws Exception {
+        createTestData();
+
+        logger.debug("Export empty TM for source (en)");
+        String expected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                + "<file original=\"test-asset-path.xliff\" source-language=\"en\" target-language=\"en\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                + "<body>\n"
+                + "</body>\n"
+                + "</file>\n"
+                + "</xliff>\n";
+
+        PollableFuture<String> exportResult = tmService.exportAssetAsXLIFFAsync(assetId, "en");
+        try {
+            pollableTaskService.waitForPollableTask(exportResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        String exportAssetAsXLIFF = exportResult.get();
+        assertEquals(expected, exportAssetAsXLIFF);
+
+        PollableTask pollableTask = pollableTaskService.getPollableTask(exportResult.getPollableTask().getId());
+        assertEquals(expected, pollableTask.getOutput());
     }
 }

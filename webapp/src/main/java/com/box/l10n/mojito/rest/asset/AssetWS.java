@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.pathEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.repositoryIdEquals;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.virtualEquals;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
@@ -30,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import static com.box.l10n.mojito.rest.asset.AssetSpecification.virtualEquals;
 
 /**
  * @author aloison
@@ -236,6 +236,23 @@ public class AssetWS {
         String content = tmService.exportAssetAsXLIFF(assetId, bcp47tag);
         String normalizedContent = NormalizationUtils.normalize(content);
         return new XliffExportBody(normalizedContent);
+    }
+
+    /**
+     * Exports all the translations (used and unused) of an {@link Asset} into
+     * XLIFF asynchronously
+     *
+     * @param assetId {@link Asset#id}
+     * @param bcp47tag bcp47 tag of translations to be exported
+     * @return an XLIFF that contains all the translations of the {@link Asset} as a {@link XliffExportBody}
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/api/assets/{assetId}/xliffExport")
+    public XliffExportBody xliffExportAsync(@PathVariable("assetId") long assetId,
+            @RequestParam("bcp47tag") String bcp47tag,
+            @RequestBody XliffExportBody xliffExportBody) {
+        PollableFuture pollableFuture = tmService.exportAssetAsXLIFFAsync(assetId, bcp47tag);
+        xliffExportBody.setPollableTask(pollableFuture.getPollableTask());
+        return xliffExportBody;
     }
 
     /**

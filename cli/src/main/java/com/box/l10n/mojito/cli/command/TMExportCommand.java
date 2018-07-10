@@ -5,20 +5,22 @@ import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import com.box.l10n.mojito.rest.entity.XliffExportBody;
 import com.google.common.base.MoreObjects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
-import static org.fusesource.jansi.Ansi.Color;
+import org.fusesource.jansi.Ansi.Color;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * Command to exportAssetAsXLIFF a repository.
@@ -84,10 +86,17 @@ public class TMExportCommand extends Command {
 
                 consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
 
-                String export = assetClient.exportAssetAsXLIFF(asset.getId(), bcp47Tag);
+                XliffExportBody xliffExport = assetClient.exportAssetAsXLIFFAsync(asset.getId(), bcp47Tag);
+                Long pollableTaskId = xliffExport.getPollableTask().getId();
+
+                try {
+                    commandHelper.waitForPollableTask(pollableTaskId);
+                } catch (PollableTaskException e) {
+                    throw new CommandException(e.getMessage(), e.getCause());
+                }
 
                 Path exportFile = getExportFile(repositoryLocale, assetNumber);
-
+                String export = commandHelper.getPollableTaskOutput(pollableTaskId);
                 commandHelper.writeFileContent(export, exportFile);
 
                 consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();

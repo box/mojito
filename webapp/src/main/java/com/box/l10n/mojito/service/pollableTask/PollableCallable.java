@@ -81,6 +81,7 @@ public class PollableCallable implements Callable {
 
             pollableTask = pollableTaskService.finishTask(
                     pollableTask.getId(),
+                    getOutput(pollableFuture),
                     getMessageOverride(pollableFuture),
                     exceptionHolder,
                     getExpectedSubTaskNumberOverride(pollableFuture));
@@ -107,6 +108,19 @@ public class PollableCallable implements Callable {
         }
 
         return message;
+    }
+
+    private String getOutput(PollableFuture pollableFuture) {
+        Object output = null;
+
+        if (pollableFuture instanceof PollableFutureTaskResult) {
+            output = ((PollableFutureTaskResult) pollableFuture).getResult();
+            if (output != null && output instanceof String) {
+                return (String) output;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.asset;
 
+import com.box.l10n.mojito.entity.PollableTask;
+
 /**
  *
  * @author jaurambault
@@ -7,6 +9,7 @@ package com.box.l10n.mojito.rest.asset;
 public class XliffExportBody {
 
     String content;
+    PollableTask pollableTask;
 
     public XliffExportBody() {
     }
@@ -21,6 +24,14 @@ public class XliffExportBody {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public PollableTask getPollableTask() {
+        return pollableTask;
+    }
+
+    public void setPollableTask(PollableTask pollableTask) {
+        this.pollableTask = pollableTask;
     }
 
 }

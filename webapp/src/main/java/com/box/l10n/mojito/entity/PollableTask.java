@@ -54,6 +54,9 @@ public class PollableTask extends AuditableEntity {
     @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
     private DateTime finishedDate;
 
+    @Column(name = "output", length = Integer.MAX_VALUE)
+    private String output;
+
     @JsonIgnore
     @Column(name = "message", length = Integer.MAX_VALUE)
     private String message;
@@ -110,6 +113,14 @@ public class PollableTask extends AuditableEntity {
 
     public void setFinishedDate(DateTime finishedDate) {
         this.finishedDate = finishedDate;
+    }
+
+    public String getOutput() {
+        return output;
+    }
+
+    public void setOutput(String output) {
+        this.output = output;
     }
 
     public String getMessage() {

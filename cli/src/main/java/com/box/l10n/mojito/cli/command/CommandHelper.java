@@ -230,6 +230,17 @@ public class CommandHelper {
     }
 
     /**
+     * Returns output in the {@link PollableTask}.
+     *
+     * @param pollableId
+     * @return
+     */
+    public String getPollableTaskOutput(Long pollableId) {
+        PollableTask pollableTask = pollableTaskClient.getPollableTask(pollableId);
+        return pollableTask.getOutput();
+    }
+
+    /**
      * Adds attribute xml:space="preserve" in the trans-unit element in the
      * xliff
      *
@@ -273,18 +284,18 @@ public class CommandHelper {
 
         return inverseLocaleMapping;
     }
-    
-     /**
-     * Gets the repository locales sorted so that parent are before child 
+
+    /**
+     * Gets the repository locales sorted so that parent are before child
      * locales.
-     * 
-     * @param repository 
+     *
+     * @param repository
      * @return
      */
     public Map<String, Locale> getSortedRepositoryLocales(Repository repository) {
-        
+
         LinkedHashMap<String, Locale> locales = new LinkedHashMap<>();
-        
+
         ArrayDeque<RepositoryLocale> toProcess = new ArrayDeque<>(repository.getRepositoryLocales());
         Locale rootLocale = null;
 

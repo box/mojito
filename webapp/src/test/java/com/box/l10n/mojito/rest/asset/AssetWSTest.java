@@ -177,4 +177,21 @@ public class AssetWSTest extends WSTestBase {
 
         return sourceAsset;
     }
+
+    @Test
+    @Category({IntegrationTest.class})
+    public void testExportSourceAsset() throws RepositoryNameAlreadyUsedException {
+
+        Repository repository = testDataFactory.createRepository(testIdWatcher);
+        com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset = createSourceAsset(repository);
+        com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost = assetClient.sendSourceAsset(sourceAsset);
+        pollableTaskClient.waitForPollableTask(sourceAssetAfterPost.getPollableTask().getId(), 5000L);
+
+        com.box.l10n.mojito.rest.entity.XliffExportBody xliffExportBody = assetClient.exportAssetAsXLIFFAsync(sourceAssetAfterPost.getAddedAssetId(), "en");
+        pollableTaskClient.waitForPollableTask(xliffExportBody.getPollableTask().getId(), 5000L);
+
+        com.box.l10n.mojito.rest.entity.PollableTask pollableTask = pollableTaskClient.getPollableTask(xliffExportBody.getPollableTask().getId());
+        assertTrue(pollableTask.getOutput().startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    }
+
 }

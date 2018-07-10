@@ -29,6 +29,7 @@ import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
@@ -1005,4 +1006,24 @@ public class TMService {
         driver.processBatch();
     }
 
+    /**
+     * Exports an {@link Asset} as XLIFF for a given locale asynchronously.
+     *
+     * @param assetId {@link Asset#id} to be exported
+     * @param bcp47Tag bcp47tag of the locale that needs to be exported
+     * @return {@link PollableFutureTaskResult} that contains an XLIFF as result
+     */
+    @Pollable(async = true, message = "Export asset as xliff")
+    public PollableFuture<String> exportAssetAsXLIFFAsync(
+            Long assetId,
+            String bcp47Tag) {
+
+        PollableFutureTaskResult<String> pollableFutureTaskResult = new PollableFutureTaskResult<>();
+
+        String xliff = exportAssetAsXLIFF(assetId, bcp47Tag);
+        String normalized = NormalizationUtils.normalize(xliff);
+
+        pollableFutureTaskResult.setResult(normalized);
+        return pollableFutureTaskResult;
+    }
 }

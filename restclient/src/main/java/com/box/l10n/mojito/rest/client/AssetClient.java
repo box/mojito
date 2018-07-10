@@ -263,6 +263,28 @@ public class AssetClient extends BaseClient {
     }
 
     /**
+     * Exports an XLIFF that contains all translation (regardless if they are
+     * used or not) of an {@link Asset} asynchronously.
+     *
+     * @param assetId {@link Asset#id} for which translation needs to be
+     * exported
+     * @param bcp47tag bcp47tag for which translation needs to be exported
+     * @return {@link XliffExportBody}
+     */
+    public XliffExportBody exportAssetAsXLIFFAsync(Long assetId, String bcp47tag) {
+        logger.debug("Export asset id: {} for locale: {}", assetId, bcp47tag);
+
+        XliffExportBody xliffExportBody = new XliffExportBody();
+
+        String xliffExportBasePath = getBasePathForResource(assetId, "xliffExport");
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder
+                .fromPath(xliffExportBasePath)
+                .queryParam("bcp47tag", bcp47tag);
+
+        return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(), xliffExportBody, XliffExportBody.class);
+    }
+
+    /**
      * Deletes an {@link Asset} by the {@link Asset#id}
      *
      * @param assetId
