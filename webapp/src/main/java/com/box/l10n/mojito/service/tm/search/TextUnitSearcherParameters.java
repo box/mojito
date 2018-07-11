@@ -33,6 +33,7 @@ public class TextUnitSearcherParameters {
     String md5;
     boolean forRootLocale = false;
     boolean rootLocaleExcluded = true;
+    Boolean toBeFullyTranslatedFilter;
     boolean untranslatedOrTranslationNeeded = false;
     boolean pluralFormsFiltered = true;
     Long pluralFormId;
@@ -178,6 +179,14 @@ public class TextUnitSearcherParameters {
 
     public void setForRootLocale(boolean forRootLocale) {
         this.forRootLocale = forRootLocale;
+    }
+
+    public Boolean getToBeFullyTranslatedFilter() {
+        return toBeFullyTranslatedFilter;
+    }
+
+    public void setToBeFullyTranslatedFilter(Boolean toBeFullyTranslatedFilter) {
+        this.toBeFullyTranslatedFilter = toBeFullyTranslatedFilter;
     }
 
     public StatusFilter getStatusFilter() {
