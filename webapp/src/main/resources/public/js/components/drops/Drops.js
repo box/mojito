@@ -69,9 +69,7 @@ let Drops = React.createClass({
             /** @type {Boolean} */
             "showCancelModal": false,
             /** @type {Number} */
-            "cancelDropId": null,
-            /** @type {Number} */
-            "cancelRepoId": null
+            "cancelDropId": null
         };
     },
 
@@ -184,7 +182,6 @@ let Drops = React.createClass({
         this.setState({
             "showCancelModal": true,
             "cancelDropId": dropId,
-            "cancelRepoId": repoId
         });
     },
 
@@ -192,7 +189,7 @@ let Drops = React.createClass({
      * handle cancel drop confirmation
      */
     onConfirmCancel() {
-        let dropId = this.state.cancelDropId, repoId = this.state.cancelRepoId;
+        let dropId = this.state.cancelDropId;
 
         this.showAlert(this.props.intl.formatMessage({id: "drops.beingCanceled.alert"}));
         let cancelDropConfig = new CancelDropConfig(dropId, null);
@@ -202,8 +199,7 @@ let Drops = React.createClass({
 
         this.setState({
             "showCancelModal": false,
-            "cancelDropId": null,
-            "cancelRepoId": null
+            "cancelDropId": null
         })
     },
 
@@ -213,8 +209,7 @@ let Drops = React.createClass({
     onCancelCancel() {
         this.setState({
             "showCancelModal": false,
-            "cancelDropId": null,
-            "cancelRepoId": null
+            "cancelDropId": null
         });
     },
 
