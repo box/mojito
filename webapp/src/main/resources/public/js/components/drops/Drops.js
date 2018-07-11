@@ -165,7 +165,7 @@ let Drops = React.createClass({
     },
 
     /**
-     * Hande import onclick event
+     * Handle import onclick event
      */
     onClickImport(dropId, repoId) {
         this.showAlert(this.props.intl.formatMessage({id: "drops.beingImported.alert"}));
@@ -176,7 +176,7 @@ let Drops = React.createClass({
     },
 
     /**
-     * handle cancel Drop onclick event
+     * handle cancel drop onclick event
      * @param {Number} dropId
      * @param {Number} repoId
      */
@@ -189,9 +189,7 @@ let Drops = React.createClass({
     },
 
     /**
-     * handle cancel Drop onclick event
-     * @param {Number} dropId
-     * @param {Number} repoId
+     * handle cancel drop confirmation
      */
     onConfirmCancel() {
         let dropId = this.state.cancelDropId, repoId = this.state.cancelRepoId;
@@ -210,9 +208,7 @@ let Drops = React.createClass({
     },
 
     /**
-     * handle cancel Drop onclick event
-     * @param {Number} dropId
-     * @param {Number} repoId
+     * handle cancel drop not confirmed
      */
     onCancelCancel() {
         this.setState({
