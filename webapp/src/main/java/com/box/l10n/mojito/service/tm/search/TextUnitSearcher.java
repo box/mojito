@@ -255,6 +255,10 @@ public class TextUnitSearcher {
             conjunction.add(new NativeEqExpFix("l.id", searchParameters.getLocaleId()));
         }
 
+        if (searchParameters.getToBeFullyTranslatedFilter() != null) {
+            conjunction.add(new NativeEqExpFix("rl.to_be_fully_translated", searchParameters.getToBeFullyTranslatedFilter()));
+        }
+
         if (searchParameters.getTmTextUnitId() != null) {
             conjunction.add(new NativeEqExpFix("tu.id", searchParameters.getTmTextUnitId()));
         }
