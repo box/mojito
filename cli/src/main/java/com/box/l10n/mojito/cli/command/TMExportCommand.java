@@ -96,7 +96,7 @@ public class TMExportCommand extends Command {
                 }
 
                 Path exportFile = getExportFile(repositoryLocale, assetNumber);
-                String export = commandHelper.getPollableTaskOutput(pollableTaskId);
+                String export = commandHelper.getPollableTaskXliff(pollableTaskId);
                 commandHelper.writeFileContent(export, exportFile);
 
                 consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();

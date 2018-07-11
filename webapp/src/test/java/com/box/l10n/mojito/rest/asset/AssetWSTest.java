@@ -190,8 +190,8 @@ public class AssetWSTest extends WSTestBase {
         com.box.l10n.mojito.rest.entity.XliffExportBody xliffExportBody = assetClient.exportAssetAsXLIFFAsync(sourceAssetAfterPost.getAddedAssetId(), "en");
         pollableTaskClient.waitForPollableTask(xliffExportBody.getPollableTask().getId(), 5000L);
 
-        com.box.l10n.mojito.rest.entity.PollableTask pollableTask = pollableTaskClient.getPollableTask(xliffExportBody.getPollableTask().getId());
-        assertTrue(pollableTask.getOutput().startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+        xliffExportBody = pollableTaskClient.getPollableTaskXliffExport(xliffExportBody.getPollableTask().getId());
+        assertTrue(xliffExportBody.getContent().startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
     }
 
 }

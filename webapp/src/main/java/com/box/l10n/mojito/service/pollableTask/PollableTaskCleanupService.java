@@ -59,6 +59,6 @@ public class PollableTaskCleanupService {
         exceptionHolder.setExpected(true);
         exceptionHolder.setException(new PollableTaskTimeoutException("Zombie task detected: Maximum execution time exceeded."));
 
-        pollableTaskService.finishTask(pollableTask.getId(), null, null, exceptionHolder, null);
+        pollableTaskService.finishTask(pollableTask.getId(), null, exceptionHolder, null);
     }
 }

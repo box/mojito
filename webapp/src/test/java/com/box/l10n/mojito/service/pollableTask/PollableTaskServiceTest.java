@@ -87,13 +87,13 @@ public class PollableTaskServiceTest extends ServiceTestBase {
         assertEquals(2, createPollableTask.getExpectedSubTaskNumber());
 
         String message = "<iframe src=\"https://app.box.com/embed_widget/s/63s3l1bv7e38c6ombwdi?view=list&sort=date&theme=blue\" width=\"500\" height=\"400\" show_parent_path=\"yes\" frameborder=\"0\" allowfullscreen webkitallowfullscreen mozallowfullscreen oallowfullscreen msallowfullscreen></iframe>";
-        pollableTaskService.finishTask(createPollableTask.getId(), null, message, null, null);
+        pollableTaskService.finishTask(createPollableTask.getId(), message, null, null);
 
         PollableTask pollableTask = pollableTaskService.getPollableTask(createPollableTask.getId());
         assertEquals(message, pollableTask.getMessage());
         assertEquals(2, pollableTask.getExpectedSubTaskNumber());
 
-        pollableTaskService.finishTask(createPollableTask.getId(), null, null, null, 5);
+        pollableTaskService.finishTask(createPollableTask.getId(), null, null, 5);
 
         pollableTask = pollableTaskService.getPollableTask(createPollableTask.getId());
         assertEquals(message, pollableTask.getMessage());
@@ -106,7 +106,7 @@ public class PollableTaskServiceTest extends ServiceTestBase {
         PollableTask createParentTask = pollableTaskService.createPollableTask(null, testIdWatcher.getEntityName("testCompoundStatusSingleTask"), null, 0);
         assertFalse(createParentTask.isAllFinished());
 
-        PollableTask finishTask = pollableTaskService.finishTask(createParentTask.getId(), null, null, null, null);
+        PollableTask finishTask = pollableTaskService.finishTask(createParentTask.getId(), null, null, null);
         assertTrue(finishTask.isAllFinished());
     }
 
@@ -120,15 +120,15 @@ public class PollableTaskServiceTest extends ServiceTestBase {
         createPollableTask = pollableTaskService.getPollableTask(createPollableTask.getId());
         assertFalse(createPollableTask.isAllFinished());
 
-        pollableTaskService.finishTask(sub1.getId(), null, null, null, null);
+        pollableTaskService.finishTask(sub1.getId(), null, null, null);
         createPollableTask = pollableTaskService.getPollableTask(createPollableTask.getId());
         assertFalse(createPollableTask.isAllFinished());
 
-        pollableTaskService.finishTask(createPollableTask.getId(), null, null, null, null);
+        pollableTaskService.finishTask(createPollableTask.getId(), null, null, null);
         createPollableTask = pollableTaskService.getPollableTask(createPollableTask.getId());
         assertFalse(createPollableTask.isAllFinished());
 
-        pollableTaskService.finishTask(sub2.getId(), null, null, null, null);
+        pollableTaskService.finishTask(sub2.getId(), null, null, null);
         createPollableTask = pollableTaskService.getPollableTask(createPollableTask.getId());
         assertTrue(createPollableTask.isAllFinished());
     }
@@ -136,7 +136,7 @@ public class PollableTaskServiceTest extends ServiceTestBase {
     @Test
     public void testCompoundStatusParentNotFinishedBecauseOfExpectedSubtasksMissing() {
         PollableTask createPollableTask = pollableTaskService.createPollableTask(null, testIdWatcher.getEntityName("testCompoundStatusParentNotFinishedBecauseOfExpectedSubtasksMissing"), null, 1);
-        pollableTaskService.finishTask(createPollableTask.getId(), null, null, null, null);
+        pollableTaskService.finishTask(createPollableTask.getId(), null, null, null);
         createPollableTask = pollableTaskService.getPollableTask(createPollableTask.getId());
         assertFalse(createPollableTask.isAllFinished());
     }
@@ -150,15 +150,15 @@ public class PollableTaskServiceTest extends ServiceTestBase {
         createParentTask = pollableTaskService.getPollableTask(createParentTask.getId());
         assertFalse(createParentTask.isAllFinished());
 
-        pollableTaskService.finishTask(sub.getId(), null, null, null, null);
+        pollableTaskService.finishTask(sub.getId(), null, null, null);
         createParentTask = pollableTaskService.getPollableTask(createParentTask.getId());
         assertFalse(createParentTask.isAllFinished());
 
-        pollableTaskService.finishTask(createParentTask.getId(), null, null, null, null);
+        pollableTaskService.finishTask(createParentTask.getId(), null, null, null);
         createParentTask = pollableTaskService.getPollableTask(createParentTask.getId());
         assertFalse(createParentTask.isAllFinished());
 
-        pollableTaskService.finishTask(subsub.getId(), null, null, null, null);
+        pollableTaskService.finishTask(subsub.getId(), null, null, null);
         createParentTask = pollableTaskService.getPollableTask(createParentTask.getId());
         assertTrue(createParentTask.isAllFinished());
     }

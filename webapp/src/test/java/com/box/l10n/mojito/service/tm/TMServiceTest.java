@@ -9,6 +9,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
@@ -110,6 +111,9 @@ public class TMServiceTest extends ServiceTestBase {
 
     @Autowired
     PollableTaskService pollableTaskService;
+
+    @Autowired
+    TMXliffRepository tmXliffRepository;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -1989,7 +1993,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "</file>\n"
                 + "</xliff>\n";
 
-        PollableFuture<String> exportResult = tmService.exportAssetAsXLIFFAsync(assetId, "en");
+        PollableFuture<String> exportResult = tmService.exportAssetAsXLIFFAsync(assetId, "en", PollableTask.INJECT_CURRENT_TASK);
         try {
             pollableTaskService.waitForPollableTask(exportResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2000,6 +2004,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(expected, exportAssetAsXLIFF);
 
         PollableTask pollableTask = pollableTaskService.getPollableTask(exportResult.getPollableTask().getId());
-        assertEquals(expected, pollableTask.getOutput());
+        TMXliff tmXliff = tmXliffRepository.findByPollableTask(pollableTask);
+        assertEquals(expected, tmXliff.getContent());
     }
 }

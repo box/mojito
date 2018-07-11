@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.deletedEquals;
@@ -15,6 +16,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +59,9 @@ public class AssetWS {
 
     @Autowired
     AssetService assetService;
+
+    @Autowired
+    TMXliffRepository tmXliffRepository;
 
     /**
      * Gets the list of {@link Asset} for a given {@link Repository} and other
@@ -244,13 +249,14 @@ public class AssetWS {
      *
      * @param assetId {@link Asset#id}
      * @param bcp47tag bcp47 tag of translations to be exported
-     * @return an XLIFF that contains all the translations of the {@link Asset} as a {@link XliffExportBody}
+     * @return a {@link PollableTask} that generates XLIFF asynchronously in a
+     * {@link XliffExportBody}
      */
     @RequestMapping(method = RequestMethod.POST, value = "/api/assets/{assetId}/xliffExport")
     public XliffExportBody xliffExportAsync(@PathVariable("assetId") long assetId,
             @RequestParam("bcp47tag") String bcp47tag,
             @RequestBody XliffExportBody xliffExportBody) {
-        PollableFuture pollableFuture = tmService.exportAssetAsXLIFFAsync(assetId, bcp47tag);
+        PollableFuture pollableFuture = tmService.exportAssetAsXLIFFAsync(assetId, bcp47tag, PollableTask.INJECT_CURRENT_TASK);
         xliffExportBody.setPollableTask(pollableFuture.getPollableTask());
         return xliffExportBody;
     }

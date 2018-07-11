@@ -18,8 +18,6 @@ public class PollableTask {
 
     private DateTime finishedDate;
 
-    private String output;
-
     private String message;
 
     private ErrorMessage errorMessage;
@@ -53,14 +51,6 @@ public class PollableTask {
 
     public void setFinishedDate(DateTime finishedDate) {
         this.finishedDate = finishedDate;
-    }
-
-    public String getOutput() {
-        return output;
-    }
-
-    public void setOutput(String output) {
-        this.output = output;
     }
 
     public ErrorMessage getErrorMessage() {

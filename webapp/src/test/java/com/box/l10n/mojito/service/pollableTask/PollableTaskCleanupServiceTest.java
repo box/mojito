@@ -71,7 +71,7 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
     public void testMarkZombieTasksAsFinishedWithErrorWithoutZombies() throws Exception {
 
         PollableTask pollableTask = pollableTaskService.createPollableTask(null, "test-pollable", null, 0);
-        pollableTaskService.finishTask(pollableTask.getId(), null, null, null, null);
+        pollableTaskService.finishTask(pollableTask.getId(), null, null, null);
         assertFalse(isMarkedAsZombie(pollableTask));
 
         pollableTaskCleanupService.finishZombieTasksWithError();

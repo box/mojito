@@ -79,7 +79,6 @@ public class PollableTaskService {
      * Updates a task.
      *
      * @param id the task id
-     * @param output the output of the task
      * @param messageOverride the new task message if not {@code null}
      * @param exceptionHolder exception holder
      * @param expectedSubTaskNumberOverride the new expected sub task number if
@@ -87,7 +86,7 @@ public class PollableTaskService {
      * @return the updated task
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public PollableTask finishTask(long id, String output, String messageOverride, ExceptionHolder exceptionHolder, Integer expectedSubTaskNumberOverride) {
+    public PollableTask finishTask(long id, String messageOverride, ExceptionHolder exceptionHolder, Integer expectedSubTaskNumberOverride) {
 
         PollableTask pollableTask = getPollableTask(id);
         pollableTask.setFinishedDate(DateTime.now());
@@ -95,10 +94,6 @@ public class PollableTaskService {
         if (exceptionHolder != null && exceptionHolder.getException() != null) {
             pollableTask.setErrorStack(Throwables.getStackTraceAsString(exceptionHolder.getException()));
             pollableTask.setErrorMessage(objectMapper.writeValueAsStringUnsafe(exceptionHolder));
-        }
-
-        if (output != null) {
-            pollableTask.setOutput(output);
         }
 
         if (messageOverride != null) {
