@@ -1993,7 +1993,9 @@ public class TMServiceTest extends ServiceTestBase {
                 + "</file>\n"
                 + "</xliff>\n";
 
-        PollableFuture<String> exportResult = tmService.exportAssetAsXLIFFAsync(assetId, "en", PollableTask.INJECT_CURRENT_TASK);
+        TMXliff tmXliff = tmService.createTMXliff(assetId, "en", null, null);
+        PollableFuture<String> exportResult = tmService.exportAssetAsXLIFFAsync(tmXliff.getId(), assetId, "en", PollableTask.INJECT_CURRENT_TASK);
+
         try {
             pollableTaskService.waitForPollableTask(exportResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2004,7 +2006,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(expected, exportAssetAsXLIFF);
 
         PollableTask pollableTask = pollableTaskService.getPollableTask(exportResult.getPollableTask().getId());
-        TMXliff tmXliff = tmXliffRepository.findByPollableTask(pollableTask);
+        tmXliff = tmXliffRepository.findByPollableTask(pollableTask);
         assertEquals(expected, tmXliff.getContent());
     }
 }

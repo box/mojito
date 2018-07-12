@@ -1019,12 +1019,15 @@ public class TMService {
     /**
      * Exports an {@link Asset} as XLIFF for a given locale asynchronously.
      *
+     * @param tmXliffId {@link TMXliff#id} to persist generated XLIFF
      * @param assetId {@link Asset#id} to be exported
      * @param bcp47Tag bcp47tag of the locale that needs to be exported
+     * @param currentTask
      * @return {@link PollableFutureTaskResult} that contains an XLIFF as result
      */
     @Pollable(async = true, message = "Export asset as xliff")
     public PollableFuture<String> exportAssetAsXLIFFAsync(
+            Long tmXliffId,
             Long assetId,
             String bcp47Tag,
             @InjectCurrentTask PollableTask currentTask) {
@@ -1034,7 +1037,7 @@ public class TMService {
         String xliff = exportAssetAsXLIFF(assetId, bcp47Tag);
         String normalized = NormalizationUtils.normalize(xliff);
 
-        TMXliff tmXliff = new TMXliff();
+        TMXliff tmXliff = tmXliffRepository.findOne(tmXliffId);
         tmXliff.setAsset(assetRepository.findOne(assetId));
         tmXliff.setLocale(localeService.findByBcp47Tag(bcp47Tag));
         tmXliff.setContent(normalized);
@@ -1043,5 +1046,15 @@ public class TMService {
 
         pollableFutureTaskResult.setResult(normalized);
         return pollableFutureTaskResult;
+    }
+
+    public TMXliff createTMXliff(Long assetId, String bcp47Tag, String content, PollableTask pollableTask) {
+        TMXliff tmXliff = new TMXliff();
+        tmXliff.setAsset(assetRepository.findOne(assetId));
+        tmXliff.setLocale(localeService.findByBcp47Tag(bcp47Tag));
+        tmXliff.setContent(content);
+        tmXliff.setPollableTask(pollableTask);
+        tmXliff = tmXliffRepository.save(tmXliff);
+        return tmXliff;
     }
 }

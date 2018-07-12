@@ -6,6 +6,7 @@ package com.box.l10n.mojito.rest.entity;
  */
 public class XliffExportBody {
 
+    Long tmXliffId;
     String content;
     PollableTask pollableTask;
 
@@ -14,6 +15,14 @@ public class XliffExportBody {
 
     public XliffExportBody(String content) {
         this.content = content;
+    }
+
+    public Long getTmXliffId() {
+        return tmXliffId;
+    }
+
+    public void setTmXliffId(Long tmXliffId) {
+        this.tmXliffId = tmXliffId;
     }
 
     public String getContent() {

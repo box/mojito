@@ -96,7 +96,7 @@ public class TMExportCommand extends Command {
                 }
 
                 Path exportFile = getExportFile(repositoryLocale, assetNumber);
-                String export = commandHelper.getPollableTaskXliff(pollableTaskId);
+                String export = assetClient.getExportedXLIFF(asset.getId(), xliffExport.getTmXliffId());
                 commandHelper.writeFileContent(export, exportFile);
 
                 consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();

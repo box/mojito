@@ -246,18 +246,15 @@ public class AssetClient extends BaseClient {
      * Exports an XLIFF that contains all translation (regardless if they are
      * used or not) of an {@link Asset}.
      *
-     * @param assetId {@link Asset#id} for which translation needs to be
-     * exported
-     * @param bcp47tag bcp47tag for which translation needs to be exported
+     * @param assetId {@link Asset#id} for which translation was exported
+     * @param tmXliffId {@link TMXliff#id} where exported xliff is persisted
      * @return an XLIFF
      */
-    public String exportAssetAsXLIFF(Long assetId, String bcp47tag) {
-        logger.debug("Export asset id: {} for locale: {}", assetId, bcp47tag);
+    public String getExportedXLIFF(Long assetId, Long tmXliffId) {
+        logger.debug("Get exported xliff for asset id: {} for tm xliff id: {}", assetId, tmXliffId);
 
-        String xliffExportBasePath = getBasePathForResource(assetId, "xliffExport");
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder
-                .fromPath(xliffExportBasePath)
-                .queryParam("bcp47tag", bcp47tag);
+        String xliffExportBasePath = getBasePathForResource(assetId, "xliffExport", tmXliffId);
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath(xliffExportBasePath);
 
         return authenticatedRestTemplate.getForObject(uriBuilder.toUriString(), XliffExportBody.class).getContent();
     }
