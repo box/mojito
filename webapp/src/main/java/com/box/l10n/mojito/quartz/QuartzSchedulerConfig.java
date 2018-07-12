@@ -10,6 +10,8 @@ import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class QuartzSchedulerConfig {
@@ -23,8 +25,8 @@ public class QuartzSchedulerConfig {
     @Autowired
     QuartzPropertiesConfig quartzPropertiesConfig;
 
-    @Autowired
-    Trigger[] triggers;
+    @Autowired(required=false)
+    List<Trigger> triggers = new ArrayList<>();
 
     /**
      * Creates the scheduler with triggers/jobs defined in spring beans.
@@ -47,7 +49,7 @@ public class QuartzSchedulerConfig {
         schedulerFactory.setQuartzProperties(quartzPropertiesConfig.getQuartzProperties());
         schedulerFactory.setJobFactory(springBeanJobFactory());
         schedulerFactory.setOverwriteExistingJobs(true);
-        schedulerFactory.setTriggers(triggers);
+        schedulerFactory.setTriggers(triggers.toArray(new Trigger[]{}));
         schedulerFactory.setAutoStartup(false);
 
         return schedulerFactory;
