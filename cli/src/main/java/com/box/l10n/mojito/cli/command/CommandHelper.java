@@ -273,18 +273,18 @@ public class CommandHelper {
 
         return inverseLocaleMapping;
     }
-    
-     /**
-     * Gets the repository locales sorted so that parent are before child 
+
+    /**
+     * Gets the repository locales sorted so that parent are before child
      * locales.
-     * 
-     * @param repository 
+     *
+     * @param repository
      * @return
      */
     public Map<String, Locale> getSortedRepositoryLocales(Repository repository) {
-        
+
         LinkedHashMap<String, Locale> locales = new LinkedHashMap<>();
-        
+
         ArrayDeque<RepositoryLocale> toProcess = new ArrayDeque<>(repository.getRepositoryLocales());
         Locale rootLocale = null;
 

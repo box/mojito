@@ -2,18 +2,23 @@ package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TMXliff;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.pathEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.repositoryIdEquals;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.virtualEquals;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import static com.box.l10n.mojito.rest.asset.AssetSpecification.virtualEquals;
 
 /**
  * @author aloison
@@ -57,6 +61,12 @@ public class AssetWS {
 
     @Autowired
     AssetService assetService;
+
+    @Autowired
+    TMXliffRepository tmXliffRepository;
+
+    @Autowired
+    LocaleService localeService;
 
     /**
      * Gets the list of {@link Asset} for a given {@link Repository} and other
@@ -227,15 +237,38 @@ public class AssetWS {
      * XLIFF.
      *
      * @param assetId {@link Asset#id}
-     * @param bcp47tag bcp47 tag of translations to be exported
+     * @param tmXliffId {@link TMXliff#id}
      * @return an XLIFF that contains all the translations of the {@link Asset}
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/api/assets/{assetId}/xliffExport")
+    @RequestMapping(method = RequestMethod.GET, value = "/api/assets/{assetId}/xliffExport/{tmXliffId}")
     @ResponseStatus(HttpStatus.OK)
-    public XliffExportBody xliffExport(@PathVariable("assetId") long assetId, @RequestParam("bcp47tag") String bcp47tag) {
-        String content = tmService.exportAssetAsXLIFF(assetId, bcp47tag);
-        String normalizedContent = NormalizationUtils.normalize(content);
-        return new XliffExportBody(normalizedContent);
+    public XliffExportBody xliffExport(@PathVariable("assetId") long assetId, @PathVariable("tmXliffId") long tmXliffId) {
+        TMXliff tmXliff = tmXliffRepository.findOne(tmXliffId);
+        XliffExportBody xliffExportBody = new XliffExportBody();
+        xliffExportBody.setTmXliffId(tmXliffId);
+        xliffExportBody.setContent(tmXliff.getContent());
+        return xliffExportBody;
+    }
+
+    /**
+     * Exports all the translations (used and unused) of an {@link Asset} into
+     * XLIFF asynchronously
+     *
+     * @param assetId {@link Asset#id}
+     * @param bcp47tag bcp47 tag of translations to be exported
+     * @param xliffExportBody
+     * @return a {@link PollableTask} that generates XLIFF asynchronously in a
+     * {@link XliffExportBody}
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/api/assets/{assetId}/xliffExport")
+    public XliffExportBody xliffExportAsync(@PathVariable("assetId") long assetId,
+            @RequestParam("bcp47tag") String bcp47tag,
+            @RequestBody XliffExportBody xliffExportBody) {
+        TMXliff tmXliff = tmService.createTMXliff(assetId, bcp47tag, null, null);
+        PollableFuture pollableFuture = tmService.exportAssetAsXLIFFAsync(tmXliff.getId(), assetId, bcp47tag, PollableTask.INJECT_CURRENT_TASK);
+        xliffExportBody.setTmXliffId(tmXliff.getId());
+        xliffExportBody.setPollableTask(pollableFuture.getPollableTask());
+        return xliffExportBody;
     }
 
     /**

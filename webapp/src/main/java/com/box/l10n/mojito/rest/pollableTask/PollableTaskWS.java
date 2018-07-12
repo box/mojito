@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.pollableTask;
 
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
+import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,9 @@ public class PollableTaskWS {
     @Autowired
     PollableTaskService pollableTaskService;
 
+    @Autowired
+    TMXliffRepository tmXliffRepository;
+
     /**
      * Gets a {@link PollableTask} by id.
      *
@@ -29,4 +33,5 @@ public class PollableTaskWS {
     public PollableTask getPollableTaskById(@PathVariable Long pollableTaskId) {
         return pollableTaskService.getPollableTask(pollableTaskId);
     }
+
 }

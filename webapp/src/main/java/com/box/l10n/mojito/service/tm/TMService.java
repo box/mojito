@@ -4,12 +4,14 @@ import com.box.l10n.mojito.common.StreamUtil;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PluralForm;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
 import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.CopyFormsOnImport;
@@ -29,10 +31,13 @@ import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
+import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
@@ -104,6 +109,12 @@ public class TMService {
 
     @Autowired
     WordCountService wordCountService;
+
+    @Autowired
+    AssetRepository assetRepository;
+
+    @Autowired
+    TMXliffRepository tmXliffRepository;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -1005,4 +1016,45 @@ public class TMService {
         driver.processBatch();
     }
 
+    /**
+     * Exports an {@link Asset} as XLIFF for a given locale asynchronously.
+     *
+     * @param tmXliffId {@link TMXliff#id} to persist generated XLIFF
+     * @param assetId {@link Asset#id} to be exported
+     * @param bcp47Tag bcp47tag of the locale that needs to be exported
+     * @param currentTask
+     * @return {@link PollableFutureTaskResult} that contains an XLIFF as result
+     */
+    @Pollable(async = true, message = "Export asset as xliff")
+    public PollableFuture<String> exportAssetAsXLIFFAsync(
+            Long tmXliffId,
+            Long assetId,
+            String bcp47Tag,
+            @InjectCurrentTask PollableTask currentTask) {
+
+        PollableFutureTaskResult<String> pollableFutureTaskResult = new PollableFutureTaskResult<>();
+
+        String xliff = exportAssetAsXLIFF(assetId, bcp47Tag);
+        String normalized = NormalizationUtils.normalize(xliff);
+
+        TMXliff tmXliff = tmXliffRepository.findOne(tmXliffId);
+        tmXliff.setAsset(assetRepository.findOne(assetId));
+        tmXliff.setLocale(localeService.findByBcp47Tag(bcp47Tag));
+        tmXliff.setContent(normalized);
+        tmXliff.setPollableTask(currentTask);
+        tmXliffRepository.save(tmXliff);
+
+        pollableFutureTaskResult.setResult(normalized);
+        return pollableFutureTaskResult;
+    }
+
+    public TMXliff createTMXliff(Long assetId, String bcp47Tag, String content, PollableTask pollableTask) {
+        TMXliff tmXliff = new TMXliff();
+        tmXliff.setAsset(assetRepository.findOne(assetId));
+        tmXliff.setLocale(localeService.findByBcp47Tag(bcp47Tag));
+        tmXliff.setContent(content);
+        tmXliff.setPollableTask(pollableTask);
+        tmXliff = tmXliffRepository.save(tmXliff);
+        return tmXliff;
+    }
 }
