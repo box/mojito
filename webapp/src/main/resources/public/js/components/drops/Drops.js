@@ -24,6 +24,7 @@ import DropStore from "../../stores/drop/DropStore";
 import ImportDropConfig from "../../sdk/drop/ImportDropConfig";
 import NewDropModal from "./NewDropModal";
 import RepositoryActions from "../../actions/RepositoryActions";
+import ConfirmationModal from "../widgets/ConfirmationModal";
 
 let Drops = React.createClass({
     mixins: [FluxyMixin],
@@ -64,6 +65,11 @@ let Drops = React.createClass({
 
             /** @type {Drop} */
             "selectedDrop": null,
+
+            /** @type {Boolean} */
+            "showCancelModal": false,
+            /** @type {Number} */
+            "cancelDropId": null
         };
     },
 
@@ -73,7 +79,7 @@ let Drops = React.createClass({
     },
 
     /**
-     * Fetch drops from action given the fitler status.
+     * Fetch drops from action given the filter status.
      *
      * @param {Drops.FILTER} filter
      * @param {Number} currentPageNumber
@@ -157,7 +163,7 @@ let Drops = React.createClass({
     },
 
     /**
-     * Hande import onclick event
+     * Handle import onclick event
      */
     onClickImport(dropId, repoId) {
         this.showAlert(this.props.intl.formatMessage({id: "drops.beingImported.alert"}));
@@ -168,16 +174,43 @@ let Drops = React.createClass({
     },
 
     /**
-     * handle cancel Drop onclick event
+     * handle cancel drop onclick event
      * @param {Number} dropId
      * @param {Number} repoId
      */
     onClickCancel(dropId, repoId) {
+        this.setState({
+            "showCancelModal": true,
+            "cancelDropId": dropId,
+        });
+    },
+
+    /**
+     * handle cancel drop confirmation
+     */
+    onConfirmCancel() {
+        let dropId = this.state.cancelDropId;
+
         this.showAlert(this.props.intl.formatMessage({id: "drops.beingCanceled.alert"}));
         let cancelDropConfig = new CancelDropConfig(dropId, null);
         DropActions.cancelRequest(cancelDropConfig);
 
         this.delayGetNewRequests(500);
+
+        this.setState({
+            "showCancelModal": false,
+            "cancelDropId": null
+        })
+    },
+
+    /**
+     * handle cancel drop not confirmed
+     */
+    onCancelCancel() {
+        this.setState({
+            "showCancelModal": false,
+            "cancelDropId": null
+        });
     },
 
     /**
@@ -229,7 +262,7 @@ let Drops = React.createClass({
         }
 
         return (
-            <tr key={"Drops.reposiotryRow." + drop.name} className={rowClass}>
+            <tr key={`Drops.repositoryRow.${drop.name}.${drop.repository.name}`} className={rowClass}>
                 <td>{drop.name}{this.getButtonControlBar(drop)}</td>
                 <td>{drop.repository.name}</td>
                 <td><FormattedNumber value={wordCount}/></td>
@@ -535,6 +568,13 @@ let Drops = React.createClass({
     render() {
         return (
             <div>
+                <ConfirmationModal showModal={this.state.showCancelModal}
+                    modalTitleMessage="drops.confirm.cancel.model.title"
+                    modalBodyMessage="drops.confirm.cancel.model.body"
+                    confirmButtonLabel="drops.confirm.cancel.model.confirm"
+                    cancelButtonLabel="drops.confirm.cancel.model.cancel"
+                    onCancelledCallback={this.onCancelCancel}
+                    onConfirmedCallback={this.onConfirmCancel}/>
                 <ReactSidebarResponsive ref="sideBar" sidebar={this.getSideBarContent()}
                          rootClassName="side-bar-root-container"
                          sidebarClassName="side-bar-container"

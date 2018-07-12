@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.JsonView;
+
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -29,9 +31,11 @@ import org.springframework.data.annotation.CreatedBy;
             @Index(name = "I__USERS__USERNAME", columnList = "username", unique = true)
         }
 )
-public class User extends AuditableEntity {
+public class User extends AuditableEntity implements Serializable {
 
     public static final int NAME_MAX_LENGTH = 255;
+
+
     
     @Basic(optional = false)
     @Column(name = "username")
