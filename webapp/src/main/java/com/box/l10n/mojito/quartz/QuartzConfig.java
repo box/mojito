@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -27,11 +28,11 @@ public class QuartzConfig {
     @Autowired
     Scheduler scheduler;
 
-    @Autowired
-    Trigger[] triggers;
+    @Autowired(required=false)
+    List<Trigger> triggers = new ArrayList<>();
 
-    @Autowired
-    JobDetail[] jobDetails;
+    @Autowired(required=false)
+    List<JobDetail> jobDetails = new ArrayList<>();
 
     /**
      * Starts the scheduler after having removed outdated trigger/jobs

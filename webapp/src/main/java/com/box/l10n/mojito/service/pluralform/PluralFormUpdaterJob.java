@@ -5,10 +5,13 @@ import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.SimpleTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
@@ -28,9 +31,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * @author jaurambault
  */
+@Profile("!disablescheduling")
 @Configuration
 @Component
 @DisallowConcurrentExecution
+@ConditionalOnProperty(value="l10n.PluralFormUpdater", havingValue = "true")
 public class PluralFormUpdaterJob implements Job {
 
     /**
@@ -86,8 +91,8 @@ public class PluralFormUpdaterJob implements Job {
     SimpleTriggerFactoryBean triggerPluralFormUpdater(@Qualifier("jobDetailPluralFromUpdater") JobDetail job) {
         SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
         trigger.setJobDetail(job);
-        trigger.setRepeatInterval(1);
-        trigger.setRepeatCount(0);
+        trigger.setRepeatInterval(10000);
+        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
         return trigger;
     }
 
