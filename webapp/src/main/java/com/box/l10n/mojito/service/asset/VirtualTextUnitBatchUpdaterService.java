@@ -15,6 +15,8 @@ import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsUpdatedReactor;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -69,7 +71,7 @@ public class VirtualTextUnitBatchUpdaterService {
     PluralFormService pluralFormService;
 
     @Autowired
-    RepositoryStatisticsUpdatedReactor repositoryStatisticsUpdatedReactor;
+    RepositoryStatisticService repositoryStatisticService;
 
     @Autowired
     EntityManager entityManager;
@@ -167,7 +169,7 @@ public class VirtualTextUnitBatchUpdaterService {
                         assetTextUnit.setDoNotTranslate(doNotTranslate);
                         assetTextUnitRepository.save(assetTextUnit);
 
-                        repositoryStatisticsUpdatedReactor.setRepositoryStatsOutOfDate(asset.getRepository().getId());
+                        repositoryStatisticService.addJobIfMissing(asset.getRepository().getId());
                     }
                 } else {
                     logger.debug("Exact match not used, need to create an asset text unit and map it to the tm text unit");

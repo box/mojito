@@ -1,24 +1,21 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.StatisticsSchedule;
-import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.google.common.collect.Sets;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
-import org.joda.time.DateTime;
 import org.reactivestreams.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.Environment;
 import reactor.core.processor.RingBufferProcessor;
 import reactor.fn.Consumer;
 import reactor.rx.Stream;
 import reactor.rx.Streams;
+
+import javax.annotation.PostConstruct;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class aggregates events that requires repository statistics re-computation
@@ -36,15 +33,12 @@ public class RepositoryStatisticsUpdatedReactor {
 
     @Autowired
     Environment streamEnvironment;
-    
+
     @Autowired
-    RepositoryRepository repositoryRepository;
-    
-    @Autowired
-    StatisticsScheduleRepository statisticsScheduleRepository;
+    RepositoryStatisticService repositoryStatisticService;
 
     private Processor<Long, Long> processor;
-    
+
     @PostConstruct
     private void createProcessor() {
         processor = RingBufferProcessor.create();
@@ -53,29 +47,18 @@ public class RepositoryStatisticsUpdatedReactor {
             @Override
             public void accept(List<Long> repositoryIds) {
                 for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
-                    setRepositoryStatsOutOfDate(repositoryId);
+                    repositoryStatisticService.addJobIfMissing(repositoryId);
                 }
             }
         });
-    }       
+    }
 
     /**
      * Generates event that the repository statistics is outdated and needs re-computation.
-     * 
-     * @param repositoryId 
+     *
+     * @param repositoryId
      */
     public void generateEvent(Long repositoryId) {
         processor.onNext(repositoryId);
-    }
-
-    @Transactional
-    public void setRepositoryStatsOutOfDate(Long repositoryId) {
-        Repository repository = repositoryRepository.findOne(repositoryId);
-        if (repository != null) {
-            StatisticsSchedule statisticsSchedule = new StatisticsSchedule();
-            statisticsSchedule.setRepository(repository);
-            statisticsSchedule.setTimeToUpdate(DateTime.now());
-            statisticsScheduleRepository.save(statisticsSchedule);
-        }
     }
 }
