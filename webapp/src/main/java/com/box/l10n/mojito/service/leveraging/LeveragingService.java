@@ -15,15 +15,16 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+
 import java.util.List;
 import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- *
  * @author jaurambault
  */
 @Service
@@ -39,6 +40,9 @@ public class LeveragingService {
 
     @Autowired
     LeveragerByNameAndContentForSourceLeveraging leveragerByNameAndContentForSourceLeveraging;
+
+    @Autowired
+    LeveragerByNameAndContentUnusedForSourceLeveraging leveragerByNameAndContentUnusedForSourceLeveraging;
 
     @Autowired
     LeveragerByContentForSourceLeveraging leveragerByContentForSourceLeveraging;
@@ -84,8 +88,8 @@ public class LeveragingService {
      * dataset.
      *
      * @param tmTextUnits list of {@link TMTextUnit}s that needs to be
-     * processed. {@link TMTextUnit}s for which leveraged translations were
-     * found are removed from the list to prevent further processing.
+     *                    processed. {@link TMTextUnit}s for which leveraged translations were
+     *                    found are removed from the list to prevent further processing.
      */
     public void performSourceLeveraging(List<TMTextUnit> tmTextUnits) {
 
@@ -94,18 +98,19 @@ public class LeveragingService {
         leveragerByNameAndContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
         leveragerByNameForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
         leveragerByContentForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
+        leveragerByNameAndContentUnusedForSourceLeveraging.performLeveragingFor(tmTextUnits, null, null);
     }
 
     /**
      * This will copy all translations from the source repository into the
      * target repository (or asset), overriding any translation already
      * existing.
-     *
+     * <p>
      * 2 match modes are available:
-     *
+     * <p>
      * 1) Matches are performed based on MD5, if the repository has multiple
      * text units with same MD5 the source will be arbitrarily chosen.
-     *
+     * <p>
      * 2) Matches are performed based on content only (exact match), if the
      * repository has multiple text units with same content it will first check
      * for string with same IDs and then the source will be arbitrarily chosen.
@@ -139,14 +144,14 @@ public class LeveragingService {
 
         return new PollableFutureTaskResult();
     }
-    
+
     Repository getRepositoryForCopy(Long repositoryId, Long assetId) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
-        
+
         Repository repository;
-        
+
         if (assetId == null) {
             repository = repositoryRepository.findOne(repositoryId);
-            
+
             if (repository == null) {
                 throw new RepositoryWithIdNotFoundException(repositoryId);
             }
