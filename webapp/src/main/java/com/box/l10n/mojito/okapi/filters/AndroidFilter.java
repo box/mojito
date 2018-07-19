@@ -2,11 +2,13 @@ package com.box.l10n.mojito.okapi.filters;
 
 import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import static com.box.l10n.mojito.okapi.filters.PluralsHolder.logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
+import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.IResource;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
@@ -309,5 +311,33 @@ public class AndroidFilter extends XMLFilter {
             return res;
         }
 
-    } 
+        @Override
+        protected Event createCopyOf(Event event, String sourceForm, String targetForm) {
+            logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
+            ITextUnit textUnit = event.getTextUnit().clone();
+            renameTextUnit(textUnit, sourceForm, targetForm);
+            updateItemFormInSkeleton(textUnit);
+            replaceFormInSkeleton((GenericSkeleton) textUnit.getSkeleton(), sourceForm, targetForm);
+            Event copyOfOther = new Event(EventType.TEXT_UNIT, textUnit);
+            return copyOfOther;
+        }
+
+        void updateItemFormInSkeleton(ITextUnit textUnit) {
+            boolean ignore = true;
+            GenericSkeleton genericSkeleton = (GenericSkeleton) textUnit.getSkeleton();
+            for (GenericSkeletonPart genericSkeletonPart : genericSkeleton.getParts()) {
+                String partString = genericSkeletonPart.toString();
+                Pattern p = Pattern.compile("(\\s*<.*?item.+?quantity.+?\".+?\">)");
+                Matcher matcher = p.matcher(partString);
+                if (matcher.find()) {
+                    String match = matcher.group(1);
+                    genericSkeletonPart.setData(match);
+                    ignore = false;
+                }
+                if (ignore) {
+                    genericSkeletonPart.setData("");
+                }
+            }
+        }
+    }
 }
