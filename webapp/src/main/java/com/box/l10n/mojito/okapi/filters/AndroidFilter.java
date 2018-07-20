@@ -2,7 +2,6 @@ package com.box.l10n.mojito.okapi.filters;
 
 import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
-import static com.box.l10n.mojito.okapi.filters.PluralsHolder.logger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
