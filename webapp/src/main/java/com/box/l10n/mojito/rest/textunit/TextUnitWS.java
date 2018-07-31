@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.textunit;
 
 import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.GitBlame;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.json.ObjectMapper;
@@ -34,9 +35,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 
@@ -77,28 +80,28 @@ public class TextUnitWS {
 
     /**
      * Gets the TextUnits that matches the search parameters.
-     *
+     * <p>
      * It uses a filter logic. The dataset will be filtered down as more
      * criteria are specified (search for specific locales, string
      * name|target|source, etc).
      *
-     * @param repositoryIds mandatory if repositoryNames not provided
-     * @param repositoryNames mandatory if repositoryIds not provided
-     * @param name optional
-     * @param source optional
-     * @param target optional
-     * @param assetPath optional
-     * @param pluralFormOther optional
-     * @param pluralFormFiltered optional
-     * @param searchType optional, default is EXACT match
-     * @param localeTags optional
-     * @param usedFilter optional
-     * @param statusFilter optional
+     * @param repositoryIds           mandatory if repositoryNames not provided
+     * @param repositoryNames         mandatory if repositoryIds not provided
+     * @param name                    optional
+     * @param source                  optional
+     * @param target                  optional
+     * @param assetPath               optional
+     * @param pluralFormOther         optional
+     * @param pluralFormFiltered      optional
+     * @param searchType              optional, default is EXACT match
+     * @param localeTags              optional
+     * @param usedFilter              optional
+     * @param statusFilter            optional
      * @param doNotTranslateFilter
      * @param tmTextUnitCreatedBefore optional
-     * @param tmTExtunitCreatedAfter optional
-     * @param limit optional, default 10
-     * @param offset optional, default 0
+     * @param tmTExtunitCreatedAfter  optional
+     * @param limit                   optional, default 10
+     * @param offset                  optional, default 0
      * @return the TextUnits that matches the search parameters
      * @throws InvalidTextUnitSearchParameterException
      */
@@ -161,20 +164,20 @@ public class TextUnitWS {
     }
 
     TextUnitSearcherParameters queryParamsToTextUnitSearcherParameters(
-            ArrayList<Long> repositoryIds, 
-            ArrayList<String> repositoryNames, 
-            String name, 
-            String source, 
-            String target, 
-            String assetPath, 
+            ArrayList<Long> repositoryIds,
+            ArrayList<String> repositoryNames,
+            String name,
+            String source,
+            String target,
+            String assetPath,
             String pluralFormOther,
             boolean pluralFormFiltered,
             SearchType searchType,
-            ArrayList<String> localeTags, 
-            UsedFilter usedFilter, 
-            StatusFilter statusFilter, 
-            Boolean doNotTranslateFilter, 
-            DateTime tmTextUnitCreatedBefore, 
+            ArrayList<String> localeTags,
+            UsedFilter usedFilter,
+            StatusFilter statusFilter,
+            Boolean doNotTranslateFilter,
+            DateTime tmTextUnitCreatedBefore,
             DateTime tmTextUnitCreatedAfter) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
@@ -205,14 +208,14 @@ public class TextUnitWS {
 
     /**
      * Creates a TextUnit.
-     *
+     * <p>
      * Correspond to adding a new TMTextUnitVariant (new translation) in the
      * system and to create the TMTextUnitCurrentVariant (to make the new
      * translation current).
      *
      * @param textUnitDTO data used to update the TMTextUnitCurrentVariant. {@link TextUnitDTO#getTmTextUnitId()},
      *                    {@link TextUnitDTO#getLocaleId()}, {@link TextUnitDTO#getTarget()} are
-     * the only 3 fields that are used for the update.
+     *                    the only 3 fields that are used for the update.
      * @return the created TextUnit (contains the new translation with its id)
      */
     @Transactional
@@ -235,7 +238,7 @@ public class TextUnitWS {
 
     /**
      * Imports batch of text units.
-     *
+     * <p>
      * Note that the status of the text unit is not taken in account nor the included in localized file attribute. For
      * now, the integrity checker is always applied and is used to determine the
      * {@link TMTextUnitVariant.Status}. TODO later we want to change that to look at the status provided.
@@ -252,13 +255,14 @@ public class TextUnitWS {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
-            List<TextUnitDTO>  textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>(){});
+            List<TextUnitDTO> textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>() {
+            });
             importTextUnitsBatch.setTextUnits(textUnitDTOs);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             logger.debug("can't convert to list, try new formatTextUnitBatchImporterServiceTest", e);
             try {
                 importTextUnitsBatch = objectMapper.readValue(string, ImportTextUnitsBatch.class);
-            }  catch (Exception e2) {
+            } catch (Exception e2) {
                 throw new IllegalArgumentException("Can't deserialize text unit batch", e2);
             }
         }
@@ -273,13 +277,13 @@ public class TextUnitWS {
 
     /**
      * Deletes the TextUnit.
-     *
+     * <p>
      * Corresponds to removing the TmTextUnitCurrentVariant entry. This doesn't
      * remove the translation from the system, it just removes it from being the
      * current translation.
      *
      * @param textUnitId TextUnit id (maps to
-     * {@link TMTextUnitCurrentVariant#id})
+     *                   {@link TMTextUnitCurrentVariant#id})
      */
     @Transactional
     @RequestMapping(method = RequestMethod.DELETE, value = "/api/textunits/{textUnitId}")
@@ -298,7 +302,7 @@ public class TextUnitWS {
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/check")
     public TMTextUnitIntegrityCheckResult checkTMTextUnit(@RequestParam(value = "textUnitId") Long textUnitId,
-            @RequestParam(value = "contentToCheck") String contentToCheck) {
+                                                          @RequestParam(value = "contentToCheck") String contentToCheck) {
         logger.debug("Checking TextUnit, id: {}", textUnitId);
 
         TMTextUnitIntegrityCheckResult result = new TMTextUnitIntegrityCheckResult();
@@ -324,5 +328,47 @@ public class TextUnitWS {
 
         return assetTextUnit.getUsages();
     }
+
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textUnit/{textUnitId}/gitBlame")
+    public String getGitBlameForTmTextUnit(@PathVariable Long tmTextUnit) throws AssetTextUnitWithIdNotFoundException {
+//        logger.debug("Get usages of asset text unit for id: {}", assetTextUnitId);
+        return "";
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/gitBlames")
+    public List<GitBlameWithUsages> getGitBlames(@PathVariable Long tmTextUnit,
+                                                 @RequestParam(value = "repositoryIds[]", required = true) ArrayList<Long> repositoryIds,
+                                                 @RequestParam(value = "textUnitIds[]", required = false) ArrayList<Long> textUnitIds,
+                                                 @RequestParam(value = "blamedFilter", required = false) Boolean blamedFilter,
+                                                 @RequestParam(value = "fetchUsages", required = false) boolean fetchUsages
+    ) throws AssetTextUnitWithIdNotFoundException {
+
+//        logger.debug("Get usages of asset text unit for id: {}", assetTextUnitId);
+
+
+        GitBlameWithUsages gitBlameWithUsages = new GitBlameWithUsages();
+        gitBlameWithUsages.setTmTextUnitId(1L);
+        gitBlameWithUsages.setGitBlame(new GitBlame());
+        gitBlameWithUsages.getGitBlame().setAuthorEmail("");
+
+
+        if (fetchUsages) {
+            logger.debug("Fetch usages");
+        }
+
+
+        // update the text unit searcher to return the blame information...
+
+
+        // text unit that are not blamed.
+        // -> get used text units
+        // -> get entries without blame
+        // -> optionaly fetch usages
+
+
+        return null;
+    }
+
 
 }
