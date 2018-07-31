@@ -35,11 +35,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 
@@ -80,7 +78,7 @@ public class TextUnitWS {
 
     /**
      * Gets the TextUnits that matches the search parameters.
-     * <p>
+     *
      * It uses a filter logic. The dataset will be filtered down as more
      * criteria are specified (search for specific locales, string
      * name|target|source, etc).
@@ -208,7 +206,7 @@ public class TextUnitWS {
 
     /**
      * Creates a TextUnit.
-     * <p>
+     *
      * Correspond to adding a new TMTextUnitVariant (new translation) in the
      * system and to create the TMTextUnitCurrentVariant (to make the new
      * translation current).
@@ -238,7 +236,7 @@ public class TextUnitWS {
 
     /**
      * Imports batch of text units.
-     * <p>
+     *
      * Note that the status of the text unit is not taken in account nor the included in localized file attribute. For
      * now, the integrity checker is always applied and is used to determine the
      * {@link TMTextUnitVariant.Status}. TODO later we want to change that to look at the status provided.
@@ -255,8 +253,7 @@ public class TextUnitWS {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
-            List<TextUnitDTO> textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>() {
-            });
+            List<TextUnitDTO>  textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>(){});
             importTextUnitsBatch.setTextUnits(textUnitDTOs);
         } catch (Exception e) {
             logger.debug("can't convert to list, try new formatTextUnitBatchImporterServiceTest", e);
@@ -277,7 +274,7 @@ public class TextUnitWS {
 
     /**
      * Deletes the TextUnit.
-     * <p>
+     *
      * Corresponds to removing the TmTextUnitCurrentVariant entry. This doesn't
      * remove the translation from the system, it just removes it from being the
      * current translation.
