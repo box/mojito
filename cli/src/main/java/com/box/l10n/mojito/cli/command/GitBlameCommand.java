@@ -69,7 +69,6 @@ public class GitBlameCommand extends Command {
     String sourcePathFilterRegex;
 
     // add parameters to specify prefix from Mojito and prefix on localhost
-
     boolean fetchTextUnitUsages = false;
 
     @Autowired
