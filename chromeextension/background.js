@@ -3,7 +3,6 @@ var backgroundConfig = {
     enabled: false,
     headerName: 'X-Mojito-Ict',
     headerValue: 'on',
-    removeTagsBlock: true,
     actionButtons: []
 };
 

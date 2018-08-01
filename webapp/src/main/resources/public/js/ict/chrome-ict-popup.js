@@ -43,20 +43,6 @@ const IctPopup = function (props) {
                 <FormControl type="text" value={props.headerValue} onChange={(e) => props.onHeaderValueChanged(e.target.value)} />
               </Col>
             </FormGroup>
-            
-            <FormGroup controlId="formHorizontalRemoveTagsBlock">
-                <Col componentClass={ControlLabel} sm={2}>
-                    Remove meta characters
-                </Col>
-                <Col sm={10}>
-                    <ToggleButtonGroup name="state" type="radio" 
-                               value={props.removeTagsBlock} 
-                               onChange={props.onRemoveTagsBlockChanged} >
-                        <ToggleButton name="state" value={true}>On</ToggleButton>
-                        <ToggleButton name="state" value={false}>Off</ToggleButton>
-                    </ToggleButtonGroup> 
-                 </Col>
-            </FormGroup>
         </Form>
     </div>;
 }
@@ -71,7 +57,6 @@ class IctPopupContainer extends React.Component {
             enabled: false,
             headerName: '',
             headerValue: '',
-            removeTagsBlock: true
         };
         
         this.loadStateFromStorage();
@@ -122,29 +107,17 @@ class IctPopupContainer extends React.Component {
             enabled: enabled
         });
     }
-    
-    onRemoveTagsBlockChanged(removeTagsBlock) {
-        this.setState({
-            removeTagsBlock: removeTagsBlock
-        });
 
-        chrome.storage.sync.set({
-            removeTagsBlock: removeTagsBlock
-        });
-    }
-    
     render() {
         return <IctPopup
                     mojitoBaseUrl={this.state.mojitoBaseUrl}
                     enabled={this.state.enabled}
                     headerName={this.state.headerName}
                     headerValue={this.state.headerValue}
-                    removeTagsBlock={this.state.removeTagsBlock}
                     onMojitoBaseUrlChanged={url => this.onMojitoBaseUrlChanged(url)}
                     onHeaderNameChanged={name => this.onHeaderNameChanged(name)}
                     onHeaderValueChanged={value => this.onHeaderValueChanged(value)}
                     onEnabledChanged={enabled => this.onEnabledChanged(enabled)}
-                    onRemoveTagsBlockChanged={removeTagsBlock => this.onRemoveTagsBlockChanged(removeTagsBlock)}
                 />;
                     
     }
