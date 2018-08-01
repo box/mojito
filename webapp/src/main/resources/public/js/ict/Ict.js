@@ -12,8 +12,6 @@ class Ict {
         this.mojitoBaseUrl = 'http://localhost:8080/';
         this.messages = messages;
         this.locale = locale;
-        this.removeTagsBlock = true;
-        this.wrapped = {};
         this.actionButtons = [];
     }
 
@@ -35,10 +33,6 @@ class Ict {
         if (this.ictModalContainer) {
             this.ictModalContainer.setActionButtons(actionButtons);
         }
-    }
-    
-    setRemoveTagsBlock(removeTagsBlock) {
-        this.removeTagsBlock = removeTagsBlock;
     }
 
     getNodesChildOf(node) {
@@ -93,15 +87,11 @@ class Ict {
             node = node.parentNode;
         }
 
-        if (node.classList.contains("mojito-ict-string")) {
-            console.log("skip adding mojito-ict-string");
-        } else {
-            try {
+        if (!node.classList.contains("mojito-ict-string")) {
+           try {
                 node.className += " mojito-ict-string";
             } catch (e) {
             }
-
-            node.addEventListener("click", (e) => onClick(e, textUnits));
 
             node.addEventListener("mouseenter", (e) => {
                 e.target.classList.add("mojito-ict-string-active");
@@ -111,6 +101,8 @@ class Ict {
                 e.target.classList.remove("mojito-ict-string-active");
             });
         }
+
+        node.addEventListener("click", (e) => onClick(e, textUnits));
     }
 
     installInDOM() {
@@ -142,22 +134,9 @@ class Ict {
 
     processNode(node) {
         var hasMetaData = IctMetadataExtractor.hasMetadata(this.getStringFromNode(node));
-        var isAlreadyProccessed = (
-                node.getAttribute &&
-                node.getAttribute('class') &&
-                node.getAttribute('class').indexOf('mojito-ict-string') !== -1
-                ) || (
-                node.parentNode &&
-                node.parentNode.getAttribute('class') &&
-                node.parentNode.getAttribute('class').indexOf('mojito-ict-string') !== -1
-                );
 
-        if (hasMetaData && !isAlreadyProccessed) {
+        if (hasMetaData) {
             this.wrapNode(node, this.onClickBehavior.bind(this));
-            this.wrapped[node] = 1;
-        }
-
-        if (hasMetaData && this.removeTagsBlock) {
             this.removeTagsBlockFromNode(node);
         }
     }
@@ -165,8 +144,7 @@ class Ict {
     removeTagsBlockFromNode(node) {
         if (this.isElementWithPlaceholder(node)) {
             node.setAttribute('placeholder', TagsBlockDecoder.removeTagsBlock(node.getAttribute('placeholder')));
-        } else
-        if (node.textContent) {
+        } else if (node.textContent) {
             node.textContent = TagsBlockDecoder.removeTagsBlock(node.textContent);
         }
     }

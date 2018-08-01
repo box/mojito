@@ -8,7 +8,6 @@ var config = {
     enabled: false,
     mojitoBaseUrl: '',
     actionButtons: [],
-    removeTagsBlock: true
 };
 
 chrome.storage.sync.get(config, (items) => {
@@ -17,7 +16,6 @@ chrome.storage.sync.get(config, (items) => {
         ict.activate();
         ict.setMojitoBaseUrl(items.mojitoBaseUrl);
         ict.setActionButtons(items.actionButtons);
-        ict.setRemoveTagsBlock(items.removeTagsBlock);
     }
 });
 
@@ -35,10 +33,6 @@ chrome.storage.onChanged.addListener((changes) => {
 
         if (key === 'actionButtons') {
             ict.setActionButtons(config.actionButtons);
-        }
-
-        if (key === 'removeTagsBlock') {
-            ict.setRemoveTagsBlock(config.removeTagsBlock);
         }
     }
 });
