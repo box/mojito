@@ -1,10 +1,13 @@
 package com.box.l10n.mojito.entity;
 
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
 import javax.persistence.Column;
+import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
+
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
  * Similar to {@link AuditableEntity} but allows to override the attributes.
@@ -13,6 +16,7 @@ import javax.persistence.PrePersist;
  * annotations and the listener
  */
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class SettableAuditableEntity extends BaseEntity {
 
     @Column(name = "created_date")
