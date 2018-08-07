@@ -188,6 +188,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(md5Check, addTMTextUnit.getMd5());
         assertEquals(contentMd5Check, addTMTextUnit.getContentMd5());
         assertEquals(tmId, ((HibernateProxy) addTMTextUnit.getTm()).getHibernateLazyInitializer().getIdentifier());
+        assertNotNull(addTMTextUnit.getCreatedByUser());
 
         return addTMTextUnit.getId();
     }
@@ -250,6 +251,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(contentMD5, addCurrentTMTextUnitVariant.getContentMD5());
         assertEquals(localeId, ((HibernateProxy) addCurrentTMTextUnitVariant.getLocale()).getHibernateLazyInitializer().getIdentifier());
         assertEquals(tmTextUnitId, ((HibernateProxy) addCurrentTMTextUnitVariant.getTmTextUnit()).getHibernateLazyInitializer().getIdentifier());
+        assertNotNull(addCurrentTMTextUnitVariant.getCreatedByUser());
         return addCurrentTMTextUnitVariant;
     }
 
