@@ -31,6 +31,7 @@ import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -116,6 +117,9 @@ public class TMService {
     @Autowired
     TMXliffRepository tmXliffRepository;
 
+    @Autowired
+    AuditorAwareImpl auditorAwareImpl;
+
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
      *
@@ -175,6 +179,7 @@ public class TMService {
         tmTextUnit.setCreatedDate(createdDate);
         tmTextUnit.setPluralForm(puralForm);
         tmTextUnit.setPluralFormOther(pluralFormOther);
+        tmTextUnit.setCreatedByUser(auditorAwareImpl.getCurrentAuditor());
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
         logger.trace("TMTextUnit saved");
@@ -606,6 +611,7 @@ public class TMService {
         tmTextUnitVariant.setStatus(status);
         tmTextUnitVariant.setIncludedInLocalizedFile(includedInLocalizedFile);
         tmTextUnitVariant.setCreatedDate(createdDate);
+        tmTextUnitVariant.setCreatedByUser(auditorAwareImpl.getCurrentAuditor());
         tmTextUnitVariant = tmTextUnitVariantRepository.save(tmTextUnitVariant);
         logger.trace("TMTextUnitVariant saved");
 

@@ -12,11 +12,12 @@ import org.springframework.stereotype.Component;
  * @author wyau
  */
 @Component
-class AuditorAwareImpl implements AuditorAware<User> {
+public class AuditorAwareImpl implements AuditorAware<User> {
 
     @Autowired
     UserRepository userRepository;
 
+    @Override
     public User getCurrentAuditor() {
 
         User currentAuditor = null;
