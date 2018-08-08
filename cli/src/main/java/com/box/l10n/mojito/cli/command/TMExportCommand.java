@@ -43,6 +43,9 @@ public class TMExportCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
+    @Parameter(names = {"--locales", "-l"}, arity = 1, required = false, description = "List of locales to be exported, format: fr-FR,ja-JP")
+    List<String> bcp47tagsParam;
+
     @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)
     String targetDirectoryParam;
 
@@ -63,7 +66,7 @@ public class TMExportCommand extends Command {
         consoleWriter.newLine().a("Export TM for repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
 
         commandDirectories = new CommandDirectories(null, targetDirectoryParam);
-        
+
         logger.debug("Initialize targetBasename (use repository if no target bases name is specified)");
         targetBasenameParam = MoreObjects.firstNonNull(targetBasenameParam, repositoryParam);
 
@@ -84,22 +87,24 @@ public class TMExportCommand extends Command {
 
                 String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
-                consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
+                if (bcp47tagsParam == null || bcp47tagsParam.contains(bcp47Tag)) {
+                    consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
 
-                XliffExportBody xliffExport = assetClient.exportAssetAsXLIFFAsync(asset.getId(), bcp47Tag);
-                Long pollableTaskId = xliffExport.getPollableTask().getId();
+                    XliffExportBody xliffExport = assetClient.exportAssetAsXLIFFAsync(asset.getId(), bcp47Tag);
+                    Long pollableTaskId = xliffExport.getPollableTask().getId();
 
-                try {
-                    commandHelper.waitForPollableTask(pollableTaskId);
-                } catch (PollableTaskException e) {
-                    throw new CommandException(e.getMessage(), e.getCause());
+                    try {
+                        commandHelper.waitForPollableTask(pollableTaskId);
+                    } catch (PollableTaskException e) {
+                        throw new CommandException(e.getMessage(), e.getCause());
+                    }
+
+                    Path exportFile = getExportFile(repositoryLocale, assetNumber);
+                    String export = assetClient.getExportedXLIFF(asset.getId(), xliffExport.getTmXliffId());
+                    commandHelper.writeFileContent(export, exportFile);
+
+                    consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();
                 }
-
-                Path exportFile = getExportFile(repositoryLocale, assetNumber);
-                String export = assetClient.getExportedXLIFF(asset.getId(), xliffExport.getTmXliffId());
-                commandHelper.writeFileContent(export, exportFile);
-
-                consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();
             }
         }
 
