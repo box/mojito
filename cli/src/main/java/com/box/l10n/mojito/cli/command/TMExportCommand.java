@@ -43,7 +43,7 @@ public class TMExportCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
-    @Parameter(names = {"--locales", "-l"}, arity = 1, required = false, description = "List of locales to be exported, format: fr-FR,ja-JP")
+    @Parameter(names = {Param.EXPORT_LOCALES_LONG, Param.EXPORT_LOCALES_SHORT}, arity = 1, required = false, description = Param.EXPORT_LOCALES_DESCRIPTION)
     List<String> bcp47tagsParam;
 
     @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)

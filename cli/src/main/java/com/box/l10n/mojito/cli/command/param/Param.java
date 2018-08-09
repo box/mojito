@@ -83,4 +83,8 @@ public class Param {
     public static final String ROLE_SHORT = "-r";
     public static final String ROLE_DESCRIPTION = "Available user roles: PM, TRANSLATOR, ADMIN, USER";
 
+    public static final String EXPORT_LOCALES_LONG = "--locales";
+    public static final String EXPORT_LOCALES_SHORT = "-l";
+    public static final String EXPORT_LOCALES_DESCRIPTION = "List of locales to be exported, format: fr-FR,ja-JP";
+
 }
