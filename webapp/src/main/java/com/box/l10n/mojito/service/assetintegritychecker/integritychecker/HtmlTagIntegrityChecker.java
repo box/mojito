@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Checks that there are the same HTML tags in the source and target content.
- * It only checks Android supported HTML elements within the string - <b>, <i>, <u>
+ * It checks all HTML-style elements within the string - eg. <b>, <i>, <u>, <span>, <div>, etc.
  * See https://developer.android.com/guide/topics/resources/string-resource.html#FormattingAndStyling
  * 
  * @author jyi
@@ -22,7 +22,7 @@ public class HtmlTagIntegrityChecker extends RegexIntegrityChecker {
 
     @Override
     public String getRegex() {
-        return "</?[b|i|u]>";
+       return "(<\\w+(\\s+\\w+(\\s*=\\s*('(\\\'|[^'])*?'|\"(\\\"|[^\"])*?\")))*?>|</\\w+>)";
     }
     
     @Override
