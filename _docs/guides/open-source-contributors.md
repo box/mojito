@@ -121,8 +121,12 @@ Default locale: en_US, platform encoding: UTF-8
 OS name: "mac os x", version: "10.13.5", arch: "x86_64", family: "mac"
 ```
 
-### `Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException`
+### Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException
 
-You most likely have a wrong version of Java. Java 7 or 8 is required. See [Check Java version](#check-java-version)
+If you see an error like: 
+
+`Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException`
+
+you most likely have a wrong version of Java. Java 7 or 8 is required. See [Check Java version](#check-java-version)
 
 
