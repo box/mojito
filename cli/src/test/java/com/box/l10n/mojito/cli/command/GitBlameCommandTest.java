@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,18 +45,18 @@ public class GitBlameCommandTest extends CLITestBase {
     public void testCommandName() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
-//        File sourceDirectory = getInputResourcesTestDir("source");
+        File sourceDirectory = getInputResourcesTestDir("source");
 
-//        logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+        logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
         getL10nJCommander().run("git-blame", "-r", repository.getName(),
-                "-s", "/Users/jeanaurambault/code/android-l10n",
+                "-s", "/Users/emagalindan/code/android",
                 "-ft", "ANDROID_STRINGS");
 
 
 
     }
 
-@Test
+    @Test
     public void testSplit() {
     logger.info("after trans: {}", GitBlameCommand.textUnitNameToStringInSourceFile("test _zero", true));
     logger.info("after trans: {}", GitBlameCommand.textUnitNameToStringInSourceFile("test _one", true));
@@ -103,6 +104,22 @@ public class GitBlameCommandTest extends CLITestBase {
 //        }
 //    }
 
+    @Test
+    public void importPo() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+//        logger.info("test po file");
+//        getL10nJCommander().run("git-blame", "-r", repository.getName(),
+//                "-s", "/Users/emagalindan/code/pinboard",
+//                "-ft", "PO");
+
+        poFile();
+
+    }
+
     public void poFile() {
         try {
 
@@ -110,23 +127,26 @@ public class GitBlameCommandTest extends CLITestBase {
 
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
             org.eclipse.jgit.lib.Repository repository = builder
-                    .setWorkTree(new File("/Users/jeanaurambault/code/android"))
+                    .setWorkTree(new File("/Users/emagalindan/code/pinboard"))
                     .readEnvironment()
                     .build();
 
-            logger.info("after test blame");
+            logger.info("after test blame; repository: {}", repository);
 
 
             Map<String, List<Integer>> filesAndLinesToBlame = getUsages();
 
             for (Map.Entry<String, List<Integer>> stringListEntry : filesAndLinesToBlame.entrySet()) {
                 String filename = stringListEntry.getKey();
-                logger.info("filename: {}", filename);
 
-                if (!Paths.get("/Users/jeanaurambault/code/pinboard/", filename).toFile().exists()) {
+                logger.info("filename {}", filename);
+                // TODO: fix this for files starting with "/mnt/jenkins/workspace/webapp-l10n-string-extract/"
+                if (!Paths.get("/Users/emagalindan/code/pinboard/", filename).toFile().exists()) {
                     logger.info("file: {}, doesn't not exist any more, skip.", filename);
                     continue;
                 }
+
+                logger.info("blame file: {}", filename);
 
                 BlameCommand blamer = new BlameCommand(repository);
                 ObjectId commitID = repository.resolve("HEAD");
@@ -141,11 +161,12 @@ public class GitBlameCommandTest extends CLITestBase {
                 for (Integer line : stringListEntry.getValue()) {
 
                     try {
-                        String content = blame.getResultContents().getString(line);
+                        String content = blame.getResultContents().getString(line - 1);
                         logger.info("blame, line: {} --> {}", line, content);
                         logger.info("blame, author: {}", blame.getSourceAuthor(line - 1));
+//                        logger.info("blame, commit: {}", blame.getSourceCommit(line - 1));
                     } catch (Exception ex) {
-                        logger.error("get source author failed: {}:{}", filename, line);
+                        logger.error("get source author failed: {}:{}", filename, line - 1);
                     }
                 }
             }
@@ -156,19 +177,31 @@ public class GitBlameCommandTest extends CLITestBase {
         }
     }
 
-
+    // po files
     Map<String, List<Integer>> getUsages() {
         Page<AssetTextUnit> all = assetTextUnitRepository.findAll(new PageRequest(0, 10));
 
+        logger.info("in getUsages()");
+        logger.info("all: {}", all);
 
         Map<String, List<Integer>> filesAndLines = new HashMap<>();
 
         for (AssetTextUnit assetTextUnit : all) {
+            logger.info("assetTextUnit: {}", assetTextUnit.getName());
+            // TODO: fix this for plurals
             Set<String> usages = assetTextUnit.getUsages();
+
+            if (usages.isEmpty()) {
+                logger.info("No usages for text unit {}", assetTextUnit.getName());
+            }
+            else {
+                logger.info("Usages: {}", usages);
+            }
 
             for (String usage : usages) {
                 String[] split = usage.split(":");
                 String filename = split[0];
+                filename = filename.replace("/mnt/jenkins/workspace/webapp-l10n-string-extract/", "");
                 Integer line = Integer.valueOf(split[1]);
 
                 List<Integer> integers = filesAndLines.get(filename);
@@ -181,6 +214,8 @@ public class GitBlameCommandTest extends CLITestBase {
                 integers.add(line);
             }
         }
+
+        logger.info("filesAndLines: {}", filesAndLines);
 
         return filesAndLines;
     }

@@ -9,9 +9,11 @@ import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
+import com.box.l10n.mojito.rest.client.TextUnitWithUsageClient;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
+import com.box.l10n.mojito.rest.entity.TextUnitWithUsage;
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
@@ -66,6 +68,8 @@ public class GitBlameCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
+    // add parameters to specify prefix from Mojito and prefix on localhost
+
     boolean fetchTextUnitUsages = false;
 
     @Autowired
@@ -73,6 +77,9 @@ public class GitBlameCommand extends Command {
 
     @Autowired
     RepositoryClient repositoryClient;
+
+    @Autowired
+    TextUnitWithUsageClient textUnitWithUsageClient;
 
     @Autowired
     CommandHelper commandHelper;
@@ -88,6 +95,7 @@ public class GitBlameCommand extends Command {
 
         consoleWriter.newLine().a("Git blame for repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
 
+        // fetchTextUnitUsages - currently hardcoded
         if (fetchTextUnitUsages) {
             blameWithTextUnitUsages();
         } else {
@@ -108,23 +116,55 @@ public class GitBlameCommand extends Command {
 
             String sourcePath = sourceFileMatch.getSourcePath();
 
-            logger.info("Processing type: {}, file: {}", sourcePath);
+            logger.info("File: {}", sourcePath);
 
             BlameResult blameResultForFile = getBlameResultForFile(sourcePath);
 
             for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
                 String lineText = blameResultForFile.getResultContents().getString(i);
 
-                String textUnitName = getTextUnitNameFromLine(lineText, getTextUnitNames());
+//                logger.info("Line text: {}", lineText);
+                String textUnitName = getTextUnitNameFromLine(lineText, getTextUnitNames(repository.getId()));
 
                 if (textUnitName != null) {
                     logger.info("{} --> {}", textUnitName, lineText);
+                    logger.info("{}", blameResultForFile.getSourceAuthor(i).getName());
+                    logger.info("{}", blameResultForFile.getSourceCommit(i).toString());
                 }
             }
         }
     }
 
-    void blameWithTextUnitUsages() {
+    // for po file
+    void blameWithTextUnitUsages() throws CommandException {
+        Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+        List<PollableTask> pollableTasks = new ArrayList<>();
+
+        Map<String, List<Integer>> filesAndLinesToBlame = getUsages();
+
+        for (Map.Entry<String, List<Integer>> fileListEntry : filesAndLinesToBlame.entrySet()) {
+            logger.info("current file: {}", fileListEntry.getKey());
+            logger.info("lines: {}", fileListEntry.getValue());
+        }
+
+//        logger.info("map contains {}", filesAndLinesToBlame);
+    }
+
+    // for po file
+    private Map<String, List<Integer>> getUsages() {
+        Map<String, List<Integer>> filesAndLines = new HashMap<>();
+
+        List<Integer> lines = new ArrayList<>();
+        lines.add(new Integer(61));
+        filesAndLines.put("webapp/app/common/react/components/growth/unauth/signup/FullPageSignup/FullPageSignup.js", lines);
+        List<Integer> lines2 = new ArrayList<>();
+        lines2.add(new Integer(104));
+        filesAndLines.put("webapp/app/analytics/react/components/PageControls/DatePicker.js", lines2);
+        List<Integer> lines3 = new ArrayList<>();
+        lines3.add(93); lines3.add(91); lines3.add(92);
+        filesAndLines.put("webapp/app/common/lib/SignupModalManager.js", lines3);
+
+        return filesAndLines;
     }
 
     org.eclipse.jgit.lib.Repository getGitRepository() throws CommandException {
@@ -201,13 +241,16 @@ public class GitBlameCommand extends Command {
 
 
     // TO remove
-    List<String> getTextUnitNames() {
+    List<String> getTextUnitNames(Long repositoryId) {
 
         List<String> textUnitNames = new ArrayList<>();
 
-        textUnitNames.add("business_account_upsell_megaphone_title");
-        textUnitNames.add("business_account_upsell_megaphone_disclaimer");
-        textUnitNames.add("business_account_upsell_megaphone_disclaimer_terms");
+        for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsageClient.getTextUnitToBlame(repositoryId)) {
+            textUnitNames.add(textUnitWithUsage.getTextUnitName());
+        }
+//        textUnitNames.add("business_account_upsell_megaphone_title");
+//        textUnitNames.add("business_account_upsell_megaphone_disclaimer");
+//        textUnitNames.add("business_account_upsell_megaphone_disclaimer_terms");
 
         return textUnitNames;
     }

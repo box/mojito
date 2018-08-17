@@ -370,5 +370,21 @@ public class TextUnitWS {
         return null;
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame")
+    public List<TextUnitWithUsage> getTextUnitWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
+        List<TextUnitWithUsage> textUnitWithUsages = new ArrayList<>();
+
+        addTextUnitWithUsages(textUnitWithUsages, "business_account_upsell_megaphone_title");
+        addTextUnitWithUsages(textUnitWithUsages,"business_account_upsell_megaphone_disclaimer");
+        addTextUnitWithUsages(textUnitWithUsages,"business_account_upsell_megaphone_disclaimer_policy");
+
+        return textUnitWithUsages;
+    }
+
+    private void addTextUnitWithUsages(List<TextUnitWithUsage> textUnitWithUsages, String textUnitName) {
+        TextUnitWithUsage textUnitWithUsage = new TextUnitWithUsage();
+        textUnitWithUsage.setTextUnitName(textUnitName);
+        textUnitWithUsages.add(textUnitWithUsage);
+    }
 
 }

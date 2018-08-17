@@ -1,0 +1,50 @@
+# smartling.placeholder_format = NONE
+# smartling.placeholder_format_custom = \{\{\}\}|\{\{?.+?\}\}?|\%\%\(.+?\)s|\%\(.+?\)s|\%\(.+?\)d|\%\%s|\%s
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-05-09 13:07-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Translate Toolkit 1.9.0-pinterest3\n"
+
+#. balahlkj
+#: webapp/app/analytics/react/components/PinnerCount/PinnerCount.js:25
+msgid "< {{count}} person"
+msgid_plural "< {{count}} people"
+msgstr[0] "< {{count}} person"
+msgstr[1] "< {{count}} people"
+
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/analytics/react/components/PageControls/DatePicker.js:104
+msgid "Button that opens date selection control"
+msgstr "Button that opens date selection control"
+
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/common/lib/SignupModalManager.js:93
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/common/react/components/growth/unauth/signup/FullPageSignup/FullPageSignup.js:61
+msgid "Log in to invite friends"
+msgstr "Log in to invite friends"
+
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/common/lib/SignupModalManager.js:91
+msgid "Log in to see more"
+msgstr "Log in to see more"
+
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/common/lib/SignupModalManager.js:92
+msgid "To save ideas for later, create an account"
+msgstr "To save ideas for later, create an account"
+
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/common/lib/SocialConnect.js:85
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/common/react/components/growth/unauth/lib/SocialConnect.js:65
+msgid "You must enable popups!"
+msgstr "You must enable popups!"
+
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/webapp/app/analytics/react/components/PinnerCount/PinnerCount.js:29
+msgid "{{count}} person"
+msgid_plural "{{count}} people"
+msgstr[0] "{{count}} person"
+msgstr[1] "{{count}} people"
