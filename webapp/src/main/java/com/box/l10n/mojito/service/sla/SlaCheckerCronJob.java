@@ -35,7 +35,7 @@ public class SlaCheckerCronJob implements Job {
 
     static Logger logger = LoggerFactory.getLogger(SlaCheckerCronJob.class);
 
-    @Value("${l10n.slaChecker.incidentCheck.cron}")
+    @Value("${l10n.slaChecker.incidentCheck.cron:}")
     String incidentCheckCron;
 
     @Autowired
