@@ -12,7 +12,9 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,6 +26,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author aloison
@@ -844,5 +847,63 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("MSG_GONSTEAD_STEP", assetTextUnits.get(2).getName());
         assertEquals("Select the <strong>left Iliac crest</strong>", assetTextUnits.get(2).getContent());
         assertEquals("Instructions for the Gonstead method.", assetTextUnits.get(2).getComment());
+    }
+
+    @Test
+    public void testTextUnitsWithUsagesForPlural() throws Exception {
+        String skeleton = "#: path/to/file.js:25\n"
+                + "msgid < \"person\"\n"
+                + "msgid_plural < \"people\"\n"
+                + "msgstr[0] < \"person\"\n"
+                + "msgstr[1] < \"people\"\n";
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        Asset poAsset = assetService.createAsset(repository.getId(), skeleton, "path/to/file.pot");
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(poAsset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnitsWithUsages(processedAsset);
+        Set<String> expectedUsages = new HashSet<>();
+        expectedUsages.add("path/to/file.js:25");
+        for (AssetTextUnit assetTextUnit : assetTextUnits) {
+            assertEquals(expectedUsages, assetTextUnit.getUsages());
+        }
+    }
+
+    @Transactional
+    List<AssetTextUnit> getAssetTextUnitsWithUsages(Asset processedAsset) {
+        List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
+
+        for (AssetTextUnit assetTextUnit: assetTextUnits) {
+            // fetch data from proxy
+            assetTextUnit.getUsages().isEmpty();
+        }
+
+        return assetTextUnits;
+    }
+
+    @Test
+    public void testTextUnitsWithMultipleUsagesForPlural() throws Exception {
+        String skeleton = "#: path/to/file.js:25\n"
+                + "#: path/to/file.js:30\n"
+                + "msgid < \"person\"\n"
+                + "msgid_plural < \"people\"\n"
+                + "msgstr[0] < \"person\"\n"
+                + "msgstr[1] < \"people\"\n";
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        Asset poAsset = assetService.createAsset(repository.getId(), skeleton, "path/to/file.pot");
+        PollableFuture<Asset> processResult = assetExtractionService.processAsset(poAsset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
+        Asset processedAsset = processResult.get();
+
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnitsWithUsages(processedAsset);
+        Set<String> expectedUsages = new HashSet<>();
+        expectedUsages.add("path/to/file.js:25");
+        expectedUsages.add("path/to/file.js:30");
+        for (AssetTextUnit assetTextUnit : assetTextUnits) {
+            assertEquals(expectedUsages, assetTextUnit.getUsages());
+        }
     }
 }
