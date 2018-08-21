@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,8 +69,8 @@ public class GitBlameCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    // add parameters to specify prefix from Mojito and prefix on localhost
-    boolean fetchTextUnitUsages = false;
+    // TODO: add parameters to specify prefix from Mojito and prefix on localhost
+    boolean fetchTextUnitUsages = true;
 
     @Autowired
     AssetClient assetClient;
@@ -95,7 +96,7 @@ public class GitBlameCommand extends Command {
         consoleWriter.newLine().a("Git blame for repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
 
         // fetchTextUnitUsages - currently hardcoded
-        if (fetchTextUnitUsages) {
+        if (fileType.getSourceFileExtension().equals("pot")) {
             blameWithTextUnitUsages();
         } else {
             blameSourceFiles();
@@ -141,9 +142,18 @@ public class GitBlameCommand extends Command {
 
         Map<String, List<Integer>> filesAndLinesToBlame = getUsages();
 
+        logger.info("commandDirectories.sourceDirectoryPath {}", commandDirectories.getSourceDirectoryPath());
+        logger.info("commandDirectories.targetDirectoryPath {}", commandDirectories.getTargetDirectoryPath());
+
         for (Map.Entry<String, List<Integer>> fileListEntry : filesAndLinesToBlame.entrySet()) {
             logger.info("current file: {}", fileListEntry.getKey());
             logger.info("lines: {}", fileListEntry.getValue());
+            if (!Paths.get(sourceDirectoryParam, fileListEntry.getKey()).toFile().exists()) {
+                logger.info("file {}{} does not exist anymore, skip.", sourceDirectoryParam, fileListEntry.getKey());
+            }
+            else {
+                logger.info("found file!");
+            }
         }
 
 //        logger.info("map contains {}", filesAndLinesToBlame);
@@ -205,7 +215,6 @@ public class GitBlameCommand extends Command {
 
 
     // textunit to find author
-
     String getTextUnitNameFromLine(String line, List<String> textUnitNames) {
 
         for (int i = 0; i < line.length(); i++) {

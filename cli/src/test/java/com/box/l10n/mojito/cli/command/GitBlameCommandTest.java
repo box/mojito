@@ -111,12 +111,12 @@ public class GitBlameCommandTest extends CLITestBase {
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
-//        logger.info("test po file");
-//        getL10nJCommander().run("git-blame", "-r", repository.getName(),
-//                "-s", "/Users/emagalindan/code/pinboard",
-//                "-ft", "PO");
+        logger.info("test po file");
+        getL10nJCommander().run("git-blame", "-r", repository.getName(),
+                "-s", "/Users/emagalindan/code/pinboard/",
+                "-ft", "PO");
 
-        poFile();
+//        poFile();
 
     }
 
@@ -127,7 +127,7 @@ public class GitBlameCommandTest extends CLITestBase {
 
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
             org.eclipse.jgit.lib.Repository repository = builder
-                    .setWorkTree(new File("/Users/emagalindan/code/pinboard"))
+                    .setWorkTree(new File("/Users/emagalindan/code/pinboard/"))
                     .readEnvironment()
                     .build();
 
@@ -140,7 +140,6 @@ public class GitBlameCommandTest extends CLITestBase {
                 String filename = stringListEntry.getKey();
 
                 logger.info("filename {}", filename);
-                // TODO: fix this for files starting with "/mnt/jenkins/workspace/webapp-l10n-string-extract/"
                 if (!Paths.get("/Users/emagalindan/code/pinboard/", filename).toFile().exists()) {
                     logger.info("file: {}, doesn't not exist any more, skip.", filename);
                     continue;
@@ -187,20 +186,20 @@ public class GitBlameCommandTest extends CLITestBase {
         Map<String, List<Integer>> filesAndLines = new HashMap<>();
 
         for (AssetTextUnit assetTextUnit : all) {
-            logger.info("assetTextUnit: {}", assetTextUnit.getName());
-            // TODO: fix this for plurals
+//            logger.info("assetTextUnit: {}", assetTextUnit.getName());
             Set<String> usages = assetTextUnit.getUsages();
 
-            if (usages.isEmpty()) {
-                logger.info("No usages for text unit {}", assetTextUnit.getName());
-            }
-            else {
-                logger.info("Usages: {}", usages);
-            }
+//            if (usages.isEmpty()) {
+//                logger.info("No usages for text unit {}", assetTextUnit.getName());
+//            }
+//            else {
+//                logger.info("Usages: {}", usages);
+//            }
 
             for (String usage : usages) {
                 String[] split = usage.split(":");
                 String filename = split[0];
+                // fix for files starting with "/mnt/jenkins/workspace/webapp-l10n-string-extract/"
                 filename = filename.replace("/mnt/jenkins/workspace/webapp-l10n-string-extract/", "");
                 Integer line = Integer.valueOf(split[1]);
 
