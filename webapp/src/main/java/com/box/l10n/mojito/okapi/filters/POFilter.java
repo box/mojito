@@ -64,7 +64,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         list.add(new FilterConfiguration(getName(),
                 getMimeType(),
                 getClass().getName(),
-                "PO file with pluarl handling and text unit name including msgctxt",
+                "PO file with plural handling and text unit name including msgctxt",
                 "Configuration for .po files."));
 
         return list;
@@ -150,6 +150,8 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     void readPlurals(Event next) {
 
         logger.debug("First event is the start group, load msgidplural from parent and move to next");
+        Set<String> usagesFromSkeleton = getUsagesFromSkeleton(next.getStartGroup().getSkeleton().toString());
+
         loadMsgIDPluralFromParent();
         eventQueue.add(next);
 
@@ -172,7 +174,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         poPluralForm = null;
 
         // that doesn't contain last
-        pluralEvents = adaptPlurals(pluralEvents);
+        pluralEvents = adaptPlurals(pluralEvents, usagesFromSkeleton);
 
         eventQueue.addAll(pluralEvents);
 
@@ -184,12 +186,25 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         }
     }
 
-    List<Event> adaptPlurals(List<Event> pluralEvents) {
+    List<Event> adaptPlurals(List<Event> pluralEvents, Set<String> usagesFromSkeleton) {
         logger.debug("Adapt plural forms if needed");
         PluralsHolder pluralsHolder = new PoPluralsHolder();
         pluralsHolder.loadEvents(pluralEvents);
         List<Event> completedForms = pluralsHolder.getCompletedForms(targetLocale);
+        setUsagesOnTextUnits(completedForms, usagesFromSkeleton);
         return completedForms;
+    }
+
+    private void setUsagesOnTextUnits(List<Event> pluralEvents, Set<String> usagesFromSkeleton) {
+        for (Event pluralEvent: pluralEvents) {
+            if (pluralEvent.isTextUnit()) {
+                setUsagesAnnotationOnTextUnit(usagesFromSkeleton, pluralEvent.getTextUnit());
+            }
+        }
+    }
+
+    private void setUsagesAnnotationOnTextUnit(Set<String> usagesFromSkeleton, ITextUnit textUnit) {
+        textUnit.setAnnotation(new UsagesAnnotation((usagesFromSkeleton)));
     }
 
     class PoPluralsHolder extends PluralsHolder {
@@ -323,7 +338,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     void addUsagesToTextUnit(TextUnit textUnit) {
         Set<String> usageLocationsFromSkeleton = getUsagesFromSkeleton(textUnit.getSkeleton().toString());
-        textUnit.setAnnotation(new UsagesAnnotation((usageLocationsFromSkeleton)));
+        setUsagesAnnotationOnTextUnit(usageLocationsFromSkeleton, textUnit);
     }
 
     Set<String> getUsagesFromSkeleton(String skeleton) {
