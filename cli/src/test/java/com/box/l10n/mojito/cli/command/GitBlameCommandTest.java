@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,18 +106,23 @@ public class GitBlameCommandTest extends CLITestBase {
 //    }
 
     @Test
+    public void testBlameWithTextUnitUsages() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        logger.info("test po file");
+        getL10nJCommander().run("git-blame", "-r", repository.getName(),
+                "-s", "/Users/emagalindan/code/pinboard/",
+                "-ft", "PO");
+    }
+
+    @Test
     public void importPo() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
-        logger.info("test po file");
-        getL10nJCommander().run("git-blame", "-r", repository.getName(),
-                "-s", "/Users/emagalindan/code/pinboard/",
-                "-ft", "PO");
-
-//        poFile();
+        poFile();
 
     }
 

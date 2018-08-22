@@ -70,7 +70,6 @@ public class GitBlameCommand extends Command {
     String sourcePathFilterRegex;
 
     // TODO: add parameters to specify prefix from Mojito and prefix on localhost
-    boolean fetchTextUnitUsages = true;
 
     @Autowired
     AssetClient assetClient;
@@ -95,7 +94,6 @@ public class GitBlameCommand extends Command {
 
         consoleWriter.newLine().a("Git blame for repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
 
-        // fetchTextUnitUsages - currently hardcoded
         if (fileType.getSourceFileExtension().equals("pot")) {
             blameWithTextUnitUsages();
         } else {
@@ -106,6 +104,7 @@ public class GitBlameCommand extends Command {
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }
 
+    // ANDROID_STRINGS file
     void blameSourceFiles() throws CommandException {
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
@@ -146,14 +145,26 @@ public class GitBlameCommand extends Command {
         logger.info("commandDirectories.targetDirectoryPath {}", commandDirectories.getTargetDirectoryPath());
 
         for (Map.Entry<String, List<Integer>> fileListEntry : filesAndLinesToBlame.entrySet()) {
-            logger.info("current file: {}", fileListEntry.getKey());
-            logger.info("lines: {}", fileListEntry.getValue());
-            if (!Paths.get(sourceDirectoryParam, fileListEntry.getKey()).toFile().exists()) {
-                logger.info("file {}{} does not exist anymore, skip.", sourceDirectoryParam, fileListEntry.getKey());
+            String fileToBlame = fileListEntry.getKey();
+            logger.info("current file: {}", fileToBlame);
+            List<Integer> linesToBlame = fileListEntry.getValue();
+            logger.info("linesToBlame: {}", linesToBlame);
+            if (!Paths.get(sourceDirectoryParam, fileToBlame).toFile().exists()) {
+                logger.info("file {}{} does not exist anymore, skip.", sourceDirectoryParam, fileToBlame);
+                continue;
             }
-            else {
-                logger.info("found file!");
+
+            BlameResult blameResultForFile = getBlameResultForFile(fileToBlame);
+//            logger.info("blameResultForFile {}", blameResultForFile);
+//            // need to compensate for line numbers in file starting at 1
+//            logger.info("blame line {}; contents {}", linesToBlame.get(0) - 1, blameResultForFile.getResultContents().getString(linesToBlame.get(0) - 1));
+
+            for (Integer lineToBlame : linesToBlame) {
+                logger.info("blame line {}; contents {}", lineToBlame, blameResultForFile.getResultContents().getString(lineToBlame - 1));
+                logger.info("blame author {}", blameResultForFile.getSourceAuthor(lineToBlame - 1));
+                logger.info("blame commit {}", blameResultForFile.getSourceCommit(lineToBlame - 1));
             }
+
         }
 
 //        logger.info("map contains {}", filesAndLinesToBlame);
@@ -166,12 +177,17 @@ public class GitBlameCommand extends Command {
         List<Integer> lines = new ArrayList<>();
         lines.add(new Integer(61));
         filesAndLines.put("webapp/app/common/react/components/growth/unauth/signup/FullPageSignup/FullPageSignup.js", lines);
+//        "Log in to invite friends"
         List<Integer> lines2 = new ArrayList<>();
         lines2.add(new Integer(104));
         filesAndLines.put("webapp/app/analytics/react/components/PageControls/DatePicker.js", lines2);
+//        "Button that opens date selection control"
         List<Integer> lines3 = new ArrayList<>();
         lines3.add(93); lines3.add(91); lines3.add(92);
         filesAndLines.put("webapp/app/common/lib/SignupModalManager.js", lines3);
+//        "Log in to invite friends"
+//        "Log in to see more"
+//        "To save ideas for later, create an account"
 
         return filesAndLines;
     }
