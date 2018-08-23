@@ -69,7 +69,8 @@ public class GitBlameCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    // TODO: add parameters to specify prefix from Mojito and prefix on localhost
+    // TODO: add parameters to specify prefix from Mojito and prefix on localhost???
+    // localhost is in commandDirectories already? Mojito is /mnt/jenkins/workspace/webapp-l10n-string-extract atm
 
     @Autowired
     AssetClient assetClient;
@@ -122,7 +123,8 @@ public class GitBlameCommand extends Command {
             for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
                 String lineText = blameResultForFile.getResultContents().getString(i);
 
-//                logger.info("Line text: {}", lineText);
+                logger.info("Line text: {}", lineText);
+                // maybe use extractor instead of getTextUnitNames?
                 String textUnitName = getTextUnitNameFromLine(lineText, getTextUnitNames(repository.getId()));
 
                 if (textUnitName != null) {
@@ -171,6 +173,7 @@ public class GitBlameCommand extends Command {
     }
 
     // for po file
+    // TODO: make this not be hardcoded
     private Map<String, List<Integer>> getUsages() {
         Map<String, List<Integer>> filesAndLines = new HashMap<>();
 
@@ -269,6 +272,7 @@ public class GitBlameCommand extends Command {
 
         List<String> textUnitNames = new ArrayList<>();
 
+        // TODO: make this not be hardcoded
         for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsageClient.getTextUnitToBlame(repositoryId)) {
             textUnitNames.add(textUnitWithUsage.getTextUnitName());
         }

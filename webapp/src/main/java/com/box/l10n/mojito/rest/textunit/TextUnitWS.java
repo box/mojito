@@ -97,7 +97,7 @@ public class TextUnitWS {
      * @param statusFilter            optional
      * @param doNotTranslateFilter
      * @param tmTextUnitCreatedBefore optional
-     * @param tmTExtunitCreatedAfter  optional
+     * @param tmTextUnitCreatedAfter  optional
      * @param limit                   optional, default 10
      * @param offset                  optional, default 0
      * @return the TextUnits that matches the search parameters
@@ -120,11 +120,11 @@ public class TextUnitWS {
             @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
             @RequestParam(value = "tmTextUnitCreatedBefore", required = false) DateTime tmTextUnitCreatedBefore,
-            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTExtunitCreatedAfter,
+            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTextUnitCreatedAfter,
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
-        TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(repositoryIds, repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTExtunitCreatedAfter);
+        TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(repositoryIds, repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
         textUnitSearcherParameters.setLimit(limit);
         textUnitSearcherParameters.setOffset(offset);
         List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
@@ -367,8 +367,10 @@ public class TextUnitWS {
         return null;
     }
 
+    // Android specific
     @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame")
     public List<TextUnitWithUsage> getTextUnitWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
+        // TODO: make this come from file, not hardcoded
         List<TextUnitWithUsage> textUnitWithUsages = new ArrayList<>();
 
         addTextUnitWithUsages(textUnitWithUsages, "business_account_upsell_megaphone_title");
