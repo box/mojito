@@ -95,7 +95,7 @@ public class TextUnitWS {
      * @param localeTags              optional
      * @param usedFilter              optional
      * @param statusFilter            optional
-     * @param doNotTranslateFilter
+     * @param doNotTranslateFilter    optional
      * @param tmTextUnitCreatedBefore optional
      * @param tmTextUnitCreatedAfter  optional
      * @param limit                   optional, default 10
