@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.ConsoleWriter;
+import com.box.l10n.mojito.cli.GitInfo;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
@@ -114,6 +115,8 @@ public class GitBlameCommand extends Command {
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
 
+            logger.info("file: {}", sourceFileMatch.getPath().toString());
+
             String sourcePath = sourceFileMatch.getSourcePath();
 
             BlameResult blameResultForFile = getBlameResultForFile(sourcePath);
@@ -123,14 +126,12 @@ public class GitBlameCommand extends Command {
                 String lineText = blameResultForFile.getResultContents().getString(i);
 
 //                logger.info("Line text: {}", lineText);
-                // maybe use extractor instead of getTextUnitNames?
-                logger.info("getTextUnitNames {}", getTextUnitNames(repository.getId()));
-                String textUnitName = getTextUnitNameFromLine(lineText, getTextUnitNames(repository.getId()));
-
+//                logger.info("getTextUnitNames {}", getTextUnitNames(repository.getId()));
+                String textUnitName = getTextUnitNameFromLine(lineText, textUnitWithUsageClient.getTextUnitToBlame(repository.getId()));
                 if (textUnitName != null) {
                     logger.info("{} --> {}", textUnitName, lineText);
-                    logger.info("{}", blameResultForFile.getSourceAuthor(i).getName()); // name, email
-                    logger.info("{}", blameResultForFile.getSourceCommit(i).toString()); // commit id, date/time stamp
+//                        logger.info("{}", blameResultForFile.getSourceAuthor(i).getName()); // name, email
+//                        logger.info("{}", blameResultForFile.getSourceCommit(i).toString()); // commit id, date/time stamp
                 }
             }
         }
@@ -141,59 +142,44 @@ public class GitBlameCommand extends Command {
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
 
-        Map<String, List<Integer>> filesAndLinesToBlame = getUsages();
+        List<TextUnitWithUsage> textUnitsToBlame = textUnitWithUsageClient.getTextUnitToBlame(repository.getId());
 
         logger.info("commandDirectories.sourceDirectoryPath {}", commandDirectories.getSourceDirectoryPath());
         logger.info("commandDirectories.targetDirectoryPath {}", commandDirectories.getTargetDirectoryPath());
 
-        for (Map.Entry<String, List<Integer>> fileListEntry : filesAndLinesToBlame.entrySet()) {
-            String fileToBlame = fileListEntry.getKey();
-            logger.info("current file: {}", fileToBlame);
-            List<Integer> linesToBlame = fileListEntry.getValue();
-            logger.info("linesToBlame: {}", linesToBlame);
-            if (!Paths.get(sourceDirectoryParam, fileToBlame).toFile().exists()) {
-                logger.info("file {}{} does not exist anymore, skip.", sourceDirectoryParam, fileToBlame);
-                continue;
+        for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame) {
+            for (List<String> usage : textUnitWithUsage.getUsages()) {
+                // split file name and line number (depending on how it is stored in usages[]
+                // check file exists
+                // blame line
+                // save author name, email; commit id, date/time stamp
             }
-
-            BlameResult blameResultForFile = getBlameResultForFile(fileToBlame);
-            logger.info("blameResultForFile {}", blameResultForFile);
-//            // need to compensate for line numbers in file starting at 1
-//            logger.info("blame line {}; contents {}", linesToBlame.get(0) - 1, blameResultForFile.getResultContents().getString(linesToBlame.get(0) - 1));
-
-            for (Integer lineToBlame : linesToBlame) {
-                logger.info("blame line {}; contents {}", lineToBlame, blameResultForFile.getResultContents().getString(lineToBlame - 1));
-                logger.info("blame author {}", blameResultForFile.getSourceAuthor(lineToBlame - 1));
-                logger.info("blame commit {}", blameResultForFile.getSourceCommit(lineToBlame - 1));
-            }
-
         }
 
-//        logger.info("map contains {}", filesAndLinesToBlame);
-    }
+//        for (Map.Entry<String, List<Integer>> fileListEntry : textUnitsToBlame.entrySet()) {
+//            String fileToBlame = fileListEntry.getKey();
+//            logger.info("current file: {}", fileToBlame);
+//            List<Integer> linesToBlame = fileListEntry.getValue();
+//            logger.info("linesToBlame: {}", linesToBlame);
+//            if (!Paths.get(sourceDirectoryParam, fileToBlame).toFile().exists()) {
+//                logger.info("file {}{} does not exist anymore, skip.", sourceDirectoryParam, fileToBlame);
+//                continue;
+//            }
+//
+//            BlameResult blameResultForFile = getBlameResultForFile(fileToBlame);
+//            logger.info("blameResultForFile {}", blameResultForFile);
+////            // need to compensate for line numbers in file starting at 1
+////            logger.info("blame line {}; contents {}", linesToBlame.get(0) - 1, blameResultForFile.getResultContents().getString(linesToBlame.get(0) - 1));
+//
+//            for (Integer lineToBlame : linesToBlame) {
+//                logger.info("blame line {}; contents {}", lineToBlame, blameResultForFile.getResultContents().getString(lineToBlame - 1));
+//                logger.info("blame author {}", blameResultForFile.getSourceAuthor(lineToBlame - 1));
+//                logger.info("blame commit {}", blameResultForFile.getSourceCommit(lineToBlame - 1));
+//            }
+//
+//        }
 
-    // for po file
-    // TODO: make this not be hardcoded
-    private Map<String, List<Integer>> getUsages() {
-//        Map<String, List<Integer>> filesAndLines = textUnitWithUsageClient.getFilesAndTextUnitsWithUsages;
-
-        Map<String, List<Integer>> filesAndLines = new HashMap<>();
-        List<Integer> lines = new ArrayList<>();
-        lines.add(new Integer(61));
-        filesAndLines.put("webapp/app/common/react/components/growth/unauth/signup/FullPageSignup/FullPageSignup.js", lines);
-//        "Log in to invite friends"
-        List<Integer> lines2 = new ArrayList<>();
-        lines2.add(new Integer(104));
-        filesAndLines.put("webapp/app/analytics/react/components/PageControls/DatePicker.js", lines2);
-//        "Button that opens date selection control"
-        List<Integer> lines3 = new ArrayList<>();
-        lines3.add(93); lines3.add(91); lines3.add(92);
-        filesAndLines.put("webapp/app/common/lib/SignupModalManager.js", lines3);
-//        "Log in to invite friends"
-//        "Log in to see more"
-//        "To save ideas for later, create an account"
-
-        return filesAndLines;
+//        logger.info("map contains {}", textUnitsToBlame);
     }
 
     org.eclipse.jgit.lib.Repository getGitRepository() throws CommandException {
@@ -235,15 +221,11 @@ public class GitBlameCommand extends Command {
 
 
     // textunit to find author
-    String getTextUnitNameFromLine(String line, List<String> textUnitNames) {
+    String getTextUnitNameFromLine(String line, List<TextUnitWithUsage> textUnitWithUsages) {
 
-        for (int i = 0; i < line.length(); i++) {
-            for (int j = i + 1; j < line.length(); j++) {
-                for (String textUnitName : textUnitNames) {
-                    if (line.substring(i, j).equals(textUnitName)) {
-                        return textUnitName;
-                    }
-                }
+        for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
+            if (textUnitWithUsage.getTextUnitName().contains(line)) {
+                return textUnitWithUsage.getTextUnitName();
             }
         }
 
@@ -265,23 +247,6 @@ public class GitBlameCommand extends Command {
         }
 
         return stringInFile;
-    }
-
-
-    // TO remove
-    List<String> getTextUnitNames(Long repositoryId) {
-
-        List<String> textUnitNames = new ArrayList<>();
-
-        // TODO: make this not be hardcoded
-        for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsageClient.getTextUnitToBlame(repositoryId)) {
-            textUnitNames.add(textUnitWithUsage.getTextUnitName());
-        }
-//        textUnitNames.add("business_account_upsell_megaphone_title");
-//        textUnitNames.add("business_account_upsell_megaphone_disclaimer");
-//        textUnitNames.add("business_account_upsell_megaphone_disclaimer_terms");
-
-        return textUnitNames;
     }
 
 

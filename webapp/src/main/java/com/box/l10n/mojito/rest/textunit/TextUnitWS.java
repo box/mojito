@@ -360,7 +360,7 @@ public class TextUnitWS {
         // text unit that are not blamed.
         // -> get used text units
         // -> get entries without blame
-        // -> optionaly fetch usages
+        // -> optionally fetch usages
 
 
         return null;
@@ -369,9 +369,9 @@ public class TextUnitWS {
     @RequestMapping(method = RequestMethod.POST, value = "/api/textUnit/gitInfo")
     public void saveGitInfoForTextUnits (@RequestBody GitInfoForTextUnits gitInfoForTextUnits) {
            logger.debug("saveGitInfoForTextUnits");
+           // TODO
     }
 
-    // Android specific
     @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame")
     public List<TextUnitWithUsage> getTextUnitWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
 
@@ -382,7 +382,9 @@ public class TextUnitWS {
         textUnitSearcherParameters.setLimit(10);
         List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
 
-
+        if (textUnitDTOS.isEmpty()) {
+            logger.info("Found no text units");
+        }
 
         for (TextUnitDTO textUnitDTO : textUnitDTOS) {
             AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(textUnitDTO.getAssetTextUnitId());
@@ -392,71 +394,7 @@ public class TextUnitWS {
             textUnitWithUsage.setTextUnitId(textUnitDTO.getTmTextUnitId());
             textUnitWithUsages.add(textUnitWithUsage);
         }
-//        logger.info("In API");
-//
-//        for (AssetTextUnit assetTextUnit : all) {
-//            logger.info("asset content {}", assetTextUnit.getContent());
-//            logger.info("asset extraction {}", assetTextUnit.getAssetExtraction());
-//        }
 
         return textUnitWithUsages;
-    }
-
-    private void addTextUnitWithUsages(List<TextUnitWithUsage> textUnitWithUsages, String textUnitName) {
-        TextUnitWithUsage textUnitWithUsage = new TextUnitWithUsage();
-        textUnitWithUsage.setTextUnitName(textUnitName);
-        textUnitWithUsages.add(textUnitWithUsage);
-    }
-
-    // PO files - copied from GitBlameCommandTest
-    @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame/filesAndTextUnits")
-    public Map<String, List<Integer>> getFilesAndTextUnitsWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
-//        Repository repository = repositoryRepository.findOne(repositoryId);
-//        Page<AssetTextUnit> all = assetTextUnitRepository.findByAssetExtractionIdOrderByNameAsc();
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setRepositoryIds(repositoryId);
-        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-        textUnitSearcherParameters.setLimit(10);
-        List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
-
-
-
-        for (TextUnitDTO textUnitDTO : textUnitDTOS) {
-            AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(textUnitDTO.getAssetTextUnitId());
-            assetTextUnit.getUsages();
-        }
-
-        Map<String, List<Integer>> filesAndLines = new HashMap<>();
-
-//        for (AssetTextUnit assetTextUnit : all) {
-////            logger.info("assetTextUnit: {}", assetTextUnit.getName());
-//            Set<String> usages = assetTextUnit.getUsages();
-//
-////            if (usages.isEmpty()) {
-////                logger.info("No usages for text unit {}", assetTextUnit.getName());
-////            }
-////            else {
-////                logger.info("Usages: {}", usages);
-////            }
-//
-//            for (String usage : usages) {
-//                String[] split = usage.split(":");
-//                String filename = split[0];
-//                // fix for files starting with "/mnt/jenkins/workspace/webapp-l10n-string-extract/"
-//                filename = filename.replace("/mnt/jenkins/workspace/webapp-l10n-string-extract/", "");
-//                Integer line = Integer.valueOf(split[1]);
-//
-//                List<Integer> integers = filesAndLines.get(filename);
-//
-//                if (integers == null) {
-//                    integers = new ArrayList<>();
-//                    filesAndLines.put(filename, integers);
-//                }
-//
-//                integers.add(line);
-//            }
-//        }
-
-        return filesAndLines;
     }
 }
