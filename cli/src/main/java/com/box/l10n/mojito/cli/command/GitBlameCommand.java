@@ -116,21 +116,21 @@ public class GitBlameCommand extends Command {
 
             String sourcePath = sourceFileMatch.getSourcePath();
 
-            logger.info("File: {}", sourcePath);
-
             BlameResult blameResultForFile = getBlameResultForFile(sourcePath);
+//            logger.info("blame toString {}", blameResultForFile.getResultContents().toString());
 
             for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
                 String lineText = blameResultForFile.getResultContents().getString(i);
 
-                logger.info("Line text: {}", lineText);
+//                logger.info("Line text: {}", lineText);
                 // maybe use extractor instead of getTextUnitNames?
+                logger.info("getTextUnitNames {}", getTextUnitNames(repository.getId()));
                 String textUnitName = getTextUnitNameFromLine(lineText, getTextUnitNames(repository.getId()));
 
                 if (textUnitName != null) {
                     logger.info("{} --> {}", textUnitName, lineText);
-                    logger.info("{}", blameResultForFile.getSourceAuthor(i).getName());
-                    logger.info("{}", blameResultForFile.getSourceCommit(i).toString());
+                    logger.info("{}", blameResultForFile.getSourceAuthor(i).getName()); // name, email
+                    logger.info("{}", blameResultForFile.getSourceCommit(i).toString()); // commit id, date/time stamp
                 }
             }
         }
@@ -157,7 +157,7 @@ public class GitBlameCommand extends Command {
             }
 
             BlameResult blameResultForFile = getBlameResultForFile(fileToBlame);
-//            logger.info("blameResultForFile {}", blameResultForFile);
+            logger.info("blameResultForFile {}", blameResultForFile);
 //            // need to compensate for line numbers in file starting at 1
 //            logger.info("blame line {}; contents {}", linesToBlame.get(0) - 1, blameResultForFile.getResultContents().getString(linesToBlame.get(0) - 1));
 
@@ -175,8 +175,9 @@ public class GitBlameCommand extends Command {
     // for po file
     // TODO: make this not be hardcoded
     private Map<String, List<Integer>> getUsages() {
-        Map<String, List<Integer>> filesAndLines = new HashMap<>();
+//        Map<String, List<Integer>> filesAndLines = textUnitWithUsageClient.getFilesAndTextUnitsWithUsages;
 
+        Map<String, List<Integer>> filesAndLines = new HashMap<>();
         List<Integer> lines = new ArrayList<>();
         lines.add(new Integer(61));
         filesAndLines.put("webapp/app/common/react/components/growth/unauth/signup/FullPageSignup/FullPageSignup.js", lines);

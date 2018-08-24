@@ -1,9 +1,6 @@
 package com.box.l10n.mojito.rest.textunit;
 
-import com.box.l10n.mojito.entity.AssetTextUnit;
-import com.box.l10n.mojito.entity.GitBlame;
-import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
@@ -26,6 +23,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,9 +34,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 
@@ -148,7 +147,7 @@ public class TextUnitWS {
             @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
             @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
-            @RequestParam(value = "tmTextUnitCreatedBefore", required = false) DateTime tmTextUnitCreatedBefore,
+            @RequestParam(value = "tmTextUnitCreatedBe                                                           fore", required = false) DateTime tmTextUnitCreatedBefore,
             @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTExtunitCreatedAfter) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(
@@ -184,7 +183,7 @@ public class TextUnitWS {
             throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
         }
 
-        textUnitSearcherParameters.setRepositoryIds(repositoryIds);
+        textUnitSearcherParameters.setRepositoryIds(repositoryIds); //
         textUnitSearcherParameters.setRepositoryNames(repositoryNames);
         textUnitSearcherParameters.setName(name);
         textUnitSearcherParameters.setSource(source);
@@ -195,7 +194,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setSearchType(searchType);
         textUnitSearcherParameters.setRootLocaleExcluded(false);
         textUnitSearcherParameters.setLocaleTags(localeTags);
-        textUnitSearcherParameters.setUsedFilter(usedFilter);
+        textUnitSearcherParameters.setUsedFilter(usedFilter); // only want used
         textUnitSearcherParameters.setStatusFilter(statusFilter);
         textUnitSearcherParameters.setDoNotTranslateFilter(doNotTranslateFilter);
         textUnitSearcherParameters.setTmTextUnitCreatedBefore(tmTextUnitCreatedBefore);
@@ -367,15 +366,38 @@ public class TextUnitWS {
         return null;
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textUnit/gitInfo")
+    public void saveGitInfoForTextUnits (@RequestBody GitInfoForTextUnits gitInfoForTextUnits) {
+           logger.debug("saveGitInfoForTextUnits");
+    }
+
     // Android specific
     @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame")
     public List<TextUnitWithUsage> getTextUnitWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
-        // TODO: make this come from file, not hardcoded
-        List<TextUnitWithUsage> textUnitWithUsages = new ArrayList<>();
 
-        addTextUnitWithUsages(textUnitWithUsages, "business_account_upsell_megaphone_title");
-        addTextUnitWithUsages(textUnitWithUsages,"business_account_upsell_megaphone_disclaimer");
-        addTextUnitWithUsages(textUnitWithUsages,"business_account_upsell_megaphone_disclaimer_policy");
+        List<TextUnitWithUsage> textUnitWithUsages = new ArrayList<>();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repositoryId);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setLimit(10);
+        List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+
+
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOS) {
+            AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(textUnitDTO.getAssetTextUnitId());
+            TextUnitWithUsage textUnitWithUsage = new TextUnitWithUsage();
+            textUnitWithUsage.setTextUnitName(assetTextUnit.getName());
+            textUnitWithUsage.setUsages(new ArrayList<>(assetTextUnit.getUsages()));
+            textUnitWithUsage.setTextUnitId(textUnitDTO.getTmTextUnitId());
+            textUnitWithUsages.add(textUnitWithUsage);
+        }
+//        logger.info("In API");
+//
+//        for (AssetTextUnit assetTextUnit : all) {
+//            logger.info("asset content {}", assetTextUnit.getContent());
+//            logger.info("asset extraction {}", assetTextUnit.getAssetExtraction());
+//        }
 
         return textUnitWithUsages;
     }
@@ -386,4 +408,55 @@ public class TextUnitWS {
         textUnitWithUsages.add(textUnitWithUsage);
     }
 
+    // PO files - copied from GitBlameCommandTest
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame/filesAndTextUnits")
+    public Map<String, List<Integer>> getFilesAndTextUnitsWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
+//        Repository repository = repositoryRepository.findOne(repositoryId);
+//        Page<AssetTextUnit> all = assetTextUnitRepository.findByAssetExtractionIdOrderByNameAsc();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repositoryId);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setLimit(10);
+        List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+
+
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOS) {
+            AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(textUnitDTO.getAssetTextUnitId());
+            assetTextUnit.getUsages();
+        }
+
+        Map<String, List<Integer>> filesAndLines = new HashMap<>();
+
+//        for (AssetTextUnit assetTextUnit : all) {
+////            logger.info("assetTextUnit: {}", assetTextUnit.getName());
+//            Set<String> usages = assetTextUnit.getUsages();
+//
+////            if (usages.isEmpty()) {
+////                logger.info("No usages for text unit {}", assetTextUnit.getName());
+////            }
+////            else {
+////                logger.info("Usages: {}", usages);
+////            }
+//
+//            for (String usage : usages) {
+//                String[] split = usage.split(":");
+//                String filename = split[0];
+//                // fix for files starting with "/mnt/jenkins/workspace/webapp-l10n-string-extract/"
+//                filename = filename.replace("/mnt/jenkins/workspace/webapp-l10n-string-extract/", "");
+//                Integer line = Integer.valueOf(split[1]);
+//
+//                List<Integer> integers = filesAndLines.get(filename);
+//
+//                if (integers == null) {
+//                    integers = new ArrayList<>();
+//                    filesAndLines.put(filename, integers);
+//                }
+//
+//                integers.add(line);
+//            }
+//        }
+
+        return filesAndLines;
+    }
 }

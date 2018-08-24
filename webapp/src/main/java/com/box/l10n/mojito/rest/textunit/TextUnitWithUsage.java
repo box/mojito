@@ -3,9 +3,14 @@ package com.box.l10n.mojito.rest.textunit;
 import java.util.List;
 
 public class TextUnitWithUsage {
+    
     List<String> usages;
 
     String textUnitName;
+
+    String content;
+
+    String comment;
 
     Long textUnitId;
 
@@ -31,5 +36,21 @@ public class TextUnitWithUsage {
 
     public void setTextUnitId(Long textUnitId) {
         this.textUnitId = textUnitId;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,11 +38,9 @@ public class TextUnitWithUsageClient extends BaseClient {
 
         filterParams.put("repositoryId", repositoryId.toString());
 
-
         return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
                 getBasePathForEntity(),
                 TextUnitWithUsage[].class,
                 filterParams);
     }
-
 }
