@@ -27,8 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
  * process reporting.
  *
  * @author jaurambault
- *
- * TODO(P1) Move into its own module
  */
 @Service
 public class PollableTaskService {
