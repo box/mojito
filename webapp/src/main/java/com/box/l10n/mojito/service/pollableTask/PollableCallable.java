@@ -33,6 +33,9 @@ public class PollableCallable implements Callable {
     @Autowired
     AspectJUtils aspectJUtils;
 
+    @Autowired
+    PollableTaskExceptionUtils pollableTaskExceptionUtils;
+
     PollableTask pollableTask;
     ProceedingJoinPoint pjp;
 
@@ -59,23 +62,7 @@ public class PollableCallable implements Callable {
             }
 
         } catch (Throwable t) {
-            if (t instanceof RuntimeException) {
-                logger.error("Unexpected error happened while executing the task "
-                        + "(if the error is known to happen it should be caught and wrapped "
-                        + "into an checked exception to stop logging it as an error)", t);
-                exceptionHolder.setExpected(false);
-                exceptionHolder.setException((Exception) t);
-            } else if (t instanceof Exception) {
-                logger.debug("Error happened during task execution", t);
-                exceptionHolder.setExpected(true);
-                exceptionHolder.setException((Exception) t);
-            } else {
-                String msg = "A throwable was thrown while executing the task, this is most likely a severe issue.";
-                logger.error(msg, t);
-                exceptionHolder.setExpected(false);
-                exceptionHolder.setException(new Exception(msg, t));
-            }
-
+            pollableTaskExceptionUtils.processException(t, exceptionHolder);
             throw exceptionHolder.getException();
         } finally {
 
