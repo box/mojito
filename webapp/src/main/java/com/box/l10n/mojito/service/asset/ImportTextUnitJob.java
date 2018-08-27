@@ -29,7 +29,8 @@ public class ImportTextUnitJob extends QuartzPollableJob<ImportTextUnitJobInput,
     PollableTaskService pollableTaskService;
 
     @Override
-    public Void call(ImportTextUnitJobInput input) throws JobExecutionException {
+    public Void call(ImportTextUnitJobInput input) throws Exception {
+        logger.debug("Run ImportTextUnitJob");
         textUnitBatchImporterService.importTextUnits(
                 input.getTextUnitDTOs(),
                 input.isIntegrityCheckSkipped(),

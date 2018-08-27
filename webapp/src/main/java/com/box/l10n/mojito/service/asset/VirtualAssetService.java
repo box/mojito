@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.NormalizationUtils;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
@@ -18,9 +19,7 @@ import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepo
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
-import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -100,6 +99,9 @@ public class VirtualAssetService {
     
     @Autowired
     LocaleService localeService;
+
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     @Transactional
     public VirtualAsset createOrUpdateVirtualAsset(VirtualAsset virtualAsset) throws VirtualAssetRequiredException {
@@ -220,18 +222,20 @@ public class VirtualAssetService {
         return virtualAssetTextUnits;
     }
 
-    @Pollable(async = true)
     public PollableFuture addTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
-        Asset asset = getVirtualAsset(assetId);
-        virtualTextUnitBatchUpdaterService.updateTextUnits(asset, virtualAssetTextUnits, false);
-        return new PollableFutureTaskResult<>();
+        VirtualTextUnitBatchUpdateJobInput importVirtualAssetJobInput = new VirtualTextUnitBatchUpdateJobInput();
+        importVirtualAssetJobInput.setAssetId(assetId);
+        importVirtualAssetJobInput.setVirtualAssetTextUnits(virtualAssetTextUnits);
+        importVirtualAssetJobInput.setReplace(false);
+        return quartzPollableTaskScheduler.scheduleJob(VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput);
     }
 
-    @Pollable(async = true)
     public PollableFuture replaceTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
-        Asset asset = getVirtualAsset(assetId);
-        virtualTextUnitBatchUpdaterService.updateTextUnits(asset, virtualAssetTextUnits, true);
-        return new PollableFutureTaskResult<>();
+        VirtualTextUnitBatchUpdateJobInput importVirtualAssetJobInput = new VirtualTextUnitBatchUpdateJobInput();
+        importVirtualAssetJobInput.setAssetId(assetId);
+        importVirtualAssetJobInput.setVirtualAssetTextUnits(virtualAssetTextUnits);
+        importVirtualAssetJobInput.setReplace(true);
+        return quartzPollableTaskScheduler.scheduleJob(VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput);
     }
 
     public PollableFuture importLocalizedTextUnits(
