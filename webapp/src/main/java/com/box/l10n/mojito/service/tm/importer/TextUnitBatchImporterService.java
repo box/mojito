@@ -7,11 +7,13 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.asset.ImportTextUnitJob;
+import com.box.l10n.mojito.service.asset.ImportTextUnitJobInput;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -20,7 +22,6 @@ import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -72,6 +73,9 @@ public class TextUnitBatchImporterService {
     @Autowired
     IntegrityCheckerFactory integrityCheckerFactory;
 
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
     /**
      * Imports a batch of text units.
      * <p>
@@ -90,10 +94,21 @@ public class TextUnitBatchImporterService {
      * @param textUnitDTOs text units to import
      * @return
      */
-    @Pollable(async = true)
     public PollableFuture asyncImportTextUnits(List<TextUnitDTO> textUnitDTOs,
                                                boolean integrityCheckSkipped,
                                                boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
+
+        ImportTextUnitJobInput importTextUnitJobInput = new ImportTextUnitJobInput();
+        importTextUnitJobInput.setTextUnitDTOs(textUnitDTOs);
+        importTextUnitJobInput.setIntegrityCheckSkipped(integrityCheckSkipped);
+        importTextUnitJobInput.setIntegrityCheckKeepStatusIfFailedAndSameTarget(integrityCheckKeepStatusIfFailedAndSameTarget);
+
+        return quartzPollableTaskScheduler.scheduleJob(ImportTextUnitJob.class, importTextUnitJobInput);
+    }
+
+    public PollableFuture importTextUnits(List<TextUnitDTO> textUnitDTOs,
+                                          boolean integrityCheckSkipped,
+                                          boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 
         logger.debug("Import {} text units", textUnitDTOs.size());
         List<TextUnitForBatchImport> skipOrConvertToTextUnitBatch = skipOrConvertToTextUnitBatchs(textUnitDTOs);
