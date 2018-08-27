@@ -1,35 +1,12 @@
 package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.common.StreamUtil;
-import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.PluralForm;
-import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryLocale;
-import com.box.l10n.mojito.entity.TM;
-import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import com.box.l10n.mojito.entity.TMXliff;
-import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
-import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
-import com.box.l10n.mojito.okapi.CopyFormsOnImport;
-import com.box.l10n.mojito.okapi.FilterEventsToInMemoryRawDocumentStep;
-import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
-import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
-import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
+import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.okapi.*;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
-import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
-import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
-import com.box.l10n.mojito.okapi.InheritanceMode;
-import com.box.l10n.mojito.okapi.PseudoLocalizeStep;
-import com.box.l10n.mojito.okapi.RawDocument;
-import com.box.l10n.mojito.okapi.Status;
-import com.box.l10n.mojito.okapi.TranslateStep;
-import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
@@ -41,14 +18,11 @@ import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
-import javax.persistence.EntityManager;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
@@ -65,6 +39,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * Service to manage {@link TM}s (translation memories).
@@ -118,6 +97,12 @@ public class TMService {
 
     @Autowired
     AuditorAwareImpl auditorAwareImpl;
+
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
+    @Autowired
+    RepositoryLocaleRepository repositoryLocaleRepository;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -685,7 +670,7 @@ public class TMService {
     /**
      * Parses the XLIFF content and extract the new/changed variants by doing
      * MD5 lookup for a given repository. Then updates the TM with these new
-     * variants. If the XLIFF is linked to an existing translation kit, use 
+     * variants. If the XLIFF is linked to an existing translation kit, use
      * {@link #updateTMWithTranslationKitXLIFF(java.lang.String, com.box.l10n.mojito.entity.TMTextUnitVariant.Status) }
      *
      * @param xliffContent The content of the localized XLIFF TODO(P1) Use BCP47
@@ -967,15 +952,35 @@ public class TMService {
      * asset
      * @return
      */
-    @Pollable(async = true, message = "Import localized asset")
-    public PollableFuture importLocalizedAsset(
-            Asset asset,
+
+    public PollableFuture importLocalizedAssetAsync(
+            Long assetId,
             String content,
-            RepositoryLocale repositoryLocale,
+            Long localeId,
             StatusForEqualTarget statusForEqualtarget,
             FilterConfigIdOverride filterConfigIdOverride) {
 
-        PollableFuture pollableFuture = new PollableFutureTaskResult();
+        ImportLocalizedAssetJobInput importLocalizedAssetJobInput = new ImportLocalizedAssetJobInput();
+        importLocalizedAssetJobInput.setAssetId(assetId);
+        importLocalizedAssetJobInput.setLocaleId(localeId);
+        importLocalizedAssetJobInput.setContent(content);
+        importLocalizedAssetJobInput.setStatusForEqualtarget(statusForEqualtarget);
+        importLocalizedAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
+
+        PollableFuture<Void> pollableFuture = quartzPollableTaskScheduler.scheduleJob(ImportLocalizedAssetJob.class, importLocalizedAssetJobInput);
+        return pollableFuture;
+    }
+
+
+    public void importLocalizedAsset(
+            Long assetId,
+            String content,
+            Long localeId,
+            StatusForEqualTarget statusForEqualtarget,
+            FilterConfigIdOverride filterConfigIdOverride) {
+
+        Asset asset = assetRepository.findOne(assetId);
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
 
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
@@ -1012,8 +1017,6 @@ public class TMService {
 
         logger.debug("Start processing batch");
         processBatchInTransaction(driver);
-
-        return pollableFuture;
     }
 
     @Transactional

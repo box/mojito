@@ -1129,7 +1129,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"test\">\"Le test\"</string>\n"
                 + "</resources>";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
@@ -1277,7 +1277,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgid_plural \"repins\"\n"
                 + "msgstr[0] \"repin-jp\"\n";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1364,7 +1364,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgid \"repin\"\n"
                 + "msgstr \"repin-jp\"\n";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1469,7 +1469,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[1] \"repins-ru-1\"\n"
                 + "msgstr[2] \"repins-ru-2\"\n";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1574,7 +1574,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[1] \"repins-cz-1\"\n"
                 + "msgstr[2] \"repins-cz-2\"\n";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1714,7 +1714,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "<translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">Plus</translation>\n"
                 + "</translationbundle>";
 
-        tmService.importLocalizedAsset(asset, forImport, repoLocale, StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
         logger.debug("localized after import=\n{}", localizedAsset);
@@ -1838,7 +1838,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1868,8 +1868,8 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1909,7 +1909,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetResult.get();
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, statusForEqualTarget, null).get();
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), statusForEqualTarget, null).get();
     }
 
     @Test
@@ -2005,7 +2005,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr \"jp test okapi bug\"\n"
                 + "\n"
                 + "";
-            tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForEqualTarget.APPROVED, null).get();
+            tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
     }
 
     @Test
