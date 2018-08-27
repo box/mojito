@@ -19,7 +19,7 @@ public class ImportLocalizedAssetJob extends QuartzPollableJob<ImportLocalizedAs
     TMService tmService;
 
     @Override
-    public Void call(ImportLocalizedAssetJobInput input) throws JobExecutionException {
+    public Void call(ImportLocalizedAssetJobInput input) throws Exception {
 
         logger.debug("Run ImportLocalizedAssetJob");
         tmService.importLocalizedAsset(

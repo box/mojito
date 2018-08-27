@@ -48,7 +48,7 @@ public abstract class QuartzPollableJob<I, O> implements Job {
     @Autowired
     PollableTaskExceptionUtils pollableTaskExceptionUtils;
 
-    public abstract O call(I input) throws JobExecutionException;
+    public abstract O call(I input) throws Exception;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
