@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
@@ -13,20 +14,21 @@ import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
+
+import static org.junit.Assert.*;
 import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author aloison, jyi
@@ -43,7 +45,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
     @Autowired
     RepositoryService repositoryService;
-    
+
     @Autowired
     AssetRepository assetRepository;
 
@@ -52,27 +54,30 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
     @Autowired
     PollableTaskService pollableTaskService;
-    
+
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
 
+    @Value("${spring.jpa.database}")
+    String driver;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
-    
+
     /**
      * Test for processing same or updated asset with single text unit in parallel.
-     * 
+     *
      * @throws ExecutionException
      * @throws InterruptedException
      */
     @Test
-    public void testConcurrencyForAssetExtraction() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException {
+    public void testConcurrencyForAssetExtraction() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException, UnsupportedAssetFilterTypeException {
         logger.debug("Testing for concurrency when processing same asset with same/updated contents in parallel");
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         String assetPath = "path/to/existing/asset.xliff";
 
-        int numThreads = 20;
+        int numThreads = 30;
         List<PollableFuture<Asset>> assetResults = new ArrayList<>();
         List<String> assetContents = new ArrayList<>();
 
@@ -108,17 +113,18 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
         assertNotNull("There should be one asset", asset);
 
         List<AssetExtraction> assetExtractions = assetExtractionRepository.findByAsset(asset);
+
         assertEquals("There should be " + numThreads + " asset extractions", numThreads, assetExtractions.size());
     }
-    
+
     /**
      * Test for adding 10 new assets simultaneously to a repository.
-     * 
+     *
      * @throws ExecutionException
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     @Test
-    public void testConcurrentMultipleAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException {
+    public void testConcurrentMultipleAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException, UnsupportedAssetFilterTypeException {
         logger.debug("Testing for concurrency when processing 10 different assets in parallel");
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
@@ -153,22 +159,22 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
         }
         logger.debug("{} exceptions found", exceptions.size());
         assertTrue("No exceptions should have been thrown", exceptions.isEmpty());
-        
+
         Set<Long> assetIds = assetRepository.findIdByRepositoryId(repository.getId());
         assertEquals("There should be " + numThreads + " asset ids", numThreads, assetIds.size());
-        
+
         List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(repository.getTm().getId());
         assertEquals("There should be " + 100 * numThreads + " tmTextUnits", 100 * numThreads, tmTextUnits.size());
     }
-    
+
     /**
      * Test for adding a new asset with 100 text units in parallel to a repository.
-     * 
+     *
      * @throws ExecutionException
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     @Test
-    public void testConcurrentAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException {
+    public void testConcurrentAssetExtractions() throws ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException, UnsupportedAssetFilterTypeException {
         logger.debug("Testing for concurrency when processing single new asset in parallel");
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
@@ -206,7 +212,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         Set<Long> assetIds = assetRepository.findIdByRepositoryId(repository.getId());
         assertEquals("There should be 1 asset ids", 1, assetIds.size());
-        
+
         List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(repository.getTm().getId());
         assertEquals("There should be 100 tmTextUnits", 100, tmTextUnits.size());
     }

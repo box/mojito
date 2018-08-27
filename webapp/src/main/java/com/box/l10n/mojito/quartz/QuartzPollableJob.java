@@ -3,24 +3,17 @@ package com.box.l10n.mojito.quartz;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.pollableTask.ExceptionHolder;
-import com.box.l10n.mojito.service.pollableTask.PollableFuture;
-import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
-import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskExceptionUtils;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.common.reflect.TypeToken;
-import nu.validator.htmlparser.annotation.Auto;
-import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
@@ -50,13 +43,15 @@ public abstract class QuartzPollableJob<I, O> implements Job {
 
     public abstract O call(I input) throws Exception;
 
+    PollableTask currentPollableTask;
+
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         Long pollableTaskId = context.getMergedJobDataMap().getLong(POLLABLE_TASK_ID);
-        PollableTask pollableTask = pollableTaskService.getPollableTask(pollableTaskId);
+        currentPollableTask = pollableTaskService.getPollableTask(pollableTaskId);
 
         Object output = null;
-        ExceptionHolder exceptionHolder = new ExceptionHolder(pollableTask);
+        ExceptionHolder exceptionHolder = new ExceptionHolder(currentPollableTask);
 
         try {
             I input = (I) jsonStringToObject(context.getMergedJobDataMap().getString(INPUT), typeTokenInput.getRawType());
@@ -64,8 +59,8 @@ public abstract class QuartzPollableJob<I, O> implements Job {
         } catch (Throwable t) {
             pollableTaskExceptionUtils.processException(t, exceptionHolder);
         } finally {
-            pollableTask = pollableTaskService.finishTask(
-                    pollableTask.getId(),
+            currentPollableTask = pollableTaskService.finishTask(
+                    currentPollableTask.getId(),
                     null,
                     exceptionHolder,
                     null);
@@ -85,4 +80,8 @@ public abstract class QuartzPollableJob<I, O> implements Job {
         return result;
     }
 
+
+    protected PollableTask getCurrentPollableTask() {
+        return currentPollableTask;
+    }
 }

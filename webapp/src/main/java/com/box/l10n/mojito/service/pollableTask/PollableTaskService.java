@@ -36,7 +36,7 @@ public class PollableTaskService {
      */
     static Logger logger = LoggerFactory.getLogger(PollableTaskService.class);
 
-    final static Long NO_TIMEOUT = -1L;
+    public final static Long NO_TIMEOUT = -1L;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -122,8 +122,8 @@ public class PollableTaskService {
      * @throws InterruptedException
      * @throws PollableTaskException
      */
-    public void waitForPollableTask(Long pollableId) throws InterruptedException, PollableTaskException {
-        waitForPollableTask(pollableId, NO_TIMEOUT);
+    public PollableTask waitForPollableTask(Long pollableId) throws InterruptedException, PollableTaskException {
+        return waitForPollableTask(pollableId, NO_TIMEOUT);
     }
 
     /**
@@ -135,7 +135,21 @@ public class PollableTaskService {
      * @throws InterruptedException
      * @throws PollableTaskException
      */
-    public void waitForPollableTask(Long pollableId, long timeout) throws InterruptedException, PollableTaskException {
+    public PollableTask waitForPollableTask(Long pollableId, long timeout) throws InterruptedException, PollableTaskException {
+        return waitForPollableTask(pollableId, timeout, 500);
+    }
+
+    /**
+     * Waits for {@link PollableTask} to be all finished (see {@link PollableTask#isAllFinished()
+     * }).
+     *
+     * @param pollableId the {@link PollableTask#id}
+     * @param timeout timeout in milliseconds.
+     * @param sleepTime time to sleep before checking the status again
+     * @throws InterruptedException
+     * @throws PollableTaskException
+     */
+    public PollableTask waitForPollableTask(Long pollableId, long timeout, long sleepTime) throws InterruptedException, PollableTaskException {
 
         long currentTime = System.currentTimeMillis();
         long timeoutTime = currentTime + timeout;
@@ -160,7 +174,7 @@ public class PollableTaskService {
             }
 
             if (!isAllFinished) {
-                Thread.sleep(500);
+                Thread.sleep(sleepTime);
                 currentTime = System.currentTimeMillis();
             }
         }
@@ -171,6 +185,8 @@ public class PollableTaskService {
             logger.debug("Timed out waiting for PollableTask: {} to finished", pollableId);
             throw new PollableTaskTimeoutException("Timed out waiting for PollableTask: " + pollableId);
         }
+
+        return getPollableTask(pollableId);
     }
 
     /**

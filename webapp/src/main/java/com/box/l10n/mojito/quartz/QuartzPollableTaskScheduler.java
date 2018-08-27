@@ -35,12 +35,22 @@ public class QuartzPollableTaskScheduler {
     @Autowired
     ObjectMapper objectMapper;
 
+
     public <T> PollableFuture<T> scheduleJob(Class<? extends QuartzPollableJob> clazz, Object input) {
+        return scheduleJob(clazz, input, null, null, 0);
+    }
+
+
+    public <T> PollableFuture<T> scheduleJob(Class<? extends QuartzPollableJob> clazz,
+                                             Object input,
+                                             Long parentId,
+                                             String message,
+                                             int expectedSubTaskNumber) {
 
         String pollableTaskName = getPollableTaskName(clazz);
 
-        logger.debug("Create pollableTask with name: {}", pollableTaskName);
-        PollableTask pollableTask = pollableTaskService.createPollableTask(null, pollableTaskName, null, 0);
+        logger.debug("Create currentPollableTask with name: {}", pollableTaskName);
+        PollableTask pollableTask = pollableTaskService.createPollableTask(parentId, pollableTaskName, message, expectedSubTaskNumber);
 
         String keyName = getKeyName(clazz, pollableTask.getId());
 

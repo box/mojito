@@ -19,6 +19,7 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
@@ -402,7 +403,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testGenerateLocalizedXLIFF() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFF() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -431,7 +432,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testGenerateLocalizedXLIFFRemoveUntranslated() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFFRemoveUntranslated() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -462,7 +463,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testGenerateLocalizedXLIFFRemoveUntranslatedOnlyApproved() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFFRemoveUntranslatedOnlyApproved() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -488,7 +489,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testGenerateLocalizedXLIFFRemoveUntranslatedApprovedOrNeedsReview() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFFRemoveUntranslatedApprovedOrNeedsReview() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -517,7 +518,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testGenerateLocalizedXLIFFRemoveUntranslatedAll() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFFRemoveUntranslatedAll() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -548,7 +549,7 @@ public class TMServiceTest extends ServiceTestBase {
 
 
     @Test
-    public void testGenerateLocalizedXLIFFWithDifferentOutputTag() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFFWithDifferentOutputTag() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -1900,13 +1901,13 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null);
         try {
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null);
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
-        } catch (PollableTaskException | InterruptedException e) {
+            assetResult.get();
+        } catch (PollableTaskException | InterruptedException | UnsupportedAssetFilterTypeException e) {
             throw new RuntimeException(e);
         }
-        assetResult.get();
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir\nsource=target";
         tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), statusForEqualTarget, null).get();

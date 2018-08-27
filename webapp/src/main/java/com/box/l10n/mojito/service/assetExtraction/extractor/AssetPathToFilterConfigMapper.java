@@ -84,7 +84,7 @@ public class AssetPathToFilterConfigMapper {
      * @return The config ID associated to the given type or null if none found
      * @throws UnsupportedAssetFilterTypeException If cannot find a suitable filter configuration for the asset
      */
-    public String getFilterConfigIdFromPath(String path) {
+    public String getFilterConfigIdFromPath(String path) throws UnsupportedAssetFilterTypeException {
 
         AssetFilterType assetFilterType = getAssetFilterTypeFromPath(path);
         return assetFilterType.getConfigId();
@@ -97,7 +97,7 @@ public class AssetPathToFilterConfigMapper {
      * @return Type of the asset
      * @throws UnsupportedAssetFilterTypeException If cannot find a suitable filter configuration for the asset
      */
-    private AssetFilterType getAssetFilterTypeFromPath(String assetPath) {
+    private AssetFilterType getAssetFilterTypeFromPath(String assetPath) throws UnsupportedAssetFilterTypeException {
 
         String extension = FilenameUtils.getExtension(assetPath).toLowerCase();
         AssetFilterType assetFilterType = AssetFilterType.findByExtension(extension);
