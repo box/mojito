@@ -2,6 +2,7 @@ package com.box.l10n.mojito.quartz;
 
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskExecutionException;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -25,13 +26,21 @@ public class QuartzPollableFutureTask<T> implements PollableFuture<T> {
 
     @Override
     public T get() throws InterruptedException, ExecutionException {
-        pollableTaskService.waitForPollableTask(pollableTask.getId());
-        return null;
+        return get(PollableTaskService.NO_TIMEOUT);
     }
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        pollableTaskService.waitForPollableTask(pollableTask.getId(), timeout);
+        long milisecondeTimeout = TimeUnit.MILLISECONDS.convert(timeout, unit);
+        return get(milisecondeTimeout);
+    }
+
+    T get(long milisecondTimeout) throws InterruptedException, ExecutionException {
+        try {
+            pollableTaskService.waitForPollableTask(pollableTask.getId(), milisecondTimeout, 100);
+        } catch (PollableTaskExecutionException e) {
+            throw new ExecutionException(e);
+        }
         return null;
     }
 

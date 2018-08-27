@@ -10,6 +10,7 @@ import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
@@ -144,7 +145,7 @@ public class AssetWS {
     public LocalizedAssetBody getLocalizedAssetForContent(
             @PathVariable("assetId") long assetId,
             @PathVariable("localeId") long localeId,
-            @RequestBody LocalizedAssetBody localizedAssetBody) {
+            @RequestBody LocalizedAssetBody localizedAssetBody) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Localizing content payload with asset id = {}, and locale id = {}", assetId, localeId);
 
@@ -185,7 +186,7 @@ public class AssetWS {
     @RequestMapping(value = "/api/assets/{assetId}/pseudo", method = RequestMethod.POST)
     public LocalizedAssetBody getPseudoLocalizedAssetForContent(
             @PathVariable("assetId") long assetId,
-            @RequestBody LocalizedAssetBody localizedAssetBody) {
+            @RequestBody LocalizedAssetBody localizedAssetBody) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Pseudo localizing content payload with asset id = {}", assetId);
 

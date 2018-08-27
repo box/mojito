@@ -9,6 +9,7 @@ import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.*;
@@ -66,11 +67,11 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         Asset asset = assetService.createAsset(repository.getId(), content, assetPath);
 
-        PollableFuture<Asset> processResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
-        Asset processedAsset = processResult.get();
+        assetExtractionService.processAssetAsync(asset.getId(), null, null).get();
+
+        Asset processedAsset = assetRepository.findOne(asset.getId());
 
         return getAssetTextUnitsWithUsages(processedAsset);
-
     }
 
     /**
@@ -154,7 +155,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         Asset asset = assetService.createAsset(repository.getId(), "fake-content", "path/to/fake/file-with-unsupported.ext");
-        PollableFuture<Asset> pollableTaskResult = assetExtractionService.processAsset(asset.getId(), null, null, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture pollableTaskResult = assetExtractionService.processAssetAsync(asset.getId(), null, null);
 
         // Wait for the processing to finish
         try {
@@ -162,7 +163,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
             fail("An exception should have been thrown");
         } catch (ExecutionException e) {
             Throwable originalException = e.getCause();
-            assertTrue(originalException instanceof UnsupportedAssetFilterTypeException);
+            assertTrue(originalException instanceof PollableTaskException);
 
             logger.debug("\n===============\nThe exception thrown above is expected. Do not panic!\n===============\n");
         }

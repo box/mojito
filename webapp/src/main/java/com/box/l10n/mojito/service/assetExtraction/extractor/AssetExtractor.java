@@ -58,7 +58,7 @@ public class AssetExtractor {
     public void performAssetExtraction(
             AssetExtraction assetExtraction,
             FilterConfigIdOverride filterConfigIdOverride,
-            @ParentTask PollableTask parentTask) {
+            @ParentTask PollableTask parentTask) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Configuring pipeline");
 
@@ -117,7 +117,7 @@ public class AssetExtractor {
      * @return The ID of the filter config to use to extract text units for the given asset
      * @throws UnsupportedAssetFilterTypeException If no filter config found for the given asset
      */
-    public String getFilterConfigIdForAsset(Asset asset) {
+    public String getFilterConfigIdForAsset(Asset asset) throws UnsupportedAssetFilterTypeException {
 
         String assetPath = asset.getPath();
         return assetPathToFilterConfigMapper.getFilterConfigIdFromPath(assetPath);

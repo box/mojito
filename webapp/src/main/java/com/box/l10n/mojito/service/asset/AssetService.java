@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.MsgArg;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
@@ -70,7 +71,7 @@ public class AssetService {
             Long repositoryId,
             String assetContent,
             String assetPath,
-            FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException {
+            FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
         return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
     }
 
@@ -93,7 +94,7 @@ public class AssetService {
             String assetContent,
             String assetPath,
             FilterConfigIdOverride filterConfigIdOverride,
-            @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException {
+            @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
         PollableFutureTaskResult<Asset> pollableFutureTaskResult = new PollableFutureTaskResult<>();
 
@@ -107,10 +108,10 @@ public class AssetService {
         // if an asset for the given path does not already exists or if its contents changed, start the extraction
         if (asset == null) {
             asset = createAssetWithPollable(repositoryId, assetContent, assetPath, currentTask);
-            assetExtractionService.processAsset(asset.getId(), filterConfigIdOverride, currentTask, PollableTask.INJECT_CURRENT_TASK);
+            assetExtractionService.processAssetAsync(asset.getId(), filterConfigIdOverride, currentTask.getId());
         } else if (isAssetUpdateNeeded(asset, assetContent)) {
             updateAssetContent(asset, assetContent, currentTask);
-            assetExtractionService.processAsset(asset.getId(), filterConfigIdOverride, currentTask, PollableTask.INJECT_CURRENT_TASK);
+            assetExtractionService.processAssetAsync(asset.getId(), filterConfigIdOverride, currentTask.getId());
         } else {
             undeleteAssetIfDeleted(asset);
             logger.debug("Asset content has not changed. Reset number of expected sub task to 0");

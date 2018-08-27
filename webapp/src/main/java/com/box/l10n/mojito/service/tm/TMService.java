@@ -12,6 +12,7 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
@@ -839,7 +840,7 @@ public class TMService {
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride,
             InheritanceMode inheritanceMode,
-            Status status) {
+            Status status) throws UnsupportedAssetFilterTypeException {
 
         String bcp47Tag;
 
@@ -867,7 +868,7 @@ public class TMService {
     public String generatePseudoLocalized(
             Asset asset,
             String content,
-            FilterConfigIdOverride filterConfigIdOverride) {
+            FilterConfigIdOverride filterConfigIdOverride) throws UnsupportedAssetFilterTypeException {
 
         String bcp47tag = "en-x-psaccent";
 
@@ -892,7 +893,7 @@ public class TMService {
      * @param step
      * @return the localized asset
      */
-    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride, String outputBcp47tag, BasePipelineStep step) {
+    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride, String outputBcp47tag, BasePipelineStep step) throws UnsupportedAssetFilterTypeException {
 
         IPipelineDriver driver = new PipelineDriver();
 
@@ -977,7 +978,7 @@ public class TMService {
             String content,
             Long localeId,
             StatusForEqualTarget statusForEqualtarget,
-            FilterConfigIdOverride filterConfigIdOverride) {
+            FilterConfigIdOverride filterConfigIdOverride) throws UnsupportedAssetFilterTypeException {
 
         Asset asset = assetRepository.findOne(assetId);
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);

@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
@@ -20,6 +21,8 @@ import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+
+import com.ibm.icu.text.MessageFormat;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +58,9 @@ public class AssetExtractionService {
     @Autowired
     AssetTextUnitRepository assetTextUnitRepository;
 
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
 
     /**
      * If the asset type is supported, starts the text units extraction for the given asset.
@@ -68,12 +74,10 @@ public class AssetExtractionService {
      * @throws java.lang.InterruptedException
      * @throws com.box.l10n.mojito.service.assetExtraction.AssetExtractionConflictException
      */
-    @Pollable(async = true, message = "Process asset: {assetId}", expectedSubTaskNumber = 2)
     public PollableFuture<Asset> processAsset(
-            @MsgArg(name = "assetId") Long assetId,
+            Long assetId,
             FilterConfigIdOverride filterConfigIdOverride,
-            @ParentTask PollableTask parentTask,
-            @InjectCurrentTask PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
+            PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
         
         logger.info("Start processing asset id: {}", assetId);
         Asset asset = assetRepository.findOne(assetId);
@@ -92,7 +96,22 @@ public class AssetExtractionService {
 
         return new PollableFutureTaskResult<>(asset);
     }
-    
+
+
+    public PollableFuture processAssetAsync(
+            Long assetId,
+            FilterConfigIdOverride filterConfigIdOverride,
+            Long parentTaskId) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
+
+        ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();
+        processAssetJobInput.setAssetId(assetId);
+        processAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
+
+        String pollableMessage = MessageFormat.format("Process asset: {0}", assetId);
+
+        return quartzPollableTaskScheduler.scheduleJob(ProcessAssetJob.class, processAssetJobInput, parentTaskId, pollableMessage, 2);
+    }
+
     /**
      * Mark the asset extraction as last successful
      *
