@@ -107,11 +107,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         logger.debug("Configuring web security");
 
         http.headers().cacheControl().disable();
+
+        http.csrf().ignoringAntMatchers("/shutdown", "/api/rotation");
         http.authorizeRequests()
                 // TODO (move img to images)
                 // TODO (move intl to js/intl)
                 .antMatchers("/intl/*", "/img/*", "/fonts/*", "/webjars/**", "/cli/**", "/health").permitAll()
                 .regexMatchers("/login\\?.*").permitAll()
+                .antMatchers("/shutdown", "/api/rotation").hasIpAddress("127.0.0.1").anyRequest().permitAll()
                 .anyRequest().fullyAuthenticated()
                 .and()
                 .formLogin()
