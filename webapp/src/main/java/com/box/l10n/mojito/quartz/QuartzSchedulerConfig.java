@@ -2,6 +2,8 @@ package com.box.l10n.mojito.quartz;
 
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -13,9 +15,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 @Configuration
 public class QuartzSchedulerConfig {
+
+    /**
+     * logger
+     */
+    static Logger logger = LoggerFactory.getLogger(QuartzSchedulerConfig.class);
 
     @Autowired
     ApplicationContext applicationContext;
@@ -29,17 +37,17 @@ public class QuartzSchedulerConfig {
     @Autowired
     QuartzPropertiesConfig quartzPropertiesConfig;
 
-    @Autowired(required=false)
+    @Autowired(required = false)
     List<Trigger> triggers = new ArrayList<>();
 
     /**
      * Creates the scheduler with triggers/jobs defined in spring beans.
-     *
+     * <p>
      * The spring beans should use the default group so that it is easy to keep track of new or removed triggers/jobs.
-     *
+     * <p>
      * In {@link #startScheduler()} triggers/jobs present in Quartz but without a matching spring bean will be
      * removed.
-     *
+     * <p>
      * Other job and trigger created dynamically must not used the default group else they'll be removed.
      *
      * @return
@@ -48,10 +56,20 @@ public class QuartzSchedulerConfig {
     @Bean
     public SchedulerFactoryBean scheduler() throws SchedulerException {
 
+        Properties quartzProperties = quartzPropertiesConfig.getQuartzProperties();
+
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
-        schedulerFactory.setDataSource(dataSource);
-        schedulerFactory.setTransactionManager(transactionManager);
-        schedulerFactory.setQuartzProperties(quartzPropertiesConfig.getQuartzProperties());
+
+        String dataSource = quartzProperties.getProperty("org.quartz.jobStore.dataSource");
+
+        if (dataSource == null) {
+            logger.info("Use spring data source for Quartz");
+            schedulerFactory.setDataSource(this.dataSource);
+            schedulerFactory.setTransactionManager(transactionManager);
+        } else {
+            logger.info("Use Quartz settings to configure the datasource");
+        }
+        schedulerFactory.setQuartzProperties(quartzProperties);
         schedulerFactory.setJobFactory(springBeanJobFactory());
         schedulerFactory.setOverwriteExistingJobs(true);
         schedulerFactory.setTriggers(triggers.toArray(new Trigger[]{}));
