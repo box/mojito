@@ -48,14 +48,33 @@ public class GitBlameCommandTest extends CLITestBase {
         Repository repository = createTestRepoUsingRepoService();
         File sourceDirectory = getInputResourcesTestDir("source");
 
-        logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", sourceDirectory.getAbsolutePath());
+
+        logger.info("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
         getL10nJCommander().run("git-blame", "-r", repository.getName(),
-                "-s", "/Users/emagalindan/code/android",
+                "-s", sourceDirectory.getAbsolutePath(),
                 "-ft", "ANDROID_STRINGS");
 
-
-
     }
+
+    @Test
+    public void testBlameWithTextUnitUsages() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+        File sourceDirectory = getInputResourcesTestDir("source");
+
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", sourceDirectory.getAbsolutePath());
+
+        logger.info("test po file");
+        logger.info("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+        getL10nJCommander().run("git-blame", "-r", repository.getName(),
+                "-s", sourceDirectory.getAbsolutePath(),
+                "-ft", "PO");
+    }
+
 
     @Test
     public void testSplit() {
@@ -104,16 +123,6 @@ public class GitBlameCommandTest extends CLITestBase {
 //            }
 //        }
 //    }
-
-    @Test
-    public void testBlameWithTextUnitUsages() throws Exception {
-        Repository repository = createTestRepoUsingRepoService();
-
-        logger.info("test po file");
-        getL10nJCommander().run("git-blame", "-r", repository.getName(),
-                "-s", "/Users/emagalindan/code/pinboard/",
-                "-ft", "PO");
-    }
 
     @Test
     public void importPo() throws Exception {

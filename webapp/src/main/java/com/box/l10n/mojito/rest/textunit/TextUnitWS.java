@@ -379,9 +379,10 @@ public class TextUnitWS {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repositoryId);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-        textUnitSearcherParameters.setLimit(10);
+//        textUnitSearcherParameters.setLimit(1000);
         List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
 
+        // PO files is always empty????
         if (textUnitDTOS.isEmpty()) {
             logger.info("Found no text units");
         }
@@ -390,7 +391,7 @@ public class TextUnitWS {
             AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(textUnitDTO.getAssetTextUnitId());
             TextUnitWithUsage textUnitWithUsage = new TextUnitWithUsage();
             textUnitWithUsage.setTextUnitName(assetTextUnit.getName());
-            textUnitWithUsage.setUsages(new ArrayList<>(assetTextUnit.getUsages()));
+            textUnitWithUsage.setUsages(new ArrayList<>(assetTextUnit.getUsages())); // android will have no usages
             textUnitWithUsage.setTextUnitId(textUnitDTO.getTmTextUnitId());
             textUnitWithUsages.add(textUnitWithUsage);
         }

@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -110,6 +111,8 @@ public class GitBlameCommand extends Command {
     void blameSourceFiles() throws CommandException {
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
+        List<TextUnitWithUsage> textUnitsToBlame = textUnitWithUsageClient.getTextUnitToBlame(repository.getId());
+
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
@@ -117,21 +120,22 @@ public class GitBlameCommand extends Command {
 
             logger.info("file: {}", sourceFileMatch.getPath().toString());
 
-            String sourcePath = sourceFileMatch.getSourcePath();
+            Path sourceRelativePath = getGitRepository().getDirectory().getParentFile().toPath().relativize(sourceFileMatch.getPath());
 
-            BlameResult blameResultForFile = getBlameResultForFile(sourcePath);
+            BlameResult blameResultForFile = getBlameResultForFile(sourceRelativePath.toString());
 //            logger.info("blame toString {}", blameResultForFile.getResultContents().toString());
 
             for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
                 String lineText = blameResultForFile.getResultContents().getString(i);
 
-//                logger.info("Line text: {}", lineText);
+                logger.info("Line text: {}", lineText);
 //                logger.info("getTextUnitNames {}", getTextUnitNames(repository.getId()));
-                String textUnitName = getTextUnitNameFromLine(lineText, textUnitWithUsageClient.getTextUnitToBlame(repository.getId()));
+                String textUnitName = getTextUnitNameFromLine(lineText, textUnitsToBlame);
                 if (textUnitName != null) {
+                    logger.info("textUnitName --> lineText");
                     logger.info("{} --> {}", textUnitName, lineText);
-//                        logger.info("{}", blameResultForFile.getSourceAuthor(i).getName()); // name, email
-//                        logger.info("{}", blameResultForFile.getSourceCommit(i).toString()); // commit id, date/time stamp
+                    logger.info("Author: {}, email: {}", blameResultForFile.getSourceAuthor(i).getName(), blameResultForFile.getSourceAuthor(i).getEmailAddress()); // name, email
+                    logger.info("commit: {}, time: {}", blameResultForFile.getSourceCommit(i).toString(), blameResultForFile.getSourceCommit(i).getCommitTime()); // commit id, date/time stamp
                 }
             }
         }
@@ -148,8 +152,18 @@ public class GitBlameCommand extends Command {
         logger.info("commandDirectories.targetDirectoryPath {}", commandDirectories.getTargetDirectoryPath());
 
         for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame) {
-            for (List<String> usage : textUnitWithUsage.getUsages()) {
-                // split file name and line number (depending on how it is stored in usages[]
+            for (String usage : textUnitWithUsage.getUsages()) {
+                logger.info("textUnitName: {}\n usage: {}", textUnitWithUsage.getTextUnitName(), usage);
+                String[] split = usage.split(":");
+                String filename = split[0];
+                int line = Integer.parseInt(split[1]) - 1; // need to account for line starting with 1 in file; 0 in array
+                filename = filename.replace("/mnt/jenkins/workspace/webapp-l10n-string-extract/", "");
+                BlameResult blameResultForFile = getBlameResultForFile(filename);
+                logger.info("blame result: {}", blameResultForFile.getResultContents().getString(line));
+                logger.info("Author: {}, email: {}", blameResultForFile.getSourceAuthor(line).getName(), blameResultForFile.getSourceAuthor(line).getEmailAddress()); // name, email
+                logger.info("commit: {}, time: {}", blameResultForFile.getSourceCommit(line).toString(), blameResultForFile.getSourceCommit(line).getCommitTime()); // commit id, date/time stamp
+
+                // split file name and line number (depending on how it is stored in usages[])
                 // check file exists
                 // blame line
                 // save author name, email; commit id, date/time stamp
@@ -224,12 +238,24 @@ public class GitBlameCommand extends Command {
     String getTextUnitNameFromLine(String line, List<TextUnitWithUsage> textUnitWithUsages) {
 
         for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
-            if (textUnitWithUsage.getTextUnitName().contains(line)) {
+            if (line.contains(textUnitWithUsage.getTextUnitName())) {
                 return textUnitWithUsage.getTextUnitName();
             }
         }
-
         return null;
+
+
+//        for (int i = 0; i < line.length(); i++) {
+//            for (int j = i + 1; j < line.length(); j++) {
+//                for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
+//                    if (line.substring(i, j).equals(textUnitWithUsage.getTextUnitName())) {
+//                        return textUnitWithUsage.getTextUnitName();
+//                    }
+//                }
+//            }
+//        }
+//        return null;
+
     }
 
     /**
