@@ -11,10 +11,7 @@ import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.TextUnitWithUsageClient;
-import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.SourceAsset;
-import com.box.l10n.mojito.rest.entity.TextUnitWithUsage;
+import com.box.l10n.mojito.rest.entity.*;
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
@@ -71,8 +68,10 @@ public class GitBlameCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    // TODO: add parameters to specify prefix from Mojito and prefix on localhost???
+    // TODO: add parameters to specify prefix from Mojito and prefix on localhost
     // localhost is in commandDirectories already? Mojito is /mnt/jenkins/workspace/webapp-l10n-string-extract atm
+    String localhostPrefix = "/Users/emagalindan/code/pinboard/";
+    String mojitoPrefix = "/mnt/jenkins/workspace/webapp-l10n-string-extract/";
 
     @Autowired
     AssetClient assetClient;
@@ -112,7 +111,8 @@ public class GitBlameCommand extends Command {
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
         List<TextUnitWithUsage> textUnitsToBlame = textUnitWithUsageClient.getTextUnitToBlame(repository.getId());
-
+        GitInfoForTextUnits gitInfoForTextUnits = new GitInfoForTextUnits();
+        List <GitInfoForTextUnit> gitInfoForTextUnitList = new ArrayList<>();
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
@@ -128,24 +128,21 @@ public class GitBlameCommand extends Command {
             for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
                 String lineText = blameResultForFile.getResultContents().getString(i);
 
-                logger.info("Line text: {}", lineText);
+//                logger.info("Line text: {}", lineText);
 //                logger.info("getTextUnitNames {}", getTextUnitNames(repository.getId()));
                 String textUnitName = getTextUnitNameFromLine(lineText, textUnitsToBlame);
                 if (textUnitName != null) {
-                    logger.info("textUnitName --> lineText");
-                    logger.info("{} --> {}", textUnitName, lineText);
-                    logger.info("Author: {}, email: {}", blameResultForFile.getSourceAuthor(i).getName(), blameResultForFile.getSourceAuthor(i).getEmailAddress()); // name, email
-                    logger.info("commit: {}, time: {}", blameResultForFile.getSourceCommit(i).toString(), blameResultForFile.getSourceCommit(i).getCommitTime()); // commit id, date/time stamp
+                    getBlameResults(i, blameResultForFile);
                 }
             }
         }
+        gitInfoForTextUnits.setGitInfoForTextUnitList(gitInfoForTextUnitList); // pass this into post to save git information
     }
 
     // for po file
     void blameWithTextUnitUsages() throws CommandException {
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
-
         List<TextUnitWithUsage> textUnitsToBlame = textUnitWithUsageClient.getTextUnitToBlame(repository.getId());
 
         logger.info("commandDirectories.sourceDirectoryPath {}", commandDirectories.getSourceDirectoryPath());
@@ -157,43 +154,19 @@ public class GitBlameCommand extends Command {
                 String[] split = usage.split(":");
                 String filename = split[0];
                 int line = Integer.parseInt(split[1]) - 1; // need to account for line starting with 1 in file; 0 in array
-                filename = filename.replace("/mnt/jenkins/workspace/webapp-l10n-string-extract/", "");
+                filename = filename.replace(mojitoPrefix, "");
                 BlameResult blameResultForFile = getBlameResultForFile(filename);
-                logger.info("blame result: {}", blameResultForFile.getResultContents().getString(line));
-                logger.info("Author: {}, email: {}", blameResultForFile.getSourceAuthor(line).getName(), blameResultForFile.getSourceAuthor(line).getEmailAddress()); // name, email
-                logger.info("commit: {}, time: {}", blameResultForFile.getSourceCommit(line).toString(), blameResultForFile.getSourceCommit(line).getCommitTime()); // commit id, date/time stamp
+                getBlameResults(line, blameResultForFile);
 
-                // split file name and line number (depending on how it is stored in usages[])
-                // check file exists
-                // blame line
-                // save author name, email; commit id, date/time stamp
             }
         }
 
-//        for (Map.Entry<String, List<Integer>> fileListEntry : textUnitsToBlame.entrySet()) {
-//            String fileToBlame = fileListEntry.getKey();
-//            logger.info("current file: {}", fileToBlame);
-//            List<Integer> linesToBlame = fileListEntry.getValue();
-//            logger.info("linesToBlame: {}", linesToBlame);
-//            if (!Paths.get(sourceDirectoryParam, fileToBlame).toFile().exists()) {
-//                logger.info("file {}{} does not exist anymore, skip.", sourceDirectoryParam, fileToBlame);
-//                continue;
-//            }
-//
-//            BlameResult blameResultForFile = getBlameResultForFile(fileToBlame);
-//            logger.info("blameResultForFile {}", blameResultForFile);
-////            // need to compensate for line numbers in file starting at 1
-////            logger.info("blame line {}; contents {}", linesToBlame.get(0) - 1, blameResultForFile.getResultContents().getString(linesToBlame.get(0) - 1));
-//
-//            for (Integer lineToBlame : linesToBlame) {
-//                logger.info("blame line {}; contents {}", lineToBlame, blameResultForFile.getResultContents().getString(lineToBlame - 1));
-//                logger.info("blame author {}", blameResultForFile.getSourceAuthor(lineToBlame - 1));
-//                logger.info("blame commit {}", blameResultForFile.getSourceCommit(lineToBlame - 1));
-//            }
-//
-//        }
+    }
 
-//        logger.info("map contains {}", textUnitsToBlame);
+    private void getBlameResults(int line, BlameResult blameResultForFile) {
+        logger.info("blame result: {}", blameResultForFile.getResultContents().getString(line));
+        logger.info("Author: {}, email: {}", blameResultForFile.getSourceAuthor(line).getName(), blameResultForFile.getSourceAuthor(line).getEmailAddress()); // name, email
+        logger.info("commit: {}, time: {}", blameResultForFile.getSourceCommit(line).toString(), blameResultForFile.getSourceCommit(line).getCommitTime()); // commit id, date/time stamp
     }
 
     org.eclipse.jgit.lib.Repository getGitRepository() throws CommandException {

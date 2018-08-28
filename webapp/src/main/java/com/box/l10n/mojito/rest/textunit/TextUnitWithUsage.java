@@ -8,11 +8,11 @@ public class TextUnitWithUsage {
 
     String textUnitName;
 
+    Long textUnitId;
+
     String content;
 
     String comment;
-
-    Long textUnitId;
 
     public List<String> getUsages() {
         return usages;
