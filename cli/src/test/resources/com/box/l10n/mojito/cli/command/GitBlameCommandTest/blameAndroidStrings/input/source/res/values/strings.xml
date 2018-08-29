@@ -2,7 +2,24 @@
 <resources>
     <string name="100_character_description_"><b>100</b> \"character\" \'description\':\n</string>
     <string name="15_min_duration" description="File lock dialog duration">15 min</string>
-    <string name="1_day_duration" description="File lock dialog duration">1 day</string>
     <string name="1_hour_duration" description="File lock dialog duration">1 hour</string>
+    <string name="1_day_duration" description="File lock dialog duration">1 day</string>
     <string name="1_month_duration" description="File lock dialog duration">1 month</string>
+    <string name="1_year_duration" description="File lock dialog duration">1 year</string>
+
+    <string name="something_new">Something new</string>
+    <string name="more_things">More things</string>
+    <!-- Don't blame me -->
+    <string name="blame_me">Blame this line</string>
+
+    <string name="test_0">Test 0</string>
+    <string name="test_1">Test 1</string>
+    <string name="test_2">Test 2</string>
+    <string name="test_3">Test 3</string>
+    <string name="test_4">Test 4</string>
+    <string name="test_5">Test 5</string>
+    <string name="test_6">Test 6</string>
+    <string name="test_7">Test 7</string>
+    <string name="test_8">Test 8</string>
+    <string name="test_9">Test 9</string>
 </resources>
