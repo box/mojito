@@ -380,6 +380,7 @@ public class TextUnitWS {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repositoryId);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setForRootLocale(true);
 //        textUnitSearcherParameters.setLimit(10);
         List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
 
