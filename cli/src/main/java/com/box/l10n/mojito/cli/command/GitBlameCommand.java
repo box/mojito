@@ -3,11 +3,9 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.ConsoleWriter;
-import com.box.l10n.mojito.cli.GitInfo;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.TextUnitWithUsageClient;
@@ -27,14 +25,9 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author jaurambault
@@ -96,10 +89,16 @@ public class GitBlameCommand extends Command {
 
         consoleWriter.newLine().a("Git blame for repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
 
+        Repository repository = commandHelper.findRepositoryByName(repositoryParam);
+        List<PollableTask> pollableTasks = new ArrayList<>();
+
+        List<TextUnitWithUsage> textUnitsToBlame = textUnitWithUsageClient.getTextUnitToBlame(repository.getId());
+        List<GitInfoForTextUnit> gitInfoForTextUnitList = new ArrayList<>();
+
         if (fileType.getSourceFileExtension().equals("pot")) {
-            blameWithTextUnitUsages();
+            blameWithTextUnitUsages(textUnitsToBlame, gitInfoForTextUnitList);
         } else {
-            blameSourceFiles();
+            blameSourceFiles(textUnitsToBlame, gitInfoForTextUnitList);
         }
 
 
@@ -107,12 +106,7 @@ public class GitBlameCommand extends Command {
     }
 
     // ANDROID_STRINGS file
-    void blameSourceFiles() throws CommandException {
-        Repository repository = commandHelper.findRepositoryByName(repositoryParam);
-        List<PollableTask> pollableTasks = new ArrayList<>();
-        List<TextUnitWithUsage> textUnitsToBlame = textUnitWithUsageClient.getTextUnitToBlame(repository.getId());
-        GitInfoForTextUnits gitInfoForTextUnits = new GitInfoForTextUnits();
-        List <GitInfoForTextUnit> gitInfoForTextUnitList = new ArrayList<>();
+    void blameSourceFiles(List<TextUnitWithUsage> textUnitsToBlame, List<GitInfoForTextUnit> gitInfoForTextUnitList) throws CommandException {
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
@@ -130,23 +124,29 @@ public class GitBlameCommand extends Command {
 
 //                logger.info("Line text: {}", lineText);
 //                logger.info("getTextUnitNames {}", getTextUnitNames(repository.getId()));
-                String textUnitName = getTextUnitNameFromLine(lineText, textUnitsToBlame);
-                if (textUnitName != null) {
-                    getBlameResults(i, blameResultForFile);
+                TextUnitWithUsage textUnitWithUsage = getTextUnitNameFromLine(lineText, textUnitsToBlame);
+                if (textUnitWithUsage != null) {
+                    gitInfoForTextUnitList.add(getBlameResults(i, blameResultForFile, textUnitWithUsage));
                 }
             }
         }
+        saveGitInformation(gitInfoForTextUnitList);
+
+    }
+
+    private void saveGitInformation(List<GitInfoForTextUnit> gitInfoForTextUnitList) {
+        GitInfoForTextUnits gitInfoForTextUnits = new GitInfoForTextUnits();
+
         gitInfoForTextUnits.setGitInfoForTextUnitList(gitInfoForTextUnitList); // pass this into post to save git information
+        logger.info("Saving git info {}", gitInfoForTextUnits.toString());
+//        textUnitWithUsageClient.saveGitInfoForTextUnits(gitInfoForTextUnits);
     }
 
     // for po file
-    void blameWithTextUnitUsages() throws CommandException {
-        Repository repository = commandHelper.findRepositoryByName(repositoryParam);
-        List<PollableTask> pollableTasks = new ArrayList<>();
-        List<TextUnitWithUsage> textUnitsToBlame = textUnitWithUsageClient.getTextUnitToBlame(repository.getId());
+    void blameWithTextUnitUsages(List<TextUnitWithUsage> textUnitsToBlame, List<GitInfoForTextUnit> gitInfoForTextUnitList) throws CommandException {
 
-        logger.info("commandDirectories.sourceDirectoryPath {}", commandDirectories.getSourceDirectoryPath());
-        logger.info("commandDirectories.targetDirectoryPath {}", commandDirectories.getTargetDirectoryPath());
+//        logger.info("commandDirectories.sourceDirectoryPath {}", commandDirectories.getSourceDirectoryPath());
+//        logger.info("commandDirectories.targetDirectoryPath {}", commandDirectories.getTargetDirectoryPath());
 
         for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame) {
             for (String usage : textUnitWithUsage.getUsages()) {
@@ -156,17 +156,32 @@ public class GitBlameCommand extends Command {
                 int line = Integer.parseInt(split[1]) - 1; // need to account for line starting with 1 in file; 0 in array
                 filename = filename.replace(mojitoPrefix, "");
                 BlameResult blameResultForFile = getBlameResultForFile(filename);
-                getBlameResults(line, blameResultForFile);
+                gitInfoForTextUnitList.add(getBlameResults(line, blameResultForFile, textUnitWithUsage));
 
             }
         }
+        saveGitInformation(gitInfoForTextUnitList);
 
     }
 
-    private void getBlameResults(int line, BlameResult blameResultForFile) {
+    private GitInfoForTextUnit getBlameResults(int line, BlameResult blameResultForFile, TextUnitWithUsage textUnitWithUsage) {
+        GitInfoForTextUnit gitInfoForTextUnit = new GitInfoForTextUnit();
+        UserGitInfo userGitInfo = new UserGitInfo();
+
+        gitInfoForTextUnit.setTextUnitId(textUnitWithUsage.getTextUnitId());
+        gitInfoForTextUnit.setUserGitInfo(userGitInfo);
+
         logger.info("blame result: {}", blameResultForFile.getResultContents().getString(line));
         logger.info("Author: {}, email: {}", blameResultForFile.getSourceAuthor(line).getName(), blameResultForFile.getSourceAuthor(line).getEmailAddress()); // name, email
-        logger.info("commit: {}, time: {}", blameResultForFile.getSourceCommit(line).toString(), blameResultForFile.getSourceCommit(line).getCommitTime()); // commit id, date/time stamp
+        userGitInfo.setUserName(blameResultForFile.getSourceAuthor(line).getName());
+        userGitInfo.setUserEmail(blameResultForFile.getSourceAuthor(line).getEmailAddress());
+        logger.info("commit: {}", blameResultForFile.getSourceCommit(line).toString(), blameResultForFile.getSourceCommit(line).getCommitTime()); // commit id, date/time stamp
+        logger.info("getWhen {}, time: {}", blameResultForFile.getSourceAuthor(line).getWhen(), blameResultForFile.getSourceCommit(line).getCommitTime()); // commit id, date/time stamp
+        userGitInfo.setCommitId(blameResultForFile.getSourceCommit(line).toString());
+        userGitInfo.setCommitDate(blameResultForFile.getSourceAuthor(line).getWhen().toString());
+//        userGitInfo.setCommitDate(Integer.toString(blameResultForFile.getSourceCommit(line).getCommitTime()));
+
+        return gitInfoForTextUnit;
     }
 
     org.eclipse.jgit.lib.Repository getGitRepository() throws CommandException {
@@ -208,11 +223,11 @@ public class GitBlameCommand extends Command {
 
 
     // textunit to find author
-    String getTextUnitNameFromLine(String line, List<TextUnitWithUsage> textUnitWithUsages) {
+    TextUnitWithUsage getTextUnitNameFromLine(String line, List<TextUnitWithUsage> textUnitWithUsages) {
 
         for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
             if (line.contains(textUnitWithUsage.getTextUnitName())) {
-                return textUnitWithUsage.getTextUnitName();
+                return textUnitWithUsage;
             }
         }
         return null;

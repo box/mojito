@@ -43,4 +43,13 @@ public class TextUnitWithUsageClient extends BaseClient {
                 TextUnitWithUsage[].class,
                 filterParams);
     }
+//
+//    public GitInfoForTextUnits saveGitInfoForTextUnits(GitInfoForTextUnits gitInfoForTextUnits) {
+//
+//        // TODO: fix post - 405
+//        // need URI builder?
+//        return authenticatedRestTemplate.postForObject(getBasePath() + "/gitInfo",
+//                gitInfoForTextUnits, GitInfoForTextUnits.class);
+//
+//    }
 }

@@ -366,9 +366,10 @@ public class TextUnitWS {
         return null;
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/api/textUnit/gitInfo")
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textUnitToBlame/gitInfo")
     public void saveGitInfoForTextUnits (@RequestBody GitInfoForTextUnits gitInfoForTextUnits) {
-           logger.debug("saveGitInfoForTextUnits");
+//           logger.debug("saveGitInfoForTextUnits");
+        logger.info("saving git info");
            // TODO
     }
 
@@ -379,10 +380,9 @@ public class TextUnitWS {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repositoryId);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-//        textUnitSearcherParameters.setLimit(1000);
+//        textUnitSearcherParameters.setLimit(10);
         List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
 
-        // PO files is always empty????
         if (textUnitDTOS.isEmpty()) {
             logger.info("Found no text units");
         }
