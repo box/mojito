@@ -19,39 +19,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
  
 
-#: file.js:2
+#: /mnt/jenkins/workspace/webapp-l10n-string-extract/file.js:2
 msgctxt "100_character_description_"
 msgid "100 character description:"
-msgstr "100 character description:"
+msgstr ""
 
 #. File lock dialog duration
 #: file.js:4
 msgctxt "15_min_duration"
 msgid "15 min"
-msgstr "15 min"
+msgstr ""
   
 #. File lock dialog duration
 #: file.js:6
 msgctxt "1_day_duration"
 msgid "1 day"
-msgstr "1 day"
+msgstr ""
 
 #. File lock dialog duration
 #: file.js:8
 msgctxt "1_hour_duration"
 msgid "1 hour"
-msgstr "1 hour"
+msgstr ""
 
 #. File lock dialog duration
 #: file.js:10
 msgctxt "1_month_duration"
 msgid "1 month"
-msgstr "1 month"
+msgstr ""
    
 #. Test plural
 #: file.js:20
 msgctxt "car"
 msgid "There is {number} car"
 msgid_plural "There are {number} cars"
-msgstr[0] "There is {number} car"
-msgstr[1] "There are {number} cars"
+msgstr[0] ""
+msgstr[1] ""
