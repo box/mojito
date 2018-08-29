@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<resources>
-    <string name="100_character_description_"><b>100</b>\"文字\"\'の説明\'：\n</string>
-    <string description="File lock dialog duration" name="15_min_duration">15分</string>
-    <string description="File lock dialog duration" name="1_hour_duration">1時間</string>
-    <string description="File lock dialog duration" name="1_month_duration">1か月</string>
-    <string name="something_new">Something new</string>
-</resources>
