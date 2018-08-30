@@ -29,7 +29,7 @@ public class TextUnitWithUsageClient extends BaseClient {
 
     @Override
     public String getEntityName() {
-        return "textUnitToBlame";
+        return "textUnitWithUsage";
     }
 
     public List<TextUnitWithUsage> getTextUnitToBlame(Long repositoryId) {

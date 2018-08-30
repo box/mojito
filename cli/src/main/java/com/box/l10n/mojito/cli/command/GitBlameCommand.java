@@ -99,6 +99,7 @@ public class GitBlameCommand extends Command {
             blameSourceFiles(textUnitsToBlame, gitInfoForTextUnitList);
         }
 
+        saveGitInformation(gitInfoForTextUnitList);
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }
@@ -127,7 +128,6 @@ public class GitBlameCommand extends Command {
                 }
             }
         }
-        saveGitInformation(gitInfoForTextUnitList);
 
     }
 
@@ -152,7 +152,6 @@ public class GitBlameCommand extends Command {
                 gitInfoForTextUnitList.add(getBlameResults(line, blameResultForFile, textUnitWithUsage));
             }
         }
-        saveGitInformation(gitInfoForTextUnitList);
 
     }
 

@@ -367,12 +367,12 @@ public class TextUnitWS {
         return null;
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/api/textUnitToBlame/gitInfo")
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textUnitWithUsage/gitInfo")
     public void saveGitInfoForTextUnits (@RequestBody GitInfoForTextUnits gitInfoForTextUnits) {
 //           logger.debug("saveGitInfoForTextUnits");
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame")
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitWithUsage")
     public List<TextUnitWithUsage> getTextUnitWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
 
         List<TextUnitWithUsage> textUnitWithUsages = new ArrayList<>();
