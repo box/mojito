@@ -110,9 +110,6 @@ public class GitBlameCommand extends Command {
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
-        for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame)
-            logger.info(textUnitWithUsage.getTextUnitName());
-
         for (FileMatch sourceFileMatch : sourceFileMatches) {
 
             logger.info("file: {}", sourceFileMatch.getPath().toString());
