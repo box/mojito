@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.entity;
 import java.util.List;
 
 public class TextUnitWithUsage {
+
     List<String> usages;
 
     String textUnitName;
@@ -52,4 +53,5 @@ public class TextUnitWithUsage {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
 }

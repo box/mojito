@@ -1,9 +1,13 @@
 package com.box.l10n.mojito.rest.entity;
 
 public class UserGitInfo {
+
     String userName;
+
     String userEmail;
+
     String commitId;
+
     String commitDate;
 
     public String getUserName() {
@@ -37,4 +41,5 @@ public class UserGitInfo {
     public void setCommitDate(String commitDate) {
         this.commitDate = commitDate;
     }
+
 }

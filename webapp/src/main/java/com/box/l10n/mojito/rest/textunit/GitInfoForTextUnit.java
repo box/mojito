@@ -3,9 +3,10 @@ package com.box.l10n.mojito.rest.textunit;
 import com.box.l10n.mojito.rest.cli.GitInfo;
 
 public class GitInfoForTextUnit {
-    Long textUnitId;
-    UserGitInfo  userGitInfo;
 
+    Long textUnitId;
+
+    UserGitInfo userGitInfo;
 
     public Long getTextUnitId() {
         return textUnitId;

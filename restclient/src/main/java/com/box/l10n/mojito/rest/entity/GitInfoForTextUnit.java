@@ -1,9 +1,10 @@
 package com.box.l10n.mojito.rest.entity;
 
 public class GitInfoForTextUnit {
-    Long textUnitId;
-    UserGitInfo  userGitInfo;
 
+    Long textUnitId;
+
+    UserGitInfo userGitInfo;
 
     public Long getTextUnitId() {
         return textUnitId;
