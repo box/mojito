@@ -2,6 +2,9 @@ package com.box.l10n.mojito.rest.entity;
 
 import java.util.List;
 
+/**
+ * @author emagalindan
+ */
 public class TextUnitWithUsage {
 
     List<String> usages;

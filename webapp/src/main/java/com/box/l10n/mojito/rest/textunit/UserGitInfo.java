@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.rest.textunit;
 
+/**
+ * @author emagalindan
+ */
 public class UserGitInfo {
     String userName;
     String userEmail;

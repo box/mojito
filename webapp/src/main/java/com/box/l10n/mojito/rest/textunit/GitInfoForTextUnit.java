@@ -2,6 +2,9 @@ package com.box.l10n.mojito.rest.textunit;
 
 import com.box.l10n.mojito.rest.cli.GitInfo;
 
+/**
+ * @author emagalindan
+ */
 public class GitInfoForTextUnit {
 
     Long textUnitId;

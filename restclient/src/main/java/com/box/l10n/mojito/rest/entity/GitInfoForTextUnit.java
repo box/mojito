@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.rest.entity;
 
+/**
+ * @author emagalindan
+ */
 public class GitInfoForTextUnit {
 
     Long textUnitId;

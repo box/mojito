@@ -2,6 +2,9 @@ package com.box.l10n.mojito.rest.entity;
 
 import java.util.List;
 
+/**
+ * @author emagalindan
+ */
 public class GitInfoForTextUnits {
 
     List<GitInfoForTextUnit> gitInfoForTextUnitList;
