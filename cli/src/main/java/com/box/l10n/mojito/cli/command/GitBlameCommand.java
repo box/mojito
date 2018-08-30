@@ -157,7 +157,7 @@ public class GitBlameCommand extends Command {
     }
 
     /**
-     * Save information from git-blame into database
+     * Save information from git-blame
      * @param gitInfoForTextUnitList
      */
     private void saveGitInformation(List<GitInfoForTextUnit> gitInfoForTextUnitList) {
