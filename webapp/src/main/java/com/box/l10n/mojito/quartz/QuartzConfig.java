@@ -28,21 +28,26 @@ public class QuartzConfig {
     @Autowired
     Scheduler scheduler;
 
-    @Autowired(required=false)
+    @Autowired(required = false)
     List<Trigger> triggers = new ArrayList<>();
 
-    @Autowired(required=false)
+    @Autowired(required = false)
     List<JobDetail> jobDetails = new ArrayList<>();
 
     /**
      * Starts the scheduler after having removed outdated trigger/jobs
+     *
      * @throws SchedulerException
      */
     @PostConstruct
     void startScheduler() throws SchedulerException {
+        removeOutdatedJobs();
+        scheduler.startDelayed(2);
+    }
+
+    void removeOutdatedJobs() throws SchedulerException {
         scheduler.unscheduleJobs(new ArrayList<TriggerKey>(getOutdatedTriggerKeys()));
         scheduler.deleteJobs(new ArrayList<JobKey>(getOutdatedJobKeys()));
-        scheduler.startDelayed(2);
     }
 
     Set<JobKey> getOutdatedJobKeys() throws SchedulerException {

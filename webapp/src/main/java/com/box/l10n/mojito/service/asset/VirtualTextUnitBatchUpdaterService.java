@@ -5,9 +5,6 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.TMTextUnit;
-
-import static com.box.l10n.mojito.service.asset.VirtualAssetService.logger;
-
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
@@ -16,8 +13,6 @@ import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeverag
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsUpdatedReactor;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -25,17 +20,18 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import static com.box.l10n.mojito.service.asset.VirtualAssetService.logger;
 
 /**
  * @author aurambaj

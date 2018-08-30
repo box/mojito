@@ -76,7 +76,6 @@ public class RepositoryStatisticsCronJob implements Job {
     @Bean
     public CronTriggerFactoryBean triggerRepositoryStatisticsCron(@Qualifier("repositoryStatisticsCron") JobDetail job) {
         CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
-        trigger.setJobDetail(job);
         trigger.setCronExpression(cron);
         trigger.setJobDetail(job);
         return trigger;

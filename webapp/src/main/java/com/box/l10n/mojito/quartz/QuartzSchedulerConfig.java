@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -40,6 +41,7 @@ public class QuartzSchedulerConfig {
     @Autowired(required = false)
     List<Trigger> triggers = new ArrayList<>();
 
+
     /**
      * Creates the scheduler with triggers/jobs defined in spring beans.
      * <p>
@@ -56,19 +58,13 @@ public class QuartzSchedulerConfig {
     @Bean
     public SchedulerFactoryBean scheduler() throws SchedulerException {
 
+        logger.info("Create SchedulerFactoryBean");
+
         Properties quartzProperties = quartzPropertiesConfig.getQuartzProperties();
 
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
 
         String dataSource = quartzProperties.getProperty("org.quartz.jobStore.dataSource");
-
-        if (dataSource == null) {
-            logger.info("Use spring data source for Quartz");
-            schedulerFactory.setDataSource(this.dataSource);
-            schedulerFactory.setTransactionManager(transactionManager);
-        } else {
-            logger.info("Use Quartz settings to configure the datasource");
-        }
         schedulerFactory.setQuartzProperties(quartzProperties);
         schedulerFactory.setJobFactory(springBeanJobFactory());
         schedulerFactory.setOverwriteExistingJobs(true);

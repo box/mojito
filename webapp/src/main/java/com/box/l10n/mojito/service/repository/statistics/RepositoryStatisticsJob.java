@@ -27,8 +27,6 @@ import org.springframework.stereotype.Component;
  *
  * @author jaurambault
  */
-@Profile("!disablescheduling")
-@Configuration
 @Component
 @DisallowConcurrentExecution
 public class RepositoryStatisticsJob implements Job {
