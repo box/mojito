@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.pluralform;
 
+import com.box.l10n.mojito.service.DBUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobDetail;
@@ -46,13 +47,13 @@ public class PluralFormUpdaterJob implements Job {
     @Autowired
     JdbcTemplate jdbcTemplate;
 
-    @Value("${spring.jpa.database}")
-    String driver;
+    @Autowired
+    DBUtils dbUtils;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
-        if ("HSQL".equals(driver)) {
+        if (dbUtils.isHSQL()) {
             logger.debug("Don't update (DB is HSQL)");
         } else {
 

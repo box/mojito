@@ -58,9 +58,6 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
 
-    @Value("${spring.jpa.database}")
-    String driver;
-
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
