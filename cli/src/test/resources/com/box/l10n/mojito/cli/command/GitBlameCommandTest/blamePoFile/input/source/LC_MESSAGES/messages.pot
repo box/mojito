@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
  
 
-#: /mnt/jenkins/workspace/webapp-l10n-string-extract/file.js:2
+#: file.js:2
 msgctxt "100_character_description_"
 msgid "100 character description:"
 msgstr ""

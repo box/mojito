@@ -145,17 +145,18 @@ public class GitBlameCommand extends Command {
     // for po file
     void blameWithTextUnitUsages(List<TextUnitWithUsage> textUnitsToBlame, List<GitInfoForTextUnit> gitInfoForTextUnitList) throws CommandException {
 
-        logger.info("text units to blame: {}", textUnitsToBlame.size());
+//        logger.info("text units to blame: {}", textUnitsToBlame.size());
 
         for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame) {
-            logger.info("textUnitName: {}; usages: {}", textUnitWithUsage.getTextUnitName(), textUnitWithUsage.getUsages());
+//            logger.info("textUnitName: {}; usages: {}", textUnitWithUsage.getTextUnitName(), textUnitWithUsage.getUsages());
 
             for (String usage : textUnitWithUsage.getUsages()) {
-//                logger.info("textUnitName: {}\n usage: {}", textUnitWithUsage.getTextUnitName(), usage);
+                logger.info("textUnitName: {}; usage: {}", textUnitWithUsage.getTextUnitName(), usage);
                 String[] split = usage.split(":");
                 String filename = split[0];
                 int line = Integer.parseInt(split[1]) - 1; // need to account for line starting with 1 in file; 0 in array
                 filename = filename.replace(mojitoPrefix, "");
+                // TODO: optimize for plural strings on same line
                 BlameResult blameResultForFile = getBlameResultForFile(filename);
                 gitInfoForTextUnitList.add(getBlameResults(line, blameResultForFile, textUnitWithUsage));
 
@@ -172,6 +173,10 @@ public class GitBlameCommand extends Command {
         gitInfoForTextUnit.setTextUnitId(textUnitWithUsage.getTextUnitId());
         gitInfoForTextUnit.setUserGitInfo(userGitInfo);
 
+        logger.info("blame result: line: {}", blameResultForFile.getResultContents().getString(line));
+        logger.info("author: {}, email: {}", blameResultForFile.getSourceAuthor(line).getName(), blameResultForFile.getSourceAuthor(line).getEmailAddress());
+        logger.info("commit: {}", blameResultForFile.getSourceCommit(line).toString()); // commit id, date/time stamp
+        logger.info("getWhen {}, time: {}\n", blameResultForFile.getSourceAuthor(line).getWhen(), blameResultForFile.getSourceCommit(line).getCommitTime());
         userGitInfo.setUserName(blameResultForFile.getSourceAuthor(line).getName());
         userGitInfo.setUserEmail(blameResultForFile.getSourceAuthor(line).getEmailAddress());
         userGitInfo.setCommitId(blameResultForFile.getSourceCommit(line).toString());

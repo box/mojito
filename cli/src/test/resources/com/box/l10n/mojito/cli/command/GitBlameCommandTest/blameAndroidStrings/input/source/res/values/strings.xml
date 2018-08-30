@@ -8,7 +8,10 @@
     <string name="1_year_duration" description="File lock dialog duration">1 year</string>
 
     <string name="something_new">Something new</string>
-    <string name="more_things">More things</string>
+    <plurals name="plural_things">
+        <item quantity="one">One thing</item>
+        <item quantity="other">Multiple things</item>
+    </plurals>
     <!-- Don't blame me -->
     <string name="blame_me">Blame this line</string>
 

@@ -382,6 +382,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setRepositoryIds(repositoryId);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
         textUnitSearcherParameters.setForRootLocale(true);
+        textUnitSearcherParameters.setPluralFormsFiltered(false);
 //        textUnitSearcherParameters.setLimit(10);
         List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
 
