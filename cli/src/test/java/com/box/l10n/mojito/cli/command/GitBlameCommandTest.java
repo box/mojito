@@ -23,10 +23,8 @@ public class GitBlameCommandTest extends CLITestBase {
 
     @Test
     public void blameAndroidStrings() throws Exception {
-
         Repository repository = createTestRepoUsingRepoService();
         File sourceDirectory = getInputResourcesTestDir("source");
-
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", sourceDirectory.getAbsolutePath());
@@ -34,14 +32,12 @@ public class GitBlameCommandTest extends CLITestBase {
         getL10nJCommander().run("git-blame", "-r", repository.getName(),
                 "-s", sourceDirectory.getAbsolutePath(),
                 "-ft", "ANDROID_STRINGS");
-
     }
 
     @Test
     public void blamePoFile() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
         File sourceDirectory = getInputResourcesTestDir("source");
-
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", sourceDirectory.getAbsolutePath());
@@ -55,7 +51,6 @@ public class GitBlameCommandTest extends CLITestBase {
     public void blamePoFileFromExtracted() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
         File sourceDirectory = getInputResourcesTestDir("source");
-
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", sourceDirectory.getAbsolutePath());
