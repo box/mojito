@@ -61,10 +61,8 @@ public class GitBlameCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    // TODO: add parameters to specify prefix from Mojito and prefix on localhost
-    // localhost is in commandDirectories already? Mojito is /mnt/jenkins/workspace/webapp-l10n-string-extract atm
-    String localhostPrefix = "/Users/emagalindan/code/pinboard/";
-    String mojitoPrefix = "/mnt/jenkins/workspace/webapp-l10n-string-extract/";
+    @Parameter(names = {"--extracted-prefix"}, arity = 1, required = false, description = "prefix for path of extracted files")
+    String extractedFilePrefix;
 
     @Autowired
     AssetClient assetClient;
@@ -105,25 +103,24 @@ public class GitBlameCommand extends Command {
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }
 
-    // ANDROID_STRINGS file
+    /**
+     * Runs git-blame on each line of the file
+     * @param textUnitsToBlame
+     * @param gitInfoForTextUnitList
+     * @throws CommandException
+     */
     void blameSourceFiles(List<TextUnitWithUsage> textUnitsToBlame, List<GitInfoForTextUnit> gitInfoForTextUnitList) throws CommandException {
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
 
-            logger.info("file: {}", sourceFileMatch.getPath().toString());
-
             Path sourceRelativePath = getGitRepository().getDirectory().getParentFile().toPath().relativize(sourceFileMatch.getPath());
-
             BlameResult blameResultForFile = getBlameResultForFile(sourceRelativePath.toString());
-//            logger.info("blame toString {}", blameResultForFile.getResultContents().toString());
 
             for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
                 String lineText = blameResultForFile.getResultContents().getString(i);
 
-//                logger.info("Line text: {}", lineText);
-//                logger.info("getTextUnitNames {}", getTextUnitNames(repository.getId()));
                 TextUnitWithUsage textUnitWithUsage = getTextUnitNameFromLine(lineText, textUnitsToBlame);
                 if (textUnitWithUsage != null) {
                     gitInfoForTextUnitList.add(getBlameResults(i, blameResultForFile, textUnitWithUsage));
@@ -134,58 +131,69 @@ public class GitBlameCommand extends Command {
 
     }
 
-    private void saveGitInformation(List<GitInfoForTextUnit> gitInfoForTextUnitList) {
-        GitInfoForTextUnits gitInfoForTextUnits = new GitInfoForTextUnits();
-
-        gitInfoForTextUnits.setGitInfoForTextUnitList(gitInfoForTextUnitList); // pass this into post to save git information
-        logger.info("Saving git info {}", gitInfoForTextUnits.toString());
-//        textUnitWithUsageClient.saveGitInfoForTextUnits(gitInfoForTextUnits);
-    }
-
-    // for po file
+    /**
+     * Reads in the lines of the file and runs git-blame on usage locations given by file
+     * @param textUnitsToBlame
+     * @param gitInfoForTextUnitList
+     * @throws CommandException
+     */
     void blameWithTextUnitUsages(List<TextUnitWithUsage> textUnitsToBlame, List<GitInfoForTextUnit> gitInfoForTextUnitList) throws CommandException {
 
-//        logger.info("text units to blame: {}", textUnitsToBlame.size());
-
         for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame) {
-//            logger.info("textUnitName: {}; usages: {}", textUnitWithUsage.getTextUnitName(), textUnitWithUsage.getUsages());
 
             for (String usage : textUnitWithUsage.getUsages()) {
-                logger.info("textUnitName: {}; usage: {}", textUnitWithUsage.getTextUnitName(), usage);
                 String[] split = usage.split(":");
                 String filename = split[0];
                 int line = Integer.parseInt(split[1]) - 1; // need to account for line starting with 1 in file; 0 in array
-                filename = filename.replace(mojitoPrefix, "");
+                if (extractedFilePrefix != null)
+                    filename = filename.replace(extractedFilePrefix, "");
                 // TODO: optimize for plural strings on same line
                 BlameResult blameResultForFile = getBlameResultForFile(filename);
                 gitInfoForTextUnitList.add(getBlameResults(line, blameResultForFile, textUnitWithUsage));
-
             }
         }
         saveGitInformation(gitInfoForTextUnitList);
 
     }
 
-    private GitInfoForTextUnit getBlameResults(int line, BlameResult blameResultForFile, TextUnitWithUsage textUnitWithUsage) {
+    /**
+     * Save information from git-blame into database
+     * @param gitInfoForTextUnitList
+     */
+    private void saveGitInformation(List<GitInfoForTextUnit> gitInfoForTextUnitList) {
+        GitInfoForTextUnits gitInfoForTextUnits = new GitInfoForTextUnits();
+
+        gitInfoForTextUnits.setGitInfoForTextUnitList(gitInfoForTextUnitList);
+        textUnitWithUsageClient.saveGitInfoForTextUnits(gitInfoForTextUnits);
+    }
+
+    /**
+     * Get the git-blame information for given line number
+     * @param lineNumber
+     * @param blameResultForFile
+     * @param textUnitWithUsage
+     * @return
+     */
+    private GitInfoForTextUnit getBlameResults(int lineNumber, BlameResult blameResultForFile, TextUnitWithUsage textUnitWithUsage) {
         GitInfoForTextUnit gitInfoForTextUnit = new GitInfoForTextUnit();
         UserGitInfo userGitInfo = new UserGitInfo();
 
         gitInfoForTextUnit.setTextUnitId(textUnitWithUsage.getTextUnitId());
         gitInfoForTextUnit.setUserGitInfo(userGitInfo);
 
-        logger.info("blame result: line: {}", blameResultForFile.getResultContents().getString(line));
-        logger.info("author: {}, email: {}", blameResultForFile.getSourceAuthor(line).getName(), blameResultForFile.getSourceAuthor(line).getEmailAddress());
-        logger.info("commit: {}", blameResultForFile.getSourceCommit(line).toString()); // commit id, date/time stamp
-        logger.info("getWhen {}, time: {}\n", blameResultForFile.getSourceAuthor(line).getWhen(), blameResultForFile.getSourceCommit(line).getCommitTime());
-        userGitInfo.setUserName(blameResultForFile.getSourceAuthor(line).getName());
-        userGitInfo.setUserEmail(blameResultForFile.getSourceAuthor(line).getEmailAddress());
-        userGitInfo.setCommitId(blameResultForFile.getSourceCommit(line).toString());
-        userGitInfo.setCommitDate(blameResultForFile.getSourceAuthor(line).getWhen().toString());
-//        userGitInfo.setCommitDate(Integer.toString(blameResultForFile.getSourceCommit(line).getCommitTime())); // time is in seconds since epoch
+        userGitInfo.setUserName(blameResultForFile.getSourceAuthor(lineNumber).getName());
+        userGitInfo.setUserEmail(blameResultForFile.getSourceAuthor(lineNumber).getEmailAddress());
+        userGitInfo.setCommitId(blameResultForFile.getSourceCommit(lineNumber).toString());
+        userGitInfo.setCommitDate(Integer.toString(blameResultForFile.getSourceCommit(lineNumber).getCommitTime()));
 
         return gitInfoForTextUnit;
     }
 
+    /**
+     * Builds a git repository if current directory is within a git repo
+     * @return
+     * @throws CommandException
+     */
     org.eclipse.jgit.lib.Repository getGitRepository() throws CommandException {
 
         if (gitRepository == null) {
@@ -204,6 +212,12 @@ public class GitBlameCommand extends Command {
         return gitRepository;
     }
 
+    /**
+     * Get the git-blame information for entire file
+     * @param filePath
+     * @return
+     * @throws CommandException
+     */
     BlameResult getBlameResultForFile(String filePath) throws CommandException {
 
         try {
@@ -223,47 +237,37 @@ public class GitBlameCommand extends Command {
         }
     }
 
-
-    // textunit to find author
+    /**
+     * Checks if the given line contains a text unit
+     * @param line
+     * @param textUnitWithUsages
+     * @return textUnitWithUsage that is in the line, if any, or null if none
+     */
     TextUnitWithUsage getTextUnitNameFromLine(String line, List<TextUnitWithUsage> textUnitWithUsages) {
 
         for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
-            if (line.contains(textUnitNameToStringInSourceFile(textUnitWithUsage.getTextUnitName(),true))) {
+            if (line.contains(textUnitNameToStringInSourceFile(textUnitWithUsage.getTextUnitName()))) {
                 return textUnitWithUsage;
             }
         }
         return null;
 
-
-//        for (int i = 0; i < line.length(); i++) {
-//            for (int j = i + 1; j < line.length(); j++) {
-//                for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
-//                    if (line.substring(i, j).equals(textUnitNameToStringInSourceFile(textUnitWithUsage.getTextUnitName(), true))) {
-//                        return textUnitWithUsage;
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-
     }
 
     /**
-     * this is a dumb implementation. Need to check that the text unit is actual plural form. can't do that only
-     * passing the name.
-     *
+     * Converts text unit name back to how name appears in source code
      * @param textUnitName
-     * @return
+     * @return text unit name as string in source file
      */
-    static String textUnitNameToStringInSourceFile(String textUnitName, boolean isPlural) {
+    static String textUnitNameToStringInSourceFile(String textUnitName) {
+
         String stringInFile = textUnitName;
 
-        if (isPlural) {
+        if (textUnitName.matches(".+_(zero|one|two|few|many|other)$"))
             stringInFile = textUnitName.split("_(zero|one|two|few|many|other)")[0];
-        }
 
         return stringInFile;
-    }
 
+    }
 
 }

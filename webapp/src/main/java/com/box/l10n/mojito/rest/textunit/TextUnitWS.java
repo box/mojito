@@ -370,8 +370,6 @@ public class TextUnitWS {
     @RequestMapping(method = RequestMethod.POST, value = "/api/textUnitToBlame/gitInfo")
     public void saveGitInfoForTextUnits (@RequestBody GitInfoForTextUnits gitInfoForTextUnits) {
 //           logger.debug("saveGitInfoForTextUnits");
-        logger.info("saving git info");
-           // TODO
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitToBlame")
@@ -383,12 +381,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
         textUnitSearcherParameters.setForRootLocale(true);
         textUnitSearcherParameters.setPluralFormsFiltered(false);
-//        textUnitSearcherParameters.setLimit(10);
         List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
-
-        if (textUnitDTOS.isEmpty()) {
-            logger.info("Found no text units");
-        }
 
         for (TextUnitDTO textUnitDTO : textUnitDTOS) {
             AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(textUnitDTO.getAssetTextUnitId());
