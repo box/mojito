@@ -82,7 +82,7 @@ public class GitBlameCommandTest extends CLITestBase {
     @Test
     public void testSplit() {
         //tests textUnitNameToStringInSourceFile()
-    logger.info("after trans: {}", GitBlameCommand.textUnitNameToStringInSourceFile("test _zero", true));
+    logger.info("after trans: {}", GitBlameCommand.textUnitNameToStringInSourceFile("test_zero", true));
     logger.info("after trans: {}", GitBlameCommand.textUnitNameToStringInSourceFile("test _one", true));
     logger.info("after trans: {}", GitBlameCommand.textUnitNameToStringInSourceFile("test _two", true));
     logger.info("after trans: {}", GitBlameCommand.textUnitNameToStringInSourceFile("test _few", true));

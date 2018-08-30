@@ -110,6 +110,9 @@ public class GitBlameCommand extends Command {
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
+        for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame)
+            logger.info(textUnitWithUsage.getTextUnitName());
+
         for (FileMatch sourceFileMatch : sourceFileMatches) {
 
             logger.info("file: {}", sourceFileMatch.getPath().toString());
@@ -228,7 +231,7 @@ public class GitBlameCommand extends Command {
     TextUnitWithUsage getTextUnitNameFromLine(String line, List<TextUnitWithUsage> textUnitWithUsages) {
 
         for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
-            if (line.contains(textUnitWithUsage.getTextUnitName())) {
+            if (line.contains(textUnitNameToStringInSourceFile(textUnitWithUsage.getTextUnitName(),true))) {
                 return textUnitWithUsage;
             }
         }
@@ -238,8 +241,8 @@ public class GitBlameCommand extends Command {
 //        for (int i = 0; i < line.length(); i++) {
 //            for (int j = i + 1; j < line.length(); j++) {
 //                for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
-//                    if (line.substring(i, j).equals(textUnitWithUsage.getTextUnitName())) {
-//                        return textUnitWithUsage.getTextUnitName();
+//                    if (line.substring(i, j).equals(textUnitNameToStringInSourceFile(textUnitWithUsage.getTextUnitName(), true))) {
+//                        return textUnitWithUsage;
 //                    }
 //                }
 //            }
@@ -259,7 +262,7 @@ public class GitBlameCommand extends Command {
         String stringInFile = textUnitName;
 
         if (isPlural) {
-            stringInFile = textUnitName.split(" _(zero|one|two|few|many|other)")[0];
+            stringInFile = textUnitName.split("_(zero|one|two|few|many|other)")[0];
         }
 
         return stringInFile;
