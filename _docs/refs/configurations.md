@@ -67,6 +67,20 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
     spring.datasource.driverClassName=com.mysql.jdbc.Driver
     spring.datasource.testOnBorrow=true
     spring.datasource.validationQuery=SELECT 1
+    
+    l10n.org.quartz.jobStore.useProperties=true
+    l10n.org.quartz.scheduler.instanceId=AUTO
+    l10n.org.quartz.jobStore.isClustered=true
+    l10n.org.quartz.threadPool.threadCount=10
+    l10n.org.quartz.jobStore.class=org.quartz.impl.jdbcjobstore.JobStoreTX
+    l10n.org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+    l10n.org.quartz.jobStore.dataSource=myDS
+    l10n.org.quartz.dataSource.myDS.driver=com.mysql.jdbc.Driver
+    l10n.org.quartz.dataSource.myDS.URL=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
+    l10n.org.quartz.dataSource.myDS.user=${DB_USERNAME}
+    l10n.org.quartz.dataSource.myDS.password=${DB_USERNAME}
+    l10n.org.quartz.dataSource.myDS.maxConnections=12
+    l10n.org.quartz.dataSource.myDS.validationQuery=select 1
 
 
 Note that `utf8mb4` setup has been tested on MySQL `5.7`. The server will probably needs some configuration too, for
