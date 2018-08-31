@@ -142,9 +142,8 @@ public class GitBlameCommand extends Command {
         for (TextUnitWithUsage textUnitWithUsage : textUnitsToBlame) {
 
             for (String usage : textUnitWithUsage.getUsages()) {
-                String[] split = usage.split(":");
-                String filename = split[0];
-                int line = Integer.parseInt(split[1]) - 1; // need to account for line starting with 1 in file; 0 in array
+                String filename = getFileName(usage);
+                int line = getLineNumber(usage);
                 if (extractedFilePrefix != null)
                     filename = filename.replace(extractedFilePrefix, "");
                 // TODO: optimize for plural strings on same line
@@ -267,6 +266,31 @@ public class GitBlameCommand extends Command {
 
         return stringInFile;
 
+    }
+
+    /**
+     * Extracts the file name from the given usage
+     * @param usage
+     * @return
+     */
+    static String getFileName(String usage) {
+        return usage.split(":")[0];
+    }
+
+    /**
+     * Extracts the line number from the given usage
+     * Must account for difference in line numbers starting with 1 in file and 0 in array
+     * @param usage
+     * @return
+     */
+    static int getLineNumber(String usage) throws CommandException{
+        try {
+            return Integer.parseInt(usage.split(":")[1]) - 1;
+        } catch (ArrayIndexOutOfBoundsException e) {
+            String msg = MessageFormat.format("Can't get line number from usage: {0}", usage);
+            logger.error(msg, e);
+            throw new CommandException(msg, e);
+        }
     }
 
 }
