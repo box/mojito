@@ -159,7 +159,7 @@ public abstract class PluralsHolder {
         }
     }
 
-    Event createCopyOf(Event event, String sourceForm, String targetForm) {
+    protected Event createCopyOf(Event event, String sourceForm, String targetForm) {
         logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
         ITextUnit textUnit = event.getTextUnit().clone();
         renameTextUnit(textUnit, sourceForm, targetForm);

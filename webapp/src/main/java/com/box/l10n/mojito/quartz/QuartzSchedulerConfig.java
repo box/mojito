@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.util.ArrayList;
@@ -21,6 +22,9 @@ public class QuartzSchedulerConfig {
 
     @Autowired
     DataSource dataSource;
+
+    @Autowired
+    PlatformTransactionManager transactionManager;
 
     @Autowired
     QuartzPropertiesConfig quartzPropertiesConfig;
@@ -46,6 +50,7 @@ public class QuartzSchedulerConfig {
 
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
         schedulerFactory.setDataSource(dataSource);
+        schedulerFactory.setTransactionManager(transactionManager);
         schedulerFactory.setQuartzProperties(quartzPropertiesConfig.getQuartzProperties());
         schedulerFactory.setJobFactory(springBeanJobFactory());
         schedulerFactory.setOverwriteExistingJobs(true);

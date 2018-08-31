@@ -54,7 +54,8 @@ class IctModalContainer extends React.Component {
         var query = queryString.stringify({
             'repoName': this.state.selectedTextUnit.repositoryName,
             'locales': this.state.selectedTextUnit.locale,
-            'searchText': this.state.selectedTextUnit.textUnitName
+            'searchText': this.state.selectedTextUnit.textUnitName,
+            'assetName': this.state.selectedTextUnit.assetName
         });
         window.open(url + query);
     }

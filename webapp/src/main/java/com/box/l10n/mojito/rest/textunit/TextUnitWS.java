@@ -1,9 +1,6 @@
 package com.box.l10n.mojito.rest.textunit;
 
-import com.box.l10n.mojito.entity.AssetTextUnit;
-import com.box.l10n.mojito.entity.GitBlame;
-import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
@@ -26,6 +23,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,9 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
@@ -80,7 +77,7 @@ public class TextUnitWS {
 
     /**
      * Gets the TextUnits that matches the search parameters.
-     * <p>
+     *
      * It uses a filter logic. The dataset will be filtered down as more
      * criteria are specified (search for specific locales, string
      * name|target|source, etc).
@@ -97,9 +94,9 @@ public class TextUnitWS {
      * @param localeTags              optional
      * @param usedFilter              optional
      * @param statusFilter            optional
-     * @param doNotTranslateFilter
+     * @param doNotTranslateFilter    optional
      * @param tmTextUnitCreatedBefore optional
-     * @param tmTExtunitCreatedAfter  optional
+     * @param tmTextUnitCreatedAfter  optional
      * @param limit                   optional, default 10
      * @param offset                  optional, default 0
      * @return the TextUnits that matches the search parameters
@@ -122,11 +119,12 @@ public class TextUnitWS {
             @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
             @RequestParam(value = "tmTextUnitCreatedBefore", required = false) DateTime tmTextUnitCreatedBefore,
-            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTExtunitCreatedAfter,
+            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTextUnitCreatedAfter,
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
-        TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(repositoryIds, repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTExtunitCreatedAfter);
+        TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(repositoryIds,
+                repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
         textUnitSearcherParameters.setLimit(limit);
         textUnitSearcherParameters.setOffset(offset);
         List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
@@ -150,7 +148,7 @@ public class TextUnitWS {
             @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
             @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
-            @RequestParam(value = "tmTextUnitCreatedBefore", required = false) DateTime tmTextUnitCreatedBefore,
+            @RequestParam(value = "tmTextUnitCreatedBe                                                           fore", required = false) DateTime tmTextUnitCreatedBefore,
             @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTExtunitCreatedAfter) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(
@@ -186,7 +184,7 @@ public class TextUnitWS {
             throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
         }
 
-        textUnitSearcherParameters.setRepositoryIds(repositoryIds);
+        textUnitSearcherParameters.setRepositoryIds(repositoryIds); //
         textUnitSearcherParameters.setRepositoryNames(repositoryNames);
         textUnitSearcherParameters.setName(name);
         textUnitSearcherParameters.setSource(source);
@@ -197,7 +195,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setSearchType(searchType);
         textUnitSearcherParameters.setRootLocaleExcluded(false);
         textUnitSearcherParameters.setLocaleTags(localeTags);
-        textUnitSearcherParameters.setUsedFilter(usedFilter);
+        textUnitSearcherParameters.setUsedFilter(usedFilter); // only want used
         textUnitSearcherParameters.setStatusFilter(statusFilter);
         textUnitSearcherParameters.setDoNotTranslateFilter(doNotTranslateFilter);
         textUnitSearcherParameters.setTmTextUnitCreatedBefore(tmTextUnitCreatedBefore);
@@ -208,7 +206,7 @@ public class TextUnitWS {
 
     /**
      * Creates a TextUnit.
-     * <p>
+     *
      * Correspond to adding a new TMTextUnitVariant (new translation) in the
      * system and to create the TMTextUnitCurrentVariant (to make the new
      * translation current).
@@ -238,7 +236,7 @@ public class TextUnitWS {
 
     /**
      * Imports batch of text units.
-     * <p>
+     *
      * Note that the status of the text unit is not taken in account nor the included in localized file attribute. For
      * now, the integrity checker is always applied and is used to determine the
      * {@link TMTextUnitVariant.Status}. TODO later we want to change that to look at the status provided.
@@ -255,8 +253,7 @@ public class TextUnitWS {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
-            List<TextUnitDTO> textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>() {
-            });
+            List<TextUnitDTO>  textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>(){});
             importTextUnitsBatch.setTextUnits(textUnitDTOs);
         } catch (Exception e) {
             logger.debug("can't convert to list, try new formatTextUnitBatchImporterServiceTest", e);
@@ -277,7 +274,7 @@ public class TextUnitWS {
 
     /**
      * Deletes the TextUnit.
-     * <p>
+     *
      * Corresponds to removing the TmTextUnitCurrentVariant entry. This doesn't
      * remove the translation from the system, it just removes it from being the
      * current translation.
@@ -364,11 +361,37 @@ public class TextUnitWS {
         // text unit that are not blamed.
         // -> get used text units
         // -> get entries without blame
-        // -> optionaly fetch usages
+        // -> optionally fetch usages
 
 
         return null;
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textUnitWithUsage/gitInfo")
+    public void saveGitInfoForTextUnits (@RequestBody GitInfoForTextUnits gitInfoForTextUnits) {
+//           logger.debug("saveGitInfoForTextUnits");
+    }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textUnitWithUsage")
+    public List<TextUnitWithUsage> getTextUnitWithUsages(@RequestParam(value = "repositoryId", required = true) Long repositoryId) {
+
+        List<TextUnitWithUsage> textUnitWithUsages = new ArrayList<>();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repositoryId);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setForRootLocale(true);
+        textUnitSearcherParameters.setPluralFormsFiltered(false);
+        List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOS) {
+            AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(textUnitDTO.getAssetTextUnitId());
+            TextUnitWithUsage textUnitWithUsage = new TextUnitWithUsage();
+            textUnitWithUsage.setTextUnitName(assetTextUnit.getName());
+            textUnitWithUsage.setUsages(new ArrayList<>(assetTextUnit.getUsages())); // android will have no usages
+            textUnitWithUsage.setTextUnitId(textUnitDTO.getTmTextUnitId());
+            textUnitWithUsages.add(textUnitWithUsage);
+        }
+
+        return textUnitWithUsages;
+    }
 }

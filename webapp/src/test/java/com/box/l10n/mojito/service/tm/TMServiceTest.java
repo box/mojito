@@ -188,6 +188,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(md5Check, addTMTextUnit.getMd5());
         assertEquals(contentMd5Check, addTMTextUnit.getContentMd5());
         assertEquals(tmId, ((HibernateProxy) addTMTextUnit.getTm()).getHibernateLazyInitializer().getIdentifier());
+        assertNotNull(addTMTextUnit.getCreatedByUser());
 
         return addTMTextUnit.getId();
     }
@@ -250,6 +251,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(contentMD5, addCurrentTMTextUnitVariant.getContentMD5());
         assertEquals(localeId, ((HibernateProxy) addCurrentTMTextUnitVariant.getLocale()).getHibernateLazyInitializer().getIdentifier());
         assertEquals(tmTextUnitId, ((HibernateProxy) addCurrentTMTextUnitVariant.getTmTextUnit()).getHibernateLazyInitializer().getIdentifier());
+        assertNotNull(addCurrentTMTextUnitVariant.getCreatedByUser());
         return addCurrentTMTextUnitVariant;
     }
 
@@ -909,6 +911,7 @@ public class TMServiceTest extends ServiceTestBase {
         RepositoryLocale repoLocale;
         try {
             repoLocale = repositoryService.addRepositoryLocale(repo, "ja-JP");
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
         } catch (RepositoryLocaleCreationException e) {
             throw new RuntimeException(e);
         }
@@ -925,9 +928,11 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <item quantity=\"one\">%1$d people</item>\n"
                 + "    <item quantity=\"other\">%1$d people</item>\n"
                 + "  </plurals>\n"
+                + "  <plurals name=\"numberOfCollaborators3\">\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
                 + "</resources>";
-
-        String expectedLocalizedAsset = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        String expectedLocalizedAsset_jaJP = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<resources>\n"
                 + "  <!-- Example of plurals -->\n"
                 + "  <plurals name=\"numberOfCollaborators\">\n"
@@ -935,6 +940,26 @@ public class TMServiceTest extends ServiceTestBase {
                 + "  </plurals>\n"
                 + "  <!-- Example2 of plurals -->\n"
                 + "  <plurals name=\"numberOfCollaborators2\">\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <plurals name=\"numberOfCollaborators3\">\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "</resources>";
+        String expectedLocalizedAsset_enGB = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <!-- Example of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <!-- Example2 of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators2\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <plurals name=\"numberOfCollaborators3\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
                 + "    <item quantity=\"other\">%1$d people</item>\n"
                 + "  </plurals>\n"
                 + "</resources>";
@@ -957,13 +982,16 @@ public class TMServiceTest extends ServiceTestBase {
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
-            logger.debug("source=[{}]", textUnitDTO.getSource());
+            logger.debug("source [{}]=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
         }
 
-//        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
-        assertEquals(expectedLocalizedAsset, localizedAsset);
+        assertEquals(expectedLocalizedAsset_jaJP, localizedAsset);
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset_enGB, localizedAsset);
     }
 
     /**

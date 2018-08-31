@@ -31,7 +31,7 @@ import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
-import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
@@ -116,6 +116,9 @@ public class TMService {
     @Autowired
     TMXliffRepository tmXliffRepository;
 
+    @Autowired
+    AuditorAwareImpl auditorAwareImpl;
+
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
      *
@@ -175,6 +178,7 @@ public class TMService {
         tmTextUnit.setCreatedDate(createdDate);
         tmTextUnit.setPluralForm(puralForm);
         tmTextUnit.setPluralFormOther(pluralFormOther);
+        tmTextUnit.setCreatedByUser(auditorAwareImpl.getCurrentAuditor());
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
         logger.trace("TMTextUnit saved");
@@ -606,6 +610,7 @@ public class TMService {
         tmTextUnitVariant.setStatus(status);
         tmTextUnitVariant.setIncludedInLocalizedFile(includedInLocalizedFile);
         tmTextUnitVariant.setCreatedDate(createdDate);
+        tmTextUnitVariant.setCreatedByUser(auditorAwareImpl.getCurrentAuditor());
         tmTextUnitVariant = tmTextUnitVariantRepository.save(tmTextUnitVariant);
         logger.trace("TMTextUnitVariant saved");
 
@@ -1035,16 +1040,15 @@ public class TMService {
         PollableFutureTaskResult<String> pollableFutureTaskResult = new PollableFutureTaskResult<>();
 
         String xliff = exportAssetAsXLIFF(assetId, bcp47Tag);
-        String normalized = NormalizationUtils.normalize(xliff);
 
         TMXliff tmXliff = tmXliffRepository.findOne(tmXliffId);
         tmXliff.setAsset(assetRepository.findOne(assetId));
         tmXliff.setLocale(localeService.findByBcp47Tag(bcp47Tag));
-        tmXliff.setContent(normalized);
+        tmXliff.setContent(xliff);
         tmXliff.setPollableTask(currentTask);
         tmXliffRepository.save(tmXliff);
 
-        pollableFutureTaskResult.setResult(normalized);
+        pollableFutureTaskResult.setResult(xliff);
         return pollableFutureTaskResult;
     }
 
