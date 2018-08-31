@@ -243,9 +243,11 @@ public class GitBlameCommand extends Command {
      */
     TextUnitWithUsage getTextUnitNameFromLine(String line, List<TextUnitWithUsage> textUnitWithUsages) {
 
-        for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
-            if (line.contains(textUnitNameToStringInSourceFile(textUnitWithUsage.getTextUnitName()))) {
-                return textUnitWithUsage;
+        if (line != null) {
+            for (TextUnitWithUsage textUnitWithUsage : textUnitWithUsages) {
+                if (line.contains(textUnitNameToStringInSourceFile(textUnitWithUsage.getTextUnitName()))) {
+                    return textUnitWithUsage;
+                }
             }
         }
         return null;
@@ -261,7 +263,7 @@ public class GitBlameCommand extends Command {
 
         String stringInFile = textUnitName;
 
-        if (textUnitName.matches(".+_(zero|one|two|few|many|other)$"))
+        if (textUnitName != null && textUnitName.matches(".+_(zero|one|two|few|many|other)$"))
             stringInFile = textUnitName.split("_(zero|one|two|few|many|other)")[0];
 
         return stringInFile;
