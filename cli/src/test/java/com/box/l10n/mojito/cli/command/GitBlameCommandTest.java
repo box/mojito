@@ -105,13 +105,14 @@ public class GitBlameCommandTest extends CLITestBase {
 
     @Test
     public void getTextUnitName() {
-        String line = "<string name=\"something_new\">Something new</string>\n";
+        String lines[] = new String[]{"<string name=\"something_new\">Something new</string>\n",
+                "<plurals name=\"plural_things\">\n"};
         TextUnitWithUsage textUnitWithUsage1 = new TextUnitWithUsage();
         textUnitWithUsage1.setTextUnitName("something_new");
         TextUnitWithUsage textUnitWithUsage2 = new TextUnitWithUsage();
-        textUnitWithUsage1.setTextUnitName("plural_things_one");
+        textUnitWithUsage2.setTextUnitName("plural_things_one");
         TextUnitWithUsage textUnitWithUsage3 = new TextUnitWithUsage();
-        textUnitWithUsage1.setTextUnitName("plural_things_other");
+        textUnitWithUsage3.setTextUnitName("plural_things_other");
 
         List<TextUnitWithUsage> textUnitWithUsages = new ArrayList<>();
         textUnitWithUsages.add(textUnitWithUsage1);
@@ -120,7 +121,8 @@ public class GitBlameCommandTest extends CLITestBase {
 
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
-        assertEquals(textUnitWithUsages.get(0), gitBlameCommand.getTextUnitNameFromLine(line, textUnitWithUsages));
+        for (int i = 0; i < lines.length; i++)
+            assertEquals(textUnitWithUsages.get(i), gitBlameCommand.getTextUnitNameFromLine(lines[i], textUnitWithUsages));
     }
 
     @Test
