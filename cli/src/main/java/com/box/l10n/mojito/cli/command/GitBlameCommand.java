@@ -146,7 +146,7 @@ public class GitBlameCommand extends Command {
                 int line = getLineNumber(usage);
                 if (extractedFilePrefix != null)
                     filename = filename.replace(extractedFilePrefix, "");
-                // TODO: optimize for plural strings on same line
+                // TODO: optimize for plural strings on same line - don't need to blame multiple times
                 BlameResult blameResultForFile = getBlameResultForFile(filename);
                 gitInfoForTextUnitList.add(getBlameResults(line, blameResultForFile, textUnitWithUsage));
             }
@@ -188,7 +188,7 @@ public class GitBlameCommand extends Command {
     }
 
     /**
-     * Builds a git repository if current directory is within a git repo
+     * Builds a git repository if current directory is within a git repository
      * @return
      * @throws CommandException
      */
