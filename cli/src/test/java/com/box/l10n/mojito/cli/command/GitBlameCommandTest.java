@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author emagalindan
@@ -60,7 +58,7 @@ public class GitBlameCommandTest extends CLITestBase {
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
         for (int i = 0; i < lines.length; i++)
-            assertSame(textUnitWithUsages.get(i), gitBlameCommand.getTextUnitNameFromLine(lines[i], textUnitWithUsages));
+            assertEquals(textUnitWithUsages.get(i), gitBlameCommand.getTextUnitNameFromLine(lines[i], textUnitWithUsages));
     }
 
     @Test
