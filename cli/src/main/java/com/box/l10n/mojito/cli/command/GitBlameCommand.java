@@ -250,7 +250,6 @@ public class GitBlameCommand extends Command {
             }
         }
         return null;
-
     }
 
     /**
