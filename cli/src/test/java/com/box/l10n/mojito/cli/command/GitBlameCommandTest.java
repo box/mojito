@@ -3,10 +3,14 @@ package com.box.l10n.mojito.cli.command;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.entity.TextUnitWithUsage;
+import org.eclipse.jgit.blame.BlameGenerator;
 import org.eclipse.jgit.blame.BlameResult;
+import org.eclipse.jgit.diff.RawText;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.RawTargetAccess;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -62,9 +66,21 @@ public class GitBlameCommandTest extends CLITestBase {
     }
 
     @Test
+    public void getBlameResultForLine() throws Exception{
+        File sourceDirectory = getInputResourcesTestDir("source");
+        String filepath = sourceDirectory.toString() + "/res/values/strings.xml";
+
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+        gitBlameCommand.sourceDirectoryParam = filepath;
+        BlameResult blameResult = gitBlameCommand.getBlameResultForFile(filepath);
+        logger.info(blameResult.toString());
+    }
+
+    @Test
     public void getFileName() {
         assertEquals("file.js", GitBlameCommand.getFileName("file.js"));
         assertEquals("file.js", GitBlameCommand.getFileName("file.js:25"));
+        assertEquals("path/to/file.js", GitBlameCommand.getFileName("path/to/file.js"));
         assertEquals("path/to/file.js", GitBlameCommand.getFileName("path/to/file.js:25"));
     }
 
