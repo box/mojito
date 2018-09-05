@@ -53,7 +53,7 @@ public class SlaCheckerCronJob implements Job {
     public JobDetailFactoryBean jobDetailSlaCheckerCronJob() {
         JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
         jobDetailFactory.setJobClass(SlaCheckerCronJob.class);
-        jobDetailFactory.setDescription("Mark repository as out of data to later recompute stats");
+        jobDetailFactory.setDescription("Check for incident related to SLA");
         jobDetailFactory.setDurability(true);
         return jobDetailFactory;
     }
