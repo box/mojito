@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.RawTargetAccess;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,12 +69,34 @@ public class GitBlameCommandTest extends CLITestBase {
     @Test
     public void getBlameResultForLine() throws Exception{
         File sourceDirectory = getInputResourcesTestDir("source");
-        String filepath = sourceDirectory.toString() + "/res/values/strings.xml";
+        String filepath = sourceDirectory.toString();
+        logger.info(filepath);
+        String relativePath = "cli/src/test/resources/com/box/l10n/mojito/cli/command/GitBlameCommandTest/getBlameResultForLine/input/source/res/values/strings.xml";
 
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
         gitBlameCommand.sourceDirectoryParam = filepath;
-        BlameResult blameResult = gitBlameCommand.getBlameResultForFile(filepath);
+        BlameResult blameResult = gitBlameCommand.getBlameResultForFile(relativePath);
         logger.info(blameResult.toString());
+
+        int lineNumber = 3;
+
+        logger.info(blameResult.getSourceAuthor(lineNumber).getName());
+        logger.info(blameResult.getSourceAuthor(lineNumber).getEmailAddress());
+        logger.info(blameResult.getSourceCommit(lineNumber).toString());
+        logger.info(Integer.toString(blameResult.getSourceCommit(lineNumber).getCommitTime()));
+    }
+
+    @Test
+    public void blameAndroidStrings() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+        File sourceDirectory = getInputResourcesTestDir("source");
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", sourceDirectory.getAbsolutePath());
+
+        getL10nJCommander().run("git-blame", "-r", repository.getName(),
+                "-s", sourceDirectory.getAbsolutePath(),
+                "-ft", "ANDROID_STRINGS");
     }
 
     @Test
