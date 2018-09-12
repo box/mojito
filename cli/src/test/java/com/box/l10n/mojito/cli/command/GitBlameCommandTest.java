@@ -1,19 +1,13 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.entity.TextUnitWithUsage;
-import org.eclipse.jgit.blame.BlameGenerator;
 import org.eclipse.jgit.blame.BlameResult;
-import org.eclipse.jgit.diff.RawText;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.aop.RawTargetAccess;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
