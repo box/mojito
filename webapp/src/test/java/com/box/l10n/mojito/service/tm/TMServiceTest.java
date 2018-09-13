@@ -803,6 +803,11 @@ public class TMServiceTest extends ServiceTestBase {
      * <b>bold</b>, <i>italian</i> and <u>underline</u> should be in localized
      * file as-is.
      *
+     * Need to support use of &#8230; in Android resource files. Use of &#8230;
+     * instead of '…' (3 dots) for ellipsis has these benefits:
+     * 1) Accessibility: the talk back does not say dot dot dot
+     * 2) The OS will not introduce a return carriage in the middle of the dots
+     *
      * @throws Exception
      */
     @Test
@@ -823,6 +828,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string description=\"Example html markup string3\" name=\"welcome3\">Welcome to <u>Android</u>!</string>\n"
                 + "    <string name=\"subheader_text1\">\\\'Make sure you\\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
                 + "    <string name=\"subheader_text2\">\"This'll also work\"</string>\n"
+                + "    <string name=\"subheader_text3\">Filter by&#8230;</string>\n"
                 + "</resources>";
         asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
         asset = assetRepository.findOne(asset.getId());
