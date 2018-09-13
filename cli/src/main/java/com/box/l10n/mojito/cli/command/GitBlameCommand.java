@@ -146,7 +146,6 @@ public class GitBlameCommand extends Command {
                 int line = getLineNumber(usage);
                 if (extractedFilePrefix != null)
                     filename = filename.replace(extractedFilePrefix, "");
-                // TODO: optimize for plural strings on same line - don't need to blame multiple times
                 BlameResult blameResultForFile = getBlameResultForFile(filename);
                 gitInfoForTextUnitList.add(getBlameResults(line, blameResultForFile, textUnitWithUsage));
             }
@@ -155,7 +154,7 @@ public class GitBlameCommand extends Command {
     }
 
     /**
-     * Save information from git-blame
+     * Save text units information from git-blame
      * @param gitInfoForTextUnitList
      */
     private void saveGitInformation(List<GitInfoForTextUnit> gitInfoForTextUnitList) {
@@ -251,7 +250,6 @@ public class GitBlameCommand extends Command {
             }
         }
         return null;
-
     }
 
     /**
