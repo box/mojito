@@ -64,6 +64,7 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
             replacement = "<$2$3>";
         }
         text = ANDROID_HTML.matcher(text).replaceAll(replacement);
+        text = text.replace("…", "&#8230;");
         text = text.replaceAll("\n", "\\\\n");
         text = text.replaceAll("\r", "\\\\r");
         text = escapeDoubleQuotes(text);
