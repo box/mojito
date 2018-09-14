@@ -100,7 +100,7 @@ public class GitBlameServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testgetGitBlameWithUsagesByTmTextUnitIdRemovesDupplicates() {
+    public void testgetGitBlameWithUsagesByTmTextUnitIdRemovesDuplicates() {
 
         List<GitBlameWithUsage> gitBlameWithUsages = new ArrayList<>();
 
