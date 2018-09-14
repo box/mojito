@@ -13,7 +13,8 @@ public enum IntegrityCheckerType {
     COMPOSITE_FORMAT(CompositeFormatIntegrityChecker.class.getName()),
     WHITESPACE(WhitespaceIntegrityChecker.class.getName()),
     TRAILING_WHITESPACE(TrailingWhitespaceIntegrityChecker.class.getName()),
-    HTML_TAG(HtmlTagIntegrityChecker.class.getName());
+    HTML_TAG(HtmlTagIntegrityChecker.class.getName()),
+    ELLIPSIS(EllipsisIntegrityChecker.class.getName());
 
     String className;
 

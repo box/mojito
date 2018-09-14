@@ -13,5 +13,6 @@ public enum IntegrityCheckerType {
     COMPOSITE_FORMAT,
     WHITESPACE,
     TRAILING_WHITESPACE,
-    HTML_TAG;
+    HTML_TAG,
+    ELLIPSIS;
 }
