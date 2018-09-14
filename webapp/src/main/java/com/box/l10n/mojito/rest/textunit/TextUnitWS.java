@@ -84,7 +84,7 @@ public class TextUnitWS {
 
     /**
      * Gets the TextUnits that matches the search parameters.
-     * <p>
+     *
      * It uses a filter logic. The dataset will be filtered down as more
      * criteria are specified (search for specific locales, string
      * name|target|source, etc).
@@ -155,14 +155,14 @@ public class TextUnitWS {
             @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
             @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
-            @RequestParam(value = "tmTextUnitCreatedBe                                                           fore", required = false) DateTime tmTextUnitCreatedBefore,
-            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTExtunitCreatedAfter) throws InvalidTextUnitSearchParameterException {
+            @RequestParam(value = "tmTextUnitCreatedBefore", required = false) DateTime tmTextUnitCreatedBefore,
+            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTextUnitCreatedAfter) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(
                 repositoryIds, repositoryNames, name, source, target,
                 assetPath, pluralFormOther, pluralFormFiltered, searchType,
                 localeTags, usedFilter, statusFilter, doNotTranslateFilter,
-                tmTextUnitCreatedBefore, tmTExtunitCreatedAfter);
+                tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
 
         TextUnitAndWordCount countTextUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
         return countTextUnitAndWordCount;
@@ -211,7 +211,7 @@ public class TextUnitWS {
 
     /**
      * Creates a TextUnit.
-     * <p>
+     *
      * Correspond to adding a new TMTextUnitVariant (new translation) in the
      * system and to create the TMTextUnitCurrentVariant (to make the new
      * translation current).
@@ -241,7 +241,7 @@ public class TextUnitWS {
 
     /**
      * Imports batch of text units.
-     * <p>
+     *
      * Note that the status of the text unit is not taken in account nor the included in localized file attribute. For
      * now, the integrity checker is always applied and is used to determine the
      * {@link TMTextUnitVariant.Status}. TODO later we want to change that to look at the status provided.
@@ -280,7 +280,7 @@ public class TextUnitWS {
 
     /**
      * Deletes the TextUnit.
-     * <p>
+     *
      * Corresponds to removing the TmTextUnitCurrentVariant entry. This doesn't
      * remove the translation from the system, it just removes it from being the
      * current translation.
@@ -382,15 +382,15 @@ public class TextUnitWS {
      * @param gitBlameWithUsages
      * @return
      */
-    @RequestMapping(method = RequestMethod.POST, value = "/api/textUnits/gitBlameWithUsagesBatch")
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/gitBlameWithUsagesBatch")
     public PollableTask saveGitBlameWithUsages(@RequestBody List<GitBlameWithUsage> gitBlameWithUsages) {
         logger.debug("saveGitBlameWithUsages");
         PollableFuture pollableFuture = gitBlameService.saveGitBlameWithUsages(gitBlameWithUsages);
         return pollableFuture.getPollableTask();
     }
 
-    void checkRepositoryParameters(@RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
-                                   @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames) throws InvalidTextUnitSearchParameterException {
+    void checkRepositoryParameters(ArrayList<Long> repositoryIds,
+                                   ArrayList<String> repositoryNames) throws InvalidTextUnitSearchParameterException {
         if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames)) {
             throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
         }
