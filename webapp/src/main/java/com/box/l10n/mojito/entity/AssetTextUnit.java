@@ -3,16 +3,9 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import java.util.Set;
-import javax.persistence.CollectionTable;
+import javax.persistence.*;
+
 import org.springframework.data.annotation.CreatedBy;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 /**
  * @author wyau
@@ -64,7 +57,7 @@ public class AssetTextUnit extends AuditableEntity {
     @Column(name = "plural_form_other", length = Integer.MAX_VALUE)
     protected String pluralFormOther;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "asset_text_unit_usages",
             joinColumns = @JoinColumn(name = "asset_text_unit_id"), foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT_USAGES__ASSET_TEXT_UNIT__ID"))
     private Set<String> usages;
