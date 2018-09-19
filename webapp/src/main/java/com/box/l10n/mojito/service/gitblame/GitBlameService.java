@@ -162,10 +162,15 @@ public class GitBlameService {
                 logger.debug("Found GitBlame for tmTextUnitId: {}, update", tmTextUnitId);
             }
 
-            gitBlame.setAuthorEmail(gitBlameWithUsage.getGitBlame().getAuthorEmail());
-            gitBlame.setAuthorName(gitBlameWithUsage.getGitBlame().getAuthorName());
-            gitBlame.setCommitName(gitBlameWithUsage.getGitBlame().getCommitName());
-            gitBlame.setCommitTime(gitBlameWithUsage.getGitBlame().getCommitTime());
+
+            GitBlame gitBlameFromInput = gitBlameWithUsage.getGitBlame();
+
+            if (gitBlameFromInput != null) {
+                gitBlame.setAuthorEmail(gitBlameFromInput.getAuthorEmail());
+                gitBlame.setAuthorName(gitBlameFromInput.getAuthorName());
+                gitBlame.setCommitName(gitBlameFromInput.getCommitName());
+                gitBlame.setCommitTime(gitBlameFromInput.getCommitTime());
+            }
 
             gitBlameRepository.save(gitBlame);
         }
