@@ -132,7 +132,6 @@ public class GitBlameCommandTest extends CLITestBase {
             assertEquals(expectedEmail, actualAuthor.getEmailAddress());
             assertEquals(expectedSourceCommit, actualCommit.toString());
             assertEquals(expectedTime, actualCommit.getCommitTime());
-
         }
     }
 
