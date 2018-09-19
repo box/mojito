@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,23 +14,25 @@ import java.util.Map;
  * @author emagalindan
  */
 @Component
-public class TextUnitWithUsageClient extends BaseClient {
+public class GitBlameWithUsageClient extends BaseClient {
 
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(TextUnitWithUsageClient.class);
+    static Logger logger = LoggerFactory.getLogger(GitBlameWithUsageClient.class);
 
     @Override
     public String getEntityName() {
         return "textunits";
     }
 
-    public List<GitBlameWithUsage> getTextUnitToBlame(Long repositoryId) {
+    public List<GitBlameWithUsage> getGitBlameWithUsages(Long repositoryId, Integer offset, Integer batchSize) {
 
         Map<String, String> filterParams = new HashMap<>();
 
         filterParams.put("repositoryIds[]", repositoryId.toString());
+        filterParams.put("offset", offset.toString());
+        filterParams.put("limit", batchSize.toString());
 
         return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
                 getBasePathForEntity() + "/gitBlameWithUsages",

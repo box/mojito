@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.lib.PersonIdent;
@@ -29,15 +28,17 @@ public class GitBlameCommandTest extends CLITestBase {
 
     @Test
     public void getStringInSourceFile() {
-        assertEquals("test", GitBlameCommand.textUnitNameToStringInSourceFile("test"));
-        assertEquals("test", GitBlameCommand.textUnitNameToStringInSourceFile("test_zero"));
-        assertEquals("test", GitBlameCommand.textUnitNameToStringInSourceFile("test_one"));
-        assertEquals("test", GitBlameCommand.textUnitNameToStringInSourceFile("test_two"));
-        assertEquals("test", GitBlameCommand.textUnitNameToStringInSourceFile("test_few"));
-        assertEquals("test", GitBlameCommand.textUnitNameToStringInSourceFile("test_many"));
-        assertEquals("test", GitBlameCommand.textUnitNameToStringInSourceFile("test_other"));
-        assertEquals("test_test", GitBlameCommand.textUnitNameToStringInSourceFile("test_test"));
-        assertEquals("test_test", GitBlameCommand.textUnitNameToStringInSourceFile("test_test_one"));
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+
+        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test"));
+        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_zero"));
+        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_one"));
+        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_two"));
+        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_few"));
+        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_many"));
+        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_other"));
+        assertEquals("test_test", gitBlameCommand.textUnitNameToStringInSourceFile("test_test"));
+        assertEquals("test_test", gitBlameCommand.textUnitNameToStringInSourceFile("test_test_one"));
     }
 
     @Test
@@ -57,7 +58,7 @@ public class GitBlameCommandTest extends CLITestBase {
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
         for (int i = 0; i < lines.length; i++) {
-            List<GitBlameWithUsage> gitBlameWithUsages = gitBlameCommand.getTextUnitNameFromLine(lines[i], textUnitWithUsages);
+            List<GitBlameWithUsage> gitBlameWithUsages = gitBlameCommand.getGitBlameWithUsagesFromLine(lines[i], textUnitWithUsages);
             assertEquals(textUnitWithUsages.get(i), gitBlameWithUsages.get(0));
             assertEquals(1, gitBlameWithUsages.size());
         }
@@ -88,7 +89,7 @@ public class GitBlameCommandTest extends CLITestBase {
         gitBlameWithUsagesExpected.add(gitBlameWithUsage_other);
 
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
-        List<GitBlameWithUsage> gitBlameWithUsagesActual = gitBlameCommand.getTextUnitNameFromLine(line, gitBlameWithUsagesExpected);
+        List<GitBlameWithUsage> gitBlameWithUsagesActual = gitBlameCommand.getGitBlameWithUsagesFromLine(line, gitBlameWithUsagesExpected);
 
         for (int i = 0; i < gitBlameWithUsagesActual.size(); i++)
             assertEquals(gitBlameWithUsagesExpected.get(i), gitBlameWithUsagesActual.get(i));
@@ -123,8 +124,8 @@ public class GitBlameCommandTest extends CLITestBase {
         // Will not hold up if file is committed by another person and/or at another time
         String expectedAuthor = "Liz Magalindan";
         String expectedEmail = "emagalindan@pinterest.com";
-        String expectedSourceCommit = "commit 1c4fbebc205ca0f4033f9215e52de46e2c86ca96 1537294189 -----p";
-        int expectedTime = 1537294189;
+        String expectedSourceCommit = "commit bdec8c2b5049a3ff62d0a826a7484f6824c4f716 1537378054 -----p";
+        int expectedTime = 1537378054;
         for (int lineNumber = 0; lineNumber < blameResult.getResultContents().size(); lineNumber++) {
             PersonIdent actualAuthor = blameResult.getSourceAuthor(lineNumber);
             RevCommit actualCommit = blameResult.getSourceCommit(lineNumber);
@@ -137,16 +138,20 @@ public class GitBlameCommandTest extends CLITestBase {
 
     @Test
     public void getFileName() {
-        assertEquals("file.js", GitBlameCommand.getFileName("file.js"));
-        assertEquals("file.js", GitBlameCommand.getFileName("file.js:25"));
-        assertEquals("path/to/file.js", GitBlameCommand.getFileName("path/to/file.js"));
-        assertEquals("path/to/file.js", GitBlameCommand.getFileName("path/to/file.js:25"));
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+
+        assertEquals("file.js", gitBlameCommand.getFileName("file.js"));
+        assertEquals("file.js", gitBlameCommand.getFileName("file.js:25"));
+        assertEquals("path/to/file.js", gitBlameCommand.getFileName("path/to/file.js"));
+        assertEquals("path/to/file.js", gitBlameCommand.getFileName("path/to/file.js:25"));
     }
 
     @Test
     public void getFileLine() throws Exception {
-        assertEquals(24, GitBlameCommand.getLineNumber("file.js:25"));
-        assertEquals(24, GitBlameCommand.getLineNumber("path/to/file.js:25"));
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+
+        assertEquals(24, gitBlameCommand.getLineNumber("file.js:25"));
+        assertEquals(24, gitBlameCommand.getLineNumber("path/to/file.js:25"));
     }
 
 }
