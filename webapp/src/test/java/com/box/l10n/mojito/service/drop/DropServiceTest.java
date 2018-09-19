@@ -686,7 +686,7 @@ public class DropServiceTest extends ServiceTestBase {
     public void testCancelDropException() throws DropExporterException, ExecutionException, InterruptedException, CancelDropException {
 
         DropService dropServiceSpy = spy(dropService);
-        doReturn(false).when(dropServiceSpy).isDropBeingProcessed(any(Drop.class));
+        doReturn(true).when(dropServiceSpy).isDropBeingProcessed(any(Drop.class));
 
         TMTestData tmTestData = new TMTestData(testIdWatcher);
 
