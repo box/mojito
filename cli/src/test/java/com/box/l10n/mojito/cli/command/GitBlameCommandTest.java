@@ -123,9 +123,9 @@ public class GitBlameCommandTest extends CLITestBase {
 
         // Will not hold up if file is committed by another person and/or at another time
         String expectedAuthor = "Liz Magalindan";
-        String expectedEmail = "emagalindan@pinterest.com";
-        String expectedSourceCommit = "commit bdec8c2b5049a3ff62d0a826a7484f6824c4f716 1537378054 -----p";
-        int expectedTime = 1537378054;
+        String expectedEmail = "256@holbertonschool.com";
+        String expectedSourceCommit = "commit 88025e7b8b0f5d0f12f90c4ed9f86623074bc2ee 1537477876 -----p";
+        int expectedTime = 1537477876;
         for (int lineNumber = 0; lineNumber < blameResult.getResultContents().size(); lineNumber++) {
             PersonIdent actualAuthor = blameResult.getSourceAuthor(lineNumber);
             RevCommit actualCommit = blameResult.getSourceCommit(lineNumber);
