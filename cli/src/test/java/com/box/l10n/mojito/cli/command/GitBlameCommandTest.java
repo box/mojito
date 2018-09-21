@@ -60,8 +60,8 @@ public class GitBlameCommandTest extends CLITestBase {
 
         gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
         for (com.box.l10n.mojito.service.gitblame.GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
-            assertEquals("ac7a38832e824cf56632c79fd45068100b55dba6", gitBlameWithUsage.getGitBlame().getCommitName());
-            assertEquals("1537489764", gitBlameWithUsage.getGitBlame().getCommitTime());
+            assertEquals("37801193683d2e852a8a2b81e6dd05ca9ed13598", gitBlameWithUsage.getGitBlame().getCommitName());
+            assertEquals("1537568049", gitBlameWithUsage.getGitBlame().getCommitTime());
             assertEquals("Jean Aurambault", gitBlameWithUsage.getGitBlame().getAuthorName());
             assertEquals("aurambaj@users.noreply.github.com", gitBlameWithUsage.getGitBlame().getAuthorEmail());
         }
