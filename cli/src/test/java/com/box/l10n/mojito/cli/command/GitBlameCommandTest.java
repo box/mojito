@@ -1,19 +1,29 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
+import com.box.l10n.mojito.service.gitblame.GitBlameService;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -25,6 +35,38 @@ public class GitBlameCommandTest extends CLITestBase {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(GitBlameCommandTest.class);
+
+    @Autowired
+    GitBlameService gitBlameService;
+
+    @Test
+    public void android() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+        File sourceDirectory = getInputResourcesTestDir("source");
+
+        logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", sourceDirectory.getAbsolutePath());
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        List<com.box.l10n.mojito.service.gitblame.GitBlameWithUsage> gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
+
+        for (com.box.l10n.mojito.service.gitblame.GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+            assertNull(gitBlameWithUsage.getGitBlame());
+        }
+
+        getL10nJCommander().run("git-blame", "-r", repository.getName(), "-s", sourceDirectory.getAbsolutePath());
+
+        gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
+        for (com.box.l10n.mojito.service.gitblame.GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+            assertEquals("ac7a38832e824cf56632c79fd45068100b55dba6", gitBlameWithUsage.getGitBlame().getCommitName());
+            assertEquals("1537489764", gitBlameWithUsage.getGitBlame().getCommitTime());
+            assertEquals("Jean Aurambault", gitBlameWithUsage.getGitBlame().getAuthorName());
+            assertEquals("aurambaj@users.noreply.github.com", gitBlameWithUsage.getGitBlame().getAuthorEmail());
+        }
+    }
+
 
     @Test
     public void getStringInSourceFile() {
@@ -124,14 +166,14 @@ public class GitBlameCommandTest extends CLITestBase {
         // Will not hold up if file is committed by another person and/or at another time
         String expectedAuthor = "Liz Magalindan";
         String expectedEmail = "256@holbertonschool.com";
-        String expectedSourceCommit = "commit 88025e7b8b0f5d0f12f90c4ed9f86623074bc2ee 1537477876 -----p";
+        String expectedSourceCommit = "88025e7b8b0f5d0f12f90c4ed9f86623074bc2ee";
         int expectedTime = 1537477876;
         for (int lineNumber = 0; lineNumber < blameResult.getResultContents().size(); lineNumber++) {
             PersonIdent actualAuthor = blameResult.getSourceAuthor(lineNumber);
             RevCommit actualCommit = blameResult.getSourceCommit(lineNumber);
             assertEquals(expectedAuthor, actualAuthor.getName());
             assertEquals(expectedEmail, actualAuthor.getEmailAddress());
-            assertEquals(expectedSourceCommit, actualCommit.toString());
+            assertEquals(expectedSourceCommit, actualCommit.getName());
             assertEquals(expectedTime, actualCommit.getCommitTime());
         }
     }

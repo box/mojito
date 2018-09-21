@@ -86,7 +86,7 @@ public class CLITestBase extends IOTestBase {
 
     @Autowired
     AssetRepository assetRepository;
-    
+
     @Autowired
     TextUnitSearcher textUnitSearcher;
 
@@ -144,7 +144,7 @@ public class CLITestBase extends IOTestBase {
             TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
             textUnitSearcherParameters.setAssetId(assetId);
             textUnitSearcherParameters.setLocaleTags(Arrays.asList("en"));
-            
+
             List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
             for (TextUnitDTO textUnitDTO : search) {
                 logger.info("name[{}], source[{}], target[{}], comment[{}]", textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getTarget(), textUnitDTO.getComment());

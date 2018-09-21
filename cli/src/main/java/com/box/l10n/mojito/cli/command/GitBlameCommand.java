@@ -31,6 +31,8 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.fusesource.jansi.Ansi.Color.CYAN;
+
 /**
  * @author jaurambault
  */
@@ -89,7 +91,7 @@ public class GitBlameCommand extends Command {
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam);
 
-        consoleWriter.newLine().a("Git blame for repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
+        consoleWriter.newLine().a("Git blame for repository: ").fg(CYAN).a(repositoryParam).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
@@ -147,13 +149,17 @@ public class GitBlameCommand extends Command {
             Path sourceRelativePath = getGitRepository().getDirectory().getParentFile().toPath().relativize(sourceFileMatch.getPath());
             BlameResult blameResultForFile = getBlameResultForFile(sourceRelativePath.toString());
 
-            for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
-                String lineText = blameResultForFile.getResultContents().getString(i);
+            if (blameResultForFile != null) {
+                for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
+                    String lineText = blameResultForFile.getResultContents().getString(i);
 
-                List<GitBlameWithUsage> gitBlameWithUsageList = getGitBlameWithUsagesFromLine(lineText, gitBlameWithUsages);
-                for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsageList) {
-                    getBlameResults(i, blameResultForFile, gitBlameWithUsage);
+                    List<GitBlameWithUsage> gitBlameWithUsageList = getGitBlameWithUsagesFromLine(lineText, gitBlameWithUsages);
+                    for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsageList) {
+                        getBlameResults(i, blameResultForFile, gitBlameWithUsage);
+                    }
                 }
+            } else {
+                consoleWriter.a("Source file:").fg(CYAN).a(sourceRelativePath.toString()).reset().a(" not in Git. Skip it.");
             }
         }
 
@@ -203,7 +209,7 @@ public class GitBlameCommand extends Command {
 
         gitBlame.setAuthorName(blameResultForFile.getSourceAuthor(lineNumber).getName());
         gitBlame.setAuthorEmail(blameResultForFile.getSourceAuthor(lineNumber).getEmailAddress());
-        gitBlame.setCommitName(blameResultForFile.getSourceCommit(lineNumber).toString());
+        gitBlame.setCommitName(blameResultForFile.getSourceCommit(lineNumber).getName());
         gitBlame.setCommitTime(Integer.toString(blameResultForFile.getSourceCommit(lineNumber).getCommitTime()));
     }
 
