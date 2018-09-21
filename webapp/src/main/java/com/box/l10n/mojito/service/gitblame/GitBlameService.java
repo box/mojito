@@ -140,8 +140,8 @@ public class GitBlameService {
      * @param gitBlameWithUsages
      * @return
      */
-    @Pollable(async = true, message = "Save git blame information")
     @Transactional
+    @Pollable(async = true, message = "Save git blame information")
     public PollableFuture saveGitBlameWithUsages(List<GitBlameWithUsage> gitBlameWithUsages) {
 
         HashMap<Long, GitBlameWithUsage> gitBlameWithUsagesByTmTextUnitId = getGitBlameWithUsagesByTmTextUnitId(gitBlameWithUsages);
