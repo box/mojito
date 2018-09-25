@@ -2,12 +2,9 @@ package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
 import com.box.l10n.mojito.service.gitblame.GitBlameService;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -19,8 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -64,6 +59,36 @@ public class GitBlameCommandTest extends CLITestBase {
             assertEquals("1537568049", gitBlameWithUsage.getGitBlame().getCommitTime());
             assertEquals("Jean Aurambault", gitBlameWithUsage.getGitBlame().getAuthorName());
             assertEquals("aurambaj@users.noreply.github.com", gitBlameWithUsage.getGitBlame().getAuthorEmail());
+        }
+    }
+
+    @Test
+    public void poFile() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+        File sourceDirectory = getInputResourcesTestDir("source");
+
+        logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", sourceDirectory.getAbsolutePath());
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        List<com.box.l10n.mojito.service.gitblame.GitBlameWithUsage> gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
+
+        for (com.box.l10n.mojito.service.gitblame.GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+            assertNull(gitBlameWithUsage.getGitBlame());
+        }
+
+        getL10nJCommander().run("git-blame", "-r", repository.getName(),
+                "-s", sourceDirectory.getAbsolutePath(),
+                "-ft", "po");
+
+        gitBlameWithUsages = gitBlameService.getGitBlameWithUsages(textUnitSearcherParameters);
+        for (com.box.l10n.mojito.service.gitblame.GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+            assertEquals("1a86b8a2003f4d20858bfb53770119f039520f79", gitBlameWithUsage.getGitBlame().getCommitName());
+            assertEquals("1537572147", gitBlameWithUsage.getGitBlame().getCommitTime());
+            assertEquals("Liz Magalindan", gitBlameWithUsage.getGitBlame().getAuthorName());
+            assertEquals("emagalindan@pinterest.com", gitBlameWithUsage.getGitBlame().getAuthorEmail());
         }
     }
 
