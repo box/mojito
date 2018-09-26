@@ -14,9 +14,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditorAwareImpl implements AuditorAware<User> {
 
-    @Autowired
-    UserRepository userRepository;
-
     @Override
     public User getCurrentAuditor() {
 
