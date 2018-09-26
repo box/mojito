@@ -35,7 +35,7 @@ class SearchParamsStore {
         this.unUsed = false;
         
         this.translate = true;
-        this.doNotTranslate = false;
+        this.doNotTranslate = true;
         
         this.tmTextUnitCreatedBefore = null;
         
