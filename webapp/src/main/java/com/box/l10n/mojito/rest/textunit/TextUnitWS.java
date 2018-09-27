@@ -185,7 +185,9 @@ public class TextUnitWS {
             DateTime tmTextUnitCreatedBefore,
             DateTime tmTextUnitCreatedAfter) throws InvalidTextUnitSearchParameterException {
 
-        checkRepositoryParameters(repositoryIds, repositoryNames);
+        if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames)) {
+            throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
+        }
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
@@ -338,8 +340,9 @@ public class TextUnitWS {
      * It uses a filter logic. The dataset will be filtered down as more
      * criteria are specified.
      *
-     * @param repositoryIds           mandatory if repositoryNames not provided
-     * @param repositoryNames         mandatory if repositoryIds not provided
+     * @param repositoryIds           mandatory if repositoryNames or tmTextUnitId not provided
+     * @param repositoryNames         mandatory if repositoryIds or tmTextUnitId  not provided
+     * @param tmTextUnitId            mandatory if repositoryIds or repositoryNames not provided
      * @param usedFilter              optional
      * @param statusFilter            optional
      * @param doNotTranslateFilter    optional
@@ -351,6 +354,7 @@ public class TextUnitWS {
     @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/gitBlameWithUsages")
     public List<GitBlameWithUsage> getGitBlameWithUsages(@RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
                                                          @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames,
+                                                         @RequestParam(value = "tmTextUnitId", required = false) Long tmTextUnitId,
                                                          @RequestParam(value = "usedFilter", required = false) UsedFilter usedFilter,
                                                          @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
                                                          @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
@@ -358,11 +362,15 @@ public class TextUnitWS {
                                                          @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
         logger.debug("getGitBlameWithUsages");
-        checkRepositoryParameters(repositoryIds, repositoryNames);
+
+        if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames) && tmTextUnitId == null) {
+            throw new InvalidTextUnitSearchParameterException("Repository ids, repository names or tmTextUnitId must be provided");
+        }
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repositoryIds);
         textUnitSearcherParameters.setRepositoryNames(repositoryNames);
+        textUnitSearcherParameters.setTmTextUnitId(tmTextUnitId);
         textUnitSearcherParameters.setUsedFilter(usedFilter);
         textUnitSearcherParameters.setStatusFilter(statusFilter);
         textUnitSearcherParameters.setDoNotTranslateFilter(doNotTranslateFilter);
@@ -387,12 +395,5 @@ public class TextUnitWS {
         logger.debug("saveGitBlameWithUsages");
         PollableFuture pollableFuture = gitBlameService.saveGitBlameWithUsages(gitBlameWithUsages);
         return pollableFuture.getPollableTask();
-    }
-
-    void checkRepositoryParameters(ArrayList<Long> repositoryIds,
-                                   ArrayList<String> repositoryNames) throws InvalidTextUnitSearchParameterException {
-        if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames)) {
-            throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
-        }
     }
 }
