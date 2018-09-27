@@ -168,7 +168,8 @@ public class GitBlameCommandTest extends CLITestBase {
         String filepath = sourceDirectory.getAbsolutePath();
 
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
-        gitBlameCommand.sourceDirectoryParam = filepath;
+        gitBlameCommand.commandDirectories = new CommandDirectories(filepath);
+
 
         org.eclipse.jgit.lib.Repository repository = gitBlameCommand.getGitRepository();
 
@@ -182,7 +183,8 @@ public class GitBlameCommandTest extends CLITestBase {
         String filepath = sourceDirectory.getAbsolutePath();
 
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
-        gitBlameCommand.sourceDirectoryParam = filepath;
+        gitBlameCommand.commandDirectories = new CommandDirectories(filepath);
+
         org.eclipse.jgit.lib.Repository repository = gitBlameCommand.getGitRepository();
         String relativePath = repository.getDirectory().toPath().getParent().relativize(sourceDirectory.toPath()).toString();
         relativePath = relativePath + "/res/values/strings.xml";

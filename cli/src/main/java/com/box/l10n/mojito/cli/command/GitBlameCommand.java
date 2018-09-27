@@ -225,7 +225,7 @@ public class GitBlameCommand extends Command {
 
             try {
                 gitRepository = builder
-                        .findGitDir(new File(sourceDirectoryParam))
+                        .findGitDir(new File(commandDirectories.getSourceDirectoryPath().toString()))
                         .readEnvironment()
                         .build();
             } catch (IOException ioe) {
