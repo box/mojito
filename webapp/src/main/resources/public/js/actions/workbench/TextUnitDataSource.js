@@ -2,6 +2,7 @@ import Error from "../../utils/Error";
 import TextUnitError from "../../utils/TextUnitError";
 import TextUnitClient from "../../sdk/TextUnitClient";
 import WorkbenchActions from "./WorkbenchActions";
+import GitBlameActions from "./GitBlameActions";
 
 const TextUnitDataSource = {
     performSaveTextUnit: {
@@ -51,6 +52,14 @@ const TextUnitDataSource = {
         },
         success: WorkbenchActions.saveVirtualAssetTextUnitSuccess,
         error: WorkbenchActions.saveVirtualAssetTextUnitError
+    },
+
+    getGitBlameInfo: {
+        remote(gitBlameStoreState, textUnit) {
+            return TextUnitClient.getGitBlameInfo(textUnit);
+        },
+        success: GitBlameActions.getGitBlameInfoSuccess,
+        error: GitBlameActions.getGitBlameInfoError
     }
 };
 

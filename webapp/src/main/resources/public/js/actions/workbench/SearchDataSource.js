@@ -50,7 +50,7 @@ const SearchDataSource = {
             }
 
             if (!searchParams.translate && !searchParams.doNotTranslate) {
-                returnEmptry = true;
+                returnEmpty = true;
             } else if (searchParams.translate && !searchParams.doNotTranslate) {
                 textUnitSearcherParameters.doNotTranslateFilter(false);
             } else if (!searchParams.translate && searchParams.doNotTranslate) {
