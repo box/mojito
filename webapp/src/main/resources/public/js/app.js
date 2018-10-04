@@ -6,6 +6,7 @@ import {Router, Route, IndexRoute, useRouterHistory} from "react-router";
 import { createHistory } from 'history'
         import {Modal, Button} from "react-bootstrap";
 import {FormattedMessage, IntlProvider, addLocaleData} from "react-intl";
+import {AppConfig} from "./utils/AppConfig";
 import App from "./components/App";
 import BaseClient from "./sdk/BaseClient";
 import Main from "./components/Main";
@@ -97,28 +98,30 @@ function startApp(messages) {
     }
 
     ReactDOM.render(
-            <IntlProvider locale={LOCALE} messages={messages}>
-                <Router history={browserHistory}>
-                    <Route component={Main}>
-                        <Route path="/" component={App}
-                            onEnter={onEnterRoot}>
-                            <Route path="workbench" component={Workbench} 
-                                   onEnter={getAllRepositoriesDeffered}
-                                   onLeave={onLeaveWorkbench}/>
-                            <Route path="repositories" component={Repositories}
-                                   onEnter={getAllRepositoriesDeffered}/>
-                            <Route path="project-requests" component={Drops}/>
-                            <Route path="screenshots" component={ScreenshotsPage} 
-                                   onEnter={onEnterScreenshots}
-                                   onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
-                            <Route path="settings" component={Settings}/>
-                            <IndexRoute component={Repositories}/>
+            <AppConfig appConfig={APP_CONFIG}>
+                <IntlProvider locale={LOCALE} messages={messages}>
+                    <Router history={browserHistory}>
+                        <Route component={Main}>
+                            <Route path="/" component={App}
+                                onEnter={onEnterRoot}>
+                                <Route path="workbench" component={Workbench}
+                                       onEnter={getAllRepositoriesDeffered}
+                                       onLeave={onLeaveWorkbench}/>
+                                <Route path="repositories" component={Repositories}
+                                       onEnter={getAllRepositoriesDeffered}/>
+                                <Route path="project-requests" component={Drops}/>
+                                <Route path="screenshots" component={ScreenshotsPage}
+                                       onEnter={onEnterScreenshots}
+                                       onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
+                                <Route path="settings" component={Settings}/>
+                                <IndexRoute component={Repositories}/>
+                            </Route>
+                            <Route path="login" component={Login}></Route>
                         </Route>
-                        <Route path="login" component={Login}></Route>
-                    </Route>
-            
-                </Router>
-            </IntlProvider>
+
+                    </Router>
+                </IntlProvider>
+            </AppConfig>
             , document.getElementById("app")
             );
 
