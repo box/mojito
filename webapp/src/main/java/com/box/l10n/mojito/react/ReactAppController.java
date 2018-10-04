@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.react;
 
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.security.CsrfTokenController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,6 +51,12 @@ public class ReactAppController {
 
     @Autowired
     CsrfTokenController csrfTokenController;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    ReactAppConfig reactAppConfig;
     
     @Value("${server.contextPath:}")
     String contextPath = "";
@@ -75,6 +83,7 @@ public class ReactAppController {
         index.addObject("csrfToken", csrfTokenController.getCsrfToken(httpServletRequest));
         index.addObject("username", getUsername());
         index.addObject("contextPath", contextPath);
+        index.addObject("appConfig", objectMapper.writeValueAsStringUnsafe(reactAppConfig));
 
         return index;
     }
