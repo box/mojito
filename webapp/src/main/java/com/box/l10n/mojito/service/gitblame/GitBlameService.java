@@ -111,6 +111,7 @@ public class GitBlameService {
         for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
             gitBlameWithUsage.setGitBlame(currentGitBlameForTmTextUnitIds.get(gitBlameWithUsage.getTmTextUnitId()));
         }
+        logger.debug("End enrich text unit with git info");
     }
 
     void enrichTextUnitsWithUsages(List<GitBlameWithUsage> gitBlameWithUsages) {
@@ -130,6 +131,8 @@ public class GitBlameService {
             GitBlameWithUsage gitBlameWithUsage = assetTextUnitIdToGitBlameWithUsage.get(assetTextUnit.getId());
             gitBlameWithUsage.setUsages(assetTextUnit.getUsages());
         }
+
+        logger.debug("End enrich text unit with usages");
     }
 
     /**
@@ -183,8 +186,14 @@ public class GitBlameService {
 
         List<GitBlame> byTmTextUnitIdIn = gitBlameRepository.findByTmTextUnitIdIn(tmTextUnitIds);
 
+        int i = 0;
         for (GitBlame gitBlame : byTmTextUnitIdIn) {
-            gitBlameMap.put(gitBlame.getTmTextUnit().getId(), gitBlame);
+            try {
+                gitBlameMap.put(gitBlame.getTmTextUnit().getId(), gitBlame);
+                i++;
+            } catch(Exception e) {
+                logger.error("getCurrentGitBlameForTmTextUnitIds, id: {} after: {}", gitBlame.getId(), i);
+            }
         }
 
         return gitBlameMap;
