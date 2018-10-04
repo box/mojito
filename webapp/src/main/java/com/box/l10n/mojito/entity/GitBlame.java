@@ -1,7 +1,11 @@
 package com.box.l10n.mojito.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -23,6 +27,7 @@ public class GitBlame extends AuditableEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "tm_text_unit_id", foreignKey = @ForeignKey(name = "FK__GIT_BLAME__TM_TEXT_UNIT__ID"))
+    @JsonIgnore
     private TMTextUnit tmTextUnit;
 
     @Column(name = "author_email")

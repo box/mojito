@@ -8,10 +8,15 @@ import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.POFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.GitBlameWithUsageClient;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.*;
+import com.box.l10n.mojito.rest.entity.GitBlame;
+import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
+import com.box.l10n.mojito.rest.entity.PollableTask;
+import com.box.l10n.mojito.rest.entity.Repository;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
@@ -26,12 +31,16 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 import static org.fusesource.jansi.Ansi.Color.CYAN;
+import static org.fusesource.jansi.Ansi.Color.YELLOW;
 
 /**
  * @author jaurambault
@@ -45,6 +54,11 @@ public class GitBlameCommand extends Command {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(GitBlameCommand.class);
+
+    /**
+     * Size of the batch when fetching {@link GitBlameWithUsage}s to be processed
+     */
+    static final int BATCH_SIZE = 500;
 
     @Autowired
     ConsoleWriter consoleWriter;
@@ -84,7 +98,14 @@ public class GitBlameCommand extends Command {
 
     org.eclipse.jgit.lib.Repository gitRepository;
 
-    static final int BATCH_SIZE = 500;
+    /**
+     * Cache {@link BlameResult} of a given file.
+     *
+     * A cache is used since getting blame information for a file can be pretty slow and required multiple time for
+     * a project. The cache is build with {@link CacheBuilder.newBuilder().softValues().build()} to free
+     * {@link BlameResult} if memory is missing
+     */
+    Cache<String, BlameResult> getBlameResultForFileCache = CacheBuilder.newBuilder().softValues().build();
 
     @Override
     public void execute() throws CommandException {
@@ -98,18 +119,31 @@ public class GitBlameCommand extends Command {
 
         int numGitBlameWithUsages;
         int offset = 0;
+        boolean hasMore = false;
         do {
-             List<GitBlameWithUsage> gitBlameWithUsages = getGitBlameWithUsages(repository, offset);
-             numGitBlameWithUsages = gitBlameWithUsages.size();
-             offset += numGitBlameWithUsages;
-
-            if (fileType instanceof POFileType) {
-                blameWithTextUnitUsages(gitBlameWithUsages);
-            } else {
-                blameSourceFiles(gitBlameWithUsages);
+            if (offset > 0) {
+                consoleWriter.erasePreviouslyPrintedLines();
             }
 
-            pollableTasks.add(saveGitInformation(gitBlameWithUsages));
+            consoleWriter.a("Process batch: ").fg(YELLOW).a(offset).a("-").a(offset + BATCH_SIZE).println();
+            List<GitBlameWithUsage> gitBlameWithUsages =  gitBlameWithUsageClient.getGitBlameWithUsages(repository.getId(), offset, BATCH_SIZE);
+            numGitBlameWithUsages = gitBlameWithUsages.size();
+
+            List<GitBlameWithUsage> getGitBlameWithUsagesToProcess = getGitBlameWithUsagesToProcess(gitBlameWithUsages);
+
+            logger.debug("Got: {}, skippped: {} since they already have git blame info",
+                    numGitBlameWithUsages,
+                    numGitBlameWithUsages - getGitBlameWithUsagesToProcess.size());
+
+            offset += numGitBlameWithUsages;
+
+            if (fileType instanceof POFileType) {
+                blameWithTextUnitUsages(getGitBlameWithUsagesToProcess);
+            } else {
+                blameSourceFiles(getGitBlameWithUsagesToProcess);
+            }
+
+            pollableTasks.add(gitBlameWithUsageClient.saveGitBlameWithUsages(getGitBlameWithUsagesToProcess));
         } while (numGitBlameWithUsages == BATCH_SIZE);
 
         try {
@@ -125,18 +159,29 @@ public class GitBlameCommand extends Command {
     }
 
     /**
-     * Fetch a list of GitBlameWithUsages to perform retrieve git-blame information for
-     * @param repository
-     * @param offset
-     * @return
+     * We just process {@link GitBlameWithUsage} that have no information at all. If there was a reccord saved
+     * with empty information it won't be recomputed.
+     *
+     * We can later add an option to force update the content if needed
+     *
+     * @param gitBlameWithUsages
+     * @return the entries to be processed
      */
-    private List<GitBlameWithUsage> getGitBlameWithUsages(Repository repository, int offset) {
-        logger.debug("getGitBlameWithUsages");
-        return gitBlameWithUsageClient.getGitBlameWithUsages(repository.getId(), offset, BATCH_SIZE);
+    public List<GitBlameWithUsage> getGitBlameWithUsagesToProcess(List<GitBlameWithUsage> gitBlameWithUsages) {
+        List<GitBlameWithUsage> filteredGitBlameWithUsages = new ArrayList<>();
+
+        for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
+            if (gitBlameWithUsage.getGitBlame() == null) {
+                logger.debug("will have to blame: {}", gitBlameWithUsage.getTextUnitName());
+                filteredGitBlameWithUsages.add(gitBlameWithUsage);
+            }
+        }
+        return filteredGitBlameWithUsages;
     }
 
     /**
      * Runs git-blame on each line of the file
+     *
      * @param gitBlameWithUsages
      * @throws CommandException
      */
@@ -155,7 +200,11 @@ public class GitBlameCommand extends Command {
 
                     List<GitBlameWithUsage> gitBlameWithUsageList = getGitBlameWithUsagesFromLine(lineText, gitBlameWithUsages);
                     for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsageList) {
-                        getBlameResults(i, blameResultForFile, gitBlameWithUsage);
+                        try {
+                            updateBlameResultsInGitBlameWithUsage(i, blameResultForFile, gitBlameWithUsage);
+                        } catch(LineMissingException lme) {
+                            throw new RuntimeException("Processing source file, this must not happen", lme);
+                        }
                     }
                 }
             } else {
@@ -167,6 +216,7 @@ public class GitBlameCommand extends Command {
 
     /**
      * Reads in the lines of the file and runs git-blame on usage locations given by file
+     *
      * @param gitBlameWithUsages
      * @throws CommandException
      */
@@ -174,53 +224,72 @@ public class GitBlameCommand extends Command {
 
         for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
 
-            for (String usage : gitBlameWithUsage.getUsages()) {
-                String filename = getFileName(usage);
-                int line = getLineNumber(usage);
-                if (extractedFilePrefix != null)
-                    filename = filename.replace(extractedFilePrefix, "");
-                BlameResult blameResultForFile = getBlameResultForFile(filename);
-                getBlameResults(line, blameResultForFile, gitBlameWithUsage);
+            if (gitBlameWithUsage.getUsages() != null && gitBlameWithUsage.getUsages().size() > 0) {
+
+                for (String usage : gitBlameWithUsage.getUsages()) {
+                    String filename = getFileName(usage);
+                    int line = getLineNumber(usage);
+
+                    if (extractedFilePrefix != null) {
+                        filename = filename.replace(extractedFilePrefix, "");
+                    }
+
+                    try {
+                        BlameResult blameResultForFile = getBlameResultForFileCached(filename);
+                        updateBlameResultsInGitBlameWithUsage(line, blameResultForFile, gitBlameWithUsage);
+                        break;
+                    } catch (NoSuchFileException e) {
+                        logger.debug("Can't blame file: {} for asset text unit: {}", filename, gitBlameWithUsage.getAssetTextUnitId());
+                    } catch (LineMissingException lme) {
+                        logger.debug("Missing line: {} in file: {} for asset text unit: {}", lme, filename, gitBlameWithUsage.getAssetTextUnitId());
+                    }
+                }
             }
         }
-
-    }
-
-    /**
-     * Save text units information from git-blame
-     * @param gitBlameWithUsages
-     */
-    private PollableTask saveGitInformation(List<GitBlameWithUsage> gitBlameWithUsages) {
-        logger.debug("saveGitInformation");
-        return gitBlameWithUsageClient.saveGitInfoForTextUnits(gitBlameWithUsages);
     }
 
     /**
      * Get the git-blame information for given line number
-     * @param lineNumber
-     * @param blameResultForFile
+     *
      * @param gitBlameWithUsage
+     * @param lineNumber
      * @return
      */
-    private void getBlameResults(int lineNumber, BlameResult blameResultForFile, GitBlameWithUsage gitBlameWithUsage) {
+    GitBlame getBlameResults(int lineNumber, BlameResult blameResultForFile) throws LineMissingException {
+
         GitBlame gitBlame = new GitBlame();
 
-        gitBlameWithUsage.setGitBlame(gitBlame);
+        try {
+            gitBlame.setAuthorName(blameResultForFile.getSourceAuthor(lineNumber).getName());
+            gitBlame.setAuthorEmail(blameResultForFile.getSourceAuthor(lineNumber).getEmailAddress());
+            gitBlame.setCommitName(blameResultForFile.getSourceCommit(lineNumber).getName());
+            gitBlame.setCommitTime(Integer.toString(blameResultForFile.getSourceCommit(lineNumber).getCommitTime()));
+        } catch (ArrayIndexOutOfBoundsException e) {
+            String msg = MessageFormat.format("The line: {0} is not availalbe in the file anymore", lineNumber);
+            logger.debug(msg);
+            throw new LineMissingException(msg);
+        }
 
-        gitBlame.setAuthorName(blameResultForFile.getSourceAuthor(lineNumber).getName());
-        gitBlame.setAuthorEmail(blameResultForFile.getSourceAuthor(lineNumber).getEmailAddress());
-        gitBlame.setCommitName(blameResultForFile.getSourceCommit(lineNumber).getName());
-        gitBlame.setCommitTime(Integer.toString(blameResultForFile.getSourceCommit(lineNumber).getCommitTime()));
+        return gitBlame;
+
+    }
+
+    void updateBlameResultsInGitBlameWithUsage(int lineNumber, BlameResult blameResultForFile, GitBlameWithUsage gitBlameWithUsage) throws LineMissingException {
+        GitBlame gitBlame = getBlameResults(lineNumber, blameResultForFile);
+        gitBlameWithUsage.setGitBlame(gitBlame);
     }
 
     /**
      * Builds a git repository if current directory is within a git repository
+     *
      * @return
      * @throws CommandException
      */
     org.eclipse.jgit.lib.Repository getGitRepository() throws CommandException {
 
         if (gitRepository == null) {
+            logger.debug("Create the gitRepository");
+
             FileRepositoryBuilder builder = new FileRepositoryBuilder();
 
             try {
@@ -236,14 +305,48 @@ public class GitBlameCommand extends Command {
         return gitRepository;
     }
 
+
+    /**
+     * Gets {@link BlameResult} from the cache.
+     *
+     * @param filePath file path to be blamed
+     * @return
+     * @throws CommandException something unexpected happened
+     * @throws NoSuchFileException if the file is missing and can't be blamed
+     */
+    BlameResult getBlameResultForFileCached(final String filePath) throws CommandException, NoSuchFileException {
+        try {
+            return getBlameResultForFileCache.get(filePath, new Callable<BlameResult>() {
+                @Override
+                public BlameResult call() throws Exception {
+                    BlameResult blameResult = getBlameResultForFile(filePath);
+                    if (blameResult == null) {
+                        throw new NoSuchFileException(filePath);
+                    }
+                    return blameResult;
+                }
+            });
+        } catch (ExecutionException ee) {
+            Throwable cause = ee.getCause();
+
+            if (cause instanceof NoSuchFileException) {
+                throw (NoSuchFileException) cause;
+            } else {
+                throw new CommandException(cause);
+            }
+        }
+    }
+
     /**
      * Get the git-blame information for entire file
+     *
      * @param filePath
      * @return
      * @throws CommandException
      */
     BlameResult getBlameResultForFile(String filePath) throws CommandException {
 
+        logger.debug("getBlameResultForFile: {}", filePath);
         try {
             org.eclipse.jgit.lib.Repository gitRepository = getGitRepository();
 
@@ -263,6 +366,7 @@ public class GitBlameCommand extends Command {
 
     /**
      * Checks if the given line contains text unit(s) to git-blame
+     *
      * @param line
      * @param gitBlameWithUsages
      * @return list of GitBlameWithUsage objects that match current line
@@ -283,10 +387,11 @@ public class GitBlameCommand extends Command {
 
     /**
      * Converts text unit name back to how name appears in source code
+     *
      * @param textUnitName
      * @return text unit name as string in source file
      */
-     String textUnitNameToStringInSourceFile(String textUnitName) {
+    String textUnitNameToStringInSourceFile(String textUnitName) {
 
         String stringInFile = textUnitName;
 
@@ -299,20 +404,22 @@ public class GitBlameCommand extends Command {
 
     /**
      * Extracts the file name from the given usage
+     *
      * @param usage
      * @return
      */
-     String getFileName(String usage) {
+    String getFileName(String usage) {
         return usage.split(":")[0];
     }
 
     /**
      * Extracts the line number from the given usage
      * Must account for difference in line numbers starting with 1 in file and 0 in array
+     *
      * @param usage
      * @return
      */
-     int getLineNumber(String usage) throws CommandException {
+    int getLineNumber(String usage) throws CommandException {
         try {
             return Integer.parseInt(usage.split(":")[1]) - 1;
         } catch (ArrayIndexOutOfBoundsException e) {

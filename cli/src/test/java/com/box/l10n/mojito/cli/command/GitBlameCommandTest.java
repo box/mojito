@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.rest.entity.GitBlame;
 import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
 import com.box.l10n.mojito.service.gitblame.GitBlameService;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -14,12 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.nio.file.NoSuchFileException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author emagalindan
@@ -163,13 +163,11 @@ public class GitBlameCommandTest extends CLITestBase {
     }
 
     @Test
-    public void getRepository() throws Exception{
+    public void getRepository() throws Exception {
         File sourceDirectory = getInputResourcesTestDir("source");
-        String filepath = sourceDirectory.getAbsolutePath();
 
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
-        gitBlameCommand.commandDirectories = new CommandDirectories(filepath);
-
+        gitBlameCommand.commandDirectories = new CommandDirectories(sourceDirectory.getAbsolutePath());
 
         org.eclipse.jgit.lib.Repository repository = gitBlameCommand.getGitRepository();
 
@@ -178,7 +176,7 @@ public class GitBlameCommandTest extends CLITestBase {
     }
 
     @Test
-    public void getBlameResultForLines() throws Exception{
+    public void getBlameResultForLines() throws Exception {
         File sourceDirectory = getInputResourcesTestDir("source");
         String filepath = sourceDirectory.getAbsolutePath();
 
@@ -221,6 +219,66 @@ public class GitBlameCommandTest extends CLITestBase {
 
         assertEquals(24, gitBlameCommand.getLineNumber("file.js:25"));
         assertEquals(24, gitBlameCommand.getLineNumber("path/to/file.js:25"));
+    }
+
+    @Test
+    public void getBlameResultForFileWhenFileIsMissing() throws CommandException, NoSuchFileException {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+        gitBlameCommand.commandDirectories = new CommandDirectories(getInputResourcesTestDir().getAbsolutePath());
+        BlameResult blameResult = gitBlameCommand.getBlameResultForFile("forSomeMissingFile");
+        assertNull(blameResult);
+    }
+
+
+    @Test(expected = NoSuchFileException.class)
+    public void getBlameResultForFileCachedWhenFileIsMissing() throws CommandException, NoSuchFileException {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+        gitBlameCommand.commandDirectories = new CommandDirectories(getInputResourcesTestDir().getAbsolutePath());
+        gitBlameCommand.getBlameResultForFileCached("forSomeMissingFile");
+    }
+
+    @Test(expected = LineMissingException.class)
+    public void updateGitBlameOutOfBousnd() throws CommandException, NoSuchFileException, LineMissingException {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+        gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
+        BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("pom.xml");
+        GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
+        gitBlameCommand.updateBlameResultsInGitBlameWithUsage(100000, blameResult, gitBlameWithUsage);
+        assertNull(gitBlameWithUsage.getGitBlame().getAuthorName());
+    }
+
+    @Test(expected = NoSuchFileException.class)
+    public void updateGitBlameOMissingFile() throws CommandException, NoSuchFileException, LineMissingException {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+        gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
+        BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("somemissginfile");
+        GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
+        gitBlameCommand.updateBlameResultsInGitBlameWithUsage(10, blameResult, gitBlameWithUsage);
+        assertNull(gitBlameWithUsage.getGitBlame().getAuthorName());
+    }
+
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    public void getSourceCommitsAccessOutOfBound() throws CommandException, NoSuchFileException {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+        gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
+        BlameResult blameResult = gitBlameCommand.getBlameResultForFileCached("pom.xml");
+        blameResult.getSourceCommit(100000);
+    }
+
+    @Test
+    public void getGitBlameWithUsagesToProcess() {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+
+        ArrayList<GitBlameWithUsage> gitBlameWithUsages = new ArrayList<>();
+        GitBlameWithUsage toSkip = new GitBlameWithUsage();
+        toSkip.setGitBlame(new GitBlame());
+        gitBlameWithUsages.add(toSkip);
+        gitBlameWithUsages.add(new GitBlameWithUsage());
+
+        List<GitBlameWithUsage> gitBlameWithUsagesToProcess = gitBlameCommand.getGitBlameWithUsagesToProcess(gitBlameWithUsages);
+
+        assertEquals(1, gitBlameWithUsagesToProcess.size());
+        assertFalse(gitBlameWithUsagesToProcess.contains(toSkip));
     }
 
 }

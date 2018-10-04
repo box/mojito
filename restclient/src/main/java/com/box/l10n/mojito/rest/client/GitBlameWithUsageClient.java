@@ -27,7 +27,7 @@ public class GitBlameWithUsageClient extends BaseClient {
     }
 
     public List<GitBlameWithUsage> getGitBlameWithUsages(Long repositoryId, Integer offset, Integer batchSize) {
-
+        logger.debug("getGitBlameWithUsages");
         Map<String, String> filterParams = new HashMap<>();
 
         filterParams.put("repositoryIds[]", repositoryId.toString());
@@ -40,9 +40,10 @@ public class GitBlameWithUsageClient extends BaseClient {
                 filterParams);
     }
 
-    public PollableTask saveGitInfoForTextUnits(List<GitBlameWithUsage> gitInfoForTextUnits) {
+    public PollableTask saveGitBlameWithUsages(List<GitBlameWithUsage> gitBlameWithUsages) {
+        logger.debug("saveGitBlameWithUsages");
         return authenticatedRestTemplate.postForObject(getBasePathForEntity() + "/gitBlameWithUsagesBatch",
-                gitInfoForTextUnits, PollableTask.class
+                gitBlameWithUsages, PollableTask.class
         );
 
     }
