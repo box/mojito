@@ -78,6 +78,11 @@ class TextUnitSearcherParameters {
         return this;
     }
 
+    tmTextUnitCreatedAfter(tmTextUnitCreatedAfter) {
+        this.params.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
+        return this;
+    }
+
     statusFilter(statusFilter) {
         this.params.statusFilter = statusFilter;
         return this;

@@ -61,6 +61,10 @@ const SearchDataSource = {
                 textUnitSearcherParameters.tmTextUnitCreatedBefore(searchParams.tmTextUnitCreatedBefore);
             }
 
+            if (searchParams.tmTextUnitCreatedAfter) {
+                textUnitSearcherParameters.tmTextUnitCreatedAfter(searchParams.tmTextUnitCreatedAfter);
+            }
+
             // ask for one extra text unit to know if there are more text units
             let limit = searchParams.pageSize + 1;
 

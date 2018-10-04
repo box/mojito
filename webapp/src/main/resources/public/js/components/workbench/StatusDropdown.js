@@ -31,7 +31,8 @@ let StatusDropdown = React.createClass({
             "unUsed": searchParams.unUsed,
             "translate" : searchParams.translate,
             "doNotTranslate" : searchParams.doNotTranslate,
-            "tmTextUnitCreatedBefore" : searchParams.tmTextUnitCreatedBefore
+            "tmTextUnitCreatedBefore" : searchParams.tmTextUnitCreatedBefore,
+            "tmTextUnitCreatedAfter" : searchParams.tmTextUnitCreatedAfter
         });
     },
 
@@ -44,6 +45,8 @@ let StatusDropdown = React.createClass({
             "doNotTranslate" : false,
             "tmTextUnitCreatedBefore" : null,
             "tmTextUnitCreatedBeforeTyping": null,
+            "tmTextUnitCreatedAfter" : null,
+            "tmTextUnitCreatedAfterTyping": null,
         };
     },
 
@@ -78,6 +81,24 @@ let StatusDropdown = React.createClass({
             this.setStateAndCallSearchParamChanged('tmTextUnitCreatedBefore', tmTextUnitCreatedBefore);
         };
         
+    },
+
+    onTmTextUnitCreatedAfterChange(tmTextUnitCreatedAfter) {
+
+        if (typeof tmTextUnitCreatedAfter === "string") {
+            tmTextUnitCreatedAfter = moment(tmTextUnitCreatedAfter);
+        }
+
+        tmTextUnitCreatedAfter = tmTextUnitCreatedAfter.toISOString();
+
+        this.setState({
+            tmTextUnitCreatedAfterTyping: null
+        });
+
+        if (tmTextUnitCreatedAfter !== this.state.tmTextUnitCreatedAfter ) {
+            this.setStateAndCallSearchParamChanged('tmTextUnitCreatedAfter', tmTextUnitCreatedAfter);
+        };
+
     },
 
     setStateAndCallSearchParamChanged(searchFilterParam, searchFilterParamValue) {
@@ -162,7 +183,12 @@ let StatusDropdown = React.createClass({
     getCreatedBeforeLocalDate() {      
        let m = moment(this.state.tmTextUnitCreatedBefore);
        return m;
-    },  
+    },
+
+    getCreatedAfterLocalDate() {
+        let m = moment(this.state.tmTextUnitCreatedAfter);
+        return m;
+    },
     
     renderCreatedBeforeInput(props) {
         function clear(){
@@ -185,6 +211,34 @@ let StatusDropdown = React.createClass({
                     }}  />
                 <InputGroup.Button>
                     <Button onClick={clear} disabled={!props.value && !this.state.tmTextUnitCreatedBeforeTyping}>
+                        <Glyphicon glyph='glyphicon glyphicon-remove'/>
+                    </Button>
+                </InputGroup.Button>
+            </InputGroup>
+        );
+    },
+
+    renderCreatedAfterInput(props) {
+        function clear(){
+            props.onChange({target: {value: ''}});
+        }
+
+        return (
+            <InputGroup>
+                <FormControl
+                    onClick={props.onClick}
+                    value={this.state.tmTextUnitCreatedAfterTyping !== null ? this.state.tmTextUnitCreatedAfterTyping : props.value}
+                    placeholder={this.props.intl.formatMessage({ id: "search.statusDropdown.enterDate" })}
+                    onChange={ (e) => {
+                        this.setState({ 'tmTextUnitCreatedAfterTyping': e.target.value});
+                    }}
+                    onKeyDown={ (e) => {
+                        if (e.keyCode == keycode("enter")) {
+                            props.onChange(e);
+                        }
+                    }}  />
+                <InputGroup.Button>
+                    <Button onClick={clear} disabled={!props.value && !this.state.tmTextUnitCreatedAfterTyping}>
                         <Glyphicon glyph='glyphicon glyphicon-remove'/>
                     </Button>
                 </InputGroup.Button>
@@ -233,6 +287,18 @@ let StatusDropdown = React.createClass({
                         closeOnSelect={true}
                         renderInput={ this.renderCreatedBeforeInput } 
                         />
+                </MenuItem>
+
+                <MenuItem header><FormattedMessage id="search.statusDropdown.tmTextUnitCreatedAfter" /></MenuItem>
+                <MenuItem header className="prs pls">
+                    <DateTime
+                        id="created-after-datepicker"
+                        value={this.getCreatedAfterLocalDate()}
+                        onChange={this.onTmTextUnitCreatedAfterChange}
+                        disableOnClickOutside={true}
+                        closeOnSelect={true}
+                        renderInput={ this.renderCreatedAfterInput }
+                    />
                 </MenuItem>
                
             </DropdownButton>
