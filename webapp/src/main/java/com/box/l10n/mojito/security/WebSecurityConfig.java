@@ -38,7 +38,6 @@ import javax.servlet.Filter;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(securedEnabled = true, mode = AdviceMode.ASPECTJ)
-@EnableOAuth2Client
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
@@ -196,4 +195,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected UserDetailsServiceImpl getUserDetailsService() {
         return new UserDetailsServiceImpl();
     }
+
 }
