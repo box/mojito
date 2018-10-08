@@ -175,7 +175,8 @@ let RepositoryRow = React.createClass({
             "repoIds": [repoId],
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
             "tmTextUnitCreatedBefore" : ooslaCreatedDate,
-            "status": SearchParamsStore.STATUS.UNTRANSLATED
+            "status": SearchParamsStore.STATUS.UNTRANSLATED,
+            "doNotTranslate" : false
         });
     },
 
@@ -190,7 +191,8 @@ let RepositoryRow = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
-            "status": SearchParamsStore.STATUS.FOR_TRANSLATION
+            "status": SearchParamsStore.STATUS.FOR_TRANSLATION,
+            "doNotTranslate" : false
         });
     },
 
@@ -205,7 +207,8 @@ let RepositoryRow = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
-            "status": SearchParamsStore.STATUS.REVIEW_NEEDED
+            "status": SearchParamsStore.STATUS.REVIEW_NEEDED,
+            "doNotTranslate" : false
         });
     },
 
