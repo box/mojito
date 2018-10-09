@@ -173,19 +173,18 @@ let GitBlameInfoModal = React.createClass({
         if (textUnit == null || usages == null)
             return null;
 
+        if (usages.length === 0) {
+            usages = [textUnit.getAssetPath()];
+        }
+
         if (this.props.appConfig.opengrok.server === null)
             return this.getUsages().join('\n');
 
         let repo = textUnit.getRepositoryName();
 
-        if (usages.length === 0) {
-            if (repo === "android")
-                usages = [textUnit.getAssetPath()];
-            else
-                return null;
-        }
         let links = [];
         for (let usage of usages) {
+            usage = usage.replace(this.props.appConfig.opengrok.extractedFilePrefix, "");
             let link = this.props.appConfig.opengrok.server;
             for (let repoKey in this.props.appConfig.opengrok.repositoryMapping){
                 if (repo === repoKey) {

@@ -14,6 +14,8 @@ public class OpengrokConfig {
 
     String server;
 
+    String extractedFilePrefix;
+
     Map<String, String> repositoryMapping = new HashMap<>();
 
     public String getServer() {
@@ -22,6 +24,14 @@ public class OpengrokConfig {
 
     public void setServer(String server) {
         this.server = server;
+    }
+
+    public String getExtractedFilePrefix() {
+        return extractedFilePrefix;
+    }
+
+    public void setExtractedFilePrefix(String extractedFilePrefix) {
+        this.extractedFilePrefix = extractedFilePrefix;
     }
 
     public Map<String, String> getRepositoryMapping() {
