@@ -34,7 +34,6 @@ class GitBlameStore {
         this.gitBlameWithUsage = null;
         this.loading = true;
         this.getInstance().getGitBlameInfo(textUnit);
-
     }
 
     onGetGitBlameInfoSuccess(gitBlameWithUsage) {

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
-import {Button, Panel, Accordion, Modal} from "react-bootstrap";
+import {Button, Modal} from "react-bootstrap";
 import {withAppConfig} from "../../utils/AppConfig";
 
 
@@ -27,9 +27,7 @@ let GitBlameInfoModal = React.createClass({
      * @returns {string} The title of the modal is the name of the text unit
      */
     getTitle() {
-        if (this.props.textUnit == null)
-            return "";
-        return this.props.textUnit.getName();
+        return this.props.textUnit == null ? "" : this.props.textUnit.getName();
     },
 
     /**
@@ -65,22 +63,22 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*} Generates the content for the text unit information section
      */
     renderTextUnitInfo() {
-        if (this.props.textUnit === null)
-            return "";
-        return (
-            <div>
-                {this.displayInfoWithId("textUnit.gitBlameModal.repository", this.props.textUnit.getRepositoryName())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.assetPath", this.props.textUnit.getAssetPath())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.source", this.props.textUnit.getSource())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.target", this.props.textUnit.getTarget())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.locale", this.props.textUnit.getTargetLocale())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.created", this.convertDateTime(this.props.textUnit.getTmTextUnitCreatedDate()))}
-                {this.displayInfoWithId("textUnit.gitBlameModal.translated", this.convertDateTime(this.props.textUnit.getCreatedDate()))}
-                {this.displayInfoWithId("textUnit.gitBlameModal.pluralForm", this.props.textUnit.getPluralForm())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.pluralFormOther", this.props.textUnit.getPluralFormOther())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.comment", this.props.textUnit.getComment())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.targetComment", this.props.textUnit.getTargetComment())}
-            </div>);
+        return this.props.textUnit === null ? "" :
+            (
+                <div>
+                    {this.displayInfoWithId("textUnit.gitBlameModal.repository", this.props.textUnit.getRepositoryName())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.assetPath", this.props.textUnit.getAssetPath())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.source", this.props.textUnit.getSource())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.target", this.props.textUnit.getTarget())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.locale", this.props.textUnit.getTargetLocale())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.created", this.convertDateTime(this.props.textUnit.getTmTextUnitCreatedDate()))}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.translated", this.convertDateTime(this.props.textUnit.getCreatedDate()))}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.pluralForm", this.props.textUnit.getPluralForm())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.pluralFormOther", this.props.textUnit.getPluralFormOther())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.comment", this.props.textUnit.getComment())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.targetComment", this.props.textUnit.getTargetComment())}
+                </div>
+            );
     },
 
     /**
@@ -93,7 +91,7 @@ let GitBlameInfoModal = React.createClass({
                 {this.displayInfoWithId("textUnit.gitBlameModal.authorEmail", this.getAuthorEmail())}
                 {this.displayInfoWithId("textUnit.gitBlameModal.commit", this.getCommitName())}
                 {this.displayInfoWithId("textUnit.gitBlameModal.commitDate", this.convertDateTime(this.getCommitTime()))}
-                {this.displayInfoWithId("textUnit.gitBlameModal.location", this.getOpenGrokLocation())}
+                {this.displayInfoWithId("textUnit.gitBlameModal.location", this.getLocation())}
             </div>
         )
     },
@@ -102,18 +100,17 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*} Generates the content for the debug section (additional text unit information)
      */
     renderDebugInfo() {
-        if (this.props.textUnit === null)
-            return "";
-        return (
-            <div className="panel-body">
-                {this.displayInfo("TmTextUnitId", this.props.textUnit.getTmTextUnitId())}
-                {this.displayInfo("TmTextUnitVariantId", this.props.textUnit.getTmTextUnitVariantId())}
-                {this.displayInfo("TmTextUnitCurrentVariantId", this.props.textUnit.getTmTextUnitCurrentVariantId())}
-                {this.displayInfo("AssetTextUnitId", this.props.textUnit.getAssetId())}
-                {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
-                {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
-            </div>
-        );
+        return this.props.textUnit === null ? "" :
+             (
+                <div className="panel-body">
+                    {this.displayInfo("TmTextUnitId", this.props.textUnit.getTmTextUnitId())}
+                    {this.displayInfo("TmTextUnitVariantId", this.props.textUnit.getTmTextUnitVariantId())}
+                    {this.displayInfo("TmTextUnitCurrentVariantId", this.props.textUnit.getTmTextUnitCurrentVariantId())}
+                    {this.displayInfo("AssetTextUnitId", this.props.textUnit.getAssetId())}
+                    {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
+                    {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
+                </div>
+            );
     },
 
     /**
@@ -121,9 +118,10 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*}    The value of the given property of the GitBlame object
      */
     getGitBlameProperty(property) {
-        if (this.props.gitBlameWithUsage == null || this.props.gitBlameWithUsage["gitBlame"] == null)
-            return null;
-        return this.props.gitBlameWithUsage["gitBlame"][property];
+        let value = null;
+        if (this.props.gitBlameWithUsage != null && this.props.gitBlameWithUsage["gitBlame"] != null)
+            value = this.props.gitBlameWithUsage["gitBlame"][property];
+        return value;
     },
 
     /**
@@ -166,22 +164,29 @@ let GitBlameInfoModal = React.createClass({
     /**
      * @returns {*} Converts the list of usages of the text unit to a list of links to given text unit
      */
-    getOpenGrokLocation() {
+    getLocation() {
         let textUnit = this.props.textUnit;
         let usages = this.getUsages();
 
-        if (textUnit == null || usages == null)
+        if (textUnit == null || usages == null) {
             return null;
+        }
 
         if (usages.length === 0) {
             usages = [textUnit.getAssetPath()];
         }
 
-        if (this.props.appConfig.opengrok.server === null)
-            return this.getUsages().join('\n');
+        let links = usages.join('\n');
 
-        let repo = textUnit.getRepositoryName();
+        if (this.props.appConfig.opengrok.server !== null) {
+            links = this.getOpenGrokLinks(usages);
+        }
 
+        return links;
+    },
+
+    getOpenGrokLinks(usages) {
+        let repo = this.props.textUnit.getRepositoryName();
         let links = [];
         for (let usage of usages) {
             usage = usage.replace(this.props.appConfig.opengrok.extractedFilePrefix, "");
@@ -195,7 +200,6 @@ let GitBlameInfoModal = React.createClass({
             link += usage.replace(":", "#");
             links.push(<div key={usage}><a href={link}>{usage}</a></div>);
         }
-
         return links;
     },
 
@@ -205,10 +209,13 @@ let GitBlameInfoModal = React.createClass({
      *
      */
     convertDateTime(date) {
-        if (date === null || isNaN(date))
+        if (date === null || isNaN(date)) {
             return null;
+        }
 
-        return (this.props.intl.formatDate(date) + ", " + this.props.intl.formatTime(date));
+        let options = {year: 'numeric', month: 'numeric', day: 'numeric',
+            hour: 'numeric', minute: 'numeric'};
+        return (this.props.intl.formatDate(date, options));
     },
 
     /**
@@ -237,7 +244,7 @@ let GitBlameInfoModal = React.createClass({
                     {this.renderGitBlameInfo()}
                     <hr />
                     <div className={"row"}>
-                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.debug"}/></h4></div>
+                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4></div>
                     </div>
                     {this.renderDebugInfo()}
                 </Modal.Body>
