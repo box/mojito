@@ -27,7 +27,7 @@ let GitBlameInfoModal = React.createClass({
      * @returns {string} The title of the modal is the name of the text unit
      */
     getTitle() {
-        return this.props.textUnit == null ? "" : this.props.textUnit.getName();
+        return this.props.textUnit == null ? "" : this.props.intl.formatMessage({ id: "workbench.gitBlameModal.info" });
     },
 
     /**
@@ -44,8 +44,8 @@ let GitBlameInfoModal = React.createClass({
 
         return (
             <div className={"row git-blame"}>
-                <label className={"col-sm-4 git-blame-label"}>{label}</label>
-                <div className={"col-sm-8 git-blame-info" + gitBlameClass}>{data}</div>
+                <label className={"col-sm-3 git-blame-label"}>{label}</label>
+                <div className={"col-sm-9 git-blame-info" + gitBlameClass}>{data}</div>
             </div>
         );
     },
@@ -68,6 +68,7 @@ let GitBlameInfoModal = React.createClass({
                 <div>
                     {this.displayInfoWithId("textUnit.gitBlameModal.repository", this.props.textUnit.getRepositoryName())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.assetPath", this.props.textUnit.getAssetPath())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.id", this.props.textUnit.getName())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.source", this.props.textUnit.getSource())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.target", this.props.textUnit.getTarget())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.locale", this.props.textUnit.getTargetLocale())}
@@ -227,7 +228,7 @@ let GitBlameInfoModal = React.createClass({
 
     render() {
         return (
-            <Modal show={this.props.show} onHide={this.closeModal}>
+            <Modal className={"git-blame-modal"} show={this.props.show} onHide={this.closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>{this.getTitle()}</Modal.Title>
                 </Modal.Header>
