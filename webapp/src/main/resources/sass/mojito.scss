@@ -416,11 +416,11 @@ div.textunit label {
     white-space: pre-wrap;
 }
 
-.textunit-name:hover .textunit-assetpath {
+.textunit:hover .textunit-assetpath, .textunit:hover .textunit-gitInfo {
     visibility: visible;
 }
 
-.textunit-name .textunit-assetpath {
+.textunit-name .textunit-assetpath, .textunit-name .textunit-gitInfo {
     visibility: hidden;
     color: $brand-success;
 }
@@ -458,6 +458,18 @@ div.textunit div.targetstring-container {
 div.targetstring-container textarea {
     max-width: 100%;
     outline: invert;
+}
+
+.git-blame-label {
+    text-align: right;
+}
+
+.git-blame-info {
+    word-wrap: break-word;
+}
+
+.git-blame-unused {
+    color: $gray-light;
 }
 
 /**

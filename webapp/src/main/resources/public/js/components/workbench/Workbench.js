@@ -22,6 +22,11 @@ import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
 import LocationHistory from "../../utils/LocationHistory";
+import AltContainer from "alt-container";
+import GitBlameStore from "../../stores/workbench/GitBlameStore";
+import GitBlameInfoModal from "./GitBlameInfoModal";
+import GitBlameActions from "../../actions/workbench/GitBlameActions";
+import {OverlayTrigger, Tooltip} from "react-bootstrap";
 
 let Workbench = React.createClass({
 
@@ -29,7 +34,8 @@ let Workbench = React.createClass({
 
     statics: {
         storeListeners: {
-            "onSearchParamsStoreChanged": SearchParamsStore
+            "onSearchParamsStoreChanged": SearchParamsStore,
+            "onGitBlameStoreUpdated": GitBlameStore
         }
     },
 
@@ -40,6 +46,10 @@ let Workbench = React.createClass({
      */
     onSearchParamsStoreChanged: function (searchParams) {
         this.updateLocationForSearchParam(searchParams);
+    },
+
+    onGitBlameStoreUpdated(store) {
+        this.setState({"isShowGitBlameModal": store.show});
     },
     
     /**
@@ -88,6 +98,9 @@ let Workbench = React.createClass({
                 <div className="mtl mbl">
                     <SearchResults />
                 </div>
+                <AltContainer store={GitBlameStore}>
+                    <GitBlameInfoModal onCloseModal={GitBlameActions.close}/>
+                </AltContainer>
 
             </div>
         );

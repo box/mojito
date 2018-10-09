@@ -94,6 +94,15 @@ class TextUnitClient extends BaseClient {
         return this.baseUrl + 'virtualAssets/' + assetId + '/textUnits';
     }
 
+    /**
+     * Gets the GitBlameWithUsage that matches the given textUnit.
+     * @param textUnit
+     * @returns {Promise}
+     */
+    getGitBlameInfo(textUnit) {
+        return this.get(this.getUrl() + "/gitBlameWithUsages", {"tmTextUnitId": textUnit.getTmTextUnitId()});
+    }
+
 
     getEntityName() {
         return 'textunits';
