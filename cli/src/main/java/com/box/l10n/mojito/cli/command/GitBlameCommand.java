@@ -82,6 +82,9 @@ public class GitBlameCommand extends Command {
     @Parameter(names = {"--extracted-prefix"}, arity = 1, required = false, description = "prefix for path of extracted files")
     String extractedFilePrefix;
 
+    @Parameter(names = {"--override"}, required = false, description = "To override current information", converter = GitBlameOverrideConverter.class)
+    OverrideType overrideType = OverrideType.NONE;
+
     @Autowired
     AssetClient assetClient;
 
@@ -126,7 +129,7 @@ public class GitBlameCommand extends Command {
             }
 
             consoleWriter.a("Process batch: ").fg(YELLOW).a(offset).a("-").a(offset + BATCH_SIZE).println();
-            List<GitBlameWithUsage> gitBlameWithUsages =  gitBlameWithUsageClient.getGitBlameWithUsages(repository.getId(), offset, BATCH_SIZE);
+            List<GitBlameWithUsage> gitBlameWithUsages = gitBlameWithUsageClient.getGitBlameWithUsages(repository.getId(), offset, BATCH_SIZE);
             numGitBlameWithUsages = gitBlameWithUsages.size();
 
             List<GitBlameWithUsage> getGitBlameWithUsagesToProcess = getGitBlameWithUsagesToProcess(gitBlameWithUsages);
@@ -171,8 +174,11 @@ public class GitBlameCommand extends Command {
         List<GitBlameWithUsage> filteredGitBlameWithUsages = new ArrayList<>();
 
         for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
-            if (gitBlameWithUsage.getGitBlame() == null) {
-                logger.debug("will have to blame: {}", gitBlameWithUsage.getTextUnitName());
+            if (gitBlameWithUsage.getGitBlame() == null ||
+                OverrideType.ALL.equals(overrideType) ||
+                (OverrideType.NO_INFO.equals(overrideType) && gitBlameWithUsage.getGitBlame().getAuthorName() == null)) {
+
+                logger.debug("Will process text unit name: {}", gitBlameWithUsage.getTextUnitName());
                 filteredGitBlameWithUsages.add(gitBlameWithUsage);
             }
         }
@@ -202,7 +208,7 @@ public class GitBlameCommand extends Command {
                     for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsageList) {
                         try {
                             updateBlameResultsInGitBlameWithUsage(i, blameResultForFile, gitBlameWithUsage);
-                        } catch(LineMissingException lme) {
+                        } catch (LineMissingException lme) {
                             throw new RuntimeException("Processing source file, this must not happen", lme);
                         }
                     }
@@ -427,6 +433,15 @@ public class GitBlameCommand extends Command {
             logger.error(msg, e);
             throw new CommandException(msg, e);
         }
+    }
+
+    /**
+     * Enum use to tell what entries should be overriden
+     */
+    public enum OverrideType {
+        NONE,
+        ALL,
+        NO_INFO
     }
 
 }
