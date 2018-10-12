@@ -135,7 +135,12 @@ function startApp(messages) {
         function okOnClick() {
             let pathNameStrippedLeadingSlash = location.pathname.substr(1 + CONTEXT_PATH.length, location.pathname.length);
             let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
-            window.location.href = UrlHelper.getUrlWithContextPath("/login?") + $.param({"showPage": currentLocation});
+
+            if (APP_CONFIG.login.oauth2.enabled) {
+                window.location.href = UrlHelper.getUrlWithContextPath(currentLocation);
+            } else {
+                window.location.href = UrlHelper.getUrlWithContextPath("/login?") + $.param({"showPage": currentLocation});
+            }
         }
 
         ReactDOM.render(
