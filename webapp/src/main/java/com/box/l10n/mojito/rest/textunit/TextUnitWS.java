@@ -305,14 +305,13 @@ public class TextUnitWS {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/check")
-    public TMTextUnitIntegrityCheckResult checkTMTextUnit(@RequestParam(value = "textUnitId") Long textUnitId,
-                                                          @RequestParam(value = "contentToCheck") String contentToCheck) {
-        logger.debug("Checking TextUnit, id: {}", textUnitId);
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/check")
+    public TMTextUnitIntegrityCheckResult checkTMTextUnit(@RequestBody TextUnitCheckBody textUnitCheckBody) {
+        logger.debug("Checking TextUnit, id: {}", textUnitCheckBody.getTmTextUnitId());
 
         TMTextUnitIntegrityCheckResult result = new TMTextUnitIntegrityCheckResult();
         try {
-            tmTextUnitIntegrityCheckService.checkTMTextUnitIntegrity(textUnitId, contentToCheck);
+            tmTextUnitIntegrityCheckService.checkTMTextUnitIntegrity(textUnitCheckBody.getTmTextUnitId(), textUnitCheckBody.getContent());
             result.setCheckResult(true);
         } catch (IntegrityCheckException e) {
             result.setCheckResult(false);
