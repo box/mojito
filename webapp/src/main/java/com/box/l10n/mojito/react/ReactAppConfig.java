@@ -10,17 +10,17 @@ import org.springframework.stereotype.Component;
 public class ReactAppConfig {
 
     @Autowired
-    OpengrokConfig opengrok;
+    LinkConfig link;
 
     @Autowired
     LoginConfig login;
 
-    public OpengrokConfig getOpengrok() {
-        return opengrok;
+    public LinkConfig getLink() {
+        return link;
     }
 
-    public void setOpengrok(OpengrokConfig opengrok) {
-        this.opengrok = opengrok;
+    public void setLink(LinkConfig link) {
+        this.link = link;
     }
 
     public LoginConfig getLogin() {
