@@ -3,6 +3,7 @@ import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 import {withAppConfig} from "../../utils/AppConfig";
+import LinkHelper from "../../utils/LinkHelper";
 
 
 let GitBlameInfoModal = React.createClass({
@@ -15,19 +16,11 @@ let GitBlameInfoModal = React.createClass({
         };
     },
 
-    getDefaultProps() {
-        return {
-            "show": false,
-            "textUnit": null,
-            "gitBlameWithUsage": null
-        };
-    },
-
     /**
      * @returns {string} The title of the modal is the name of the text unit
      */
     getTitle() {
-        return this.props.textUnit == null ? "" : this.props.intl.formatMessage({ id: "workbench.gitBlameModal.info" });
+        return this.props.intl.formatMessage({ id: "workbench.gitBlameModal.info" });
     },
 
     /**
@@ -60,7 +53,7 @@ let GitBlameInfoModal = React.createClass({
     },
 
     /**
-     * @returns {*} Generates the content for the text unit information section
+     * @returns {*} Generated content for the text unit information section
      */
     renderTextUnitInfo() {
         return this.props.textUnit === null ? "" :
@@ -78,31 +71,31 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfoWithId("textUnit.gitBlameModal.pluralFormOther", this.props.textUnit.getPluralFormOther())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.comment", this.props.textUnit.getComment())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.targetComment", this.props.textUnit.getTargetComment())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.location", this.getLocationLinks())}
                 </div>
             );
     },
 
     /**
-     * @returns {*} Generates the content for the git blame information section
+     * @returns {*} Generated content for the git blame information section
      */
     renderGitBlameInfo() {
         return (
             <div>
                 {this.displayInfoWithId("textUnit.gitBlameModal.authorName", this.getAuthorName())}
                 {this.displayInfoWithId("textUnit.gitBlameModal.authorEmail", this.getAuthorEmail())}
-                {this.displayInfoWithId("textUnit.gitBlameModal.commit", this.getCommitName())}
+                {this.displayInfoWithId("textUnit.gitBlameModal.commit", this.getCommitLink())}
                 {this.displayInfoWithId("textUnit.gitBlameModal.commitDate", this.convertDateTime(this.getCommitTime()))}
-                {this.displayInfoWithId("textUnit.gitBlameModal.location", this.getLocation())}
             </div>
         )
     },
 
     /**
-     * @returns {*} Generates the content for the debug section (additional text unit information)
+     * @returns {*} Generated content for the additional text unit information section
      */
     renderDebugInfo() {
         return this.props.textUnit === null ? "" :
-             (
+            (
                 <div className="panel-body">
                     {this.displayInfo("TmTextUnitId", this.props.textUnit.getTmTextUnitId())}
                     {this.displayInfo("TmTextUnitVariantId", this.props.textUnit.getTmTextUnitVariantId())}
@@ -163,45 +156,192 @@ let GitBlameInfoModal = React.createClass({
     },
 
     /**
-     * @returns {*} Converts the list of usages of the text unit to a list of links to given text unit
+     * @returns {*|Array} A list of Location links if configuration is set, or the string set in getLocationDefaultLabel
      */
-    getLocation() {
-        let textUnit = this.props.textUnit;
-        let usages = this.getUsages();
+    getLocationLinks() {
+        const urlTemplate = this.getLocationUrlTemplate();
+        const useUsage = this.getLocationUseUsage();
+        let links = [];
 
-        if (textUnit == null || usages == null) {
-            return null;
+        if (urlTemplate === "") {
+            links = this.getLocationDefaultLabel();
+        } else if (useUsage) {
+            links = this.getLocationLinksFromUsages();
+        } else {
+            links = this.getLocationLink();
         }
-
-        if (usages.length === 0) {
-            usages = [textUnit.getAssetPath()];
-        }
-
-        let links = usages.join('\n');
-
-        if (this.props.appConfig.opengrok.server !== null) {
-            links = this.getOpenGrokLinks(usages);
-        }
-
         return links;
     },
 
-    getOpenGrokLinks(usages) {
-        let repo = this.props.textUnit.getRepositoryName();
+    /**
+     * @returns {*} Creates a link to a single location
+     */
+    getLocationLink() {
+        const urlTemplate = this.getLocationUrlTemplate();
+        const labelTemplate = this.getLocationLabelTemplate();
+
+        let params = {
+            textUnitName: this.props.textUnit.getName(),
+            assetPath: this.props.textUnit.getAssetPath(),
+            textUsageNamePrefix: this.props.textUnit.getName().split("_")[0],
+        };
+        let url = LinkHelper.getLink(urlTemplate, params);
+        let label = LinkHelper.getLink(labelTemplate, params);
+        return <a href={url}>{label}</a>;
+    },
+
+    /**
+     * @returns {Array} Creates a list of links corresponding to the usages
+     */
+    getLocationLinksFromUsages() {
+        const urlTemplate = this.getLocationUrlTemplate();
+        const labelTemplate = this.getLocationLabelTemplate();
+        const extractorPrefix = this.getLocationExtractorPrefix();
+
         let links = [];
-        for (let usage of usages) {
-            usage = usage.replace(this.props.appConfig.opengrok.extractedFilePrefix, "");
-            let link = this.props.appConfig.opengrok.server;
-            for (let repoKey in this.props.appConfig.opengrok.repositoryMapping){
-                if (repo === repoKey) {
-                    link += this.props.appConfig.opengrok.repositoryMapping[repoKey];
-                    break;
+        let usages = this.getUsages();
+
+        if (usages == null) {
+            links = this.getLocationDefaultLabel();
+        } else {
+            for (let usage of usages) {
+                if (extractorPrefix !== undefined) {
+                    usage = usage.replace(extractorPrefix, "");
                 }
+                let params = {
+                    filePath: this.getFilePathFromUsage(usage),
+                    lineNumber: this.getLineNumberFromUsage(usage),
+                    textUnitName: this.props.textUnit.getName(),
+                    assetPath: this.props.textUnit.getAssetPath(),
+                    usage: usage
+                };
+                let url = LinkHelper.getLink(urlTemplate, params);
+                let label = LinkHelper.getLink(labelTemplate, params);
+                links.push(<div key={usage}><a href={url}>{label}</a></div>);
             }
-            link += usage.replace(":", "#");
-            links.push(<div key={usage}><a href={link}>{usage}</a></div>);
         }
         return links;
+
+    },
+
+    /**
+     * @returns {*} Returns the extractorPrefix, if in configuration, or an empty string otherwise
+     */
+    getLocationExtractorPrefix() {
+        try {
+            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.extractorPrefix;
+        } catch (e) {
+            return "";
+        }
+    },
+
+    /**
+     * @param usage          Usage to use to extract file path
+     * @returns {string | *} File path from given usage
+     */
+    getFilePathFromUsage(usage) {
+        return usage.split(':')[0];
+    },
+
+    /**
+     * @param usage          Usage to use to extract line number
+     * @returns {string | *} Line number from given usage
+     */
+    getLineNumberFromUsage(usage) {
+        return usage.split(':')[1];
+    },
+
+    /**
+     * @returns {*} Template for location url, if in configuration, an empty string otherwise.
+     */
+    getLocationUrlTemplate() {
+        try {
+            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.url;
+        } catch (e) {
+            return "";
+        }
+    },
+
+    /**
+     * @returns {*} Template for location label, if in configuration, or the string set in getLocationDefaultLabel otherwise
+     */
+    getLocationLabelTemplate() {
+        try {
+            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.label;
+        } catch (e) {
+            return this.getLocationDefaultLabel();
+        }
+    },
+
+    /**
+     * @returns {*} The value of useUsage, if in configuration, or false otherwise
+     */
+    getLocationUseUsage() {
+        try {
+            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.useUsage;
+        } catch (e) {
+            return false;
+        }
+    },
+
+    /**
+     * @returns {*} The default string for location in case no link configuration is set
+     */
+    getLocationDefaultLabel() {
+        const usages = this.getUsages();
+        if (this.getLocationUseUsage() && usages !== null) {
+            return usages.join("\n");
+        } else {
+            return '-';
+        }
+    },
+
+    /**
+     * @returns {*} Creates a link to current commit if there is one, or value of getCommitDefaultLabel if there is none
+     */
+    getCommitLink() {
+        const urlTemplate = this.getCommitUrlTemplate();
+        const labelTemplate = this.getCommitLabelTemplate();
+        const commit = this.getCommitName();
+        let link = this.getCommitDefaultLabel();
+
+        if (commit !== null && urlTemplate !== "") {
+            let params = {commit: commit};
+            let url = LinkHelper.getLink(urlTemplate, params);
+            let label = LinkHelper.getLink(labelTemplate, params);
+            link = (<a href={url}>{label}</a>);
+        }
+
+        return link;
+    },
+
+    /**
+     * @returns {*} Template for commit url, if in configuration, an empty string otherwise.
+     */
+    getCommitUrlTemplate() {
+        try {
+            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].commit.url;
+        } catch (e) {
+            return ""
+        }
+    },
+
+    /**
+     * @returns {*} Template for commit label, if in configuration, or the string set in getCommitDefaultLabel otherwise
+     */
+    getCommitLabelTemplate() {
+        try {
+            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].commit.label;
+        } catch (e) {
+            return this.getCommitDefaultLabel();
+        }
+    },
+
+    /**
+     * @returns {*} The default string for commit in case no link configuration is set
+     */
+    getCommitDefaultLabel() {
+        return this.getCommitName();
     },
 
     /**
@@ -214,8 +354,10 @@ let GitBlameInfoModal = React.createClass({
             return null;
         }
 
-        let options = {year: 'numeric', month: 'numeric', day: 'numeric',
-            hour: 'numeric', minute: 'numeric'};
+        let options = {
+            year: 'numeric', month: 'numeric', day: 'numeric',
+            hour: 'numeric', minute: 'numeric'
+        };
         return (this.props.intl.formatDate(date, options));
     },
 
@@ -237,13 +379,15 @@ let GitBlameInfoModal = React.createClass({
                         <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.textUnit"}/></h4></div>
                     </div>
                     {this.renderTextUnitInfo()}
-                    <hr />
+                    <hr/>
                     <div className={"row"}>
                         <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.gitBlame"}/></h4></div>
-                        <div className={"col-sm-8"}>{this.props.loading ? (<span className="glyphicon glyphicon-refresh spinning" />) : ""}</div>
+                        <div className={"col-sm-8"}>
+                            {this.props.loading ? (<span className="glyphicon glyphicon-refresh spinning"/>) : ""}
+                        </div>
                     </div>
                     {this.renderGitBlameInfo()}
-                    <hr />
+                    <hr/>
                     <div className={"row"}>
                         <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4></div>
                     </div>
@@ -255,7 +399,7 @@ let GitBlameInfoModal = React.createClass({
                     </Button>
                 </Modal.Footer>
             </Modal>
-    );
+        );
     }
 });
 
