@@ -5,6 +5,7 @@ import com.box.l10n.mojito.cli.filefinder.file.CSVFileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.JSFileType;
 import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.MacStringsdictFileType;
 import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
 import com.box.l10n.mojito.cli.filefinder.file.PropertiesNoBasenameFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
@@ -332,6 +333,42 @@ public class FileFinderTest extends IOTestBase {
         assertEquals(getInputResourcesTestDir().toString() + "/en-GB.lproj/Localizable.strings", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/fr.lproj/InfoPlist.strings", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/fr.lproj/Localizable.strings", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
+    }
+
+    @Test
+    public void findMacStringsdict() throws IOException, FileFinderException {
+        FileFinder fileFinder = initFileFinder(false, new MacStringsdictFileType());
+
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(getInputResourcesTestDir("source").toString() + "/en.lproj/Localizable.stringsdict", next.getPath().toString());
+        assertEquals("fr.lproj/Localizable.stringsdict", next.getTargetPath("fr"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir("target").toString() + "/en-GB.lproj/Localizable.stringsdict", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir("target").toString() + "/fr.lproj/Localizable.stringsdict", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
+    }
+
+    @Test
+    public void findMacStringsdictInSameDirectory() throws IOException, FileFinderException {
+        FileFinder fileFinder = initFileFinder(true, new MacStringsdictFileType());
+
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(getInputResourcesTestDir().toString() + "/en.lproj/Localizable.stringsdict", next.getPath().toString());
+        assertEquals("fr.lproj/Localizable.stringsdict", next.getTargetPath("fr"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir().toString() + "/en-GB.lproj/Localizable.stringsdict", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir().toString() + "/fr.lproj/Localizable.stringsdict", itTargets.next().getPath().toString());
         assertFalse(itTargets.hasNext());
     }
 

@@ -11,13 +11,13 @@ import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleTargetNotSourceType;
 
 /**
  *
- * @author jaurambault
+ * @author emagalindan
  */
-public class MacStringsFileType extends FileType {
+public class MacStringsdictFileType extends FileType {
 
-    public MacStringsFileType() {
-        this.sourceFileExtension = "strings";
-        this.baseNamePattern = ".*?Localizable|InfoPlist";
+    public MacStringsdictFileType() {
+        this.sourceFileExtension = "stringsdict";
+        this.baseNamePattern = "Localizable";
         this.subPath = "lproj";
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + LOCALE + "}" + DOT + "{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = sourceFilePatternTemplate;

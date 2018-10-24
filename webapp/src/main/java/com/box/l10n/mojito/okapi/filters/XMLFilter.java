@@ -39,7 +39,7 @@ public class XMLFilter extends net.sf.okapi.filters.xml.XMLFilter {
     }
 
     /**
-     * Overriding to include only resx, xtb and AndroidStrings filters
+     * Overriding to include only mac stringsdict, resx, xtb and AndroidStrings filters
      *
      * @return
      */

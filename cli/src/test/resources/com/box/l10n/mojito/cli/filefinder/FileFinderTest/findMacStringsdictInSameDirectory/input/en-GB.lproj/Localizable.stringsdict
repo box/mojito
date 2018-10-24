@@ -1,0 +1,20 @@
+<plist version="1.0">
+<dict>
+<key>plural_recipe_cook_hours</key>
+<dict>
+    <key>NSStringLocalizedFormatKey</key>
+    <string>%#@hours@ to cook</string>
+    <key>files</key>
+    <dict>
+        <key>NSStringFormatSpecTypeKey</key>
+        <string>NSStringPluralRuleType</string>
+        <key>NSStringFormatValueTypeKey</key>
+        <string>d</string>
+        <key>one</key>
+        <string>%d hour to cook</string>
+        <key>other</key>
+        <string>%d hours to cook</string>
+    </dict>
+</dict>
+</dict>
+</plist>

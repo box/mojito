@@ -11,6 +11,7 @@ public enum FileTypes {
     XCODE_XLIFF(XcodeXliffFileType.class),
     ANDROID_STRINGS(AndroidStringsFileType.class),
     MAC_STRING(MacStringsFileType.class),
+    MAC_STRINGSDICT(MacStringsdictFileType.class),
     PROPERTIES(PropertiesFileType.class),
     PROPERTIES_NOBASENAME(PropertiesNoBasenameFileType.class),
     PROPERTIES_JAVA(PropertiesJavaFileType.class),

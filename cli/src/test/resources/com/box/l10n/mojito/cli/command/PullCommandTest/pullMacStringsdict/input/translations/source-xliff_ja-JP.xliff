@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
+    <file original=""  source-language="en" target-language="ja-JP" datatype="x-undefined">
+        <body>
+            <trans-unit id="" resname="plural_recipe_cook_hours">
+                <source>{hours, plural, one {hour to cook}, other {%d hours to cook}</source>
+                <target>{hours, plural, one {}, other {所要時間：%d 時間<}</target>
+            </trans-unit>
+            <trans-unit id="" resname="collaborators">
+                <source>{hours, plural, one {collaborator}, other {%d collaborator}</source>
+                <target>{hours, plural, one {}, other {ボード参加者：%d 人}</target>
+            </trans-unit>
+            <trans-unit id="" resname="recipe_ingredients_with_count">
+                <source>{hours, plural, one {ingredient}, other {%d ingredients}</source>
+                <target>{hours, plural, one {}, other {%d 個の材料}</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

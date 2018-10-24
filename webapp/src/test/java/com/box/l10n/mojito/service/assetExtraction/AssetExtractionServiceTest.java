@@ -446,7 +446,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "\"Add to Folder\" = \"Add to Folder\";";
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
 
-        assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
+        assertEquals("Processing should have extracted 1 text unit", 1, assetTextUnits.size());
         assertEquals("Add to Folder", assetTextUnits.get(0).getName());
         assertEquals("Add to Folder", assetTextUnits.get(0).getContent());
         assertEquals(" Title: Title for the add content to folder menu header ", assetTextUnits.get(0).getComment());
@@ -515,7 +515,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "\"Comment\" = \"Comment\";";
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
 
-        assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
+        assertEquals("Processing should have extracted 1 text unit", 1, assetTextUnits.size());
         assertEquals("Comment", assetTextUnits.get(0).getName());
         assertEquals("Comment", assetTextUnits.get(0).getContent());
         assertNull(assetTextUnits.get(0).getComment());
@@ -538,6 +538,152 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("thisline \\n nextline", assetTextUnits.get(1).getName());
         assertEquals("thisline \n nextline", assetTextUnits.get(1).getContent());
         assertEquals(" Test newline ", assetTextUnits.get(1).getComment());
+    }
+
+    @Test
+    public void testMacStringsdict() throws Exception {
+        String content = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<!-- Comment -->\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>one</key>\n" +
+                "       <string>%d file remaining</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+
+        assertEquals("Processing should have extracted 6 text units", 6, assetTextUnits.size());
+        assertEquals("%d file(s) remaining_files_zero", assetTextUnits.get(0).getName());
+        assertEquals("%d file(s) remaining_files_one", assetTextUnits.get(1).getName());
+        assertEquals("%d file(s) remaining_files_two", assetTextUnits.get(2).getName());
+        assertEquals("%d file(s) remaining_files_few", assetTextUnits.get(3).getName());
+        assertEquals("%d file(s) remaining_files_many", assetTextUnits.get(4).getName());
+        assertEquals("%d file(s) remaining_files_other", assetTextUnits.get(5).getName());
+
+
+        for (int i = 0; i < assetTextUnits.size(); i++) {
+            if (i == 1) {
+                assertEquals("%d file remaining", assetTextUnits.get(i).getContent());
+            }
+            else {
+                assertEquals("%d files remaining", assetTextUnits.get(i).getContent());
+            }
+            assertEquals("Comment", assetTextUnits.get(i).getComment());
+        }
+    }
+
+    @Test
+    public void testMacStringsdictWithUsage() throws Exception {
+        String content = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<!-- Comment -->\n" +
+                "<!-- Location: path/to/file:42 -->\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>one</key>\n" +
+                "       <string>%d file remaining</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+
+        assertEquals("Processing should have extracted 6 text units", 6, assetTextUnits.size());
+        assertEquals("%d file(s) remaining_files_zero", assetTextUnits.get(0).getName());
+        assertEquals("%d file(s) remaining_files_one", assetTextUnits.get(1).getName());
+        assertEquals("%d file(s) remaining_files_two", assetTextUnits.get(2).getName());
+        assertEquals("%d file(s) remaining_files_few", assetTextUnits.get(3).getName());
+        assertEquals("%d file(s) remaining_files_many", assetTextUnits.get(4).getName());
+        assertEquals("%d file(s) remaining_files_other", assetTextUnits.get(5).getName());
+
+        Set<String> expectedUsages = new HashSet<>();
+        expectedUsages.add("path/to/file:42");
+        for (int i = 0; i < assetTextUnits.size(); i++) {
+            if (i == 1) {
+                assertEquals("%d file remaining", assetTextUnits.get(i).getContent());
+            }
+            else {
+                assertEquals("%d files remaining", assetTextUnits.get(i).getContent());
+            }
+            assertEquals("Comment", assetTextUnits.get(i).getComment());
+            assertEquals(expectedUsages, assetTextUnits.get(i).getUsages());
+        }
+    }
+
+    @Test
+    public void testMacStringsdictWitMultipleUsages() throws Exception {
+        String content = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<!-- Comment -->\n" +
+                "<!-- Location: path/to/file:42 -->\n" +
+                "<!-- Location: path/to/file:45 -->\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>one</key>\n" +
+                "       <string>%d file remaining</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+
+        assertEquals("Processing should have extracted 6 text units", 6, assetTextUnits.size());
+        assertEquals("%d file(s) remaining_files_zero", assetTextUnits.get(0).getName());
+        assertEquals("%d file(s) remaining_files_one", assetTextUnits.get(1).getName());
+        assertEquals("%d file(s) remaining_files_two", assetTextUnits.get(2).getName());
+        assertEquals("%d file(s) remaining_files_few", assetTextUnits.get(3).getName());
+        assertEquals("%d file(s) remaining_files_many", assetTextUnits.get(4).getName());
+        assertEquals("%d file(s) remaining_files_other", assetTextUnits.get(5).getName());
+
+        Set<String> expectedUsages = new HashSet<>();
+        expectedUsages.add("path/to/file:42");
+        expectedUsages.add("path/to/file:45");
+        for (int i = 0; i < assetTextUnits.size(); i++) {
+            if (i == 1) {
+                assertEquals("%d file remaining", assetTextUnits.get(i).getContent());
+            }
+            else {
+                assertEquals("%d files remaining", assetTextUnits.get(i).getContent());
+            }
+            assertEquals("Comment", assetTextUnits.get(i).getComment());
+            assertEquals(expectedUsages, assetTextUnits.get(i).getUsages());
+        }
     }
 
     @Test

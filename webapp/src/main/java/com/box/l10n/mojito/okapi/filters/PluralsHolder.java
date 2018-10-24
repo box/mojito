@@ -201,7 +201,9 @@ public abstract class PluralsHolder {
         return pluralForm;
     }
 
-    abstract void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm);
+    void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
+
+    }
 
     abstract void replaceFormInSkeleton(GenericSkeleton genericSkeleton, String sourceForm, String targetForm);
 
