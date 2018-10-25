@@ -126,24 +126,12 @@ public class PseudoLocalization {
      * @return
      */
     public String convertAsciiToDiacritics(String string) {
-        boolean inPlaceholder = false;
         int stringLength = string.length();
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < stringLength; i++) {
             char character = string.charAt(i);
-
-            if (character == '{') {
-                inPlaceholder = true;
-            } else if (character == '}') {
-                inPlaceholder = false;
-            }
-
-            if (inPlaceholder) {
-                sb.append(character);
-            } else {
-                sb.append(getMappingCharFromMap(character));
-            }
+            sb.append(getMappingCharFromMap(character));
         }
 
         return sb.toString();

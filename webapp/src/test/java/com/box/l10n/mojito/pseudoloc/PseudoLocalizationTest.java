@@ -46,9 +46,25 @@ public class PseudoLocalizationTest {
     }
 
     @Test
-    public void testStringWithPlaceholder() {
+    public void testStringWithCurlyBracePlaceholder() {
         PseudoLocalization ps = new PseudoLocalization();
         String diacriticsString = ps.convertAsciiToDiacritics("English Sentence with {placeholder} which should not be pseudolocalized");
         assertTrue(diacriticsString.contains("{placeholder}"));
+    }
+
+    @Test
+    public void testStringWithCurlyBracePlaceholderInPlural1() {
+        PseudoLocalization ps = new PseudoLocalization();
+        String diacriticsString = ps.convertAsciiToDiacritics("{count, plural, one {# placeholder} other {# placeholders}}");
+        assertTrue(diacriticsString.contains("{# placeholder}"));
+        assertTrue(diacriticsString.contains("{# placeholders}"));
+    }
+
+    @Test
+    public void testStringWithCurlyBracePlaceholderInPlural2() {
+        PseudoLocalization ps = new PseudoLocalization();
+        String diacriticsString = ps.convertAsciiToDiacritics("Viewed by {numUsers, plural, one {1 person} other {{numUsers} people}}");
+        assertTrue(diacriticsString.contains("{# placeholder}"));
+        assertTrue(diacriticsString.contains("{# placeholders}"));
     }
 }
