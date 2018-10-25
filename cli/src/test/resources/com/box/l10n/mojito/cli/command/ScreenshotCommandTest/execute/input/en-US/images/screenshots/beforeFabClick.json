@@ -1,0 +1,16 @@
+{
+  "name": "beforeFabClick",
+  "takenDate": 1497227078354,
+  "sequence": 2,
+  "textUnits": [
+    {
+      "renderedTarget": "App name"
+    },
+    {
+      "renderedTarget": "Hello"
+    },
+    {
+      "renderedTarget": "Navigate"
+    }
+  ]
+}

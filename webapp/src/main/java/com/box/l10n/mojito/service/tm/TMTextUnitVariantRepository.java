@@ -18,4 +18,6 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
     
     List<TMTextUnitVariant> findByTmTextUnitTmRepositoriesOrderByContent(Repository repository);
 
+    List<TMTextUnitVariant> findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(Repository repository, String bcp47Tag);
+
 }

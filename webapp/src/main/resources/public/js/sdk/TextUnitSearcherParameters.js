@@ -47,7 +47,17 @@ class TextUnitSearcherParameters {
         this.params.target = target;
         return this;
     }
-
+    
+    assetPath(assetPath) {
+        this.params.assetPath = assetPath;
+        return this;
+    }
+    
+    pluralFormOther(pluralFormOther) {
+        this.params.pluralFormOther = pluralFormOther;
+        return this;
+    }
+    
     searchType(searchType) {
         this.params.searchType = searchType;
         return this;
@@ -55,6 +65,21 @@ class TextUnitSearcherParameters {
 
     usedFilter(usedFilter) {
         this.params.usedFilter = usedFilter;
+        return this;
+    }
+    
+    doNotTranslateFilter(doNotTranslateFilter) {
+        this.params.doNotTranslateFilter = doNotTranslateFilter;
+        return this;
+    }
+    
+    tmTextUnitCreatedBefore(tmTextUnitCreatedBefore) {
+        this.params.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
+        return this;
+    }
+
+    tmTextUnitCreatedAfter(tmTextUnitCreatedAfter) {
+        this.params.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
         return this;
     }
 

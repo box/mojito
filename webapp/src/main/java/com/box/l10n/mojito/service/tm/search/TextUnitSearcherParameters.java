@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.tm.search;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import java.util.Arrays;
 import java.util.List;
+import org.joda.time.DateTime;
 
 /**
  * Parameters for {@link TextUnitSearcher#search(com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters)
@@ -15,8 +16,11 @@ public class TextUnitSearcherParameters {
     String name;
     String source;
     String target;
+    String assetPath;
+    String pluralFormOther;
     SearchType searchType;
     List<Long> repositoryIds;
+    List<String> repositoryNames;
     List<String> localeTags;
     Long localeId;
     UsedFilter usedFilter;
@@ -27,8 +31,15 @@ public class TextUnitSearcherParameters {
     Long tmTextUnitId;
     Long tmId;
     String md5;
+    boolean forRootLocale = false;
     boolean rootLocaleExcluded = true;
+    Boolean toBeFullyTranslatedFilter;
     boolean untranslatedOrTranslationNeeded = false;
+    boolean pluralFormsFiltered = true;
+    Long pluralFormId;
+    Boolean doNotTranslateFilter;
+    DateTime tmTextUnitCreatedBefore;
+    DateTime tmTextUnitCreatedAfter;
 
     public String getName() {
         return name;
@@ -46,10 +57,6 @@ public class TextUnitSearcherParameters {
         this.source = NormalizationUtils.normalize(source);
     }
 
-    public String getTarget() {
-        return target;
-    }
-
     public SearchType getSearchType() {
         return searchType;
     }
@@ -58,8 +65,20 @@ public class TextUnitSearcherParameters {
         this.searchType = searchType;
     }
 
+    public String getTarget() {
+        return target;
+    }
+
     public void setTarget(String target) {
         this.target = NormalizationUtils.normalize(target);
+    }
+
+    public String getAssetPath() {
+        return assetPath;
+    }
+
+    public void setAssetPath(String assetPath) {
+        this.assetPath = assetPath;
     }
 
     public List<Long> getRepositoryIds() {
@@ -154,6 +173,22 @@ public class TextUnitSearcherParameters {
         this.rootLocaleExcluded = rootLocaleExcluded;
     }
 
+    public boolean isForRootLocale() {
+        return forRootLocale;
+    }
+
+    public void setForRootLocale(boolean forRootLocale) {
+        this.forRootLocale = forRootLocale;
+    }
+
+    public Boolean getToBeFullyTranslatedFilter() {
+        return toBeFullyTranslatedFilter;
+    }
+
+    public void setToBeFullyTranslatedFilter(Boolean toBeFullyTranslatedFilter) {
+        this.toBeFullyTranslatedFilter = toBeFullyTranslatedFilter;
+    }
+
     public StatusFilter getStatusFilter() {
         return statusFilter;
     }
@@ -162,4 +197,59 @@ public class TextUnitSearcherParameters {
         this.statusFilter = statusFilter;
     }
 
+    public String getPluralFormOther() {
+        return pluralFormOther;
+    }
+
+    public void setPluralFormOther(String pluralFormOther) {
+        this.pluralFormOther = pluralFormOther;
+    }
+
+    public List<String> getRepositoryNames() {
+        return repositoryNames;
+    }
+
+    public void setRepositoryNames(List<String> repositoryNames) {
+        this.repositoryNames = repositoryNames;
+    }
+
+    public boolean isPluralFormsFiltered() {
+        return pluralFormsFiltered;
+    }
+
+    public void setPluralFormsFiltered(boolean pluralFormsFiltered) {
+        this.pluralFormsFiltered = pluralFormsFiltered;
+    }
+
+    public Long getPluralFormId() {
+        return pluralFormId;
+    }
+
+    public void setPluralFormId(Long pluralFormId) {
+        this.pluralFormId = pluralFormId;
+    }
+
+    public Boolean getDoNotTranslateFilter() {
+        return doNotTranslateFilter;
+    }
+
+    public void setDoNotTranslateFilter(Boolean doNotTranslateFilter) {
+        this.doNotTranslateFilter = doNotTranslateFilter;
+    }
+
+    public DateTime getTmTextUnitCreatedBefore() {
+        return tmTextUnitCreatedBefore;
+    }
+
+    public void setTmTextUnitCreatedBefore(DateTime tmTextUnitCreatedBefore) {
+        this.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
+    }
+
+    public DateTime getTmTextUnitCreatedAfter() {
+        return tmTextUnitCreatedAfter;
+    }
+
+    public void setTmTextUnitCreatedAfter(DateTime tmTextUnitCreatedAfter) {
+        this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
+    }
 }

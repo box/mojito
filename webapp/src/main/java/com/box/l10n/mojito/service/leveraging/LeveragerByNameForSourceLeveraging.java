@@ -27,7 +27,7 @@ public class LeveragerByNameForSourceLeveraging extends AbstractLeverager {
     }
 
     @Override
-    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
+    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
         logger.debug("Get TextUnitDTOs for leveraging by name");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();

@@ -33,6 +33,9 @@ public class Param {
     public static final String REPOSITORY_LOCALES_SHORT = "-l";
     public static final String REPOSITORY_LOCALES_DESCRIPTION = "List of locales to add.  Separated by spaces.  Arrow separated to specify parent language. Bracket enclosed locale will set that locale to be partially translated.  e.g.(\"fr-FR\" \"(fr-CA)->fr-FR\" \"en-GB\" \"(en-CA)->en-GB\" \"en-AU\")";
 
+    public static final String REPOSITORY_LOCALES_MAPPING_LONG = "--locale-mapping";
+    public static final String REPOSITORY_LOCALES_MAPPING_SHORT = "-lm";
+    
     public static final String SOURCE_DIRECTORY_LONG = "--source-directory";
     public static final String SOURCE_DIRECTORY_SHORT = "-s";
     public static final String SOURCE_DIRECTORY_DESCRIPTION = "Directory that contains source assets to be localized";
@@ -79,5 +82,9 @@ public class Param {
     public static final String ROLE_LONG = "--role";
     public static final String ROLE_SHORT = "-r";
     public static final String ROLE_DESCRIPTION = "Available user roles: PM, TRANSLATOR, ADMIN, USER";
+
+    public static final String EXPORT_LOCALES_LONG = "--locales";
+    public static final String EXPORT_LOCALES_SHORT = "-l";
+    public static final String EXPORT_LOCALES_DESCRIPTION = "List of locales to be exported, format: fr-FR,ja-JP";
 
 }

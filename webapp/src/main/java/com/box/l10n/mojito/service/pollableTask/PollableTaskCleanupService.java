@@ -1,12 +1,12 @@
 package com.box.l10n.mojito.service.pollableTask;
 
 import com.box.l10n.mojito.entity.PollableTask;
+import java.util.List;
 import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import java.util.List;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author aloison

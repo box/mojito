@@ -1,5 +1,6 @@
 import alt from "../alt";
 import RepositoryActions from "../actions/RepositoryActions";
+import WorkbenchActions from "../actions/workbench/WorkbenchActions";
 import RepositoryDataSource from "../actions/RepositoryDataSource";
 import RepositoryLocale from "../sdk/entity/RepositoryLocale";
 
@@ -8,6 +9,7 @@ class RepositoryStore {
     constructor() {
         this.repositories = [];        
         this.bindActions(RepositoryActions);
+        this.bindActions(WorkbenchActions);
         this.registerAsync(RepositoryDataSource);
     }
 
@@ -18,7 +20,7 @@ class RepositoryStore {
     getAllRepositoriesSuccess(repositories) {
         this.repositories = repositories;
     }
-
+    
     /**
      * Get the repository with the id from the state.
      * @param id of repository
@@ -37,7 +39,25 @@ class RepositoryStore {
 
         return result;
     }
+    
+    /**
+     * Get the repository with given name from the state.
+     * @param name of repository
+     * @return {object} the repository with the name.  null if not found.
+     */
+    static getRepositoryByName(name) {
+        let state = this.getState();
+        let result = null;
+        
+        for (let key of Object.keys(state.repositories)) {
+            if (state.repositories[key].name === name) {
+                result = state.repositories[key];
+                break;
+            }
+        }
 
+        return result;
+    }
 
     /**
      * Get all BCP47 tags that belongs to a list of repositories

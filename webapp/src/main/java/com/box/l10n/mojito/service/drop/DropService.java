@@ -111,7 +111,7 @@ public class DropService {
         Drop drop = createDrop(repository);
         drop.setExportPollableTask(currentTask);
 
-        createDropExporterAndExportTranslationKits(drop, exportDropConfig.getBcp47Tags(), exportDropConfig.getType(), currentTask, PollableTask.INJECT_CURRENT_TASK);
+        createDropExporterAndExportTranslationKits(drop, exportDropConfig.getBcp47Tags(), exportDropConfig.getType(), exportDropConfig.getUseInheritance(), currentTask, PollableTask.INJECT_CURRENT_TASK);
 
         return new PollableFutureTaskResult<>(drop);
     }
@@ -123,6 +123,7 @@ public class DropService {
      * @param drop {@link Drop}
      * @param bcp47Tags list of bcp47 tags of the {@link TranslationKit}s
      * @param type type of the {@link TranslationKit}s
+     * @param useInheritance use inherited translations from parent locales when creating {@link TranslationKit}
      * @param parentTask
      */
     @Pollable(async = true)
@@ -130,6 +131,7 @@ public class DropService {
             Drop drop,
             List<String> bcp47Tags,
             TranslationKit.Type type,
+            Boolean useInheritance,
             @ParentTask PollableTask parentTask,
             @InjectCurrentTask PollableTask currentTask) throws DropExporterException {
 
@@ -143,7 +145,7 @@ public class DropService {
             pollableFutureTaskResult.setResult(dropExporter);
 
             for (String bcp47Tag : bcp47Tags) {
-                generateAndExportTranslationKit(bcp47Tag, type, drop, dropExporter, currentTask);
+                generateAndExportTranslationKit(bcp47Tag, type, useInheritance, drop, dropExporter, currentTask);
             }
         } catch (Throwable t) {
             drop.setExportFailed(Boolean.TRUE);
@@ -160,6 +162,7 @@ public class DropService {
      *
      * @param bcp47Tag list of bcp47 tags of the {@link TranslationKit}s
      * @param type type of the {@link TranslationKit}s
+     * @param useInheritance use inherited translations from parent locales when creating {@link TranslationKit}
      * @param drop the {@link Drop} related to the {@link TranslationKit}s
      * @param dropExporter used to export the {@link TranslationKit}s
      * @param parentTask
@@ -169,6 +172,7 @@ public class DropService {
     private void generateAndExportTranslationKit(
             @MsgArg(name = "bcp47Tag") String bcp47Tag,
             TranslationKit.Type type,
+            Boolean useInheritance,
             Drop drop,
             DropExporter dropExporter,
             @ParentTask PollableTask parentTask) throws DropExporterException {
@@ -179,7 +183,8 @@ public class DropService {
                 drop.getId(),
                 drop.getRepository().getTm().getId(),
                 localeService.findByBcp47Tag(bcp47Tag).getId(),
-                type).getContent();
+                type,
+                useInheritance).getContent();
 
         dropExporter.exportSourceFile(bcp47Tag, translationKitAsXLIFF);
     }

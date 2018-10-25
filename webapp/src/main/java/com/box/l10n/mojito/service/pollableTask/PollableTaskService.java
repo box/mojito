@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.pollableTask;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.google.common.base.Throwables;
+import java.util.ArrayList;
+import java.util.List;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Services to manage pollable tasks.
@@ -27,8 +27,6 @@ import java.util.List;
  * process reporting.
  *
  * @author jaurambault
- *
- * TODO(P1) Move into its own module
  */
 @Service
 public class PollableTaskService {
@@ -38,7 +36,7 @@ public class PollableTaskService {
      */
     static Logger logger = LoggerFactory.getLogger(PollableTaskService.class);
 
-    final static Long NO_TIMEOUT = -1L;
+    public final static Long NO_TIMEOUT = -1L;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -124,8 +122,8 @@ public class PollableTaskService {
      * @throws InterruptedException
      * @throws PollableTaskException
      */
-    public void waitForPollableTask(Long pollableId) throws InterruptedException, PollableTaskException {
-        waitForPollableTask(pollableId, NO_TIMEOUT);
+    public PollableTask waitForPollableTask(Long pollableId) throws InterruptedException, PollableTaskException {
+        return waitForPollableTask(pollableId, NO_TIMEOUT);
     }
 
     /**
@@ -137,7 +135,21 @@ public class PollableTaskService {
      * @throws InterruptedException
      * @throws PollableTaskException
      */
-    public void waitForPollableTask(Long pollableId, long timeout) throws InterruptedException, PollableTaskException {
+    public PollableTask waitForPollableTask(Long pollableId, long timeout) throws InterruptedException, PollableTaskException {
+        return waitForPollableTask(pollableId, timeout, 500);
+    }
+
+    /**
+     * Waits for {@link PollableTask} to be all finished (see {@link PollableTask#isAllFinished()
+     * }).
+     *
+     * @param pollableId the {@link PollableTask#id}
+     * @param timeout timeout in milliseconds.
+     * @param sleepTime time to sleep before checking the status again
+     * @throws InterruptedException
+     * @throws PollableTaskException
+     */
+    public PollableTask waitForPollableTask(Long pollableId, long timeout, long sleepTime) throws InterruptedException, PollableTaskException {
 
         long currentTime = System.currentTimeMillis();
         long timeoutTime = currentTime + timeout;
@@ -162,7 +174,7 @@ public class PollableTaskService {
             }
 
             if (!isAllFinished) {
-                Thread.sleep(500);
+                Thread.sleep(sleepTime);
                 currentTime = System.currentTimeMillis();
             }
         }
@@ -173,6 +185,8 @@ public class PollableTaskService {
             logger.debug("Timed out waiting for PollableTask: {} to finished", pollableId);
             throw new PollableTaskTimeoutException("Timed out waiting for PollableTask: " + pollableId);
         }
+
+        return getPollableTask(pollableId);
     }
 
     /**

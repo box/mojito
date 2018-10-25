@@ -23,12 +23,21 @@ export default class RepositoryLocaleStatistic {
 
         /** @type {Number} */
         this.reviewNeededWordCount = 0
+        
+        /** @type {Number} */
+        this.forTranslationCount = 0;
+
+        /** @type {Number} */
+        this.forTranslationWordCount = 0
 
         /** @type {Number} */
         this.includeInFileCount = 0;
 
         /** @type {Number} */
         this.includeInFileWordCount = 0;
+        
+         /** @type {Number} */
+        this.diffToSourcePluralCount = 0;
     }
 
     /**
@@ -47,6 +56,9 @@ export default class RepositoryLocaleStatistic {
         result.reviewNeededWordCount = json.reviewNeededWordCount;
         result.includeInFileCount = json.includeInFileCount;
         result.includeInFileWordCount = json.includeInFileWordCount;
+        result.forTranslationCount = json.forTranslationCount;
+        result.forTranslationdWordCount = json.forTranslationdWordCount;
+        result.diffToSourcePluralCount = json.diffToSourcePluralCount;
 
         return result;
     }

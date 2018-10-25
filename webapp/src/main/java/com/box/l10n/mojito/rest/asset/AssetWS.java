@@ -2,28 +2,25 @@ package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
-import static com.box.l10n.mojito.rest.asset.AssetSpecification.deletedEquals;
-import static com.box.l10n.mojito.rest.asset.AssetSpecification.pathEquals;
-import static com.box.l10n.mojito.rest.asset.AssetSpecification.repositoryIdEquals;
+import com.box.l10n.mojito.entity.TMXliff;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +28,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.*;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+import static org.springframework.data.jpa.domain.Specifications.where;
 
 /**
  * @author aloison
@@ -58,24 +63,33 @@ public class AssetWS {
     @Autowired
     AssetService assetService;
 
+    @Autowired
+    TMXliffRepository tmXliffRepository;
+
+    @Autowired
+    LocaleService localeService;
+
     /**
      * Gets the list of {@link Asset} for a given {@link Repository} and other
      * optional filters
      *
-     * @param repositoryId {@link Repository#id}
-     * @param path {@link Asset#path}
+     * @param repositoryId   {@link Repository#id}
+     * @param path           {@link Asset#path}
      * @param deleted
+     * @param virtualContent
      * @return the list of {@link Asset} for a given {@link Repository}
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.GET)
     public List<Asset> getAssets(@RequestParam(value = "repositoryId") Long repositoryId,
-            @RequestParam(value = "path", required = false) String path,
-            @RequestParam(value = "deleted", required = false) Boolean deleted) {
+                                 @RequestParam(value = "path", required = false) String path,
+                                 @RequestParam(value = "deleted", required = false) Boolean deleted,
+                                 @RequestParam(value = "virtual", required = false) Boolean virtualContent) {
 
-        return assetRepository.findAll(
-                where(ifParamNotNull(repositoryIdEquals(repositoryId)))
+        return assetRepository.findAll(where(ifParamNotNull(repositoryIdEquals(repositoryId)))
                 .and(ifParamNotNull(pathEquals(path)))
                 .and(ifParamNotNull(deletedEquals(deleted)))
+                .and(ifParamNotNull(virtualEquals(virtualContent))
+                )
         );
     }
 
@@ -88,7 +102,7 @@ public class AssetWS {
      * @throws java.lang.InterruptedException
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.POST)
-    public SourceAsset importSourceAsset(@RequestBody SourceAsset sourceAsset) throws ExecutionException, InterruptedException {
+    public SourceAsset importSourceAsset(@RequestBody SourceAsset sourceAsset) throws Throwable {
         logger.debug("Importing source asset");
 
         // ********************************************
@@ -102,7 +116,12 @@ public class AssetWS {
                 sourceAsset.getFilterConfigIdOverride()
         );
 
-        sourceAsset.setAddedAssetId(assetFuture.get().getId());
+        try {
+            sourceAsset.setAddedAssetId(assetFuture.get().getId());
+        } catch (ExecutionException ee) {
+            throw ee.getCause();
+        }
+
         sourceAsset.setPollableTask(assetFuture.getPollableTask());
 
         return sourceAsset;
@@ -110,23 +129,23 @@ public class AssetWS {
 
     /**
      * Localizes the payload content with translations of a given {@link Asset}.
-     *
+     * <p>
      * This is usually to translate an asset that was slightly modified (for
      * example during development or when using different branches) compared to
      * the asset version stored in the database (usually synchronized with a CI
      * tool).
      *
-     * @param assetId {@link Asset#id}
-     * @param localeId {@link Locale#id}
+     * @param assetId            {@link Asset#id}
+     * @param localeId           {@link Locale#id}
      * @param localizedAssetBody the payload to be localized with optional
-     * parameters
+     *                           parameters
      * @return the localized payload as a {@link LocalizedAssetBody}
      */
     @RequestMapping(value = "/api/assets/{assetId}/localized/{localeId}", method = RequestMethod.POST)
     public LocalizedAssetBody getLocalizedAssetForContent(
             @PathVariable("assetId") long assetId,
             @PathVariable("localeId") long localeId,
-            @RequestBody LocalizedAssetBody localizedAssetBody) {
+            @RequestBody LocalizedAssetBody localizedAssetBody) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Localizing content payload with asset id = {}, and locale id = {}", assetId, localeId);
 
@@ -136,12 +155,14 @@ public class AssetWS {
         String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
         String generateLocalized = tmService.generateLocalized(
-                asset, 
-                normalizedContent, 
-                repositoryLocale, 
-                localizedAssetBody.getOutputBcp47tag(), 
-                localizedAssetBody.getFilterConfigIdOverride());
-        
+                asset,
+                normalizedContent,
+                repositoryLocale,
+                localizedAssetBody.getOutputBcp47tag(),
+                localizedAssetBody.getFilterConfigIdOverride(),
+                localizedAssetBody.getInheritanceMode(),
+                localizedAssetBody.getStatus());
+
         localizedAssetBody.setContent(generateLocalized);
 
         if (localizedAssetBody.getOutputBcp47tag() != null) {
@@ -152,19 +173,20 @@ public class AssetWS {
 
         return localizedAssetBody;
     }
-    
+
     /**
-     * Pseudo localizes the payload content with translations of a given {@link Asset}.
+     * Pseudo localizes the payload content with translations of a given
+     * {@link Asset}.
      *
-     * @param assetId {@link Asset#id}
+     * @param assetId            {@link Asset#id}
      * @param localizedAssetBody the payload to be localized with optional
-     * parameters
+     *                           parameters
      * @return the pseudo localized payload as a {@link LocalizedAssetBody}
      */
     @RequestMapping(value = "/api/assets/{assetId}/pseudo", method = RequestMethod.POST)
     public LocalizedAssetBody getPseudoLocalizedAssetForContent(
             @PathVariable("assetId") long assetId,
-            @RequestBody LocalizedAssetBody localizedAssetBody) {
+            @RequestBody LocalizedAssetBody localizedAssetBody) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Pseudo localizing content payload with asset id = {}", assetId);
 
@@ -186,40 +208,66 @@ public class AssetWS {
     // that is used as a GET because we needed to send the paylaod. Here would
     // be the logic URL usage
     @RequestMapping(value = "/api/assets/{assetId}/localized/{localeId}/import", method = RequestMethod.POST)
-    public void importLocalizedAsset(
+    public ImportLocalizedAssetBody importLocalizedAsset(
             @PathVariable("assetId") long assetId,
             @PathVariable("localeId") long localeId,
             @RequestBody ImportLocalizedAssetBody importLocalizedAssetBody) {
 
         logger.debug("Import localized asset with id = {}, and locale id = {}", assetId, localeId);
-
-        Asset asset = assetRepository.getOne(assetId);
-        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
-
         String normalizedContent = NormalizationUtils.normalize(importLocalizedAssetBody.getContent());
 
-        tmService.importLocalizedAsset(
-                asset, 
-                normalizedContent, 
-                repositoryLocale, 
-                importLocalizedAssetBody.getSourceEqualTargetProcessing(),
+        PollableFuture pollableFuture = tmService.importLocalizedAssetAsync(
+                assetId,
+                normalizedContent,
+                localeId,
+                importLocalizedAssetBody.getStatusForEqualTarget(),
                 importLocalizedAssetBody.getFilterConfigIdOverride());
+
+        importLocalizedAssetBody.setPollableTask(pollableFuture.getPollableTask());
+
+        return importLocalizedAssetBody;
     }
-    
+
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
     /**
      * Exports all the translations (used and unused) of an {@link Asset} into
      * XLIFF.
      *
-     * @param assetId {@link Asset#id}
-     * @param bcp47tag bcp47 tag of translations to be exported
+     * @param assetId   {@link Asset#id}
+     * @param tmXliffId {@link TMXliff#id}
      * @return an XLIFF that contains all the translations of the {@link Asset}
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/api/assets/{assetId}/xliffExport")
+    @RequestMapping(method = RequestMethod.GET, value = "/api/assets/{assetId}/xliffExport/{tmXliffId}")
     @ResponseStatus(HttpStatus.OK)
-    public XliffExportBody xliffExport(@PathVariable("assetId") long assetId, @RequestParam("bcp47tag") String bcp47tag) {
-        String content = tmService.exportAssetAsXLIFF(assetId, bcp47tag);
-        String normalizedContent = NormalizationUtils.normalize(content);
-        return new XliffExportBody(normalizedContent);
+    public XliffExportBody xliffExport(@PathVariable("assetId") long assetId, @PathVariable("tmXliffId") long tmXliffId) {
+        TMXliff tmXliff = tmXliffRepository.findOne(tmXliffId);
+        XliffExportBody xliffExportBody = new XliffExportBody();
+        xliffExportBody.setTmXliffId(tmXliffId);
+        xliffExportBody.setContent(tmXliff.getContent());
+        return xliffExportBody;
+    }
+
+    /**
+     * Exports all the translations (used and unused) of an {@link Asset} into
+     * XLIFF asynchronously
+     *
+     * @param assetId         {@link Asset#id}
+     * @param bcp47tag        bcp47 tag of translations to be exported
+     * @param xliffExportBody
+     * @return a {@link PollableTask} that generates XLIFF asynchronously in a
+     * {@link XliffExportBody}
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/api/assets/{assetId}/xliffExport")
+    public XliffExportBody xliffExportAsync(@PathVariable("assetId") long assetId,
+                                            @RequestParam("bcp47tag") String bcp47tag,
+                                            @RequestBody XliffExportBody xliffExportBody) {
+        TMXliff tmXliff = tmService.createTMXliff(assetId, bcp47tag, null, null);
+        PollableFuture pollableFuture = tmService.exportAssetAsXLIFFAsync(tmXliff.getId(), assetId, bcp47tag, PollableTask.INJECT_CURRENT_TASK);
+        xliffExportBody.setTmXliffId(tmXliff.getId());
+        xliffExportBody.setPollableTask(pollableFuture.getPollableTask());
+        return xliffExportBody;
     }
 
     /**
@@ -229,20 +277,16 @@ public class AssetWS {
      * @return
      */
     @RequestMapping(value = "/api/assets/{assetId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteAssetById(@PathVariable Long assetId) {
+    public void deleteAssetById(@PathVariable Long assetId) throws AssetWithIdNotFoundException {
         logger.info("Deleting asset [{}]", assetId);
 
-        ResponseEntity result;
         Asset asset = assetRepository.findOne(assetId);
 
-        if (asset != null) {
-            assetService.deleteAsset(asset);
-            result = new ResponseEntity(HttpStatus.OK);
-        } else {
-            result = new ResponseEntity(HttpStatus.NOT_FOUND);
+        if (asset == null) {
+            throw new AssetWithIdNotFoundException(assetId);
         }
 
-        return result;
+        assetService.deleteAsset(asset);
     }
 
     /**
@@ -252,10 +296,9 @@ public class AssetWS {
      * @return
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.DELETE)
-    public ResponseEntity deleteAssets(@RequestBody Set<Long> ids) {
+    public void deleteAssets(@RequestBody Set<Long> ids) {
         logger.info("Deleting assets: {}", ids.toString());
         assetService.deleteAssets(ids);
-        return new ResponseEntity(HttpStatus.OK);
     }
 
     /**
@@ -267,7 +310,7 @@ public class AssetWS {
      */
     @RequestMapping(value = "/api/assets/ids", method = RequestMethod.GET)
     public Set<Long> getAssetIds(@RequestParam(value = "repositoryId", required = true) Long repositoryId,
-            @RequestParam(value = "deleted", required = false) Boolean deleted) {
+                                 @RequestParam(value = "deleted", required = false) Boolean deleted) {
         if (deleted == null) {
             return assetRepository.findIdByRepositoryId(repositoryId);
         } else {

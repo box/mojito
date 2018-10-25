@@ -12,4 +12,6 @@ public interface AssetTextUnitToTMTextUnitRepository extends JpaRepository<Asset
 
     void deleteByAssetExtractionId(Long assetExtractionId);
 
+    public void deleteByAssetTextUnitId(Long assetTextUnitId);
+
 }

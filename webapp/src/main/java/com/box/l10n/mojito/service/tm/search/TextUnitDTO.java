@@ -27,6 +27,13 @@ public class TextUnitDTO {
     private boolean includedInLocalizedFile;
     private DateTime createdDate;
     private boolean assetDeleted;
+    private String pluralForm;
+    private String pluralFormOther;
+    private String repositoryName;
+    private String assetPath;
+    private Long assetTextUnitId;
+    private DateTime tmTextUnitCreatedDate;
+    private boolean doNotTranslate;
 
     public Long getTmTextUnitId() {
         return tmTextUnitId;
@@ -174,4 +181,59 @@ public class TextUnitDTO {
         this.assetDeleted = assetDeleted;
     }
 
+    public String getPluralForm() {
+        return pluralForm;
+    }
+
+    public void setPluralForm(String pluralForm) {
+        this.pluralForm = pluralForm;
+    }
+
+    public String getPluralFormOther() {
+        return pluralFormOther;
+    }
+
+    public void setPluralFormOther(String pluralFormOther) {
+        this.pluralFormOther = pluralFormOther;
+    }
+
+    public String getRepositoryName() {
+        return repositoryName;
+    }
+
+    public void setRepositoryName(String repositoryName) {
+        this.repositoryName = repositoryName;
+    }
+
+    public String getAssetPath() {
+        return assetPath;
+    }
+
+    public void setAssetPath(String assetPath) {
+        this.assetPath = assetPath;
+    }
+
+    public Long getAssetTextUnitId() {
+        return assetTextUnitId;
+    }
+
+    public void setAssetTextUnitId(Long assetTextUnitId) {
+        this.assetTextUnitId = assetTextUnitId;
+    }
+
+    public DateTime getTmTextUnitCreatedDate() {
+        return tmTextUnitCreatedDate;
+    }
+
+    public void setTmTextUnitCreatedDate(DateTime tmTextUnitCreatedDate) {
+        this.tmTextUnitCreatedDate = tmTextUnitCreatedDate;
+    }
+
+    public boolean isDoNotTranslate() {
+        return doNotTranslate;
+    }
+
+    public void setDoNotTranslate(boolean doNotTranslate) {
+        this.doNotTranslate = doNotTranslate;
+    }
 }

@@ -158,12 +158,12 @@ public class AssetWSTest extends WSTestBase {
         assertTrue(assets.get(0).getPath().equals(path2) || assets.get(0).getPath().equals(path3));
         assertTrue(assets.get(1).getPath().equals(path2) || assets.get(1).getPath().equals(path3));
         
-        List<Long> assetIds = assetClient.getAssetIds(repository.getId(), null);
+        List<Long> assetIds = assetClient.getAssetIds(repository.getId(), null, null);
         assertEquals("There should be three asset ids for this repository", 3, assetIds.size());
-        assetIds = assetClient.getAssetIds(repository.getId(), false);
+        assetIds = assetClient.getAssetIds(repository.getId(), false, null);
         assertEquals("There should be one undeleted asset id for this repository", 1, assetIds.size());
         assertEquals(sourceAssetAfterPost1.getAddedAssetId(), assetIds.iterator().next());
-        assetIds = assetClient.getAssetIds(repository.getId(), true);
+        assetIds = assetClient.getAssetIds(repository.getId(), true, null);
         assertEquals("There should be two deleted asset ids for this repository", 2, assetIds.size());
         assertTrue(assetIds.iterator().next().equals(sourceAssetAfterPost2.getAddedAssetId()) || assetIds.iterator().next().equals(sourceAssetAfterPost3.getAddedAssetId()));  
         assertTrue(assetIds.iterator().next().equals(sourceAssetAfterPost2.getAddedAssetId()) || assetIds.iterator().next().equals(sourceAssetAfterPost3.getAddedAssetId()));  
@@ -177,4 +177,22 @@ public class AssetWSTest extends WSTestBase {
 
         return sourceAsset;
     }
+
+    @Test
+    @Category({IntegrationTest.class})
+    public void testExportSourceAsset() throws RepositoryNameAlreadyUsedException {
+
+        Repository repository = testDataFactory.createRepository(testIdWatcher);
+        com.box.l10n.mojito.rest.entity.SourceAsset sourceAsset = createSourceAsset(repository);
+        com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost = assetClient.sendSourceAsset(sourceAsset);
+        pollableTaskClient.waitForPollableTask(sourceAssetAfterPost.getPollableTask().getId(), 5000L);
+
+        Long assetId = sourceAssetAfterPost.getAddedAssetId();
+        com.box.l10n.mojito.rest.entity.XliffExportBody xliffExportBody = assetClient.exportAssetAsXLIFFAsync(assetId, "en");
+        pollableTaskClient.waitForPollableTask(xliffExportBody.getPollableTask().getId(), 5000L);
+
+        String xliff = assetClient.getExportedXLIFF(assetId, xliffExportBody.getTmXliffId());
+        assertTrue(xliff.startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+    }
+
 }

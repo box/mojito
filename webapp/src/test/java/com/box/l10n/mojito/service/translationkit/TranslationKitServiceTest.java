@@ -83,11 +83,6 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 + "<target xml:lang=\"fr-CA\" state=\"new\">Please enter a valid state, region or province</target>\n"
                 + "<note>Comment1</note>\n"
                 + "</trans-unit>\n"
-                + "<trans-unit id=\"replaced-id\" resname=\"TEST2\" xml:space=\"preserve\">\n"
-                + "<source xml:lang=\"en\">Content2</source>\n"
-                + "<target xml:lang=\"fr-CA\" state=\"new\">Content2</target>\n"
-                + "<note>Comment2</note>\n"
-                + "</trans-unit>\n"
                 + "</body>\n"
                 + "</file>\n"
                 + "</xliff>\n", xliffWithoutIds);
@@ -96,16 +91,11 @@ public class TranslationKitServiceTest extends ServiceTestBase {
         TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
         List<TranslationKitTextUnit> findByTranslationKitId = translationKitTextUnitRepository.findByTranslationKit(translationKit);
 
-        assertEquals("The translation kit must be of type review", TranslationKit.Type.TRANSLATION, translationKit.getType());
-        assertEquals("There must be 2 TranslationKitTextUnits", 2, findByTranslationKitId.size());
+        assertEquals("The translation kit must be of type translation", TranslationKit.Type.TRANSLATION, translationKit.getType());
+        assertEquals("There must be 1 TranslationKitTextUnit", 1, findByTranslationKitId.size());
 
-        int idx = 0;
-        assertEquals("Check the first TextUnit by name", findByTranslationKitId.get(idx).getTmTextUnit().getName(), "zuora_error_message_verify_state_province");
-        assertNull("There shouldn't be any TmTextUnitVariant for this TextUnit", findByTranslationKitId.get(idx).getExportedTmTextUnitVariant());
-
-        idx++;
-        assertEquals("Check the second TextUnit by name", findByTranslationKitId.get(idx).getTmTextUnit().getName(), "TEST2");
-        assertNull("There shouldn't be any TmTextUnitVariant for this TextUnit", findByTranslationKitId.get(idx).getExportedTmTextUnitVariant());
+        assertEquals("Check the first TextUnit by name", findByTranslationKitId.get(0).getTmTextUnit().getName(), "zuora_error_message_verify_state_province");
+        assertNull("There shouldn't be any TmTextUnitVariant for this TextUnit", findByTranslationKitId.get(0).getExportedTmTextUnitVariant());
 
     }
 
@@ -372,19 +362,36 @@ public class TranslationKitServiceTest extends ServiceTestBase {
         assertEquals("fr-CA", next.getTargetLocale());
         assertEquals(tmTestData.addTMTextUnit1.getId(), next.getTmTextUnitId());
         assertEquals(false, next.isTranslated());
-
-        next = iterator.next();
-        assertEquals(tmTestData.asset.getId(), next.getAssetId());
-        assertEquals("Comment2", next.getComment());
-        assertEquals(tmTestData.frCA.getId(), next.getLocaleId());
-        assertEquals("TEST2", next.getName());
-        assertEquals("Content2", next.getSource());
-        assertNull(next.getTarget());
-        assertEquals("fr-CA", next.getTargetLocale());
-        assertEquals(tmTestData.addTMTextUnit2.getId(), next.getTmTextUnitId());
-        assertEquals(false, next.isTranslated());
-
         assertFalse(iterator.hasNext());
     }
 
+    @Test
+    public void testGetTextUnitDTOsWithInheritanceForTranslationKitfrCA() {
+
+        tmTestData = new TMTestData(testIdWatcher);
+
+        TranslationKit translationKit = translationKitService.addTranslationKit(
+                dropService.createDrop(tmTestData.repository).getId(),
+                tmTestData.frCA.getId(),
+                TranslationKit.Type.REVIEW);
+
+        List<TextUnitDTO> textUnitDTOsForTranslationKit = translationKitService.getTextUnitDTOsForTranslationKitWithInheritance(translationKit.getId());
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOsForTranslationKit) {
+            logger.debug(ToStringBuilder.reflectionToString(textUnitDTO, ToStringStyle.MULTI_LINE_STYLE));
+        }
+
+        Iterator<TextUnitDTO> iterator = textUnitDTOsForTranslationKit.iterator();
+        TextUnitDTO next = iterator.next();
+        assertEquals(tmTestData.asset.getId(), next.getAssetId());
+        assertEquals("Comment1", next.getComment());
+        assertEquals(tmTestData.frFR.getId(), next.getLocaleId());
+        assertEquals("zuora_error_message_verify_state_province", next.getName());
+        assertEquals("Please enter a valid state, region or province", next.getSource());
+        assertEquals("fr-FR", next.getTargetLocale());
+        assertEquals(tmTestData.addTMTextUnit1.getId(), next.getTmTextUnitId());
+        assertEquals(tmTestData.addCurrentTMTextUnitVariant1FrFR.getContent(), next.getTarget());
+        assertEquals(true, next.isTranslated());
+        assertFalse(iterator.hasNext());
+    }
 }

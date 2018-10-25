@@ -7,6 +7,24 @@ package com.box.l10n.mojito.rest.entity;
  * @author wyau
  */
 public class LocalizedAssetBody {
+    public enum InheritanceMode {
+
+        /**
+         * If there is no translation the text unit should be removed
+         */
+        REMOVE_UNTRANSLATED,
+        /**
+         * Look for translations in parent locales, if none it will fallback to the
+         * source
+         */
+        USE_PARENT
+    }
+
+    public enum Status {
+        ALL,
+        ACCEPTED_OR_NEEDS_REVIEW,
+        ACCEPTED
+    }
 
     /**
      * bcp47 tag of the locale content
@@ -33,6 +51,10 @@ public class LocalizedAssetBody {
      * a specific Okapi filter to use to process the asset
      */
     FilterConfigIdOverride filterConfigIdOverride;
+
+    InheritanceMode inheritanceMode;
+
+    Status status = Status.ALL;
 
     public String getBcp47Tag() {
         return bcp47Tag;
@@ -66,4 +88,19 @@ public class LocalizedAssetBody {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
+    public void setInheritanceMode(InheritanceMode inheritanceMode) {
+        this.inheritanceMode = inheritanceMode;
+    }
+
+    public InheritanceMode getInheritanceMode() {
+        return inheritanceMode;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
 }

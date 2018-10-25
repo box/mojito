@@ -27,7 +27,7 @@ public class LeveragerByContentForSourceLeveraging extends AbstractLeverager {
     }
 
     @Override
-    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId) {
+    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
 
         logger.debug("Get TextUnitDTOs for leveraging by content");
 
@@ -36,7 +36,9 @@ public class LeveragerByContentForSourceLeveraging extends AbstractLeverager {
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
         textUnitSearcherParameters.setAssetId(tmTextUnit.getAsset().getId());
-
+        if (tmTextUnit.getPluralForm() != null) {
+            textUnitSearcherParameters.setPluralFormId(tmTextUnit.getPluralForm().getId());
+        }
         return textUnitSearcher.search(textUnitSearcherParameters);
 
     }

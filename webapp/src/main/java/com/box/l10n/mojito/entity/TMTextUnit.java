@@ -27,7 +27,8 @@ import javax.persistence.Table;
         indexes = {
             @Index(name = "UK__TM_TEXT_UNIT__MD5__TM_ID__ASSET_ID", columnList = "md5, tm_id, asset_id", unique = true),
             @Index(name = "I__TM_TEXT_UNIT__NAME", columnList = "name"),
-            @Index(name = "I__TM_TEXT_UNIT__CONTENT_MD5", columnList = "content_md5")
+            @Index(name = "I__TM_TEXT_UNIT__CONTENT_MD5", columnList = "content_md5"),
+            @Index(name = "I__TM_TEXT_UNIT__PLURAL_FORM_OTHER", columnList = "plural_form_other")
         }
 )
 public class TMTextUnit extends SettableAuditableEntity {
@@ -70,6 +71,13 @@ public class TMTextUnit extends SettableAuditableEntity {
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT__USER__ID"))
     protected User createdByUser;
+ 
+    @ManyToOne
+    @JoinColumn(name = "plural_form_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT__PLURAL_FORM__ID"))
+    protected PluralForm pluralForm;
+    
+    @Column(name = "plural_form_other", length = Integer.MAX_VALUE)
+    protected String pluralFormOther;
 
     public User getCreatedByUser() {
         return createdByUser;
@@ -142,4 +150,21 @@ public class TMTextUnit extends SettableAuditableEntity {
     public void setTm(TM tm) {
         this.tm = tm;
     }
+
+    public PluralForm getPluralForm() {
+        return pluralForm;
+    }
+
+    public void setPluralForm(PluralForm pluralForm) {
+        this.pluralForm = pluralForm;
+    }
+
+    public String getPluralFormOther() {
+        return pluralFormOther;
+    }
+
+    public void setPluralFormOther(String pluralFormOther) {
+        this.pluralFormOther = pluralFormOther;
+    }
+    
 }

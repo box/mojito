@@ -74,6 +74,12 @@ public class IOTestBase {
     protected File getBaseDir() {
         String basedir = System.getProperty("basedir");
 
+        if (basedir == null) {
+            // for running in intellij, needs to setup env. variable basedir=$MODULE_DIR$ in run configuration
+            basedir = System.getenv().get("basedir");
+        }
+
+
         return new File(basedir);
     }
 

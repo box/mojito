@@ -2,9 +2,9 @@ package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import org.joda.time.DateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.joda.time.DateTime;
 
 /**
  *

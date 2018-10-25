@@ -95,6 +95,16 @@ class TextUnitStore {
         this.setErrorState(errorResponse);
     }
 
+    onSaveVirtualAssetTextUnit(textUnit) {
+        this.getInstance().saveVirtualAssetTextUnit(textUnit);
+    }
+
+    /**
+     * @param {TextUnitError} errorResponse
+     */
+    onSaveVirtualAssetTextUnitError(errorResponse) {
+        this.setErrorState(errorResponse);
+    }
 
     /**
      * @param {TextUnit} textUnit

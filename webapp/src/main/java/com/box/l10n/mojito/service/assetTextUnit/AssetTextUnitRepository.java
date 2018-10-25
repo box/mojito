@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -11,7 +12,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
  * @author aloison
  */
 @RepositoryRestResource(exported = false)
-public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Long> {
+public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Long>, JpaSpecificationExecutor<AssetTextUnit> {
 
     List<AssetTextUnit> findByAssetExtraction(AssetExtraction assetExtraction);
 
@@ -37,4 +38,11 @@ public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Lo
     List<AssetTextUnit> getUnmappedAssetTextUnits(Long assetExtractionId);
 
     void deleteByAssetExtractionId(Long assetExtractionId);
+
+    List<AssetTextUnit> findByAssetExtractionIdAndName(Long assetExtractionId, String name);
+
+    List<AssetTextUnit> findByAssetExtractionIdOrderByNameAsc(Long assetExtractionId);
+
+    List<AssetTextUnit> findByIdIn(List<Long> assetTextUnitIds);
+
 }

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.okapi;
 
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import net.sf.okapi.common.resource.TextContainer;
 import org.junit.Test;
@@ -22,7 +23,7 @@ public class ImportTranslationsStepTest {
         importTranslationsStep.importWithStatus = TMTextUnitVariant.Status.APPROVED;
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.APPROVED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForImport(new TMTextUnit(), target);
         assertEquals(expResult, result);
     }
 
@@ -35,7 +36,7 @@ public class ImportTranslationsStepTest {
         ImportTranslationsByIdStep importTranslationsStep = new ImportTranslationsByIdStep();
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.REVIEW_NEEDED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForImport(new TMTextUnit(), target);
         assertEquals(expResult, result);
     }
 
@@ -48,7 +49,7 @@ public class ImportTranslationsStepTest {
         ImportTranslationsByIdStep importTranslationsStep = new ImportTranslationsByIdStep();
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.APPROVED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForImport(new TMTextUnit(), target);
         assertEquals(expResult, result);
     }
 
@@ -61,7 +62,7 @@ public class ImportTranslationsStepTest {
         ImportTranslationsByIdStep importTranslationsStep = new ImportTranslationsByIdStep();
 
         TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.REVIEW_NEEDED;
-        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForAddingTranslation(target, false, null);
+        TMTextUnitVariant.Status result = importTranslationsStep.getStatusForImport(new TMTextUnit(), target);
         assertEquals(expResult, result);
     }
 

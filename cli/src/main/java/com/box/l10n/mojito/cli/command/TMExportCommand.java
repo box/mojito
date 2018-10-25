@@ -5,20 +5,22 @@ import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import com.box.l10n.mojito.rest.entity.XliffExportBody;
 import com.google.common.base.MoreObjects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
-import static org.fusesource.jansi.Ansi.Color;
+import org.fusesource.jansi.Ansi.Color;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * Command to exportAssetAsXLIFF a repository.
@@ -41,6 +43,9 @@ public class TMExportCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
+    @Parameter(names = {Param.EXPORT_LOCALES_LONG, Param.EXPORT_LOCALES_SHORT}, arity = 1, required = false, description = Param.EXPORT_LOCALES_DESCRIPTION)
+    List<String> bcp47tagsParam;
+
     @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)
     String targetDirectoryParam;
 
@@ -61,7 +66,7 @@ public class TMExportCommand extends Command {
         consoleWriter.newLine().a("Export TM for repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
 
         commandDirectories = new CommandDirectories(null, targetDirectoryParam);
-        
+
         logger.debug("Initialize targetBasename (use repository if no target bases name is specified)");
         targetBasenameParam = MoreObjects.firstNonNull(targetBasenameParam, repositoryParam);
 
@@ -82,15 +87,24 @@ public class TMExportCommand extends Command {
 
                 String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
 
-                consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
+                if (bcp47tagsParam == null || bcp47tagsParam.contains(bcp47Tag)) {
+                    consoleWriter.a("Exporting: ").fg(Color.CYAN).a(bcp47Tag).print();
 
-                String export = assetClient.exportAssetAsXLIFF(asset.getId(), bcp47Tag);
+                    XliffExportBody xliffExport = assetClient.exportAssetAsXLIFFAsync(asset.getId(), bcp47Tag);
+                    Long pollableTaskId = xliffExport.getPollableTask().getId();
 
-                Path exportFile = getExportFile(repositoryLocale, assetNumber);
+                    try {
+                        commandHelper.waitForPollableTask(pollableTaskId);
+                    } catch (PollableTaskException e) {
+                        throw new CommandException(e.getMessage(), e.getCause());
+                    }
 
-                commandHelper.writeFileContent(export, exportFile);
+                    Path exportFile = getExportFile(repositoryLocale, assetNumber);
+                    String export = assetClient.getExportedXLIFF(asset.getId(), xliffExport.getTmXliffId());
+                    commandHelper.writeFileContent(export, exportFile);
 
-                consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();
+                    consoleWriter.a(" --> ").fg(Color.MAGENTA).a(exportFile.toString()).println();
+                }
             }
         }
 

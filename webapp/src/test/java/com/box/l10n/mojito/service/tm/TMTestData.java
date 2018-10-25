@@ -15,14 +15,15 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.annotation.Transactional;
-import javax.annotation.PostConstruct;
 
 /**
  *
@@ -60,6 +61,8 @@ public class TMTestData {
     @Autowired
     RepositoryService repositoryService;
 
+    @Autowired
+    RepositoryLocaleRepository repositoryLocaleRepository;
 
     public Repository repository;
     public TM tm;
@@ -72,15 +75,17 @@ public class TMTestData {
     public TMTextUnitVariant addCurrentTMTextUnitVariant1KoKR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant1FrFR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant3FrFR;
+    public TMTextUnitVariant addCurrentTMTextUnitVariant2FrCA;
+    public TMTextUnitVariant addCurrentTMTextUnitVariant3FrCA;
 
     public Locale koKR;
     public Locale frFR;
     public Locale frCA;
     public Locale jaJP;
-    
+
     public RepositoryLocale repoLocaleFrFR;
     public RepositoryLocale repoLocaleKoKR;
-    
+
     TestIdWatcher testIdWatcher;
 
     public TMTestData(TestIdWatcher testIdWatcher) {
@@ -115,6 +120,11 @@ public class TMTestData {
         repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
         repositoryService.addRepositoryLocale(repository, jaJP.getBcp47Tag());
 
+        RepositoryLocale parentLocale = repositoryLocaleRepository.findByRepositoryAndLocale(repository, frFR);
+        RepositoryLocale childLocale = repositoryLocaleRepository.findByRepositoryAndLocale(repository, frCA);
+        childLocale.setParentLocale(parentLocale);
+        childLocale.setToBeFullyTranslated(false);
+        repositoryLocaleRepository.save(childLocale);
 
         tm = repository.getTm();
 
@@ -122,7 +132,7 @@ public class TMTestData {
         Long assetId = asset.getId();
 
         addTMTextUnit1 = tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
-        addTMTextUnit2 = tmService.addTMTextUnit(tm.getId(), assetId,  "TEST2", "Content2", "Comment2");
+        addTMTextUnit2 = tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
         addTMTextUnit3 = tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
 
         AssetExtraction assetExtraction = new AssetExtraction();
@@ -138,6 +148,8 @@ public class TMTestData {
         addCurrentTMTextUnitVariant1KoKR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit1.getId(), koKR.getId(), "올바른 국가, 지역 또는 시/도를 입력하십시오.");
         addCurrentTMTextUnitVariant1FrFR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit1.getId(), frFR.getId(), "Veuillez indiquer un état, une région ou une province valide.");
         addCurrentTMTextUnitVariant3FrFR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit3.getId(), frFR.getId(), "Content3 fr-FR");
+        addCurrentTMTextUnitVariant2FrCA = tmService.addCurrentTMTextUnitVariant(addTMTextUnit2.getId(), frCA.getId(), "Content2 fr-CA");
+        addCurrentTMTextUnitVariant3FrCA = tmService.addCurrentTMTextUnitVariant(addTMTextUnit3.getId(), frCA.getId(), "Content3 fr-CA");
     }
 
 }

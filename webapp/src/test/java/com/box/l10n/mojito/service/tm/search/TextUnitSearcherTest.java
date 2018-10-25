@@ -6,27 +6,27 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+import org.joda.time.DateTime;
+import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import org.apache.commons.lang.reflect.FieldUtils;
-import org.junit.Assert;
-import org.junit.Before;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * TODO(P1) complete with test for the whole flow, document update and
@@ -53,19 +53,11 @@ public class TextUnitSearcherTest extends ServiceTestBase {
     @Autowired
     LocaleService localeService;
 
+    @Autowired
+    TMTextUnitRepository tmTextUnitRepository;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
-
-    /**
-     * Set the ordered property to make test behave the same regardless of the
-     * database: HSQL or MYSQL.
-     *
-     * @throws IllegalAccessException
-     */
-    @Before
-    public void customizeTextUnitSearcher() throws IllegalAccessException {
-        FieldUtils.writeField(textUnitSearcher, "ordered", true, true);
-    }
 
     @Transactional
     @Test
@@ -76,7 +68,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         List<String> localeTags = new ArrayList<>();
         localeTags.add("ko-KR");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setName("zuora_error_message_verify_state_province");
         textUnitSearcherParameters.setLocaleTags(localeTags);
@@ -121,7 +113,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         localeTags.add("fr-FR");
         localeTags.add("fr-CA");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setName("zuora_error_message_verify_state_province");
@@ -187,9 +179,8 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         List<String> localeTags = new ArrayList<>();
         localeTags.add("ko-KR");
         localeTags.add("fr-FR");
-        localeTags.add("fr-CA");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleTags(localeTags);
@@ -230,7 +221,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         localeTags.add("fr-FR");
         localeTags.add("fr-CA");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleTags(localeTags);
@@ -289,7 +280,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         List<String> localeTags = new ArrayList<>();
         localeTags.add("fr-FR");
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
 
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
@@ -356,7 +347,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         variants = tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(tmTestData.frFR.getId(), tmTestData.tm.getId());
         assertEquals("There should be 3 TMTextUnitVariants", 3, variants.size());
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleId(tmTestData.frFR.getId());
 
@@ -397,7 +388,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         variants = tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(tmTestData.frFR.getId(), tmTestData.tm.getId());
         assertEquals("There should be 3 TMTextUnitVariants", 3, variants.size());
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
         textUnitSearcherParameters.setLocaleId(tmTestData.frFR.getId());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.REVIEW_NOT_NEEDED);
@@ -409,12 +400,88 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
             assertNotEquals("The found variant should not be the one that needs review", reviewNeededTmTextUnitId, textUnitDTO.getTmTextUnitId());
         }
-        
+
         textUnitSearcherParameters.setStatusFilter(StatusFilter.REVIEW_NEEDED);
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
         assertEquals("The searcher should have returned only 1 excluded text unit DTO", 1, textUnitDTOs.size());
         assertEquals("The found variant should be the one that needs review", reviewNeededTmTextUnitId, textUnitDTOs.get(0).getTmTextUnitId());
+    }
+
+    @Test
+    public void testCountNone() throws Exception {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        textUnitSearcherParameters.setLocaleTags(Arrays.asList("fr-FR"));
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+        textUnitSearcherParameters.setDoNotTranslateFilter(false);
+        textUnitSearcherParameters.setName("name with no match");
+
+        TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
+        assertEquals("Should return no text unit hence count = 0", 0, textUnitAndWordCount.getTextUnitCount());
+        assertEquals("Should return no text unit hence word count = 0", 0, textUnitAndWordCount.getTextUnitWordCount());
+    }
+
+    @Test
+    public void testCount() throws Exception {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+
+        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+
+        long numberOfWords = 0;
+
+        for (TextUnitDTO textUnitDTO : search) {
+            numberOfWords += tmTextUnitRepository.findOne(textUnitDTO.getTmTextUnitId()).getWordCount();
+        }
+
+        TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
+        logger.info("for translation used from count: {}, {}", textUnitAndWordCount.getTextUnitCount(), textUnitAndWordCount.getTextUnitWordCount());
+        assertEquals(search.size(), textUnitAndWordCount.getTextUnitCount());
+        assertEquals(numberOfWords, textUnitAndWordCount.getTextUnitWordCount());
+    }
+
+    @Test
+    public void testCreatedDate() throws Exception {
+
+        DateTime now = DateTime.now();
+        DateTime secondsBefore = now.minusSeconds(2);
+        DateTime secondsAfter = now.plusSeconds(2);
+        
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(tmTestData.repository.getId());
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+
+        List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(8, search.size());
+
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(secondsBefore);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(0, search.size());
+
+        textUnitSearcherParameters.setTmTextUnitCreatedAfter(secondsBefore);
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(null);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(8, search.size());
+
+        textUnitSearcherParameters.setTmTextUnitCreatedAfter(secondsBefore);
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(secondsAfter);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(8, search.size());
+        
+        textUnitSearcherParameters.setTmTextUnitCreatedAfter(secondsAfter);
+        textUnitSearcherParameters.setTmTextUnitCreatedBefore(null);
+        search = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(0, search.size());
+        
     }
 
     @Transactional
@@ -468,13 +535,13 @@ public class TextUnitSearcherTest extends ServiceTestBase {
     @Transactional
     @Test
     public void testILikeSearchTarget() {
-        testSearchText("target", "%C%E%", SearchType.ILIKE, Arrays.asList("Veuillez indiquer un état, une région ou une province valide.", "Content3 fr-FR"));
+        testSearchText("target", "%C%E%", SearchType.ILIKE, Arrays.asList("Veuillez indiquer un état, une région ou une province valide.", "Content2 fr-CA", "Content3 fr-CA", "Content3 fr-FR"));
     }
 
     public void testSearchText(String attribute, String value, SearchType searchType, List<String> expectedNames) {
         TMTestData tmTestData = new TMTestData(testIdWatcher);
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
 
         if ("name".equals(attribute)) {
             textUnitSearcherParameters.setName(value);

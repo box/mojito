@@ -2,6 +2,7 @@ import BaseClient from "./BaseClient";
 import TextUnit from "./TextUnit";
 import TextUnitIntegrityCheckRequest from "./textunit/TextUnitIntegrityCheckRequest";
 import TextUnitIntegrityCheckResult from "./textunit/TextUnitIntegrityCheckResult";
+import PollableTaskClient from "./PollableTaskClient";
 
 
 class TextUnitClient extends BaseClient {
@@ -56,13 +57,52 @@ class TextUnitClient extends BaseClient {
      */
     checkTextUnitIntegrity(textUnit) {
         let request = new TextUnitIntegrityCheckRequest();
-        request.contentToCheck = textUnit.getTarget();
-        request.textUnitId = textUnit.getTmTextUnitId();
+        request.content = textUnit.getTarget();
+        request.tmTextUnitId = textUnit.getTmTextUnitId();
 
-        return this.get(this.getUrl() + '/check', request).then(function (jsonTextUnit) {
+        return this.post(this.getUrl() + '/check', request).then(function (jsonTextUnit) {
             return new TextUnitIntegrityCheckResult(jsonTextUnit);
         });
     }
+
+    /**
+     * Saves a VirtualAssetTextUnit build of TextUnit information.
+     *
+     * @param {TextUnit} textUnit
+     * @returns
+     */
+    saveVirtualAssetTextUnit(textUnit) {
+        return this.post(this.getAssetTextUnitsUrl(textUnit.getAssetId()), [{
+            name: textUnit.getName(),
+            content: textUnit.getSource(),
+            comment: textUnit.getComment(),
+            pluralForm : textUnit.getPluralForm(),
+            pluralFormOther: textUnit.getPluralFormOther(),
+            doNotTranslate: textUnit.getDoNotTranslate(),
+        }]).then(function(pollableTask) {
+            return PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id).then(function(pollableTask) {
+                if (pollableTask.errorMessage) {
+                    throw new Error(pollableTask.errorMessage);
+                }
+
+                return textUnit;
+            });
+        });
+    }
+
+    getAssetTextUnitsUrl(assetId) {
+        return this.baseUrl + 'virtualAssets/' + assetId + '/textUnits';
+    }
+
+    /**
+     * Gets the GitBlameWithUsage that matches the given textUnit.
+     * @param textUnit
+     * @returns {Promise}
+     */
+    getGitBlameInfo(textUnit) {
+        return this.get(this.getUrl() + "/gitBlameWithUsages", {"tmTextUnitId": textUnit.getTmTextUnitId()});
+    }
+
 
     getEntityName() {
         return 'textunits';

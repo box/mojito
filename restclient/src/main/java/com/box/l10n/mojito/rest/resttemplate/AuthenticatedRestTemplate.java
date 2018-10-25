@@ -291,6 +291,16 @@ public class AuthenticatedRestTemplate {
         restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.PATCH, new HttpEntity<>(request), Void.class);
     }
     
+    /**
+     * Delegate, see {@link RestTemplate#put(java.net.URI, java.lang.Object)}
+     *
+     * @param resourcePath
+     * @param request
+     */
+    public void put(String resourcePath, Object request) {
+        restTemplate.put(getURIForResource(resourcePath), request);
+    }    
+    
     @VisibleForTesting
     public CookieStoreRestTemplate getRestTemplate() {
         return restTemplate;

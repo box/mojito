@@ -1,8 +1,9 @@
 import Error from "../../utils/Error";
-import SearchParamStore from "../../stores/workbench/SearchParamsStore.js";
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import TextUnitClient from "../../sdk/TextUnitClient";
 import TextUnitSearcherParameters from "../../sdk/TextUnitSearcherParameters";
 import WorkbenchActions from "./WorkbenchActions";
+import RepositoryStore from "../../stores/RepositoryStore";
 
 const SearchDataSource = {
     performSearch: {
@@ -13,19 +14,22 @@ const SearchDataSource = {
 
             let bcp47Tags = searchParams.bcp47Tags;
 
-
             let textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-            if (!SearchParamStore.isReadyForSearching(searchParams)) {
+            if (!SearchParamsStore.isReadyForSearching(searchParams)) {
                 returnEmpty = true;
             }
 
             if (searchParams.searchText) {
 
-                if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.SOURCE) {
+                if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.SOURCE) {
                     textUnitSearcherParameters.source(searchParams.searchText);
-                } else if (searchParams.searchAttribute === SearchParamStore.SEARCH_ATTRIBUTES.TARGET) {
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.TARGET) {
                     textUnitSearcherParameters.target(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.ASSET) {
+                    textUnitSearcherParameters.assetPath(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER) {
+                    textUnitSearcherParameters.pluralFormOther(searchParams.searchText);
                 } else {
                     textUnitSearcherParameters.name(searchParams.searchText);
                 }
@@ -45,19 +49,45 @@ const SearchDataSource = {
                 textUnitSearcherParameters.usedFilter(textUnitSearcherParameters.UNUSED);
             }
 
+            if (!searchParams.translate && !searchParams.doNotTranslate) {
+                returnEmpty = true;
+            } else if (searchParams.translate && !searchParams.doNotTranslate) {
+                textUnitSearcherParameters.doNotTranslateFilter(false);
+            } else if (!searchParams.translate && searchParams.doNotTranslate) {
+                textUnitSearcherParameters.doNotTranslateFilter(true);
+            }
+
+            if (searchParams.tmTextUnitCreatedBefore) {
+                textUnitSearcherParameters.tmTextUnitCreatedBefore(searchParams.tmTextUnitCreatedBefore);
+            }
+
+            if (searchParams.tmTextUnitCreatedAfter) {
+                textUnitSearcherParameters.tmTextUnitCreatedAfter(searchParams.tmTextUnitCreatedAfter);
+            }
+
+            // ask for one extra text unit to know if there are more text units
+            let limit = searchParams.pageSize + 1;
+
             textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags)
-                .offset(searchParams.pageOffset).limit(searchParams.pageSize);
+                    .offset(searchParams.pageOffset).limit(limit);
 
             let promise;
 
             if (returnEmpty) {
                 promise = new Promise(function (resolve, reject) {
-                    resolve([]);
+                    resolve({textUnits: [], hasMore: false});
                 });
             } else {
-                promise = TextUnitClient.getTextUnits(textUnitSearcherParameters).then(function (results) {
+                promise = TextUnitClient.getTextUnits(textUnitSearcherParameters).then(function (textUnits) {
 
-                    return results;
+                    let hasMore = false;
+
+                    if (textUnits.length === limit) {
+                        hasMore = true;
+                        textUnits = textUnits.slice(0, limit - 1);
+                    }
+
+                    return {textUnits, hasMore};
                 });
             }
 

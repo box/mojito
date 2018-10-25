@@ -1,0 +1,10 @@
+{
+  "name": "anotherActivity-dialog",
+  "takenDate": 1497227086491,
+  "sequence": 1,
+  "textUnits": [
+    {
+      "renderedTarget": "hello"
+    }
+  ]
+}

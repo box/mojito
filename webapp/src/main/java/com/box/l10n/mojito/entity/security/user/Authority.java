@@ -12,6 +12,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
  * @author wyau
@@ -21,7 +22,7 @@ import javax.persistence.Table;
     indexes = {
         @Index(name = "UK__AUTHORITIES__USER_ID__AUTHORITY", columnList = "user_id, authority", unique = true)
     })
-public class Authority extends AuditableEntity {
+public class Authority extends AuditableEntity implements Serializable {
 
     @ManyToOne
     @JsonBackReference

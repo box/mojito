@@ -4,6 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.base.Strings;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.PostConstruct;
@@ -125,6 +126,7 @@ public class L10nJCommander {
         } else {
             logger.debug("Execute commands for parsed command: {}", parsedCommand);
             Command command = getCommand(parsedCommand);
+            command.setOriginalArgs(Arrays.asList(args));
 
             try {
                 command.run();
@@ -132,6 +134,9 @@ public class L10nJCommander {
                 logger.debug("Exit with Invalid username or password", ae);
                 printErrorMessage("Invalid username or password");
                 exitWithError();
+            } catch (CommandWithExitStatusException cwese) {
+                logger.error("Exit with error for command: " + command.getName(), cwese);
+                exitWithError(cwese.getExitCode());
             } catch (CommandException ce) {
                 printErrorMessage(ce.getMessage());
                 logger.error("Exit with error for command: " + command.getName(), ce);
@@ -210,11 +215,15 @@ public class L10nJCommander {
             jCommander.addCommand(command);
         }
     }
-
+    
     public void exitWithError() {
+        exitWithError(1);
+    }
+
+    public void exitWithError(int exitCode) {
 
         if (isSystemExitEnabled()) {
-            System.exit(1);
+            System.exit(exitCode);
         } else {
             logger.info("System exit disabled");
         }

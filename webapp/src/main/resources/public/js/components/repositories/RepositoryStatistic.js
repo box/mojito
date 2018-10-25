@@ -25,10 +25,12 @@ let RepositoryStatistics = React.createClass({
 
         let rows = repositoryLocaleStatistics.map(repoLocaleStat => {
             let bcp47Tag = repoLocaleStat.locale.bcp47Tag;
-            let localeDisplayName = repoLocaleStat.localeDisplayName;
             let isFullyTranslated = toBeFullyTranslatedBcp47Tags.indexOf(bcp47Tag) !== -1;
 
-            return this.getLocaleStatisticRow(bcp47Tag, isFullyTranslated, repoStat.usedTextUnitCount, repoStat.usedTextUnitWordCount, repoLocaleStat);
+            return this.getLocaleStatisticRow(
+                    bcp47Tag, 
+                    isFullyTranslated, 
+                    repoLocaleStat);
         });
 
 
@@ -46,7 +48,8 @@ let RepositoryStatistics = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [this.props.repoId],
             "bcp47Tags": [bcp47Tag],
-            "status": SearchParamsStore.STATUS.ALL
+            "status": SearchParamsStore.STATUS.ALL,
+            "doNotTranslate": true
         });
     },
 
@@ -113,20 +116,19 @@ let RepositoryStatistics = React.createClass({
      * @param {string} bcp47Tag
      * @param {number}
      * @param {number}
+     * @param {number}
      * @param {RepositoryLocaleStatistic}
      * @return {XML}
      */
-    getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic) {
+    getNeedsTranslationLabel(bcp47Tag, repositoryLocaleStatistic) {
 
         let ui = "";
-        let numberOfNeedsTranslation = usedTextUnitCount - repositoryLocaleStatistic.translatedCount + repositoryLocaleStatistic.translationNeededCount;
-        let numberOfWordNeedsTranslation = usedTextUnitWordCount - repositoryLocaleStatistic.translatedWordCount + repositoryLocaleStatistic.translationNeededWordCount;
-
-        if (numberOfNeedsTranslation > 0) {
+       
+        if (repositoryLocaleStatistic.forTranslationCount > 0) {
             ui = (
                 <Link onClick={this.updateSearchParamsForNeedsTranslation.bind(this, bcp47Tag)} to='/workbench'>
-                    <span className="repo-counts"><FormattedNumber value={numberOfNeedsTranslation}/>&nbsp;</span>
-                    (&nbsp;<FormattedNumber value={numberOfWordNeedsTranslation}/>&nbsp;)
+                    <span className="repo-counts"><FormattedNumber value={repositoryLocaleStatistic.forTranslationCount}/>&nbsp;</span>
+                    (&nbsp;<FormattedNumber value={repositoryLocaleStatistic.forTranslationWordCount}/>&nbsp;)
                 </Link>);
         }
 
@@ -138,10 +140,14 @@ let RepositoryStatistics = React.createClass({
      * @param {boolean}
      * @param {number}
      * @param {number}
+     * @param {number}
      * @param {RepositoryLocaleStatistic}
      * @return {XML}
      */
-    getLocaleStatisticRow(bcp47Tag, isFullyTranslated, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic) {
+    getLocaleStatisticRow(
+            bcp47Tag, 
+            isFullyTranslated, 
+            repositoryLocaleStatistic) {
 
         let rowClassName = "";
 
@@ -157,7 +163,9 @@ let RepositoryStatistics = React.createClass({
                               to='/workbench'>{Locales.getDisplayName(bcp47Tag)}</Link>
                     </div>
                 </td>
-                <td>{this.getNeedsTranslationLabel(bcp47Tag, usedTextUnitCount, usedTextUnitWordCount, repositoryLocaleStatistic)}</td>
+                <td>{this.getNeedsTranslationLabel(
+                        bcp47Tag, 
+                        repositoryLocaleStatistic)}</td>
                 <td>{this.getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic)}</td>
             </tr>
         );

@@ -48,7 +48,7 @@ public class PullCommand extends Command {
     @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)
     String targetDirectoryParam;
 
-    @Parameter(names = {"--locale-mapping", "-lm"}, arity = 1, required = false, description = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
+    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
             + "The keys contain BCP47 tags of the generated files and the values indicate which repository locales are used to fetch the translations.")
     String localeMappingParam;
 
@@ -61,6 +61,14 @@ public class PullCommand extends Command {
 
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
+
+    @Parameter(names = {"--inheritance-mode"}, required = false, description = "Inheritance Mode. Used when there is no translations in the target locale for a text unit. (USE_PARENT to fallback to parent locale translation, REMOVE_TRANSLATED to remove the text unit from the file ",
+            converter = LocalizedAssetBodyInheritanceMode.class)
+    LocalizedAssetBody.InheritanceMode inheritanceMode = LocalizedAssetBody.InheritanceMode.USE_PARENT;
+
+    @Parameter(names = {"--status"}, required = false, description = "To choose the translations used to generate the file based on their status. ACCEPTED: only includes translations that are accepted. ACCEPTED_OR_NEEDS_REVIEW: includes translations that are accepted or that need review. ALL: includes all translations available even if they need re-translation (\"rejected\" translations are always excluded as they are considered harmful).",
+            converter = LocalizedAssetBodyStatus.class)
+    LocalizedAssetBody.Status status = LocalizedAssetBody.Status.ALL;
 
     @Autowired
     AssetClient assetClient;
@@ -217,7 +225,9 @@ public class PullCommand extends Command {
                     repositoryLocale.getLocale().getId(),
                     assetContent,
                     outputBcp47tag,
-                    sourceFileMatch.getFileType().getFilterConfigIdOverride());
+                    sourceFileMatch.getFileType().getFilterConfigIdOverride(),
+                    inheritanceMode,
+                    status);
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 

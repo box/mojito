@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.slf4j.Logger;
-import org.springframework.stereotype.Component;
 import static org.slf4j.LoggerFactory.getLogger;
+import org.springframework.stereotype.Component;
 
 /**
  * @author aloison
@@ -84,17 +84,17 @@ public class PollableTaskClient extends BaseClient {
             pollableTask = getPollableTask(pollableId);
 
             List<PollableTask> pollableTaskWithErrors = getAllPollableTasksWithError(pollableTask);
-            
+
             if (!pollableTaskWithErrors.isEmpty()) {
-                
+
                 for (PollableTask pollableTaskWithError : pollableTaskWithErrors) {
                     logger.debug("Error happened in PollableTask {}: {}", pollableTaskWithError.getId(), pollableTaskWithError.getErrorMessage().getMessage());
                 }
-                
+
                 // Last task is the root task if it has an error or any of the sub task
                 // TODO(P1) we might want to show all errors
                 PollableTask lastTaskInError = pollableTaskWithErrors.get(pollableTaskWithErrors.size() - 1);
-                
+
                 throw new PollableTaskExecutionException(lastTaskInError.getErrorMessage().getMessage());
             }
 
@@ -110,7 +110,7 @@ public class PollableTaskClient extends BaseClient {
                 }
 
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(500);
                 } catch (InterruptedException ie) {
                     throw new RuntimeException(ie);
                 }
@@ -150,4 +150,5 @@ public class PollableTaskClient extends BaseClient {
             pollableTasksWithError.add(pollableTask);
         }
     }
+
 }

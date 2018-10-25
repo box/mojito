@@ -2,8 +2,6 @@ package com.box.l10n.mojito.rest.repository;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.View;
-import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
-import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
@@ -11,14 +9,11 @@ import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import com.fasterxml.jackson.annotation.JsonView;
 import java.util.List;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
-import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,17 +48,15 @@ public class RepositoryWS {
     RepositoryService repositoryService;
 
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
-    public ResponseEntity<Repository> getRepositoryById(@PathVariable Long repositoryId) {
+    public Repository getRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
         ResponseEntity<Repository> result;
         Repository repository = repositoryRepository.findOne(repositoryId);
 
-        if (repository != null) {
-            result = new ResponseEntity<>(repository, HttpStatus.OK);
-        } else {
-            result = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (repository == null) {
+            throw new RepositoryWithIdNotFoundException(repositoryId);
         }
 
-        return result;
+        return repository;
     }
 
     /**
@@ -75,10 +68,7 @@ public class RepositoryWS {
     @RequestMapping(value = "/api/repositories", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public List<Repository> getRepositories() {
-        return repositoryRepository.findAll(
-                where(deletedEquals(false)),
-                new Sort(Sort.Direction.ASC, "name")
-        );
+        return repositoryService.findRepositoriesIsNotDeletedOrderByName(null);
     }
 
     /**
@@ -90,11 +80,7 @@ public class RepositoryWS {
     @RequestMapping(value = "/api/repositories", params = "name", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public List<Repository> getRepositories(@RequestParam(value = "name", required = true) String repositoryName) {
-        return repositoryRepository.findAll(
-                where(ifParamNotNull(nameEquals(repositoryName)))
-                .and(deletedEquals(false)),
-                new Sort(Sort.Direction.ASC, "name")
-        );
+        return repositoryService.findRepositoriesIsNotDeletedOrderByName(repositoryName);
     }
 
     /**
@@ -167,19 +153,15 @@ public class RepositoryWS {
      * @return
      */
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.DELETE)
-    public ResponseEntity deleteRepositoryById(@PathVariable Long repositoryId) {
+    public void deleteRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
         logger.info("Deleting repository [{}]", repositoryId);
-        ResponseEntity result;
         Repository repository = repositoryRepository.findOne(repositoryId);
 
-        if (repository != null) {
-            repositoryService.deleteRepository(repository);
-            result = new ResponseEntity(HttpStatus.OK);
-        } else {
-            result = new ResponseEntity(HttpStatus.NOT_FOUND);
+        if (repository == null) {
+            throw new RepositoryWithIdNotFoundException(repositoryId);
         }
 
-        return result;
+        repositoryService.deleteRepository(repository);
     }
 
     /**
@@ -191,22 +173,24 @@ public class RepositoryWS {
      */
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PATCH)
     public ResponseEntity updateRepository(@PathVariable Long repositoryId,
-            @RequestBody Repository repository) {
+            @RequestBody Repository repository) throws RepositoryWithIdNotFoundException {
         logger.info("Updating repository [{}]", repositoryId);
         ResponseEntity result;
         Repository repoToUpdate = repositoryRepository.findOne(repositoryId);
+        
+        if (repoToUpdate == null) {
+            throw new RepositoryWithIdNotFoundException(repositoryId);
+        }
 
         try {
-            if (repoToUpdate != null) {
-                repositoryService.updateRepository(repoToUpdate,
+            repositoryService.updateRepository(repoToUpdate,
                         repository.getName(),
                         repository.getDescription(),
                         repository.getRepositoryLocales(),
                         repository.getAssetIntegrityCheckers());
-                result = new ResponseEntity(HttpStatus.OK);
-            } else {
-                result = new ResponseEntity(HttpStatus.NOT_FOUND);
-            }
+            
+            result = new ResponseEntity(HttpStatus.OK);
+ 
         } catch (RepositoryNameAlreadyUsedException e) {
             logger.debug("Cannot create the repository", e);
             result = new ResponseEntity("Repository with name [" + repository.getName() + "] already exists", HttpStatus.CONFLICT);

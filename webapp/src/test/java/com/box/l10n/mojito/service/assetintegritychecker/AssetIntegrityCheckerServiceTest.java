@@ -6,7 +6,9 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -61,7 +63,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
     protected static final String ASSET_PATH = "source-asset-path.xliff";
 
     @Test
-    public void testIntegrityCheckerIsUsedInTmServiceUpdate() throws RepositoryLocaleCreationException, ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException {
+    public void testIntegrityCheckerIsUsedInTmServiceUpdate() throws RepositoryLocaleCreationException, ExecutionException, InterruptedException, RepositoryNameAlreadyUsedException, AssetUpdateException, UnsupportedAssetFilterTypeException {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
         String frFR = "fr-FR";

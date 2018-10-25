@@ -49,17 +49,18 @@ import org.hibernate.annotations.NamedNativeQuery;
         @NamedNativeQuery(name = "RepositoryLocaleStatistic.computeLocaleStatistics",
                 query
                 = "select "
-                + "   coalesce(count(*), 0) as translated_count, "
-                + "   coalesce(sum(tu.word_count), 0) as translated_word_count, "
+                + "   coalesce(sum(case when (atu.do_not_translate = false) then 1 else 0 end), 0) as translated_count, "
+                + "   coalesce(sum(case when (atu.do_not_translate = false) then tu.word_count else 0 end), 0) as translated_word_count, "
                 + "   coalesce(sum(case when (tuv.status = 'TRANSLATION_NEEDED') then 1 else 0 end), 0) as translation_needed_count, "
                 + "   coalesce(sum(case when (tuv.status = 'TRANSLATION_NEEDED') then tu.word_count else 0 end), 0) as translation_needed_word_count, "
                 + "   coalesce(sum(case when (tuv.status = 'REVIEW_NEEDED'     ) then 1 else 0 end), 0) as review_needed_count, "
                 + "   coalesce(sum(case when (tuv.status = 'REVIEW_NEEDED'     ) then tu.word_count else 0 end), 0) as review_needed_word_count, "
-                + "   coalesce(sum(case when tuv.included_in_localized_file      then 1 else 0 end), 0) as included_in_localized_file_count, "
-                + "   coalesce(sum(case when tuv.included_in_localized_file      then tu.word_count else 0 end), 0) as included_in_localized_file_word_count "
+                + "   coalesce(sum(case when (tuv.included_in_localized_file and atu.do_not_translate = false) then 1 else 0 end), 0) as included_in_localized_file_count, "
+                + "   coalesce(sum(case when (tuv.included_in_localized_file and atu.do_not_translate = false) then tu.word_count else 0 end), 0) as included_in_localized_file_word_count "
                 + "from tm_text_unit tu "
                 + "   inner join asset a on a.id = tu.asset_id "
                 + "   left outer join asset_text_unit_to_tm_text_unit map on tu.id = map.tm_text_unit_id "
+                + "   left outer join asset_text_unit atu on atu.id = map.asset_text_unit_id "
                 + "   inner join tm_text_unit_current_variant tucv on tucv.tm_text_unit_id = tu.id "
                 + "   inner join tm_text_unit_variant tuv on tuv.id = tucv.tm_text_unit_variant_id "
                 + "   inner join repository_locale rl on (rl.locale_id = tuv.locale_id and rl.repository_id = a.repository_id) "
@@ -134,6 +135,15 @@ public class RepositoryLocaleStatistic extends BaseEntity {
      */
     @JsonView(View.RepositorySummary.class)
     private Long includeInFileWordCount = 0L;
+
+    @JsonView(View.RepositorySummary.class)
+    private Long diffToSourcePluralCount = 0L;
+
+    @JsonView(View.RepositorySummary.class)
+    private Long forTranslationCount = 0L;
+
+    @JsonView(View.RepositorySummary.class)
+    private Long forTranslationWordCount = 0L;
 
     public RepositoryLocaleStatistic() {
     }
@@ -278,6 +288,30 @@ public class RepositoryLocaleStatistic extends BaseEntity {
 
     public void setIncludeInFileWordCount(Long includeInFileWordCount) {
         this.includeInFileWordCount = includeInFileWordCount;
+    }
+
+    public Long getDiffToSourcePluralCount() {
+        return diffToSourcePluralCount;
+    }
+
+    public void setDiffToSourcePluralCount(Long diffToSourcePluralCount) {
+        this.diffToSourcePluralCount = diffToSourcePluralCount;
+    }
+
+    public Long getForTranslationCount() {
+        return forTranslationCount;
+    }
+
+    public void setForTranslationCount(Long forTranslationCount) {
+        this.forTranslationCount = forTranslationCount;
+    }
+
+    public Long getForTranslationWordCount() {
+        return forTranslationWordCount;
+    }
+
+    public void setForTranslationWordCount(Long forTranslationWordCount) {
+        this.forTranslationWordCount = forTranslationWordCount;
     }
 
 }

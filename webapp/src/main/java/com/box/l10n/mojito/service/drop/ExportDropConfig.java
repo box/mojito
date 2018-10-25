@@ -32,6 +32,8 @@ public class ExportDropConfig {
 
     TranslationKit.Type type = TranslationKit.Type.TRANSLATION;
 
+    Boolean useInheritance = false;
+
     public Long getRepositoryId() {
         return repositoryId;
     }
@@ -91,6 +93,14 @@ public class ExportDropConfig {
     @JsonIgnore
     public void setPollableTask(PollableTask pollableTask) {
         this.pollableTask = pollableTask;
+    }
+
+    public Boolean getUseInheritance() {
+        return useInheritance;
+    }
+
+    public void setUseInheritance(Boolean useInheritance) {
+        this.useInheritance = useInheritance;
     }
 
 }

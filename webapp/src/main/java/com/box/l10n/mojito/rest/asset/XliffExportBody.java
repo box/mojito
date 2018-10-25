@@ -1,12 +1,16 @@
 package com.box.l10n.mojito.rest.asset;
 
+import com.box.l10n.mojito.entity.PollableTask;
+
 /**
  *
  * @author jaurambault
  */
 public class XliffExportBody {
 
+    Long tmXliffId;
     String content;
+    PollableTask pollableTask;
 
     public XliffExportBody() {
     }
@@ -15,12 +19,28 @@ public class XliffExportBody {
         this.content = content;
     }
 
+    public Long getTmXliffId() {
+        return tmXliffId;
+    }
+
+    public void setTmXliffId(Long tmXliffId) {
+        this.tmXliffId = tmXliffId;
+    }
+
     public String getContent() {
         return content;
     }
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public PollableTask getPollableTask() {
+        return pollableTask;
+    }
+
+    public void setPollableTask(PollableTask pollableTask) {
+        this.pollableTask = pollableTask;
     }
 
 }

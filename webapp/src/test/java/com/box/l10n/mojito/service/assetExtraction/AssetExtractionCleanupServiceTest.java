@@ -7,6 +7,8 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.asset.AssetUpdateException;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskRepository;
@@ -142,7 +144,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
         return repository;
     }
 
-    private void createOrUpdateAssetAndWaitUntilProcessingEnds(Repository repository, String assetPath, int assetVersion) throws ExecutionException, InterruptedException {
+    private void createOrUpdateAssetAndWaitUntilProcessingEnds(Repository repository, String assetPath, int assetVersion) throws ExecutionException, InterruptedException, AssetUpdateException, UnsupportedAssetFilterTypeException {
 
         String xliff = xliffDataFactory.generateSourceXliff(Arrays.asList(
             xliffDataFactory.createTextUnit(1L, "2_factor_challenge_buttom", "Submit" + assetVersion, null)

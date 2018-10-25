@@ -41,7 +41,7 @@ public class AsyncConfig extends AsyncConfigurerSupport {
         ThreadPoolTaskExecutor threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setBeanName("pollableTask");
         threadPoolTaskExecutor.setCorePoolSize(5);
-        threadPoolTaskExecutor.setMaxPoolSize(10);
+        threadPoolTaskExecutor.setMaxPoolSize(30);
         threadPoolTaskExecutor.initialize();
 
         return new DelegatingSecurityContextAsyncTaskExecutor(threadPoolTaskExecutor);

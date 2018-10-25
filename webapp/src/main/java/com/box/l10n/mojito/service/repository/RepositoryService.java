@@ -6,20 +6,26 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.entity.TM;
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +65,6 @@ public class RepositoryService {
 
     @Autowired
     DropExporterConfig dropExporterConfiguration;
-    
 
     /**
      * Default root locale.
@@ -68,6 +73,18 @@ public class RepositoryService {
      * reviewed when working on the WS/CLI/FE
      */
     private static final String DEFAULT_ROOT_LOCALE = LocaleService.DEFAULT_LOCALE_BCP47_TAG;
+   
+    /**
+     * Gets all the repositories that are not deleted, ordered by name
+     * @param repositoryName
+     * @return 
+     */
+    public List<Repository> findRepositoriesIsNotDeletedOrderByName(String repositoryName) {
+        return repositoryRepository.findAll(
+                where(deletedEquals(false)).and(ifParamNotNull(nameEquals(repositoryName))),
+                new Sort(Sort.Direction.ASC, "name")
+        );
+    }
 
     /**
      * Creates a {@link Repository}. A {@link TM} is created and linked to the
@@ -83,7 +100,7 @@ public class RepositoryService {
         logger.debug("Check no repository with name: {} exists", name);
 
         Repository repository = repositoryRepository.findByName(name);
-        
+
         if (repository != null) {
             throw new RepositoryNameAlreadyUsedException(name + " is used by other repository");
         }
@@ -141,11 +158,11 @@ public class RepositoryService {
      */
     @Transactional
     public Repository createRepository(
-            String name, 
-            String description, 
-            Set<RepositoryLocale> repositoryLocales, 
+            String name,
+            String description,
+            Set<RepositoryLocale> repositoryLocales,
             Set<AssetIntegrityChecker> assetIntegrityCheckers) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
-        
+
         Repository createdRepo = createRepository(name, description);
 
         updateRepositoryLocales(createdRepo, repositoryLocales);

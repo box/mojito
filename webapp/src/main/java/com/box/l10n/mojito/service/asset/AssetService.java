@@ -5,8 +5,8 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
-import com.box.l10n.mojito.rest.asset.SourceAsset;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.MsgArg;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
@@ -61,17 +61,17 @@ public class AssetService {
      * contain the asset
      * @param assetContent Content of the asset
      * @param assetPath Remote path of the asset
-     * @param filterConfigIdOverride Optional, can be null. Allows to specify
-     * a specific Okapi filter to use to process the asset
+     * @param filterConfigIdOverride Optional, can be null. Allows to specify a
+     * specific Okapi filter to use to process the asset
      * @return The created asset
      * @throws ExecutionException
      * @throws InterruptedException
      */
     public PollableFuture<Asset> addOrUpdateAssetAndProcessIfNeeded(
-            Long repositoryId, 
-            String assetContent, 
-            String assetPath, 
-            FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException {
+            Long repositoryId,
+            String assetContent,
+            String assetPath,
+            FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
         return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
     }
 
@@ -94,20 +94,24 @@ public class AssetService {
             String assetContent,
             String assetPath,
             FilterConfigIdOverride filterConfigIdOverride,
-            @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException {
+            @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
         PollableFutureTaskResult<Asset> pollableFutureTaskResult = new PollableFutureTaskResult<>();
 
         // Check if the an asset with the same path already exists
         Asset asset = assetRepository.findByPathAndRepositoryId(assetPath, repositoryId);
 
+        if (asset != null && Boolean.TRUE.equals(asset.getVirtual())) {
+            throw new AssetUpdateException("Update on an Asset can't be performed on virtual asset");
+        }
+        
         // if an asset for the given path does not already exists or if its contents changed, start the extraction
         if (asset == null) {
-            asset = createAsset(repositoryId, assetContent, assetPath, currentTask);
-            assetExtractionService.processAsset(asset.getId(), filterConfigIdOverride, currentTask, PollableTask.INJECT_CURRENT_TASK);
+            asset = createAssetWithPollable(repositoryId, assetContent, assetPath, currentTask);
+            assetExtractionService.processAssetAsync(asset.getId(), filterConfigIdOverride, currentTask.getId());
         } else if (isAssetUpdateNeeded(asset, assetContent)) {
             updateAssetContent(asset, assetContent, currentTask);
-            assetExtractionService.processAsset(asset.getId(), filterConfigIdOverride, currentTask, PollableTask.INJECT_CURRENT_TASK);
+            assetExtractionService.processAssetAsync(asset.getId(), filterConfigIdOverride, currentTask.getId());
         } else {
             undeleteAssetIfDeleted(asset);
             logger.debug("Asset content has not changed. Reset number of expected sub task to 0");
@@ -134,7 +138,7 @@ public class AssetService {
     public Asset createAsset(Long repositoryId, String assetContent, String assetPath) throws AssetCreationException {
 
         try {
-            return createAsset(repositoryId, assetContent, assetPath, null);
+            return createAssetWithPollable(repositoryId, assetContent, assetPath, null);
         } catch (Exception e) {
             throw new AssetCreationException(e.getMessage(), e.getCause());
         }
@@ -152,12 +156,27 @@ public class AssetService {
      */
     @Pollable(message = "Creating asset: {assetPath}")
     @Transactional
-    private Asset createAsset(Long repositoryId, String assetContent, @MsgArg(name = "assetPath") String assetPath, @ParentTask PollableTask parentTask) {
+    private Asset createAssetWithPollable(
+            Long repositoryId,
+            String assetContent,
+            @MsgArg(name = "assetPath") String assetPath,
+            @ParentTask PollableTask parentTask) {
+
+        return createAsset(repositoryId, assetContent, Boolean.FALSE, assetPath);
+    }
+
+    public Asset createAsset(
+            Long repositoryId,
+            String assetContent,
+            boolean virtualContent,
+            String assetPath) {
+
         Asset asset = new Asset();
 
         asset.setRepository(repositoryRepository.getOne(repositoryId));
         asset.setContent(assetContent);
         asset.setContentMd5(DigestUtils.md5Hex(assetContent));
+        asset.setVirtual(virtualContent);
         asset.setPath(assetPath);
 
         assetRepository.save(asset);
@@ -214,10 +233,10 @@ public class AssetService {
         asset.setDeleted(false);
         assetRepository.save(asset);
     }
-    
+
     /**
-     * 
-     * @param asset 
+     *
+     * @param asset
      */
     @Transactional
     private void undeleteAssetIfDeleted(Asset asset) {
@@ -226,32 +245,33 @@ public class AssetService {
             assetRepository.save(asset);
         }
     }
-    
+
     /**
-     * Deletes an {@link Asset} by the {@link Asset#id}. It performs logical delete.
+     * Deletes an {@link Asset} by the {@link Asset#id}. It performs logical
+     * delete.
      *
      * @param asset
      */
     @Transactional
     public void deleteAsset(Asset asset) {
-        
+
         logger.debug("Delete an asset with path: {}", asset.getPath());
 
         asset.setDeleted(true);
         assetRepository.save(asset);
-        
+
         logger.debug("Deleted asset with path: {}", asset.getPath());
 
     }
 
     /**
      * Deletes multiple {@link Asset} by the list of {@link Asset#id}
-     * 
-     * @param assetIds 
+     *
+     * @param assetIds
      */
     @Transactional
     public void deleteAssets(Set<Long> assetIds) {
-        
+
         logger.debug("Delete assets {}", assetIds.toString());
 
         for (Long assetId : assetIds) {
@@ -260,9 +280,9 @@ public class AssetService {
                 deleteAsset(asset);
             }
         }
-        
+
         logger.debug("Deleted assets {}", assetIds.toString());
-        
+
     }
 
 }

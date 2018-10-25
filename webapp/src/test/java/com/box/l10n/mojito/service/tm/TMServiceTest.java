@@ -2,19 +2,24 @@ package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
-import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForSourceEqTarget;
+import com.box.l10n.mojito.entity.TMXliff;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
+import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.Status;
 import com.box.l10n.mojito.okapi.filters.MacStringsEncoder;
 import com.box.l10n.mojito.okapi.filters.XMLEncoder;
-import com.box.l10n.mojito.service.asset.AssetCreationException;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
@@ -28,6 +33,8 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,12 +45,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import net.sf.okapi.common.resource.TextUnit;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.proxy.HibernateProxy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -102,6 +112,9 @@ public class TMServiceTest extends ServiceTestBase {
 
     @Autowired
     PollableTaskService pollableTaskService;
+
+    @Autowired
+    TMXliffRepository tmXliffRepository;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -176,6 +189,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(md5Check, addTMTextUnit.getMd5());
         assertEquals(contentMd5Check, addTMTextUnit.getContentMd5());
         assertEquals(tmId, ((HibernateProxy) addTMTextUnit.getTm()).getHibernateLazyInitializer().getIdentifier());
+        assertNotNull(addTMTextUnit.getCreatedByUser());
 
         return addTMTextUnit.getId();
     }
@@ -238,6 +252,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(contentMD5, addCurrentTMTextUnitVariant.getContentMD5());
         assertEquals(localeId, ((HibernateProxy) addCurrentTMTextUnitVariant.getLocale()).getHibernateLazyInitializer().getIdentifier());
         assertEquals(tmTextUnitId, ((HibernateProxy) addCurrentTMTextUnitVariant.getTmTextUnit()).getHibernateLazyInitializer().getIdentifier());
+        assertNotNull(addCurrentTMTextUnitVariant.getCreatedByUser());
         return addCurrentTMTextUnitVariant;
     }
 
@@ -245,6 +260,12 @@ public class TMServiceTest extends ServiceTestBase {
     public void testComputeTMTextUnitMD5() throws IOException {
         String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
         assertEquals("3063c39d3cf8ab69bcabbbc5d7187dc9", computeTMTextUnitMD5);
+    }
+    
+    @Test
+    public void testComputeTMTextUnitMD5Null() throws IOException {
+        String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5(null, "this is the content", null);
+        assertEquals("ad549ec93687843d638c9a712dff0238", computeTMTextUnitMD5);
     }
 
     @Test
@@ -382,7 +403,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testGenerateLocalizedXLIFF() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFF() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -401,7 +422,7 @@ public class TMServiceTest extends ServiceTestBase {
         tmService.addTMTextUnitCurrentVariant(tmTextUnit3.getId(), locale.getId(), "!?!?!?!?!", null, TMTextUnitVariant.Status.REVIEW_NEEDED, false);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.USE_PARENT, Status.ALL);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
@@ -411,7 +432,124 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testGenerateLocalizedXLIFFWithDifferentOutputTag() throws RepositoryNameAlreadyUsedException {
+    public void testGenerateLocalizedXLIFFRemoveUntranslated() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
+
+        createTestData();
+
+        TMTextUnit tmTextUnit1 = tmService.addTMTextUnit(tmId, assetId, "application_name", "Application Name", "This text is shown in the start screen of the application. Keep it short.");
+        TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tmId, assetId, "home", "Home", "This is the text displayed in the link that takes the user to the home page.");
+        TMTextUnit tmTextUnit3 = tmService.addTMTextUnit(tmId, assetId, "fail_integrity_check", "I fail integrity check", null);
+
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryAndLocale_Bcp47Tag(repository, "fr-FR");
+        Locale locale = repositoryLocale.getLocale();
+
+        tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
+
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+
+        // Adding current variant that failed integrity checks (should not be included in localized XLIFF)
+        //TODO(P1) need to save in comments
+        tmService.addTMTextUnitCurrentVariant(tmTextUnit3.getId(), locale.getId(), "!?!?!?!?!", null, TMTextUnitVariant.Status.REVIEW_NEEDED, false);
+
+        String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
+
+        String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1), newTmTextUnitWithVariant(tmTextUnit2, variant2));
+        assertEquals(
+                removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
+        );
+    }
+
+    @Test
+    public void testGenerateLocalizedXLIFFRemoveUntranslatedOnlyApproved() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
+
+        createTestData();
+
+        TMTextUnit tmTextUnit1 = tmService.addTMTextUnit(tmId, assetId, "application_name", "Application Name", "This text is shown in the start screen of the application. Keep it short.");
+        TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tmId, assetId, "home", "Home", "This is the text displayed in the link that takes the user to the home page.");
+
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryAndLocale_Bcp47Tag(repository, "fr-FR");
+        Locale locale = repositoryLocale.getLocale();
+
+        tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application",  TMTextUnitVariant.Status.APPROVED,true);
+
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+
+        String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2));
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ACCEPTED);
+
+        String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1));
+        assertEquals(
+                removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
+        );
+    }
+
+    @Test
+    public void testGenerateLocalizedXLIFFRemoveUntranslatedApprovedOrNeedsReview() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
+
+        createTestData();
+
+        TMTextUnit tmTextUnit1 = tmService.addTMTextUnit(tmId, assetId, "application_name", "Application Name", "This text is shown in the start screen of the application. Keep it short.");
+        TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tmId, assetId, "home", "Home", "This is the text displayed in the link that takes the user to the home page.");
+        TMTextUnit tmTextUnit3 = tmService.addTMTextUnit(tmId, assetId, "test", "Not approved", null);
+
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryAndLocale_Bcp47Tag(repository, "fr-FR");
+        Locale locale = repositoryLocale.getLocale();
+
+        tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application",  TMTextUnitVariant.Status.APPROVED,true);
+
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+
+        TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve",  TMTextUnitVariant.Status.TRANSLATION_NEEDED,true);
+
+        String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ACCEPTED_OR_NEEDS_REVIEW);
+
+        String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1), newTmTextUnitWithVariant(tmTextUnit2, variant2));
+        assertEquals(
+                removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
+        );
+    }
+
+    @Test
+    public void testGenerateLocalizedXLIFFRemoveUntranslatedAll() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
+
+        createTestData();
+
+        TMTextUnit tmTextUnit1 = tmService.addTMTextUnit(tmId, assetId, "application_name", "Application Name", "This text is shown in the start screen of the application. Keep it short.");
+        TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tmId, assetId, "home", "Home", "This is the text displayed in the link that takes the user to the home page.");
+        TMTextUnit tmTextUnit3 = tmService.addTMTextUnit(tmId, assetId, "test", "Not approved", null);
+
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryAndLocale_Bcp47Tag(repository, "fr-FR");
+        Locale locale = repositoryLocale.getLocale();
+
+        tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application",  TMTextUnitVariant.Status.APPROVED,true);
+
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+
+        TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve",  TMTextUnitVariant.Status.TRANSLATION_NEEDED,true);
+
+        String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
+
+        String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1),
+                newTmTextUnitWithVariant(tmTextUnit2, variant2), newTmTextUnitWithVariant(tmTextUnit3, variant3));
+        assertEquals(
+                removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
+        );
+    }
+
+
+    @Test
+    public void testGenerateLocalizedXLIFFWithDifferentOutputTag() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
 
         createTestData();
 
@@ -432,7 +570,7 @@ public class TMServiceTest extends ServiceTestBase {
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
 
         String outputBcp47tag = "fr-FR";
-        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag, null);
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, outputBcp47tag, null, InheritanceMode.USE_PARENT, Status.ALL);
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(outputBcp47tag, tmTextUnit1, tmTextUnit2, tmTextUnit3, variant1);
         assertEquals(
@@ -460,11 +598,40 @@ public class TMServiceTest extends ServiceTestBase {
             TMTextUnit tmTextUnit1, TMTextUnit tmTextUnit2, TMTextUnit tmTextUnit3,
             TMTextUnitVariant variant1) {
 
-        return xliffDataFactory.generateTargetXliff(Arrays.asList(
-                xliffDataFactory.createTextUnit(tmTextUnit1.getId(), tmTextUnit1.getName(), tmTextUnit1.getContent(), tmTextUnit1.getComment(), variant1.getContent(), targetLocaleBcp47Tag, null),
-                xliffDataFactory.createTextUnit(tmTextUnit2.getId(), tmTextUnit2.getName(), tmTextUnit2.getContent(), tmTextUnit2.getComment(), tmTextUnit2.getContent(), targetLocaleBcp47Tag, null),
-                xliffDataFactory.createTextUnit(tmTextUnit3.getId(), tmTextUnit3.getName(), tmTextUnit3.getContent(), tmTextUnit3.getComment(), tmTextUnit3.getContent(), targetLocaleBcp47Tag, null)
-        ), targetLocaleBcp47Tag);
+        return getExpectedLocalizedXLIFFContent(targetLocaleBcp47Tag, newTmTextUnitWithVariant(tmTextUnit1, variant1), newTmTextUnitWithoutVariant(tmTextUnit2), newTmTextUnitWithoutVariant(tmTextUnit3));
+    }
+
+    private Pair<TMTextUnit, TMTextUnitVariant> newTmTextUnitWithoutVariant(TMTextUnit tmTextUnit) {
+        return newTmTextUnitWithVariant(tmTextUnit, null);
+    }
+
+    private Pair<TMTextUnit, TMTextUnitVariant> newTmTextUnitWithVariant(TMTextUnit tmTextUnit, TMTextUnitVariant tmTextUnitVariant) {
+        return new ImmutablePair<>(tmTextUnit, tmTextUnitVariant);
+    }
+
+    private String getExpectedLocalizedXLIFFContent(final String targetLocaleBcp47Tag,
+                                                    Pair<TMTextUnit, TMTextUnitVariant>... tmTextUnitsWithVariants) {
+
+        Function<Pair<TMTextUnit, TMTextUnitVariant>, TextUnit> toTextUnitFunction = new Function<Pair<TMTextUnit, TMTextUnitVariant>, TextUnit>() {
+            @Override
+            public TextUnit apply(Pair<TMTextUnit, TMTextUnitVariant> input) {
+                return createTextUnitFromTmTextUnitsWithVariant(targetLocaleBcp47Tag, input.getLeft(), input.getRight());
+            }
+        };
+
+        List<Pair<TMTextUnit, TMTextUnitVariant>> tmTextUnitWithVariantList = Arrays.asList(tmTextUnitsWithVariants);
+
+        List<TextUnit> textUnitList = FluentIterable.from(tmTextUnitWithVariantList).transform(toTextUnitFunction).toList();
+
+        return xliffDataFactory.generateTargetXliff(textUnitList, targetLocaleBcp47Tag);
+    }
+
+    private TextUnit createTextUnitFromTmTextUnitsWithVariant(String targetLocaleBcp47Tag, TMTextUnit tmTextUnit, TMTextUnitVariant tmTextUnitVariant) {
+        if (tmTextUnitVariant == null) {
+            return xliffDataFactory.createTextUnit(tmTextUnit.getId(), tmTextUnit.getName(), tmTextUnit.getContent(), tmTextUnit.getComment(), tmTextUnit.getContent(), targetLocaleBcp47Tag, null);
+        }
+
+        return xliffDataFactory.createTextUnit(tmTextUnit.getId(), tmTextUnit.getName(), tmTextUnit.getContent(), tmTextUnit.getComment(), tmTextUnitVariant.getContent(), targetLocaleBcp47Tag, null);
     }
 
     private String removeLeadingAndTrailingSpacesOnEveryLine(String string) {
@@ -521,12 +688,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "<trans-unit id=\"\" resname=\"application_name\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Application Name</source>\n"
                 + "<target xml:lang=\"en\">Application Name</target>\n"
-                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[]}</note>\n"
+                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "<trans-unit id=\"\" resname=\"home\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Home</source>\n"
                 + "<target xml:lang=\"en\">Home</target>\n"
-                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[]}</note>\n"
+                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "</body>\n"
                 + "</file>\n"
@@ -544,12 +711,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "<trans-unit id=\"\" resname=\"application_name\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Application Name</source>\n"
                 + "<target xml:lang=\"fr-FR\">Nom de l'application</target>\n"
-                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[]}</note>\n"
+                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "<trans-unit id=\"\" resname=\"home\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Home</source>\n"
                 + "<target xml:lang=\"fr-FR\">Page d'accueil</target>\n"
-                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[]}</note>\n"
+                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "</body>\n"
                 + "</file>\n"
@@ -569,12 +736,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "<trans-unit id=\"\" resname=\"application_name\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Application Name</source>\n"
                 + "<target xml:lang=\"fr-FR\">Nom de l'application</target>\n"
-                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[]}</note>\n"
+                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "<trans-unit id=\"\" resname=\"home\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Home</source>\n"
                 + "<target xml:lang=\"fr-FR\">Page d'accueil</target>\n"
-                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"this string need to be reviewed because...\",\"includedInLocalizedFile\":true,\"status\":\"REVIEW_NEEDED\",\"variantComments\":[]}</note>\n"
+                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"this string need to be reviewed because...\",\"includedInLocalizedFile\":true,\"status\":\"REVIEW_NEEDED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "</body>\n"
                 + "</file>\n"
@@ -606,12 +773,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "<trans-unit id=\"\" resname=\"application_name\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Application Name</source>\n"
                 + "<target xml:lang=\"fr-FR\">Nom de l'application</target>\n"
-                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[]}</note>\n"
+                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "<trans-unit id=\"\" resname=\"home\" xml:space=\"preserve\">\n"
                 + "<source xml:lang=\"en\">Home</source>\n"
                 + "<target xml:lang=\"fr-FR\">Page d'accueil</target>\n"
-                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"this string has some comments\",\"includedInLocalizedFile\":false,\"status\":\"REVIEW_NEEDED\",\"variantComments\":[{\"severity\":\"INFO\",\"type\":\"LEVERAGING\",\"content\":\"Leveraging\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}},{\"severity\":\"ERROR\",\"type\":\"INTEGRITY_CHECK\",\"content\":\"Failed Integrity Check\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}}]}</note>\n"
+                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"this string has some comments\",\"includedInLocalizedFile\":false,\"status\":\"REVIEW_NEEDED\",\"variantComments\":[{\"severity\":\"INFO\",\"type\":\"LEVERAGING\",\"content\":\"Leveraging\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}},{\"severity\":\"ERROR\",\"type\":\"INTEGRITY_CHECK\",\"content\":\"Failed Integrity Check\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}}],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
                 + "</trans-unit>\n"
                 + "</body>\n"
                 + "</file>\n"
@@ -678,7 +845,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -733,9 +900,99 @@ public class TMServiceTest extends ServiceTestBase {
             assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
+    }
+
+    @Test
+    public void testLocalizeAndroidStringsPlural() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "ja-JP");
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <!-- Example of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <!-- Example2 of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators2\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <plurals name=\"numberOfCollaborators3\">\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "</resources>";
+        String expectedLocalizedAsset_jaJP = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <!-- Example of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators\">\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <!-- Example2 of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators2\">\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <plurals name=\"numberOfCollaborators3\">\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "</resources>";
+        String expectedLocalizedAsset_enGB = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<resources>\n"
+                + "  <!-- Example of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <!-- Example2 of plurals -->\n"
+                + "  <plurals name=\"numberOfCollaborators2\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "  <plurals name=\"numberOfCollaborators3\">\n"
+                + "    <item quantity=\"one\">%1$d people</item>\n"
+                + "    <item quantity=\"other\">%1$d people</item>\n"
+                + "  </plurals>\n"
+                + "</resources>";
+        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source [{}]=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset_jaJP, localizedAsset);
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset_enGB, localizedAsset);
     }
 
     /**
@@ -783,7 +1040,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -829,9 +1086,55 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
+    }
+
+    /**
+     * This test is to test AndroidStrings with REMOVE_UNTRANSLATED inheritance mode
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testLocalizeAndroidStringsRemoveUntranslated() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent
+                = "<resources>\n"
+                + "    <string name=\"test\">\"This is test\"</string>\n"
+                + "    <string name=\"desc\">\"This is a description\"</string>\n"
+                + "</resources>";
+        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        String forImport
+                = "<resources>\n"
+                + "    <string name=\"test\">\"Le test\"</string>\n"
+                + "</resources>";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(forImport, localizedAsset);
     }
 
     /**
@@ -878,9 +1181,406 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
+    }
+
+    @Test
+    public void testLocalizePoPluralJp() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "ja-JP");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"\"\n"
+                + "msgstr[1] \"\"";
+
+        String expectedLocalizedAsset = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repins\"\n";
+
+        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+         
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repin-jp\"\n";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized after import=\n{}", localizedAsset);
+        assertEquals(forImport, localizedAsset);
+    }
+
+    @Test
+    public void testLocalizePoRemoveUntranslated() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "ja-JP");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgstr \"\"\n"
+                + "#. Description\n"
+                + "#: core/logic/week_in_review_email_logic.py:50\n"
+                + "msgid \"description\"\n"
+                + "msgstr \"\"\n";
+
+
+        String expectedLocalizedAsset = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n";
+
+        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgstr \"repin-jp\"\n";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
+        logger.debug("localized after import=\n{}", localizedAsset);
+        assertEquals(forImport, localizedAsset);
+    }
+
+
+    @Test
+    public void testLocalizePoPluralRu() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "ru-RU");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"\"\n"
+                + "msgstr[1] \"\"";
+
+        String expectedLocalizedAsset = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repin\"\n"
+                + "msgstr[1] \"repins\"\n"
+                + "msgstr[2] \"repins\"\n";
+
+        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+//        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repin-ru\"\n"
+                + "msgstr[1] \"repins-ru-1\"\n"
+                + "msgstr[2] \"repins-ru-2\"\n";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized after import=\n{}", localizedAsset);
+
+        assertEquals(forImport, localizedAsset);
+    }
+
+    @Test
+    public void testLocalizePoPluralCs() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "cs-CZ");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"\"\n"
+                + "msgstr[1] \"\"";
+
+        String expectedLocalizedAsset = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repin\"\n"
+                + "msgstr[1] \"repins\"\n"
+                + "msgstr[2] \"repins\"\n";
+
+        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+//        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repin-cs\"\n"
+                + "msgstr[1] \"repins-cz-1\"\n"
+                + "msgstr[2] \"repins-cz-2\"\n";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized after import=\n{}", localizedAsset);
+
+        assertEquals(forImport, localizedAsset);
     }
 
     @Test
@@ -917,7 +1617,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
@@ -967,15 +1667,66 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedContent, localizedAsset);
     }
 
+    @Ignore("Bug: does not output translationbundle opening tag")
     @Test
-    public void testImportLocalizedAssetXLIFFApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testLocalizeXtbRemoveUntranslated() throws Exception {
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
+        String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!DOCTYPE translationbundle>\n"
+                + "<translationbundle lang=\"en-US\">\n"
+                + "	<translation id=\"0\" key=\"MSG_DIALOG_OK_\" source=\"lib/closure-library/closure/goog/ui/dialog.js\" desc=\"Standard caption for the dialog 'OK' button.\">OK</translation>\n"
+                + "     <translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">More</translation>\n"
+                + "     <translation id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\" desc=\"Instructions for the Gonstead method.\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
+                + "</translationbundle>";
+        String expectedContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<translationbundle />\n";
+
+        asset = assetService.createAsset(repo.getId(), assetContent, "xtb/messages-en-US.xtb");
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        //assertEquals(expectedContent, localizedAsset);
+
+        String forImport = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!DOCTYPE translationbundle>\n"
+                + "<translationbundle lang=\"ja-JP\">\n"
+                + "<translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">Plus</translation>\n"
+                + "</translationbundle>";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, InheritanceMode.REMOVE_UNTRANSLATED, Status.ALL);
+        logger.debug("localized after import=\n{}", localizedAsset);
+        assertEquals(forImport, localizedAsset);
+
+    }
+
+    @Test
+    public void testImportLocalizedAssetXLIFFApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException, AssetUpdateException {
+
+        baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -999,9 +1750,9 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFReviewNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetXLIFFReviewNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.REVIEW_NEEDED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.REVIEW_NEEDED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1026,9 +1777,9 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFTranslationNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetXLIFFTranslationNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.TRANSLATION_NEEDED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.TRANSLATION_NEEDED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1053,9 +1804,9 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFSkip() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetXLIFFSkip() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.SKIPPED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.SKIPPED);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1076,9 +1827,9 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetNotFullyTranslated() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    public void testImportLocalizedAssetNotFullyTranslated() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-        baseTestImportLocalizedAsset(StatusForSourceEqTarget.APPROVED);
+        baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
 
         RepositoryLocale repoLocale;
         try {
@@ -1088,7 +1839,7 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null);
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
@@ -1104,8 +1855,38 @@ public class TMServiceTest extends ServiceTestBase {
         assertFalse(iterator.hasNext());
 
     }
+    
+     @Test
+    public void testReImportLocalizedAsset() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
-    private void baseTestImportLocalizedAsset(StatusForSourceEqTarget sourceEqualTargetProcessing) throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetCreationException, RuntimeException {
+        baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
+
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+        textUnitSearcherParameters.setLocaleId(repoLocale.getLocale().getId());
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        Iterator<TextUnitDTO> iterator = textUnitDTOs.iterator();
+        TextUnitDTO next = iterator.next();
+        assertEquals("Au revoir CA", next.getTarget());
+        assertEquals(TMTextUnitVariant.Status.APPROVED, next.getStatus());
+
+        assertFalse(iterator.hasNext());
+    }
+
+    private void baseTestImportLocalizedAsset(StatusForEqualTarget statusForEqualTarget) throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetUpdateException, AssetUpdateException {
         repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;
         try {
@@ -1120,16 +1901,16 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null);
         try {
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null);
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
-        } catch (PollableTaskException | InterruptedException e) {
+            assetResult.get();
+        } catch (PollableTaskException | InterruptedException | UnsupportedAssetFilterTypeException e) {
             throw new RuntimeException(e);
         }
-        assetResult.get();
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir\nsource=target";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, sourceEqualTargetProcessing, null);
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), statusForEqualTarget, null).get();
     }
 
     @Test
@@ -1174,8 +1955,8 @@ public class TMServiceTest extends ServiceTestBase {
                 + "#. Test plural okapi bug\n"
                 + "#: file.js:24\n"
                 + "msgctxt \"testpluralokapibug\"\n"
-                + "msgid \"test okapi bug\"\n" 
-                + "msgstr \"\"\n" 
+                + "msgid \"test okapi bug\"\n"
+                + "msgstr \"\"\n"
                 + "";
         asset = assetService.createAsset(repository.getId(), assetContent, "messages.pot");
         asset = assetRepository.findOne(asset.getId());
@@ -1221,10 +2002,40 @@ public class TMServiceTest extends ServiceTestBase {
                 + "#. Test plural okapi bug\n"
                 + "#: file.js:24\n"
                 + "msgctxt \"testpluralokapibug\"\n"
-                + "msgid \"test okapi bug\"\n" 
-                + "msgstr \"jp test okapi bug\"\n" 
+                + "msgid \"test okapi bug\"\n"
+                + "msgstr \"jp test okapi bug\"\n"
                 + "\n"
                 + "";
-        tmService.importLocalizedAsset(asset, localizedAssetContent, repoLocale, StatusForSourceEqTarget.APPROVED, null);
+            tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null).get();
+    }
+
+    @Test
+    public void testExportAssetAsXLIFFAsync() throws Exception {
+        createTestData();
+
+        logger.debug("Export empty TM for source (en)");
+        String expected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
+                + "<file original=\"test-asset-path.xliff\" source-language=\"en\" target-language=\"en\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
+                + "<body>\n"
+                + "</body>\n"
+                + "</file>\n"
+                + "</xliff>\n";
+
+        TMXliff tmXliff = tmService.createTMXliff(assetId, "en", null, null);
+        PollableFuture<String> exportResult = tmService.exportAssetAsXLIFFAsync(tmXliff.getId(), assetId, "en", PollableTask.INJECT_CURRENT_TASK);
+
+        try {
+            pollableTaskService.waitForPollableTask(exportResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        String exportAssetAsXLIFF = exportResult.get();
+        assertEquals(expected, exportAssetAsXLIFF);
+
+        PollableTask pollableTask = pollableTaskService.getPollableTask(exportResult.getPollableTask().getId());
+        tmXliff = tmXliffRepository.findByPollableTask(pollableTask);
+        assertEquals(expected, tmXliff.getContent());
     }
 }

@@ -20,6 +20,7 @@ import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import org.hibernate.annotations.NamedNativeQueries;
 import org.hibernate.annotations.NamedNativeQuery;
+import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -41,7 +42,9 @@ import org.springframework.data.annotation.CreatedBy;
                         @ColumnResult(name = "usedTextUnitWordCount", type = Long.class),
                         @ColumnResult(name = "unusedTextUnitCount", type = Long.class),
                         @ColumnResult(name = "unusedTextUnitWordCount", type = Long.class),
-                        @ColumnResult(name = "uncommentedTextUnitCount", type = Long.class)
+                        @ColumnResult(name = "uncommentedTextUnitCount", type = Long.class),
+                        @ColumnResult(name = "pluralTextUnitCount", type = Long.class),
+                        @ColumnResult(name = "pluralTextUnitWordCount", type = Long.class)
                     }
             )
         }
@@ -50,15 +53,18 @@ import org.springframework.data.annotation.CreatedBy;
         @NamedNativeQuery(name = "RepositoryStatistic.computeBaseStatistics",
                 query
                 = "select "
-                + "   coalesce(sum(case when map.id is not null and a.deleted = false then 1 else 0 end), 0) as usedTextUnitCount, "
-                + "   coalesce(sum(case when map.id is not null and a.deleted = false then tu.word_count else 0 end), 0) as usedTextUnitWordCount, "
+                + "   coalesce(sum(case when map.id is not null and a.deleted = false and atu.do_not_translate = false then 1 else 0 end), 0) as usedTextUnitCount, "
+                + "   coalesce(sum(case when map.id is not null and a.deleted = false and atu.do_not_translate = false then tu.word_count else 0 end), 0) as usedTextUnitWordCount, "
                 + "   coalesce(sum(case when map.id is null or a.deleted = true then 1 else 0 end), 0) as unusedTextUnitCount, "
                 + "   coalesce(sum(case when map.id is null or a.deleted = true then tu.word_count else 0 end), 0) as unusedTextUnitWordCount, "
-                + "   coalesce(sum(case when (map.id is not null and tu.comment is null) then 1 else 0 end), 0) as uncommentedTextUnitCount "
+                + "   coalesce(sum(case when (map.id is not null and a.deleted = false and tu.comment is null) then 1 else 0 end), 0) as uncommentedTextUnitCount, "
+                + "   coalesce(sum(case when (map.id is not null and a.deleted = false and tu.plural_form_id is not null and atu.do_not_translate = false) then 1 else 0 end), 0) / 6 as pluralTextUnitCount, "
+                + "   coalesce(sum(case when (map.id is not null and a.deleted = false and tu.plural_form_id is not null and atu.do_not_translate = false) then tu.word_count else 0 end), 0) / 6 as pluralTextUnitWordCount "
                 + " "
                 + "from tm_text_unit tu "
                 + "   inner join asset a on a.id = tu.asset_id "
                 + "   left outer join asset_text_unit_to_tm_text_unit map on tu.id = map.tm_text_unit_id and map.asset_extraction_id = a.last_successful_asset_extraction_id "
+                + "   left outer join asset_text_unit atu on atu.id = map.asset_text_unit_id "
                 + "where "
                 + "   a.repository_id = ?1",
                 resultSetMapping = "RepositoryStatistic.computeBaseStatistics"
@@ -87,6 +93,34 @@ public class RepositoryStatistic extends AuditableEntity {
      * The word count of used text units
      */
     private Long unusedTextUnitWordCount = 0L;
+
+    /**
+     * The number of text unit for plural forms
+     */
+    @JsonView(View.RepositorySummary.class)
+    private Long pluralTextUnitCount = 0L;
+
+    /**
+     * The number of words for plural forms
+     */
+    @JsonView(View.RepositorySummary.class)
+    private Long pluralTextUnitWordCount = 0L;
+
+    /**
+     * The number of OOSLA text unit
+     */
+    @JsonView(View.RepositorySummary.class)
+    private Long ooslaTextUnitCount = 0L;
+
+    /**
+     * The number of OOSLA words
+     */
+    @JsonView(View.RepositorySummary.class)
+    private Long ooslaTextUnitWordCount = 0L;
+
+    @JsonView(View.RepositorySummary.class)
+    @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
+    private DateTime ooslaCreatedBefore;
 
     /**
      * The number of text unit without comments
@@ -119,13 +153,17 @@ public class RepositoryStatistic extends AuditableEntity {
             Long usedTextUnitWordCount,
             Long unusedTextUnitCount,
             Long unusedTextUnitWordCount,
-            Long uncommentedTextUnitCount) {
+            Long uncommentedTextUnitCount,
+            Long pluralTextUnitCount,
+            Long pluralTextUnitWordCount) {
 
         this.usedTextUnitCount = usedTextUnitCount;
         this.usedTextUnitWordCount = usedTextUnitWordCount;
         this.unusedTextUnitCount = unusedTextUnitCount;
         this.unusedTextUnitWordCount = unusedTextUnitWordCount;
         this.uncommentedTextUnitCount = uncommentedTextUnitCount;
+        this.pluralTextUnitCount = pluralTextUnitCount;
+        this.pluralTextUnitWordCount = pluralTextUnitWordCount;
     }
 
     @JsonIgnore
@@ -190,6 +228,46 @@ public class RepositoryStatistic extends AuditableEntity {
         this.unusedTextUnitWordCount = unusedTextUnitWordCount;
     }
 
+    public Long getPluralTextUnitCount() {
+        return pluralTextUnitCount;
+    }
+
+    public void setPluralTextUnitCount(Long pluralTextUnitCount) {
+        this.pluralTextUnitCount = pluralTextUnitCount;
+    }
+
+    public Long getPluralTextUnitWordCount() {
+        return pluralTextUnitWordCount;
+    }
+
+    public void setPluralTextUnitWordCount(Long pluralTextUnitWordCount) {
+        this.pluralTextUnitWordCount = pluralTextUnitWordCount;
+    }
+
+    public Long getOoslaTextUnitCount() {
+        return ooslaTextUnitCount;
+    }
+
+    public void setOoslaTextUnitCount(Long ooslaTextUnitCount) {
+        this.ooslaTextUnitCount = ooslaTextUnitCount;
+    }
+
+    public Long getOoslaTextUnitWordCount() {
+        return ooslaTextUnitWordCount;
+    }
+
+    public void setOoslaTextUnitWordCount(Long ooslaTextUnitWordCount) {
+        this.ooslaTextUnitWordCount = ooslaTextUnitWordCount;
+    }
+
+    public DateTime getOoslaCreatedBefore() {
+        return ooslaCreatedBefore;
+    }
+
+    public void setOoslaCreatedBefore(DateTime ooslaCreatedBefore) {
+        this.ooslaCreatedBefore = ooslaCreatedBefore;
+    }
+
     /**
      * @return the repositoryLocaleStatistics
      */
@@ -218,7 +296,4 @@ public class RepositoryStatistic extends AuditableEntity {
         this.uncommentedTextUnitCount = uncommentedTextUnitCount;
     }
 
-    public void setLastModifiedDate(DateTime lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
-    }
 }

@@ -59,6 +59,23 @@ let RepositoryRow = React.createClass({
         );
         return needsOfNeedsReview;
     },
+    
+    /**
+     * Get the number of OOSLA text units
+     *
+     * @param {number} repoId
+     * @return {number}
+     */
+    getNumberOfOOSLA(repoId) {
+        let repository = RepositoryStore.getRepositoryById(repoId)
+        return repository.repositoryStatistic.ooslaTextUnitCount ? repository.repositoryStatistic.ooslaTextUnitCount : 0;
+    },
+    
+    getOOSLACreatedBefore(repoId) {
+        let repository = RepositoryStore.getRepositoryById(repoId)
+        let date =  new Date(repository.repositoryStatistic.ooslaCreatedBefore).toISOString();
+        return date;
+    },
 
     /**
      * Calculate the total of number of words that needs review across all locales
@@ -98,13 +115,12 @@ let RepositoryRow = React.createClass({
     getNumberOfNeedsTranslation(repoId) {
         let numberOfNeedsTranslation = 0;
         let repo = RepositoryStore.getRepositoryById(repoId);
-        let repoStats = repo.repositoryStatistic;
         let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
 
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfNeedsTranslation += (repoStats.usedTextUnitCount - repoLocaleStat.translatedCount + repoLocaleStat.translationNeededCount);
+                numberOfNeedsTranslation += repoLocaleStat.forTranslationCount;
             }
         });
 
@@ -120,13 +136,12 @@ let RepositoryRow = React.createClass({
     getNumberOfWordNeedsTranslation(repoId) {
         let numberOfWordNeedsTranslation = 0;
         let repo = RepositoryStore.getRepositoryById(repoId);
-        let repoStats = repo.repositoryStatistic;
         let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
 
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
             if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
-                numberOfWordNeedsTranslation += (repoStats.usedTextUnitWordCount - repoLocaleStat.translatedWordCount + repoLocaleStat.translationNeededWordCount);
+                numberOfWordNeedsTranslation += repoLocaleStat.forTranslationWordCount;
             }
         });
 
@@ -143,12 +158,30 @@ let RepositoryRow = React.createClass({
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
-            "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId)
+            "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
+            "doNotTranslate": true
+        });
+    },
+    
+    /**
+     * Update the Workbench search params to load the OOSLA view for the selected repo
+     *
+     * @param {number} repoId
+     */
+    updateSearchParamsForOOSLA(repoId, ooslaCreatedDate) {
+
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": [repoId],
+            "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
+            "tmTextUnitCreatedBefore" : ooslaCreatedDate,
+            "status": SearchParamsStore.STATUS.UNTRANSLATED,
+            "doNotTranslate" : false
         });
     },
 
     /**
-     * Update the Workbench search params to load the for translation view for the selected repo
+     * Update the Workbench search params to load the translation view for the selected repo
      *
      * @param {number} repoId
      */
@@ -158,7 +191,8 @@ let RepositoryRow = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
-            "status": SearchParamsStore.STATUS.FOR_TRANSLATION
+            "status": SearchParamsStore.STATUS.FOR_TRANSLATION,
+            "doNotTranslate" : false
         });
     },
 
@@ -173,7 +207,8 @@ let RepositoryRow = React.createClass({
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": [repoId],
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
-            "status": SearchParamsStore.STATUS.REVIEW_NEEDED
+            "status": SearchParamsStore.STATUS.REVIEW_NEEDED,
+            "doNotTranslate" : false
         });
     },
 
@@ -273,13 +308,37 @@ let RepositoryRow = React.createClass({
 
         let numberOfNeedsTranslation = this.getNumberOfNeedsTranslation(repoId);
         let numberOfNeedsNeedsReview = this.getNumberOfNeedsReview(repoId);
+        let numberOfOOSLA = this.getNumberOfOOSLA(repoId);
 
-        if (numberOfNeedsTranslation === 0 && numberOfNeedsNeedsReview === 0) {
+        if (numberOfNeedsTranslation === 0 && numberOfNeedsNeedsReview === 0 && numberOfOOSLA === 0) {
 
             ui = (
                     <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
                         <Label bsStyle="success" className="mrs clickable">
                             <FormattedMessage id="repositories.table.row.done"/>
+                        </Label>
+                    </Link>);
+        }
+
+        return ui;
+    },
+    
+    /**
+     * @return {XML}
+     */
+    getOOSLALabel() {
+
+        let ui = "";
+
+        const repoId = this.props.rowData.id;
+        let numberOfOOSLA = this.getNumberOfOOSLA(repoId); 
+
+        if (numberOfOOSLA > 0) {
+
+            ui = (
+                    <Link onClick={this.updateSearchParamsForOOSLA.bind(this, repoId, this.getOOSLACreatedBefore(repoId))} to='/workbench' className="label-container status-label-container">
+                        <Label bsStyle="warning" className="mrs clickable">
+                            <FormattedMessage id="repositories.table.row.oosla"/>
                         </Label>
                     </Link>);
         }
@@ -294,6 +353,7 @@ let RepositoryRow = React.createClass({
         return (
                 <span>
                     {this.getDoneLabel()}
+                    {this.getOOSLALabel()}
                     {this.getRejectedLabel()}
                 </span>
         );

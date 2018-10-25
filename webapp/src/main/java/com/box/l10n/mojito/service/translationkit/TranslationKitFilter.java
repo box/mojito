@@ -62,6 +62,8 @@ public class TranslationKitFilter implements IFilter {
 
     TranslationKit.Type type;
 
+    Boolean useInheritance = false;
+
     /**
      * The text units to be returned by the filter
      */
@@ -82,9 +84,10 @@ public class TranslationKitFilter implements IFilter {
 
     Locale locale;
 
-    public TranslationKitFilter(Long translationKitId, TranslationKit.Type type) {
+    public TranslationKitFilter(Long translationKitId, TranslationKit.Type type, Boolean useInheritance) {
         this.translationKitId = Preconditions.checkNotNull(translationKitId);
         this.type = Preconditions.checkNotNull(type);
+        this.useInheritance = useInheritance;
     }
 
     @Override
@@ -110,7 +113,12 @@ public class TranslationKitFilter implements IFilter {
         targetLocale = input.getTargetLocale();
         locale = localeService.findByBcp47Tag(targetLocale.toBCP47());
 
-        List<TextUnitDTO> textUnitDTOsForTranslationKit = translationKitService.getTextUnitDTOsForTranslationKit(translationKitId, type);
+        List<TextUnitDTO> textUnitDTOsForTranslationKit;
+        if (useInheritance) {
+            textUnitDTOsForTranslationKit = translationKitService.getTextUnitDTOsForTranslationKitWithInheritance(translationKitId);
+        } else {
+            textUnitDTOsForTranslationKit = translationKitService.getTextUnitDTOsForTranslationKit(translationKitId, type);
+        }
 
         textUnitsIterator = textUnitDTOsForTranslationKit.iterator();
 

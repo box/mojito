@@ -2,6 +2,7 @@ import Error from "../../utils/Error";
 import TextUnitError from "../../utils/TextUnitError";
 import TextUnitClient from "../../sdk/TextUnitClient";
 import WorkbenchActions from "./WorkbenchActions";
+import GitBlameActions from "./GitBlameActions";
 
 const TextUnitDataSource = {
     performSaveTextUnit: {
@@ -40,6 +41,25 @@ const TextUnitDataSource = {
         },
         success: WorkbenchActions.deleteTextUnitsSuccess,
         error: WorkbenchActions.deleteTextUnitsError
+    },
+
+    saveVirtualAssetTextUnit: {
+        remote(searchResultsStoreState, textUnit) {
+            return TextUnitClient.saveVirtualAssetTextUnit(textUnit)
+                .catch(error => {
+                    throw new TextUnitError(Error.IDS.VIRTUAL_ASSET_TEXTUNIT_SAVE_FAILED, textUnit);
+                });
+        },
+        success: WorkbenchActions.saveVirtualAssetTextUnitSuccess,
+        error: WorkbenchActions.saveVirtualAssetTextUnitError
+    },
+
+    getGitBlameInfo: {
+        remote(gitBlameStoreState, textUnit) {
+            return TextUnitClient.getGitBlameInfo(textUnit);
+        },
+        success: GitBlameActions.getGitBlameInfoSuccess,
+        error: GitBlameActions.getGitBlameInfoError
     }
 };
 

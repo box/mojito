@@ -1,0 +1,19 @@
+.mojito-ict-string-active {
+    border: 1px solid green !important;
+}
+
+.mojito-ict-popup {
+    width: 300px;
+}
+
+#mojito-ict {
+    @import './mojito.scss';
+
+    .mojito-ict-modal .selected {
+        background-color: rgba($brand-primary, 0.1);;
+    }
+
+    .modal-content {
+        z-index: 701;
+    }
+}

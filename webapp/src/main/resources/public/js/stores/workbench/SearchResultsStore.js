@@ -4,6 +4,7 @@ import SearchConstants from "../../utils/SearchConstants";
 import SearchDataSource from "../../actions/workbench/SearchDataSource";
 import SearchParamsStore from "./SearchParamsStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
+import RepositoryActions from "../../actions/RepositoryActions";
 import TextUnit from "../../sdk/TextUnit";
 import textUnitStore from "./TextUnitStore";
 
@@ -31,6 +32,7 @@ class SearchResultsStore {
         this.searchHadNoResults = false;
 
         this.bindActions(WorkbenchActions);
+        this.bindActions(RepositoryActions);
 
         this.registerAsync(SearchDataSource);
     }
@@ -41,10 +43,10 @@ class SearchResultsStore {
      * firing the request to fetch results for the search criteria provided in the UI.
      */
     onSearchParamsChanged() {
-
         this.waitFor(SearchParamsStore);
 
         let searchParamsStoreState = SearchParamsStore.getState();
+        
         if (SearchParamsStore.isReadyForSearching(searchParamsStoreState)) {
             let newState = {
                 "noMoreResults": false,
@@ -75,10 +77,10 @@ class SearchResultsStore {
     onSearchResultsReceivedSuccess(response) {
         this.waitFor(SearchParamsStore);
         let paramsStoreState = SearchParamsStore.getState();
-        this.noMoreResults = response.length < paramsStoreState.pageSize;
-        this.searchResults = response;
+        this.noMoreResults = !response.hasMore;
+        this.searchResults = response.textUnits;
         this.isSearching = false;
-        this.searchHadNoResults = (response.length === 0);
+        this.searchHadNoResults = (response.textUnits.length === 0);
     }
 
     /**
@@ -117,7 +119,7 @@ class SearchResultsStore {
      * @param {TextUnit[]} textUnits
      */
     onDeleteTextUnits(textUnits) {
-        console.log("SearchResultsStore::onDeleteTextUnits");
+        
         this.waitFor(textUnitStore.dispatchToken);
 
         textUnits.forEach(textUnit => {
@@ -151,6 +153,14 @@ class SearchResultsStore {
      */
     onDeleteTextUnitsError(errorResponse) {
         console.log("SearchResultsStore::onDeleteTextUnitsError");
+    }
+
+    /**
+     *
+     * @param {TextUnit} textUnit
+     */
+    onSaveVirtualAssetTextUnitSuccess(textUnit) {
+        this.updateSearchResultsWithTextUnit(textUnit);
     }
 
     /**
@@ -221,6 +231,10 @@ class SearchResultsStore {
         for (let textUnit of this.searchResults) {
             this.selectedTextUnitsMap[textUnit.getTextUnitKey()] = textUnit;
         }
+    }
+   
+    getAllRepositoriesSuccess(repositories) {
+        this.onSearchParamsChanged();
     }
 
     /**

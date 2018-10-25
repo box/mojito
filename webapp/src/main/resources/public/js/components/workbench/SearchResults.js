@@ -3,7 +3,7 @@ import FluxyMixin from "alt-mixins/FluxyMixin";
 import keycode from "keycode";
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
-import {ButtonGroup, ButtonToolbar, Button} from "react-bootstrap";
+import {Button, ButtonToolbar, DropdownButton, MenuItem} from "react-bootstrap";
 import Error from "../../utils/Error";
 import DeleteConfirmationModal from "../widgets/DeleteConfirmationModal";
 import ErrorModal from "../widgets/ErrorModal";
@@ -12,10 +12,11 @@ import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchResultsStore from "../../stores/workbench/SearchResultsStore";
 import TextUnit from "./TextUnit";
 import TextUnitsReviewModal from "./TextUnitsReviewModal";
+import TranslateModal from "./TranslateModal";
 import TextUnitSelectorCheckBox from "./TextUnitSelectorCheckBox";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import ReviewTextUnitsDTO from "../../stores/workbench/ReviewTextUnitsDTO";
-import UrlHelper from "../../utils/UrlHelper";
+import TextUnitSDK from "../../sdk/TextUnit";
 
 let SearchResults = React.createClass({
 
@@ -64,6 +65,9 @@ let SearchResults = React.createClass({
 
             /** @type {Boolean} Helps show the ErrorModal if set to true. */
             "mustShowReviewModal": false,
+
+            /** @type {Boolean} Displays the TranslateModal when the delete button is clicked. */
+            "showTranslateModal": false,
 
             /** @type {Boolean} */
             "isErrorOccurred": false,
@@ -169,6 +173,13 @@ let SearchResults = React.createClass({
         }
     },
 
+    onDoNotTranslateClick() {
+        let selectedTextUnits = this.getSelectedTextUnits();
+        if (selectedTextUnits.length >= 1) {
+            this.showTranslateModal();
+        }
+    },
+
     /**
      * Fires a request to review the selected textunits when the user hits the save button on the TextUnitsreviewModal
      * @param {object} modalData
@@ -208,6 +219,24 @@ let SearchResults = React.createClass({
     hideReviewModal() {
         this.setState({
             "mustShowReviewModal": false
+        });
+    },
+
+    /**
+     * Sets the state of this component to show the TextUnitsDoNotTranslateModal
+     */
+    showTranslateModal() {
+        this.setState({
+            "showTranslateModal": true
+        });
+    },
+
+    /**
+     * Sets the state of this component to hide the TextUnitsDoNotTranslateModal
+     */
+    hideDoNotTranslateModal() {
+        this.setState({
+            "showTranslateModal": false
         });
     },
 
@@ -277,6 +306,26 @@ let SearchResults = React.createClass({
             "isErrorOccurred": false
         });
         WorkbenchActions.resetErrorState();
+    },
+
+    onTranslateModalSave(translate) {
+        let selectedTextUnits = SearchResultsStore.getSelectedTextUnits();
+
+        for (let selectedTextUnit of selectedTextUnits) {
+            console.log(selectedTextUnit);
+            let clonedTextUnit = TextUnitSDK.toTextUnit(_.clone(selectedTextUnit.data));
+            clonedTextUnit.setDoNotTranslate(!translate);
+            WorkbenchActions.saveVirtualAssetTextUnit(clonedTextUnit);
+        }
+
+        WorkbenchActions.resetAllSelectedTextUnits();
+
+        this.hideDoNotTranslateModal();
+    },
+
+
+    onTranslateModalCancel() {
+        this.hideDoNotTranslateModal();
     },
 
     /**
@@ -521,6 +570,17 @@ let SearchResults = React.createClass({
                                         onClick={this.onStatusTextUnitsClicked}>
                                     <FormattedMessage id="workbench.toolbar.status"/>
                                 </Button>
+
+                                <DropdownButton bsSize="small"
+                                                disabled={actionButtonsDisabled}
+                                                noCaret
+                                                id="dropdown-more-options"
+                                                title={(
+                                                    <span className="glyphicon glyphicon-option-horizontal"></span>)}>
+
+                                    <MenuItem header><FormattedMessage id="workbench.toolbar.textUnitsAttribute"/></MenuItem>
+                                    <MenuItem eventKey="1" onClick={this.onDoNotTranslateClick}><FormattedMessage id="workbench.toolbar.setTranslate"/></MenuItem>
+                                </DropdownButton>
                             </ButtonToolbar>
                         </div>
                         <div className="pull-right">
@@ -584,16 +644,16 @@ let SearchResults = React.createClass({
 
         return result;
     },
-      
+
     /**
-     * @param {string} messageId message id of the message to be displayed 
+     * @param {string} messageId message id of the message to be displayed
      * @returns {JSX}
      */
     getEmptyStateContainerContent(messageId) {
         return <div className="empty-search-container text-center center-block">
-                    <div><FormattedMessage id={messageId}/></div>
-                    <img className="empty-search-container-img" src={require('../../../img/magnifying-glass.svg')} />
-            </div>;
+            <div><FormattedMessage id={messageId}/></div>
+            <img className="empty-search-container-img" src={require('../../../img/magnifying-glass.svg')}/>
+        </div>;
     },
 
     render() {
@@ -608,6 +668,9 @@ let SearchResults = React.createClass({
                 <ErrorModal showModal={this.state.isErrorOccurred}
                             errorMessage={this.getErrorMessage()}
                             onErrorModalClosed={this.onErrorModalClosed}/>
+                <TranslateModal showModal={this.state.showTranslateModal}
+                                onSave={this.onTranslateModalSave}
+                                onCancel={this.onTranslateModalCancel}/>
                 {this.getEmptyStateContainer()}
                 {this.getTextUnitsReviewModal()}
             </div>

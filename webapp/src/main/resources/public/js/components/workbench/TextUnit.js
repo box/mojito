@@ -15,6 +15,7 @@ import TextUnitStore from "../../stores/workbench/TextUnitStore";
 import TextUnitsReviewModal from "./TextUnitsReviewModal";
 import TextUnitSDK from "../../sdk/TextUnit";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
+import GitBlameActions from "../../actions/workbench/GitBlameActions";
 import Locales from "../../utils/Locales";
 import {
     Alert,
@@ -29,7 +30,9 @@ import {
     Input,
     Label,
     Glyphicon,
-    Modal
+    Modal,
+    OverlayTrigger,
+    Tooltip
 } from "react-bootstrap";
 
 
@@ -388,6 +391,38 @@ let TextUnit = React.createClass({
     },
 
     /**
+     * Returns the label to show do translate status or empty string if textunit is to be translated.
+     * @returns {Label}
+     */
+    renderDoNotTranslateLabel() {
+
+        let rendered = '';
+        if (this.props.textUnit.getDoNotTranslate()) {
+            rendered = (
+                <Label bsStyle="default" className="mrxs"><FormattedMessage id="textUnit.doNotTranslate"/></Label>
+            );
+        }
+        return rendered;
+    },
+
+    /**
+     * Returns the label to show plural form or empty string if textunit has none.
+     * @returns {Label}
+     */
+    renderPluralFormLabel() {
+
+        let rendered = '';
+        if (this.props.textUnit.getPluralForm() != null) {
+            rendered = (
+                <Label bsStyle="default" className="mrxs clickable" onClick={this.onPluralFormLabelClick}>
+                    {this.props.textUnit.getPluralForm()}
+                </Label>
+            );
+        }
+        return rendered;
+    },
+
+    /**
      * Returns the JSX to show the status of reviewNeeded for textunit
      * @returns {JSX}
      */
@@ -551,6 +586,27 @@ let TextUnit = React.createClass({
     },
 
     /**
+     * Handle click on the plural form label: stop event propagation (no need to 
+     * bubble up as we're reloading the workbench with new data) and update the 
+     * search parameter to show all plural forms for the string 
+     * 
+     * @param {SyntheticEvent} e
+     */
+    onPluralFormLabelClick(e) {
+
+        e.stopPropagation();
+
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": SearchParamsStore.getState().repoIds,
+            "searchText": this.props.textUnit.getPluralFormOther(),
+            "searchAttribute": SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER,
+            "searchType": SearchParamsStore.SEARCH_TYPES.EXACT,
+            "bcp47Tags": [this.props.textUnit.getTargetLocale()]
+        });
+    },
+
+    /**
      * Stop event propagation when clicking on the text area in edit mode (we
      * don't want that click to select/unselect the textunit).
      *
@@ -579,6 +635,34 @@ let TextUnit = React.createClass({
             "searchAttribute": SearchParamsStore.SEARCH_ATTRIBUTES.STRING_ID,
             "searchType": SearchParamsStore.SEARCH_TYPES.EXACT,
             "bcp47Tags": RepositoryStore.getAllBcp47TagsForRepositoryIds(SearchParamsStore.getState().repoIds),
+        });
+    },
+
+    onTextUnitInfoClick(e){
+
+        e.stopPropagation();
+
+        GitBlameActions.openWithTextUnit(this.props.textUnit);
+    },
+    
+    /**
+     * Handle click on the asset path icon: stop event propagation (no need to bubble
+     * up as we're reloading the workbench with new data) and update the search
+     * parameter to show strings for the given string id.
+     *
+     * @param {SyntheticEvent} e
+     */
+    onAssetPathClick(e) {
+
+        e.stopPropagation();
+
+        WorkbenchActions.searchParamsChanged({
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": SearchParamsStore.getState().repoIds,
+            "searchText": this.props.textUnit.getAssetPath(),
+            "searchAttribute": SearchParamsStore.SEARCH_ATTRIBUTES.ASSET,
+            "searchType": SearchParamsStore.SEARCH_TYPES.EXACT,
+            "bcp47Tags": [this.props.textUnit.getTargetLocale()]
         });
     },
 
@@ -718,6 +802,42 @@ let TextUnit = React.createClass({
             <div className="plx pts textunit-string">{leadingWhitespacesSymbol}{source}{trailingWhitespacesSymbol}</div>
         );
     },
+    
+    renderName() {
+        let assetPathWithZeroWidthSpace = this.addZeroWidthSpace(this.props.textUnit.getAssetPath()); // to make the tooltip text to wrap
+        let assetPathTooltip = <Tooltip id="{this.props.textUnit.getId()}-assetPath">{assetPathWithZeroWidthSpace}</Tooltip>;
+        let assetPathWithGitInfoTooltip =
+            <Tooltip id="{this.props.textUnit.getId()}-gitInfo">{this.props.intl.formatMessage( {id: 'workbench.gitBlameModal.info'} )}</Tooltip>;
+
+        return (<span className="clickable textunit-name"
+                      onClick={this.onStringIdClick}>
+                    <span>{this.props.textUnit.getName()}</span>
+                    <OverlayTrigger placement="top" overlay={assetPathTooltip}>
+                        <span className="textunit-assetpath glyphicon glyphicon-level-up mls" 
+                               onClick={this.onAssetPathClick} />
+                    </OverlayTrigger>
+
+                    <OverlayTrigger placement="top" overlay={assetPathWithGitInfoTooltip}>
+                        <span className="textunit-gitInfo glyphicon glyphicon-info-sign mls"
+                              onClick={this.onTextUnitInfoClick} />
+                    </OverlayTrigger>
+                </span>
+        );
+    },
+    
+    addZeroWidthSpace(string) {
+        
+        let newString = "";
+        
+        [...string].forEach(c => {
+            if (newString.length % 10 === 0) {
+                newString += '\u200B';
+            }        
+            newString += c;
+        });
+        
+        return newString;
+    },
 
     handleConfirmCancel() {
         this.setState({"isCancelConfirmShown": false});
@@ -756,7 +876,7 @@ let TextUnit = React.createClass({
 
         return result;
     },
-
+     
     render() {
         // TODO: Must show which repository a string belongs to when multiple repositories are selected
         let textunitClass = "mrm pbm ptm textunit";
@@ -768,7 +888,7 @@ let TextUnit = React.createClass({
         if (isSelected) {
             textunitClass = textunitClass + " textunit-selected";
         }
-
+        
         return (
             <div ref="textunit" className={textunitClass} onKeyUp={this.onKeyUpTextUnit} tabIndex={0}
                  onClick={this.onTextUnitClick}>
@@ -785,8 +905,9 @@ let TextUnit = React.createClass({
                                     {this.props.textUnit.getTargetLocale()}
                                 </Label>
                                 {this.renderUnusedLabel()}
-                                <span className="clickable"
-                                      onClick={this.onStringIdClick}>{this.props.textUnit.getName()}</span>
+                                {this.renderDoNotTranslateLabel()}
+                                {this.renderPluralFormLabel()}
+                                {this.renderName()}
                             </Col>
                         </Row>
                         <Row className='show-grid'>
