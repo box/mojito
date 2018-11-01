@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author jyi
  */
-public class EllipsisIntegrityChecker implements TextUnitIntegrityChecker {
+public class EllipsisIntegrityChecker extends AbstractTextUnitIntegrityChecker {
 
     /**
      * logger

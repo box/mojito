@@ -1,6 +1,7 @@
 /docker/.data
 /cli/target/
 /webapp/target/
+/webapp/package-lock.json
 application.pid
 .idea/
 /target/

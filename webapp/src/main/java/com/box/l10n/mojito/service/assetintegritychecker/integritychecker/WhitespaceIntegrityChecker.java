@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author jyi
  */
-public class WhitespaceIntegrityChecker implements TextUnitIntegrityChecker {
+public class WhitespaceIntegrityChecker extends AbstractTextUnitIntegrityChecker {
 
     /**
      * logger
