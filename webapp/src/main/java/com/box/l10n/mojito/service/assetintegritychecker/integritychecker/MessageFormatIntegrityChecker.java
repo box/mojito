@@ -97,6 +97,7 @@ public class MessageFormatIntegrityChecker extends AbstractTextUnitIntegrityChec
         boolean isLocalizable = true;
         for (int i = 0; i < messagePattern.countParts(); i++) {
             Part part = messagePattern.getPart(i);
+            logger.debug("Type={}", part.getType().toString());
 
             if (part.getType().equals(Part.Type.MSG_START) || part.getType().equals(Part.Type.ARG_LIMIT)) {
 

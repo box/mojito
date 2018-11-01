@@ -104,4 +104,16 @@ public class PseudoLocalizationTest {
         assertTrue("The plural text variation should be pseudolocalized", pseudoLocalized.contains("{1 ν}"));
         assertTrue("The plural text variation should be pseudolocalized while the placeholder should not", pseudoLocalized.contains("{{numUsers} νƒ}"));
     }
+
+    @Test
+    public void testConvertPluralMessageFormatStringToPseudoLoc3() {
+        PseudoLocalization ps = new PseudoLocalization();
+        Set<TextUnitIntegrityChecker> checkers = new HashSet<>();
+        checkers.add(new MessageFormatIntegrityChecker());
+        String pseudoLocalized = ps.convertStringToPseudoLoc("{count, plural, one {# Comment or Task} other {# Comments or Tasks}}", checkers);
+        assertTrue("The plural syntax should not be pseudolocalized", pseudoLocalized.contains("count, plural, one"));
+        assertTrue("The plural syntax should not be pseudolocalized", pseudoLocalized.contains("other"));
+        assertFalse("The plural text variation should be pseudolocalized", pseudoLocalized.contains("{# Comment or Task}"));
+        assertFalse("The plural text variation should be pseudolocalized while the placeholder should not", pseudoLocalized.contains("{# Comments or Tasks}"));
+    }
 }
