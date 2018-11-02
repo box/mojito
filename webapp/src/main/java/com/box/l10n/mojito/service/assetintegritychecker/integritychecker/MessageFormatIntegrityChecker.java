@@ -27,7 +27,7 @@ public class MessageFormatIntegrityChecker extends AbstractTextUnitIntegrityChec
      */
     static Logger logger = LoggerFactory.getLogger(MessageFormatIntegrityChecker.class);
 
-    private static final String REPLACEMENT_CHARS = "!!";
+    private static final String REPLACEMENT_CHARS = "\u0013";
 
     @Override
     public void check(String sourceContent, String targetContent) throws MessageFormatIntegrityCheckerException {
