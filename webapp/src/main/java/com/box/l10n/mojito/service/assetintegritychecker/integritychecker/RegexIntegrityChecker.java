@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author wyau
  */
-public abstract class RegexIntegrityChecker implements TextUnitIntegrityChecker {
+public abstract class RegexIntegrityChecker extends AbstractTextUnitIntegrityChecker {
 
     /**
      * logger
