@@ -5,7 +5,7 @@
 
     <groupId>com.box.l10n.mojito</groupId>
     <artifactId>mojito-parent</artifactId>
-    <version>0.91-SNAPSHOT</version>
+    <version>0.92-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Mojito</name>
 
