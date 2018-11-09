@@ -98,7 +98,13 @@ public class PseudoLocalizeStep extends BasePipelineStep {
             checkers = textUnitIntegrityCheckerMap.get(asset.getId());
 
             if (checkers == null) {
+                logger.debug("There is no cached integrity checkers for asset id {}", asset.getId());
                 checkers = integrityCheckerFactory.getTextUnitCheckers(asset);
+                if (checkers.isEmpty()) {
+                    logger.debug("There is no integrity checkers for asset id {}", asset.getId());
+                } else {
+                    logger.debug("Found {} integrity checker(s) for asset id {}", checkers.size(), asset.getId());
+                }
                 textUnitIntegrityCheckerMap.put(asset.getId(), checkers);
             }
         }
