@@ -93,8 +93,10 @@ public class PseudoLocalization {
         TextUnitIntegrityChecker checker = getIntegrityCheckerForPlaceholderProcessing(checkers);
 
         if (checker == null) {
+            logger.debug("There is no checker for pseudolocalization placeholder processing.");
             return convertStringToPseudoLoc(string);
         } else {
+            logger.debug("Found checker for pseudolocalization placeholder processing.");
             LocalizableString localizableString = checker.extractNonLocalizableParts(string);
             String pseudolocalized = convertStringToPseudoLoc(localizableString.getLocalizableString());
             localizableString.setLocalizableString(pseudolocalized);
@@ -204,6 +206,7 @@ public class PseudoLocalization {
     private TextUnitIntegrityChecker getIntegrityCheckerForPlaceholderProcessing(Set<TextUnitIntegrityChecker> checkers) {
         for (TextUnitIntegrityChecker textUnitIntegrityChecker : checkers) {
             if (textUnitIntegrityChecker instanceof MessageFormatIntegrityChecker) {
+                logger.debug("Use the MessageFormatIntegrityChecker to process placeholder in pseudolocalization.");
                 return textUnitIntegrityChecker;
             }
         }

@@ -93,6 +93,7 @@ public class MessageFormatIntegrityChecker extends AbstractTextUnitIntegrityChec
             throw new MessageFormatIntegrityCheckerException("Invalid string pattern", iae);
         }
 
+        logger.debug("Extracting non localizable parts from: {}", string);
         int index = 0;
         boolean isLocalizable = true;
         for (int i = 0; i < messagePattern.countParts(); i++) {
