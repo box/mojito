@@ -105,4 +105,20 @@ public class AssetPathToFilterConfigMapperTest {
         String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.pot");
         assertEquals(POFilter.FILTER_CONFIG_ID, filterConfigId);
     }
+
+    @Test
+    public void testGetFilterConfigIdFromTypeWithTS() throws Exception {
+
+        AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
+        String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.ts");
+        assertEquals(AssetPathToFilterConfigMapper.JS_FILTER_CONFIG_ID, filterConfigId);
+    }
+
+    @Test
+    public void testGetFilterConfigIdFromTypeWithJS() throws Exception {
+
+        AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
+        String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.js");
+        assertEquals(AssetPathToFilterConfigMapper.JS_FILTER_CONFIG_ID, filterConfigId);
+    }
 }
