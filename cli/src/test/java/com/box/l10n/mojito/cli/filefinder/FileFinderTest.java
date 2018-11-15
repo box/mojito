@@ -3,11 +3,13 @@ package com.box.l10n.mojito.cli.filefinder;
 import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
 import com.box.l10n.mojito.cli.filefinder.file.CSVFileType;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.filefinder.file.JSFileType;
 import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
 import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
 import com.box.l10n.mojito.cli.filefinder.file.PropertiesNoBasenameFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
 import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
+import com.box.l10n.mojito.cli.filefinder.file.TSFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
 import com.box.l10n.mojito.cli.filefinder.file.XtbFileType;
@@ -435,6 +437,46 @@ public class FileFinderTest extends IOTestBase {
         Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
         assertEquals(getInputResourcesTestDir().toString() + "/demo_en-GB.csv", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/demo_fr-FR.csv", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
+    }
+
+    @Test
+    public void findJS() throws IOException, FileFinderException {
+
+        JSFileType jsFileType = new JSFileType();
+
+        FileFinder fileFinder = initFileFinder(true, jsFileType);
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(getInputResourcesTestDir().toString() + "/en.js", next.getPath().toString());
+        assertEquals("fr-FR.js", next.getTargetPath("fr-FR"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir().toString() + "/en-GB.js", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir().toString() + "/fr-FR.js", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
+    }
+
+    @Test
+    public void findTS() throws IOException, FileFinderException {
+
+        TSFileType tsFileType = new TSFileType();
+
+        FileFinder fileFinder = initFileFinder(true, tsFileType);
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(getInputResourcesTestDir().toString() + "/en.ts", next.getPath().toString());
+        assertEquals("fr-FR.ts", next.getTargetPath("fr-FR"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir().toString() + "/en-GB.ts", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir().toString() + "/fr-FR.ts", itTargets.next().getPath().toString());
         assertFalse(itTargets.hasNext());
     }
 

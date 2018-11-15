@@ -18,7 +18,9 @@ public enum FileTypes {
     RESX(ResxFileType.class),
     PO(POFileType.class),
     XTB(XtbFileType.class),
-    CSV(CSVFileType.class);
+    CSV(CSVFileType.class),
+    JS(JSFileType.class),
+    TS(TSFileType.class);
 
     Class<? extends FileType> clazz;
 

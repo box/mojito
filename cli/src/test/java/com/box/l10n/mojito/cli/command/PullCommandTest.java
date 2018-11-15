@@ -530,7 +530,7 @@ public class PullCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
         Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.csv", repository.getId());
-        
+
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
         importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
@@ -545,4 +545,53 @@ public class PullCommandTest extends CLITestBase {
         checkExpectedGeneratedResources();
     }
 
+    @Test
+    public void pullJS() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("en.js", repository.getId());
+
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-lm", "fr:fr-FR,ja:ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-lm", "fr:fr-FR,ja:ja-JP");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void pullTS() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("en.ts", repository.getId());
+
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-lm", "fr:fr-FR,ja:ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-lm", "fr:fr-FR,ja:ja-JP");
+
+        checkExpectedGeneratedResources();
+    }
 }

@@ -8,6 +8,7 @@ import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
+import com.box.l10n.mojito.okapi.filters.JSFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
@@ -108,6 +109,7 @@ public class AssetExtractor {
         mapper.addConfigurations(POFilter.class.getName());
         mapper.addConfigurations(XMLFilter.class.getName());
         mapper.addConfigurations(MacStringsFilter.class.getName());
+        mapper.addConfigurations(JSFilter.class.getName());
 
         return mapper;
     }
