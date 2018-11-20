@@ -6,6 +6,8 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -22,6 +24,8 @@ public interface TMTextUnitRepository extends JpaRepository<TMTextUnit, Long> {
 
     List<TMTextUnit> findByTm_id(Long tmId);
         
+    List<TMTextUnit> findByIdIn(Collection<Long> ids);
+
     List<TMTextUnit> findByAsset(Asset asset);
     List<TMTextUnit> findByAssetId(Long assetId);
 

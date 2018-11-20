@@ -199,7 +199,6 @@ public class VirtualAssetService {
         for (AssetTextUnit assetTextUnit : findByAssetExtractionAssetId) {
 
             String translation = translatorWithInheritance.getTranslation(
-                    assetTextUnit.getName(),
                     assetTextUnit.getContent(),
                     assetTextUnit.getMd5()
             );
