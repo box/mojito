@@ -8,9 +8,7 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.resource.TextContainer;
 import org.slf4j.Logger;
@@ -18,9 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- *
- *
  * @author jaurambault
  */
 @Configurable
@@ -70,14 +70,46 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
     void initTmTextUnitsMapsForAsset() {
         logger.debug("Init TmTextUnit maps for asset");
-        List<TMTextUnit> textUnits = tmTextUnitRepository.findByAsset(asset);
+
+        if (isMultilingual) {
+            initTextUnitsMapByMd5();
+        } else {
+            initTextUnitsMapByName();
+        }
+    }
+
+    void initTextUnitsMapByName() {
+        logger.debug("initTextUnitsMapByName");
+        Map<String, Long> tmTextUnitIdsByName = new HashMap<>();
+
+        logger.debug("Map text unit names to text unit ids. Used text units have priority (if multiple unused, first one is used");
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setAssetId(asset.getId());
+        textUnitSearcherParameters.setForRootLocale(true);
+        textUnitSearcherParameters.setPluralFormsFiltered(false);
+        List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOS) {
+            if (textUnitDTO.isUsed()) {
+                tmTextUnitIdsByName.put(textUnitDTO.getName(), textUnitDTO.getTmTextUnitId());
+            } else {
+                tmTextUnitIdsByName.putIfAbsent(textUnitDTO.getName(), textUnitDTO.getTmTextUnitId());
+            }
+        }
+
+        logger.debug("Fetch the text units and map them by name");
+        List<TMTextUnit> textUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsByName.values());
 
         for (TMTextUnit tmTextUnit : textUnits) {
-            if (isMultilingual) {
-                textUnitsByMd5.put(tmTextUnit.getMd5(), tmTextUnit);
-            } else {
-                textUnitsByName.put(tmTextUnit.getName(), tmTextUnit);
-            }
+            textUnitsByName.put(tmTextUnit.getName(), tmTextUnit);
+        }
+    }
+
+    void initTextUnitsMapByMd5() {
+        logger.debug("initTextUnitsMapByMd5");
+        List<TMTextUnit> textUnits = tmTextUnitRepository.findByAsset(asset);
+        for (TMTextUnit tmTextUnit : textUnits) {
+            textUnitsByMd5.put(tmTextUnit.getMd5(), tmTextUnit);
         }
     }
 
@@ -110,17 +142,14 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
         TMTextUnitVariant.Status status;
 
-        TextUnitDTO currentTranslation = translatorWithInheritance.getTextUnitDTO(
-                tmTextUnit.getName(),
-                tmTextUnit.getContent(),
-                tmTextUnit.getMd5());
-        
+        TextUnitDTO currentTranslation = translatorWithInheritance.getTextUnitDTO(tmTextUnit.getMd5());
+
         boolean hasSameTarget;
         String targetAsString = target.toString();
 
         logger.debug("Check if new target: [{}] is different to either the current, parent or source string: [{}]",
                 targetAsString, currentTranslation);
-        
+
         if (currentTranslation != null) {
             hasSameTarget = targetAsString.equals(currentTranslation.getTarget());
         } else {
@@ -130,7 +159,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
         if (hasSameTarget) {
             logger.debug("Target is the same");
-            if (repositoryLocale.isToBeFullyTranslated()) {                
+            if (repositoryLocale.isToBeFullyTranslated()) {
                 boolean isForTargetLocale = currentTranslation != null && currentTranslation.getLocaleId().equals(repositoryLocale.getLocale().getId());
                 status = getStatusForSameTargetAndFullyTranslated(isForTargetLocale, currentTranslation);
             } else {
@@ -141,15 +170,15 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
             logger.debug("Target is different, import as approved");
             status = TMTextUnitVariant.Status.APPROVED;
         }
-        
+
         return status;
     }
 
     TMTextUnitVariant.Status getStatusForSameTargetAndFullyTranslated(boolean isForTargetLocale, TextUnitDTO currentTranslation) {
         logger.debug("Get status when target is same for a fully translated locale");
-        
+
         TMTextUnitVariant.Status status;
-        
+
         if (StatusForEqualTarget.TRANSLATION_NEEDED.equals(statusForEqualTarget)) {
             status = TMTextUnitVariant.Status.TRANSLATION_NEEDED;
         } else if (StatusForEqualTarget.REVIEW_NEEDED.equals(statusForEqualTarget)) {
@@ -159,35 +188,35 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
         } else {
             status = TMTextUnitVariant.Status.APPROVED;
         }
-        
+
         if (isForTargetLocale && status != null && status.equals(currentTranslation.getStatus())) {
             logger.debug("Same target for target locale and same status, skip");
-            status = null;    
+            status = null;
         }
-        
+
         return status;
     }
 
     /**
      * Optimize by skipping the look up of the tmTextUnitCurrentVariant when then there is no translation.
-     * 
+     * <p>
      * This is to optimize for the first import of big projects, looking up for tmTextUnitCurrentVariants is expensive
      * and not required as none is present yet.
-     * 
+     *
      * @param localeId
      * @param tmTextUnit
-     * @return 
+     * @return
      */
     @Override
     TMTextUnitCurrentVariant getTMTextUnitCurrentVariant(Long localeId, TMTextUnit tmTextUnit) {
-        
+
         TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
-        
+
         if (hasTranslationWithoutInheritance) {
             return super.getTMTextUnitCurrentVariant(localeId, tmTextUnit);
         }
-        
+
         return tmTextUnitCurrentVariant;
     }
-    
+
 }

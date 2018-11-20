@@ -309,4 +309,26 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
         checkExpectedGeneratedResources();
     }
 
+
+    @Test
+    public void importUnused() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source2").getAbsolutePath());
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source2").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source2").getAbsolutePath(),
+                "-t", getTargetTestDir().getAbsolutePath());
+
+        checkExpectedGeneratedResources();
+    }
+
 }

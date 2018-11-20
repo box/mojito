@@ -69,12 +69,10 @@ public class TranslatorWithInheritance {
     }
 
     public String getTranslation(
-            String name,
             String source,
             String md5) {
 
-        TextUnitDTO textUnitDTO = getTextUnitDTO(name, source, md5);
-
+        TextUnitDTO textUnitDTO = getTextUnitDTO(md5);
         return getTranslationFromTextUnitDTO(textUnitDTO, source);
     }
 
@@ -91,12 +89,9 @@ public class TranslatorWithInheritance {
         return translation;
     }
 
-    public TextUnitDTO getTextUnitDTO(
-            String name,
-            String source,
-            String md5) {
+    public TextUnitDTO getTextUnitDTO(String md5) {
 
-        logger.debug("Look for a textUnitDTO in target locale: {} for text unit with name: {}", repositoryLocale.getLocale().getBcp47Tag(), name);
+        logger.debug("Look for a textUnitDTO in target locale: {} for text unit with md5: {}", repositoryLocale.getLocale().getBcp47Tag(), md5);
         TextUnitDTO textUnitDTO = getTextUnitDTO(md5, repositoryLocale.getLocale().getId());
 
         if (textUnitDTO != null) {

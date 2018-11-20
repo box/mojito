@@ -99,7 +99,7 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
         if (textUnit.isTranslatable()) {
 
-            String translation = translatorWithInheritance.getTranslation(name, source, md5);
+            String translation = translatorWithInheritance.getTranslation(source, md5);
 
             if (translation == null && InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
                 logger.debug("Remove untranslated text unit");
