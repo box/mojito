@@ -130,6 +130,7 @@ public class GitBlameService {
         for (AssetTextUnit assetTextUnit : assetTextUnits) {
             GitBlameWithUsage gitBlameWithUsage = assetTextUnitIdToGitBlameWithUsage.get(assetTextUnit.getId());
             gitBlameWithUsage.setUsages(assetTextUnit.getUsages());
+            gitBlameWithUsage.setBranch(assetTextUnit.getBranch());
         }
 
         logger.debug("End enrich text unit with usages");

@@ -179,8 +179,8 @@ public class VirtualTextUnitBatchUpdaterService {
             } else {
                 logger.debug("No exact match, create asset and tm text units");
                 TMTextUnit tmTextUnit = tmService.addTMTextUnit(
-                        asset.getRepository().getTm().getId(),
-                        asset.getId(),
+                        asset.getRepository().getTm(),
+                        asset,
                         virtualAssetTextUnit.getName(),
                         virtualAssetTextUnit.getContent(),
                         virtualAssetTextUnit.getComment(),
@@ -270,7 +270,7 @@ public class VirtualTextUnitBatchUpdaterService {
                 pluralForm,
                 virtualAssetTextUnit.getPluralFormOther(),
                 doNotTranslate,
-                null);
+                null, null);
 
         logger.debug("Map asset text unit to textunit");
         AssetTextUnitToTMTextUnit assetTextUnitToTMTextUnit = new AssetTextUnitToTMTextUnit();

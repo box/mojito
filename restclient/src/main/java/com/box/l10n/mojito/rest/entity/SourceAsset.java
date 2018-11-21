@@ -16,10 +16,10 @@ public class SourceAsset {
     private Long repositoryId;
     private String path;
     private String content;
+    private String branch;
     private Long addedAssetId;
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
-
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -51,6 +51,14 @@ public class SourceAsset {
 
     public void setAddedAssetId(Long addedAssetId) {
         this.addedAssetId = addedAssetId;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     public FilterConfigIdOverride getFilterConfigIdOverride() {

@@ -227,7 +227,7 @@ public class ImportExportedXliffStep extends BasePipelineStep {
         asset = assetRepository.findByPathAndRepositoryId(assetPath, repository.getId());
         if (asset == null) {
             logger.debug("Creating asset at: {}", assetPath);
-            asset = assetService.createAsset(repository.getId(), xliffContent, assetPath);
+            asset = assetService.createAsset(repository.getId(), assetPath, false);
         } else {
             String msg = "Importing of this asset is only supported if an asset with this path did not already exist: " + assetPath;
             logger.debug(msg);
@@ -341,8 +341,8 @@ public class ImportExportedXliffStep extends BasePipelineStep {
         }
 
         tmService.addTMTextUnit(
-                asset.getRepository().getTm().getId(),
-                asset.getId(),
+                asset.getRepository().getTm(),
+                asset,
                 name,
                 sourceContent,
                 importExportNote.getSourceComment(),

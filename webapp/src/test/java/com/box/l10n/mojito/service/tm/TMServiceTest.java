@@ -44,6 +44,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
 import net.sf.okapi.common.resource.TextUnit;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -136,7 +137,7 @@ public class TMServiceTest extends ServiceTestBase {
                 throw new RuntimeException(e);
             }
 
-            asset = assetService.createAsset(repository.getId(), "test asset content", "test-asset-path.xliff");
+            asset = assetService.createAssetWithContent(repository.getId(), "test-asset-path.xliff", "test asset content");
 
             //make sure asset and its relationships are loaded
             asset = assetRepository.findOne(asset.getId());
@@ -155,13 +156,11 @@ public class TMServiceTest extends ServiceTestBase {
         logger.debug("Add a first text unit");
         Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
 
-        logger.debug("Try to add a second text unit with same logical key, throws a DataIntegrityViolationException");
-        try {
-            tmService.addTMTextUnit(tmId, assetId, "name", "this is the content", "some comment");
-            fail();
-        } catch (DataIntegrityViolationException e) {
-            logger.debug("expected data integrity violation exception");
-        }
+
+        logger.error("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
+        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
+        logger.error("tmtextunit: {}", tmTextUnit);
 
         logger.debug("Add the second text unit");
         Long addTextUnitAndCheck2 = addTextUnitAndCheck(tmId, assetId, "name2", "content", "comment", "d00c1170937aa79458be2424f4d9720e", "9a0364b9e99bb480dd25e1f0284c8555");
@@ -179,6 +178,22 @@ public class TMServiceTest extends ServiceTestBase {
         assertFalse(tmTextUnitVariantIterator.hasNext());
     }
 
+    @Test(expected = DataIntegrityViolationException.class)
+    public void testAddTMTextUnitTwice() throws RepositoryNameAlreadyUsedException {
+        createTestData();
+
+        logger.debug("Add a first text unit");
+        Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
+
+        logger.error("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
+        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
+        logger.error("tmtextunit: {}", tmTextUnit);
+
+        logger.debug("Try to add a second text unit with same logical key, throws a DataIntegrityViolationException");
+        TMTextUnit reAdd = tmService.addTMTextUnit(tmId, assetId, "name", "this is the content", "some comment");
+    }
+
     private Long addTextUnitAndCheck(Long tmId, Long assetId, String name, String content, String comment, String md5Check, String contentMd5Check) {
         TMTextUnit addTMTextUnit = tmService.addTMTextUnit(tmId, assetId, name, content, comment);
 
@@ -188,7 +203,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(comment, addTMTextUnit.getComment());
         assertEquals(md5Check, addTMTextUnit.getMd5());
         assertEquals(contentMd5Check, addTMTextUnit.getContentMd5());
-        assertEquals(tmId, ((HibernateProxy) addTMTextUnit.getTm()).getHibernateLazyInitializer().getIdentifier());
+        assertEquals(tmId, addTMTextUnit.getTm().getId());
         assertNotNull(addTMTextUnit.getCreatedByUser());
 
         return addTMTextUnit.getId();
@@ -199,8 +214,8 @@ public class TMServiceTest extends ServiceTestBase {
         try {
             tmService.addTMTextUnit(-15L, -1L, "fail", "fail", "fail");
             fail();
-        } catch (DataIntegrityViolationException e) {
-            logger.debug("expected data integrity violation exception");
+        } catch (NullPointerException npe) {
+            logger.debug("expected NullPointerException");
         }
     }
 
@@ -824,12 +839,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"subheader_text1\">\\\'Make sure you\\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
                 + "    <string name=\"subheader_text2\">\"This'll also work\"</string>\n"
                 + "</resources>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -878,12 +893,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"welcome_messages1\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
                 + "    <string name=\"welcome_messages2\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
                 + "</resources>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -964,12 +979,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <item quantity=\"other\">%1$d people</item>\n"
                 + "  </plurals>\n"
                 + "</resources>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1019,12 +1034,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "        <item>%1$d items failed to move</item>\n"
                 + "    </string-array>\n"
                 + "</resources>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1065,12 +1080,12 @@ public class TMServiceTest extends ServiceTestBase {
                 = "<resources>\n"
                 + "    <string name=\"test\">\"This is test\"</string>\n"
                 + "</resources>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1112,12 +1127,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"test\">\"This is test\"</string>\n"
                 + "    <string name=\"desc\">\"This is a description\"</string>\n"
                 + "</resources>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "res/values/strings.xml");
+        asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1160,12 +1175,12 @@ public class TMServiceTest extends ServiceTestBase {
 
         String assetContent = "\"100_character_description\" = \"\\\"100\\\" character description:\";\n"
                 + "\"two_lines\" = \"first\\nsecond\";";
-        asset = assetService.createAsset(repo.getId(), assetContent, "en.lproj/Localizable.strings");
+        asset = assetService.createAssetWithContent(repo.getId(), "en.lproj/Localizable.strings", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1234,12 +1249,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgid_plural \"repins\"\n"
                 + "msgstr[0] \"repins\"\n";
 
-        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1331,12 +1346,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
                 + "\"Content-Transfer-Encoding: 8bit\\n\"\n";
 
-        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1423,12 +1438,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[1] \"repins\"\n"
                 + "msgstr[2] \"repins\"\n";
 
-        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1528,12 +1543,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[1] \"repins\"\n"
                 + "msgstr[2] \"repins\"\n";
 
-        asset = assetService.createAsset(repo.getId(), assetContent, "messages.pot");
+        asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1550,7 +1565,6 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-//        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, InheritanceMode.USE_PARENT, Status.ALL);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
@@ -1595,12 +1609,12 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String assetContent = "NSUsageDescription = \"Usage description:\";\n";
-        asset = assetService.createAsset(repo.getId(), assetContent, "en.lproj/Localizable.strings");
+        asset = assetService.createAssetWithContent(repo.getId(), "en.lproj/Localizable.strings", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1645,12 +1659,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "     <translation desc=\"Tooltip text for the &quot;More&quot; menu.\" id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\">More</translation>\n"
                 + "     <translation desc=\"Instructions for the Gonstead method.\" id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
                 + "</translationbundle>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "xtb/messages-en-US.xtb");
+        asset = assetService.createAssetWithContent(repo.getId(), "xtb/messages-en-US.xtb", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1693,12 +1707,12 @@ public class TMServiceTest extends ServiceTestBase {
         String expectedContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<translationbundle />\n";
 
-        asset = assetService.createAsset(repo.getId(), assetContent, "xtb/messages-en-US.xtb");
+        asset = assetService.createAssetWithContent(repo.getId(), "xtb/messages-en-US.xtb", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1896,13 +1910,13 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String assetContent = "hello=Hello\nbye=Bye\nsource=target";
-        asset = assetService.createAsset(repository.getId(), assetContent, "demo.properties");
+        asset = assetService.createAssetWithContent(repository.getId(), "demo.properties", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
         try {
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null, null);
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
             assetResult.get();
         } catch (PollableTaskException | InterruptedException | UnsupportedAssetFilterTypeException e) {
@@ -1958,12 +1972,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgid \"test okapi bug\"\n"
                 + "msgstr \"\"\n"
                 + "";
-        asset = assetService.createAsset(repository.getId(), assetContent, "messages.pot");
+        asset = assetService.createAssetWithContent(repository.getId(), "messages.pot", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2061,12 +2075,12 @@ public class TMServiceTest extends ServiceTestBase {
                 + "}\n"
                 + "\n"
                 + "export default Translations;";
-        asset = assetService.createAsset(repo.getId(), assetContent, "translations.ts");
+        asset = assetService.createAssetWithContent(repo.getId(), "translations.ts", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {

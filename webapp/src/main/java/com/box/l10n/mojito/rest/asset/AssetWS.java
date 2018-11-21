@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
@@ -17,6 +18,7 @@ import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,13 +31,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
-import static com.box.l10n.mojito.rest.asset.AssetSpecification.*;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
-import static org.springframework.data.jpa.domain.Specifications.where;
 
 /**
  * @author aloison
@@ -79,18 +78,15 @@ public class AssetWS {
      * @param virtualContent
      * @return the list of {@link Asset} for a given {@link Repository}
      */
+    @JsonView(View.AssetSummary.class)
     @RequestMapping(value = "/api/assets", method = RequestMethod.GET)
     public List<Asset> getAssets(@RequestParam(value = "repositoryId") Long repositoryId,
                                  @RequestParam(value = "path", required = false) String path,
                                  @RequestParam(value = "deleted", required = false) Boolean deleted,
-                                 @RequestParam(value = "virtual", required = false) Boolean virtualContent) {
+                                 @RequestParam(value = "virtual", required = false) Boolean virtual,
+                                 @RequestParam(value = "branchId", required = false) Long branchId) {
 
-        return assetRepository.findAll(where(ifParamNotNull(repositoryIdEquals(repositoryId)))
-                .and(ifParamNotNull(pathEquals(path)))
-                .and(ifParamNotNull(deletedEquals(deleted)))
-                .and(ifParamNotNull(virtualEquals(virtualContent))
-                )
-        );
+        return assetService.findAll(repositoryId, path, deleted, virtual, branchId);
     }
 
     /**
@@ -113,6 +109,7 @@ public class AssetWS {
                 sourceAsset.getRepositoryId(),
                 normalizedContent,
                 sourceAsset.getPath(),
+                sourceAsset.getBranch(),
                 sourceAsset.getFilterConfigIdOverride()
         );
 
@@ -278,7 +275,7 @@ public class AssetWS {
      */
     @RequestMapping(value = "/api/assets/{assetId}", method = RequestMethod.DELETE)
     public void deleteAssetById(@PathVariable Long assetId) throws AssetWithIdNotFoundException {
-        logger.info("Deleting asset [{}]", assetId);
+        logger.debug("Deleting asset [{}]", assetId);
 
         Asset asset = assetRepository.findOne(assetId);
 
@@ -290,16 +287,18 @@ public class AssetWS {
     }
 
     /**
-     * Deletes multiple {@link Asset} by the list of {@link Asset#id}
+     * Deletes multiple {@link Asset} by the list of {@link Asset#id} for a given branch name
      *
      * @param ids
      * @return
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.DELETE)
-    public void deleteAssets(@RequestBody Set<Long> ids) {
-        logger.info("Deleting assets: {}", ids.toString());
-        assetService.deleteAssets(ids);
+    public void deleteAssetsOfBranches(@RequestParam(value = "branchId", required = false) Long branchId,
+                                       @RequestBody Set<Long> ids) {
+        logger.debug("Deleting assets: {} for branch id: {}", ids.toString(), branchId);
+        assetService.deleteAssetsOfBranch(ids, branchId);
     }
+
 
     /**
      * Returns list of {@link Asset#id} for a given {@link Repository}
@@ -310,11 +309,21 @@ public class AssetWS {
      */
     @RequestMapping(value = "/api/assets/ids", method = RequestMethod.GET)
     public Set<Long> getAssetIds(@RequestParam(value = "repositoryId", required = true) Long repositoryId,
-                                 @RequestParam(value = "deleted", required = false) Boolean deleted) {
-        if (deleted == null) {
-            return assetRepository.findIdByRepositoryId(repositoryId);
-        } else {
-            return assetRepository.findIdByRepositoryIdAndDeleted(repositoryId, deleted);
+                                 @RequestParam(value = "deleted", required = false) Boolean deleted,
+                                 @RequestParam(value = "virtual", required = false) Boolean virtual,
+                                 @RequestParam(value = "branchId", required = false) Long branchId) {
+
+        HashSet<Long> ids = new HashSet<>();
+
+        // not the best to fetch the whole asset (espcially for old one that have content, though with branch that
+        // will change. Wanted to use spring project but it is not working for some reason. Since soon asset won't have
+        // content anymore this actually ok.
+        List<Asset> all = assetService.findAll(repositoryId, null, deleted, virtual, branchId);
+
+        for (Asset asset : all) {
+            ids.add(asset.getId());
         }
+
+        return ids;
     }
 }

@@ -3,15 +3,15 @@ package com.box.l10n.mojito.service.assetExtraction;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 
 public class ProcessAssetJobInput {
-    Long assetId;
+    Long assetContentId;
     FilterConfigIdOverride filterConfigIdOverride;
 
-    public Long getAssetId() {
-        return assetId;
+    public Long getAssetContentId() {
+        return assetContentId;
     }
 
-    public void setAssetId(Long assetId) {
-        this.assetId = assetId;
+    public void setAssetContentId(Long assetContentId) {
+        this.assetContentId = assetContentId;
     }
 
     public FilterConfigIdOverride getFilterConfigIdOverride() {

@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.okapi;
 
+import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.okapi.filters.PluralFormAnnotation;
 import com.box.l10n.mojito.okapi.filters.UsagesAnnotation;
+import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import java.util.HashSet;
@@ -16,8 +18,6 @@ import org.springframework.beans.factory.annotation.Configurable;
 /**
  * @author aloison
  */
-//TODO(P1) We should probably move this to the service directory and keep
-//this folder more for classes related to the okapi framework itself
 @Configurable
 public class AssetExtractionStep extends AbstractMd5ComputationStep {
 
@@ -32,23 +32,25 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
      */
     private static final String COMMENT_TO_IGNORE = "No comment provided by engineer";
 
-    private Long assetExtractionId;
-
     @Autowired
     AssetExtractionService assetExtractionService;
 
-    Set<String> assetTextUnitMD5s;
+    @Autowired
+    AssetExtractionRepository assetExtractionRepository;
 
     @Autowired
     PluralFormService pluralFormService;
+
+    Set<String> assetTextUnitMD5s;
+
+    AssetExtraction assetExtraction;
 
     /**
      * @param assetExtractionId ID of the assetExtraction object to associate
      * this step with
      */
-    public AssetExtractionStep(Long assetExtractionId) {
-        super();
-        this.assetExtractionId = assetExtractionId;
+    public AssetExtractionStep(AssetExtraction assetExtraction) {
+        this.assetExtraction = assetExtraction;
     }
 
     @Override
@@ -84,17 +86,18 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
                     pluralForm = pluralFormService.findByPluralFormString(annotation.getName());
                     pluralFormOther = annotation.getOtherName();
                 }
-                
+
                 assetExtractionService.createAssetTextUnit(
-                        assetExtractionId, 
-                        name, 
-                        source, 
-                        comments, 
-                        pluralForm, 
+                        assetExtraction.getId(),
+                        name,
+                        source,
+                        comments,
+                        pluralForm,
                         pluralFormOther,
                         false,
-                        getUsages());
-                
+                        getUsages(),
+                        assetExtraction.getAssetContent().getBranch());
+
             } else {
                 logger.debug("Duplicate assetTextUnit found, skip it");
             }
@@ -105,13 +108,13 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
 
     Set<String> getUsages() {
         Set<String> usages = null;
-        
+
         UsagesAnnotation usagesAnnotation = textUnit.getAnnotation(UsagesAnnotation.class);
-        
+
         if (usagesAnnotation != null) {
             usages = usagesAnnotation.getUsages();
         }
-        
+
         return usages;
     }
 

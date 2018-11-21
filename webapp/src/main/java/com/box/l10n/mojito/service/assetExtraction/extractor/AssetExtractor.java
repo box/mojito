@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.assetExtraction.extractor;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
@@ -64,16 +65,19 @@ public class AssetExtractor {
         logger.debug("Configuring pipeline");
 
         IPipelineDriver driver = new PipelineDriver();
+
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        driver.addStep(new AssetExtractionStep(assetExtraction.getId()));
+        driver.addStep(new AssetExtractionStep(assetExtraction));
 
         //TODO(10) Is this actually used as we have our own logic to set the filter to be used, see following todo
         logger.debug("Adding all supported filters to the pipeline driver");
         driver.setFilterConfigurationMapper(getConfiguredFilterConfigurationMapper());
 
+        AssetContent assetContent = assetExtraction.getAssetContent();
         Asset asset = assetExtraction.getAsset();
-        RawDocument rawDocument = new RawDocument(asset.getContent(), LocaleId.ENGLISH);
+
+        RawDocument rawDocument = new RawDocument(assetExtraction.getAssetContent().getContent(), LocaleId.ENGLISH);
         
         //TODO(P1) I think Okapi already implement this logic
         String filterConfigId;
