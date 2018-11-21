@@ -10,6 +10,8 @@ public class GitBlame {
 
     private String commitName;
 
+    private String pullRequestId;
+
     public String getAuthorEmail() {
         return authorEmail;
     }
@@ -40,5 +42,13 @@ public class GitBlame {
 
     public void setCommitName(String commitName) {
         this.commitName = commitName;
+    }
+
+    public String getPullRequestId() {
+        return pullRequestId;
+    }
+
+    public void setPullRequestId(String pullRequestId) {
+        this.pullRequestId = pullRequestId;
     }
 }

@@ -118,6 +118,8 @@ public class TextUnitWS {
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
             @RequestParam(value = "assetPath", required = false) String assetPath,
+            @RequestParam(value = "pullRequestId", required = false) String pullRequestId,
+            @RequestParam(value = "authorName", required = false) String authorName,
             @RequestParam(value = "pluralFormOther", required = false) String pluralFormOther,
             @RequestParam(value = "pluralFormFiltered", required = false, defaultValue = "true") boolean pluralFormFiltered,
             @RequestParam(value = "searchType", required = false, defaultValue = "EXACT") SearchType searchType,
@@ -131,7 +133,7 @@ public class TextUnitWS {
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(repositoryIds,
-                repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
+                repositoryNames, name, source, target, assetPath, pullRequestId, authorName, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
         textUnitSearcherParameters.setLimit(limit);
         textUnitSearcherParameters.setOffset(offset);
         List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
@@ -148,6 +150,8 @@ public class TextUnitWS {
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
             @RequestParam(value = "assetPath", required = false) String assetPath,
+            @RequestParam(value = "pullRequestId", required = false) String pullRequestId,
+            @RequestParam(value = "authorName", required = false) String authorName,
             @RequestParam(value = "pluralFormOther", required = false) String pluralFormOther,
             @RequestParam(value = "pluralFormFiltered", required = false, defaultValue = "true") boolean pluralFormFiltered,
             @RequestParam(value = "searchType", required = false, defaultValue = "EXACT") SearchType searchType,
@@ -160,7 +164,7 @@ public class TextUnitWS {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(
                 repositoryIds, repositoryNames, name, source, target,
-                assetPath, pluralFormOther, pluralFormFiltered, searchType,
+                assetPath, pullRequestId, authorName, pluralFormOther, pluralFormFiltered, searchType,
                 localeTags, usedFilter, statusFilter, doNotTranslateFilter,
                 tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
 
@@ -175,6 +179,8 @@ public class TextUnitWS {
             String source,
             String target,
             String assetPath,
+            String pullRequestId,
+            String authorName,
             String pluralFormOther,
             boolean pluralFormFiltered,
             SearchType searchType,
@@ -197,6 +203,8 @@ public class TextUnitWS {
         textUnitSearcherParameters.setSource(source);
         textUnitSearcherParameters.setTarget(target);
         textUnitSearcherParameters.setAssetPath(assetPath);
+        textUnitSearcherParameters.setPullRequestId(pullRequestId);
+        textUnitSearcherParameters.setAuthorName(authorName);
         textUnitSearcherParameters.setPluralFormOther(pluralFormOther);
         textUnitSearcherParameters.setPluralFormsFiltered(pluralFormFiltered);
         textUnitSearcherParameters.setSearchType(searchType);

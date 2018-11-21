@@ -17,6 +17,8 @@ public class TextUnitSearcherParameters {
     String source;
     String target;
     String assetPath;
+    String pullRequestId;
+    String authorName;
     String pluralFormOther;
     SearchType searchType;
     List<Long> repositoryIds;
@@ -79,6 +81,22 @@ public class TextUnitSearcherParameters {
 
     public void setAssetPath(String assetPath) {
         this.assetPath = assetPath;
+    }
+
+    public String getPullRequestId() {
+        return pullRequestId;
+    }
+
+    public void setPullRequestId(String pullRequestId) {
+        this.pullRequestId = pullRequestId;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
     }
 
     public List<Long> getRepositoryIds() {

@@ -135,6 +135,10 @@ let SearchText = React.createClass({
                 return this.props.intl.formatMessage({id: "search.filter.asset"});
             case SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER:
                 return this.props.intl.formatMessage({id: "search.filter.pluralFormOther"});
+            case SearchParamsStore.SEARCH_ATTRIBUTES.PULL_REQUEST_ID:
+                return this.props.intl.formatMessage({id: "search.filter.pullRequestId"});
+            case SearchParamsStore.SEARCH_ATTRIBUTES.AUTHOR_NAME:
+                return this.props.intl.formatMessage({id: "search.filter.authorName"});
         }
     },
 
@@ -176,6 +180,8 @@ let SearchText = React.createClass({
                 {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.TARGET)}
                 {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.ASSET)}
                 {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER)}
+                {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.PULL_REQUEST_ID)}
+                {this.renderSearchAttributeMenuItem(SearchParamsStore.SEARCH_ATTRIBUTES.AUTHOR_NAME)}
                 <MenuItem divider/>
                 <MenuItem header><FormattedMessage id="search.filter.searchType"/></MenuItem>
                 {this.renderSearchTypeMenuItem(SearchParamsStore.SEARCH_TYPES.EXACT)}

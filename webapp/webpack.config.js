@@ -2,6 +2,7 @@ var path = require('path');
 var webpack = require("webpack");
 
 module.exports = function (env) {
+    devtool: 'source-map'
 
     env = env || {};
 

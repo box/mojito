@@ -26,6 +26,7 @@ import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.fusesource.jansi.Ansi.Color.CYAN;
 import static org.fusesource.jansi.Ansi.Color.YELLOW;
@@ -49,6 +52,9 @@ import static org.fusesource.jansi.Ansi.Color.YELLOW;
 @Scope("prototype")
 @Parameters(commandNames = {"git-blame", "gb"}, commandDescription = "Git blame")
 public class GitBlameCommand extends Command {
+
+    @Value("${gitBlame.pullRequest.pattern}")
+    String PULL_REQUEST_ID_PATTERN;
 
     /**
      * logger
@@ -270,6 +276,7 @@ public class GitBlameCommand extends Command {
             gitBlame.setAuthorEmail(blameResultForFile.getSourceAuthor(lineNumber).getEmailAddress());
             gitBlame.setCommitName(blameResultForFile.getSourceCommit(lineNumber).getName());
             gitBlame.setCommitTime(Integer.toString(blameResultForFile.getSourceCommit(lineNumber).getCommitTime()));
+            gitBlame.setPullRequestId(getPullRequestId(blameResultForFile.getSourceCommit(lineNumber).getFullMessage()));
         } catch (ArrayIndexOutOfBoundsException e) {
             String msg = MessageFormat.format("The line: {0} is not availalbe in the file anymore", lineNumber);
             logger.debug(msg);
@@ -442,6 +449,21 @@ public class GitBlameCommand extends Command {
         NONE,
         ALL,
         NO_INFO
+    }
+    /**
+     * Extract pull request id from commit message
+     */
+
+    String getPullRequestId(String fullMessage) {
+        if (PULL_REQUEST_ID_PATTERN != null && fullMessage != null) {
+            for (String s : fullMessage.split("\n")) {
+                Matcher m = Pattern.compile(PULL_REQUEST_ID_PATTERN).matcher(s);
+                if (m.find()) {
+                    return m.group(1);
+                }
+            }
+        }
+        return null;
     }
 
 }

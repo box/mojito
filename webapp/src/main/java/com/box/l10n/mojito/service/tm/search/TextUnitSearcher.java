@@ -169,6 +169,8 @@ public class TextUnitSearcher {
         onClausePluralForm.add(new NativeColumnEqExp("pffl.locale_id", "l.id"));
         c.addJoin(new NativeJoin("plural_form_for_locale", "pffl", NativeJoin.JoinType.LEFT_OUTER, onClausePluralForm));
 
+        c.addJoin(NativeExps.leftJoin("git_blame", "gb", "tu.id", "gb.tm_text_unit_id"));
+
         logger.debug("Set projections");
 
         //TODO(P1) Might want to some of those projection as optional for perf reason
@@ -197,7 +199,9 @@ public class TextUnitSearcher {
                 addProjection("a.path", "assetPath").
                 addProjection("atu.id", "assetTextUnitId").
                 addProjection("tu.created_date", "tmTextUnitCreatedDate").
-                addProjection("atu.do_not_translate", "doNotTranslate")
+                addProjection("atu.do_not_translate", "doNotTranslate").
+                addProjection("gb.pull_request_id", "pullRequestId").
+                addProjection("gb.author_name", "authorName")
         );
 
         logger.debug("Add search filters");
@@ -244,6 +248,14 @@ public class TextUnitSearcher {
 
         if (searchParameters.getAssetId() != null) {
             conjunction.add(new NativeEqExpFix("tu.asset_id", searchParameters.getAssetId()));
+        }
+
+        if(searchParameters.getPullRequestId() !=null) {
+            conjunction.add(new NativeEqExpFix("gb.pull_request_id", searchParameters.getPullRequestId()));
+        }
+
+        if(searchParameters.getAuthorName() != null) {
+            conjunction.add(getSearchTypeNativeExp(searchParameters.getSearchType(), "gb.author_name", searchParameters.getAuthorName()));
         }
 
         if (searchParameters.getLocaleTags() != null && !searchParameters.getLocaleTags().isEmpty()) {

@@ -1,0 +1,1 @@
+alter table git_blame add column pull_request_id varchar(255);

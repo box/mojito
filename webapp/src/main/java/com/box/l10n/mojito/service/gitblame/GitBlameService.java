@@ -173,6 +173,7 @@ public class GitBlameService {
                 gitBlame.setAuthorName(gitBlameFromInput.getAuthorName());
                 gitBlame.setCommitName(gitBlameFromInput.getCommitName());
                 gitBlame.setCommitTime(gitBlameFromInput.getCommitTime());
+                gitBlame.setPullRequestId(gitBlameFromInput.getPullRequestId());
             }
 
             gitBlameRepository.save(gitBlame);

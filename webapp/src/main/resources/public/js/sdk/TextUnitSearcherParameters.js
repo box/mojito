@@ -52,6 +52,16 @@ class TextUnitSearcherParameters {
         this.params.assetPath = assetPath;
         return this;
     }
+
+    pullRequest(pullRequestId) {
+        this.params.pullRequestId = pullRequestId;
+        return this;
+    }
+
+    authorName(authorName) {
+        this.params.authorName = authorName;
+        return this;
+    }
     
     pluralFormOther(pluralFormOther) {
         this.params.pluralFormOther = pluralFormOther;

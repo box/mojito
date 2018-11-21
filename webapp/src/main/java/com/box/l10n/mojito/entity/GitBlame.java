@@ -42,6 +42,9 @@ public class GitBlame extends AuditableEntity {
     @Column(name = "commit_name")
     private String commitName;
 
+    @Column(name = "pull_request_id")
+    private String pullRequestId;
+
     public TMTextUnit getTmTextUnit() {
         return tmTextUnit;
     }
@@ -80,5 +83,13 @@ public class GitBlame extends AuditableEntity {
 
     public void setCommitName(String commitName) {
         this.commitName = commitName;
+    }
+
+    public String getPullRequestId() {
+        return pullRequestId;
+    }
+
+    public void setPullRequestId(String pullRequestId) {
+        this.pullRequestId = pullRequestId;
     }
 }

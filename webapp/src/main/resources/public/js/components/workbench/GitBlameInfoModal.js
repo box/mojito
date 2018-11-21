@@ -82,6 +82,7 @@ let GitBlameInfoModal = React.createClass({
     renderGitBlameInfo() {
         return (
             <div>
+                {this.displayInfoWithId("textUnit.gitBlameModal.pullRequestId", this.getPullRequestId())}
                 {this.displayInfoWithId("textUnit.gitBlameModal.authorName", this.getAuthorName())}
                 {this.displayInfoWithId("textUnit.gitBlameModal.authorEmail", this.getAuthorEmail())}
                 {this.displayInfoWithId("textUnit.gitBlameModal.commit", this.getCommitLink())}
@@ -116,6 +117,13 @@ let GitBlameInfoModal = React.createClass({
         if (this.props.gitBlameWithUsage != null && this.props.gitBlameWithUsage["gitBlame"] != null)
             value = this.props.gitBlameWithUsage["gitBlame"][property];
         return value;
+    },
+
+    /**
+     * @returns {str} The pull request id of the current text unit
+     */
+    getPullRequestId() {
+        return this.getGitBlameProperty("pullRequestId");
     },
 
     /**

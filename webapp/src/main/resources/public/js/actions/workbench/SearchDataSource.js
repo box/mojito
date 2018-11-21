@@ -22,7 +22,11 @@ const SearchDataSource = {
 
             if (searchParams.searchText) {
 
-                if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.SOURCE) {
+                if (searchParams.searchAttribute == SearchParamsStore.SEARCH_ATTRIBUTES.PULL_REQUEST_ID) {
+                    textUnitSearcherParameters.pullRequest(searchParams.searchText);
+                } else if (searchParams.searchAttribute == SearchParamsStore.SEARCH_ATTRIBUTES.AUTHOR_NAME) {
+                    textUnitSearcherParameters.authorName(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.SOURCE) {
                     textUnitSearcherParameters.source(searchParams.searchText);
                 } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.TARGET) {
                     textUnitSearcherParameters.target(searchParams.searchText);

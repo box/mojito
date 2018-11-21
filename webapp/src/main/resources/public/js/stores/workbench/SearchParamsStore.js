@@ -362,7 +362,9 @@ SearchParamsStore.SEARCH_ATTRIBUTES = {
     "SOURCE": "source",
     "TARGET": "target",
     "ASSET": "asset",
-    "PLURAL_FORM_OTHER": "pluralFormOther"
+    "PLURAL_FORM_OTHER": "pluralFormOther",
+    "PULL_REQUEST_ID": "pullRequestId",
+    "AUTHOR_NAME": "authorName"
 };
 
 SearchParamsStore.STATUS = {
