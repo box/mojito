@@ -75,7 +75,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
         TM tm = targetRepository.getTm();
 
-        Asset asset = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test");
+        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
         Long assetId = asset.getId();
 
         tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
@@ -114,7 +114,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
         TM tm = targetRepository.getTm();
 
-        Asset asset = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test");
+        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
         Long assetId = asset.getId();
 
         tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
@@ -163,7 +163,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
         TM tm = targetRepository.getTm();
 
-        Asset asset = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test");
+        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
         Long assetId = asset.getId();
 
         tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province_update", "Please enter a valid state, region or province", "Comment1");
@@ -203,7 +203,7 @@ public class LeveragingServiceTest extends ServiceTestBase {
 
         TM tm = targetRepository.getTm();
 
-        Asset asset = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test");
+        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
         Long assetId = asset.getId();
 
         tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province_update", "Please enter a valid state, region or province", "Comment1");
@@ -232,13 +232,13 @@ public class LeveragingServiceTest extends ServiceTestBase {
         Repository sourceRepository = repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
         repositoryService.addRepositoryLocale(sourceRepository, frFR.getBcp47Tag());
         
-        Asset sourceAsset = assetService.createAsset(sourceRepository.getId(), "fake for test", "fake_for_test_1");
+        Asset sourceAsset = assetService.createAssetWithContent(sourceRepository.getId(), "fake_for_test_1", "fake for test");
         Long sourceAssetId = sourceAsset.getId();
 
         TMTextUnit addTMTextUnit = tmService.addTMTextUnit(sourceRepository.getTm().getId(), sourceAssetId, "TEST3", "Content3", "Comment3");
         tmService.addCurrentTMTextUnitVariant(addTMTextUnit.getId(), frFR.getId(), "Content3 fr-FR from source");
   
-        Asset sourceAsset2 = assetService.createAsset(sourceRepository.getId(), "fake for test", "fake_for_test2");
+        Asset sourceAsset2 = assetService.createAssetWithContent(sourceRepository.getId(), "fake_for_test2", "fake for test");
         Long sourceAssetId2 = sourceAsset2.getId();
 
         TMTextUnit addTMTextUnit2 = tmService.addTMTextUnit(sourceRepository.getTm().getId(), sourceAssetId2, "TEST3", "Content3", "Comment3");
@@ -247,12 +247,12 @@ public class LeveragingServiceTest extends ServiceTestBase {
         logger.debug("Create the target repository");
         Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
  
-        Asset targetAsset = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test");
+        Asset targetAsset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
         Long targetAssetId = targetAsset.getId();
 
         tmService.addTMTextUnit(targetRepository.getTm().getId(), targetAssetId, "TEST3", "Content3", "Comment3");
         
-        Asset targetAsset2 = assetService.createAsset(targetRepository.getId(), "fake for test", "fake_for_test2");
+        Asset targetAsset2 = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test2", "fake for test");
         Long targetAssetId2 = targetAsset2.getId();
 
         tmService.addTMTextUnit(targetRepository.getTm().getId(), targetAssetId2, "TEST3", "Content3", "Comment3");

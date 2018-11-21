@@ -7,26 +7,24 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
-import com.box.l10n.mojito.service.asset.AssetUpdateException;
-import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.base.Throwables;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.stream.Stream;
+
+import static org.junit.Assert.*;
 
 /**
  * @author aloison
@@ -63,7 +61,6 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-
     @Test
     public void testCleanupOldAssetExtractionsWhenAllExtractionsHaveFinished() throws Exception {
 
@@ -95,6 +92,30 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
                 assertTrue("There should be no AssetTextUnits belonging to old and fully processed assetExtractions remaining", oldAssetTextUnits.isEmpty());
             }
         }
+    }
+
+    @Test
+    public void testCleanupOldAssetExtractionsMultipleBranch() throws Exception {
+
+        String assetPath = "path/to/asset.xliff";
+        Repository repository = createRepoWithThreeAssetExtractions(assetPath);
+        Asset asset = assetRepository.findByPathAndRepositoryId(assetPath, repository.getId());
+
+        List<AssetExtraction> originalAssetExtractions = assetExtractionRepository.findByAsset(asset);
+        AssetExtraction lastSuccessfulAssetExtraction = asset.getLastSuccessfulAssetExtraction();
+        assertEquals("There should be 3 asset extractions", 3, originalAssetExtractions.size());
+
+        List<String> branches = Arrays.asList("branch1", "branch2");
+        branches.forEach(branch -> createOrUpdateAssetAndWaitUntilProcessingEnds(repository, assetPath, 1, branch));
+        branches.forEach(branch -> createOrUpdateAssetAndWaitUntilProcessingEnds(repository, assetPath, 2, branch));
+
+        List<AssetExtraction> afterBranches = assetExtractionRepository.findByAsset(asset);
+        assertEquals("There should be 7 asset extractions (3 orginal + 4 x per branch)", 11, afterBranches.size());
+
+        assetExtractionCleanupService.cleanupOldAssetExtractions();
+
+        List<AssetExtraction> assetExtractionsAfterCleanup = assetExtractionRepository.findByAsset(asset);
+        assertEquals("There should be 1 assets extraction per branch (3) and one merged asset extraction", 4, assetExtractionsAfterCleanup.size());
     }
 
     @Test
@@ -137,21 +158,24 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
     private Repository createRepoWithThreeAssetExtractions(String assetPath) throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
-        for (int i=1; i<=3; i++) {
-            createOrUpdateAssetAndWaitUntilProcessingEnds(repository, assetPath, i);
+        for (int i = 1; i <= 3; i++) {
+            createOrUpdateAssetAndWaitUntilProcessingEnds(repository, assetPath, i, null);
         }
 
         return repository;
     }
 
-    private void createOrUpdateAssetAndWaitUntilProcessingEnds(Repository repository, String assetPath, int assetVersion) throws ExecutionException, InterruptedException, AssetUpdateException, UnsupportedAssetFilterTypeException {
+    private void createOrUpdateAssetAndWaitUntilProcessingEnds(Repository repository, String assetPath, int assetVersion, String branch) {
+        try {
+            String xliff = xliffDataFactory.generateSourceXliff(Arrays.asList(
+                    xliffDataFactory.createTextUnit(1L, "2_factor_challenge_buttom", "Submit" + assetVersion, null)
+            ));
 
-        String xliff = xliffDataFactory.generateSourceXliff(Arrays.asList(
-            xliffDataFactory.createTextUnit(1L, "2_factor_challenge_buttom", "Submit" + assetVersion, null)
-        ));
-
-        PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), xliff, assetPath, null);
-        pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
+            PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), xliff, assetPath, branch, null);
+            pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
+        } catch (Exception e) {
+            Throwables.propagate(e);
+        }
     }
 
     private AssetExtraction setNotLastSuccessfulExtractionStateToNotFinished(Asset asset) {

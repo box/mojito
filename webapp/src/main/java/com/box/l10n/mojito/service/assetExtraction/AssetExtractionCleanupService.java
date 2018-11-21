@@ -4,10 +4,14 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
+import com.box.l10n.mojito.service.assetcontent.AssetContentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 /**
@@ -15,6 +19,11 @@ import java.util.List;
  */
 @Service
 public class AssetExtractionCleanupService {
+
+    /**
+     * logger
+     */
+    static Logger logger = LoggerFactory.getLogger(AssetExtractionCleanupService.class);
 
     @Autowired
     AssetRepository assetRepository;
@@ -28,12 +37,16 @@ public class AssetExtractionCleanupService {
     @Autowired
     AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
+    @Autowired
+    AssetContentRepository assetContentRepository;
+
     /**
      * Removes all {@link AssetExtraction}s and {@link AssetTextUnit}s
      * that are no longer useful. This means everything refering to an
      * extraction that is finished and older than the last successful one.
      */
     public void cleanupOldAssetExtractions() {
+        logger.debug("cleanupOldAssetExtractions");
 
         List<Long> assetExtractionIdsToDelete;
 
@@ -55,12 +68,14 @@ public class AssetExtractionCleanupService {
      *
      * @param assetExtractionIdToDelete {@link AssetExtraction#id} to be deleted
      */
-    @Transactional
     private void deleteAssetExtractionAndRelatedEntities(Long assetExtractionIdToDelete) {
-
-        assetTextUnitToTMTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
-        assetTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
+        logger.debug("deleteAssetExtractionAndRelatedEntities, assetExtractionId: {}", assetExtractionIdToDelete);
+        int numberMappingsDeleted = assetTextUnitToTMTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
+        int numberAssetTextUnitsDeleted = assetTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
+        int numberAssetContentDeleted = assetContentRepository.deleteByAssetExtractionsIdIsNull();
         assetExtractionRepository.delete(assetExtractionIdToDelete);
+        logger.debug("For assetExtractionId: {}, deleted {} mappings, {} asset text units, asset content: {}",
+                assetExtractionIdToDelete, numberMappingsDeleted, numberAssetTextUnitsDeleted, numberAssetContentDeleted);
     }
 
 }

@@ -10,6 +10,7 @@ import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
+import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
@@ -57,6 +58,9 @@ public class PushCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
+    @Parameter(names = {"-b", "--branch"}, arity = 1, required = false, description = "branch")
+    String branchName;
+
     @Autowired
     AssetClient assetClient;
 
@@ -95,6 +99,7 @@ public class PushCommand extends Command {
             }
 
             SourceAsset sourceAsset = new SourceAsset();
+            sourceAsset.setBranch(branchName);
             sourceAsset.setPath(sourcePath);
             sourceAsset.setContent(assetContent);
             sourceAsset.setRepositoryId(repository.getId());
@@ -117,13 +122,16 @@ public class PushCommand extends Command {
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }
- 
+
+        Branch branch = repositoryClient.getBranch(repository.getId(), branchName);
+
         logger.debug("process deleted assets here");
-        Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false));
+        Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false, branch.getId()));
+
         assetIds.removeAll(usedAssetIds);
         if (!assetIds.isEmpty()) {
-            assetClient.deleteAssetsByIds(assetIds);
-            consoleWriter.newLine().a("Delete assets from repository: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println(2);
+            assetClient.deleteAssetsInBranch(assetIds, branch.getId());
+            consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println(2);
         }
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);

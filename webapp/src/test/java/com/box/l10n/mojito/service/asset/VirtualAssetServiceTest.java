@@ -86,7 +86,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
     @Test(expected = VirtualAssetRequiredException.class)
     public void testCantUpdateAssetAsVirtual() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testCantUpdateAssetAsVirtual"));
-        assetService.createAsset(repository.getId(), "", "default");
+        assetService.createAssetWithContent(repository.getId(), "default", "");
         VirtualAsset virtualAsset = new VirtualAsset();
         virtualAsset.setRepositoryId(repository.getId());
         virtualAsset.setPath("default");
@@ -210,7 +210,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
     @Test(expected = VirtualAssetRequiredException.class)
     public void testCantAddTextUnitToNoVirtual() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testCantAddTextUnitToNoVirtual"));
-        Asset asset = assetService.createAsset(repository.getId(), "", "default");
+        Asset asset = assetService.createAssetWithContent(repository.getId(), "default", "");
 
         virtualAssetService.addTextUnit(
                 asset.getId(),

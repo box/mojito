@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.assetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author aloison
@@ -10,8 +11,9 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface AssetTextUnitToTMTextUnitRepository extends JpaRepository<AssetTextUnitToTMTextUnit, Long> {
 
-    void deleteByAssetExtractionId(Long assetExtractionId);
+    @Transactional
+    int deleteByAssetExtractionId(Long assetExtractionId);
 
-    public void deleteByAssetTextUnitId(Long assetTextUnitId);
+    void deleteByAssetTextUnitId(Long assetTextUnitId);
 
 }

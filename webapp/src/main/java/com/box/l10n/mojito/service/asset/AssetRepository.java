@@ -4,6 +4,8 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import java.util.List;
 import java.util.Set;
+
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -27,5 +29,4 @@ public interface AssetRepository extends JpaRepository<Asset, Long>, JpaSpecific
     
     @Query(value = "select a.id from Asset a where a.repository.id = :repositoryId and a.deleted = :deleted")
     Set<Long> findIdByRepositoryIdAndDeleted(@Param("repositoryId") Long repositoryId, @Param("deleted")  Boolean deleted);
-    
 }
