@@ -659,7 +659,12 @@ public class RepositoryService {
         if (description != null) {
             repository.setDescription(description);
         }
-        if (newName != null || description != null) {
+
+        if (checkSLA != null) {
+            repository.setCheckSLA(checkSLA);
+        }
+
+        if (newName != null || description != null || checkSLA != null) {
             repositoryRepository.save(repository);
         }
 
