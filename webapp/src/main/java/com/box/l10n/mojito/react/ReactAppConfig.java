@@ -13,7 +13,7 @@ public class ReactAppConfig {
     LoginConfig login;
 
     @Autowired
-    RepositoryStaticsConfig repositoryStaticsConfig;
+    RepositoryStatisticsConfig repositoryStatisticsConfig;
 
     public LinkConfig getLink() {
         return link;
@@ -31,11 +31,11 @@ public class ReactAppConfig {
         this.login = login;
     }
 
-    public RepositoryStaticsConfig getRepositoryStaticsConfig() {
-        return repositoryStaticsConfig;
+    public RepositoryStatisticsConfig getRepositoryStatisticsConfig() {
+        return repositoryStatisticsConfig;
     }
 
-    public void setRepositoryStaticsConfig(RepositoryStaticsConfig repositoryStaticsConfig) {
-        this.repositoryStaticsConfig = repositoryStaticsConfig;
+    public void setRepositoryStatisticsConfig(RepositoryStatisticsConfig repositoryStatisticsConfig) {
+        this.repositoryStatisticsConfig = repositoryStatisticsConfig;
     }
 }

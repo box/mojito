@@ -344,7 +344,7 @@ let RepositoryRow = React.createClass({
         const repoId = this.props.rowData.id;
         let numberOfOOSLA = this.getNumberOfOOSLA(repoId);
 
-        if (this.props.appConfig.repositoryStaticsConfig.computeOutOfSla && this.getCheckSLA(repoId) && numberOfOOSLA > 0) {
+        if (this.props.appConfig.repositoryStatisticsConfig.computeOutOfSla && this.getCheckSLA(repoId) && numberOfOOSLA > 0) {
 
             ui = (
                     <Link onClick={this.updateSearchParamsForOOSLA.bind(this, repoId, this.getOOSLACreatedBefore(repoId))} to='/workbench' className="label-container status-label-container">
@@ -366,7 +366,7 @@ let RepositoryRow = React.createClass({
 
         const repoId = this.props.rowData.id;
 
-        if (this.props.appConfig.repositoryStaticsConfig.computeOutOfSla && !this.getCheckSLA(repoId)) {
+        if (this.props.appConfig.repositoryStatisticsConfig.computeOutOfSla && !this.getCheckSLA(repoId)) {
 
             ui = (
                 <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
