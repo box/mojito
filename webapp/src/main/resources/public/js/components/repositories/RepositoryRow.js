@@ -70,6 +70,16 @@ let RepositoryRow = React.createClass({
         let repository = RepositoryStore.getRepositoryById(repoId)
         return repository.repositoryStatistic.ooslaTextUnitCount ? repository.repositoryStatistic.ooslaTextUnitCount : 0;
     },
+
+    /**
+     * Get weather check SLA or not
+     *
+     * @param repoId
+     * @returns {Boolean}
+     */
+    getCheckSLA(repoId) {
+        return RepositoryStore.getRepositoryById(repoId).checkSLA;
+    },
     
     getOOSLACreatedBefore(repoId) {
         let repository = RepositoryStore.getRepositoryById(repoId)
@@ -310,7 +320,7 @@ let RepositoryRow = React.createClass({
         let numberOfNeedsNeedsReview = this.getNumberOfNeedsReview(repoId);
         let numberOfOOSLA = this.getNumberOfOOSLA(repoId);
 
-        if (numberOfNeedsTranslation === 0 && numberOfNeedsNeedsReview === 0 && numberOfOOSLA === 0) {
+        if (this.getCheckSLA(repoId) && numberOfNeedsTranslation === 0 && numberOfNeedsNeedsReview === 0 && numberOfOOSLA === 0) {
 
             ui = (
                     <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
@@ -331,9 +341,9 @@ let RepositoryRow = React.createClass({
         let ui = "";
 
         const repoId = this.props.rowData.id;
-        let numberOfOOSLA = this.getNumberOfOOSLA(repoId); 
+        let numberOfOOSLA = this.getNumberOfOOSLA(repoId);
 
-        if (numberOfOOSLA > 0) {
+        if (this.getCheckSLA(repoId) && numberOfOOSLA > 0) {
 
             ui = (
                     <Link onClick={this.updateSearchParamsForOOSLA.bind(this, repoId, this.getOOSLACreatedBefore(repoId))} to='/workbench' className="label-container status-label-container">
@@ -349,11 +359,34 @@ let RepositoryRow = React.createClass({
     /**
      * @return {XML}
      */
+    getCheckSLAOffLabel() {
+
+        let ui = "";
+
+        const repoId = this.props.rowData.id;
+
+        if (!this.getCheckSLA(repoId)) {
+
+            ui = (
+                <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
+                    <Label bsStyle="warning" className="mrs clickable">
+                        <FormattedMessage id="repositories.table.row.slaCheckOff"/>
+                    </Label>
+                </Link>);
+        }
+
+        return ui;
+    },
+
+    /**
+     * @return {XML}
+     */
     getStatusLabel() {
         return (
                 <span>
                     {this.getDoneLabel()}
                     {this.getOOSLALabel()}
+                    {this.getCheckSLAOffLabel()}
                     {this.getRejectedLabel()}
                 </span>
         );

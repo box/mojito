@@ -95,7 +95,7 @@ public class RepositoryService {
      * @return the created {@link Repository}
      */
     @Transactional
-    public Repository createRepository(String name, String description) throws RepositoryNameAlreadyUsedException {
+    public Repository createRepository(String name, String description, Boolean checkSLA) throws RepositoryNameAlreadyUsedException {
 
         logger.debug("Check no repository with name: {} exists", name);
 
@@ -110,6 +110,7 @@ public class RepositoryService {
         repository = new Repository();
         repository.setName(name);
         repository.setDescription(description);
+        repository.setCheckSLA(checkSLA);
         repository.setDropExporterType(dropExporterConfiguration.getType());
 
         logger.debug("Create the repository TM");
@@ -144,6 +145,10 @@ public class RepositoryService {
         return createRepository(name, "");
     }
 
+    public Repository createRepository(String name, String description) throws RepositoryNameAlreadyUsedException {
+        return createRepository(name, description, false);
+    }
+
     /**
      * Create {@link Repository} and add {@link RepositoryLocale} list at the
      * same time
@@ -160,10 +165,11 @@ public class RepositoryService {
     public Repository createRepository(
             String name,
             String description,
+            Boolean checkSLA,
             Set<RepositoryLocale> repositoryLocales,
             Set<AssetIntegrityChecker> assetIntegrityCheckers) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
 
-        Repository createdRepo = createRepository(name, description);
+        Repository createdRepo = createRepository(name, description, checkSLA);
 
         updateRepositoryLocales(createdRepo, repositoryLocales);
         addIntegrityCheckersToRepository(createdRepo, assetIntegrityCheckers);
@@ -637,9 +643,10 @@ public class RepositoryService {
      * com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
      */
     @Transactional
-    public void updateRepository(Repository repository, String newName, String description, Set<RepositoryLocale> repositoryLocales, Set<AssetIntegrityChecker> assetIntegrityCheckers) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
+    public void updateRepository(Repository repository, String newName, String description, Boolean checkSLA, Set<RepositoryLocale> repositoryLocales, Set<AssetIntegrityChecker> assetIntegrityCheckers) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
 
         logger.debug("Update a repository with name: {}", repository.getName());
+        repository.setCheckSLA(checkSLA);
 
         if (newName != null) {
             // check duplicated name

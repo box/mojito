@@ -51,7 +51,7 @@ public class SlaCheckerService {
 
     void checkWithOpenIncident(SlaIncident openIncident) {
         logger.debug("An incident is open, check for status update");
-        List<Repository> ooslaRepositories = repositoryRepository.findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
+        List<Repository> ooslaRepositories = repositoryRepository.findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
 
         if (ooslaRepositories.isEmpty()) {
             logger.debug("No repositories out of SLA, close incident and send email");
@@ -69,7 +69,7 @@ public class SlaCheckerService {
 
     void checkWithNoOpenIncident() {
         logger.debug("No incident open, check if new OOSLA repositories appeared");
-        List<Repository> ooslaRepositories = repositoryRepository.findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
+        List<Repository> ooslaRepositories = repositoryRepository.findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
 
         if (ooslaRepositories.isEmpty()) {
             logger.debug("No repositories are out of SLA");

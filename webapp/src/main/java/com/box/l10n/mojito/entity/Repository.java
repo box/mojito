@@ -89,6 +89,13 @@ public class Repository extends AuditableEntity {
     @Column(name = "deleted", nullable = false)
     private Boolean deleted = false;
 
+    /**
+     * flag repository for SLA check by Default false
+     */
+    @JsonView(View.RepositorySummary.class)
+    @Column(name = "checkSLA", nullable = false)
+    private Boolean checkSLA = false;
+
     public User getCreatedByUser() {
         return createdByUser;
     }
@@ -169,4 +176,11 @@ public class Repository extends AuditableEntity {
         this.deleted = deleted;
     }
 
+    public Boolean getCheckSLA() {
+        return checkSLA;
+    }
+
+    public void setCheckSLA(Boolean checkSLA) {
+        this.checkSLA = checkSLA;
+    }
 }

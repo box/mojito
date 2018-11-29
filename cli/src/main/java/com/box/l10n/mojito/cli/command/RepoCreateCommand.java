@@ -35,6 +35,9 @@ public class RepoCreateCommand extends RepoCommand {
     @Parameter(names = {Param.REPOSITORY_DESCRIPTION_LONG, Param.REPOSITORY_DESCRIPTION_SHORT}, arity = 1, required = false, description = Param.REPOSITORY_DESCRIPTION_DESCRIPTION)
     String descriptionParam;
 
+    @Parameter(names = {Param.CHECK_SLA_LONG, Param.CHECK_SLA_SHORT}, arity = 1, required = false, description = Param.CHECK_SLA_DESCRIPTION)
+    String checkSLA;
+
     /**
      * Each individual locales would be added. Bracket enclosed locale will set
      * that locale to be partially translated. Arrow (->) indicate inheritance,
@@ -68,7 +71,7 @@ public class RepoCreateCommand extends RepoCommand {
             Set<RepositoryLocale> repositoryLocales = localeHelper.extractRepositoryLocalesFromInput(encodedBcp47Tags, true);
             Set<IntegrityChecker> integrityCheckers = extractIntegrityCheckersFromInput(integrityCheckParam, true);
 
-            Repository repository = repositoryClient.createRepository(nameParam, descriptionParam, repositoryLocales, integrityCheckers);
+            Repository repository = repositoryClient.createRepository(nameParam, descriptionParam, checkSLA, repositoryLocales, integrityCheckers);
             consoleWriter.newLine().a("created --> repository id: ").fg(Ansi.Color.MAGENTA).a(repository.getId()).println();
         } catch (ParameterException | ResourceNotCreatedException ex) {
             throw new CommandException(ex.getMessage(), ex);

@@ -85,7 +85,7 @@ public class RepositoryWSTest extends WSTestBase {
         Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
         
         String newName = expectedRepository.getName() + "_updated";
-        repositoryClient.updateRepository(expectedRepository.getName(), newName, null, null, null);
+        repositoryClient.updateRepository(expectedRepository.getName(), newName, null, null, null, null);
         com.box.l10n.mojito.rest.entity.Repository actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
         assertEquals("Id should have remained the same", expectedRepository.getId(), actualRepository.getId());
         assertEquals("Name should have been updated", newName, actualRepository.getName());
@@ -93,7 +93,7 @@ public class RepositoryWSTest extends WSTestBase {
         assertEquals("Repository locales should not have changed", expectedRepository.getRepositoryLocales().size(), actualRepository.getRepositoryLocales().size());
         
         String newDescription = newName + "_description";
-        repositoryClient.updateRepository(newName, null, newDescription, null, null);
+        repositoryClient.updateRepository(newName, null, newDescription, null, null, null);
         actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
         assertEquals("Id should have remained the same", expectedRepository.getId(), actualRepository.getId());
         assertEquals("Name should have been updated", newName, actualRepository.getName());
@@ -108,7 +108,7 @@ public class RepositoryWSTest extends WSTestBase {
         
         Set<RepositoryLocale> repositoryLocales = new HashSet<>();
         repositoryLocales = getRepositoryLocales(Arrays.asList("de-DE"));
-        repositoryClient.updateRepository(expectedRepository.getName(), null, null, repositoryLocales, null);
+        repositoryClient.updateRepository(expectedRepository.getName(), null, null, null, repositoryLocales, null);
         com.box.l10n.mojito.rest.entity.Repository actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
         assertEquals("Id should have remained the same", expectedRepository.getId(), actualRepository.getId());
         assertEquals("Name should have remained the same", expectedRepository.getName(), actualRepository.getName());
@@ -119,7 +119,7 @@ public class RepositoryWSTest extends WSTestBase {
         }
         
         repositoryLocales = getRepositoryLocales(Arrays.asList("fr-FR", "ko-KR", "ja-JP", "es-ES"));
-        repositoryClient.updateRepository(expectedRepository.getName(), null, null, repositoryLocales, null);
+        repositoryClient.updateRepository(expectedRepository.getName(), null, null, null, repositoryLocales, null);
         actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
         assertEquals("Id should have remained the same", expectedRepository.getId(), actualRepository.getId());
         assertEquals("Name should have remained the same", expectedRepository.getName(), actualRepository.getName());

@@ -120,6 +120,7 @@ public class DemoCreateCommand extends RepoCommand {
             repository = repositoryClient.createRepository(
                     nameParam,
                     "",
+                    null,
                     getRepositoryLocales(),
                     extractIntegrityCheckersFromInput("properties:MESSAGE_FORMAT", false));
 
