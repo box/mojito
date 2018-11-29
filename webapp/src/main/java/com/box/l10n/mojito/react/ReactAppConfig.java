@@ -15,6 +15,9 @@ public class ReactAppConfig {
     @Autowired
     LoginConfig login;
 
+    @Autowired
+    SLAConfig slaConfig;
+
     public LinkConfig getLink() {
         return link;
     }
@@ -29,5 +32,13 @@ public class ReactAppConfig {
 
     public void setLogin(LoginConfig login) {
         this.login = login;
+    }
+
+    public SLAConfig getSlaConfig() {
+        return slaConfig;
+    }
+
+    public void setSlaConfig(SLAConfig slaConfig) {
+        this.slaConfig = slaConfig;
     }
 }
