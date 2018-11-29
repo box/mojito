@@ -112,6 +112,7 @@ public class RepositoryWS {
             Repository createdRepo = repositoryService.createRepository(
                     repository.getName(),
                     repository.getDescription(),
+                    repository.getCheckSLA(),
                     repository.getRepositoryLocales(),
                     repository.getAssetIntegrityCheckers()
             );
@@ -197,6 +198,7 @@ public class RepositoryWS {
             repositoryService.updateRepository(repoToUpdate,
                     repository.getName(),
                     repository.getDescription(),
+                    repository.getCheckSLA(),
                     repository.getRepositoryLocales(),
                     repository.getAssetIntegrityCheckers());
 

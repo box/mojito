@@ -75,7 +75,7 @@ public class SlaCheckerServiceTest {
     public void testCheckWithOpenIncidentClose() {
         SlaIncident openIncident = getSlaIncidentForTest();
 
-        doReturn(new ArrayList<>()).when(repositoryRepository).findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
+        doReturn(new ArrayList<>()).when(repositoryRepository).findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
 
         slaCheckerService.checkWithOpenIncident(openIncident);
 
@@ -88,7 +88,7 @@ public class SlaCheckerServiceTest {
         SlaIncident openIncident = getSlaIncidentForTest();
         List<Repository> repositories = getRepositoriesForTest();
 
-        doReturn(repositories).when(repositoryRepository).findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
+        doReturn(repositories).when(repositoryRepository).findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
         doReturn(true).when(slaCheckerEmailService).shouldResendEmail(openIncident.getCreatedDate());
 
         slaCheckerService.checkWithOpenIncident(openIncident);
@@ -101,7 +101,7 @@ public class SlaCheckerServiceTest {
         SlaIncident openIncident = getSlaIncidentForTest();
         List<Repository> repositories = getRepositoriesForTest();
 
-        doReturn(repositories).when(repositoryRepository).findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
+        doReturn(repositories).when(repositoryRepository).findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
         doReturn(false).when(slaCheckerEmailService).shouldResendEmail(openIncident.getCreatedDate());
 
         slaCheckerService.checkWithOpenIncident(openIncident);
@@ -114,7 +114,7 @@ public class SlaCheckerServiceTest {
         List<Repository> repositories = getRepositoriesForTest();
         SlaIncident openIncident = getSlaIncidentForTest();
 
-        doReturn(repositories).when(repositoryRepository).findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
+        doReturn(repositories).when(repositoryRepository).findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
         doReturn(openIncident).when(slaCheckerService).createIncident(repositories);
         doNothing().when(slaCheckerEmailService).sendOpenIncidentEmail(openIncident.getId(), repositories);
 
@@ -125,7 +125,7 @@ public class SlaCheckerServiceTest {
 
     @Test
     public void testCheckWithNoOpenIncidentNothing() {
-        doReturn(new ArrayList<>()).when(repositoryRepository).findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
+        doReturn(new ArrayList<>()).when(repositoryRepository).findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(0L);
 
         slaCheckerService.checkWithNoOpenIncident();
 
