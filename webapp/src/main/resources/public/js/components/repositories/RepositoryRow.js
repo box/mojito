@@ -6,6 +6,7 @@ import RepositoryStore from "../../stores/RepositoryStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
+import {withAppConfig} from "../../utils/AppConfig";
 
 let RepositoryRow = React.createClass({
 
@@ -320,7 +321,7 @@ let RepositoryRow = React.createClass({
         let numberOfNeedsNeedsReview = this.getNumberOfNeedsReview(repoId);
         let numberOfOOSLA = this.getNumberOfOOSLA(repoId);
 
-        if (this.getCheckSLA(repoId) && numberOfNeedsTranslation === 0 && numberOfNeedsNeedsReview === 0 && numberOfOOSLA === 0) {
+        if (numberOfNeedsTranslation === 0 && numberOfNeedsNeedsReview === 0 && numberOfOOSLA === 0) {
 
             ui = (
                     <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
@@ -343,7 +344,7 @@ let RepositoryRow = React.createClass({
         const repoId = this.props.rowData.id;
         let numberOfOOSLA = this.getNumberOfOOSLA(repoId);
 
-        if (this.getCheckSLA(repoId) && numberOfOOSLA > 0) {
+        if (this.props.appConfig.slaConfig.enabled && this.getCheckSLA(repoId) && numberOfOOSLA > 0) {
 
             ui = (
                     <Link onClick={this.updateSearchParamsForOOSLA.bind(this, repoId, this.getOOSLACreatedBefore(repoId))} to='/workbench' className="label-container status-label-container">
@@ -365,7 +366,7 @@ let RepositoryRow = React.createClass({
 
         const repoId = this.props.rowData.id;
 
-        if (!this.getCheckSLA(repoId)) {
+        if (this.props.appConfig.slaConfig.enabled && !this.getCheckSLA(repoId)) {
 
             ui = (
                 <Link onClick={this.updateSearchParamsForRepoDefault.bind(this, repoId)} to='/workbench' className="label-container status-label-container">
@@ -458,4 +459,4 @@ let RepositoryRow = React.createClass({
         );
     }
 });
-export default RepositoryRow;
+export default withAppConfig(RepositoryRow);
