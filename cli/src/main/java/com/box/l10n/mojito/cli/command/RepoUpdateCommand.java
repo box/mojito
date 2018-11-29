@@ -47,7 +47,7 @@ public class RepoUpdateCommand extends RepoCommand {
     String descriptionParam;
 
     @Parameter(names = {Param.CHECK_SLA_LONG, Param.CHECK_SLA_SHORT}, arity = 1, required = false, description = Param.CHECK_SLA_DESCRIPTION)
-    String checkSLA;
+    Boolean checkSLA;
 
     /**
      * Each individual locales would be added. Bracket enclosed locale will set

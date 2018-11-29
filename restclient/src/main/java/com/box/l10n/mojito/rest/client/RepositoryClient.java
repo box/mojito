@@ -93,7 +93,7 @@ public class RepositoryClient extends BaseClient {
      * @return
      * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException
      */
-    public Repository createRepository(String name, String description, String checkSLA, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws ResourceNotCreatedException {
+    public Repository createRepository(String name, String description, Boolean checkSLA, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws ResourceNotCreatedException {
         logger.debug("Creating repo with name = {}, and description = {}, and repositoryLocales = {}", name, description, repositoryLocales.toString());
 
         Repository repoToCreate = new Repository();
@@ -101,7 +101,7 @@ public class RepositoryClient extends BaseClient {
         repoToCreate.setName(name);
         repoToCreate.setRepositoryLocales(repositoryLocales);
         repoToCreate.setIntegrityCheckers(integrityCheckers);
-        repoToCreate.setCheckSLA("true".equalsIgnoreCase(checkSLA) ? true: false);
+        repoToCreate.setCheckSLA(checkSLA);
 
         try {
             return authenticatedRestTemplate.postForObject(getBasePathForEntity(), repoToCreate, Repository.class);
@@ -167,7 +167,7 @@ public class RepositoryClient extends BaseClient {
      * com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException
      * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException
      */
-    public void updateRepository(String name, String newName, String description, String checkSLA, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws RepositoryNotFoundException, ResourceNotUpdatedException {
+    public void updateRepository(String name, String newName, String description, Boolean checkSLA, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws RepositoryNotFoundException, ResourceNotUpdatedException {
         
         logger.debug("Updating repository by name = [{}]", name);
         Repository repository = getRepositoryByName(name);
@@ -175,7 +175,7 @@ public class RepositoryClient extends BaseClient {
         repository.setDescription(description);
         repository.setName(newName);
         repository.setRepositoryLocales(repositoryLocales);
-        repository.setCheckSLA("true".equalsIgnoreCase(checkSLA) ? true: false);
+        repository.setCheckSLA(checkSLA);
         if (integrityCheckers != null) {
             repository.setIntegrityCheckers(integrityCheckers);
         }

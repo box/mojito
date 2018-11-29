@@ -89,6 +89,6 @@ public class Param {
 
     public static final String CHECK_SLA_LONG = "--check-sla";
     public static final String CHECK_SLA_SHORT = "-cs";
-    public static final String CHECK_SLA_DESCRIPTION = "weather check sla or not for repository by default false";
+    public static final String CHECK_SLA_DESCRIPTION = "whether check sla or not for repository";
 
 }
