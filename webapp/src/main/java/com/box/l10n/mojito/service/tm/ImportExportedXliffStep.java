@@ -271,47 +271,45 @@ public class ImportExportedXliffStep extends BasePipelineStep {
 
             Long tmTextUnitId = tmTextUnitIdsByMd5ForAsset.get(tmService.computeTMTextUnitMD5(name, sourceContent, importExportNote.getSourceComment()));
 
-            //TODO(P1) error handling in those import services (Will has a review to refactor this so keeping it very simple)
             if (tmTextUnitId == null) {
                 String msg = "Trying to add a translation to an non existing text unit, name: " + name + ", comment: " + importExportNote.getSourceComment() + ", source: " + sourceContent;
-                logger.error(msg);
-                //TODO(P1) all the runtime should become typed and propagated to client layer properly
-                throw new RuntimeException(msg);
-            }
-
-            TMTextUnitVariant addTMTextUnitVariant = null;
-
-            if (updateTM) {
-                logger.debug("Import assuming there is already some translations in the TM");
-                addTMTextUnitVariant = tmService.addCurrentTMTextUnitVariant(
-                        tmTextUnitId,
-                        targetLocale.getId(),
-                        translation,
-                        importExportNote.getStatus(),
-                        importExportNote.isIncludedInLocalizedFile(),
-                        importExportNote.getCreatedDate());
-
+                logger.warn(msg);
             } else {
-                logger.debug("Import assuming there is no translation in the TM yet (optimized, don't check for update)");
-                addTMTextUnitVariant = tmService.addTMTextUnitVariant(
-                        tmTextUnitId,
-                        targetLocale.getId(),
-                        translation,
-                        importExportNote.getTargetComment(),
-                        importExportNote.getStatus(),
-                        importExportNote.isIncludedInLocalizedFile(),
-                        importExportNote.getCreatedDate());
 
-                tmService.makeTMTextUnitVariantCurrent(asset.getRepository().getTm().getId(), tmTextUnitId, targetLocale.getId(), addTMTextUnitVariant.getId());
-            }
+                TMTextUnitVariant addTMTextUnitVariant = null;
 
-            for (TMTextUnitVariantComment variantComment : importExportNote.getVariantComments()) {
-                tmTextUnitVariantCommentService.addComment(
-                        addTMTextUnitVariant.getId(),
-                        variantComment.getType(),
-                        variantComment.getSeverity(),
-                        variantComment.getContent()
-                );
+                if (updateTM) {
+                    logger.debug("Import assuming there is already some translations in the TM");
+                    addTMTextUnitVariant = tmService.addCurrentTMTextUnitVariant(
+                            tmTextUnitId,
+                            targetLocale.getId(),
+                            translation,
+                            importExportNote.getStatus(),
+                            importExportNote.isIncludedInLocalizedFile(),
+                            importExportNote.getCreatedDate());
+
+                } else {
+                    logger.debug("Import assuming there is no translation in the TM yet (optimized, don't check for update)");
+                    addTMTextUnitVariant = tmService.addTMTextUnitVariant(
+                            tmTextUnitId,
+                            targetLocale.getId(),
+                            translation,
+                            importExportNote.getTargetComment(),
+                            importExportNote.getStatus(),
+                            importExportNote.isIncludedInLocalizedFile(),
+                            importExportNote.getCreatedDate());
+
+                    tmService.makeTMTextUnitVariantCurrent(asset.getRepository().getTm().getId(), tmTextUnitId, targetLocale.getId(), addTMTextUnitVariant.getId());
+                }
+
+                for (TMTextUnitVariantComment variantComment : importExportNote.getVariantComments()) {
+                    tmTextUnitVariantCommentService.addComment(
+                            addTMTextUnitVariant.getId(),
+                            variantComment.getType(),
+                            variantComment.getSeverity(),
+                            variantComment.getContent()
+                    );
+                }
             }
         } else {
             logger.debug("Empty translation for name: {}, skip it", name);
