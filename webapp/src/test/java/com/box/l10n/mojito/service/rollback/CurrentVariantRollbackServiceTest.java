@@ -83,7 +83,7 @@ public class CurrentVariantRollbackServiceTest extends ServiceTestBase {
 
         if (repository == null) {
             repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-            asset = assetService.createAsset(repository.getId(), "test asset content", "path/to/asset");
+            asset = assetService.createAssetWithContent(repository.getId(), "path/to/asset", "test asset content");
         }
     }
 

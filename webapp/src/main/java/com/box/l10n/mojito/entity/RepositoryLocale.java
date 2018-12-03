@@ -30,7 +30,7 @@ import org.hibernate.envers.RelationTargetAuditMode;
 public class RepositoryLocale extends BaseEntity {
 
     @ManyToOne
-    @JsonBackReference
+    @JsonBackReference("repositoryLocales")
     @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY_LOCALE__REPOSITORY__ID"), nullable = false)
     private Repository repository;
 

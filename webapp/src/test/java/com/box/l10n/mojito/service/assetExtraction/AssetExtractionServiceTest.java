@@ -1,30 +1,34 @@
 package com.box.l10n.mojito.service.assetExtraction;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetTextUnit;
-import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
-import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
+import com.box.l10n.mojito.service.assetcontent.AssetContentService;
+import com.box.l10n.mojito.service.branch.BranchService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author aloison
@@ -40,6 +44,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     AssetService assetService;
 
     @Autowired
+    AssetContentService assetContentService;
+
+    @Autowired
     AssetExtractionService assetExtractionService;
 
     @Autowired
@@ -51,6 +58,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     @Autowired
     AssetRepository assetRepository;
 
+    @Autowired
+    BranchService branchService;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -58,16 +68,22 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
      * Set up for tests
      * @param content   content to be processed
      * @param assetPath path to asset
+     * @param branch
      * @return A list of AssetTextUnits from the content
      * @throws Exception
      */
-    private List<AssetTextUnit> getAssetTextUnits(String content, String assetPath) throws Exception {
+    private List<AssetTextUnit> getAssetTextUnits(String content, String assetPath, String branch) throws Exception {
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        return getAssetTextUnits(repository, content, assetPath, branch);
+    }
 
-        Asset asset = assetService.createAsset(repository.getId(), content, assetPath);
+    private List<AssetTextUnit> getAssetTextUnits(Repository repository, String content, String assetPath, String branch) throws Exception {
 
-        assetExtractionService.processAssetAsync(asset.getId(), null, null).get();
+        Asset asset = assetService.createAsset(repository.getId(), assetPath, false);
+        AssetContent assetContent = assetContentService.createAssetContent(asset, content);
+
+        assetExtractionService.processAssetAsync(assetContent.getId(), null, null).get();
 
         Asset processedAsset = assetRepository.findOne(asset.getId());
 
@@ -80,7 +96,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
      * @return A list of AssetTextUnits with usages that have been extracted from the processedAsset
      */
     @Transactional
-    private List<AssetTextUnit> getAssetTextUnitsWithUsages(Asset processedAsset) {
+    List<AssetTextUnit> getAssetTextUnitsWithUsages(Asset processedAsset) {
 
         List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtraction(processedAsset.getLastSuccessfulAssetExtraction());
         for (AssetTextUnit assetTextUnit: assetTextUnits) {
@@ -97,7 +113,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "husky,husky,Husky,,\n"
                 + "fox_cub,fox cub,renardeau,fox cub description,";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(csvContent, "path/to/fake/file.csv");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(csvContent, "path/to/fake/file.csv", null);
 
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
 
@@ -118,7 +134,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 xliffDataFactory.createTextUnit(3L, "Account_security_and_password_settings", "Account security and password settings", "Label on table header")
         ));
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(xliffContent, "path/to/fake/file.xliff");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(xliffContent, "path/to/fake/file.xliff", null);
 
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
 
@@ -138,7 +154,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 xliffDataFactory.createTextUnit(2L, "Account_security_and_password_settings", "Account security and password settings", "Label on table header")
         ));
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(xliffContent, "path/to/fake/file.xliff");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(xliffContent, "path/to/fake/file.xliff", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
 
@@ -154,8 +170,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     public void testProcessAssetShouldThrowIfUnsupportedAssetType() throws Exception {
 
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        Asset asset = assetService.createAsset(repository.getId(), "fake-content", "path/to/fake/file-with-unsupported.ext");
-        PollableFuture pollableTaskResult = assetExtractionService.processAssetAsync(asset.getId(), null, null);
+        Asset asset = assetService.createAsset(repository.getId(), "path/to/fake/file-with-unsupported.ext", false);
+        AssetContent assetContent = assetContentService.createAssetContent(asset, "fake-content");
+        PollableFuture pollableTaskResult = assetExtractionService.processAssetAsync(assetContent.getId(), null, null);
 
         // Wait for the processing to finish
         try {
@@ -179,7 +196,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "	<comment>Test label</comment>\n"
                 + "  </data>\n"
                 + "</root>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/Test.resx");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/Test.resx", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -198,7 +215,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "	<comment>Test label</comment>\n"
                 + "  </data>\n"
                 + "</root>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/Test.resw");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/Test.resw", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -214,7 +231,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "<resources>\n"
                 + "  <string name=\"Test\" description=\"Test label\">You must test your changes</string>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -230,7 +247,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "<resources>\n"
                 + "  <string name=\"test\">Make sure you\\\'d \\\"escaped\\\" <b>special</b> characters like quotes &amp; ampersands.\\n</string>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("test", assetTextUnits.get(0).getName());
@@ -249,7 +266,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "    <item>%1$d people</item>\n"
                 + "  </string-array>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
 
@@ -277,7 +294,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "        <item>%1$d items failed to move</item>\n"
                 + "    </string-array>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 2 text units", 2, assetTextUnits.size());
 
@@ -300,7 +317,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "    <item quantity=\"other\">%1$d people</item>\n"
                 + "  </plurals>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 6 text units", 6, assetTextUnits.size());
 
@@ -340,7 +357,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "    <item quantity=\"other\">%1$d people</item>\n"
                 + "  </plurals>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         List<String> expectedTextUnits = new ArrayList<>();
         expectedTextUnits.add("numberOfCollaborators_zero");
@@ -381,7 +398,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "    <item quantity=\"other\">%1$d people2</item>\n"
                 + "  </plurals>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
         int size = assetTextUnits.size();
         List<AssetTextUnit> headAssetTextUnits = assetTextUnits.subList(0, size / 2);
         List<AssetTextUnit> tailAssetTextUnits = assetTextUnits.subList(size / 2, size);
@@ -427,7 +444,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         String content = "/* Title: Title for the add content to folder menu header */\n"
                 + "\"Add to Folder\" = \"Add to Folder\";";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Add to Folder", assetTextUnits.get(0).getName());
@@ -444,7 +461,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "NSUsageDescription 2 = \"Add to Folder 2\";\n\n"
                 + "/* Comment 3 */\n"
                 + "NSUsageDescription 3 = \"Add to Folder 3\";";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
 
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
         assertEquals("NSUsageDescription 1", assetTextUnits.get(0).getName());
@@ -473,7 +490,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "NSUsageDescription 3 = \"Add to Folder 3\";\n\n"
                 + "// Comment 4\n"
                 + "NSUsageDescription 4 = \"Add to Folder 4\";";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
 
         assertEquals("Processing should have extracted 4 text units", 4, assetTextUnits.size());
         assertEquals("NSUsageDescription 1", assetTextUnits.get(0).getName());
@@ -496,7 +513,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         String content = "/* No comment provided by engineer. */\n"
                 + "\"Comment\" = \"Comment\";";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Comment", assetTextUnits.get(0).getName());
@@ -512,7 +529,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "\"Add to \\\"%@\\\"\" = \"Add to \\\"%@\\\"\";\n"
                 + "/* Test newline */\n"
                 + "\"thisline \\n nextline\" = \"thisline \\n nextline\";\n";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
 
         assertEquals("Processing should have extracted 2 text units", 2, assetTextUnits.size());
         assertEquals("Add to \\\"%@\\\"", assetTextUnits.get(0).getName());
@@ -532,7 +549,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "  <string name=\"Test_translatable\" translatable=\"true\">This is translatable</string>\n"
                 + "  <string name=\"Test_not_translatable\" translatable=\"false\">This is not translatable</string>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 2 text units", 2, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -549,7 +566,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "<resources>\n"
                 + "  <string name=\"Test\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -564,7 +581,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "<resources>\n"
                 + "  <string name=\"Test\">Hello, %1$s! You have <![CDATA[<b>%2$d new messages</b>]]>.</string>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -586,7 +603,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "  <!-- line 3 -->\n"
                 + "  <string name=\"hello3\">Hello3</string>\n"
                 + "</resources>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/strings.xml", null);
 
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
         assertEquals("hello", assetTextUnits.get(0).getName());
@@ -620,7 +637,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "    </body>\n"
                 + "  </file>"
                 + "</xliff>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/en.xliff");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/en.xliff", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -650,7 +667,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "    </body>\n"
                 + "  </file>"
                 + "</xliff>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/en.xliff");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/res/en.xliff", null);
 
         assertEquals("Processing should have extracted 1 text units", 1, assetTextUnits.size());
         assertEquals("Test", assetTextUnits.get(0).getName());
@@ -669,7 +686,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "     <translation id=\"1\" key=\"MSG_VIEWER_MENU\" source=\"src/js/box/dicom/viewer/toolbar.js\" desc=\"Tooltip text for the &quot;More&quot; menu.\">More</translation>\n"
                 + "     <translation id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\" desc=\"Instructions for the Gonstead method.\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
                 + "</translationbundle>";
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/xtb/messages-en-US.xtb");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/xtb/messages-en-US.xtb", null);
 
         assertEquals("Processing should have extracted 3 text units", 3, assetTextUnits.size());
         assertEquals("MSG_DIALOG_OK_", assetTextUnits.get(0).getName());
@@ -691,7 +708,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "msgstr[0] < \"person\"\n"
                 + "msgstr[1] < \"people\"\n";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/file.pot");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/file.pot", null);
 
         Set<String> expectedUsages = new HashSet<>();
         expectedUsages.add("path/to/file.js:25");
@@ -707,12 +724,75 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "msgstr[0] < \"person\"\n"
                 + "msgstr[1] < \"people\"\n";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/file.pot");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/file.pot", null);
 
         Set<String> expectedUsages = new HashSet<>();
         expectedUsages.add("path/to/file.js:25");
         expectedUsages.add("path/to/file.js:30");
         checkAssetTextUnits(assetTextUnits, expectedUsages);
+    }
+
+    @Test
+    public void testBranches() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String assetPath = "path/to/file.properties";
+        String masterContent = "# string1 description\n"
+                + "string1=content1\n"
+                + "string2=content2\n";
+
+        Asset asset = assetService.createAsset(repository.getId(), assetPath, false);
+
+        Branch master = branchService.createBranch(asset.getRepository(), "master");
+        Branch branch1 = branchService.createBranch(asset.getRepository(), "branch1");
+        Branch branch2 = branchService.createBranch(asset.getRepository(), "branch2");
+
+        AssetContent assetContent = assetContentService.createAssetContent(asset, masterContent, master);
+        assetExtractionService.processAssetAsync(assetContent.getId(), null, null).get();
+
+        List<AssetTextUnit> masterAssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
+
+        logger.info("Number of text units: {}", masterAssetTextUnits.size());
+        assertEquals(2L, masterAssetTextUnits.size());
+        assertEquals("string1", masterAssetTextUnits.get(0).getName());
+        assertEquals("string2", masterAssetTextUnits.get(1).getName());
+
+        String branch1Content = "# string1 description\n"
+                + "string1=content1\n";
+
+        AssetContent branch1AssetContent = assetContentService.createAssetContent(asset, branch1Content, branch1);
+        assetExtractionService.processAssetAsync(branch1AssetContent.getId(), null, null).get();
+
+        List<AssetTextUnit> branch1AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
+
+        logger.info("Number of text units: {}", branch1AssetTextUnits.size());
+        assertEquals(2L, branch1AssetTextUnits.size());
+        assertEquals("string1", branch1AssetTextUnits.get(0).getName());
+        assertEquals("string2", branch1AssetTextUnits.get(1).getName());
+
+
+        String branch2Content = "# string3 description\n"
+                + "string3=content3\n";
+
+        AssetContent branch2AssetContent = assetContentService.createAssetContent(asset, branch2Content, branch2);
+        assetExtractionService.processAssetAsync(branch2AssetContent.getId(), null, null).get();
+
+        List<AssetTextUnit> branch2AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
+
+        logger.info("Number of text units: {}", branch2AssetTextUnits.size());
+        assertEquals(3L, branch2AssetTextUnits.size());
+        assertEquals("string1", branch2AssetTextUnits.get(0).getName());
+        assertEquals("string2", branch2AssetTextUnits.get(1).getName());
+        assertEquals("string3", branch2AssetTextUnits.get(2).getName());
+
+        assetExtractionService.deleteAssetBranch(assetRepository.findOne(asset.getId()), branch2.getName());
+        List<AssetTextUnit> deletebranch2AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
+        logger.info("Number of text units: {}", deletebranch2AssetTextUnits.size());
+        assertEquals(2L, deletebranch2AssetTextUnits.size());
+        assertEquals("string1", deletebranch2AssetTextUnits.get(0).getName());
+        assertEquals("string2", deletebranch2AssetTextUnits.get(1).getName());
+
     }
 
     /**

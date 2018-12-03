@@ -120,8 +120,6 @@ public class VirtualAssetService {
             asset = new Asset();
             asset.setRepository(repositoryRepository.getOne(virtualAsset.getRepositoryId()));
             asset.setPath(virtualAsset.getPath());
-            asset.setContent("");
-            asset.setContentMd5(asset.getContent());
             asset.setVirtual(Boolean.TRUE);
 
             logger.debug("Create a default AssetExtraction for virtual asset");

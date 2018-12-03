@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -292,15 +293,23 @@ public class AssetClient extends BaseClient {
     }
 
     /**
-     * Deletes multiple {@link Asset} by the list of {@link Asset#id}
+     * Deletes multiple {@link Asset} by the list of {@link Asset#id} of a given branch
      *
      * @param assetIds
+     * @param branchId
      */
-    public void deleteAssetsByIds(Set<Long> assetIds) {
-        logger.debug("Deleting assets by asset ids = {}", assetIds.toString());
+    public void deleteAssetsInBranch(Set<Long> assetIds, Long branchId) {
+        logger.debug("Deleting assets by asset ids = {} or branch id: {}", assetIds.toString(), branchId);
+
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath(getBasePath() + "/assets");
+
+        if (branchId != null) {
+            uriComponentsBuilder.queryParam("branchId", branchId).build();
+        }
 
         HttpEntity<Set<Long>> httpEntity = new HttpEntity<>(assetIds);
-        authenticatedRestTemplate.delete(getBasePathForEntity(), httpEntity);
+        String uriString = uriComponentsBuilder.toUriString();
+        authenticatedRestTemplate.delete(uriString, httpEntity);
     }
 
     /**
@@ -309,9 +318,10 @@ public class AssetClient extends BaseClient {
      * @param repositoryId
      * @param deleted optional
      * @param virtual optional
+     * @param branch optional
      * @return
      */
-    public List<Long> getAssetIds(Long repositoryId, Boolean deleted, Boolean virtual) {
+    public List<Long> getAssetIds(Long repositoryId, Boolean deleted, Boolean virtual, Long branchId) {
         Assert.notNull(repositoryId);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -326,6 +336,10 @@ public class AssetClient extends BaseClient {
 
         if (virtual != null) {
             params.put("virtual", virtual.toString());
+        }
+
+        if (branchId != null) {
+            params.put("branch", branchId.toString());
         }
 
         return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(uriBuilder.toUriString(), Long[].class, params);

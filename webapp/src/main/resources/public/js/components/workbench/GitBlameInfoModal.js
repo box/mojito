@@ -103,6 +103,7 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfo("AssetTextUnitId", this.props.textUnit.getAssetId())}
                     {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
                     {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
+                    {this.displayInfo("Branch", this.getBranch())}
                 </div>
             );
     },
@@ -153,6 +154,14 @@ let GitBlameInfoModal = React.createClass({
         if (this.props.gitBlameWithUsage == null || this.props.gitBlameWithUsage["usages"] == null)
             return null;
         return this.props.gitBlameWithUsage["usages"];
+    },
+
+    getBranch() {
+        try {
+            return this.props.gitBlameWithUsage.branch.name;
+        } catch(e) {
+            return " - ";
+        }
     },
 
     /**

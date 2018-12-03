@@ -4,7 +4,7 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import org.springframework.data.annotation.CreatedBy;
-import javax.persistence.Basic;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -27,27 +27,35 @@ import java.util.Set;
 @Table(name = "asset_extraction")
 public class AssetExtraction extends AuditableEntity {
 
-    @JsonBackReference
+    @JsonBackReference("asset")
     @ManyToOne
     @JoinColumn(name = "asset_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__ASSET__ID"))
     private Asset asset;
 
+    @JsonBackReference("assetContent")
+    @ManyToOne
+    @JoinColumn(name = "asset_content_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__ASSET_CONTENT__ID"))
+    private AssetContent assetContent;
+
     @Column(name = "content_md5", length = 32)
     private String contentMd5;
 
-    @JsonManagedReference
+    @JsonManagedReference("assetTextUnits")
     @OneToMany(mappedBy = "assetExtraction")
     private Set<AssetTextUnit> assetTextUnits = new HashSet<>();
 
+    @JsonManagedReference("assetExtractionByBranches")
+    @OneToMany(mappedBy = "assetExtraction")
+    private Set<AssetExtractionByBranch> assetExtractionByBranches = new HashSet<>();
+
     @OneToOne
-    @Basic(optional = true)
     @JoinColumn(name = "pollable_task_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__POLLABLE_TASK__ID"))
-    PollableTask pollableTask;
+    private PollableTask pollableTask;
 
     @CreatedBy
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__USER__ID"))
-    protected User createdByUser;
+    private User createdByUser;
 
     public User getCreatedByUser() {
         return createdByUser;
@@ -87,5 +95,22 @@ public class AssetExtraction extends AuditableEntity {
 
     public void setPollableTask(PollableTask pollableTask) {
         this.pollableTask = pollableTask;
+    }
+
+
+    public AssetContent getAssetContent() {
+        return assetContent;
+    }
+
+    public void setAssetContent(AssetContent assetContent) {
+        this.assetContent = assetContent;
+    }
+
+    public Set<AssetExtractionByBranch> getAssetExtractionByBranches() {
+        return assetExtractionByBranches;
+    }
+
+    public void setAssetExtractionByBranches(Set<AssetExtractionByBranch> assetExtractionByBranches) {
+        this.assetExtractionByBranches = assetExtractionByBranches;
     }
 }

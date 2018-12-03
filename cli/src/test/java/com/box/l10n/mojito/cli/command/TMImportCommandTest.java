@@ -190,7 +190,7 @@ public class TMImportCommandTest extends CLITestBase {
 
     @Test
     public void testReimportShouldFail() throws Exception {
-        assetService.createAsset(testRepository.getId(), "test content", "asset-path.xliff");
+        assetService.createAssetWithContent(testRepository.getId(), "asset-path.xliff", "test content");
 
         getL10nJCommander().run("tm-import", "-r", testRepository.getName(), "-s", sourceDirectory.getAbsolutePath());
 

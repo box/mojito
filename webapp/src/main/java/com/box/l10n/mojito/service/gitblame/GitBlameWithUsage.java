@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.gitblame;
 
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.GitBlame;
 
 import java.util.Set;
@@ -19,6 +20,8 @@ public class GitBlameWithUsage {
     String comment;
 
     GitBlame gitBlame;
+
+    Branch branch;
 
     public Set<String> getUsages() {
         return usages;
@@ -74,5 +77,13 @@ public class GitBlameWithUsage {
 
     public void setGitBlame(GitBlame gitBlame) {
         this.gitBlame = gitBlame;
+    }
+
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
     }
 }

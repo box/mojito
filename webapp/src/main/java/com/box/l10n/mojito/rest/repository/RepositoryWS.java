@@ -1,18 +1,18 @@
 package com.box.l10n.mojito.rest.repository;
 
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
-import java.util.List;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +23,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+import static com.box.l10n.mojito.rest.repository.BranchSpecification.nameEquals;
+import static com.box.l10n.mojito.rest.repository.BranchSpecification.repositoryEquals;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
+import static org.springframework.data.jpa.domain.Specifications.where;
 
 /**
  * @author wyau
@@ -46,6 +54,9 @@ public class RepositoryWS {
 
     @Autowired
     RepositoryService repositoryService;
+
+    @Autowired
+    BranchRepository branchRepository;
 
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
     public Repository getRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
@@ -174,25 +185,25 @@ public class RepositoryWS {
      */
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.PATCH)
     public ResponseEntity updateRepository(@PathVariable Long repositoryId,
-            @RequestBody Repository repository) throws RepositoryWithIdNotFoundException {
+                                           @RequestBody Repository repository) throws RepositoryWithIdNotFoundException {
         logger.info("Updating repository [{}]", repositoryId);
         ResponseEntity result;
         Repository repoToUpdate = repositoryRepository.findOne(repositoryId);
-        
+
         if (repoToUpdate == null) {
             throw new RepositoryWithIdNotFoundException(repositoryId);
         }
 
         try {
             repositoryService.updateRepository(repoToUpdate,
-                        repository.getName(),
-                        repository.getDescription(),
-                        repository.getCheckSLA(),
-                        repository.getRepositoryLocales(),
-                        repository.getAssetIntegrityCheckers());
+                    repository.getName(),
+                    repository.getDescription(),
+                    repository.getCheckSLA(),
+                    repository.getRepositoryLocales(),
+                    repository.getAssetIntegrityCheckers());
             
             result = new ResponseEntity(HttpStatus.OK);
- 
+
         } catch (RepositoryNameAlreadyUsedException e) {
             logger.debug("Cannot create the repository", e);
             result = new ResponseEntity("Repository with name [" + repository.getName() + "] already exists", HttpStatus.CONFLICT);
@@ -202,6 +213,25 @@ public class RepositoryWS {
         }
 
         return result;
+    }
+
+
+    @RequestMapping(value = "/api/repositories/{repositoryId}/branches", method = RequestMethod.GET)
+    public List<Branch> getBranchesOfRepository(@PathVariable Long repositoryId,
+                                                @RequestParam(value = "name", required = false) String branchName) throws RepositoryWithIdNotFoundException {
+        ResponseEntity<Repository> result;
+        Repository repository = repositoryRepository.findOne(repositoryId);
+
+        if (repository == null) {
+            throw new RepositoryWithIdNotFoundException(repositoryId);
+        }
+
+        List<Branch> branches = branchRepository.findAll(where(
+                ifParamNotNull(nameEquals(branchName))).and(
+                ifParamNotNull(repositoryEquals(repository))
+        ));
+
+        return branches;
     }
 
 }

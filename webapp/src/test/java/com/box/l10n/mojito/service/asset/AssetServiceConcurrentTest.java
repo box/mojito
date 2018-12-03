@@ -1,12 +1,16 @@
 package com.box.l10n.mojito.service.asset;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.service.assetcontent.AssetContentRepository;
+import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
@@ -19,10 +23,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -44,10 +48,16 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
     AssetService assetService;
 
     @Autowired
+    BranchRepository branchRepository;
+
+    @Autowired
     RepositoryService repositoryService;
 
     @Autowired
     AssetRepository assetRepository;
+
+    @Autowired
+    AssetContentRepository assetContentRepository;
 
     @Autowired
     AssetExtractionRepository assetExtractionRepository;
@@ -85,24 +95,32 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
             ));
             assetContents.add(assetContent);
 
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, assetPath, null);
+            logger.debug("addOrUpdateAssetAndProcessIfNeeded: {}, source: {}", i, source);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, assetPath, null, null);
             assetResults.add(assetResult);
         }
 
         List<Exception> exceptions = new ArrayList<>();
         for (int i = 0; i < assetResults.size(); i++) {
             try {
-                logger.debug("Get asset result: {}", assetResults.get(i).getPollableTask().getId());
+                logger.debug("Get asset result: {} (i={})", assetResults.get(i).getPollableTask().getId(), i);
                 PollableFuture<Asset> assetResult = assetResults.get(i);
-                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
-                Asset asset = assetResult.get();
-
-                String expectedAssetContent = assetContents.get(i);
-                assertEquals(expectedAssetContent, asset.getContent());
+                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId(), 2000);
+                Asset asset = assetRepository.findOne(assetResult.get().getId());
             } catch (PollableTaskException | InterruptedException e) {
                 exceptions.add(e);
             }
         }
+
+        Branch branch = branchRepository.findByNameAndRepository(null, repository);
+
+        Set<String> assetContentsFromDB = new HashSet();
+
+        for (AssetContent assetContent : assetContentRepository.findByAssetRepositoryIdAndBranchName(repository.getId(), null)) {
+            assetContentsFromDB.add(assetContent.getContent());
+        }
+
+        assertEquals(new HashSet<>(assetContents), assetContentsFromDB);
 
         assertTrue("No exceptions should have been thrown", exceptions.isEmpty());
 
@@ -136,24 +154,12 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         for (int i = 0; i < numThreads; i++) {
             String assetPath = "test_" + i + "/en.properties";
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null, null);
             assetResults.add(assetResult);
         }
 
         List<Exception> exceptions = new ArrayList<>();
-        for (int i = 0; i < assetResults.size(); i++) {
-            try {
-                logger.debug("Get asset result: {}", assetResults.get(i).getPollableTask().getId());
-                PollableFuture<Asset> assetResult = assetResults.get(i);
-                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
-                Asset asset = assetResult.get();
-
-                assertEquals(assetContent.toString(), asset.getContent());
-            } catch (PollableTaskException | InterruptedException e) {
-                logger.error(ExceptionUtils.getFullStackTrace(e));
-                exceptions.add(e);
-            }
-        }
+        processAssets(assetContent, assetResults, exceptions);
         logger.debug("{} exceptions found", exceptions.size());
         assertTrue("No exceptions should have been thrown", exceptions.isEmpty());
 
@@ -162,6 +168,22 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(repository.getTm().getId());
         assertEquals("There should be " + 100 * numThreads + " tmTextUnits", 100 * numThreads, tmTextUnits.size());
+    }
+
+    public void processAssets(StringBuilder assetContent, List<PollableFuture<Asset>> assetResults, List<Exception> exceptions) throws ExecutionException {
+        for (int i = 0; i < assetResults.size(); i++) {
+            try {
+                logger.debug("Get asset result: {}", assetResults.get(i).getPollableTask().getId());
+                PollableFuture<Asset> assetResult = assetResults.get(i);
+                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+                Asset asset = assetRepository.findOne(assetResult.get().getId());
+
+                assertEquals(assetContent.toString(), asset.getLastSuccessfulAssetExtraction().getAssetContent().getContent());
+            } catch (PollableTaskException | InterruptedException e) {
+                logger.error(ExceptionUtils.getFullStackTrace(e));
+                exceptions.add(e);
+            }
+        }
     }
 
     /**
@@ -186,24 +208,12 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         for (int i = 0; i < numThreads; i++) {
             String assetPath = "en.properties";
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null, null);
             assetResults.add(assetResult);
         }
 
         List<Exception> exceptions = new ArrayList<>();
-        for (int i = 0; i < assetResults.size(); i++) {
-            try {
-                logger.debug("Get asset result: {}", assetResults.get(i).getPollableTask().getId());
-                PollableFuture<Asset> assetResult = assetResults.get(i);
-                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
-                Asset asset = assetResult.get();
-
-                assertEquals(assetContent.toString(), asset.getContent());
-            } catch (PollableTaskException | InterruptedException e) {
-                logger.error(ExceptionUtils.getFullStackTrace(e));
-                exceptions.add(e);
-            }
-        }
+        processAssets(assetContent, assetResults, exceptions);
         logger.debug("{} exceptions found", exceptions.size());
         assertTrue("No exceptions should have been thrown", exceptions.isEmpty());
 

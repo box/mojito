@@ -6,26 +6,14 @@ import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
-import java.util.HashSet;
-import java.util.Set;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.hibernate.envers.RelationTargetAuditMode;
 import org.springframework.data.annotation.CreatedBy;
+
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Entity that describes a repository.
@@ -34,16 +22,16 @@ import org.springframework.data.annotation.CreatedBy;
  */
 @Entity
 @NamedEntityGraph(name = "Repository.statistics",
-  attributeNodes = @NamedAttributeNode("repositoryStatistic"))
+        attributeNodes = @NamedAttributeNode("repositoryStatistic"))
 @Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 @Table(name = "repository",
         indexes = {
-            @Index(name = "UK__REPOSITORY__NAME", columnList = "name", unique = true)
+                @Index(name = "UK__REPOSITORY__NAME", columnList = "name", unique = true)
         })
 public class Repository extends AuditableEntity {
 
     public static final int NAME_MAX_LENGTH = 255;
-    
+
     @Basic(optional = false)
     @Column(name = "name", length = NAME_MAX_LENGTH)
     @JsonView(View.IdAndName.class)
@@ -58,7 +46,7 @@ public class Repository extends AuditableEntity {
     private DropExporterType dropExporterType;
 
     @JsonView(View.RepositorySummary.class)
-    @JsonManagedReference
+    @JsonManagedReference("repositoryLocales")
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
 
@@ -71,6 +59,11 @@ public class Repository extends AuditableEntity {
     @JsonManagedReference
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<AssetIntegrityChecker> assetIntegrityCheckers = new HashSet<>();
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
+    @NotAudited
+    Set<Branch> branches = new HashSet<>();
 
     @OneToOne
     @Basic(optional = false)
@@ -182,5 +175,13 @@ public class Repository extends AuditableEntity {
 
     public void setCheckSLA(Boolean checkSLA) {
         this.checkSLA = checkSLA;
+    }
+  
+    public Set<Branch> getBranches() {
+        return branches;
+    }
+
+    public void setBranches(Set<Branch> branches) {
+        this.branches = branches;
     }
 }

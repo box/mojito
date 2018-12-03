@@ -3,19 +3,21 @@ package com.box.l10n.mojito.rest.client;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
+import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.rest.entity.ImportRepositoryBody;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author wyau
@@ -190,6 +192,23 @@ public class RepositoryClient extends BaseClient {
             }
         }
 
+    }
+
+    public List<Branch> getBranches(Long repositoryId, String branchName) {
+        Map<String, String> filterParams = new HashMap<>();
+
+        if (branchName != null) {
+            filterParams.put("name", branchName);
+        }
+
+        return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
+                getBasePathForResource(repositoryId, "branches"),
+                Branch[].class,
+                filterParams);
+    }
+
+    public Branch getBranch(Long repositoryId, String branchName) {
+        return getBranches(repositoryId, branchName).get(0);
     }
 
 }

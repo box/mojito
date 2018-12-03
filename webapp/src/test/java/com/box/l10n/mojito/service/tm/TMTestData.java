@@ -107,11 +107,11 @@ public class TMTestData {
         Repository otherRepository = repositoryService.createRepository(testIdWatcher.getEntityName("other-repository"));
 
         TM otherTM = tmRepository.save(new TM());
-        Asset otherAsset = assetService.createAsset(otherRepository.getId(), "fake for test other tm repo", "fake_for_test");
+        Asset otherAsset = assetService.createAssetWithContent(otherRepository.getId(), "fake_for_test", "fake for test other tm repo");
         TMTextUnit addTMTextUnitOther = tmService.addTMTextUnit(otherTM.getId(), otherAsset.getId(), "TEST1", "Content1", "Comment1");
 
         AssetExtraction assetExtractionOther = assetExtractionRepository.save(new AssetExtraction());
-        AssetTextUnit createAssetTextUnitOther = assetExtractionService.createAssetTextUnit(assetExtractionOther.getId(), "TEST2", "Content2", "Comment2");
+        AssetTextUnit createAssetTextUnitOther = assetExtractionService.createAssetTextUnit(assetExtractionOther, "TEST2", "Content2", "Comment2");
 
         // This is the actual data that should be proccessed
         repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
@@ -128,7 +128,7 @@ public class TMTestData {
 
         tm = repository.getTm();
 
-        asset = assetService.createAsset(repository.getId(), "fake for test", "fake_for_test");
+        asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
         Long assetId = asset.getId();
 
         addTMTextUnit1 = tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
@@ -139,8 +139,8 @@ public class TMTestData {
         assetExtraction.setAsset(asset);
         assetExtraction = assetExtractionRepository.save(assetExtraction);
 
-        createAssetTextUnit1 = assetExtractionService.createAssetTextUnit(assetExtraction.getId(), "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
-        createAssetTextUnit2 = assetExtractionService.createAssetTextUnit(assetExtraction.getId(), "TEST2", "Content2", "Comment2");
+        createAssetTextUnit1 = assetExtractionService.createAssetTextUnit(assetExtraction, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
+        createAssetTextUnit2 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST2", "Content2", "Comment2");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tm.getId(), assetId, PollableTask.INJECT_CURRENT_TASK);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);

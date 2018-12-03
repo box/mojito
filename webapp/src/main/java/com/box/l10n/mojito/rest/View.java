@@ -35,4 +35,8 @@ public class View {
      * This is used to show {@link Pageable} information
      */
     public interface Pageable {}
+    /**
+     * This is used to get asset entity with minimum fields for summary
+     */
+    public interface AssetSummary extends IdAndName {}
 }

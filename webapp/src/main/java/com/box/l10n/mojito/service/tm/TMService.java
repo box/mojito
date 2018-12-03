@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,6 +86,9 @@ public class TMService {
     RepositoryRepository repositoryRepository;
 
     @Autowired
+    TMRepository tmRepository;
+
+    @Autowired
     XliffUtils xliffUtils;
 
     @Autowired
@@ -115,41 +119,84 @@ public class TMService {
      * @param comment the text unit comment, can be {@code null}
      * @return the create {@link TMTextUnit}
      * @throws DataIntegrityViolationException If trying to create a
-     * {@link TMTextUnit} with same logical key as an existing one or TM id
-     * invalid
+     *                                         {@link TMTextUnit} with same logical key as an existing one or TM id
+     *                                         invalid
      */
-    @Transactional
     public TMTextUnit addTMTextUnit(Long tmId, Long assetId, String name, String content, String comment) {
-        return addTMTextUnit(tmId, assetId, name, content, comment, null, null, null);
+        TM tm = tmRepository.findOne(tmId);
+        Asset asset = assetRepository.findOne(assetId);
+        return addTMTextUnit(tm, asset, name, content, comment, null, null, null);
     }
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
      *
-     * @param tmId the {@link TM} id (must be valid)
-     * @param assetId the {@link Asset} id (must be valid)
-     * @param name the text unit name
-     * @param content the text unit content
-     * @param comment the text unit comment, can be {@code null}
+     * @param tm          the {@link TM}
+     * @param asset       the {@link Asset}
+     * @param name        the text unit name
+     * @param content     the text unit content
+     * @param comment     the text unit comment, can be {@code null}
      * @param createdDate to specify a creation date (can be used to re-import
-     * old TM), can be {@code null}
+     *                    old TM), can be {@code null}
      * @return the create {@link TMTextUnit}
      * @throws DataIntegrityViolationException If trying to create a
-     * {@link TMTextUnit} with same logical key as an existing one or TM id
-     * invalid
+     *                                         {@link TMTextUnit} with same logical key as an existing one or TM id
+     *                                         invalid
      */
-    @Transactional
     public TMTextUnit addTMTextUnit(
-            Long tmId,
-            Long assetId,
+            TM tm,
+            Asset asset,
             String name,
             String content,
             String comment,
             DateTime createdDate,
-            PluralForm puralForm,
+            PluralForm pluralForm,
             String pluralFormOther) {
 
-        logger.debug("Add TMTextUnit in tmId: {} with name: {}, content: {}, comment: {}", tmId, name, content, comment);
+        TMTextUnit tmTextUnit = addTMTextUnit(tm.getId(), asset.getId(), name, content, comment, createdDate, pluralForm, pluralFormOther);
+        tmTextUnit.setTm(tm);
+        tmTextUnit.setAsset(asset);
+        return tmTextUnit;
+    }
+
+    /**
+     * Adds a {@link TMTextUnit} in a {@link TM}.
+     *
+     * @param tmId        the {@link TM} id (must be valid)
+     * @param assetId     the {@link Asset} id (must be valid)
+     * @param name        the text unit name
+     * @param content     the text unit content
+     * @param comment     the text unit comment, can be {@code null}
+     * @param createdDate to specify a creation date (can be used to re-import
+     * old TM), can be {@code null}
+     * @return the create {@link TMTextUnit}
+     */
+    @Autowired
+    private RetryTemplate retryTemplate;
+
+    /**
+     * with retry. if wrap in the transaction this won't work since the transactin/session will be marked as bad.
+     *
+     * @param tmId
+     * @param assetId
+     * @param name
+     * @param content
+     * @param comment
+     * @param createdDate
+     * @param pluralForm
+     * @param pluralFormOther
+     * @return
+     */
+    public TMTextUnit addTMTextUnit(
+            final Long tmId,
+            final Long assetId,
+            final String name,
+            final String content,
+            final String comment,
+            final DateTime createdDate,
+            final PluralForm pluralForm,
+            final String pluralFormOther) {
+
         TMTextUnit tmTextUnit = new TMTextUnit();
 
         tmTextUnit.setTm(entityManager.getReference(TM.class, tmId));
@@ -158,22 +205,22 @@ public class TMService {
         tmTextUnit.setContent(content);
         tmTextUnit.setComment(comment);
         tmTextUnit.setMd5(computeTMTextUnitMD5(name, content, comment));
-        //TODO(P1) Compute word count for english, root locale is hard coded is {@link RepositoryService}
         tmTextUnit.setWordCount(wordCountService.getEnglishWordCount(content));
         tmTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         tmTextUnit.setCreatedDate(createdDate);
-        tmTextUnit.setPluralForm(puralForm);
+        tmTextUnit.setPluralForm(pluralForm);
         tmTextUnit.setPluralFormOther(pluralFormOther);
         tmTextUnit.setCreatedByUser(auditorAwareImpl.getCurrentAuditor());
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
-        logger.trace("TMTextUnit saved");
 
         logger.debug("Add a current TMTextUnitVariant for the source text ie. the default locale");
         TMTextUnitVariant addTMTextUnitVariant = addTMTextUnitVariant(tmTextUnit.getId(), localeService.getDefaultLocaleId(), content, comment, TMTextUnitVariant.Status.APPROVED, true, createdDate);
         makeTMTextUnitVariantCurrent(tmId, tmTextUnit.getId(), localeService.getDefaultLocaleId(), addTMTextUnitVariant.getId());
 
+
         return tmTextUnit;
+
     }
 
     /**
@@ -270,9 +317,6 @@ public class TMService {
     }
 
     /**
-     * @see TMService#addTMTextUnitCurrentVariant(Long, Long, String, String,
-     * boolean, boolean)
-     *
      * @param tmTextUnitId the text unit that will contains the translation
      * @param localeId locale id of the translation (default locale not
      * accepted)
@@ -729,7 +773,7 @@ public class TMService {
         driver.addStep(filterEventsWriterStep);
 
         // We need to read first the target language, because if we wait for okapi to read
-        // it from the file it is too late to write the output with the XLIFFWriter 
+        // it from the file it is too late to write the output with the XLIFFWriter
         // (missing target language)
         String targetLanguage = xliffUtils.getTargetLanguage(xliffContent);
         LocaleId targetLocaleId = targetLanguage != null ? LocaleId.fromBCP47(targetLanguage) : LocaleId.EMPTY;

@@ -1,16 +1,15 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+
+import javax.persistence.*;
+
+import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.data.annotation.CreatedBy;
+
+import java.util.Set;
 
 /**
  * Entity that describes an asset. It contains the information about the
@@ -27,44 +26,46 @@ import org.springframework.data.annotation.CreatedBy;
         name = "asset",
         indexes = {
             @Index(name = "UK__ASSET__REPOSITORY_ID__PATH", columnList = "repository_id, path", unique = true),
-            @Index(name = "I__ASSET__CONTENT_MD5", columnList = "content_md5", unique = false)
         }
 )
 public class Asset extends AuditableEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__ASSET__REPOSITORY__ID"))
+    @JsonView(View.AssetSummary.class)
     private Repository repository;
 
     @Basic(optional = false)
     @Column(name = "path")
+    @JsonView(View.AssetSummary.class)
     private String path;
 
-    @Basic(optional = false)
-    @Column(name = "content", length = Integer.MAX_VALUE)
-    private String content;
-
-    @Column(name = "content_md5", length = 32)
-    private String contentMd5;
-
     @Column(name = "`virtual`", nullable=false)
+    @JsonView(View.AssetSummary.class)
     private Boolean virtual = false;
     
     @OneToOne
     @JoinColumn(name = "last_successful_asset_extraction_id", foreignKey = @ForeignKey(name = "FK__ASSET__ASSET_EXTRACTION__ID"))
+    @JsonManagedReference("asset")
+    @JsonView(View.AssetSummary.class)
     private AssetExtraction lastSuccessfulAssetExtraction;
 
     @CreatedBy
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__ASSET__USER__ID"))
-    protected User createdByUser;
+    @JsonView(View.AssetSummary.class)
+    private User createdByUser;
 
     /**
      * To mark an Asset as deleted so it does not get processed anymore.
      */
     @Column(name = "deleted", nullable = false)
+    @JsonView(View.AssetSummary.class)
     private Boolean deleted = false;
-    
+
+    @OneToMany(mappedBy = "asset")
+    private Set<AssetExtractionByBranch> assetExtractionByBranches;
+
     public User getCreatedByUser() {
         return createdByUser;
     }
@@ -89,22 +90,6 @@ public class Asset extends AuditableEntity {
         this.path = path;
     }
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public String getContentMd5() {
-        return contentMd5;
-    }
-
-    public void setContentMd5(String contentMd5) {
-        this.contentMd5 = contentMd5;
-    }
-
     public AssetExtraction getLastSuccessfulAssetExtraction() {
         return lastSuccessfulAssetExtraction;
     }
@@ -127,5 +112,13 @@ public class Asset extends AuditableEntity {
 
     public void setVirtual(Boolean virtual) {
         this.virtual = virtual;
+    }
+
+    public Set<AssetExtractionByBranch> getAssetExtractionByBranches() {
+        return assetExtractionByBranches;
+    }
+
+    public void setAssetExtractionByBranches(Set<AssetExtractionByBranch> assetExtractionByBranches) {
+        this.assetExtractionByBranches = assetExtractionByBranches;
     }
 }

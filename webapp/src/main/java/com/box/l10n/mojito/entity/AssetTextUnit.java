@@ -2,10 +2,10 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import java.util.Set;
-import javax.persistence.*;
-
 import org.springframework.data.annotation.CreatedBy;
+
+import javax.persistence.*;
+import java.util.Set;
 
 /**
  * @author wyau
@@ -14,7 +14,7 @@ import org.springframework.data.annotation.CreatedBy;
 @Table(
         name = "asset_text_unit",
         indexes = {
-            @Index(name = "UK__ASSET_TEXT_UNIT__MD5__ASSET_EXTRACTION_ID", columnList = "md5, asset_extraction_id", unique = true)
+                @Index(name = "UK__ASSET_TEXT_UNIT__MD5__ASSET_EXTRACTION_ID", columnList = "md5, asset_extraction_id", unique = true)
         }
 )
 public class AssetTextUnit extends AuditableEntity {
@@ -40,7 +40,7 @@ public class AssetTextUnit extends AuditableEntity {
     @Column(name = "comment", length = Integer.MAX_VALUE)
     private String comment;
 
-    @JsonBackReference
+    @JsonBackReference("assetTextUnits")
     @ManyToOne
     @JoinColumn(name = "asset_extraction_id", foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__ASSET_EXTRACTION__ID"))
     private AssetExtraction assetExtraction;
@@ -48,23 +48,27 @@ public class AssetTextUnit extends AuditableEntity {
     @CreatedBy
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__USER__ID"))
-    protected User createdByUser;
+    private User createdByUser;
 
     @ManyToOne
     @JoinColumn(name = "plural_form_id", foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__PLURAL_FORM__ID"))
-    protected PluralForm pluralForm;
+    private PluralForm pluralForm;
 
     @Column(name = "plural_form_other", length = Integer.MAX_VALUE)
-    protected String pluralFormOther;
+    private String pluralFormOther;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "asset_text_unit_usages",
             joinColumns = @JoinColumn(name = "asset_text_unit_id"), foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT_USAGES__ASSET_TEXT_UNIT__ID"))
     private Set<String> usages;
-        
+
     @Column(name = "do_not_translate", nullable = false)
-    protected boolean doNotTranslate = false;
-    
+    private boolean doNotTranslate = false;
+
+    @ManyToOne
+    @JoinColumn(name = "branch", foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__ASSET_EXTRACTION__ID"))
+    protected Branch branch;
+
     public User getCreatedByUser() {
         return createdByUser;
     }
@@ -151,5 +155,13 @@ public class AssetTextUnit extends AuditableEntity {
 
     public void setDoNotTranslate(boolean doNotTranslate) {
         this.doNotTranslate = doNotTranslate;
+    }
+
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
     }
 }
