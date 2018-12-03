@@ -53,7 +53,7 @@ public class DropWSTest extends WSTestBase {
         List<String> bcp47Tags = Arrays.asList("fr-FR", "ja-JP");
 
         Set<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
-        Repository repository = repositoryClient.createRepository(testIdWatcher.getEntityName("repository"), null, repositoryLocales, null);
+        Repository repository = repositoryClient.createRepository(testIdWatcher.getEntityName("repository"), null, null, repositoryLocales, null);
 
         ExportDropConfig exportDropConfig = new ExportDropConfig();
         exportDropConfig.setRepositoryId(repository.getId());
@@ -79,7 +79,7 @@ public class DropWSTest extends WSTestBase {
         List<String> bcp47Tags = Arrays.asList("fr-FR", "ja-JP");
 
         Set<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
-        Repository repository = repositoryClient.createRepository(testIdWatcher.getEntityName("repository"), null, repositoryLocales, null);
+        Repository repository = repositoryClient.createRepository(testIdWatcher.getEntityName("repository"), null, null, repositoryLocales, null);
 
         ExportDropConfig exportDropConfig = new ExportDropConfig();
         exportDropConfig.setRepositoryId(repository.getId());
@@ -112,7 +112,7 @@ public class DropWSTest extends WSTestBase {
         List<String> bcp47Tags = Arrays.asList("fr-FR", "ja-JP");
 
         Set<RepositoryLocale> repositoryLocales = getRepositoryLocales(bcp47Tags);
-        Repository repository = repositoryClient.createRepository(testIdWatcher.getEntityName("repository"), null, repositoryLocales, null);
+        Repository repository = repositoryClient.createRepository(testIdWatcher.getEntityName("repository"), null, null, repositoryLocales, null);
 
         String xliffWithTranslationForNonExistingTextUnit = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"

@@ -19,6 +19,9 @@ export default class Repository {
         /** @type {String} */
         this.description = "";
 
+        /** @type {Boolean} */
+        this.checkSLA = false;
+
         /** @type {String} */
         this.dropExporterType = "BOX";
 
@@ -54,6 +57,7 @@ export default class Repository {
         result.createdByUser = User.toUser(json.createdByUser);
         result.createdDate = new Date(json.createdDate);
         result.description = json.description;
+        result.checkSLA = json.checkSLA;
         result.dropExporterType = json.dropExporterType;
         result.id = json.id;
         result.lastModifiedDate = new Date(json.lastModifiedDate);

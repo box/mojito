@@ -46,6 +46,9 @@ public class RepoUpdateCommand extends RepoCommand {
     @Parameter(names = {Param.REPOSITORY_DESCRIPTION_LONG, Param.REPOSITORY_DESCRIPTION_SHORT}, arity = 1, required = false, description = Param.REPOSITORY_DESCRIPTION_DESCRIPTION)
     String descriptionParam;
 
+    @Parameter(names = {Param.CHECK_SLA_LONG, Param.CHECK_SLA_SHORT}, arity = 1, required = false, description = Param.CHECK_SLA_DESCRIPTION)
+    Boolean checkSLA;
+
     /**
      * Each individual locales would be added. Bracket enclosed locale will set
      * that locale to be partially translated. Arrow (->) indicate inheritance,
@@ -103,7 +106,7 @@ public class RepoUpdateCommand extends RepoCommand {
 
             consoleWriter.a("Update repositories").println();
             for (Repository repository : repositoriesForUpdate) {
-                repositoryClient.updateRepository(repository.getName(), newNameParam, descriptionParam, repositoryLocales, integrityCheckers);
+                repositoryClient.updateRepository(repository.getName(), newNameParam, descriptionParam, checkSLA, repositoryLocales, integrityCheckers);
                 consoleWriter.newLine().a("updated --> repository name: ").fg(Ansi.Color.MAGENTA).a(repository.getName()).println();
             }
 

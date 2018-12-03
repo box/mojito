@@ -87,4 +87,8 @@ public class Param {
     public static final String EXPORT_LOCALES_SHORT = "-l";
     public static final String EXPORT_LOCALES_DESCRIPTION = "List of locales to be exported, format: fr-FR,ja-JP";
 
+    public static final String CHECK_SLA_LONG = "--check-sla";
+    public static final String CHECK_SLA_SHORT = "-cs";
+    public static final String CHECK_SLA_DESCRIPTION = "whether check sla or not for repository";
+
 }

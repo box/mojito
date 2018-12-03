@@ -24,5 +24,5 @@ public interface RepositoryRepository extends JpaRepository<Repository, Long>, J
     public List<Repository> findAll(Specification<Repository> s, Sort sort);
 
     @EntityGraph(value = "Repository.statistics", type = EntityGraphType.LOAD)
-    List<Repository> findByDeletedFalseAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(long statisticsOoslaTextUnitCount);
+    List<Repository> findByDeletedFalseAndCheckSLATrueAndRepositoryStatisticOoslaTextUnitCountGreaterThanOrderByNameAsc(long statisticsOoslaTextUnitCount);
 }

@@ -21,6 +21,8 @@ public class Repository {
     
     private Boolean deleted;
 
+    private Boolean checkSLA;
+
     @JsonManagedReference
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
 
@@ -75,5 +77,12 @@ public class Repository {
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
     }
-    
+
+    public Boolean getCheckSLA() {
+        return checkSLA;
+    }
+
+    public void setCheckSLA(Boolean checkSLA) {
+        this.checkSLA = checkSLA;
+    }
 }

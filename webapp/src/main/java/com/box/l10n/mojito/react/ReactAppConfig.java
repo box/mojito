@@ -1,9 +1,6 @@
 package com.box.l10n.mojito.react;
 
-import nu.validator.htmlparser.annotation.Auto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,6 +11,9 @@ public class ReactAppConfig {
 
     @Autowired
     LoginConfig login;
+
+    @Autowired
+    RepositoryStatisticsConfig repositoryStatisticsConfig;
 
     public LinkConfig getLink() {
         return link;
@@ -29,5 +29,13 @@ public class ReactAppConfig {
 
     public void setLogin(LoginConfig login) {
         this.login = login;
+    }
+
+    public RepositoryStatisticsConfig getRepositoryStatisticsConfig() {
+        return repositoryStatisticsConfig;
+    }
+
+    public void setRepositoryStatisticsConfig(RepositoryStatisticsConfig repositoryStatisticsConfig) {
+        this.repositoryStatisticsConfig = repositoryStatisticsConfig;
     }
 }
