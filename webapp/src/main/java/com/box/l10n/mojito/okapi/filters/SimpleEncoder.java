@@ -8,10 +8,10 @@ import net.sf.okapi.common.encoder.IEncoder;
 
 /**
  * Encoder to handle escaping \n, \r, double-quotes.
- * 
+ *
  * @author jyi
  */
-public class MacStringsEncoder implements IEncoder {
+public class SimpleEncoder implements IEncoder {
 
     private CharsetEncoder chsEnc;
     private String lineBreak;

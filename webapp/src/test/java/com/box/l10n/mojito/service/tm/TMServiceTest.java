@@ -13,7 +13,7 @@ import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
-import com.box.l10n.mojito.okapi.filters.MacStringsEncoder;
+import com.box.l10n.mojito.okapi.filters.SimpleEncoder;
 import com.box.l10n.mojito.okapi.filters.XMLEncoder;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
@@ -1153,7 +1153,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     /**
-     * This test is to test {@link MacStringsEncoder} with special characters
+     * This test is to test {@link SimpleEncoder} with special characters
      *
      * According to iOS specification in
      * https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html,
@@ -2070,6 +2070,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "        \"loginText\": \"Log In\",\n"
                 + "        // signup comment\n"
                 + "        \"signupText\": \"Sign up\",\n"
+                + "        \"quotedText\": \"Hello \\\"%s\\\"\",\n"
                 + "        \"noComment\": \"String with no comment\"\n"
                 + "    };\n"
                 + "}\n"
@@ -2092,8 +2093,11 @@ public class TMServiceTest extends ServiceTestBase {
         textUnitSearcherParameters.setRepositoryIds(repo.getId());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
-        assertEquals(3, textUnitDTOs.size());
+        assertEquals(4, textUnitDTOs.size());
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            if ("quotedText".equals(textUnitDTO.getName())) {
+                assertEquals("Hello \"%s\"", textUnitDTO.getSource());
+            }
             logger.debug("{}\n{}=[{}]", textUnitDTO.getComment(), textUnitDTO.getName(), textUnitDTO.getSource());
         }
 
