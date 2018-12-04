@@ -744,9 +744,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         Asset asset = assetService.createAsset(repository.getId(), assetPath, false);
 
-        Branch master = branchService.createBranch(asset.getRepository(), "master");
-        Branch branch1 = branchService.createBranch(asset.getRepository(), "branch1");
-        Branch branch2 = branchService.createBranch(asset.getRepository(), "branch2");
+        Branch master = branchService.createBranch(asset.getRepository(), "master", null);
+        Branch branch1 = branchService.createBranch(asset.getRepository(), "branch1", null);
+        Branch branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
 
         AssetContent assetContent = assetContentService.createAssetContent(asset, masterContent, master);
         assetExtractionService.processAssetAsync(assetContent.getId(), null, null).get();

@@ -34,7 +34,7 @@ public class UserServiceTest extends ServiceTestBase {
         Role userRole = Role.USER;
         String expectedAuthorityName = userService.createAuthorityName(userRole);
 
-        User userWithRole = userService.createUserWithRole(username, pwd, userRole, givenName, surname, commonName);
+        User userWithRole = userService.createUserWithRole(username, pwd, userRole, givenName, surname, commonName, false);
 
         User byUsername = userRepository.findByUsername(username);
 

@@ -129,7 +129,7 @@ public class UserUpdateCommandTest extends CLITestBase {
         if (rolename != null) {
             role = Role.valueOf(rolename);
         }
-        User user = userService.createUserWithRole(username, password, role, givenName, surname, commonName);
+        User user = userService.createUserWithRole(username, password, role, givenName, surname, commonName, false);
         return user;
     }
     

@@ -80,7 +80,7 @@ public class AssetContentServiceTest extends ServiceTestBase {
         assertEquals("fortest1-content2", assetContents.get(2).getContent());
         assertEquals("fortest2-content1", assetContents.get(3).getContent());
 
-        Branch branch1 = branchService.getOrCreateBranch(fortest1.getRepository(), "branch1");
+        Branch branch1 = branchService.getOrCreateBranch(fortest1.getRepository(), "branch1", null);
         AssetContent forTest2Content1Branch1 = assetContentService.createAssetContent(fortest1, "fortest2-content1-branch1", branch1);
         assetContents = assetContentRepository.findByAssetRepositoryIdAndBranchName(repository.getId(), null);
         assertEquals(4L, assetContents.size());
