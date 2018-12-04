@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,6 +23,8 @@ public class Repository {
     private Boolean deleted;
 
     private Boolean checkSLA;
+
+    private Locale sourceLocale;
 
     @JsonManagedReference
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
@@ -52,6 +55,14 @@ public class Repository {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Locale getSourceLocale() {
+        return sourceLocale;
+    }
+
+    public void setSourceLocale(Locale sourceLocale) {
+        this.sourceLocale = sourceLocale;
     }
 
     public Set<RepositoryLocale> getRepositoryLocales() {

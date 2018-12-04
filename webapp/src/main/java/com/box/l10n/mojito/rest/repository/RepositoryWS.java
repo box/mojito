@@ -112,9 +112,10 @@ public class RepositoryWS {
             Repository createdRepo = repositoryService.createRepository(
                     repository.getName(),
                     repository.getDescription(),
+                    repository.getSourceLocale(),
                     repository.getCheckSLA(),
-                    repository.getRepositoryLocales(),
-                    repository.getAssetIntegrityCheckers()
+                    repository.getAssetIntegrityCheckers(),
+                    repository.getRepositoryLocales()
             );
             result = new ResponseEntity<>(createdRepo, HttpStatus.CREATED);
         } catch (RepositoryNameAlreadyUsedException e) {
@@ -201,7 +202,7 @@ public class RepositoryWS {
                     repository.getCheckSLA(),
                     repository.getRepositoryLocales(),
                     repository.getAssetIntegrityCheckers());
-            
+
             result = new ResponseEntity(HttpStatus.OK);
 
         } catch (RepositoryNameAlreadyUsedException e) {

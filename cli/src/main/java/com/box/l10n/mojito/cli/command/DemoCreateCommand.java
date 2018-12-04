@@ -122,7 +122,9 @@ public class DemoCreateCommand extends RepoCommand {
                     "",
                     null,
                     getRepositoryLocales(),
-                    extractIntegrityCheckersFromInput("properties:MESSAGE_FORMAT", false));
+                    extractIntegrityCheckersFromInput("properties:MESSAGE_FORMAT", false),
+                    null
+            );
 
         } catch (ParameterException | ResourceNotCreatedException rnce) {
             throw new CommandException(rnce.getMessage(), rnce);

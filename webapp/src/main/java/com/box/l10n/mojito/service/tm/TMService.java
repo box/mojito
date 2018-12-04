@@ -153,7 +153,10 @@ public class TMService {
             PluralForm pluralForm,
             String pluralFormOther) {
 
-        TMTextUnit tmTextUnit = addTMTextUnit(tm.getId(), asset.getId(), name, content, comment, createdDate, pluralForm, pluralFormOther);
+        Locale sourceLocale = asset.getRepository().getSourceLocale();
+        Preconditions.checkNotNull(sourceLocale, "There must be a source locale");
+
+        TMTextUnit tmTextUnit = addTMTextUnit(tm.getId(), asset.getId(), name, content, comment, createdDate, pluralForm, pluralFormOther, sourceLocale.getId());
         tmTextUnit.setTm(tm);
         tmTextUnit.setAsset(asset);
         return tmTextUnit;
@@ -185,6 +188,7 @@ public class TMService {
      * @param createdDate
      * @param pluralForm
      * @param pluralFormOther
+     * @param sourceLocaleId
      * @return
      */
     public TMTextUnit addTMTextUnit(
@@ -195,7 +199,8 @@ public class TMService {
             final String comment,
             final DateTime createdDate,
             final PluralForm pluralForm,
-            final String pluralFormOther) {
+            final String pluralFormOther,
+            final Long sourceLocaleId) {
 
         TMTextUnit tmTextUnit = new TMTextUnit();
 
@@ -215,12 +220,10 @@ public class TMService {
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
 
         logger.debug("Add a current TMTextUnitVariant for the source text ie. the default locale");
-        TMTextUnitVariant addTMTextUnitVariant = addTMTextUnitVariant(tmTextUnit.getId(), localeService.getDefaultLocaleId(), content, comment, TMTextUnitVariant.Status.APPROVED, true, createdDate);
-        makeTMTextUnitVariantCurrent(tmId, tmTextUnit.getId(), localeService.getDefaultLocaleId(), addTMTextUnitVariant.getId());
-
+        TMTextUnitVariant addTMTextUnitVariant = addTMTextUnitVariant(tmTextUnit.getId(), sourceLocaleId, content, comment, TMTextUnitVariant.Status.APPROVED, true, createdDate);
+        makeTMTextUnitVariantCurrent(tmId, tmTextUnit.getId(), sourceLocaleId, addTMTextUnitVariant.getId());
 
         return tmTextUnit;
-
     }
 
     /**
@@ -491,9 +494,10 @@ public class TMService {
             boolean includedInLocalizedFile,
             DateTime createdDate) {
 
-        if (localeService.getDefaultLocaleId().equals(localeId)) {
-            throw new RuntimeException("Cannot add text unit variant for the default locale");
-        }
+        // TODO check not root locale, can this check be ignored?
+//        if (localeService.getDefaultLocaleId().equals(localeId)) {
+//            throw new RuntimeException("Cannot add text unit variant for the default locale");
+//        }
 
         boolean noUpdate = false;
 

@@ -35,7 +35,11 @@ public class Param {
 
     public static final String REPOSITORY_LOCALES_MAPPING_LONG = "--locale-mapping";
     public static final String REPOSITORY_LOCALES_MAPPING_SHORT = "-lm";
-    
+
+    public static final String REPOSITORY_SOURCE_LOCALE_LONG = "--source-locale";
+    public static final String REPOSITORY_SOURCE_LOCALE_SHORT = "-sl";
+    public static final String REPOSITORY_SOURCE_LOCALE_DESCRIPTION = "Locale of the source strings";
+
     public static final String SOURCE_DIRECTORY_LONG = "--source-directory";
     public static final String SOURCE_DIRECTORY_SHORT = "-s";
     public static final String SOURCE_DIRECTORY_DESCRIPTION = "Directory that contains source assets to be localized";
