@@ -20,6 +20,42 @@ import static org.junit.Assert.assertNull;
 public class MacStringsdictFilterTest {
 
     @Test
+    public void testGetNoteFromXMLCommentsInSkeletonNoComment() {
+        String skeleton = "no comments";
+        MacStringsdictFilter instance = new MacStringsdictFilter();
+        String expResult = null;
+        String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetNoteFromXMLCommentsInSkeletonComment() {
+        String skeleton = "blalbala <!-- a comment --> blalba";
+        MacStringsdictFilter instance = new MacStringsdictFilter();
+        String expResult = "a comment";
+        String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetNoteFromXMLCommentsInSkeletonMultipleComments() {
+        String skeleton = "blalbala <!-- line 1 -->\n <!-- line 2 -->\n  <!-- line 3 --> blalba";
+        MacStringsdictFilter instance = new MacStringsdictFilter();
+        String expResult = "line 1 line 2 line 3";
+        String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
+        assertEquals(expResult, result);
+    }
+
+    @Test
+    public void testGetNoteFromXMLCommentsInSkeletonMultiline() {
+        String skeleton = "blalbala <!-- line 1\nline 2 \nline 3 --> blalba";
+        MacStringsdictFilter instance = new MacStringsdictFilter();
+        String expResult = "line 1\nline 2 \nline 3";
+        String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
+        assertEquals(expResult, result);
+    }
+
+    @Test
     public void testGetCldrPluralFormOfEvent() {
         MacStringsdictFilter instance = new MacStringsdictFilter();
         MacStringsdictFilter.MacStringsdictPluralsHolder macStringsdictPluralsHolder = instance.new MacStringsdictPluralsHolder();
@@ -31,27 +67,59 @@ public class MacStringsdictFilterTest {
 
     @Test
     public void getUsagesFromSkeleton() {
-        String textUnitText = "<!-- Comments -->\n"
+        String skeleton = "<!-- Comments -->\n"
                 + "<!-- Location: path/to/file.java:49 -->\n"
-                + "<!-- Location: path/to/file.java:72 -->\n";
+                + "<!-- Location: path/to/file.java:72 -->\n"
+                + "<key>plural_recipe_cook_hours</key>\n"
+                + "<dict>\n"
+                + "    <key>NSStringLocalizedFormatKey</key>\n"
+                + "    <string>%#@hours@ to cook</string>\n"
+                + "    <key>hours</key>\n"
+                + "    <dict>\n"
+                + "        <key>NSStringFormatSpecTypeKey</key>\n"
+                + "        <string>NSStringPluralRuleType</string>\n"
+                + "        <key>NSStringFormatValueTypeKey</key>\n"
+                + "        <string>d</string>\n"
+                + "        <key>one</key>\n"
+                + "        <string>%d hour to cook</string>\n"
+                + "        <key>other</key>\n"
+                + "        <string>%d hours to cook</string>\n"
+                + "    </dict>\n"
+                + "</dict>\n";
 
         MacStringsdictFilter instance = new MacStringsdictFilter();
-        instance.getNoteAndLocationFromEvents(textUnitText);
-
+        instance.getNoteFromXMLCommentsInSkeleton(skeleton);
+        Set<String> usages = instance.usages;
 
         Set<String> expectedUsages = new HashSet<>();
         expectedUsages.add("path/to/file.java:49");
         expectedUsages.add("path/to/file.java:72");
-        assertEquals(2, instance.usages.size());
-        assertEquals(expectedUsages, instance.usages);
+        assertEquals(expectedUsages, usages);
     }
 
     @Test
     public void getUsagesFromSkeletonNone() {
-        String skeleton = "<!-- Comments -->\n";
+        String skeleton = "<!-- Comments -->\n"
+                + "<key>plural_recipe_cook_hours</key>\n"
+                + "<dict>\n"
+                + "    <key>NSStringLocalizedFormatKey</key>\n"
+                + "    <string>%#@hours@ to cook</string>\n"
+                + "    <key>hours</key>\n"
+                + "    <dict>\n"
+                + "        <key>NSStringFormatSpecTypeKey</key>\n"
+                + "        <string>NSStringPluralRuleType</string>\n"
+                + "        <key>NSStringFormatValueTypeKey</key>\n"
+                + "        <string>d</string>\n"
+                + "        <key>one</key>\n"
+                + "        <string>%d hour to cook</string>\n"
+                + "        <key>other</key>\n"
+                + "        <string>%d hours to cook</string>\n"
+                + "    </dict>\n"
+                + "</dict>\n";
 
         MacStringsdictFilter instance = new MacStringsdictFilter();
-        instance.getNoteAndLocationFromEvents(skeleton);
-        assertNull(instance.usages);
+        instance.getNoteFromXMLCommentsInSkeleton(skeleton);
+        Set<String> usages = instance.usages;
+        assertNull(usages);
     }
 }

@@ -31,14 +31,12 @@ public class MacStringsdictFilter extends XMLFilter {
     public static final String FILTER_CONFIG_ID = "okf_xml@mojito";
     public static final String MAC_STRINGSDICT_CONFIG_FILE_NAME = "macStringsdict_mojito.fprm";
 
-    // Match single or multiple comments
-    private static final String XML_COMMENT_PATTERN = "<!--(?<comment>.*?)-->";
+    // Match single or multi-line comments
+    private static final String XML_COMMENT_PATTERN = "\\s*?<!--(?<comment>(.*?\\s)*?)-->";
     private static final String XML_COMMENT_GROUP_NAME = "comment";
 
-    // Match variable name
-    static final String VARIABLE_NAME_PATTERN = "%#@.*@";
-
     LocaleId targetLocale;
+
     List<Event> eventQueue = new ArrayList<>();
 
     @Autowired
@@ -103,20 +101,9 @@ public class MacStringsdictFilter extends XMLFilter {
 
         if (next.isTextUnit() && isPluralGroupStarting(next.getResource())) {
             readPlurals(next);
-        } else if (next.isTextUnit() && (isCommentTextUnit(next.getResource()) || isValueTextUnit(next.getResource()))) {
-            eventQueue.add(new Event(EventType.NO_OP));
         } else  {
             eventQueue.add(next);
         }
-    }
-
-    protected boolean isCommentTextUnit(IResource resource) {
-        return resource.toString().trim().startsWith("<!--");
-    }
-
-    protected boolean isValueTextUnit(IResource resource) {
-        // TODO: add support for processing the variable name. This event with the variable name is dropped for now.
-        return resource.toString().trim().matches(VARIABLE_NAME_PATTERN);
     }
 
     private String unescape(String text) {
@@ -136,26 +123,46 @@ public class MacStringsdictFilter extends XMLFilter {
             // if source has escaped double-quotes, single-quotes, \r or \n, unescape
             TextContainer source = new TextContainer(unescape(sourceString));
             textUnit.setSource(source);
-            if (comment == null) {
-                getNoteAndLocationFromEvents(textUnit.toString());
-            }
+            extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
             textUnit.setProperty(new Property(Property.NOTE, comment));
             addUsagesToTextUnit(textUnit);
         }
     }
 
-    void addUsagesToTextUnit(TextUnit textUnit) {
-        textUnit.setAnnotation(new UsagesAnnotation(usages));
+    /**
+     * Extract the note from XML comments only if there is no note on the text
+     * unit. In other words if a note was specify via attribute like description
+     * for android it won't be overridden by an comments present in the XML
+     * file.
+     *
+     * @param textUnit the text unit for which comments should be extracted
+     */
+    protected void extractNoteFromXMLCommentInSkeletonIfNone(TextUnit textUnit) {
+
+        String skeleton = textUnit.getSkeleton().toString();
+
+        if (textUnit.getProperty(Property.NOTE) == null) {
+            String note = getNoteFromXMLCommentsInSkeleton(skeleton);
+            if (note != null) {
+                comment = note;
+            }
+        }
     }
 
-    protected void getNoteAndLocationFromEvents(String text) {
+    /**
+     * Gets the note from the XML comments in the skeleton.
+     *
+     * @param skeleton that may contains comments
+     * @return the note or <code>null</code>
+     */
+    protected String getNoteFromXMLCommentsInSkeleton(String skeleton) {
 
         String note = null;
 
         StringBuilder commentBuilder = new StringBuilder();
 
         Pattern pattern = Pattern.compile(XML_COMMENT_PATTERN);
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = pattern.matcher(skeleton);
 
         while (matcher.find()) {
             String comment = matcher.group(XML_COMMENT_GROUP_NAME).trim();
@@ -172,13 +179,15 @@ public class MacStringsdictFilter extends XMLFilter {
             }
         }
 
-        // get locations from here?
         if (commentBuilder.length() > 0) {
             note = commentBuilder.toString();
         }
-        if (note != null) {
-            comment = note;
-        }
+
+        return note;
+    }
+
+    void addUsagesToTextUnit(TextUnit textUnit) {
+        textUnit.setAnnotation(new UsagesAnnotation(usages));
     }
 
     private Event getNextWithProcess() {
@@ -213,7 +222,7 @@ public class MacStringsdictFilter extends XMLFilter {
     // finds start of plural group
     protected boolean isPluralGroupStarting(IResource resource) {
         String toString = resource.getSkeleton().toString();
-        Pattern p = Pattern.compile("<key>NSStringFormatValueTypeKey</key>\n");
+        Pattern p = Pattern.compile("<key>NSStringFormatSpecTypeKey</key>\n\\s*<string>NSStringPluralRuleType</string>\n\\s*<key>NSStringFormatValueTypeKey</key>");
         Matcher matcher = p.matcher(toString);
         boolean found = matcher.find();
         return found;
@@ -223,7 +232,7 @@ public class MacStringsdictFilter extends XMLFilter {
     //finds end of plural group
     protected boolean isPluralGroupEnding(IResource resource) {
         String toString = resource.getSkeleton().toString();
-        Pattern p = Pattern.compile("</dict>");
+        Pattern p = Pattern.compile("</dict>\n</dict>");
         Matcher matcher = p.matcher(toString);
         return matcher.find();
     }
@@ -261,17 +270,6 @@ public class MacStringsdictFilter extends XMLFilter {
                 res = matcher.group(1);
             }
             return res;
-        }
-
-        @Override
-        protected Event createCopyOf(Event event, String sourceForm, String targetForm) {
-            logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
-            ITextUnit textUnit = event.getTextUnit().clone();
-            renameTextUnit(textUnit, sourceForm, targetForm);
-            updateItemFormInSkeleton(textUnit);
-            replaceFormInSkeleton((GenericSkeleton) textUnit.getSkeleton(), sourceForm, targetForm);
-            Event copyOfOther = new Event(EventType.TEXT_UNIT, textUnit);
-            return copyOfOther;
         }
 
         void updateItemFormInSkeleton(ITextUnit textUnit) {

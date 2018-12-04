@@ -12,6 +12,8 @@ See also: https://developer.apple.com/library/ios/documentation/MacOSX/Conceptua
         xmlns:xlink="http://www.w3.org/1999/xlink"
         version="1.0">
 
+ <its:translateRule selector="/*" translate="no"/>
+
  <its:translateRule selector="/plist/dict/dict/string"
                     translate="yes"
                     itsx:idValue="concat(
@@ -32,6 +34,9 @@ See also: https://developer.apple.com/library/ios/documentation/MacOSX/Conceptua
  <its:translateRule selector="//dict/dict/key[. = 'NSStringFormatSpecTypeKey' or . = 'NSStringFormatValueTypeKey']/following-sibling::string[position()=1]"
                     translate="no"/>
  <its:translateRule selector="//key" translate="no"/>
+
+ <!--<its:locNoteRule locNoteType="description"-->
+                  <!--locNotePointer="../comment" selector="/comment()"/>-->
 
  <okp:codeFinder useCodeFinder="yes">#v1
   count.i=4
