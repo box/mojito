@@ -494,11 +494,6 @@ public class TMService {
             boolean includedInLocalizedFile,
             DateTime createdDate) {
 
-        // TODO check not root locale, can this check be ignored?
-//        if (localeService.getDefaultLocaleId().equals(localeId)) {
-//            throw new RuntimeException("Cannot add text unit variant for the default locale");
-//        }
-
         boolean noUpdate = false;
 
         TMTextUnitVariant tmTextUnitVariant;
