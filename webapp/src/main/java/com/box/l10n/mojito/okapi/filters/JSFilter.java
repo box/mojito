@@ -1,15 +1,13 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import static com.box.l10n.mojito.okapi.filters.MacStringsFilter.FILTER_CONFIG_ID;
 import java.util.ArrayList;
 import java.util.List;
 import net.sf.okapi.common.filters.FilterConfiguration;
-import net.sf.okapi.filters.regex.RegexFilter;
 
 /**
  * @author jyi
  */
-public class JSFilter extends RegexFilter {
+public class JSFilter extends RegexEscapeDoubleQuoteFilter {
 
     public static final String FILTER_CONFIG_ID = "okf_regex@mojito";
 
