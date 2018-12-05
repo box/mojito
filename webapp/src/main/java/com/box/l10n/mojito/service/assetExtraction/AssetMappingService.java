@@ -7,11 +7,13 @@ import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragingService;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
+import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -71,6 +73,9 @@ public class AssetMappingService {
     TMRepository tmRepository;
 
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     RetryTemplate retryTemplate;
 
     /**
@@ -84,14 +89,14 @@ public class AssetMappingService {
      * @param parentTask        the parent task to be updated
      */
     @Pollable(message = "Mapping AssetTextUnit to TMTextUnit")
-    public void mapAssetTextUnitAndCreateTMTextUnit(Long assetExtractionId, Long tmId, Long assetId, @ParentTask PollableTask parentTask) {
+    public void mapAssetTextUnitAndCreateTMTextUnit(String username, Long assetExtractionId, Long tmId, Long assetId, @ParentTask PollableTask parentTask) {
 
         logger.debug("Map exact matches a first time to map to existing text units");
         long mapExactMatches = mapExactMatches(assetExtractionId, tmId, assetId);
         logger.debug("{} text units were mapped the first time for asset extraction id: {} and tmId: {}", mapExactMatches, assetExtractionId, tmId);
 
         logger.debug("Create text units for unmapped asset text units");
-        List<TMTextUnit> newlyCreatedTMTextUnits = createTMTextUnitForUnmappedAssetTextUnitsWithRetry(assetExtractionId, tmId, assetId);
+        List<TMTextUnit> newlyCreatedTMTextUnits = createTMTextUnitForUnmappedAssetTextUnitsWithRetry(username, assetExtractionId, tmId, assetId);
 
         logger.debug("Map exact matches a second time to map newly created text units");
         int mapExactMatches2 = mapExactMatches(assetExtractionId, tmId, assetId);
@@ -112,7 +117,7 @@ public class AssetMappingService {
      * @param assetId           a valid {@link Asset#id}
      * @return the newly created {@link TMTextUnit}s
      */
-    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnitsWithRetry(final Long assetExtractionId, final Long tmId, final Long assetId) {
+    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnitsWithRetry(String username, final Long assetExtractionId, final Long tmId, final Long assetId) {
         return retryTemplate.execute(new RetryCallback<List<TMTextUnit>, DataIntegrityViolationException>() {
             @Override
             public List<TMTextUnit> doWithRetry(RetryContext context) throws DataIntegrityViolationException {
@@ -122,19 +127,20 @@ public class AssetMappingService {
                     logger.error("Assume concurrent modification happened, perform remapping: {}", mapExactMatches);
                 }
 
-                return createTMTextUnitForUnmappedAssetTextUnits(assetExtractionId, tmId, assetId);
+                return createTMTextUnitForUnmappedAssetTextUnits(username, assetExtractionId, tmId, assetId);
             }
         });
     }
 
     @Transactional
-    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnits(Long assetExtractionId, Long tmId, Long assetId) {
+    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnits(String username, Long assetExtractionId, Long tmId, Long assetId) {
 
         logger.debug("Create TMTextUnit for unmapped AssetTextUnits, assetExtractionId: {} tmId: {}", assetExtractionId, tmId);
         List<TMTextUnit> newlyCreatedTMTextUnits = new ArrayList<>();
 
         Asset asset = assetRepository.findOne(assetId);
         TM tm = tmRepository.findOne(tmId);
+        User user = userRepository.findByUsername(username);
 
         for (AssetTextUnit unmappedAssetTextUnit : assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtractionId)) {
             TMTextUnit addTMTextUnit = tmService.addTMTextUnit(
@@ -147,6 +153,7 @@ public class AssetMappingService {
                     unmappedAssetTextUnit.getPluralForm(),
                     unmappedAssetTextUnit.getPluralFormOther());
 
+            addTMTextUnit.setCreatedByUser(user);
             newlyCreatedTMTextUnits.add(addTMTextUnit);
         }
 
