@@ -83,7 +83,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Asset asset = assetService.createAsset(repository.getId(), assetPath, false);
         AssetContent assetContent = assetContentService.createAssetContent(asset, content);
 
-        assetExtractionService.processAssetAsync(assetContent.getId(), null, null).get();
+        assetExtractionService.processAssetAsync(null, assetContent.getId(), null, null).get();
 
         Asset processedAsset = assetRepository.findOne(asset.getId());
 
@@ -172,7 +172,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         Asset asset = assetService.createAsset(repository.getId(), "path/to/fake/file-with-unsupported.ext", false);
         AssetContent assetContent = assetContentService.createAssetContent(asset, "fake-content");
-        PollableFuture pollableTaskResult = assetExtractionService.processAssetAsync(assetContent.getId(), null, null);
+        PollableFuture pollableTaskResult = assetExtractionService.processAssetAsync(null, assetContent.getId(), null, null);
 
         // Wait for the processing to finish
         try {
@@ -749,7 +749,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Branch branch2 = branchService.createBranch(asset.getRepository(), "branch2");
 
         AssetContent assetContent = assetContentService.createAssetContent(asset, masterContent, master);
-        assetExtractionService.processAssetAsync(assetContent.getId(), null, null).get();
+        assetExtractionService.processAssetAsync(null, assetContent.getId(), null, null).get();
 
         List<AssetTextUnit> masterAssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
 
@@ -762,7 +762,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "string1=content1\n";
 
         AssetContent branch1AssetContent = assetContentService.createAssetContent(asset, branch1Content, branch1);
-        assetExtractionService.processAssetAsync(branch1AssetContent.getId(), null, null).get();
+        assetExtractionService.processAssetAsync(null, branch1AssetContent.getId(), null, null).get();
 
         List<AssetTextUnit> branch1AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
 
@@ -776,7 +776,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "string3=content3\n";
 
         AssetContent branch2AssetContent = assetContentService.createAssetContent(asset, branch2Content, branch2);
-        assetExtractionService.processAssetAsync(branch2AssetContent.getId(), null, null).get();
+        assetExtractionService.processAssetAsync(null, branch2AssetContent.getId(), null, null).get();
 
         List<AssetTextUnit> branch2AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
 

@@ -101,8 +101,9 @@ public class AssetService {
             String assetContent,
             String assetPath,
             String branch,
+            String username,
             FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
-        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
+        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch, username, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
     }
 
     /**
@@ -125,6 +126,7 @@ public class AssetService {
             String assetContent,
             String assetPath,
             String branchName,
+            String username,
             FilterConfigIdOverride filterConfigIdOverride,
             @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
@@ -152,7 +154,7 @@ public class AssetService {
 
         if (isAssetUpdateNeeded(assetExtractionByBranch, assetContent)) {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, branch);
-            assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, currentTask.getId());
+            assetExtractionService.processAssetAsync(username, assetContentEntity.getId(), filterConfigIdOverride, currentTask.getId());
         } else {
             undeleteAssetIfDeleted(assetExtractionByBranch);
             logger.debug("Asset content has not changed. Reset number of expected sub task to 0");

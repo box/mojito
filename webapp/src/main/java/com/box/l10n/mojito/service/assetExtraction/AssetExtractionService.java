@@ -99,6 +99,7 @@ public class AssetExtractionService {
      * @throws com.box.l10n.mojito.service.assetExtraction.AssetExtractionConflictException
      */
     public PollableFuture<Asset> processAsset(
+            String username,
             Long assetContentId,
             FilterConfigIdOverride filterConfigIdOverride,
             PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
@@ -112,6 +113,7 @@ public class AssetExtractionService {
         assetExtractor.performAssetExtraction(assetExtraction, filterConfigIdOverride, currentTask);
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
+                username,
                 assetExtraction.getId(),
                 asset.getRepository().getTm().getId(),
                 asset.getId(),
@@ -300,11 +302,13 @@ public class AssetExtractionService {
     }
 
     public PollableFuture processAssetAsync(
+            String username,
             Long assetContentId,
             FilterConfigIdOverride filterConfigIdOverride,
             Long parentTaskId) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
 
         ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();
+        processAssetJobInput.setUsername(username);
         processAssetJobInput.setAssetContentId(assetContentId);
         processAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
 

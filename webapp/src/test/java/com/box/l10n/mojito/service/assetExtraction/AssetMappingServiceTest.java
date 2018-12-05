@@ -208,7 +208,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assertEquals("Nothing should be mapped yet", 3, assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtraction.getId()).size());
         assertEquals("No TMTextUnit should be present in the TM", 0, tmTextUnitRepository.findByTm_id(tm.getId()).size());
 
-        assetMappingService.createTMTextUnitForUnmappedAssetTextUnitsWithRetry(assetExtraction.getId(), tm.getId(), asset.getId());
+        assetMappingService.createTMTextUnitForUnmappedAssetTextUnitsWithRetry(null, assetExtraction.getId(), tm.getId(), asset.getId());
 
         assertEquals("A TMTextUnit should have been created for each AssetTextUnit", 3, tmTextUnitRepository.findByTm_id(tm.getId()).size());
     }
@@ -237,7 +237,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assertEquals("Nothing should be mapped yet", 1, assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtraction.getId()).size());
         assertEquals("No TMTextUnit should be present in the TM", 0, tmTextUnitRepository.findByTm_id(tm.getId()).size());
 
-        assetMappingService.createTMTextUnitForUnmappedAssetTextUnitsWithRetry(assetExtraction.getId(), tm.getId(), asset.getId());
+        assetMappingService.createTMTextUnitForUnmappedAssetTextUnitsWithRetry(null, assetExtraction.getId(), tm.getId(), asset.getId());
 
         assertEquals("A TMTextUnit should have been created", 1, tmTextUnitRepository.findByTm_id(tm.getId()).size());
 
@@ -250,7 +250,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assertEquals("There should be 2 new unmapped AssetTextUnit", 2, assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtraction.getId()).size());
         assertEquals("There should be still a single TMTextUnit", 1, tmTextUnitRepository.findByTm_id(tm.getId()).size());
 
-        assetMappingService.createTMTextUnitForUnmappedAssetTextUnitsWithRetry(assetExtraction.getId(), tm.getId(), asset.getId());
+        assetMappingService.createTMTextUnitForUnmappedAssetTextUnitsWithRetry(null, assetExtraction.getId(), tm.getId(), asset.getId());
 
         assertEquals("A TMTextUnit should have been created for each AssetTextUnit", 3, tmTextUnitRepository.findByTm_id(tm.getId()).size());
 
@@ -285,7 +285,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assertEquals("Nothing should be mapped yet", 1, assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtraction.getId()).size());
         assertEquals("No TMTextUnit should be present in the TM", 0, tmTextUnitRepository.findByTm_id(tm.getId()).size());
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
 
         assertEquals("All AssetTextUnit must be mapped", 0, assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtraction.getId()).size());
 
@@ -306,7 +306,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assetExtractionService.createAssetTextUnit(assetExtraction2, "TEST2B", "Content2B", "Comment2B");
         assetExtractionService.createAssetTextUnit(assetExtraction2, "TEST2C", "Content2C", "Comment2C");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction2.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction2.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assertEquals("All AssetTextUnit must be mapped", 0, assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtraction2.getId()).size());
 
         iterator = getAssetTextUnitToTMTextUnit(assetExtraction2);
@@ -324,7 +324,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assetExtractionService.createAssetTextUnit(assetExtraction3, "TEST3A", "Content3A", "Comment3A");
         assetExtractionService.createAssetTextUnit(assetExtraction3, "TEST3C", "Content3C", "Comment3C");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction3.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction3.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assertEquals("All AssetTextUnit must be mapped", 0, assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtraction3.getId()).size());
 
         iterator = getAssetTextUnitToTMTextUnit(assetExtraction3);
@@ -360,7 +360,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         AssetTextUnit assetTextUnitForLeveraging = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST1A", "Content1A", "Comment1A");
         assetExtractionService.createAssetTextUnit(assetExtraction, "TEST2A", "Content2A", "Comment2A");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
 
         logger.debug("Add initial translation initial to test leveraging (this translation will be copied from 1 TMTextUnit to another");
@@ -378,7 +378,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         AssetTextUnit assetTextUnitForLeveraging2 = assetExtractionService.createAssetTextUnit(assetExtraction2, "TEST1A", "Content1A", "Comment1B");
         assetExtractionService.createAssetTextUnit(assetExtraction2, "TEST2A", "Content2A", "Comment2A");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction2.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction2.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction2);
 
         TMTextUnit tmTextUnitForLeveraging2 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging2.getMd5());
@@ -424,7 +424,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         AssetTextUnit assetTextUnitForLeveraging3 = assetExtractionService.createAssetTextUnit(assetExtraction3, "TEST1A", "Content1B", "Comment1B");
         assetExtractionService.createAssetTextUnit(assetExtraction3, "TEST2A", "Content2A", "Comment2A");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction3.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction3.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction3);
 
         TMTextUnit tmTextUnitForLeveraging3 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging3.getMd5());
@@ -470,7 +470,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         AssetTextUnit assetTextUnitForLeveraging4 = assetExtractionService.createAssetTextUnit(assetExtraction4, "TEST3A", "Content1B", "Comment3A");
         assetExtractionService.createAssetTextUnit(assetExtraction4, "TEST2A", "Content2A", "Comment2A");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction4.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction4.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction4);
 
         TMTextUnit tmTextUnitForLeveraging4 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging4.getMd5());
@@ -517,7 +517,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         AssetTextUnit assetTextUnitForLeveraging5b = assetExtractionService.createAssetTextUnit(assetExtraction5, "TEST4A", "Content1B", "Comment4A");
         AssetTextUnit assetTextUnitForLeveraging5c = assetExtractionService.createAssetTextUnit(assetExtraction5, "TEST2A", "Content1B", "Comment2A");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction5.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction5.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction5);
 
         TMTextUnit tmTextUnitForLeveraging5 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging5.getMd5());
@@ -633,7 +633,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assetExtraction6 = assetExtractionRepository.save(assetExtraction6);
         AssetTextUnit assetTextUnitForLeveraging6 = assetExtractionService.createAssetTextUnit(assetExtraction6, "TEST6A", "Content1B", "Comment6A");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction6.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction6.getId(), tm.getId(), asset.getId(), PollableTask.INJECT_CURRENT_TASK);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction6);
 
         TMTextUnit tmTextUnitForLeveraging6 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging6.getMd5());
