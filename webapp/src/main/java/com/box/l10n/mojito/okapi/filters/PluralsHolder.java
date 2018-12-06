@@ -113,7 +113,7 @@ public abstract class PluralsHolder {
                 event = other;
                 break;
             default:
-                throw new RuntimeException("Invalid plural form");
+                throw new RuntimeException("Invalid plural form: " + pluralForm);
         }
 
         return event;
@@ -163,6 +163,7 @@ public abstract class PluralsHolder {
         logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
         ITextUnit textUnit = event.getTextUnit().clone();
         renameTextUnit(textUnit, sourceForm, targetForm);
+        updateItemFormInSkeleton(textUnit);
         replaceFormInSkeleton((GenericSkeleton) textUnit.getSkeleton(), sourceForm, targetForm);
         Event copyOfOther = new Event(EventType.TEXT_UNIT, textUnit);
         return copyOfOther;
@@ -201,8 +202,29 @@ public abstract class PluralsHolder {
         return pluralForm;
     }
 
+    void swapSkeletonBetweenOldFirstAndNewFirst(String oldFirstForm, String newFirstForm) {
+        if (newFirstForm != null && !newFirstForm.equals(oldFirstForm)) {
+            logger.debug("Swapping the old first form with the new first form, as it contains the skeleton");
+            Event oldFirst = getEventForPluralForm(oldFirstForm);
+            Event newFirst = getEventForPluralForm(newFirstForm);
+
+            GenericSkeleton oldSkeleton = (GenericSkeleton) oldFirst.getTextUnit().getSkeleton();
+            replaceFormInSkeleton(oldSkeleton, oldFirstForm, newFirstForm);
+
+            GenericSkeleton newSkeleton = (GenericSkeleton) newFirst.getTextUnit().getSkeleton();
+            replaceFormInSkeleton(newSkeleton, newFirstForm, oldFirstForm);
+
+            oldFirst.getTextUnit().setSkeleton(newSkeleton);
+            newFirst.getTextUnit().setSkeleton(oldSkeleton);
+        }
+    }
+
+
     void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
 
+    }
+
+    void updateItemFormInSkeleton(ITextUnit textUnit) {
     }
 
     abstract void replaceFormInSkeleton(GenericSkeleton genericSkeleton, String sourceForm, String targetForm);

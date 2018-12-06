@@ -257,7 +257,7 @@ public class AndroidFilter extends XMLFilter {
         @Override
         public List<Event> getCompletedForms(LocaleId localeId) {
             List<Event> completedForms = super.getCompletedForms(localeId);
-            swapSkeletonBetweenOldFirstAndNewFirst(getPluralFormFromSkeleton(completedForms.get(0).getResource()));
+            swapSkeletonBetweenOldFirstAndNewFirst(firstForm, getPluralFormFromSkeleton(completedForms.get(0).getResource()));
 
             for (Event newForm : completedForms) {
                 if (comments != null) {
@@ -266,23 +266,6 @@ public class AndroidFilter extends XMLFilter {
             }
 
             return completedForms;
-        }
-
-        void swapSkeletonBetweenOldFirstAndNewFirst(String newFirstForm) {
-            if (newFirstForm != null && !newFirstForm.equals(firstForm)) {
-                logger.debug("Swapping the old first form with the new first form, as it contains the skeleton");
-                Event oldFirst = getEventForPluralForm(firstForm);
-                Event newFirst = getEventForPluralForm(newFirstForm);
-
-                GenericSkeleton oldSkeleton = (GenericSkeleton) oldFirst.getTextUnit().getSkeleton();
-                replaceFormInSkeleton(oldSkeleton, firstForm, newFirstForm);
-
-                GenericSkeleton newSkeleton = (GenericSkeleton) newFirst.getTextUnit().getSkeleton();
-                replaceFormInSkeleton(newSkeleton, newFirstForm, firstForm);
-
-                oldFirst.getTextUnit().setSkeleton(newSkeleton);
-                newFirst.getTextUnit().setSkeleton(oldSkeleton);
-            }
         }
 
         @Override

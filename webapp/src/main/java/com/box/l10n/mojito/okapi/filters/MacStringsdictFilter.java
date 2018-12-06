@@ -222,7 +222,7 @@ public class MacStringsdictFilter extends XMLFilter {
     // finds start of plural group
     protected boolean isPluralGroupStarting(IResource resource) {
         String toString = resource.getSkeleton().toString();
-        Pattern p = Pattern.compile("<key>NSStringFormatSpecTypeKey</key>\n\\s*<string>NSStringPluralRuleType</string>\n\\s*<key>NSStringFormatValueTypeKey</key>");
+        Pattern p = Pattern.compile("<key>NSStringFormatSpecTypeKey</key>");
         Matcher matcher = p.matcher(toString);
         boolean found = matcher.find();
         return found;
@@ -247,7 +247,9 @@ public class MacStringsdictFilter extends XMLFilter {
     }
 
     class MacStringsdictPluralsHolder extends PluralsHolder {
+
         String firstForm = null;
+        String comments = null;
 
         @Override
         protected void loadEvents(List<Event> pluralEvents) {
@@ -255,23 +257,37 @@ public class MacStringsdictFilter extends XMLFilter {
             if (!pluralEvents.isEmpty()) {
                 Event firstEvent = pluralEvents.get(0);
                 firstForm = getPluralFormFromSkeleton(firstEvent.getResource());
-
             }
 
             super.loadEvents(pluralEvents);
         }
 
+        @Override
+        public List<Event> getCompletedForms(LocaleId localeId) {
+            List<Event> completedForms = super.getCompletedForms(localeId);
+            swapSkeletonBetweenOldFirstAndNewFirst(firstForm, getPluralFormFromSkeleton(completedForms.get(0).getResource()));
+
+            for (Event newForm : completedForms) {
+                if (comments != null) {
+                    newForm.getTextUnit().setProperty(new Property(Property.NOTE, comments));
+                }
+            }
+
+            return completedForms;
+        }
+
         String getPluralFormFromSkeleton(IResource resource) {
             String toString = resource.getSkeleton().toString();
-            Pattern p = Pattern.compile("<key>(.+?)</key>");
+            Pattern p = Pattern.compile("<key>(?<res>.+?)</key>");
             Matcher matcher = p.matcher(toString);
             String res = null;
-            if (matcher.find()) {
-                res = matcher.group(1);
+            while (matcher.find()) {
+                res = matcher.group("res").trim();
             }
             return res;
         }
 
+        @Override
         void updateItemFormInSkeleton(ITextUnit textUnit) {
             boolean ignore = true;
             GenericSkeleton genericSkeleton = (GenericSkeleton) textUnit.getSkeleton();
@@ -294,7 +310,7 @@ public class MacStringsdictFilter extends XMLFilter {
         void replaceFormInSkeleton(GenericSkeleton genericSkeleton, String sourceForm, String targetForm) {
             for (GenericSkeletonPart part : genericSkeleton.getParts()) {
                 StringBuilder sb = part.getData();
-                String str = sb.toString().replace("<key>" + sourceForm + "</key>", "<key>" + targetForm + "</key>");
+                String str = sb.toString().replace("<key>" + sourceForm, "<key>" + targetForm);
                 sb.replace(0, sb.length(), str);
             }
         }

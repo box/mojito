@@ -18,14 +18,6 @@
                 <source>%d collaborators</source>
                 <target>%d collaborateurs</target>
             </trans-unit>
-            <trans-unit id="" resname="recipe_ingredients_with_count_ingredients_one">
-                <source>%d ingredient</source>
-                <target>%d ingrédient</target>
-            </trans-unit>
-            <trans-unit id="" resname="recipe_ingredients_with_count_ingredients_other">
-                <source>%d ingredients</source>
-                <target>%d ingrédients</target>
-            </trans-unit>
         </body>
     </file>
 </xliff>

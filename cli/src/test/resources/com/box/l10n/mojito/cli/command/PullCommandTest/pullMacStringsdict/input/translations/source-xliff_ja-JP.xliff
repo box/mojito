@@ -10,10 +10,6 @@
                 <source>%d collaborators</source>
                 <target>ボード参加者：%d 人</target>
             </trans-unit>
-            <trans-unit id="" resname="recipe_ingredients_with_count_ingredients_other">
-                <source>%d ingredients</source>
-                <target>%d 個の材料</target>
-            </trans-unit>
         </body>
     </file>
 </xliff>
