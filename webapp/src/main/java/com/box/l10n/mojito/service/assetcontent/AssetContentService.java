@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.assetcontent;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.branch.BranchService;
+import com.box.l10n.mojito.service.security.user.UserService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +47,7 @@ public class AssetContentService {
      * @return
      */
     public AssetContent createAssetContent(Asset asset, String content) {
-        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), null);
+        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), null, null);
         return createAssetContent(asset, content, branch);
     }
 

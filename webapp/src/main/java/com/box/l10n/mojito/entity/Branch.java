@@ -1,11 +1,9 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
+import org.springframework.data.annotation.CreatedBy;
 
-import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -16,7 +14,7 @@ import javax.persistence.Table;
 
 /**
  * Entity to manage branches of an {@link Asset}.
- *
+ * <p>
  * The branch name can be {@code null}. This will be used when no branch is provided to the system. Note {@code null}
  * complicates query when searching by name and {@link com.box.l10n.mojito.service.branch.BranchService#findByNameAndRepository(String, Repository)}
  * should be used instead of {@link com.box.l10n.mojito.service.branch.BranchRepository#findByNameAndRepository(String, Repository)}
@@ -40,6 +38,14 @@ public class Branch extends BaseEntity {
     @Column(name = "name")
     String name;
 
+    @CreatedBy
+    @ManyToOne
+    @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__BRANCH__USER__ID"))
+    protected User createdByUser;
+
+    @Column(name = "deleted", nullable = false)
+    Boolean deleted = false;
+
     public Repository getRepository() {
         return repository;
     }
@@ -54,5 +60,21 @@ public class Branch extends BaseEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public User getCreatedByUser() {
+        return createdByUser;
+    }
+
+    public void setCreatedByUser(User createdByUser) {
+        this.createdByUser = createdByUser;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

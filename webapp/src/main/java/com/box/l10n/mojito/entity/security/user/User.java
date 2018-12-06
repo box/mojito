@@ -35,8 +35,6 @@ public class User extends AuditableEntity implements Serializable {
 
     public static final int NAME_MAX_LENGTH = 255;
 
-
-    
     @Basic(optional = false)
     @Column(name = "username")
     @JsonView(View.IdAndName.class)        
@@ -58,6 +56,18 @@ public class User extends AuditableEntity implements Serializable {
     @Column(name = "common_name")
     @JsonView(View.IdAndName.class)
     String commonName;
+
+    /**
+     * Sets this flag if the user is created by a process that don't have all the information. Eg. pushing an asset
+     * for a branch with an owner. If the owner is not in the system yet, the user will be created but the information
+     * will be minimal.
+     *
+     * Usually user are created the first time the user connect to the system via LDAP or OAuth and have more information
+     * Partially created user can be updated later when the first login happens.
+     *
+     */
+    @Column(name = "partially_created")
+    Boolean partiallyCreated = false;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
@@ -131,5 +141,13 @@ public class User extends AuditableEntity implements Serializable {
 
     public void setCommonName(String commonName) {
         this.commonName = commonName;
+    }
+
+    public Boolean getPartiallyCreated() {
+        return partiallyCreated;
+    }
+
+    public void setPartiallyCreated(Boolean partiallyCreated) {
+        this.partiallyCreated = partiallyCreated;
     }
 }

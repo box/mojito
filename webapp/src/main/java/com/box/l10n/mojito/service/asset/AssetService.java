@@ -8,7 +8,9 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
@@ -23,6 +25,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.security.user.UserService;
 import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -77,6 +80,12 @@ public class AssetService {
 
     @Autowired
     PollableTaskService pollableTaskService;
+
+    @Autowired
+    UserService userService;
+
+    @Autowired
+    AuditorAwareImpl auditorAware;
 
     /**
      * Adds an {@link Asset} to a {@link Repository}.
@@ -146,7 +155,18 @@ public class AssetService {
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(1);
         }
 
-        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName);
+        //TODO pass the owner information, merge Xiaye's PR
+        String createdByFromXiaye = null;
+
+        User branchCreatedBy = null;
+
+        if (createdByFromXiaye != null) {
+            branchCreatedBy =  userService.getOrCreatePartialBasicUser(createdByFromXiaye);
+        } else {
+            branchCreatedBy = auditorAware.getCurrentAuditor();
+        }
+
+        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedBy);
 
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 

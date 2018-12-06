@@ -1,14 +1,19 @@
 package com.box.l10n.mojito.security;
 
+import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.service.security.user.UserRepository;
+import com.box.l10n.mojito.service.security.user.UserService;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Map;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+@Configurable
 public class MyUserInfoTokenServices extends UserInfoTokenServices {
 
     /**
@@ -16,11 +21,14 @@ public class MyUserInfoTokenServices extends UserInfoTokenServices {
      */
     static Logger logger = getLogger(MyUserInfoTokenServices.class);
 
-    UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    UserService userService;
 
-    public MyUserInfoTokenServices(UserDetailsServiceImpl userDetailsService, String userInfoEndpointUrl, String clientId) {
+    @Autowired
+    UserRepository userRepository;
+
+    public MyUserInfoTokenServices(String userInfoEndpointUrl, String clientId) {
         super(userInfoEndpointUrl, clientId);
-        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -32,18 +40,23 @@ public class MyUserInfoTokenServices extends UserInfoTokenServices {
         map = getMapWithUserInfo(map);
         String username = (String) super.getPrincipal(map);
 
-        try {
-            logger.debug("Load principal: {}", username);
-            userDetails = userDetailsService.loadUserByUsername(username);
-        } catch (UsernameNotFoundException e) {
+        User user = getOrCreateUser(map, username);
+
+        return new UserDetailsImpl(user);
+    }
+
+    User getOrCreateUser(Map<String, Object> map, String username) {
+        User user = userRepository.findByUsername(username);
+
+        if (user == null || user.getPartiallyCreated()) {
             String givenName = (String) map.get("first_name");
             String surname = (String) map.get("last_name");
             String commonName = (String) map.get("name");
-            logger.debug("username: {}, giveName:{}, surname: {}, commonName: {}", username, givenName, surname, commonName);
-            userDetails = userDetailsService.createBasicUser(username, givenName, surname, commonName);
+
+            user = userService.createOrUpdateBasicUser(user, username, givenName, surname, commonName);
         }
 
-        return userDetails;
+        return user;
     }
 
     /**

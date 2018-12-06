@@ -781,23 +781,23 @@ public class TMServiceTest extends ServiceTestBase {
         exportAssetAsXLIFF = removeIdsAndDatesFromJson(exportAssetAsXLIFF);
         logger.debug(exportAssetAsXLIFF);
 
-        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
-                + "<file original=\"test-asset-path.xliff\" source-language=\"en\" target-language=\"fr-FR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
-                + "<body>\n"
-                + "<trans-unit id=\"\" resname=\"application_name\" xml:space=\"preserve\">\n"
-                + "<source xml:lang=\"en\">Application Name</source>\n"
-                + "<target xml:lang=\"fr-FR\">Nom de l'application</target>\n"
-                + "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
-                + "</trans-unit>\n"
-                + "<trans-unit id=\"\" resname=\"home\" xml:space=\"preserve\">\n"
-                + "<source xml:lang=\"en\">Home</source>\n"
-                + "<target xml:lang=\"fr-FR\">Page d'accueil</target>\n"
-                + "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"this string has some comments\",\"includedInLocalizedFile\":false,\"status\":\"REVIEW_NEEDED\",\"variantComments\":[{\"severity\":\"INFO\",\"type\":\"LEVERAGING\",\"content\":\"Leveraging\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}},{\"severity\":\"ERROR\",\"type\":\"INTEGRITY_CHECK\",\"content\":\"Failed Integrity Check\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}}],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n"
-                + "</trans-unit>\n"
-                + "</body>\n"
-                + "</file>\n"
-                + "</xliff>\n", exportAssetAsXLIFF);
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n" +
+                "<file original=\"test-asset-path.xliff\" source-language=\"en\" target-language=\"fr-FR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n" +
+                "<body>\n" +
+                "<trans-unit id=\"\" resname=\"application_name\" xml:space=\"preserve\">\n" +
+                "<source xml:lang=\"en\">Application Name</source>\n" +
+                "<target xml:lang=\"fr-FR\">Nom de l'application</target>\n" +
+                "<note>{\"sourceComment\":\"This text is shown in the start screen of the application. Keep it short.\",\"targetComment\":null,\"includedInLocalizedFile\":true,\"status\":\"APPROVED\",\"variantComments\":[],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n" +
+                "</trans-unit>\n" +
+                "<trans-unit id=\"\" resname=\"home\" xml:space=\"preserve\">\n" +
+                "<source xml:lang=\"en\">Home</source>\n" +
+                "<target xml:lang=\"fr-FR\">Page d'accueil</target>\n" +
+                "<note>{\"sourceComment\":\"This is the text displayed in the link that takes the user to the home page.\",\"targetComment\":\"this string has some comments\",\"includedInLocalizedFile\":false,\"status\":\"REVIEW_NEEDED\",\"variantComments\":[{\"severity\":\"INFO\",\"type\":\"LEVERAGING\",\"content\":\"Leveraging\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"partiallyCreated\":false,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}},{\"severity\":\"ERROR\",\"type\":\"INTEGRITY_CHECK\",\"content\":\"Failed Integrity Check\",\"createdByUser\":{\"username\":\"admin\",\"enabled\":true,\"surname\":null,\"givenName\":null,\"commonName\":null,\"partiallyCreated\":false,\"authorities\":[{\"authority\":\"ROLE_ADMIN\"}]}}],\"pluralForm\":null,\"pluralFormOther\":null}</note>\n" +
+                "</trans-unit>\n" +
+                "</body>\n" +
+                "</file>\n" +
+                "</xliff>\n", exportAssetAsXLIFF);
     }
 
     private String removeIdsAndDatesFromJson(String xliff) {

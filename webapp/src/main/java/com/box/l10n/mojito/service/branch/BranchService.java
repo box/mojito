@@ -2,11 +2,10 @@ package com.box.l10n.mojito.service.branch;
 
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.security.user.User;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.persistence.EntityManager;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -28,34 +27,30 @@ public class BranchService {
     @Autowired
     BranchRepository branchRepository;
 
-    @Autowired
-    EntityManager entityManager;
-
-    public Branch createBranch(Repository repository, String branchName) {
+    public Branch createBranch(Repository repository, String branchName, User createdByUser) {
 
         logger.debug("getOrCreateBranch, name: {}, repository id: {}", branchName, repository.getId());
 
         Branch branch = new Branch();
         branch.setName(branchName);
         branch.setRepository(repository);
+        branch.setCreatedByUser(createdByUser);
 
         branch = branchRepository.save(branch);
 
         return branch;
     }
 
-
-    public Branch getOrCreateBranch(Repository repository, String branchName) {
+    public Branch getOrCreateBranch(Repository repository, String branchName, User createdByUser) {
 
         logger.debug("getOrCreateBranch, name: {}, repository id: {}", branchName, repository.getId());
 
         Branch branch = branchRepository.findByNameAndRepository(branchName, repository);
 
         if (branch == null) {
-            branch = createBranch(repository, branchName);
+            branch = createBranch(repository, branchName, createdByUser);
         }
 
         return branch;
     }
-
 }

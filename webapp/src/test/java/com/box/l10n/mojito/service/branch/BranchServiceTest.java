@@ -37,7 +37,7 @@ public class BranchServiceTest extends ServiceTestBase {
     @Test
     public void createBranch() throws RepositoryNameAlreadyUsedException {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        Branch master = branchService.createBranch(repository, "master");
+        Branch master = branchService.createBranch(repository, "master", null);
 
         Branch fromFind = branchRepository.findByNameAndRepository("master", repository);
         assertEquals("master", fromFind.getName());
@@ -51,7 +51,7 @@ public class BranchServiceTest extends ServiceTestBase {
         Branch before = branchRepository.findByNameAndRepository("master", repository);
         assertNull(before);
 
-        Branch create = branchService.getOrCreateBranch(repository, "master");
+        Branch create = branchService.getOrCreateBranch(repository, "master", null);
         assertEquals("master", create.getName());
         assertEquals(repository.getId(), create.getRepository().getId());
 
@@ -59,7 +59,7 @@ public class BranchServiceTest extends ServiceTestBase {
         assertEquals("master", fromFind.getName());
         assertEquals(repository.getId(), fromFind.getRepository().getId());
 
-        Branch get = branchService.getOrCreateBranch(repository, "master");
+        Branch get = branchService.getOrCreateBranch(repository, "master", null);
         assertEquals(create.getId(), get.getId());
     }
 
@@ -72,7 +72,7 @@ public class BranchServiceTest extends ServiceTestBase {
         Branch before = branchRepository.findByNameAndRepository(branchName, repository);
         assertNull(before);
 
-        Branch create = branchService.getOrCreateBranch(repository, branchName);
+        Branch create = branchService.getOrCreateBranch(repository, branchName, null);
         assertEquals(branchName, create.getName());
         assertEquals(repository.getId(), create.getRepository().getId());
 
@@ -80,7 +80,7 @@ public class BranchServiceTest extends ServiceTestBase {
         assertEquals(branchName, fromFind.getName());
         assertEquals(repository.getId(), fromFind.getRepository().getId());
 
-        Branch get = branchService.getOrCreateBranch(repository, branchName);
+        Branch get = branchService.getOrCreateBranch(repository, branchName, null);
         assertEquals(create.getId(), get.getId());
     }
 

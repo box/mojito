@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.security;
 
+import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.service.security.user.UserRepository;
+import com.box.l10n.mojito.service.security.user.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -11,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.Assert;
 
+import static org.mockito.Mockito.*;
+
 /**
  * @author wyau
  */
@@ -21,44 +26,39 @@ public class UserDetailsContextMapperImplTest {
     UserDetailsContextMapperImpl userDetailsContextMapper;
 
     @Mock
-    UserDetailsServiceImpl userDetailsService;
+    UserService userService;
+
+    @Mock
+    UserRepository userRepository;
 
     @Test
     public void testMapUserFromContextWhenUserNameIsNotFound() throws Exception {
-        Mockito.when(userDetailsService.loadUserByUsername(Mockito.anyString()))
-                .thenThrow(new UsernameNotFoundException(""));
+        when(userRepository.findByUsername(anyString())).thenReturn(null);
 
-        Mockito.when(userDetailsService.createBasicUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-                Mockito.anyString())).thenReturn(Mockito.mock(UserDetails.class));
+        when(userService.createOrUpdateBasicUser(anyObject(), anyString(), anyString(), anyString(),
+                anyString())).thenReturn(mock(User.class));
 
-        DirContextOperations dirContextOperations = Mockito.mock(DirContextOperations.class);
-        Mockito.when(dirContextOperations.getStringAttribute("givenname")).thenReturn("givename");
-        Mockito.when(dirContextOperations.getStringAttribute("sn")).thenReturn("sn");
-        Mockito.when(dirContextOperations.getStringAttribute("cn")).thenReturn("cn");
+        DirContextOperations dirContextOperations = mock(DirContextOperations.class);
+        when(dirContextOperations.getStringAttribute("givenname")).thenReturn("givename");
+        when(dirContextOperations.getStringAttribute("sn")).thenReturn("sn");
+        when(dirContextOperations.getStringAttribute("cn")).thenReturn("cn");
 
         UserDetails userDetails = userDetailsContextMapper.mapUserFromContext(dirContextOperations, "testUsername", null);
 
         Assert.notNull(userDetails);
-        Mockito.verify(dirContextOperations, Mockito.times(3)).getStringAttribute(Mockito.anyString());
+        verify(dirContextOperations, times(3)).getStringAttribute(anyString());
     }
 
     @Test
     public void testMapUserFromContextWhenUserNameIsFound() throws Exception {
-        Mockito.when(userDetailsService.loadUserByUsername(Mockito.anyString())).thenReturn(Mockito.mock(UserDetails.class));
+        when(userRepository.findByUsername(anyString())).thenReturn(mock(User.class));
 
-        Mockito.when(userDetailsService.createBasicUser(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-                Mockito.anyString())).thenReturn(Mockito.mock(UserDetails.class));
-
-        DirContextOperations dirContextOperations = Mockito.mock(DirContextOperations.class);
-        Mockito.when(dirContextOperations.getStringAttribute("givenname")).thenReturn("givename");
-        Mockito.when(dirContextOperations.getStringAttribute("sn")).thenReturn("sn");
-        Mockito.when(dirContextOperations.getStringAttribute("cn")).thenReturn("cn");
-
+        DirContextOperations dirContextOperations = mock(DirContextOperations.class);
         UserDetails userDetails = userDetailsContextMapper.mapUserFromContext(dirContextOperations, "testUsername", null);
 
         Assert.notNull(userDetails);
-        Mockito.verify(dirContextOperations, Mockito.never()).getStringAttribute(Mockito.anyString());
-        Mockito.verify(userDetailsService, Mockito.never()).createBasicUser(Mockito.anyString(),
-                        Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+        verify(dirContextOperations, never()).getStringAttribute(anyString());
+        verify(userService, never()).createOrUpdateBasicUser(anyObject(), anyString(),
+                        anyString(), anyString(), anyString());
     }
 }

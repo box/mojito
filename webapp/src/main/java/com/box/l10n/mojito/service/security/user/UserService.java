@@ -5,14 +5,17 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import java.util.Set;
-import javax.transaction.Transactional;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import javax.transaction.Transactional;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author wyau
@@ -46,17 +49,18 @@ public class UserService {
      * @param commonName The common name (givenName surname)
      * @return The newly created user
      */
-    public User createUserWithRole(String username, String password, Role role, String givenName, String surname, String commonName) {
-        logger.info("Creating user entry for: {}", username);
+    public User createUserWithRole(String username, String password, Role role, String givenName, String surname, String commonName, boolean partiallyCreated) {
+        logger.debug("Creating user entry for: {}", username);
         Preconditions.checkNotNull(password, "password must not be null");
         Preconditions.checkState(!password.isEmpty(), "password must not be empty");
 
         User user = new User();
         user.setEnabled(true);
         user.setUsername(username);
-        return saveUserWithRole(user, password, role, givenName, surname, commonName);
+
+        return saveUserWithRole(user, password, role, givenName, surname, commonName, partiallyCreated);
     }
-    
+
     /**
      * Saves a {@link com.box.l10n.mojito.entity.security.user.User}
      * @param user
@@ -65,10 +69,11 @@ public class UserService {
      * @param givenName
      * @param surname
      * @param commonName
-     * @return 
+     * @param partiallyCreated
+     * @return
      */
     @Transactional
-    public User saveUserWithRole(User user, String password, Role role, String givenName, String surname, String commonName) {
+    public User saveUserWithRole(User user, String password, Role role, String givenName, String surname, String commonName, boolean partiallyCreated) {
 
         if (!StringUtils.isEmpty(givenName)) {
             user.setGivenName(givenName);
@@ -87,18 +92,20 @@ public class UserService {
             user.setPassword(bCryptPasswordEncoder.encode(password));
         }
 
+        user.setPartiallyCreated(partiallyCreated);
+
         userRepository.save(user);
         user = saveAuthorities(user, role);
 
         return user;
     }
-    
+
     /**
      * Saves a {@link Role} for {@link User}
-     * 
+     *
      * @param user
      * @param role
-     * @return 
+     * @return
      */
     @Transactional
     private User saveAuthorities(User user, Role role) {
@@ -124,7 +131,7 @@ public class UserService {
      * @return The newly created user
      */
     public User createUserWithRole(String username, String password, Role role) {
-        return createUserWithRole(username, password, role, null, null, null);
+        return createUserWithRole(username, password, role, null, null, null, false);
     }
 
     /**
@@ -166,7 +173,7 @@ public class UserService {
         authorityRepository.save(authorities);
         userRepository.save(userToUpdate);
     }
-    
+
     /**
      * Deletes a {@link User} by the {@link User#id}. It performs
      * logical delete.
@@ -186,5 +193,48 @@ public class UserService {
 
         logger.debug("Deleted user with username: {}", user.getUsername());
     }
-    
+
+    public User createBasicUser(String username, String givenName, String surname, String commonName, boolean partiallyCreated) {
+        logger.debug("Creating user: {}", username);
+
+        String randomPassword = RandomStringUtils.randomAlphanumeric(15);
+        User userWithRole = createUserWithRole(username, randomPassword, Role.USER, givenName, surname, commonName, partiallyCreated);
+
+        logger.debug("Manually setting created by user to system user because at this point, there isn't an authenticated user context");
+        updateCreatedByUserToSystemUser(userWithRole);
+
+        return userWithRole;
+    }
+
+    public User createOrUpdateBasicUser(User user, String username, String givenName, String surname, String commonName) {
+
+        if (user == null) {
+            logger.debug("create with username: {}, giveName:{}, surname: {}, commonName: {}", username, givenName, surname, commonName);
+            user = createBasicUser(username, givenName, surname, commonName, false);
+        } else {
+            logger.debug("update with username: {}, giveName:{}, surname: {}, commonName: {}", username, givenName, surname, commonName);
+            user = saveUserWithRole(user, null, null, givenName, surname, commonName, false);
+        }
+
+        return user;
+    }
+
+    /**
+     * Gets a user by name and if it doesn't exist create a "partially" created user.
+     *
+     * This is to be used by job that does something on behalf of a user is not yet in the system. The partially
+     * created attribute is then check during user login to update the information if required.
+     *
+     * @param username
+     * @return
+     */
+    public User getOrCreatePartialBasicUser(String username) {
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            createBasicUser(username, null, null, null, true);
+        }
+
+        return user;
+    }
 }

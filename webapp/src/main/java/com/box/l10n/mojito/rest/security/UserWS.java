@@ -82,7 +82,7 @@ public class UserWS {
         }
 
         User createdUser = userService.createUserWithRole(user.getUsername(), user.getPassword(), role,
-                user.getGivenName(), user.getSurname(), user.getCommonName());
+                user.getGivenName(), user.getSurname(), user.getCommonName(), false);
 
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
@@ -127,7 +127,7 @@ public class UserWS {
             role = Role.valueOf(authority.getAuthority());
         }
         
-        userService.saveUserWithRole(userToUpdate, user.getPassword(), role, user.getGivenName(), user.getSurname(), user.getCommonName());
+        userService.saveUserWithRole(userToUpdate, user.getPassword(), role, user.getGivenName(), user.getSurname(), user.getCommonName(), false);
     }
 
 }
