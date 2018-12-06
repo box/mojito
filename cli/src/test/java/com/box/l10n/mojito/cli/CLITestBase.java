@@ -3,13 +3,11 @@ package com.box.l10n.mojito.cli;
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -22,9 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -126,7 +122,7 @@ public class CLITestBase extends IOTestBase {
     public Repository createTestRepoUsingRepoService(String name) throws Exception {
 
         String repoName = testIdWatcher.getEntityName(name);
-        Repository repository = repositoryService.createRepository(repoName, repoName + " description");
+        Repository repository = repositoryService.createRepository(repoName, repoName + " description", null, false);
 
         repositoryService.addRepositoryLocale(repository, "fr-FR");
         repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);

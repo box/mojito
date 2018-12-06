@@ -13,15 +13,16 @@ import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author jaurambault
@@ -78,6 +79,8 @@ public class PullCommand extends Command {
 
     Map<String, RepositoryLocale> repositoryLocalesWithoutRootLocale;
 
+    RepositoryLocale rootRepositoryLocale;
+
     Repository repository;
 
     CommandDirectories commandDirectories;
@@ -97,7 +100,7 @@ public class PullCommand extends Command {
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
-        setRepositoryLocalesWithoutRootLocale(repository);
+        initRepositoryLocalesMapAndRootRepositoryLocale(repository);
         localeMappings = commandHelper.getLocaleMapping(localeMappingParam);
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
@@ -164,7 +167,14 @@ public class PullCommand extends Command {
     RepositoryLocale getRepositoryLocaleForOutputBcp47Tag(String outputBcp47tag) throws CommandException {
 
         String repositoryLocaleBcp47Tag = localeMappings.get(outputBcp47tag);
-        RepositoryLocale repositoryLocale = repositoryLocalesWithoutRootLocale.get(repositoryLocaleBcp47Tag);
+
+        RepositoryLocale repositoryLocale;
+
+        if (rootRepositoryLocale.getLocale().getBcp47Tag().equals(outputBcp47tag)) {
+            repositoryLocale = rootRepositoryLocale;
+        } else {
+            repositoryLocale = repositoryLocalesWithoutRootLocale.get(repositoryLocaleBcp47Tag);
+        }
 
         if (repositoryLocale == null) {
             throw new CommandException("Invalid locale mapping for tag: " + outputBcp47tag + ", locale: " + repositoryLocaleBcp47Tag + " is not available in the repository locales");
@@ -180,13 +190,15 @@ public class PullCommand extends Command {
      * @param repository the repository
      * @return the list of {@link RepositoryLocale}s excluding the root locale.
      */
-    private Map<String, RepositoryLocale> setRepositoryLocalesWithoutRootLocale(Repository repository) {
+    private Map<String, RepositoryLocale> initRepositoryLocalesMapAndRootRepositoryLocale(Repository repository) {
 
         repositoryLocalesWithoutRootLocale = new HashMap<>();
 
         for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
             if (repositoryLocale.getParentLocale() != null) {
                 repositoryLocalesWithoutRootLocale.put(repositoryLocale.getLocale().getBcp47Tag(), repositoryLocale);
+            } else {
+                rootRepositoryLocale = repositoryLocale;
             }
         }
 

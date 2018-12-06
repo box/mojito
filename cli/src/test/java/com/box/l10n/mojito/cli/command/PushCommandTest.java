@@ -1,14 +1,17 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.entity.Asset;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import nu.validator.htmlparser.annotation.Auto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +43,9 @@ public class PushCommandTest extends CLITestBase {
 
     @Autowired
     TextUnitSearcher textUnitSearcher;
+
+    @Autowired
+    LocaleService localeService;
 
     @Test
     public void testCommandName() throws Exception {
@@ -241,6 +247,51 @@ public class PushCommandTest extends CLITestBase {
         assertEquals("app2.properties", textUnitDTOS.get(3).getAssetPath());
     }
 
+    @Test
+    public void testDifferentSourceLocale() throws Exception {
+
+        String repoName = testIdWatcher.getEntityName("repository");
+
+        Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
+
+        Repository repository = repositoryService.createRepository(repoName, repoName + " description", frFRLocale, false);
+
+        repositoryService.addRepositoryLocale(repository, "en", "fr-FR", true);
+        repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);
+        repositoryService.addRepositoryLocale(repository, "ja-JP");
+
+        File sourceDirectory = getInputResourcesTestDir("source");
+
+        logger.debug("Source directory is [{}]", sourceDirectory.getAbsoluteFile());
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", sourceDirectory.getAbsolutePath());
+
+        TextUnitSearcherParameters textUnitSearcherParametersForSource = new TextUnitSearcherParameters();
+        textUnitSearcherParametersForSource.setRepositoryIds(repository.getId());
+        textUnitSearcherParametersForSource.setForRootLocale(true);
+
+        List<TextUnitDTO> sourceTextUnitDTOS = textUnitSearcher.search(textUnitSearcherParametersForSource);
+
+        assertEquals("k1", sourceTextUnitDTOS.get(0).getName());
+        assertEquals("en francais", sourceTextUnitDTOS.get(0).getSource());
+        assertEquals("fr-FR", sourceTextUnitDTOS.get(0).getTargetLocale());
+
+        TextUnitSearcherParameters textUnitSearcherParametersForTarget = new TextUnitSearcherParameters();
+        textUnitSearcherParametersForTarget.setRepositoryIds(repository.getId());
+
+        List<TextUnitDTO> targetTextUnitDTOS = textUnitSearcher.search(textUnitSearcherParametersForTarget);
+
+        assertEquals("k1", targetTextUnitDTOS.get(0).getName());
+        assertEquals("en francais", targetTextUnitDTOS.get(0).getSource());
+        assertEquals("en", targetTextUnitDTOS.get(0).getTargetLocale());
+
+        assertEquals("k1", targetTextUnitDTOS.get(1).getName());
+        assertEquals("en francais", targetTextUnitDTOS.get(1).getSource());
+        assertEquals("fr-CA", targetTextUnitDTOS.get(1).getTargetLocale());
+
+        assertEquals("k1", targetTextUnitDTOS.get(2).getName());
+        assertEquals("en francais", targetTextUnitDTOS.get(2).getSource());
+        assertEquals("ja-JP", targetTextUnitDTOS.get(2).getTargetLocale());
+    }
 
     private void checkNumberOfUsedUntranslatedTextUnit(Repository repository, List<String> locales, int expectedNumberOfUnstranslated) {
         checkNumberOfUntranslatedTextUnit(repository, locales, true, expectedNumberOfUnstranslated);

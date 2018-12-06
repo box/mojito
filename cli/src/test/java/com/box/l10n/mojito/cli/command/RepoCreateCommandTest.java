@@ -246,7 +246,7 @@ public class RepoCreateCommandTest extends CLITestBase {
 
         logger.debug("Creating repo with name: {}", testRepoName);
 
-        repositoryService.createRepository(testRepoName, testDescription);
+        repositoryService.createRepository(testRepoName, testDescription, null, false);
 
         getL10nJCommander().run(
                 "repo-create",
@@ -388,5 +388,19 @@ public class RepoCreateCommandTest extends CLITestBase {
         );
 
         assertTrue("There should be a conflict between \"en-CA->en-GB\", \"en-GB->en-CA\"", outputCapture.toString().contains("Found a cycle"));
+    }
+
+    @Test
+    public void testDifferentSourceLocale() {
+        String testRepoName = testIdWatcher.getEntityName("repository");
+        String testDescription = testRepoName + " description";
+
+        getL10nJCommander().run(
+                "repo-create",
+                Param.REPOSITORY_NAME_SHORT, testRepoName,
+                Param.REPOSITORY_DESCRIPTION_SHORT, testDescription,
+                Param.REPOSITORY_SOURCE_LOCALE_SHORT, "fr-FR",
+                Param.REPOSITORY_LOCALES_SHORT, "en", "it-IT"
+        );
     }
 }

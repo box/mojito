@@ -46,6 +46,12 @@ public class Repository extends AuditableEntity {
     private DropExporterType dropExporterType;
 
     @JsonView(View.RepositorySummary.class)
+    @ManyToOne
+    @Basic(optional = false)
+    @JoinColumn(name = "source_locale_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__LOCALE__ID"))
+    Locale sourceLocale;
+
+    @JsonView(View.RepositorySummary.class)
     @JsonManagedReference("repositoryLocales")
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<RepositoryLocale> repositoryLocales = new HashSet<>();
@@ -183,5 +189,13 @@ public class Repository extends AuditableEntity {
 
     public void setBranches(Set<Branch> branches) {
         this.branches = branches;
+    }
+
+    public Locale getSourceLocale() {
+        return sourceLocale;
+    }
+
+    public void setSourceLocale(Locale sourceLocale) {
+        this.sourceLocale = sourceLocale;
     }
 }

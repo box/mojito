@@ -85,7 +85,8 @@ public class RepoViewCommand extends RepoCommand {
                     RepositoryLocale parentRepositoryLocale = repositoryLocale.getParentLocale();
                     if (parentRepositoryLocale != null) {
                         String parentBcp47Tag = parentRepositoryLocale.getLocale().getBcp47Tag();
-                        if ("en".equals(parentBcp47Tag)) { 
+
+                        if (parentRepositoryLocale.getParentLocale() == null) {
                             consoleWriter.a("\"(").a(bcp47Tag).a(")\" ");
                         } else { 
                             consoleWriter.a("\"(").a(bcp47Tag).a(")->").a(parentBcp47Tag).a("\" ");

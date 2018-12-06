@@ -6,6 +6,7 @@ import com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException;
 import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.rest.entity.ImportRepositoryBody;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
+import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import org.slf4j.Logger;
@@ -90,17 +91,24 @@ public class RepositoryClient extends BaseClient {
      *
      * @param name
      * @param description
+     * @param sourceLocale
      * @param repositoryLocales With id, and repository id not set
      * @param integrityCheckers
      * @return
      * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException
      */
-    public Repository createRepository(String name, String description, Boolean checkSLA, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws ResourceNotCreatedException {
+    public Repository createRepository(String name,
+                                       String description,
+                                       Locale sourceLocale,
+                                       Set<RepositoryLocale> repositoryLocales,
+                                       Set<IntegrityChecker> integrityCheckers,
+                                       Boolean checkSLA) throws ResourceNotCreatedException {
         logger.debug("Creating repo with name = {}, and description = {}, and repositoryLocales = {}", name, description, repositoryLocales.toString());
 
         Repository repoToCreate = new Repository();
-        repoToCreate.setDescription(description);
         repoToCreate.setName(name);
+        repoToCreate.setDescription(description);
+        repoToCreate.setSourceLocale(sourceLocale);
         repoToCreate.setRepositoryLocales(repositoryLocales);
         repoToCreate.setIntegrityCheckers(integrityCheckers);
         repoToCreate.setCheckSLA(checkSLA);

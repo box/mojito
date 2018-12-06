@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,11 +75,11 @@ public class RepositoryService {
      * reviewed when working on the WS/CLI/FE
      */
     private static final String DEFAULT_ROOT_LOCALE = LocaleService.DEFAULT_LOCALE_BCP47_TAG;
-   
+
     /**
      * Gets all the repositories that are not deleted, ordered by name
      * @param repositoryName
-     * @return 
+     * @return
      */
     public List<Repository> findRepositoriesIsNotDeletedOrderByName(String repositoryName) {
         return repositoryRepository.findAll(
@@ -92,10 +94,12 @@ public class RepositoryService {
      *
      * @param name the repository name (must not exist already)
      * @param description for the repo to be created
+     * @param sourceLocale the source locale of this repository. if null, {@link LocaleService#DEFAULT_LOCALE_BCP47_TAG} is used
+     * @param checkSLA if SLA will be checked for this repository
      * @return the created {@link Repository}
      */
     @Transactional
-    public Repository createRepository(String name, String description, Boolean checkSLA) throws RepositoryNameAlreadyUsedException {
+    public Repository createRepository(String name, String description, Locale sourceLocale, Boolean checkSLA) throws RepositoryNameAlreadyUsedException {
 
         logger.debug("Check no repository with name: {} exists", name);
 
@@ -113,6 +117,13 @@ public class RepositoryService {
         repository.setCheckSLA(checkSLA);
         repository.setDropExporterType(dropExporterConfiguration.getType());
 
+        if (sourceLocale == null) {
+            logger.debug("No source locale provided, use the default locale");
+            sourceLocale = localeService.getDefaultLocale();
+        }
+
+        repository.setSourceLocale(sourceLocale);
+
         logger.debug("Create the repository TM");
         TM tm = tmRepository.save(new TM());
 
@@ -127,26 +138,19 @@ public class RepositoryService {
 
         logger.debug("Create repository id: {} (name: {})", repository.getId(), name);
 
-        //TODO(P1) For now hardcode the root locale, the whole repository+repositoryLocale
-        // creation must be reviewed. Not addressing it in this commit.
-        // We just add "en" to all repository as root locale and all
-        addRootLocale(repository, DEFAULT_ROOT_LOCALE);
+        addRootLocale(repository, sourceLocale);
 
         return repository;
     }
 
     /**
-     * Wrapper around the {@link #createRepository(String, String)}
+     * Wrapper around the {@link #createRepository(String, String, Locale, Boolean)}
      *
      * @param name
      * @return
      */
     public Repository createRepository(String name) throws RepositoryNameAlreadyUsedException {
-        return createRepository(name, "");
-    }
-
-    public Repository createRepository(String name, String description) throws RepositoryNameAlreadyUsedException {
-        return createRepository(name, description, false);
+        return createRepository(name, "", localeService.getDefaultLocale(), false);
     }
 
     /**
@@ -155,21 +159,23 @@ public class RepositoryService {
      *
      * @param name
      * @param description
+     * @param sourceLocale
+     * @param assetIntegrityCheckers
      * @param repositoryLocales Set of {@link RepositoryLocale}. See
      * {@link RepositoryService#updateRepositoryLocales} to see requirements
      *
-     * @param assetIntegrityCheckers
      * @return The created {@link Repository}
      */
     @Transactional
     public Repository createRepository(
             String name,
             String description,
+            Locale sourceLocale,
             Boolean checkSLA,
-            Set<RepositoryLocale> repositoryLocales,
-            Set<AssetIntegrityChecker> assetIntegrityCheckers) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
+            Set<AssetIntegrityChecker> assetIntegrityCheckers,
+            Set<RepositoryLocale> repositoryLocales) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
 
-        Repository createdRepo = createRepository(name, description, checkSLA);
+        Repository createdRepo = createRepository(name, description, sourceLocale, checkSLA);
 
         updateRepositoryLocales(createdRepo, repositoryLocales);
         addIntegrityCheckersToRepository(createdRepo, assetIntegrityCheckers);
@@ -485,16 +491,14 @@ public class RepositoryService {
      * @return the created {@link RepositoryLocale} that holds the root locale
      */
     @Transactional
-    protected RepositoryLocale addRootLocale(Repository repository, String bcp47Tag) {
+    protected RepositoryLocale addRootLocale(Repository repository, Locale sourceLocale) {
 
-        logger.debug("Adding the root locale [{}] into repo [{}]", bcp47Tag, repository.getName());
+        logger.debug("Adding the root locale [{}] into repo [{}]", sourceLocale.getBcp47Tag(), repository.getName());
 
         checkNoRootLocaleExists(repository);
 
-        Locale locale = localeService.findByBcp47Tag(bcp47Tag);
-
         RepositoryLocale repositoryLocale = new RepositoryLocale();
-        repositoryLocale.setLocale(locale);
+        repositoryLocale.setLocale(sourceLocale);
         repositoryLocale.setRepository(repository);
         repositoryLocale.setToBeFullyTranslated(false);
 
@@ -548,11 +552,9 @@ public class RepositoryService {
         logger.debug("Adding repo locale [{}] with parent locale [{}] to repo [{}]", bcp47Tag, parentLocaleBcp47Tag, repository.getName());
 
         if (parentLocaleBcp47Tag == null) {
-            //TODO(P1) For now if no parent locale is specified, we use default root locale.
-            // v2: fetch dynamically the root locale, instead of using default
-            parentLocaleBcp47Tag = DEFAULT_ROOT_LOCALE;
+            parentLocaleBcp47Tag = repository.getSourceLocale().getBcp47Tag();
 
-            if (DEFAULT_ROOT_LOCALE.equals(bcp47Tag)) {
+            if (parentLocaleBcp47Tag.equals(bcp47Tag)) {
                 throw new RepositoryLocaleCreationException("Locale [" + bcp47Tag + "] cannot be added because it is the root locale");
             }
         }

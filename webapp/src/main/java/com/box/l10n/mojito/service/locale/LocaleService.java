@@ -14,7 +14,6 @@ import java.util.Map;
 @Service
 public class LocaleService {
 
-    //TODO(P1) Remove that to make root locale customizable per repository
     public static final String DEFAULT_LOCALE_BCP47_TAG = "en";
 
     @Autowired
@@ -77,11 +76,7 @@ public class LocaleService {
         return getLocalesIdMap().get(localeId);
     }
 
-    //TODO(P1) Remove that to make root locale customizable per repository
-    /**
-     * @return the ID of the default system locale
-     */
-    public Long getDefaultLocaleId() {
-        return findByBcp47Tag(DEFAULT_LOCALE_BCP47_TAG).getId();
+    public Locale getDefaultLocale() {
+        return findByBcp47Tag(DEFAULT_LOCALE_BCP47_TAG);
     }
 }

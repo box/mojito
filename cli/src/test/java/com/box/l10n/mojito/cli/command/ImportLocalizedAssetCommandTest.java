@@ -1,10 +1,13 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -16,6 +19,9 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(DropXliffImportCommandTest.class);
+
+    @Autowired
+    LocaleService localeService;
 
     @Test
     public void importAndroidStrings() throws Exception {
@@ -327,6 +333,37 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source2").getAbsolutePath(),
                 "-t", getTargetTestDir().getAbsolutePath());
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void importDifferentSourceLocale() throws Exception {
+        String repoName = testIdWatcher.getEntityName("repository");
+
+        Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
+
+        Repository repository = repositoryService.createRepository(repoName, repoName + " description", frFRLocale, false);
+
+        repositoryService.addRepositoryLocale(repository, "en", "fr-FR", true);
+        repositoryService.addRepositoryLocale(repository, "en-US", "en", false);
+        repositoryService.addRepositoryLocale(repository, "ja-JP");
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("withNoMapping").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("withMapping").getAbsolutePath(),
+                "-lm", "en-US:en-US,en:en,fr-FR:fr-FR");
 
         checkExpectedGeneratedResources();
     }

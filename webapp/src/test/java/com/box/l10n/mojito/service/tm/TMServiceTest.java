@@ -172,7 +172,7 @@ public class TMServiceTest extends ServiceTestBase {
         assertFalse(tmTextUnitIterator.hasNext());
 
         logger.debug("Check the text units variants for the default locale");
-        Iterator<TMTextUnitVariant> tmTextUnitVariantIterator = tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(localeService.getDefaultLocaleId(), tmId).iterator();
+        Iterator<TMTextUnitVariant> tmTextUnitVariantIterator = tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_id(localeService.getDefaultLocale().getId(), tmId).iterator();
         assertEquals("this is the content", tmTextUnitVariantIterator.next().getContent());
         assertEquals("content", tmTextUnitVariantIterator.next().getContent());
         assertFalse(tmTextUnitVariantIterator.hasNext());
