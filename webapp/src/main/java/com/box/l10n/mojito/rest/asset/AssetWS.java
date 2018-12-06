@@ -110,7 +110,7 @@ public class AssetWS {
                 normalizedContent,
                 sourceAsset.getPath(),
                 sourceAsset.getBranch(),
-                sourceAsset.getUsername(),
+                sourceAsset.getBranchCreatedByUsername(),
                 sourceAsset.getFilterConfigIdOverride()
         );
 

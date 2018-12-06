@@ -9,9 +9,7 @@ import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.client.UserClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.*;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
@@ -19,7 +17,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +59,8 @@ public class PushCommand extends Command {
     @Parameter(names = {"-b", "--branch"}, arity = 1, required = false, description = "branch")
     String branchName;
 
-    @Parameter(names = {Param.USERNAME_LONG, Param.USERNAME_SHORT}, arity = 1, required = false, description = "username of text unit author")
-    String username;
+    @Parameter(names = {"--branch-createdby", "-bc"}, arity = 1, required = false, description = "username of text unit author")
+    String branchCreatedBy;
 
     @Autowired
     AssetClient assetClient;
@@ -72,24 +69,12 @@ public class PushCommand extends Command {
     RepositoryClient repositoryClient;
 
     @Autowired
-    UserClient userClient;
-
-    @Autowired
     CommandHelper commandHelper;
 
     CommandDirectories commandDirectories;
 
     @Override
     public void execute() throws CommandException {
-
-        if(username != null) {
-            try {
-                userClient.createUser(username, RandomStringUtils.randomAlphanumeric(15), Role.USER, null, null, null);
-                consoleWriter.a("creating user: ").fg(Ansi.Color.DEFAULT).a(username).println();
-            } catch (ResourceNotCreatedException e) {
-                consoleWriter.a("creating user: ").fg(Ansi.Color.DEFAULT).a(e.getMessage()).println();
-            }
-        }
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam);
 
@@ -116,7 +101,7 @@ public class PushCommand extends Command {
 
             SourceAsset sourceAsset = new SourceAsset();
             sourceAsset.setBranch(branchName);
-            sourceAsset.setUsername(username);
+            sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
             sourceAsset.setPath(sourcePath);
             sourceAsset.setContent(assetContent);
             sourceAsset.setRepositoryId(repository.getId());

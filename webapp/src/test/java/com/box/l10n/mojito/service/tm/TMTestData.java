@@ -142,7 +142,7 @@ public class TMTestData {
         createAssetTextUnit1 = assetExtractionService.createAssetTextUnit(assetExtraction, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
         createAssetTextUnit2 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST2", "Content2", "Comment2");
 
-        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(null, assetExtraction.getId(), tm.getId(), assetId, PollableTask.INJECT_CURRENT_TASK);
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tm.getId(), assetId, PollableTask.INJECT_CURRENT_TASK, null);
         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
 
         addCurrentTMTextUnitVariant1KoKR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit1.getId(), koKR.getId(), "올바른 국가, 지역 또는 시/도를 입력하십시오.");

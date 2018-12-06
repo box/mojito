@@ -18,7 +18,6 @@ public class ProcessAssetJob extends QuartzPollableJob<ProcessAssetJobInput, Voi
     public Void call(ProcessAssetJobInput input) throws Exception {
 
         assetExtractionService.processAsset(
-                input.getUsername(),
                 input.getAssetContentId(),
                 input.getFilterConfigIdOverride(),
                 getCurrentPollableTask());

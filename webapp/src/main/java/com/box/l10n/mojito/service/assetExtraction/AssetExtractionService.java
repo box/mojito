@@ -8,6 +8,7 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -99,7 +100,6 @@ public class AssetExtractionService {
      * @throws com.box.l10n.mojito.service.assetExtraction.AssetExtractionConflictException
      */
     public PollableFuture<Asset> processAsset(
-            String username,
             Long assetContentId,
             FilterConfigIdOverride filterConfigIdOverride,
             PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
@@ -107,17 +107,18 @@ public class AssetExtractionService {
         logger.debug("Start processing asset content, id: {}", assetContentId);
         AssetContent assetContent = assetContentService.findOne(assetContentId);
         Asset asset = assetContent.getAsset();
+        User branchCreatedBy = assetContent != null && assetContent.getBranch() != null ? assetContent.getBranch().getCreatedByUser() : null;
 
         AssetExtraction assetExtraction = createAssetExtraction(assetContent, currentTask);
 
         assetExtractor.performAssetExtraction(assetExtraction, filterConfigIdOverride, currentTask);
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
-                username,
                 assetExtraction.getId(),
                 asset.getRepository().getTm().getId(),
                 asset.getId(),
-                currentTask);
+                currentTask,
+                branchCreatedBy);
 
         markAssetExtractionForBranch(assetExtraction);
 
@@ -302,13 +303,11 @@ public class AssetExtractionService {
     }
 
     public PollableFuture processAssetAsync(
-            String username,
             Long assetContentId,
             FilterConfigIdOverride filterConfigIdOverride,
             Long parentTaskId) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
 
         ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();
-        processAssetJobInput.setUsername(username);
         processAssetJobInput.setAssetContentId(assetContentId);
         processAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
 

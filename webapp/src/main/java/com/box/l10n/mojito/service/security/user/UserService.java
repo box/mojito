@@ -232,7 +232,7 @@ public class UserService {
         User user = userRepository.findByUsername(username);
 
         if (user == null) {
-            createBasicUser(username, null, null, null, true);
+            return createBasicUser(username, null, null, null, true);
         }
 
         return user;

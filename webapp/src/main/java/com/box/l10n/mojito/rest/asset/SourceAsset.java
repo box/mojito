@@ -15,7 +15,7 @@ public class SourceAsset {
     private String path;
     private String content;
     private String branch;
-    private String username;
+    private String branchCreatedByUsername;
     private Long addedAssetId;
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
@@ -68,12 +68,12 @@ public class SourceAsset {
         this.branch = branch;
     }
 
-    public String getUsername() {
-        return username;
+    public String getBranchCreatedByUsername() {
+        return branchCreatedByUsername;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setBranchCreatedByUsername(String branchCreatedByUsername) {
+        this.branchCreatedByUsername = branchCreatedByUsername;
     }
 
     @JsonProperty

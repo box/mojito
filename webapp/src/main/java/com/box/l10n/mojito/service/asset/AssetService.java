@@ -110,9 +110,9 @@ public class AssetService {
             String assetContent,
             String assetPath,
             String branch,
-            String username,
+            String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
-        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch, username, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
+        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch, branchCreatedByUsername, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
     }
 
     /**
@@ -135,7 +135,7 @@ public class AssetService {
             String assetContent,
             String assetPath,
             String branchName,
-            String username,
+            String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride,
             @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
@@ -157,24 +157,21 @@ public class AssetService {
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(1);
         }
 
-        //TODO pass the owner information, merge Xiaye's PR
-        String createdByFromXiaye = null;
+        User branchCreatedByUser = null;
 
-        User branchCreatedBy = null;
-
-        if (createdByFromXiaye != null) {
-            branchCreatedBy =  userService.getOrCreatePartialBasicUser(createdByFromXiaye);
+        if (branchCreatedByUsername != null) {
+            branchCreatedByUser =  userService.getOrCreatePartialBasicUser(branchCreatedByUsername);
         } else {
-            branchCreatedBy = auditorAware.getCurrentAuditor();
+            branchCreatedByUser = auditorAware.getCurrentAuditor();
         }
 
-        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedBy);
+        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
 
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 
         if (isAssetUpdateNeeded(assetExtractionByBranch, assetContent)) {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, branch);
-            assetExtractionService.processAssetAsync(username, assetContentEntity.getId(), filterConfigIdOverride, currentTask.getId());
+            assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, currentTask.getId());
         } else {
             undeleteAssetIfDeleted(assetExtractionByBranch);
             logger.debug("Asset content has not changed. Reset number of expected sub task to 0");
