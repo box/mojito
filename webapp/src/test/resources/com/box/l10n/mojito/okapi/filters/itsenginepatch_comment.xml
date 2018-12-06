@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<doc>
+    <!-- comment 1 before 1l -->
+    <!-- comment 1 before 2l -->
+    <tu>
+        <!-- comment 1 inside 1l -->
+        <!-- comment 1 inside 2l -->
+        <key>k1</key>
+        <value>v1</value>
+        <description>de1</description>
+    </tu>
+
+    <!-- comment 2 before 1l -->
+    <!-- comment 2 before 2l -->
+    <tu meh="stop">
+        <!-- comment 2 inside 1l -->
+        <!-- comment 2 inside 2l -->
+        <key>k2</key>
+        <value>v2</value>
+        <description>de2</description>
+    </tu>
+
+    <!-- comment 3 before 1l -->
+    <!-- comment 3 before 2l -->
+    <tu>
+        <!-- comment 3 inside 1l -->
+        <!-- comment 3 inside 2l -->
+        <key>k3</key>
+        <value>v3</value>
+        <description>de3</description>
+    </tu>
+
+    <!-- not preceding -->
+</doc>
