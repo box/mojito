@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.common.StreamUtil;
 import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.okapi.*;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
@@ -153,10 +154,39 @@ public class TMService {
             PluralForm pluralForm,
             String pluralFormOther) {
 
+        return addTMTextUnit(tm, asset, name, content, comment, null, createdDate, pluralForm, pluralFormOther);
+    }
+
+    /**
+     * Adds a {@link TMTextUnit} in a {@link TM}.
+     *
+     * @param tm          the {@link TM}
+     * @param asset       the {@link Asset}
+     * @param name        the text unit name
+     * @param content     the text unit content
+     * @param comment     the text unit comment, can be {@code null}
+     * @param createdDate to specify a creation date (can be used to re-import
+     *                    old TM), can be {@code null}
+     * @return the create {@link TMTextUnit}
+     * @throws DataIntegrityViolationException If trying to create a
+     *                                         {@link TMTextUnit} with same logical key as an existing one or TM id
+     *                                         invalid
+     */
+    public TMTextUnit addTMTextUnit(
+            TM tm,
+            Asset asset,
+            String name,
+            String content,
+            String comment,
+            User createdByUser,
+            DateTime createdDate,
+            PluralForm pluralForm,
+            String pluralFormOther) {
+
         Locale sourceLocale = asset.getRepository().getSourceLocale();
         Preconditions.checkNotNull(sourceLocale, "There must be a source locale");
 
-        TMTextUnit tmTextUnit = addTMTextUnit(tm.getId(), asset.getId(), name, content, comment, createdDate, pluralForm, pluralFormOther, sourceLocale.getId());
+        TMTextUnit tmTextUnit = addTMTextUnit(tm.getId(), asset.getId(), name, content, comment, createdByUser, createdDate, pluralForm, pluralFormOther, sourceLocale.getId());
         tmTextUnit.setTm(tm);
         tmTextUnit.setAsset(asset);
         return tmTextUnit;
@@ -185,6 +215,7 @@ public class TMService {
      * @param name
      * @param content
      * @param comment
+     * @param createdByUser
      * @param createdDate
      * @param pluralForm
      * @param pluralFormOther
@@ -197,6 +228,7 @@ public class TMService {
             final String name,
             final String content,
             final String comment,
+            final User createdByUser,
             final DateTime createdDate,
             final PluralForm pluralForm,
             final String pluralFormOther,
@@ -215,7 +247,7 @@ public class TMService {
         tmTextUnit.setCreatedDate(createdDate);
         tmTextUnit.setPluralForm(pluralForm);
         tmTextUnit.setPluralFormOther(pluralFormOther);
-        tmTextUnit.setCreatedByUser(auditorAwareImpl.getCurrentAuditor());
+        tmTextUnit.setCreatedByUser(createdByUser !=null ? createdByUser :auditorAwareImpl.getCurrentAuditor());
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
 

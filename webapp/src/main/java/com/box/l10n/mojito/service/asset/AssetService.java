@@ -157,13 +157,7 @@ public class AssetService {
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(1);
         }
 
-        User branchCreatedByUser = null;
-
-        if (branchCreatedByUsername != null) {
-            branchCreatedByUser =  userService.getOrCreatePartialBasicUser(branchCreatedByUsername);
-        } else {
-            branchCreatedByUser = auditorAware.getCurrentAuditor();
-        }
+        User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor();
 
         Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
 

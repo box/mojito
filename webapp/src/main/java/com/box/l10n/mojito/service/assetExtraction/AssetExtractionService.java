@@ -107,7 +107,6 @@ public class AssetExtractionService {
         logger.debug("Start processing asset content, id: {}", assetContentId);
         AssetContent assetContent = assetContentService.findOne(assetContentId);
         Asset asset = assetContent.getAsset();
-        User branchCreatedBy = assetContent != null && assetContent.getBranch() != null ? assetContent.getBranch().getCreatedByUser() : null;
 
         AssetExtraction assetExtraction = createAssetExtraction(assetContent, currentTask);
 
@@ -117,8 +116,8 @@ public class AssetExtractionService {
                 assetExtraction.getId(),
                 asset.getRepository().getTm().getId(),
                 asset.getId(),
-                currentTask,
-                branchCreatedBy);
+                assetContent.getBranch().getCreatedByUser(),
+                currentTask);
 
         markAssetExtractionForBranch(assetExtraction);
 

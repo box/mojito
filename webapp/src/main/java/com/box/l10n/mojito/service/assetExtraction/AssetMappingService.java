@@ -82,18 +82,18 @@ public class AssetMappingService {
      * @param assetExtractionId a valid {@link AssetExtraction#id}
      * @param tmId              a valid {@link TM#id}
      * @param assetId           a valid {@link Asset#id}
+     * @param createdByUser     user creates text unit
      * @param parentTask        the parent task to be updated
-     * @param user              user creates text unit
      */
     @Pollable(message = "Mapping AssetTextUnit to TMTextUnit")
-    public void mapAssetTextUnitAndCreateTMTextUnit(Long assetExtractionId, Long tmId, Long assetId, @ParentTask PollableTask parentTask, User user) {
+    public void mapAssetTextUnitAndCreateTMTextUnit(Long assetExtractionId, Long tmId, Long assetId, User createdByUser, @ParentTask PollableTask parentTask) {
 
         logger.debug("Map exact matches a first time to map to existing text units");
         long mapExactMatches = mapExactMatches(assetExtractionId, tmId, assetId);
         logger.debug("{} text units were mapped the first time for asset extraction id: {} and tmId: {}", mapExactMatches, assetExtractionId, tmId);
 
         logger.debug("Create text units for unmapped asset text units");
-        List<TMTextUnit> newlyCreatedTMTextUnits = createTMTextUnitForUnmappedAssetTextUnitsWithRetry(user, assetExtractionId, tmId, assetId);
+        List<TMTextUnit> newlyCreatedTMTextUnits = createTMTextUnitForUnmappedAssetTextUnitsWithRetry(assetExtractionId, tmId, assetId, createdByUser);
 
         logger.debug("Map exact matches a second time to map newly created text units");
         int mapExactMatches2 = mapExactMatches(assetExtractionId, tmId, assetId);
@@ -114,7 +114,7 @@ public class AssetMappingService {
      * @param assetId           a valid {@link Asset#id}
      * @return the newly created {@link TMTextUnit}s
      */
-    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnitsWithRetry(User user, final Long assetExtractionId, final Long tmId, final Long assetId) {
+    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnitsWithRetry(final Long assetExtractionId, final Long tmId, final Long assetId, User createdByUser) {
         return retryTemplate.execute(new RetryCallback<List<TMTextUnit>, DataIntegrityViolationException>() {
             @Override
             public List<TMTextUnit> doWithRetry(RetryContext context) throws DataIntegrityViolationException {
@@ -124,13 +124,13 @@ public class AssetMappingService {
                     logger.error("Assume concurrent modification happened, perform remapping: {}", mapExactMatches);
                 }
 
-                return createTMTextUnitForUnmappedAssetTextUnits(user, assetExtractionId, tmId, assetId);
+                return createTMTextUnitForUnmappedAssetTextUnits(createdByUser, assetExtractionId, tmId, assetId);
             }
         });
     }
 
     @Transactional
-    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnits(User user, Long assetExtractionId, Long tmId, Long assetId) {
+    protected List<TMTextUnit> createTMTextUnitForUnmappedAssetTextUnits(User createdByUser, Long assetExtractionId, Long tmId, Long assetId) {
 
         logger.debug("Create TMTextUnit for unmapped AssetTextUnits, assetExtractionId: {} tmId: {}", assetExtractionId, tmId);
         List<TMTextUnit> newlyCreatedTMTextUnits = new ArrayList<>();
@@ -145,11 +145,11 @@ public class AssetMappingService {
                     unmappedAssetTextUnit.getName(),
                     unmappedAssetTextUnit.getContent(),
                     unmappedAssetTextUnit.getComment(),
+                    createdByUser,
                     null,
                     unmappedAssetTextUnit.getPluralForm(),
                     unmappedAssetTextUnit.getPluralFormOther());
 
-            addTMTextUnit.setCreatedByUser(user);
             newlyCreatedTMTextUnits.add(addTMTextUnit);
         }
 
