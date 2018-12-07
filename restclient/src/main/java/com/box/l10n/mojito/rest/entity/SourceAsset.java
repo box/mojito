@@ -17,6 +17,7 @@ public class SourceAsset {
     private String path;
     private String content;
     private String branch;
+    private String branchCreatedByUsername;
     private Long addedAssetId;
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
@@ -59,6 +60,14 @@ public class SourceAsset {
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public String getBranchCreatedByUsername() {
+        return branchCreatedByUsername;
+    }
+
+    public void setBranchCreatedByUsername(String branchCreatedByUsername) {
+        this.branchCreatedByUsername = branchCreatedByUsername;
     }
 
     public FilterConfigIdOverride getFilterConfigIdOverride() {

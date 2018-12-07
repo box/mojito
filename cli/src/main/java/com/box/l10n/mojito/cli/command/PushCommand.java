@@ -10,15 +10,13 @@ import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.Branch;
-import com.box.l10n.mojito.rest.entity.PollableTask;
-import com.box.l10n.mojito.rest.entity.Repository;
-import com.box.l10n.mojito.rest.entity.SourceAsset;
+import com.box.l10n.mojito.rest.entity.*;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +59,9 @@ public class PushCommand extends Command {
     @Parameter(names = {"-b", "--branch"}, arity = 1, required = false, description = "branch")
     String branchName;
 
+    @Parameter(names = {"--branch-createdby", "-bc"}, arity = 1, required = false, description = "username of text unit author")
+    String branchCreatedBy;
+
     @Autowired
     AssetClient assetClient;
 
@@ -100,6 +101,7 @@ public class PushCommand extends Command {
 
             SourceAsset sourceAsset = new SourceAsset();
             sourceAsset.setBranch(branchName);
+            sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
             sourceAsset.setPath(sourcePath);
             sourceAsset.setContent(assetContent);
             sourceAsset.setRepositoryId(repository.getId());

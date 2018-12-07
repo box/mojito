@@ -91,7 +91,7 @@ public class WSTestDataFactory {
         Repository repository = createRepository(testIdWatcher);
 
         try {
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), getTestSourceAssetContent(), "path/to/asset.xliff", null, null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), getTestSourceAssetContent(), "path/to/asset.xliff", null, null, null);
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException | ExecutionException e) {
             throw new RuntimeException("Could not update asset and process it", e);

@@ -8,6 +8,7 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -115,6 +116,7 @@ public class AssetExtractionService {
                 assetExtraction.getId(),
                 asset.getRepository().getTm().getId(),
                 asset.getId(),
+                assetContent.getBranch().getCreatedByUser(),
                 currentTask);
 
         markAssetExtractionForBranch(assetExtraction);

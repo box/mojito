@@ -110,8 +110,9 @@ public class AssetService {
             String assetContent,
             String assetPath,
             String branch,
+            String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
-        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
+        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch, branchCreatedByUsername, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
     }
 
     /**
@@ -134,6 +135,7 @@ public class AssetService {
             String assetContent,
             String assetPath,
             String branchName,
+            String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride,
             @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
@@ -155,18 +157,9 @@ public class AssetService {
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(1);
         }
 
-        //TODO pass the owner information, merge Xiaye's PR
-        String createdByFromXiaye = null;
+        User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor();
 
-        User branchCreatedBy = null;
-
-        if (createdByFromXiaye != null) {
-            branchCreatedBy =  userService.getOrCreatePartialBasicUser(createdByFromXiaye);
-        } else {
-            branchCreatedBy = auditorAware.getCurrentAuditor();
-        }
-
-        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedBy);
+        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
 
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 
