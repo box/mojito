@@ -51,6 +51,8 @@ public class L10nJCommander {
 
     boolean systemExitEnabled = true;
 
+    int exitCode;
+
     /**
      * Wrapped {@link JCommander} that is re-created for each call of
      * {@link #run}.
@@ -221,6 +223,7 @@ public class L10nJCommander {
     }
 
     public void exitWithError(int exitCode) {
+        this.exitCode = exitCode;
 
         if (isSystemExitEnabled()) {
             System.exit(exitCode);
@@ -246,4 +249,7 @@ public class L10nJCommander {
         this.systemExitEnabled = systemExitEnabled;
     }
 
+    public int getExitCode() {
+        return exitCode;
+    }
 }

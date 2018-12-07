@@ -125,18 +125,17 @@ public class RepositoryClient extends BaseClient {
     }
 
     /**
-     *
      * @param repositoryId
      * @param exportedXliffContent
-     * @param updateTM indicates if the TM should be updated or if the translation
-     * can be imported assuming that there is no translation yet.
+     * @param updateTM             indicates if the TM should be updated or if the translation
+     *                             can be imported assuming that there is no translation yet.
      * @return
      * @throws ResourceNotCreatedException
      */
     public void importRepository(Long repositoryId, String exportedXliffContent, boolean updateTM) throws ResourceNotCreatedException {
 
         String pathToImport = getBasePathForResource(repositoryId, "xliffImport");
-        
+
         ImportRepositoryBody importRepositoryBody = new ImportRepositoryBody();
         importRepositoryBody.setXliffContent(exportedXliffContent);
         importRepositoryBody.setUpdateTM(updateTM);
@@ -152,7 +151,7 @@ public class RepositoryClient extends BaseClient {
             }
         }
     }
-    
+
     /**
      * Deletes a {@link Repository} by the {@link Repository#name}
      *
@@ -167,18 +166,17 @@ public class RepositoryClient extends BaseClient {
 
     /**
      * Updates a {@link Repository}
-     * 
+     *
      * @param name
      * @param newName
      * @param description
      * @param repositoryLocales With id, and repository id not set
      * @param integrityCheckers
-     * @throws
-     * com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException
+     * @throws com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException
      * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotUpdatedException
      */
     public void updateRepository(String name, String newName, String description, Boolean checkSLA, Set<RepositoryLocale> repositoryLocales, Set<IntegrityChecker> integrityCheckers) throws RepositoryNotFoundException, ResourceNotUpdatedException {
-        
+
         logger.debug("Updating repository by name = [{}]", name);
         Repository repository = getRepositoryByName(name);
 
@@ -216,7 +214,15 @@ public class RepositoryClient extends BaseClient {
     }
 
     public Branch getBranch(Long repositoryId, String branchName) {
-        return getBranches(repositoryId, branchName).get(0);
+        Branch branch = null;
+
+        List<Branch> branches = getBranches(repositoryId, branchName);
+
+        if (!branches.isEmpty()) {
+            branch = branches.get(0);
+        }
+
+        return branch;
     }
 
 }

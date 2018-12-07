@@ -293,6 +293,14 @@ public class PushCommandTest extends CLITestBase {
         assertEquals("ja-JP", targetTextUnitDTOS.get(2).getTargetLocale());
     }
 
+    @Test
+    public void testInitialPushWithNofile() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+        L10nJCommander l10nJCommander = getL10nJCommander();
+        l10nJCommander.run("push", "-r", repository.getName(), "-s", getInputResourcesTestDir().getAbsolutePath());
+        assertEquals(0, l10nJCommander.getExitCode());
+    }
+
     private void checkNumberOfUsedUntranslatedTextUnit(Repository repository, List<String> locales, int expectedNumberOfUnstranslated) {
         checkNumberOfUntranslatedTextUnit(repository, locales, true, expectedNumberOfUnstranslated);
     }
