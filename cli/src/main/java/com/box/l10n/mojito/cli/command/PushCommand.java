@@ -125,13 +125,17 @@ public class PushCommand extends Command {
 
         Branch branch = repositoryClient.getBranch(repository.getId(), branchName);
 
-        logger.debug("process deleted assets here");
-        Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false, branch.getId()));
+        if (branch == null) {
+            logger.debug("No branch in the repository, no asset must have been pushed yet, no need to delete");
+        } else {
+            logger.debug("process deleted assets here");
+            Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false, branch.getId()));
 
-        assetIds.removeAll(usedAssetIds);
-        if (!assetIds.isEmpty()) {
-            assetClient.deleteAssetsInBranch(assetIds, branch.getId());
-            consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println(2);
+            assetIds.removeAll(usedAssetIds);
+            if (!assetIds.isEmpty()) {
+                assetClient.deleteAssetsInBranch(assetIds, branch.getId());
+                consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println(2);
+            }
         }
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
