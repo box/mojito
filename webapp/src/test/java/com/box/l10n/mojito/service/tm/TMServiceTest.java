@@ -1319,12 +1319,13 @@ public class TMServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</dict>\n" +
                 "</plist>";
-        asset = assetService.createAsset(repo.getId(), assetContent, "Localizable.stringsdict");
+        asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
+
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1401,12 +1402,12 @@ public class TMServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</plist>";
 
-        asset = assetService.createAsset(repo.getId(), assetContent, "Localizable.stringsdict");
+        asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {

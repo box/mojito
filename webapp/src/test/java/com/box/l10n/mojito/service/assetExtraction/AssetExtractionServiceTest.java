@@ -563,7 +563,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</plist>";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
         assertEquals("Processing should have extracted 7 text units", 7, assetTextUnits.size());
         assertEquals("%d file(s) remaining_NSStringLocalizedFormatKey", assetTextUnits.get(0).getName());
@@ -612,7 +612,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</plist>";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
         assertEquals("Processing should have extracted 7 text units", 7, assetTextUnits.size());
         assertEquals("%d file(s) remaining_NSStringLocalizedFormatKey", assetTextUnits.get(0).getName());
@@ -676,7 +676,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</plist>";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
         assertEquals("Processing should have extracted 14 text units", 14, assetTextUnits.size());
         assertEquals("plural_recipe_cook_hours_NSStringLocalizedFormatKey", assetTextUnits.get(0).getName());
@@ -761,7 +761,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</plist>";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
         assertEquals("Processing should have extracted 14 text units", 14, assetTextUnits.size());
         assertEquals("plural_recipe_cook_hours_NSStringLocalizedFormatKey", assetTextUnits.get(0).getName());
@@ -830,7 +830,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</plist>";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
         assertEquals("Processing should have extracted 7 text units", 7, assetTextUnits.size());
         assertEquals("%d file(s) remaining_NSStringLocalizedFormatKey", assetTextUnits.get(0).getName());
@@ -883,7 +883,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 "</dict>\n" +
                 "</plist>";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict");
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
         assertEquals("Processing should have extracted 7 text units", 7, assetTextUnits.size());
         assertEquals("%d file(s) remaining_NSStringLocalizedFormatKey", assetTextUnits.get(0).getName());
