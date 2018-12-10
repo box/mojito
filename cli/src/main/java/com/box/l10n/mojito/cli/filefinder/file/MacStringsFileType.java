@@ -22,6 +22,7 @@ public class MacStringsFileType extends FileType {
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + LOCALE + "}" + DOT + "{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = sourceFilePatternTemplate;
         this.localeType = new AnyLocaleTargetNotSourceType();
+        this.gitBlameType = GitBlameType.TEXT_UNIT_USAGES;
     }
 
 }

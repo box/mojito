@@ -88,8 +88,7 @@ public class MacStringsdictFilterTest {
                 + "</dict>\n";
 
         MacStringsdictFilter instance = new MacStringsdictFilter();
-        instance.getNoteFromXMLCommentsInSkeleton(skeleton);
-        Set<String> usages = instance.usages;
+        Set<String> usages = instance.getLocationsFromXMLCommentsInSkeleton(skeleton);
 
         Set<String> expectedUsages = new HashSet<>();
         expectedUsages.add("path/to/file.java:49");
@@ -118,8 +117,8 @@ public class MacStringsdictFilterTest {
                 + "</dict>\n";
 
         MacStringsdictFilter instance = new MacStringsdictFilter();
-        instance.getNoteFromXMLCommentsInSkeleton(skeleton);
-        Set<String> usages = instance.usages;
-        assertNull(usages);
+        Set<String> usages = instance.getLocationsFromXMLCommentsInSkeleton(skeleton);
+        Set<String> expectedUsages = new HashSet<>();
+        assertEquals(expectedUsages, usages);
     }
 }

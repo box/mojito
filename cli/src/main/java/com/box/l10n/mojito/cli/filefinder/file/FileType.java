@@ -21,6 +21,7 @@ public abstract class FileType {
     String parentPath = "(?:.+/)?";
     String subPath = "(?:.+/)?";
     FilterConfigIdOverride filterConfigIdOverride;
+    GitBlameType gitBlameType = GitBlameType.SOURCE_FILE;
 
     public String getSourceFileExtension() {
         return sourceFileExtension;
@@ -111,4 +112,11 @@ public abstract class FileType {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
+    public GitBlameType getGitBlameType() {
+        return gitBlameType;
+    }
+
+    public void setGitBlameType(GitBlameType gitBlameType) {
+        this.gitBlameType = gitBlameType;
+    }
 }

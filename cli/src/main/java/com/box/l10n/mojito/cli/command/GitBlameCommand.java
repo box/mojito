@@ -6,6 +6,7 @@ import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.filefinder.file.GitBlameType;
 import com.box.l10n.mojito.cli.filefinder.file.POFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.GitBlameWithUsageClient;
@@ -140,7 +141,7 @@ public class GitBlameCommand extends Command {
 
             offset += numGitBlameWithUsages;
 
-            if (fileType instanceof POFileType) {
+            if (fileType != null && GitBlameType.TEXT_UNIT_USAGES.equals(fileType.getGitBlameType())) {
                 blameWithTextUnitUsages(getGitBlameWithUsagesToProcess);
             } else {
                 blameSourceFiles(getGitBlameWithUsagesToProcess);

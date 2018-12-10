@@ -126,6 +126,8 @@ public class MacStringsdictFilter extends XMLFilter {
             extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
             textUnit.setProperty(new Property(Property.NOTE, comment));
             addUsagesToTextUnit(textUnit);
+            textUnit.setAnnotation(new UsagesAnnotation(usages));
+
         }
     }
 
@@ -166,12 +168,7 @@ public class MacStringsdictFilter extends XMLFilter {
 
         while (matcher.find()) {
             String comment = matcher.group(XML_COMMENT_GROUP_NAME).trim();
-            if (comment.startsWith("Location: ")) {
-                if (usages == null) {
-                    usages = new LinkedHashSet<>();
-                }
-                usages.add(comment.replace("Location: ", ""));
-            } else {
+            if (!comment.startsWith("Location: ")) {
                 if (commentBuilder.length() > 0) {
                     commentBuilder.append(" ");
                 }
@@ -186,8 +183,35 @@ public class MacStringsdictFilter extends XMLFilter {
         return note;
     }
 
+    /**
+     * Gets the note from the XML comments in the skeleton.
+     *
+     * @param skeleton that may contains comments
+     * @return the note or <code>null</code>
+     */
+    protected Set<String> getLocationsFromXMLCommentsInSkeleton(String skeleton) {
+
+        Set<String> locations = new LinkedHashSet<>();
+
+        Pattern pattern = Pattern.compile(XML_COMMENT_PATTERN);
+        Matcher matcher = pattern.matcher(skeleton);
+
+        while (matcher.find()) {
+            String comment = matcher.group(XML_COMMENT_GROUP_NAME).trim();
+            if (comment.startsWith("Location: ")) {
+                locations.add(comment.replace("Location: ", ""));
+            }
+        }
+
+        return locations;
+    }
+
     void addUsagesToTextUnit(TextUnit textUnit) {
-        textUnit.setAnnotation(new UsagesAnnotation(usages));
+        String skeleton = textUnit.getSkeleton().toString();
+        Set<String> usagesFromSkeleton = getLocationsFromXMLCommentsInSkeleton(skeleton);
+        if (usagesFromSkeleton.size() > 0) {
+            usages = usagesFromSkeleton;
+        }
     }
 
     private Event getNextWithProcess() {

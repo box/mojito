@@ -24,6 +24,7 @@ public class POFileType extends FileType {
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}" + "{" + FilePattern.SUB_PATH + "}" + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = "{" + PARENT_PATH + "}" + "{" + LOCALE + "}" + PATH_SEPERATOR + "{" + SUB_PATH + "}" + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.localeType = new POLocaleType();
+        this.gitBlameType = GitBlameType.TEXT_UNIT_USAGES;
     }
 
 }
