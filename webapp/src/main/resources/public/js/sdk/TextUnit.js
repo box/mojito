@@ -160,6 +160,14 @@ class TextUnit {
         this.data.assetExtractionId = assetExtractionId;
     }
 
+    getAssetTextUnitId() {
+        return this.data.assetTextUnitId;
+    }
+
+    setAssetTextUnitId() {
+        this.data.assetTextUnitId = assetTextUnitId;
+    }
+
     getTmTextUnitCurrentVariantId() {
         return this.data.tmTextUnitCurrentVariantId;
     }

@@ -100,7 +100,8 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfo("TmTextUnitId", this.props.textUnit.getTmTextUnitId())}
                     {this.displayInfo("TmTextUnitVariantId", this.props.textUnit.getTmTextUnitVariantId())}
                     {this.displayInfo("TmTextUnitCurrentVariantId", this.props.textUnit.getTmTextUnitCurrentVariantId())}
-                    {this.displayInfo("AssetTextUnitId", this.props.textUnit.getAssetId())}
+                    {this.displayInfo("AssetTextUnitId", this.props.textUnit.getAssetTextUnitId())}
+                    {this.displayInfo("AssetId", this.props.textUnit.getAssetId())}
                     {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
                     {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
                     {this.displayInfo("Branch", this.getBranch())}
