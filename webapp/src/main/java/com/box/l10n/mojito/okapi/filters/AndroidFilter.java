@@ -293,17 +293,6 @@ public class AndroidFilter extends XMLFilter {
             return res;
         }
 
-        @Override
-        protected Event createCopyOf(Event event, String sourceForm, String targetForm) {
-            logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
-            ITextUnit textUnit = event.getTextUnit().clone();
-            renameTextUnit(textUnit, sourceForm, targetForm);
-            updateItemFormInSkeleton(textUnit);
-            replaceFormInSkeleton((GenericSkeleton) textUnit.getSkeleton(), sourceForm, targetForm);
-            Event copyOfOther = new Event(EventType.TEXT_UNIT, textUnit);
-            return copyOfOther;
-        }
-
         void updateItemFormInSkeleton(ITextUnit textUnit) {
             boolean ignore = true;
             GenericSkeleton genericSkeleton = (GenericSkeleton) textUnit.getSkeleton();

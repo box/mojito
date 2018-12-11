@@ -317,10 +317,10 @@ public class MacStringsdictFilter extends XMLFilter {
             GenericSkeleton genericSkeleton = (GenericSkeleton) textUnit.getSkeleton();
             for (GenericSkeletonPart genericSkeletonPart : genericSkeleton.getParts()) {
                 String partString = genericSkeletonPart.toString();
-                Pattern p = Pattern.compile("<key>.+?</key>");
+                Pattern p = Pattern.compile("\n\\s*?<key>.+?$");
                 Matcher matcher = p.matcher(partString);
                 if (matcher.find()) {
-                    String match = matcher.group(1);
+                    String match = matcher.group();
                     genericSkeletonPart.setData(match);
                     ignore = false;
                 }

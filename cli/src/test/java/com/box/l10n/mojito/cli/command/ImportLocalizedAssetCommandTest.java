@@ -85,6 +85,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
     public void importMacStringsdict() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
+        repositoryService.addRepositoryLocale(repository, "ru-RU");
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
