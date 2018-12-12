@@ -15,7 +15,7 @@ import static org.junit.Assert.assertNull;
 
 /**
  *
- * @author jeanaurambault
+ * @author emagalindan
  */
 public class MacStringsdictFilterTest {
 
@@ -67,11 +67,11 @@ public class MacStringsdictFilterTest {
 
     @Test
     public void getUsagesFromSkeleton() {
-        String skeleton = "<!-- Comments -->\n"
-                + "<!-- Location: path/to/file.java:49 -->\n"
-                + "<!-- Location: path/to/file.java:72 -->\n"
-                + "<key>plural_recipe_cook_hours</key>\n"
+        String skeleton = "<key>plural_recipe_cook_hours</key>\n"
                 + "<dict>\n"
+                + "    <!-- Comments -->\n"
+                + "    <!-- Location: path/to/file.java:49 -->\n"
+                + "    <!-- Location: path/to/file.java:72 -->\n"
                 + "    <key>NSStringLocalizedFormatKey</key>\n"
                 + "    <string>%#@hours@ to cook</string>\n"
                 + "    <key>hours</key>\n"
@@ -98,9 +98,9 @@ public class MacStringsdictFilterTest {
 
     @Test
     public void getUsagesFromSkeletonNone() {
-        String skeleton = "<!-- Comments -->\n"
-                + "<key>plural_recipe_cook_hours</key>\n"
+        String skeleton = "<key>plural_recipe_cook_hours</key>\n"
                 + "<dict>\n"
+                + "    <!-- Comments -->\n"
                 + "    <key>NSStringLocalizedFormatKey</key>\n"
                 + "    <string>%#@hours@ to cook</string>\n"
                 + "    <key>hours</key>\n"

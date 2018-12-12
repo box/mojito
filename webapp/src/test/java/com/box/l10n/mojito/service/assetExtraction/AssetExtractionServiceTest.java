@@ -542,26 +542,26 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
     @Test
     public void testMacStringsdict() throws Exception {
-        String content = "<plist version=\"1.0\">\n" +
-                "<dict>\n" +
-                "<key>%d file(s) remaining</key>\n" +
-                "<dict>\n" +
-                "   <key>NSStringLocalizedFormatKey</key>\n" +
-                "   <string>%#@files@</string>\n" +
-                "   <key>files</key>\n" +
-                "   <dict>\n" +
-                "       <key>NSStringFormatSpecTypeKey</key>\n" +
-                "       <string>NSStringPluralRuleType</string>\n" +
-                "       <key>NSStringFormatValueTypeKey</key>\n" +
-                "       <string>d</string>\n" +
-                "       <key>one</key>\n" +
-                "       <string>%d file remaining</string>\n" +
-                "       <key>other</key>\n" +
-                "       <string>%d files remaining</string>\n" +
-                "   </dict>\n" +
-                "</dict>\n" +
-                "</dict>\n" +
-                "</plist>";
+        String content = "<plist version=\"1.0\">\n"
+                + "<dict>\n"
+                + "<key>%d file(s) remaining</key>\n"
+                + "<dict>\n"
+                + "   <key>NSStringLocalizedFormatKey</key>\n"
+                + "   <string>%#@files@</string>\n"
+                + "   <key>files</key>\n"
+                + "   <dict>\n"
+                + "       <key>NSStringFormatSpecTypeKey</key>\n"
+                + "       <string>NSStringPluralRuleType</string>\n"
+                + "       <key>NSStringFormatValueTypeKey</key>\n"
+                + "       <string>d</string>\n"
+                + "       <key>one</key>\n"
+                + "       <string>%d file remaining</string>\n"
+                + "       <key>other</key>\n"
+                + "       <string>%d files remaining</string>\n"
+                + "   </dict>\n"
+                + "</dict>\n"
+                + "</dict>\n"
+                + "</plist>";
 
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
@@ -590,27 +590,27 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
     @Test
     public void testMacStringsdictWithComment() throws Exception {
-        String content = "<plist version=\"1.0\">\n" +
-                "<dict>\n" +
-                "<!-- Comment -->\n" +
-                "<key>%d file(s) remaining</key>\n" +
-                "<dict>\n" +
-                "   <key>NSStringLocalizedFormatKey</key>\n" +
-                "   <string>%#@files@</string>\n" +
-                "   <key>files</key>\n" +
-                "   <dict>\n" +
-                "       <key>NSStringFormatSpecTypeKey</key>\n" +
-                "       <string>NSStringPluralRuleType</string>\n" +
-                "       <key>NSStringFormatValueTypeKey</key>\n" +
-                "       <string>d</string>\n" +
-                "       <key>one</key>\n" +
-                "       <string>%d file remaining</string>\n" +
-                "       <key>other</key>\n" +
-                "       <string>%d files remaining</string>\n" +
-                "   </dict>\n" +
-                "</dict>\n" +
-                "</dict>\n" +
-                "</plist>";
+        String content = "<plist version=\"1.0\">\n"
+                + "<dict>\n"
+                + "<key>%d file(s) remaining</key>\n"
+                + "<dict>\n"
+                + "   <!-- Comment -->\n"
+                + "   <key>NSStringLocalizedFormatKey</key>\n"
+                + "   <string>%#@files@</string>\n"
+                + "   <key>files</key>\n"
+                + "   <dict>\n"
+                + "       <key>NSStringFormatSpecTypeKey</key>\n"
+                + "       <string>NSStringPluralRuleType</string>\n"
+                + "       <key>NSStringFormatValueTypeKey</key>\n"
+                + "       <string>d</string>\n"
+                + "       <key>one</key>\n"
+                + "       <string>%d file remaining</string>\n"
+                + "       <key>other</key>\n"
+                + "       <string>%d files remaining</string>\n"
+                + "   </dict>\n"
+                + "</dict>\n"
+                + "</dict>\n"
+                + "</plist>";
 
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
@@ -639,42 +639,42 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
     @Test
     public void testMacStringsdictMulitplePluralGroups() throws Exception {
-        String content = "<plist version=\"1.0\">\n" +
-                "<dict>\n" +
-                "<key>plural_recipe_cook_hours</key>\n" +
-                "<dict>\n" +
-                "    <key>NSStringLocalizedFormatKey</key>\n" +
-                "    <string>%#@hours@ to cook</string>\n" +
-                "    <key>hours</key>\n" +
-                "    <dict>\n" +
-                "        <key>NSStringFormatSpecTypeKey</key>\n" +
-                "        <string>NSStringPluralRuleType</string>\n" +
-                "        <key>NSStringFormatValueTypeKey</key>\n" +
-                "        <string>d</string>\n" +
-                "        <key>one</key>\n" +
-                "        <string>%d hour to cook</string>\n" +
-                "        <key>other</key>\n" +
-                "        <string>%d hours to cook</string>\n" +
-                "    </dict>\n" +
-                "</dict>\n" +
-                "<key>collaborators</key>\n" +
-                "<dict>\n" +
-                "    <key>NSStringLocalizedFormatKey</key>\n" +
-                "    <string>%#@collaborators@</string>\n" +
-                "    <key>collaborators</key>\n" +
-                "    <dict>\n" +
-                "        <key>NSStringFormatSpecTypeKey</key>\n" +
-                "        <string>NSStringPluralRuleType</string>\n" +
-                "        <key>NSStringFormatValueTypeKey</key>\n" +
-                "        <string>d</string>\n" +
-                "        <key>one</key>\n" +
-                "        <string>%d collaborator</string>\n" +
-                "        <key>other</key>\n" +
-                "        <string>%d collaborators</string>\n" +
-                "    </dict>\n" +
-                "</dict>\n" +
-                "</dict>\n" +
-                "</plist>";
+        String content = "<plist version=\"1.0\">\n"
+                + "<dict>\n"
+                + "<key>plural_recipe_cook_hours</key>\n"
+                + "<dict>\n"
+                + "    <key>NSStringLocalizedFormatKey</key>\n"
+                + "    <string>%#@hours@ to cook</string>\n"
+                + "    <key>hours</key>\n"
+                + "    <dict>\n"
+                + "        <key>NSStringFormatSpecTypeKey</key>\n"
+                + "        <string>NSStringPluralRuleType</string>\n"
+                + "        <key>NSStringFormatValueTypeKey</key>\n"
+                + "        <string>d</string>\n"
+                + "        <key>one</key>\n"
+                + "        <string>%d hour to cook</string>\n"
+                + "        <key>other</key>\n"
+                + "        <string>%d hours to cook</string>\n"
+                + "    </dict>\n"
+                + "</dict>\n"
+                + "<key>collaborators</key>\n"
+                + "<dict>\n"
+                + "    <key>NSStringLocalizedFormatKey</key>\n"
+                + "    <string>%#@collaborators@</string>\n"
+                + "    <key>collaborators</key>\n"
+                + "    <dict>\n"
+                + "        <key>NSStringFormatSpecTypeKey</key>\n"
+                + "        <string>NSStringPluralRuleType</string>\n"
+                + "        <key>NSStringFormatValueTypeKey</key>\n"
+                + "        <string>d</string>\n"
+                + "        <key>one</key>\n"
+                + "        <string>%d collaborator</string>\n"
+                + "        <key>other</key>\n"
+                + "        <string>%d collaborators</string>\n"
+                + "    </dict>\n"
+                + "</dict>\n"
+                + "</dict>\n"
+                + "</plist>";
 
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
@@ -722,44 +722,44 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
     @Test
     public void testMacStringsdictMulitplePluralGroupsWithComments() throws Exception {
-        String content = "<plist version=\"1.0\">\n" +
-                "<dict>\n" +
-                "<!-- Comment -->\n" +
-                "<key>plural_recipe_cook_hours</key>\n" +
-                "<dict>\n" +
-                "    <key>NSStringLocalizedFormatKey</key>\n" +
-                "    <string>%#@hours@ to cook</string>\n" +
-                "    <key>hours</key>\n" +
-                "    <dict>\n" +
-                "        <key>NSStringFormatSpecTypeKey</key>\n" +
-                "        <string>NSStringPluralRuleType</string>\n" +
-                "        <key>NSStringFormatValueTypeKey</key>\n" +
-                "        <string>d</string>\n" +
-                "        <key>one</key>\n" +
-                "        <string>%d hour to cook</string>\n" +
-                "        <key>other</key>\n" +
-                "        <string>%d hours to cook</string>\n" +
-                "    </dict>\n" +
-                "</dict>\n" +
-                "<!-- Another comment -->\n" +
-                "<key>collaborators</key>\n" +
-                "<dict>\n" +
-                "    <key>NSStringLocalizedFormatKey</key>\n" +
-                "    <string>%#@collaborators@</string>\n" +
-                "    <key>collaborators</key>\n" +
-                "    <dict>\n" +
-                "        <key>NSStringFormatSpecTypeKey</key>\n" +
-                "        <string>NSStringPluralRuleType</string>\n" +
-                "        <key>NSStringFormatValueTypeKey</key>\n" +
-                "        <string>d</string>\n" +
-                "        <key>one</key>\n" +
-                "        <string>%d collaborator</string>\n" +
-                "        <key>other</key>\n" +
-                "        <string>%d collaborators</string>\n" +
-                "    </dict>\n" +
-                "</dict>\n" +
-                "</dict>\n" +
-                "</plist>";
+        String content = "<plist version=\"1.0\">\n"
+                + "<dict>\n"
+                + "<key>plural_recipe_cook_hours</key>\n"
+                + "<dict>\n"
+                + "    <!-- Comment -->\n"
+                + "    <key>NSStringLocalizedFormatKey</key>\n"
+                + "    <string>%#@hours@ to cook</string>\n"
+                + "    <key>hours</key>\n"
+                + "    <dict>\n"
+                + "        <key>NSStringFormatSpecTypeKey</key>\n"
+                + "        <string>NSStringPluralRuleType</string>\n"
+                + "        <key>NSStringFormatValueTypeKey</key>\n"
+                + "        <string>d</string>\n"
+                + "        <key>one</key>\n"
+                + "        <string>%d hour to cook</string>\n"
+                + "        <key>other</key>\n"
+                + "        <string>%d hours to cook</string>\n"
+                + "    </dict>\n"
+                + "</dict>\n"
+                + "<key>collaborators</key>\n"
+                + "<dict>\n"
+                + "    <!-- Another comment -->\n"
+                + "    <key>NSStringLocalizedFormatKey</key>\n"
+                + "    <string>%#@collaborators@</string>\n"
+                + "    <key>collaborators</key>\n"
+                + "    <dict>\n"
+                + "        <key>NSStringFormatSpecTypeKey</key>\n"
+                + "        <string>NSStringPluralRuleType</string>\n"
+                + "        <key>NSStringFormatValueTypeKey</key>\n"
+                + "        <string>d</string>\n"
+                + "        <key>one</key>\n"
+                + "        <string>%d collaborator</string>\n"
+                + "        <key>other</key>\n"
+                + "        <string>%d collaborators</string>\n"
+                + "    </dict>\n"
+                + "</dict>\n"
+                + "</dict>\n"
+                + "</plist>";
 
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
@@ -807,28 +807,28 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
     @Test
     public void testMacStringsdictWithUsage() throws Exception {
-        String content = "<plist version=\"1.0\">\n" +
-                "<dict>\n" +
-                "<!-- Comment -->\n" +
-                "<!-- Location: path/to/file:42 -->\n" +
-                "<key>%d file(s) remaining</key>\n" +
-                "<dict>\n" +
-                "   <key>NSStringLocalizedFormatKey</key>\n" +
-                "   <string>%#@files@</string>\n" +
-                "   <key>files</key>\n" +
-                "   <dict>\n" +
-                "       <key>NSStringFormatSpecTypeKey</key>\n" +
-                "       <string>NSStringPluralRuleType</string>\n" +
-                "       <key>NSStringFormatValueTypeKey</key>\n" +
-                "       <string>d</string>\n" +
-                "       <key>one</key>\n" +
-                "       <string>%d file remaining</string>\n" +
-                "       <key>other</key>\n" +
-                "       <string>%d files remaining</string>\n" +
-                "   </dict>\n" +
-                "</dict>\n" +
-                "</dict>\n" +
-                "</plist>";
+        String content = "<plist version=\"1.0\">\n"
+                + "<dict>\n"
+                + "<key>%d file(s) remaining</key>\n"
+                + "<dict>\n"
+                + "   <!-- Comment -->\n"
+                + "   <!-- Location: path/to/file:42 -->\n"
+                + "   <key>NSStringLocalizedFormatKey</key>\n"
+                + "   <string>%#@files@</string>\n"
+                + "   <key>files</key>\n"
+                + "   <dict>\n"
+                + "       <key>NSStringFormatSpecTypeKey</key>\n"
+                + "       <string>NSStringPluralRuleType</string>\n"
+                + "       <key>NSStringFormatValueTypeKey</key>\n"
+                + "       <string>d</string>\n"
+                + "       <key>one</key>\n"
+                + "       <string>%d file remaining</string>\n"
+                + "       <key>other</key>\n"
+                + "       <string>%d files remaining</string>\n"
+                + "   </dict>\n"
+                + "</dict>\n"
+                + "</dict>\n"
+                + "</plist>";
 
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 
@@ -859,29 +859,29 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
     @Test
     public void testMacStringsdictWitMultipleUsages() throws Exception {
-        String content = "<plist version=\"1.0\">\n" +
-                "<dict>\n" +
-                "<!-- Comment -->\n" +
-                "<!-- Location: path/to/file:42 -->\n" +
-                "<!-- Location: path/to/file:45 -->\n" +
-                "<key>%d file(s) remaining</key>\n" +
-                "<dict>\n" +
-                "   <key>NSStringLocalizedFormatKey</key>\n" +
-                "   <string>%#@files@</string>\n" +
-                "   <key>files</key>\n" +
-                "   <dict>\n" +
-                "       <key>NSStringFormatSpecTypeKey</key>\n" +
-                "       <string>NSStringPluralRuleType</string>\n" +
-                "       <key>NSStringFormatValueTypeKey</key>\n" +
-                "       <string>d</string>\n" +
-                "       <key>one</key>\n" +
-                "       <string>%d file remaining</string>\n" +
-                "       <key>other</key>\n" +
-                "       <string>%d files remaining</string>\n" +
-                "   </dict>\n" +
-                "</dict>\n" +
-                "</dict>\n" +
-                "</plist>";
+        String content = "<plist version=\"1.0\">\n"
+                + "<dict>\n"
+                + "<key>%d file(s) remaining</key>\n"
+                + "<dict>\n"
+                + "   <!-- Comment -->\n"
+                + "   <!-- Location: path/to/file:42 -->\n"
+                + "   <!-- Location: path/to/file:45 -->\n"
+                + "   <key>NSStringLocalizedFormatKey</key>\n"
+                + "   <string>%#@files@</string>\n"
+                + "   <key>files</key>\n"
+                + "   <dict>\n"
+                + "       <key>NSStringFormatSpecTypeKey</key>\n"
+                + "       <string>NSStringPluralRuleType</string>\n"
+                + "       <key>NSStringFormatValueTypeKey</key>\n"
+                + "       <string>d</string>\n"
+                + "       <key>one</key>\n"
+                + "       <string>%d file remaining</string>\n"
+                + "       <key>other</key>\n"
+                + "       <string>%d files remaining</string>\n"
+                + "   </dict>\n"
+                + "</dict>\n"
+                + "</dict>\n"
+                + "</plist>";
 
         List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null);
 

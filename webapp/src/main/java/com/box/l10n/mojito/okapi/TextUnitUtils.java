@@ -54,6 +54,19 @@ public class TextUnitUtils {
     }
 
     /**
+     * Set the note to a {@link ITextUnit}.
+     *
+     * @param textUnit to link with note
+     * @param note note to set
+     */
+    public void setNote(ITextUnit textUnit, String note) {
+
+        if (textUnit != null) {
+            textUnit.setProperty(new Property(Property.NOTE, note));
+        }
+    }
+
+    /**
      * Gets an {@link ImportExportNote} based on the content of {@link TextUnit}
      * note.
      * <p>
@@ -94,7 +107,7 @@ public class TextUnitUtils {
 
         String importExportNoteStr = objectMapper.writeValueAsStringUnsafe(importExportNote);
 
-        textUnit.setProperty(new Property(Property.NOTE, importExportNoteStr));
+        setNote(textUnit, importExportNoteStr);
 
         XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
 

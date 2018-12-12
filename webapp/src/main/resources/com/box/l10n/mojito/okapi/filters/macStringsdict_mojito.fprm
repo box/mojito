@@ -35,9 +35,6 @@ See also: https://developer.apple.com/library/ios/documentation/MacOSX/Conceptua
                     translate="no"/>
  <its:translateRule selector="//key" translate="no"/>
 
- <!--<its:locNoteRule locNoteType="description"-->
-                  <!--locNotePointer="../comment" selector="/comment()"/>-->
-
  <okp:codeFinder useCodeFinder="yes">#v1
   count.i=4
   rule0=%\d?\$?,?\.?\d?[sdf@]

@@ -163,7 +163,7 @@ public abstract class PluralsHolder {
         logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
         ITextUnit textUnit = event.getTextUnit().clone();
         renameTextUnit(textUnit, sourceForm, targetForm);
-        updateItemFormInSkeleton(textUnit);
+        updateFormInSkeleton(textUnit);
         replaceFormInSkeleton((GenericSkeleton) textUnit.getSkeleton(), sourceForm, targetForm);
         Event copyOfOther = new Event(EventType.TEXT_UNIT, textUnit);
         return copyOfOther;
@@ -224,7 +224,7 @@ public abstract class PluralsHolder {
 
     }
 
-    void updateItemFormInSkeleton(ITextUnit textUnit) {
+    void updateFormInSkeleton(ITextUnit textUnit) {
     }
 
     abstract void replaceFormInSkeleton(GenericSkeleton genericSkeleton, String sourceForm, String targetForm);

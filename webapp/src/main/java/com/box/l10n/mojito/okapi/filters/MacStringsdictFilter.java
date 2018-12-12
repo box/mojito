@@ -42,6 +42,9 @@ public class MacStringsdictFilter extends XMLFilter {
     @Autowired
     TextUnitUtils textUnitUtils;
 
+    @Autowired
+    UnescapeFilter unescapeFilter;
+
     boolean hasAnnotation;
 
     String comment;
@@ -52,11 +55,6 @@ public class MacStringsdictFilter extends XMLFilter {
         return FILTER_CONFIG_ID;
     }
 
-    /**
-     * Overriding to include only mac stringsdict, resx, xtb and AndroidStrings filters
-     *
-     * @return
-     */
     @Override
     public List<FilterConfiguration> getConfigurations() {
         List<FilterConfiguration> list = new ArrayList<>();
@@ -106,28 +104,16 @@ public class MacStringsdictFilter extends XMLFilter {
         }
     }
 
-    private String unescape(String text) {
-        // unescape double or single quotes
-        String unescapedText = text.replaceAll("(\\\\)(\"|')", "$2");
-        // unescape \n
-        unescapedText = unescapedText.replaceAll("\\\\n", "\n");
-        // unescape \r
-        unescapedText = unescapedText.replaceAll("\\\\r", "\r");
-        return unescapedText;
-    }
-
     private void processTextUnit(Event event) {
         if (event != null && event.isTextUnit()) {
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             String sourceString = textUnit.getSource().toString();
-            // if source has escaped double-quotes, single-quotes, \r or \n, unescape
-            TextContainer source = new TextContainer(unescape(sourceString));
+            TextContainer source = new TextContainer(unescapeFilter.unescape(sourceString));
             textUnit.setSource(source);
             extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
-            textUnit.setProperty(new Property(Property.NOTE, comment));
+            textUnitUtils.setNote(textUnit, comment);
             addUsagesToTextUnit(textUnit);
             textUnit.setAnnotation(new UsagesAnnotation(usages));
-
         }
     }
 
@@ -184,10 +170,10 @@ public class MacStringsdictFilter extends XMLFilter {
     }
 
     /**
-     * Gets the note from the XML comments in the skeleton.
+     * Gets the usage locations from the XML comments in the skeleton.
      *
-     * @param skeleton that may contains comments
-     * @return the note or <code>null</code>
+     * @param skeleton that may contains comments containing location
+     * @return the locations or empty set
      */
     protected Set<String> getLocationsFromXMLCommentsInSkeleton(String skeleton) {
 
@@ -206,6 +192,10 @@ public class MacStringsdictFilter extends XMLFilter {
         return locations;
     }
 
+    /**
+     * Add usage locations to the text unit
+     * @param textUnit the text unit to add usages
+     */
     void addUsagesToTextUnit(TextUnit textUnit) {
         String skeleton = textUnit.getSkeleton().toString();
         Set<String> usagesFromSkeleton = getLocationsFromXMLCommentsInSkeleton(skeleton);
@@ -220,17 +210,20 @@ public class MacStringsdictFilter extends XMLFilter {
         return next;
     }
 
+    /**
+     * Read through events from the plural starting event until (but not including)
+     * the ending event
+     * @param next start event
+     */
     private void readPlurals(Event next) {
 
         List<Event> pluralEvents = new ArrayList<>();
 
-        // read others until the end
         do {
             pluralEvents.add(next);
             next = getNextWithProcess();
         } while (next != null && !isPluralGroupEnding(next.getResource()));
 
-        // that doesn't contain last
         pluralEvents = adaptPlurals(pluralEvents);
 
         eventQueue.addAll(pluralEvents);
@@ -243,7 +236,11 @@ public class MacStringsdictFilter extends XMLFilter {
         }
     }
 
-    // finds start of plural group
+    /**
+     * Determine whether resource contains the start of a plural group
+     * @param resource resource used to determine if plural group is starting
+     * @return True if resource is the start of a plural group, False otherwise
+     */
     protected boolean isPluralGroupStarting(IResource resource) {
         String toString = resource.getSkeleton().toString();
         Pattern p = Pattern.compile("<key>NSStringFormatSpecTypeKey</key>");
@@ -252,8 +249,11 @@ public class MacStringsdictFilter extends XMLFilter {
         return found;
     }
 
-
-    //finds end of plural group
+    /**
+     * Determine whether resource contains the end of a plural group
+     * @param resource resource used to determine if plural group is ending
+     * @return True if resource is the end of a plural group, False otherwise
+     */
     protected boolean isPluralGroupEnding(IResource resource) {
         String toString = resource.getSkeleton().toString();
         Pattern p = Pattern.compile("</dict>\n</dict>");
@@ -261,10 +261,15 @@ public class MacStringsdictFilter extends XMLFilter {
         return matcher.find();
     }
 
+    /**
+     * Updates any missing CDLR plural forms, if any
+     * @param pluralEvents list of extracted plural events
+     * @return list of all plural forms
+     */
     protected List<Event> adaptPlurals(List<Event> pluralEvents) {
         logger.debug("Adapt plural forms if needed");
         PluralsHolder pluralsHolder = new MacStringsdictPluralsHolder();
-        pluralsHolder.loadEvents(pluralEvents); // make sure get proper number
+        pluralsHolder.loadEvents(pluralEvents);
         logger.debug("target locale: ", targetLocale);
         List<Event> completedForms = pluralsHolder.getCompletedForms(targetLocale);
         return completedForms;
@@ -272,6 +277,8 @@ public class MacStringsdictFilter extends XMLFilter {
 
     class MacStringsdictPluralsHolder extends PluralsHolder {
 
+        public static final String KEY_RES_KEY = "<key>(?<res>.+?)</key>";
+        public static final String PLURAL_FORM_KEY = "\n\\s*?<key>.+?$";
         String firstForm = null;
         String comments = null;
 
@@ -291,18 +298,12 @@ public class MacStringsdictFilter extends XMLFilter {
             List<Event> completedForms = super.getCompletedForms(localeId);
             swapSkeletonBetweenOldFirstAndNewFirst(firstForm, getPluralFormFromSkeleton(completedForms.get(0).getResource()));
 
-            for (Event newForm : completedForms) {
-                if (comments != null) {
-                    newForm.getTextUnit().setProperty(new Property(Property.NOTE, comments));
-                }
-            }
-
             return completedForms;
         }
 
         String getPluralFormFromSkeleton(IResource resource) {
             String toString = resource.getSkeleton().toString();
-            Pattern p = Pattern.compile("<key>(?<res>.+?)</key>");
+            Pattern p = Pattern.compile(KEY_RES_KEY);
             Matcher matcher = p.matcher(toString);
             String res = null;
             while (matcher.find()) {
@@ -312,12 +313,12 @@ public class MacStringsdictFilter extends XMLFilter {
         }
 
         @Override
-        void updateItemFormInSkeleton(ITextUnit textUnit) {
+        void updateFormInSkeleton(ITextUnit textUnit) {
             boolean ignore = true;
             GenericSkeleton genericSkeleton = (GenericSkeleton) textUnit.getSkeleton();
             for (GenericSkeletonPart genericSkeletonPart : genericSkeleton.getParts()) {
                 String partString = genericSkeletonPart.toString();
-                Pattern p = Pattern.compile("\n\\s*?<key>.+?$");
+                Pattern p = Pattern.compile(PLURAL_FORM_KEY);
                 Matcher matcher = p.matcher(partString);
                 if (matcher.find()) {
                     String match = matcher.group();

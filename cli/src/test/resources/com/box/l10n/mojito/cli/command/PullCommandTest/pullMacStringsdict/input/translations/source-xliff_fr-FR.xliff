@@ -12,7 +12,7 @@
             </trans-unit>
             <trans-unit id="" resname="collaborators_collaborators_one">
                 <source>%d collaborator</source>
-                                <target>%d collaborateur</target>
+                <target>%d collaborateur</target>
             </trans-unit>
             <trans-unit id="" resname="collaborators_collaborators_other">
                 <source>%d collaborators</source>
