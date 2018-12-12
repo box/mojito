@@ -358,7 +358,7 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*} The translated date if the text unit has been translated
      */
     getTranslatedDate() {
-        if (this.props.textUnit.getTarget() != null && this.props.textUnit.getTmTextUnitCurrentVariantId != null) {
+        if (this.props.textUnit.getTmTextUnitCurrentVariantId() != null) {
             return this.convertDateTime(this.props.textUnit.getCreatedDate());
         }
     },
