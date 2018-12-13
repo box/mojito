@@ -107,13 +107,13 @@ public class TextUnitUtils {
 
         String importExportNoteStr = objectMapper.writeValueAsStringUnsafe(importExportNote);
 
-        setNote(textUnit, importExportNoteStr);
-
         XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
 
         if (xliffNoteAnnotation == null) {
             xliffNoteAnnotation = new XLIFFNoteAnnotation();
             textUnit.setAnnotation(xliffNoteAnnotation);
+        } else {
+            setNote(textUnit, importExportNoteStr);
         }
 
         xliffNoteAnnotation.add(new XLIFFNote(importExportNoteStr));
