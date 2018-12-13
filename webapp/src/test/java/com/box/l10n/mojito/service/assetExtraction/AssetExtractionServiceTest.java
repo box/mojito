@@ -454,6 +454,48 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void testMacStringsWithLocation() throws Exception {
+
+        String content = "/* Title: Title for the add content to folder menu header \n"
+                + "<locations>\n"
+                + "   path/to/file:42\n"
+                + "</locations> */\n"
+                + "\"Add to Folder\" = \"Add to Folder\";";
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
+
+        Set<String> expectedUsages = new HashSet<>();
+        expectedUsages.add("path/to/file:42");
+
+        assertEquals("Processing should have extracted 1 text unit", 1, assetTextUnits.size());
+        assertEquals("Add to Folder", assetTextUnits.get(0).getName());
+        assertEquals("Add to Folder", assetTextUnits.get(0).getContent());
+        assertEquals(" Title: Title for the add content to folder menu header ", assetTextUnits.get(0).getComment());
+        assertEquals(expectedUsages, assetTextUnits.get(0).getUsages());
+    }
+
+    @Test
+    public void testMacStringsWithLocations() throws Exception {
+
+        String content = "/* Title: Title for the add content to folder menu header \n"
+                + "<locations>\n"
+                + "   path/to/file:42\n"
+                + "   path/to/file:47\n"
+                + "</locations> */\n"
+                + "\"Add to Folder\" = \"Add to Folder\";";
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.strings", null);
+
+        Set<String> expectedUsages = new HashSet<>();
+        expectedUsages.add("path/to/file:42");
+        expectedUsages.add("path/to/file:47");
+
+        assertEquals("Processing should have extracted 1 text unit", 1, assetTextUnits.size());
+        assertEquals("Add to Folder", assetTextUnits.get(0).getName());
+        assertEquals("Add to Folder", assetTextUnits.get(0).getContent());
+        assertEquals(" Title: Title for the add content to folder menu header ", assetTextUnits.get(0).getComment());
+        assertEquals(expectedUsages, assetTextUnits.get(0).getUsages());
+    }
+
+    @Test
     public void testMacStringsNamesWithoutDoubleQuotes() throws Exception {
 
         String content = "/* Comment 1 */\n"
@@ -811,8 +853,10 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "<dict>\n"
                 + "<key>%d file(s) remaining</key>\n"
                 + "<dict>\n"
-                + "   <!-- Comment -->\n"
-                + "   <!-- Location: path/to/file:42 -->\n"
+                + "   <!-- Comment \n"
+                + "   <locations>\n"
+                + "      path/to/file:42"
+                + "   </locations> -->\n"
                 + "   <key>NSStringLocalizedFormatKey</key>\n"
                 + "   <string>%#@files@</string>\n"
                 + "   <key>files</key>\n"
@@ -863,9 +907,11 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "<dict>\n"
                 + "<key>%d file(s) remaining</key>\n"
                 + "<dict>\n"
-                + "   <!-- Comment -->\n"
-                + "   <!-- Location: path/to/file:42 -->\n"
-                + "   <!-- Location: path/to/file:45 -->\n"
+                + "   <!-- Comment \n"
+                + "   <locations>\n"
+                + "      path/to/file:42\n"
+                + "      path/to/file:45\n"
+                + "   </locations> -->\n"
                 + "   <key>NSStringLocalizedFormatKey</key>\n"
                 + "   <string>%#@files@</string>\n"
                 + "   <key>files</key>\n"
