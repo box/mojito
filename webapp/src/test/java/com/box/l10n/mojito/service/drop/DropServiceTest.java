@@ -101,10 +101,8 @@ public class DropServiceTest extends ServiceTestBase {
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
     @Test
-    public void testCreateDrop() {
-        Repository repository = new Repository();
-        repository.setName(testIdWatcher.getEntityName("testCreateDrop"));
-        repository = repositoryRepository.save(repository);
+    public void testCreateDrop() throws Exception {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
         Drop createDrop = dropService.createDrop(repository);
         assertEquals(createDrop.getRepository().getId(), repository.getId());

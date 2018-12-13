@@ -44,7 +44,7 @@ public class DropServiceBoxTest extends DropServiceTest {
     @Test
     @Category({BoxSDKTest.class, SlowTest.class})
     @Override
-    public void testCreateDrop() {
+    public void testCreateDrop() throws Exception {
         super.testCreateDrop();
     }
 
