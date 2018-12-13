@@ -13,6 +13,7 @@ import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBiMap;
@@ -72,6 +73,7 @@ public class CommandHelper {
     public Repository findRepositoryByName(String repositoryName) throws CommandException {
 
         try {
+            Preconditions.checkNotNull(repositoryName, "Repository name can't be null");
             return repositoryClient.getRepositoryByName(repositoryName);
         } catch (RestClientException e) {
             throw new CommandException("Repository [" + repositoryName + "] is not found", e);

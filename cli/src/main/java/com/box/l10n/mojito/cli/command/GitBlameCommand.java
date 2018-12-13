@@ -17,11 +17,7 @@ import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.eclipse.jgit.api.BlameCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -99,11 +93,11 @@ public class GitBlameCommand extends Command {
 
     CommandDirectories commandDirectories;
 
-    org.eclipse.jgit.lib.Repository gitRepository;
+    GitRepository gitRepository = new GitRepository();
 
     /**
      * Cache {@link BlameResult} of a given file.
-     *
+     * <p>
      * A cache is used since getting blame information for a file can be pretty slow and required multiple time for
      * a project. The cache is build with {@link CacheBuilder.newBuilder().softValues().build()} to free
      * {@link BlameResult} if memory is missing
@@ -120,9 +114,11 @@ public class GitBlameCommand extends Command {
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         List<PollableTask> pollableTasks = new ArrayList<>();
 
+        initGitRepository();
+
         int numGitBlameWithUsages;
         int offset = 0;
-        boolean hasMore = false;
+
         do {
             if (offset > 0) {
                 consoleWriter.erasePreviouslyPrintedLines();
@@ -161,6 +157,10 @@ public class GitBlameCommand extends Command {
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }
 
+    void initGitRepository() throws CommandException {
+        gitRepository.init(commandDirectories.getSourceDirectoryPath().toString());
+    }
+
     /**
      * We just process {@link GitBlameWithUsage} that have no information at all. If there was a reccord saved
      * with empty information it won't be recomputed.
@@ -175,8 +175,8 @@ public class GitBlameCommand extends Command {
 
         for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
             if (gitBlameWithUsage.getGitBlame() == null ||
-                OverrideType.ALL.equals(overrideType) ||
-                (OverrideType.NO_INFO.equals(overrideType) && gitBlameWithUsage.getGitBlame().getAuthorName() == null)) {
+                    OverrideType.ALL.equals(overrideType) ||
+                    (OverrideType.NO_INFO.equals(overrideType) && gitBlameWithUsage.getGitBlame().getAuthorName() == null)) {
 
                 logger.debug("Will process text unit name: {}", gitBlameWithUsage.getTextUnitName());
                 filteredGitBlameWithUsages.add(gitBlameWithUsage);
@@ -197,8 +197,8 @@ public class GitBlameCommand extends Command {
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
 
-            Path sourceRelativePath = getGitRepository().getDirectory().getParentFile().toPath().relativize(sourceFileMatch.getPath());
-            BlameResult blameResultForFile = getBlameResultForFile(sourceRelativePath.toString());
+            Path sourceRelativePath = gitRepository.getDirectory().getParentFile().toPath().relativize(sourceFileMatch.getPath());
+            BlameResult blameResultForFile = gitRepository.getBlameResultForFile(sourceRelativePath.toString());
 
             if (blameResultForFile != null) {
                 for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
@@ -217,7 +217,6 @@ public class GitBlameCommand extends Command {
                 consoleWriter.a("Source file:").fg(CYAN).a(sourceRelativePath.toString()).reset().a(" not in Git. Skip it.");
             }
         }
-
     }
 
     /**
@@ -254,61 +253,9 @@ public class GitBlameCommand extends Command {
         }
     }
 
-    /**
-     * Get the git-blame information for given line number
-     *
-     * @param gitBlameWithUsage
-     * @param lineNumber
-     * @return
-     */
-    GitBlame getBlameResults(int lineNumber, BlameResult blameResultForFile) throws LineMissingException {
-
-        GitBlame gitBlame = new GitBlame();
-
-        try {
-            gitBlame.setAuthorName(blameResultForFile.getSourceAuthor(lineNumber).getName());
-            gitBlame.setAuthorEmail(blameResultForFile.getSourceAuthor(lineNumber).getEmailAddress());
-            gitBlame.setCommitName(blameResultForFile.getSourceCommit(lineNumber).getName());
-            gitBlame.setCommitTime(Integer.toString(blameResultForFile.getSourceCommit(lineNumber).getCommitTime()));
-        } catch (ArrayIndexOutOfBoundsException e) {
-            String msg = MessageFormat.format("The line: {0} is not availalbe in the file anymore", lineNumber);
-            logger.debug(msg);
-            throw new LineMissingException(msg);
-        }
-
-        return gitBlame;
-
-    }
-
     void updateBlameResultsInGitBlameWithUsage(int lineNumber, BlameResult blameResultForFile, GitBlameWithUsage gitBlameWithUsage) throws LineMissingException {
-        GitBlame gitBlame = getBlameResults(lineNumber, blameResultForFile);
+        GitBlame gitBlame = gitRepository.getBlameResults(lineNumber, blameResultForFile);
         gitBlameWithUsage.setGitBlame(gitBlame);
-    }
-
-    /**
-     * Builds a git repository if current directory is within a git repository
-     *
-     * @return
-     * @throws CommandException
-     */
-    org.eclipse.jgit.lib.Repository getGitRepository() throws CommandException {
-
-        if (gitRepository == null) {
-            logger.debug("Create the gitRepository");
-
-            FileRepositoryBuilder builder = new FileRepositoryBuilder();
-
-            try {
-                gitRepository = builder
-                        .findGitDir(new File(commandDirectories.getSourceDirectoryPath().toString()))
-                        .readEnvironment()
-                        .build();
-            } catch (IOException ioe) {
-                throw new CommandException("Can't build the git repository");
-            }
-        }
-
-        return gitRepository;
     }
 
 
@@ -317,7 +264,7 @@ public class GitBlameCommand extends Command {
      *
      * @param filePath file path to be blamed
      * @return
-     * @throws CommandException something unexpected happened
+     * @throws CommandException    something unexpected happened
      * @throws NoSuchFileException if the file is missing and can't be blamed
      */
     BlameResult getBlameResultForFileCached(final String filePath) throws CommandException, NoSuchFileException {
@@ -325,7 +272,7 @@ public class GitBlameCommand extends Command {
             return getBlameResultForFileCache.get(filePath, new Callable<BlameResult>() {
                 @Override
                 public BlameResult call() throws Exception {
-                    BlameResult blameResult = getBlameResultForFile(filePath);
+                    BlameResult blameResult = gitRepository.getBlameResultForFile(filePath);
                     if (blameResult == null) {
                         throw new NoSuchFileException(filePath);
                     }
@@ -343,32 +290,6 @@ public class GitBlameCommand extends Command {
         }
     }
 
-    /**
-     * Get the git-blame information for entire file
-     *
-     * @param filePath
-     * @return
-     * @throws CommandException
-     */
-    BlameResult getBlameResultForFile(String filePath) throws CommandException {
-
-        logger.debug("getBlameResultForFile: {}", filePath);
-        try {
-            org.eclipse.jgit.lib.Repository gitRepository = getGitRepository();
-
-            BlameCommand blamer = new BlameCommand(gitRepository);
-            ObjectId commitID = gitRepository.resolve("HEAD");
-            blamer.setStartCommit(commitID);
-            blamer.setFilePath(filePath);
-            BlameResult blame = blamer.call();
-
-            return blame;
-        } catch (GitAPIException | IOException e) {
-            String msg = MessageFormat.format("Can't get blame result for file: {0}", filePath);
-            logger.error(msg, e);
-            throw new CommandException(msg, e);
-        }
-    }
 
     /**
      * Checks if the given line contains text unit(s) to git-blame
