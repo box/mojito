@@ -66,7 +66,7 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfoWithId("textUnit.gitBlameModal.target", this.props.textUnit.getTarget())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.locale", this.props.textUnit.getTargetLocale())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.created", this.convertDateTime(this.props.textUnit.getTmTextUnitCreatedDate()))}
-                    {this.displayInfoWithId("textUnit.gitBlameModal.translated", this.convertDateTime(this.props.textUnit.getCreatedDate()))}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.translated", this.getTranslatedDate())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.pluralForm", this.props.textUnit.getPluralForm())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.pluralFormOther", this.props.textUnit.getPluralFormOther())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.comment", this.props.textUnit.getComment())}
@@ -352,6 +352,15 @@ let GitBlameInfoModal = React.createClass({
      */
     getCommitDefaultLabel() {
         return this.getCommitName();
+    },
+
+    /**
+     * @returns {*} The translated date if the text unit has been translated
+     */
+    getTranslatedDate() {
+        if (this.props.textUnit.getTmTextUnitCurrentVariantId() != null) {
+            return this.convertDateTime(this.props.textUnit.getCreatedDate());
+        }
     },
 
     /**
