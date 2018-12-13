@@ -72,6 +72,15 @@ public class AssetPathToFilterConfigMapperTest {
     }
 
     @Test
+    public void testGetFilterConfigIdFromTypeWithMacStringsdict() throws Exception {
+
+        AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
+        String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/Localizable.stringsdict");
+
+        assertEquals(AssetPathToFilterConfigMapper.MACSTRINGSDICT_FILTER_CONFIG_ID, filterConfigId);
+    }
+
+    @Test
     public void testGetFilterConfigIdFromTypeWithResx() throws Exception {
 
         AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();

@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
@@ -26,11 +27,7 @@ import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.filters.IFilter;
 import net.sf.okapi.common.filters.IFilterConfigurationMapper;
 import net.sf.okapi.common.filterwriter.IFilterWriter;
-import net.sf.okapi.common.resource.Property;
-import net.sf.okapi.common.resource.RawDocument;
-import net.sf.okapi.common.resource.StartDocument;
-import net.sf.okapi.common.resource.TextContainer;
-import net.sf.okapi.common.resource.TextUnit;
+import net.sf.okapi.common.resource.*;
 import net.sf.okapi.common.skeleton.ISkeletonWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +71,9 @@ public class TMExportFilter implements IFilter {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    TextUnitUtils textUnitUtils;
 
     /**
      * {@link TM#id} to be exported
@@ -212,7 +212,7 @@ public class TMExportFilter implements IFilter {
         importExportNote.setPluralForm(textUnitDTO.getPluralForm());
         importExportNote.setPluralFormOther(textUnitDTO.getPluralFormOther());
         
-        textUnit.setProperty(new Property(Property.NOTE, objectMapper.writeValueAsStringUnsafe(importExportNote)));
+        textUnitUtils.setImportExportNote(textUnit, importExportNote);
         textUnit.setPreserveWhitespaces(true);
         return textUnit;
     }

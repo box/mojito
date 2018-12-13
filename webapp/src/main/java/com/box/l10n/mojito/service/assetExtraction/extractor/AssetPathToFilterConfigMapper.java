@@ -4,6 +4,7 @@ import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.JSFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
+import com.box.l10n.mojito.okapi.filters.MacStringsdictFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
 import java.util.Arrays;
@@ -36,6 +37,7 @@ public class AssetPathToFilterConfigMapper {
     public static final String PROPERTIES_FILTER_CONFIG_ID = "okf_properties-outputNotEscaped";
      
     public static final String MACSTRINGS_FILTER_CONFIG_ID = MacStringsFilter.FILTER_CONFIG_ID + "-macStrings";
+    public static final String MACSTRINGSDICT_FILTER_CONFIG_ID = MacStringsdictFilter.FILTER_CONFIG_ID + "-stringsdict";
     public static final String RESX_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-resx";
     public static final String XTB_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-xtb";
     public static final String JS_FILTER_CONFIG_ID = JSFilter.FILTER_CONFIG_ID + "-js";
@@ -46,6 +48,7 @@ public class AssetPathToFilterConfigMapper {
         PROPERTIES(PROPERTIES_FILTER_CONFIG_ID, "properties"),
         ANDROIDSTRINGS(AndroidFilter.FILTER_CONFIG_ID, "xml"),
         MACSTRINGS(MACSTRINGS_FILTER_CONFIG_ID, "strings"),
+        MACSTRINGSDICT(MACSTRINGSDICT_FILTER_CONFIG_ID, "stringsdict"),
         PO(POFilter.FILTER_CONFIG_ID, "pot"),
         RESX(RESX_FILTER_CONFIG_ID, "resx", "resw"),
         XTB(XTB_FILTER_CONFIG_ID, "xtb"),

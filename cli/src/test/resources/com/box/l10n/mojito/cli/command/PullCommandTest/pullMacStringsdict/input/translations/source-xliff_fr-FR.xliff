@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
+    <file original=""  source-language="en" target-language="fr-FR" datatype="x-undefined">
+        <body>
+            <trans-unit id="" resname="plural_recipe_cook_hours_hours_one">
+                <source>%d hour to cook</source>
+                <target>%d heure à cuisiner</target>
+            </trans-unit>
+            <trans-unit id="" resname="plural_recipe_cook_hours_hours_other">
+                <source>%d hours to cook</source>
+                <target>%d heures à cuisiner</target>
+            </trans-unit>
+            <trans-unit id="" resname="collaborators_collaborators_one">
+                <source>%d collaborator</source>
+                <target>%d collaborateur</target>
+            </trans-unit>
+            <trans-unit id="" resname="collaborators_collaborators_other">
+                <source>%d collaborators</source>
+                <target>%d collaborateurs</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

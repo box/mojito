@@ -1202,6 +1202,376 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void testMacStringsdict() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale_ja;
+        RepositoryLocale repoLocale_en;
+
+        try {
+            repoLocale_ja = repositoryService.addRepositoryLocale(repo, "ja-JP");
+            repoLocale_en = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>plural_recipe_cook_hours</key>\n" +
+                "<dict>\n" +
+                "    <key>NSStringLocalizedFormatKey</key>\n" +
+                "    <string>%#@hours@ to cook</string>\n" +
+                "    <key>hours</key>\n" +
+                "    <dict>\n" +
+                "        <key>NSStringFormatSpecTypeKey</key>\n" +
+                "        <string>NSStringPluralRuleType</string>\n" +
+                "        <key>NSStringFormatValueTypeKey</key>\n" +
+                "        <string>d</string>\n" +
+                "        <key>one</key>\n" +
+                "        <string>%d hour to cook</string>\n" +
+                "        <key>other</key>\n" +
+                "        <string>%d hours to cook</string>\n" +
+                "    </dict>\n" +
+                "</dict>\n" +
+                "<key>collaborators</key>\n" +
+                "<dict>\n" +
+                "    <key>NSStringLocalizedFormatKey</key>\n" +
+                "    <string>%#@collaborators@</string>\n" +
+                "    <key>collaborators</key>\n" +
+                "    <dict>\n" +
+                "        <key>NSStringFormatSpecTypeKey</key>\n" +
+                "        <string>NSStringPluralRuleType</string>\n" +
+                "        <key>NSStringFormatValueTypeKey</key>\n" +
+                "        <string>d</string>\n" +
+                "        <key>one</key>\n" +
+                "        <string>%d collaborator</string>\n" +
+                "        <key>other</key>\n" +
+                "        <string>%d collaborators</string>\n" +
+                "    </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+        String expectedLocalizedAsset_jaJP = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>plural_recipe_cook_hours</key>\n" +
+                "<dict>\n" +
+                "    <key>NSStringLocalizedFormatKey</key>\n" +
+                "    <string>%#@hours@ to cook</string>\n" +
+                "    <key>hours</key>\n" +
+                "    <dict>\n" +
+                "        <key>NSStringFormatSpecTypeKey</key>\n" +
+                "        <string>NSStringPluralRuleType</string>\n" +
+                "        <key>NSStringFormatValueTypeKey</key>\n" +
+                "        <string>d</string>\n" +
+                "        <key>other</key>\n" +
+                "        <string>%d hours to cook</string>\n" +
+                "    </dict>\n" +
+                "</dict>\n" +
+                "<key>collaborators</key>\n" +
+                "<dict>\n" +
+                "    <key>NSStringLocalizedFormatKey</key>\n" +
+                "    <string>%#@collaborators@</string>\n" +
+                "    <key>collaborators</key>\n" +
+                "    <dict>\n" +
+                "        <key>NSStringFormatSpecTypeKey</key>\n" +
+                "        <string>NSStringPluralRuleType</string>\n" +
+                "        <key>NSStringFormatValueTypeKey</key>\n" +
+                "        <string>d</string>\n" +
+                "        <key>other</key>\n" +
+                "        <string>%d collaborators</string>\n" +
+                "    </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+        String expectedLocalizedAsset_enGB = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>plural_recipe_cook_hours</key>\n" +
+                "<dict>\n" +
+                "    <key>NSStringLocalizedFormatKey</key>\n" +
+                "    <string>%#@hours@ to cook</string>\n" +
+                "    <key>hours</key>\n" +
+                "    <dict>\n" +
+                "        <key>NSStringFormatSpecTypeKey</key>\n" +
+                "        <string>NSStringPluralRuleType</string>\n" +
+                "        <key>NSStringFormatValueTypeKey</key>\n" +
+                "        <string>d</string>\n" +
+                "        <key>one</key>\n" +
+                "        <string>%d hour to cook</string>\n" +
+                "        <key>other</key>\n" +
+                "        <string>%d hours to cook</string>\n" +
+                "    </dict>\n" +
+                "</dict>\n" +
+                "<key>collaborators</key>\n" +
+                "<dict>\n" +
+                "    <key>NSStringLocalizedFormatKey</key>\n" +
+                "    <string>%#@collaborators@</string>\n" +
+                "    <key>collaborators</key>\n" +
+                "    <dict>\n" +
+                "        <key>NSStringFormatSpecTypeKey</key>\n" +
+                "        <string>NSStringPluralRuleType</string>\n" +
+                "        <key>NSStringFormatValueTypeKey</key>\n" +
+                "        <string>d</string>\n" +
+                "        <key>one</key>\n" +
+                "        <string>%d collaborator</string>\n" +
+                "        <key>other</key>\n" +
+                "        <string>%d collaborators</string>\n" +
+                "    </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+        asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
+
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source [{}]=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale_ja, "ja-JP", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset_jaJP, localizedAsset);
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale_en, "en-GB", null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset_enGB, localizedAsset);
+    }
+
+    @Test
+    public void testLocalizeMacStringsdictPluralJp() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        String bcp47Tag = "ja-JP";
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, bcp47Tag);
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>one</key>\n" +
+                "       <string>%d file remaining</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        String expectedLocalizedAsset = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, bcp47Tag, null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining-jp</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, bcp47Tag, null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized after import=\n{}", localizedAsset);
+        assertEquals(forImport, localizedAsset);
+    }
+
+    @Test
+    public void testLocalizeMacStringsdictPluralRu() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        String bcp47Tag = "ru-RU";
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, bcp47Tag);
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>one</key>\n" +
+                "       <string>%d file remaining</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        String expectedLocalizedAsset = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>one</key>\n" +
+                "       <string>%d file remaining</string>\n" +
+                "       <key>few</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "       <key>many</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, bcp47Tag, null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "<plist version=\"1.0\">\n" +
+                "<dict>\n" +
+                "<key>%d file(s) remaining</key>\n" +
+                "<dict>\n" +
+                "   <key>NSStringLocalizedFormatKey</key>\n" +
+                "   <string>%#@files@</string>\n" +
+                "   <key>files</key>\n" +
+                "   <dict>\n" +
+                "       <key>NSStringFormatSpecTypeKey</key>\n" +
+                "       <string>NSStringPluralRuleType</string>\n" +
+                "       <key>NSStringFormatValueTypeKey</key>\n" +
+                "       <string>d</string>\n" +
+                "       <key>one</key>\n" +
+                "       <string>%d file remaining-ru</string>\n" +
+                "       <key>few</key>\n" +
+                "       <string>%d files remaining-ru</string>\n" +
+                "       <key>many</key>\n" +
+                "       <string>%d files remaining-ru</string>\n" +
+                "       <key>other</key>\n" +
+                "       <string>%d files remaining-ru</string>\n" +
+                "   </dict>\n" +
+                "</dict>\n" +
+                "</dict>\n" +
+                "</plist>";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, bcp47Tag, null, InheritanceMode.USE_PARENT, Status.ALL);
+        logger.debug("localized after import=\n{}", localizedAsset);
+        assertEquals(forImport, localizedAsset);
+    }
+
+    @Test
     public void testLocalizePoPluralJp() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));

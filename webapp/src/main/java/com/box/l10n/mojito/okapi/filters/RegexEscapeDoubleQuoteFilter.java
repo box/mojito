@@ -6,12 +6,18 @@ import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.filters.regex.RegexFilter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  *
  * @author jyi
  */
+@Configurable
 public class RegexEscapeDoubleQuoteFilter extends RegexFilter {
+
+    @Autowired
+    UnescapeFilter unescapeFilter;
 
     @Override
     public Event next() {
@@ -20,18 +26,11 @@ public class RegexEscapeDoubleQuoteFilter extends RegexFilter {
             // if source has escaped double-quotes, unescape
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             String sourceString = textUnit.getSource().toString();
-            String unescapedSourceString = unescape(sourceString);
+            String unescapedSourceString = unescapeFilter.unescape(sourceString);
             TextContainer source = new TextContainer(unescapedSourceString);
             textUnit.setSource(source);
         }
         return event;
-    }
-
-    protected String unescape(String text) {
-        String unescapedText = text.replaceAll("(\\\\)(\")", "$2");
-        unescapedText = unescapedText.replaceAll("\\\\n", "\n");
-        unescapedText = unescapedText.replaceAll("\\\\r", "\r");
-        return unescapedText;
     }
 
     @Override

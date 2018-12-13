@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+Okapi Rainbow configuration for Apple Stringsdict files
+- Excludes untranslatable string values (NSStringFormatSpecTypeKey, NSStringFormatValueTypeKey)
+- Attemps to create unique IDs for each string
+See also: https://developer.apple.com/library/ios/documentation/MacOSX/Conceptual/BPInternational/StringsdictFileFormat/StringsdictFileFormat.html#//apple_ref/doc/uid/10000171i-CH16-SW1
+-->
+<its:rules
+        xmlns:its="http://www.w3.org/2005/11/its"
+        xmlns:itsx="http://www.w3.org/2008/12/its-extensions"
+        xmlns:okp="okapi-framework:xmlfilter-options"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        version="1.0">
+
+ <its:translateRule selector="/*" translate="no"/>
+
+ <its:translateRule selector="/plist/dict/dict/string"
+                    translate="yes"
+                    itsx:idValue="concat(
+                                   ../preceding-sibling::key[position()=1],
+                                   '_',
+                                   preceding-sibling::key[position()=1])"/>
+
+ <its:translateRule selector="/plist/dict/dict/dict/string"
+                    translate="yes"
+                    itsx:idValue="concat(
+                                   ../../preceding-sibling::key[position()=1],
+                                   '_',
+                                   ../preceding-sibling::key[position()=1],
+                                   '_',
+                                   preceding-sibling::key[position()=1])"/>
+
+ <!-- Do not translate strings for keys NSStringFormatSpecTypeKey, NSStringFormatValueTypeKey -->
+ <its:translateRule selector="//dict/dict/key[. = 'NSStringFormatSpecTypeKey' or . = 'NSStringFormatValueTypeKey']/following-sibling::string[position()=1]"
+                    translate="no"/>
+ <its:translateRule selector="//key" translate="no"/>
+
+ <okp:codeFinder useCodeFinder="yes">#v1
+  count.i=4
+  rule0=%\d?\$?,?\.?\d?[sdf@]
+  rule1=\\a|\\b|\\f|\\t|\\v
+  rule2=\&lt;(/?)\w+[^>]*?>
+  rule3=%#@[^@]+@
+ </okp:codeFinder>
+
+</its:rules>

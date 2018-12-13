@@ -57,7 +57,7 @@ public class Param {
 
     public static final String FILE_TYPE_LONG = "--file-type";
     public static final String FILE_TYPE_SHORT = "-ft";
-    public static final String FILE_TYPE_DESCRIPTION = "File type (if none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, PROPERTIES_JAVA, RESW, RESX, PO, XTB)";
+    public static final String FILE_TYPE_DESCRIPTION = "File type (if none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, MAC_STRINGSDICT, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, PROPERTIES_JAVA, RESW, RESX, PO, XTB)";
 
     public static final String SOURCE_REGEX_LONG = "--source-regex";
     public static final String SOURCE_REGEX_SHORT = "-sr";

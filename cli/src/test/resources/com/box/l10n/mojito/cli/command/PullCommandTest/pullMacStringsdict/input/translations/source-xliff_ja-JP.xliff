@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
+    <file original=""  source-language="en" target-language="ja-JP" datatype="x-undefined">
+        <body>
+            <trans-unit id="" resname="plural_recipe_cook_hours_hours_other">
+                <source>%d hours to cook</source>
+                <target>所要時間：%d 時間</target>
+            </trans-unit>
+            <trans-unit id="" resname="collaborators_collaborators_other">
+                <source>%d collaborators</source>
+                <target>ボード参加者：%d 人</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

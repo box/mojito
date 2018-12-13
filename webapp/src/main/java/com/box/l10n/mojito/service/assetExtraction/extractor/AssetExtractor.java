@@ -11,6 +11,7 @@ import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.JSFilter;
 import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
+import com.box.l10n.mojito.okapi.filters.MacStringsdictFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
@@ -113,6 +114,7 @@ public class AssetExtractor {
         mapper.addConfigurations(POFilter.class.getName());
         mapper.addConfigurations(XMLFilter.class.getName());
         mapper.addConfigurations(MacStringsFilter.class.getName());
+        mapper.addConfigurations(MacStringsdictFilter.class.getName());
         mapper.addConfigurations(JSFilter.class.getName());
 
         return mapper;

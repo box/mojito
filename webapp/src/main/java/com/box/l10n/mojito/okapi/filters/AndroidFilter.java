@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
-import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.IResource;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
@@ -44,6 +43,9 @@ public class AndroidFilter extends XMLFilter {
 
     @Autowired
     TextUnitUtils textUnitUtils;
+
+    @Autowired
+    UnescapeFilter unescapeFilter;
 
     @Override
     public String getName() {
@@ -99,7 +101,7 @@ public class AndroidFilter extends XMLFilter {
             // if source has escaped double-quotes, single-quotes, \r or \n, unescape
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             String sourceString = textUnit.getSource().toString();
-            String unescapedSourceString = unescape(sourceString);
+            String unescapedSourceString = unescapeFilter.unescape(sourceString);
             TextContainer source = new TextContainer(unescapedSourceString);
             textUnit.setSource(source);
             extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
@@ -137,7 +139,7 @@ public class AndroidFilter extends XMLFilter {
         if (textUnit.getProperty(Property.NOTE) == null) {
             String note = getNoteFromXMLCommentsInSkeleton(skeleton);
             if (note != null) {
-                textUnit.setProperty(new Property(Property.NOTE, note));
+                textUnitUtils.setNote(textUnit, note);
             }
         }
     }
@@ -169,13 +171,6 @@ public class AndroidFilter extends XMLFilter {
         }
 
         return note;
-    }
-
-    private String unescape(String text) {
-        String unescapedText = text.replaceAll("(\\\\)(\"|')", "$2");
-        unescapedText = unescapedText.replaceAll("\\\\n", "\n");
-        unescapedText = unescapedText.replaceAll("\\\\r", "\r");
-        return unescapedText;
     }
 
     @Override
@@ -257,36 +252,15 @@ public class AndroidFilter extends XMLFilter {
         @Override
         public List<Event> getCompletedForms(LocaleId localeId) {
             List<Event> completedForms = super.getCompletedForms(localeId);
-            swapSkeletonBetweenOldFirstAndNewFirst(getPluralFormFromSkeleton(completedForms.get(0).getResource()));
+            swapSkeletonBetweenOldFirstAndNewFirst(firstForm, getPluralFormFromSkeleton(completedForms.get(0).getResource()));
 
             for (Event newForm : completedForms) {
                 if (comments != null) {
-                    newForm.getTextUnit().setProperty(new Property(Property.NOTE, comments));
+                    textUnitUtils.setNote(newForm.getTextUnit(), comments);
                 }
             }
 
             return completedForms;
-        }
-
-        void swapSkeletonBetweenOldFirstAndNewFirst(String newFirstForm) {
-            if (newFirstForm != null && !newFirstForm.equals(firstForm)) {
-                logger.debug("Swapping the old first form with the new first form, as it contains the skeleton");
-                Event oldFirst = getEventForPluralForm(firstForm);
-                Event newFirst = getEventForPluralForm(newFirstForm);
-
-                GenericSkeleton oldSkeleton = (GenericSkeleton) oldFirst.getTextUnit().getSkeleton();
-                replaceFormInSkeleton(oldSkeleton, firstForm, newFirstForm);
-
-                GenericSkeleton newSkeleton = (GenericSkeleton) newFirst.getTextUnit().getSkeleton();
-                replaceFormInSkeleton(newSkeleton, newFirstForm, firstForm);
-
-                oldFirst.getTextUnit().setSkeleton(newSkeleton);
-                newFirst.getTextUnit().setSkeleton(oldSkeleton);
-            }
-        }
-
-        @Override
-        void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
         }
 
         @Override
@@ -310,18 +284,7 @@ public class AndroidFilter extends XMLFilter {
             return res;
         }
 
-        @Override
-        protected Event createCopyOf(Event event, String sourceForm, String targetForm) {
-            logger.debug("Create copy of: {}, source form: {}, target form: {}", event.getTextUnit().getName(), sourceForm, targetForm);
-            ITextUnit textUnit = event.getTextUnit().clone();
-            renameTextUnit(textUnit, sourceForm, targetForm);
-            updateItemFormInSkeleton(textUnit);
-            replaceFormInSkeleton((GenericSkeleton) textUnit.getSkeleton(), sourceForm, targetForm);
-            Event copyOfOther = new Event(EventType.TEXT_UNIT, textUnit);
-            return copyOfOther;
-        }
-
-        void updateItemFormInSkeleton(ITextUnit textUnit) {
+        void updateFormInSkeleton(ITextUnit textUnit) {
             boolean ignore = true;
             GenericSkeleton genericSkeleton = (GenericSkeleton) textUnit.getSkeleton();
             for (GenericSkeletonPart genericSkeletonPart : genericSkeleton.getParts()) {
