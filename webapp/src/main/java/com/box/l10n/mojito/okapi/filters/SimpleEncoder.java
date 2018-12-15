@@ -65,6 +65,11 @@ public class SimpleEncoder implements IEncoder {
     }
 
     @Override
+    public void reset() {
+
+    }
+
+    @Override
     public String toNative(String propertyName, String value) {
         // No changes for the other values
         return value;
