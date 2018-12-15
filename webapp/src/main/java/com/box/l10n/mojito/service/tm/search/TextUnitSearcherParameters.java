@@ -1,9 +1,10 @@
 package com.box.l10n.mojito.service.tm.search;
 
 import com.box.l10n.mojito.service.NormalizationUtils;
+import org.joda.time.DateTime;
+
 import java.util.Arrays;
 import java.util.List;
-import org.joda.time.DateTime;
 
 /**
  * Parameters for {@link TextUnitSearcher#search(com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters)
@@ -40,6 +41,7 @@ public class TextUnitSearcherParameters {
     Boolean doNotTranslateFilter;
     DateTime tmTextUnitCreatedBefore;
     DateTime tmTextUnitCreatedAfter;
+    Long branchId;
 
     public String getName() {
         return name;
@@ -251,5 +253,13 @@ public class TextUnitSearcherParameters {
 
     public void setTmTextUnitCreatedAfter(DateTime tmTextUnitCreatedAfter) {
         this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
+    }
+
+    public Long getBranchId() {
+        return branchId;
+    }
+
+    public void setBranchId(Long branchId) {
+        this.branchId = branchId;
     }
 }

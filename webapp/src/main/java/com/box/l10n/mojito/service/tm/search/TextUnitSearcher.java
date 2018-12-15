@@ -275,6 +275,10 @@ public class TextUnitSearcher {
             conjunction.add(new NativeEqExpFix("atu.do_not_translate", searchParameters.getDoNotTranslateFilter()));
         }
 
+        if (searchParameters.getBranchId() != null) {
+            conjunction.add(new NativeEqExpFix("atu.branch_id", searchParameters.getBranchId()));
+        }
+
         StatusFilter statusFilter = searchParameters.getStatusFilter();
 
         if (statusFilter != null) {
