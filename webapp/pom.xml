@@ -756,13 +756,4 @@
         </profile>
     </profiles>
 
-    <repositories>
-        <repository>
-            <id>okapi</id>
-            <name>okapi</name>
-            <url>http://repository-okapi.forge.cloudbees.com/release/</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
-
 </project>
