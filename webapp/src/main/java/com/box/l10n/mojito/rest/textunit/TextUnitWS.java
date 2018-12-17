@@ -127,11 +127,12 @@ public class TextUnitWS {
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
             @RequestParam(value = "tmTextUnitCreatedBefore", required = false) DateTime tmTextUnitCreatedBefore,
             @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTextUnitCreatedAfter,
+            @RequestParam(value = "branchId", required = false) Long branchId,
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(repositoryIds,
-                repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
+                repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter, branchId);
         textUnitSearcherParameters.setLimit(limit);
         textUnitSearcherParameters.setOffset(offset);
         List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
@@ -156,13 +157,14 @@ public class TextUnitWS {
             @RequestParam(value = "statusFilter", required = false) StatusFilter statusFilter,
             @RequestParam(value = "doNotTranslateFilter", required = false) Boolean doNotTranslateFilter,
             @RequestParam(value = "tmTextUnitCreatedBefore", required = false) DateTime tmTextUnitCreatedBefore,
-            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTextUnitCreatedAfter) throws InvalidTextUnitSearchParameterException {
+            @RequestParam(value = "tmTextUnitCreatedAfter", required = false) DateTime tmTextUnitCreatedAfter,
+            @RequestParam(value = "branchId", required = false) Long branchId) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(
                 repositoryIds, repositoryNames, name, source, target,
                 assetPath, pluralFormOther, pluralFormFiltered, searchType,
                 localeTags, usedFilter, statusFilter, doNotTranslateFilter,
-                tmTextUnitCreatedBefore, tmTextUnitCreatedAfter);
+                tmTextUnitCreatedBefore, tmTextUnitCreatedAfter, branchId);
 
         TextUnitAndWordCount countTextUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
         return countTextUnitAndWordCount;
@@ -183,7 +185,8 @@ public class TextUnitWS {
             StatusFilter statusFilter,
             Boolean doNotTranslateFilter,
             DateTime tmTextUnitCreatedBefore,
-            DateTime tmTextUnitCreatedAfter) throws InvalidTextUnitSearchParameterException {
+            DateTime tmTextUnitCreatedAfter,
+            Long branchId) throws InvalidTextUnitSearchParameterException {
 
         if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames)) {
             throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
@@ -207,6 +210,7 @@ public class TextUnitWS {
         textUnitSearcherParameters.setDoNotTranslateFilter(doNotTranslateFilter);
         textUnitSearcherParameters.setTmTextUnitCreatedBefore(tmTextUnitCreatedBefore);
         textUnitSearcherParameters.setTmTextUnitCreatedAfter(tmTextUnitCreatedAfter);
+        textUnitSearcherParameters.setBranchId(branchId);
 
         return textUnitSearcherParameters;
     }
