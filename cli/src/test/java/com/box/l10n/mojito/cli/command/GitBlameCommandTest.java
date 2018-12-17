@@ -177,6 +177,30 @@ public class GitBlameCommandTest extends CLITestBase {
             assertEquals(gitBlameWithUsagesExpected.get(i), gitBlameWithUsagesActual.get(i));
     }
 
+
+    @Test
+    public void getTextUnitNameStringArray() {
+        String string_name_0 = "string_array_tests_0";
+        String string_name_1 = "string_array_tests_1";
+        String string_name_2 = "string_array_tests_2";
+        String string_name_3 = "string_array_tests_3";
+        String string_name_4 = "string_array_tests_4";
+        String string_name_5 = "string_array_tests_5";
+
+        List<String> stringArrayNames = new ArrayList<>();
+        stringArrayNames.add(string_name_0);
+        stringArrayNames.add(string_name_1);
+        stringArrayNames.add(string_name_2);
+        stringArrayNames.add(string_name_3);
+        stringArrayNames.add(string_name_4);
+        stringArrayNames.add(string_name_5);
+
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+
+        for (int i = 0; i < stringArrayNames.size(); i++)
+            assertEquals("string_array_tests", gitBlameCommand.textUnitNameToStringInSourceFile(stringArrayNames.get(i)));
+    }
+
     @Test
     public void getBlameResultForLines() throws Exception {
 
