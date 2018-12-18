@@ -14,7 +14,8 @@ import java.util.Set;
 @Table(
         name = "asset_text_unit",
         indexes = {
-                @Index(name = "UK__ASSET_TEXT_UNIT__MD5__ASSET_EXTRACTION_ID", columnList = "md5, asset_extraction_id", unique = true)
+                @Index(name = "UK__ASSET_TEXT_UNIT__MD5__ASSET_EXTRACTION_ID", columnList = "md5, asset_extraction_id", unique = true),
+                @Index(name = "I__ASSET_TEXT_UNIT__BRANCH_ID", columnList = "branch_id")
         }
 )
 public class AssetTextUnit extends AuditableEntity {

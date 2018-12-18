@@ -39,4 +39,16 @@ public class View {
      * This is used to get asset entity with minimum fields for summary
      */
     public interface AssetSummary extends IdAndName {}
+    /**
+     * This is used to get Branch entity with minimum fields for summary
+     */
+    public interface BranchSummary extends IdAndName {}
+    /**
+     * This is used to get TmTextUnit entity with minimum fields for summary
+     */
+    public interface TmTextUnitSummary extends IdAndName {}
+    /**
+     * This is used to show the branch statistics
+     */
+    public interface BranchStatistic extends BranchSummary, TmTextUnitSummary {}
 }
