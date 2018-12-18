@@ -55,7 +55,7 @@ public class AssetExtractionService {
      */
     static Logger logger = LoggerFactory.getLogger(AssetExtractionService.class);
 
-    private static final String PRIMARY_BRANCH = "master";
+    public static final String PRIMARY_BRANCH = "master";
 
     @Autowired
     AssetExtractor assetExtractor;
@@ -130,7 +130,7 @@ public class AssetExtractionService {
 
         markAssetExtractionAsLastSuccessful(asset, assetExtraction);
 
-        logger.info("Done processing asset id: {}", assetContentId);
+        logger.info("Done processing asset content id: {}", assetContentId);
 
         return new PollableFutureTaskResult<>(asset);
     }
