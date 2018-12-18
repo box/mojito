@@ -7,7 +7,6 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import com.box.l10n.mojito.cli.filefinder.file.GitBlameType;
-import com.box.l10n.mojito.cli.filefinder.file.POFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.GitBlameWithUsageClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
@@ -323,8 +322,8 @@ public class GitBlameCommand extends Command {
 
         String stringInFile = textUnitName;
 
-        if (textUnitName != null && textUnitName.matches(".+_(zero|one|two|few|many|other)$"))
-            stringInFile = textUnitName.split("_(zero|one|two|few|many|other)")[0];
+        if (textUnitName != null && textUnitName.matches(".+_(zero|one|two|few|many|other|\\d+)$"))
+            stringInFile = textUnitName.split("_(zero|one|two|few|many|other|\\d+)")[0];
 
         return stringInFile;
 
