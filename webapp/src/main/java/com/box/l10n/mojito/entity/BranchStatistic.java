@@ -33,11 +33,11 @@ public class BranchStatistic extends BaseEntity {
 
     @JsonView(View.BranchStatistic.class)
     @Column(name="total_count")
-    private long totalCount;
+    private long totalCount = 0;
 
     @JsonView(View.BranchStatistic.class)
     @Column(name="for_translation_count")
-    private long forTranslationCount;
+    private long forTranslationCount = 0;
 
     public Branch getBranch() {
         return branch;
