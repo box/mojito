@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.quartz.QuartzConfig;
+import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -83,6 +84,9 @@ public class RepositoryStatisticService {
     DropScheduleService dropScheduleService;
 
     @Autowired
+    BranchStatisticService branchStatisticService;
+
+    @Autowired
     Scheduler scheduler;
 
     @Value("${l10n.repositoryStatistics.computeOutOfSla:false}")
@@ -127,6 +131,9 @@ public class RepositoryStatisticService {
         for (RepositoryLocale repositoryLocale : repositoryService.getRepositoryLocalesWithoutRootLocale(repository)) {
             updateLocaleStatistics(repositoryLocale, repositoryStatistic);
         }
+
+        logger.debug("Update branch statistics");
+        branchStatisticService.computeAndSaveBranchStatistics(repositoryId);
 
         logger.debug("Stats updated");
     }
