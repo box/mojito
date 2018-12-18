@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.data.annotation.CreatedBy;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -33,9 +35,11 @@ import javax.persistence.Table;
 )
 public class TMTextUnit extends SettableAuditableEntity {
 
+    @JsonView(View.IdAndName.class)
     @Column(name = "name", length = Integer.MAX_VALUE)
     private String name;
 
+    @JsonView(View.TmTextUnitSummary.class)
     @Column(name = "content", length = Integer.MAX_VALUE)
     private String content;
 
