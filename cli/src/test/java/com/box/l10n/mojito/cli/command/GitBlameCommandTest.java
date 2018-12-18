@@ -141,8 +141,8 @@ public class GitBlameCommandTest extends CLITestBase {
 
         for (int i = 0; i < lines.length; i++) {
             List<GitBlameWithUsage> gitBlameWithUsages = gitBlameCommand.getGitBlameWithUsagesFromLine(lines[i], textUnitWithUsages);
-            assertEquals(textUnitWithUsages.get(i), gitBlameWithUsages.get(0));
-            assertEquals(1, gitBlameWithUsages.size());
+            assertEquals(textUnitWithUsages.get(i), gitBlameWithUsages.get(i));
+            assertEquals(2, gitBlameWithUsages.size());
         }
     }
 
