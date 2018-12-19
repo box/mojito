@@ -31,7 +31,7 @@ public class Param {
 
     public static final String REPOSITORY_LOCALES_LONG = "--locales";
     public static final String REPOSITORY_LOCALES_SHORT = "-l";
-    public static final String REPOSITORY_LOCALES_DESCRIPTION = "List of locales to add.  Separated by spaces.  Arrow separated to specify parent language. Bracket enclosed locale will set that locale to be partially translated.  e.g.(\"fr-FR\" \"(fr-CA)->fr-FR\" \"en-GB\" \"(en-CA)->en-GB\" \"en-AU\")";
+    public static final String REPOSITORY_LOCALES_DESCRIPTION = "List of locales to add.  Separated by commas.  Arrow separated to specify parent language. Bracket enclosed locale will set that locale to be partially translated.  e.g.(\"fr-FR\",\"(fr-CA)->fr-FR\",\"en-GB\",\"(en-CA)->en-GB\",\"en-AU\")";
 
     public static final String REPOSITORY_LOCALES_MAPPING_LONG = "--locale-mapping";
     public static final String REPOSITORY_LOCALES_MAPPING_SHORT = "-lm";
