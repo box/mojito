@@ -67,7 +67,7 @@ class Screenshot extends React.Component {
      */
     render() {
       
-        let screenshotClassName = "screenshot"
+        let screenshotClassName = "screenshot";
         
         if (this.props.isSelected) {
            screenshotClassName += " screenshot-selected";

@@ -28,7 +28,7 @@ export default class User {
      * Get best display name for user
      */
     getDisplayName() {
-        let name = this.username;
+        let name = this.createdByUserName;
 
         if (this.commonName) {
             name = this.commonName;
@@ -51,7 +51,7 @@ export default class User {
         if (jsonUser) {
             user = new User();
             user.id = jsonUser.id;
-            user.username = jsonUser.username;
+            user.createdByUserName = jsonUser.createdByUserName;
             user.commonName = jsonUser.commonName;
             user.surname = jsonUser.surname;
             user.givenName = jsonUser.givenName;

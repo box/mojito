@@ -17,6 +17,8 @@ import SearchConstants from "../../utils/SearchConstants";
 import {Navbar, Nav, NavItem, NavDropdown, MenuItem, Glyphicon, FormControl} from 'react-bootstrap';
 
 import {Router, Link} from "react-router";
+import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
+import DashboardSearchParamsActions from "../../actions/dashboard/DashboardSearchParamsActions";
 
 let Header = React.createClass({
 
@@ -59,46 +61,59 @@ let Header = React.createClass({
         });
     },
 
+
     render: function () {
         return (
             <Navbar fluid={true}>
                 <a className="navbar-brand">
-                    <img src={require('../../../img/logo.png')} className="logo" alt="Box Mojito" />
+                    <img src={require('../../../img/logo.png')} className="logo" alt="Box Mojito"/>
                 </a>
                 <Nav>
                     <LinkContainer to="/repositories" onClick={() => {
-                                if (this.props.router.isActive("/repositories")) {
-                                      RepositoryActions.getAllRepositories();
-                                }}}>
-                            <NavItem><FormattedMessage id="header.repositories" /></NavItem>
+                        if (this.props.router.isActive("/repositories")) {
+                            RepositoryActions.getAllRepositories();
+                        }
+                    }}>
+                        <NavItem><FormattedMessage id="header.repositories"/></NavItem>
                     </LinkContainer>
                     <LinkContainer to="/workbench" onClick={() => {
-                            if (this.props.router.isActive("/workbench")) {
-                                this.updateSearchParamsForDefaultView();
-                            }}}><NavItem><FormattedMessage id="header.workbench" /></NavItem></LinkContainer>
-                    <LinkContainer to="/project-requests"><NavItem><FormattedMessage id="header.projectRequests" /></NavItem></LinkContainer>
+                        if (this.props.router.isActive("/workbench")) {
+                            this.updateSearchParamsForDefaultView();
+                        }
+                    }}><NavItem><FormattedMessage id="header.workbench"/></NavItem></LinkContainer>
+                    <LinkContainer to="/dashboard" onClick={() => {
+                        if (this.props.router.isActive("/dashboard")) {
+                            DashboardSearchParamsActions.resetDashboardSearchParams();
+                        }
+                    }}>
+                        <NavItem><FormattedMessage id="header.dashboard"/></NavItem>
+                    </LinkContainer>
+                    <LinkContainer to="/project-requests"><NavItem><FormattedMessage
+                        id="header.projectRequests"/></NavItem></LinkContainer>
                     <LinkContainer to="/screenshots" onClick={() => {
-                                if (this.props.router.isActive("/screenshots")) {
-                                    ScreenshotsPageActions.resetScreenshotSearchParams();
-                                    ScreenshotsRepositoryActions.getAllRepositories();
-                                }}}><NavItem><FormattedMessage id="header.screenshots" /></NavItem></LinkContainer>
+                        if (this.props.router.isActive("/screenshots")) {
+                            ScreenshotsPageActions.resetScreenshotSearchParams();
+                            ScreenshotsRepositoryActions.getAllRepositories();
+                        }
+                    }}><NavItem><FormattedMessage id="header.screenshots"/></NavItem></LinkContainer>
                 </Nav>
                 <Nav pullRight={true}>
                     <NavDropdown title={USERNAME} id="user-menu">
                         <MenuItem onSelect={this.openLocaleSelectorModal}>
-                            <Glyphicon glyph="globe" /> {Locales.getCurrentLocaleDisplayName()}
-                            <LocaleSelectorModal key={_.uniqueId()} show={this.state.showLocaleSelectorModal} onClose={this.closeLocaleSelectorModal} />
+                            <Glyphicon glyph="globe"/> {Locales.getCurrentLocaleDisplayName()}
+                            <LocaleSelectorModal key={_.uniqueId()} show={this.state.showLocaleSelectorModal}
+                                                 onClose={this.closeLocaleSelectorModal}/>
                         </MenuItem>
 
                         <MenuItem onSelect={this.settingsSelected}>
-                            <Glyphicon glyph="wrench" /> <FormattedMessage id="header.settings" />
+                            <Glyphicon glyph="wrench"/> <FormattedMessage id="header.settings"/>
                         </MenuItem>
 
-                        <MenuItem divider />
+                        <MenuItem divider/>
                         <MenuItem onSelect={this.logoutSelected}>
                             <form action={UrlHelper.getUrlWithContextPath("/logout")} method="post" ref="logoutForm">
                                 <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
-                                <FormattedMessage id="header.loggedInUser.logout" />
+                                <FormattedMessage id="header.loggedInUser.logout"/>
                             </form>
                         </MenuItem>
                     </NavDropdown>

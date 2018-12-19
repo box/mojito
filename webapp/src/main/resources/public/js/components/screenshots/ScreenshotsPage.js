@@ -1,5 +1,3 @@
-import $ from "jquery";
-import _ from "lodash";
 import keycode from "keycode";
 
 import React from "react";
