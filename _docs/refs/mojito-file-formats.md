@@ -83,7 +83,6 @@ Source Resource File (English): `en.lproj/Localizable.stringsdict`
 </dict>
 </dict>
 </plist>
-
 ```
 
 Localized Resource File (Spanish): `es.lproj/Localizable.stringsdict`
