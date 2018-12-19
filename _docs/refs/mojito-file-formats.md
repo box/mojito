@@ -10,6 +10,7 @@ permalink: /docs/refs/mojito-file-formats/
 |:-----------------------------------|:---------------------------------------|
 | Android Strings &nbsp;&nbsp;&nbsp; | res/values/strings.xml                 |
 | iOS/Mac Strings                    | Localizable.strings, InfoPList.strings |
+| iOS/Mac Stringsdict                | Localizable.stringsdict                |
 | Java Properties                    | *.properties                           |
 | RESW                               | *.resw                                 |
 | RESX                               | *.resx                                 |
@@ -53,6 +54,63 @@ Localized Resource File (Spanish): `es.lproj/Localizable.strings`
 ```c++
 /* Greeting from Main UI */
 "Hello!" = "¡Hola!";
+```
+
+
+### iOS/Mac Stringsdict Example
+Source Resource File (English): `en.lproj/Localizable.stringsdict`
+
+
+```xml
+<plist version="1.0">
+<dict>
+<key>Hello %d world(s)</key>
+<dict>
+    <!-- Greeting from Main UI -->
+    <key>NSStringLocalizedFormatKey</key>
+    <string>%#@world@</string>
+    <key>world</key>
+    <dict>
+        <key>NSStringFormatSpecTypeKey</key>
+        <string>NSStringPluralRuleType</string>
+        <key>NSStringFormatValueTypeKey</key>
+        <string>d</string>
+        <key>one</key>
+        <string>Hello %d world</string>
+        <key>other</key>
+        <string>Hello %d worlds</string>
+    </dict>
+</dict>
+</dict>
+</plist>
+
+```
+
+Localized Resource File (Spanish): `es.lproj/Localizable.stringsdict`
+
+
+```xml
+<plist version="1.0">
+<dict>
+<key>Hello %d world(s)</key>
+<dict>
+    <!-- Greeting from Main UI -->
+    <key>NSStringLocalizedFormatKey</key>
+    <string>%#@world@</string>
+    <key>world</key>
+    <dict>
+        <key>NSStringFormatSpecTypeKey</key>
+        <string>NSStringPluralRuleType</string>
+        <key>NSStringFormatValueTypeKey</key>
+        <string>d</string>
+        <key>one</key>
+        <string>Hola %d mundo</string>
+        <key>other</key>
+        <string>Hola %d mundos</string>
+    </dict>
+</dict>
+</dict>
+</plist>
 ```
 
 
