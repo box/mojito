@@ -299,7 +299,7 @@ let GitBlameInfoModal = React.createClass({
      */
     getLocationDefaultLabel() {
         const usages = this.getUsages();
-        if (usages !== null) {
+        if (usages !== null && usages.length > 0) {
             return usages.join("\n");
         } else {
             return '-';
