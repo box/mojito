@@ -136,11 +136,8 @@ public class GitBlameCommand extends Command {
 
             offset += numGitBlameWithUsages;
 
-            if (fileType != null && GitBlameType.TEXT_UNIT_USAGES.equals(fileType.getGitBlameType())) {
-                blameWithTextUnitUsages(getGitBlameWithUsagesToProcess);
-            } else {
-                blameSourceFiles(getGitBlameWithUsagesToProcess);
-            }
+            blameWithTextUnitUsages(getGitBlameWithUsagesToProcess);
+            blameSourceFiles(getGitBlameWithUsagesToProcess);
 
             pollableTasks.add(gitBlameWithUsageClient.saveGitBlameWithUsages(getGitBlameWithUsagesToProcess));
         } while (numGitBlameWithUsages == BATCH_SIZE);
@@ -196,6 +193,10 @@ public class GitBlameCommand extends Command {
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
+
+            if (GitBlameType.TEXT_UNIT_USAGES.equals(sourceFileMatch.getFileType().getGitBlameType())) {
+                continue;
+            }
 
             Path sourceRelativePath = gitRepository.getDirectory().getParentFile().toPath().relativize(sourceFileMatch.getPath());
             BlameResult blameResultForFile = gitRepository.getBlameResultForFile(sourceRelativePath.toString());
