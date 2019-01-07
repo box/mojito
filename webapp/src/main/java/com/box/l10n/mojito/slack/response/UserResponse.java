@@ -1,4 +1,6 @@
-package com.box.l10n.mojito.slack;
+package com.box.l10n.mojito.slack.response;
+
+import com.box.l10n.mojito.slack.request.User;
 
 public class UserResponse extends BaseResponse {
 
