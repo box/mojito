@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.slack;
+package com.box.l10n.mojito.slack.response;
 
 public class BaseResponse {
     Boolean ok;

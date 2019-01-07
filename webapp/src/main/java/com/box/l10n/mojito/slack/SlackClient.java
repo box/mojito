@@ -1,9 +1,18 @@
 package com.box.l10n.mojito.slack;
 
+import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.slack.request.Channel;
+import com.box.l10n.mojito.slack.request.Message;
+import com.box.l10n.mojito.slack.request.User;
+import com.box.l10n.mojito.slack.response.BaseResponse;
+import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
+import com.box.l10n.mojito.slack.response.ImOpenResponse;
+import com.box.l10n.mojito.slack.response.UserResponse;
 import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -26,6 +35,8 @@ public class SlackClient {
     static final String API_IM_OPEN = "im.open";
     static final String API_CHAT_POST_MESSAGE = "chat.postMessage";
 
+    public static final String COLOR_GOOD = "good";
+
     RestTemplate restTemplate = new RestTemplate();
     String authToken = null;
 
@@ -34,16 +45,31 @@ public class SlackClient {
     }
 
     /**
-     * Sends a instant message to a user identified by his email.
+     * Sends an instant message
      *
-     * @param email user's email
      * @param message message to send
      * @throws SlackClientException
      */
-    public void sendInstantMessage(String email, String message) throws SlackClientException {
+    public ChatPostMessageResponse sendInstantMessage(Message message) throws SlackClientException {
+        logger.debug("sendInstantMessage to: {}", message.getChannel());
+
+        HttpEntity<Message> httpEntity = getMessageHttpEntityForJsonPayload(message);
+
+        ChatPostMessageResponse postForObject = restTemplate.postForObject(getUrl(API_CHAT_POST_MESSAGE), httpEntity, ChatPostMessageResponse.class);
+
+        if (!postForObject.getOk()) {
+            String msg = MessageFormat.format("Cannot post message in chat: {0}", postForObject.getError());
+            logger.error(msg);
+            throw new SlackClientException(msg);
+        }
+
+        return postForObject;
+    }
+
+    public Channel getInstantMessageChannel(String email) throws SlackClientException {
         User user = lookupUserByEmail(email);
         Channel channel = openIm(user);
-        BaseResponse baseResponse = chatPostMessage(channel, message);
+        return channel;
     }
 
     User lookupUserByEmail(String email) throws SlackClientException {
@@ -51,7 +77,7 @@ public class SlackClient {
         MultiValueMap<String, Object> payload = getBasePayloadMapWithAuthToken();
         payload.add("email", email);
 
-        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityForPayload(payload);
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityForFormPayload(payload);
         UserResponse userResponse = restTemplate.postForObject(getUrl(API_USER_LOOKUP_BY_EMAIL), httpEntity, UserResponse.class);
 
         if (!userResponse.getOk()) {
@@ -70,7 +96,7 @@ public class SlackClient {
         payload.add("user", user.getId());
         payload.add("return_im", "true");
 
-        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityForPayload(payload);
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityForFormPayload(payload);
 
         ImOpenResponse imOpenResponse = restTemplate.postForObject(getUrl(API_IM_OPEN), httpEntity, ImOpenResponse.class);
 
@@ -90,7 +116,7 @@ public class SlackClient {
         payload.add("channel", channel.getId());
         payload.add("text", text);
 
-        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityForPayload(payload);
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityForFormPayload(payload);
 
         BaseResponse postForObject = restTemplate.postForObject(getUrl(API_CHAT_POST_MESSAGE), httpEntity, BaseResponse.class);
 
@@ -109,14 +135,25 @@ public class SlackClient {
         return map;
     }
 
-    HttpHeaders getBaseHttpHeaders() {
+    HttpHeaders getHttpHeadersForFormUrlencoded() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return headers;
     }
 
-    HttpEntity<MultiValueMap<String, Object>> getHttpEntityForPayload(MultiValueMap<String, Object> payload) {
-        return new HttpEntity<>(payload, getBaseHttpHeaders());
+    HttpHeaders getHttpHeadersForJson() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + authToken);
+        return headers;
+    }
+
+    HttpEntity<MultiValueMap<String, Object>> getHttpEntityForFormPayload(MultiValueMap<String, Object> payload) {
+        return new HttpEntity<>(payload, getHttpHeadersForFormUrlencoded());
+    }
+
+    <T> HttpEntity<T> getMessageHttpEntityForJsonPayload(T payload) {
+        return new HttpEntity<>(payload, getHttpHeadersForJson());
     }
 
     String getUrl(String subpath) {
