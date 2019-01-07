@@ -1,16 +1,23 @@
-package com.box.l10n.mojito.slack;
+package com.box.l10n.mojito.slack.response;
 
-public class ImOpenResponse extends BaseResponse {
-    boolean no_op;
+import com.box.l10n.mojito.slack.request.Channel;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class SendMessageResponse extends BaseResponse {
+
+    @JsonProperty("no_op")
+    boolean noOp;
+
     boolean alreadyOpen;
+
     Channel channel;
 
-    public boolean isNo_op() {
-        return no_op;
+    public boolean isNoOp() {
+        return noOp;
     }
 
-    public void setNo_op(boolean no_op) {
-        this.no_op = no_op;
+    public void setNoOp(boolean noOp) {
+        this.noOp = noOp;
     }
 
     public boolean isAlreadyOpen() {
