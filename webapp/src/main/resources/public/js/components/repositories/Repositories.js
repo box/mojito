@@ -41,7 +41,7 @@ let Repositories = React.createClass({
     },
 
     onLocalesButtonToggle(repoId) {
-        if (repoId === this.state.activeRepoId) {
+        if (this.state.isLocaleStatsShown && repoId === this.state.activeRepoId) {
             this.onCloseRequestedRepoLocaleStats();
         } else {
             this.onShowRequestedRepoLocaleStats(repoId);
@@ -49,10 +49,6 @@ let Repositories = React.createClass({
     },
 
     onShowRequestedRepoLocaleStats(repoId) {
-        if (this.state.activeRepoId) {
-            this.refs["repositoryRow" + this.state.activeRepoId].setInActive();
-        }
-
         this.setState({
             "isLocaleStatsShown": true,
             "activeRepoId": repoId
@@ -60,10 +56,6 @@ let Repositories = React.createClass({
     },
 
     onCloseRequestedRepoLocaleStats() {
-        if (this.state.activeRepoId) {
-            this.refs["repositoryRow" + this.state.activeRepoId].setInActive();
-        }
-
         this.setState({
             "isLocaleStatsShown": false,
             "activeRepoId": null
