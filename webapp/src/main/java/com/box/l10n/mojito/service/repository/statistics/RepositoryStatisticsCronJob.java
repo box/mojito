@@ -50,7 +50,7 @@ public class RepositoryStatisticsCronJob implements Job {
 
     @Lazy
     @Autowired
-    RepositoryStatisticService repositoryStatisticService;
+    RepositoryStatisticsJob repositoryStatisticsJob;
 
     @Value("${l10n.repositoryStatistics.scheduler.cron}")
     String cron;
@@ -60,7 +60,7 @@ public class RepositoryStatisticsCronJob implements Job {
         logger.debug("Sets repository stats as out of date");
         List<Repository> repositories = repositoryRepository.findByDeletedFalseOrderByNameAsc();
         for (Repository repository : repositories) {
-            repositoryStatisticService.addJobIfMissing(repository.getId());
+            repositoryStatisticsJob.schedule(repository.getId());
         }
     }
 
