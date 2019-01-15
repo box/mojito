@@ -35,7 +35,7 @@ public class RepositoryStatisticsUpdatedReactor {
     Environment streamEnvironment;
 
     @Autowired
-    RepositoryStatisticService repositoryStatisticService;
+    RepositoryStatisticsJob repositoryStatisticsJob;
 
     private Processor<Long, Long> processor;
 
@@ -47,7 +47,7 @@ public class RepositoryStatisticsUpdatedReactor {
             @Override
             public void accept(List<Long> repositoryIds) {
                 for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
-                    repositoryStatisticService.addJobIfMissing(repositoryId);
+                    repositoryStatisticsJob.schedule(repositoryId);
                 }
             }
         });

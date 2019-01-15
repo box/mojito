@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.branch;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
+import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJob;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -12,9 +13,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.service.assetExtraction.AssetExtractionService.PRIMARY_BRANCH;
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.FOR_TRANSLATION;
@@ -42,6 +43,9 @@ public class BranchStatisticService {
     BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
 
     @Autowired
+    BranchNotificationJob branchNotificationJob;
+
+    @Autowired
     TextUnitSearcher textUnitSearcher;
 
     @Autowired
@@ -57,6 +61,7 @@ public class BranchStatisticService {
         List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
         for (Branch branch : branchesToCheck) {
             computeAndSaveBranchStatistics(branch);
+            branchNotificationJob.schedule(branch.getId());
         }
     }
 
@@ -65,7 +70,7 @@ public class BranchStatisticService {
      *
      * @param branch
      */
-    void computeAndSaveBranchStatistics(Branch branch) {
+    public void computeAndSaveBranchStatistics(Branch branch) {
 
         logger.debug("computeAndSaveBranchStatistics for branch: {} ({})", branch.getId(), branch.getName());
 
@@ -121,11 +126,9 @@ public class BranchStatisticService {
     }
 
     Set<Long> getTmTextUnitIdsOfBranchStatistic(BranchStatistic branchStatistic) {
-        Set<Long> tmTextUnitIdsToRemove = new HashSet<>();
-        for (BranchTextUnitStatistic branchTextUnitStatistic : branchStatistic.getBranchTextUnitStatistics()) {
-            tmTextUnitIdsToRemove.add(branchTextUnitStatistic.getTmTextUnit().getId());
-        }
-        return tmTextUnitIdsToRemove;
+        return branchStatistic.getBranchTextUnitStatistics().stream().
+                map(branchTextUnitStatistic -> branchTextUnitStatistic.getTmTextUnit().getId()).
+                collect(Collectors.toSet());
     }
 
     /**
@@ -146,7 +149,7 @@ public class BranchStatisticService {
      * @param branch
      * @return
      */
-    List<TextUnitDTO> getTextUnitDTOsForBranch(Branch branch) {
+    public List<TextUnitDTO> getTextUnitDTOsForBranch(Branch branch) {
         logger.debug("Get text units for branch: {} ({})", branch.getId(), branch.getName());
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
