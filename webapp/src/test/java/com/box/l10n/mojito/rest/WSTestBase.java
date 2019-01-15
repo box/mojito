@@ -8,11 +8,8 @@ import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +19,6 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -31,7 +26,10 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
-import static org.mockito.Mockito.mock;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Base class for WS integration tests. Creates an in-memory instance of tomcat
@@ -45,10 +43,10 @@ import static org.mockito.Mockito.mock;
 @WebIntegrationTest(randomPort = true, value = {"l10n.fileSystemDropExporter.path=target/test-output/fileSystemDropExporter"})
 @TestExecutionListeners(
         listeners = {
-            DependencyInjectionTestExecutionListener.class,
-            DirtiesContextTestExecutionListener.class,
-            TransactionalTestExecutionListener.class,
-            WithSecurityContextTestExecutionListener.class
+                DependencyInjectionTestExecutionListener.class,
+                DirtiesContextTestExecutionListener.class,
+                TransactionalTestExecutionListener.class,
+                WithSecurityContextTestExecutionListener.class
         }
 )
 @Configuration
@@ -69,10 +67,10 @@ public class WSTestBase {
 
     @Autowired
     protected LocaleClient localeClient;
-    
+
     @Autowired
     ResttemplateConfig resttemplateConfig;
-    
+
     @Bean
     public ApplicationListener<EmbeddedServletContainerInitializedEvent> getApplicationListenerEmbeddedServletContainerInitializedEvent() {
         return new ApplicationListener<EmbeddedServletContainerInitializedEvent>() {
@@ -108,5 +106,34 @@ public class WSTestBase {
         }
 
         return repositoryLocales;
+    }
+
+    /**
+     * Wait until a condition is true with timeout.
+     *
+     * @param failMessage
+     * @param condition
+     * @throws InterruptedException
+     */
+    protected  void waitForCondition(String failMessage, Supplier<Boolean> condition) throws InterruptedException {
+        int numberAttempt = 0;
+        while (true) {
+            numberAttempt++;
+
+            boolean res;
+
+            try {
+                res = condition.get();
+            } catch(Throwable t) {
+                res = false;
+            }
+
+            if (res) {
+                break;
+            } else if (numberAttempt > 10) {
+                Assert.fail(failMessage);
+            }
+            Thread.sleep(numberAttempt * 100);
+        }
     }
 }

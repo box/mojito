@@ -59,7 +59,7 @@ public class SlackClient {
 
         if (!postForObject.getOk()) {
             String msg = MessageFormat.format("Cannot post message in chat: {0}", postForObject.getError());
-            logger.error(msg);
+            logger.debug(msg);
             throw new SlackClientException(msg);
         }
 
@@ -82,7 +82,7 @@ public class SlackClient {
 
         if (!userResponse.getOk()) {
             String msg = MessageFormat.format("Cannot lookup user by email: {0} ({1})", email, userResponse.getError());
-            logger.error(msg);
+            logger.debug(msg);
             throw new SlackClientException(msg);
         }
 
@@ -102,7 +102,7 @@ public class SlackClient {
 
         if (!imOpenResponse.getOk()) {
             String msg = MessageFormat.format("Cannot open instant message: {0}", imOpenResponse.getError());
-            logger.error(msg);
+            logger.debug(msg);
             throw new SlackClientException(msg);
         }
 
@@ -122,7 +122,7 @@ public class SlackClient {
 
         if (!postForObject.getOk()) {
             String msg = MessageFormat.format("Cannot post message in chat: {0}", postForObject.getError());
-            logger.error(msg);
+            logger.debug(msg);
             throw new SlackClientException(msg);
         }
 

@@ -5,15 +5,11 @@ import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
-import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
-import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
-import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -24,9 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Configurable;
 
-import javax.annotation.PostConstruct;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -80,7 +74,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
     @Test
     public void getBranchesToCheck() throws Exception {
-        BranchTestData branchTestData = new BranchTestData();
+        BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
         List<Branch> branchesToCheck = branchStatisticService.getBranchesToProcess(branchTestData.getRepository().getId());
         assertEquals("branch1", branchesToCheck.get(0).getName());
@@ -90,7 +84,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
     @Test
     public void getBranchTextUnits() throws Exception {
-        BranchTestData branchTestData = new BranchTestData();
+        BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
         logger.debug("In master branch");
         List<TextUnitDTO> textUnitDTOsForBranchMaster = branchStatisticService.getTextUnitDTOsForBranch(branchTestData.getMaster());
@@ -113,7 +107,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
     @Test
     public void getForTranslationCount() throws Exception {
 
-        BranchTestData branchTestData = new BranchTestData();
+        BranchTestData branchTestData = new BranchTestData(testIdWatcher);
         Branch branch1 = branchTestData.getBranch1();
         Branch branch2 = branchTestData.getBranch2();
         RepositoryLocale repositoryLocaleFrFr = branchTestData.getRepositoryLocaleFrFr();
@@ -137,7 +131,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
     @Test
     public void computeAndSaveBranchStatistic() throws Exception {
-        BranchTestData branchTestData = new BranchTestData();
+        BranchTestData branchTestData = new BranchTestData(testIdWatcher);
         Branch branch1 = branchTestData.getBranch1();
         Branch branch2 = branchTestData.getBranch2();
 
@@ -178,7 +172,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
     @Test
     public void computeAndSaveBranchStatisticUpdates() throws Exception {
-        BranchTestData branchTestData = new BranchTestData();
+        BranchTestData branchTestData = new BranchTestData(testIdWatcher);
         Branch branch1 = branchTestData.getBranch1();
         Branch branch2 = branchTestData.getBranch2();
         RepositoryLocale repositoryLocaleFrFr = branchTestData.getRepositoryLocaleFrFr();
@@ -255,7 +249,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
     @Test
     public void computeAndSaveBranchStatisticDeletedTextUnit() throws Exception {
-        BranchTestData branchTestData = new BranchTestData();
+        BranchTestData branchTestData = new BranchTestData(testIdWatcher);
         Branch branch1 = branchTestData.getBranch1();
 
         branchStatisticService.computeAndSaveBranchStatistics(branch1);
@@ -281,79 +275,4 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
     }
 
 
-    @Configurable
-    private class BranchTestData {
-        private Repository repository;
-        private RepositoryLocale repositoryLocaleFrFr;
-        private RepositoryLocale repositoryLocaleJaJp;
-        private Asset asset;
-        private Branch master;
-        private Branch branch1;
-        private Branch branch2;
-
-        public RepositoryLocale getRepositoryLocaleFrFr() {
-            return repositoryLocaleFrFr;
-        }
-
-        public RepositoryLocale getRepositoryLocaleJaJp() {
-            return repositoryLocaleJaJp;
-        }
-
-        public Asset getAsset() {
-            return asset;
-        }
-
-        public Branch getMaster() {
-            return master;
-        }
-
-        public Branch getBranch1() {
-            return branch1;
-        }
-
-        public Branch getBranch2() {
-            return branch2;
-        }
-
-        public Repository getRepository() {
-            return repository;
-        }
-
-        @PostConstruct
-        public BranchTestData init() throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, InterruptedException, java.util.concurrent.ExecutionException, UnsupportedAssetFilterTypeException {
-            repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-            repositoryLocaleFrFr = repositoryService.addRepositoryLocale(repository, "fr-FR");
-            repositoryLocaleJaJp = repositoryService.addRepositoryLocale(repository, "ja-JP");
-
-            String assetPath = "path/to/file.properties";
-            asset = assetService.createAsset(repository.getId(), assetPath, false);
-
-            String masterContent = "# string1 description\n"
-                    + "string1=content1\n"
-                    + "string2=content2\n";
-
-            master = branchService.createBranch(asset.getRepository(), "master", null);
-            AssetContent assetContentMaster = assetContentService.createAssetContent(asset, masterContent, master);
-            assetExtractionService.processAssetAsync(assetContentMaster.getId(), null, null).get();
-
-            String branch1Content = "# string1 description\n"
-                    + "string1=content1\n"
-                    + "string3=content3\n";
-
-            branch1 = branchService.createBranch(asset.getRepository(), "branch1", null);
-            AssetContent assetContentBranch1 = assetContentService.createAssetContent(asset, branch1Content, branch1);
-            assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null).get();
-
-            String branch2Content = "# string1 description\n"
-                    + "string1=content1\n"
-                    + "string2=content2\n"
-                    + "string4=content4\n"
-                    + "string5=content5\n";
-
-            branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
-            AssetContent assetContentBranch2 = assetContentService.createAssetContent(asset, branch2Content, branch2);
-            assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null).get();
-            return this;
-        }
-    }
 }
