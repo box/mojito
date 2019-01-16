@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,6 +30,7 @@ public class ScreenshotRun extends SettableAuditableEntity {
 
     @ManyToOne
     @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT_RUN__REPOSITORY__ID"), nullable = false)
+    @JsonBackReference
     private Repository repository;
 
     @Column(name = "name")

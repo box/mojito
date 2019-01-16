@@ -3,6 +3,7 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.data.annotation.CreatedBy;
 
@@ -34,7 +35,6 @@ public class Branch extends BaseEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__BRANCH__REPOSITORY__ID"))
-    @JsonBackReference
     @JsonView(View.BranchSummary.class)
     Repository repository;
 

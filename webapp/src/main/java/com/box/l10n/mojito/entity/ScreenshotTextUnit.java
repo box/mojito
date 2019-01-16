@@ -1,6 +1,9 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonView;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -24,25 +27,32 @@ public class ScreenshotTextUnit extends BaseEntity {
     @JoinColumn(name = "screenshot_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT_TEXT_UNIT__SCREENSHOT__ID"), nullable = false)
     private Screenshot screenshot;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "name")
     private String name;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "source", length = Integer.MAX_VALUE)
     private String source;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "target", length = Integer.MAX_VALUE)
     private String target;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "rendered_target", length = Integer.MAX_VALUE)
     private String renderedTarget;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "number_of_match")
     private Integer numberOfMatch;
 
+    @JsonView(View.Screenshots.class)
     @ManyToOne
     @JoinColumn(name = "tm_text_unit_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT_TEXT_UNIT__TM_TEXT_UNIT__ID"))
     private TMTextUnit tmTextUnit;
 
+    @JsonView(View.Screenshots.class)
     @ManyToOne
     @JoinColumn(name = "tm_text_unit_variant_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT_TEXT_UNIT__TM_TEXT_UNIT_VARIANT__ID"))
     private TMTextUnitVariant tmTextUnitVariant;
