@@ -2,25 +2,35 @@ package com.box.l10n.mojito.service.gitblame;
 
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.GitBlame;
+import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import java.util.Set;
 
 public class GitBlameWithUsage {
 
+    @JsonView(View.GitBlameWithUsage.class)
     Set<String> usages;
 
+    @JsonView(View.GitBlameWithUsage.class)
     String textUnitName;
 
+    @JsonView(View.GitBlameWithUsage.class)
     Long tmTextUnitId;
 
+    @JsonView(View.GitBlameWithUsage.class)
     Long assetTextUnitId;
 
+    @JsonView(View.GitBlameWithUsage.class)
     String content;
 
+    @JsonView(View.GitBlameWithUsage.class)
     String comment;
 
+    @JsonView(View.GitBlameWithUsage.class)
     GitBlame gitBlame;
 
+    @JsonView(View.GitBlameWithUsage.class)
     Branch branch;
 
     public Set<String> getUsages() {

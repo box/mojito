@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
+import com.box.l10n.mojito.entity.ScreenshotRun;
 import com.box.l10n.mojito.entity.TM;
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
@@ -13,6 +14,7 @@ import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatisticRepository;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
+import com.box.l10n.mojito.service.screenshot.ScreenshotRunRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import java.util.HashMap;
@@ -20,8 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +69,9 @@ public class RepositoryService {
 
     @Autowired
     DropExporterConfig dropExporterConfiguration;
+
+    @Autowired
+    ScreenshotRunRepository screenshotRunRepository;
 
     /**
      * Default root locale.
@@ -140,6 +145,29 @@ public class RepositoryService {
 
         addRootLocale(repository, sourceLocale);
 
+        repository = addManualScreenshotRun(repository);
+
+        return repository;
+    }
+
+    /**
+     * Adds the {@link com.box.l10n.mojito.entity.ScreenshotRun} that will be used to store screenshots uploaded by
+     * developpers/manually.
+     *
+     * This run stays with {@link ScreenshotRun#lastSuccessfulRun} set to {@code false}.
+     *
+     * @param repository
+     * @return
+     */
+    public Repository addManualScreenshotRun(Repository repository) {
+        logger.debug("Create source screenshot run");
+        ScreenshotRun screenshotRun = new ScreenshotRun();
+        screenshotRun.setRepository(repository);
+        screenshotRun.setName("for_source_" + repository.getId() + "_" + UUID.randomUUID().toString());
+        screenshotRun = screenshotRunRepository.save(screenshotRun);
+
+        repository.setManualScreenshotRun(screenshotRun);
+        repositoryRepository.save(repository);
         return repository;
     }
 
