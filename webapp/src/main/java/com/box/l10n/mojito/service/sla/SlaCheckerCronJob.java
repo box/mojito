@@ -63,7 +63,6 @@ public class SlaCheckerCronJob implements Job {
         CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
         trigger.setJobDetail(job);
         trigger.setCronExpression(incidentCheckCron);
-        trigger.setJobDetail(job);
         return trigger;
     }
 }

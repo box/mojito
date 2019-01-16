@@ -1,16 +1,19 @@
 package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ScreenshotRun {
 
+    private Long id;
+
     private Repository repository;
-    
+
     private String name;
 
-    @JsonDeserialize(as=LinkedHashSet.class)
+    @JsonDeserialize(as = LinkedHashSet.class)
     Set<Screenshot> screenshots = new LinkedHashSet<>();
 
     public Repository getRepository() {
@@ -37,4 +40,11 @@ public class ScreenshotRun {
         this.name = name;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

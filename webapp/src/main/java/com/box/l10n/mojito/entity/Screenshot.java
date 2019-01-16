@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -42,30 +44,36 @@ public class Screenshot extends SettableAuditableEntity {
     @Column(name = "name")
     private String name;
 
-    @JsonIgnoreProperties({"repository", "screenshots", "createdDate"})
+    @JsonView(View.Screenshots.class)
     @Basic(optional = false)
     @ManyToOne
     @JoinColumn(name = "screenshot_run_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__SCREENSHOT_RUN__ID"))
     private ScreenshotRun screenshotRun;
 
+    @JsonView(View.Screenshots.class)
     @Basic(optional = false)
     @ManyToOne
     @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__LOCALE__ID"))
     private Locale locale;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "src", length = Integer.MAX_VALUE)
     private String src;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "status", length = 32)
     @Enumerated(EnumType.STRING)
     private Status status = Status.NEEDS_REVIEW;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "sequence")
     private Long sequence;
 
+    @JsonView(View.Screenshots.class)
     @Column(name = "comment", length = Integer.MAX_VALUE)
     private String comment;
 
+    @JsonView(View.Screenshots.class)
     @JsonManagedReference
     @OneToMany(mappedBy = "screenshot", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonProperty("textUnits")
