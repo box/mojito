@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
@@ -23,6 +24,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.commons.collections.CollectionUtils;
@@ -354,6 +356,7 @@ public class TextUnitWS {
      * @return the GitBlame that matches the search parameters
      * @throws InvalidTextUnitSearchParameterException
      */
+    @JsonView(View.GitBlameWithUsage.class)
     @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/gitBlameWithUsages")
     public List<GitBlameWithUsage> getGitBlameWithUsages(@RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
                                                          @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames,

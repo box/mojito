@@ -1,7 +1,9 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -27,18 +29,21 @@ public class GitBlame extends AuditableEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "tm_text_unit_id", foreignKey = @ForeignKey(name = "FK__GIT_BLAME__TM_TEXT_UNIT__ID"))
-    @JsonIgnore
     private TMTextUnit tmTextUnit;
 
+    @JsonView(View.GitBlame.class)
     @Column(name = "author_email")
     private String authorEmail;
 
+    @JsonView(View.GitBlame.class)
     @Column(name = "author_name")
     private String authorName;
 
+    @JsonView(View.GitBlame.class)
     @Column(name = "commit_time")
     private String commitTime;
 
+    @JsonView(View.GitBlame.class)
     @Column(name = "commit_name")
     private String commitName;
 
