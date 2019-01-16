@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.hibernate.envers.Audited;
@@ -45,7 +46,7 @@ public class Repository extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     private DropExporterType dropExporterType;
 
-    @JsonView(View.RepositorySummary.class)
+    @JsonView({View.RepositorySummary.class, View.BranchStatistic.class})
     @ManyToOne
     @Basic(optional = false)
     @JoinColumn(name = "source_locale_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__LOCALE__ID"))
@@ -66,9 +67,9 @@ public class Repository extends AuditableEntity {
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<AssetIntegrityChecker> assetIntegrityCheckers = new HashSet<>();
 
-    @JsonManagedReference
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     @NotAudited
+    @JsonBackReference
     Set<Branch> branches = new HashSet<>();
 
     @OneToOne
@@ -80,6 +81,11 @@ public class Repository extends AuditableEntity {
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__REPOSITORY__USER__ID"))
     protected User createdByUser;
+
+    @JsonView(View.BranchStatistic.class)
+    @ManyToOne
+    @JoinColumn(name = "manual_screenshot_run_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__SCREENSHOT_RUN__ID"))
+    ScreenshotRun manualScreenshotRun;
 
     /**
      * To mark a Repository as deleted so it can be hidden in a Repositories
@@ -182,7 +188,7 @@ public class Repository extends AuditableEntity {
     public void setCheckSLA(Boolean checkSLA) {
         this.checkSLA = checkSLA;
     }
-  
+
     public Set<Branch> getBranches() {
         return branches;
     }
@@ -197,5 +203,13 @@ public class Repository extends AuditableEntity {
 
     public void setSourceLocale(Locale sourceLocale) {
         this.sourceLocale = sourceLocale;
+    }
+
+    public ScreenshotRun getManualScreenshotRun() {
+        return manualScreenshotRun;
+    }
+
+    public void setManualScreenshotRun(ScreenshotRun manualScreenshotRun) {
+        this.manualScreenshotRun = manualScreenshotRun;
     }
 }

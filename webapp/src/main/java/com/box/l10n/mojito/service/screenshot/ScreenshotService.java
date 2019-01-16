@@ -1,25 +1,20 @@
 package com.box.l10n.mojito.service.screenshot;
 
-import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.Locale_;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.Repository_;
-import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.ScreenshotRun;
-import com.box.l10n.mojito.entity.ScreenshotRun_;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit_;
-import com.box.l10n.mojito.entity.Screenshot_;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.Strings;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.comparator.NullSafeComparator;
+
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -28,12 +23,10 @@ import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.comparator.NullSafeComparator;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Service to manage screenshots.
@@ -61,30 +54,39 @@ public class ScreenshotService {
     TextUnitSearcher textUnitSearcher;
 
     @Autowired
+    TMTextUnitRepository tmTextUnitRepository;
+
+    @Autowired
     EntityManager em;
 
     /**
      * Creates or update a screenshot run including the creation of related
-     * screenshots. If updating a screenshot run then new screenshots get addes
+     * screenshots. If updating a screenshot run then new screenshots get added
      *
-     * @param screenshotRun the screenshot run information, contains a list of
-     * screenshot to be persisted
-     *
+     * @param screenshotRun                  the screenshot run information, contains a list of
+     *                                       screenshot to be persisted
+     * @param setLastSuccessfulScreenshotRun
      * @return the screenshot run object that was created. Note that the list of
      * screenshots is set to null (the limitation is related to the
      * update/create case)
      */
     @Transactional
-    public ScreenshotRun createOrUpdateScreenshotRun(ScreenshotRun screenshotRun) {
+    public ScreenshotRun createOrUpdateScreenshotRun(ScreenshotRun screenshotRun, boolean setLastSuccessfulScreenshotRun) {
 
-        ScreenshotRun currentScreenshotRun = screenshotRunRepository.findByName(screenshotRun.getName());
-        Repository repository = screenshotRun.getRepository();
+        ScreenshotRun currentScreenshotRun;
+
+        if (screenshotRun.getId() != null) {
+            currentScreenshotRun = screenshotRunRepository.findOne(screenshotRun.getId());
+        } else {
+            currentScreenshotRun = screenshotRunRepository.findByName(screenshotRun.getName());
+        }
 
         if (currentScreenshotRun != null) {
             logger.debug("Screenshot run already exsits, id: {}, update it", currentScreenshotRun.getId());
             screenshotRun.setId(currentScreenshotRun.getId());
+            screenshotRun.setRepository(currentScreenshotRun.getRepository());
         } else {
-            logger.debug("Save screenshot run for repository: {}", repository.getName());
+            logger.debug("Save screenshot run for repository id: {}", screenshotRun.getRepository().getId());
             screenshotRun = screenshotRunRepository.save(screenshotRun);
         }
 
@@ -96,8 +98,10 @@ public class ScreenshotService {
             completeAndAddScreenshotToRun(screenshot, screenshotRun);
         }
 
-        logger.debug("Update the last successful screenshot import");
-        updateLastSucessfulScreenshotRun(repository, screenshotRun);
+        if (setLastSuccessfulScreenshotRun) {
+            logger.debug("Update the last successful screenshot import");
+            updateLastSucessfulScreenshotRun(screenshotRun.getRepository(), screenshotRun);
+        }
 
         // because of the create/update case the list of screenshot is not valid
         // anymore, set null to avoid confusion
@@ -107,7 +111,6 @@ public class ScreenshotService {
     }
 
     void sortScreenshotBySequence(List<Screenshot> screenshots) {
-
         Collections.sort(screenshots, new Comparator<Screenshot>() {
             @Override
             public int compare(Screenshot o1, Screenshot o2) {
@@ -159,7 +162,7 @@ public class ScreenshotService {
     /**
      * Get the source and target from the database from the screenshot text unit
      * name. This can get out of sync.
-     *
+     * <p>
      * An improvement would be to get them during extraction for more
      * consistency and actually show the fully translated string.
      *
@@ -169,23 +172,35 @@ public class ScreenshotService {
     void completeScreenshotTextUnit(ScreenshotTextUnit screenshotTextUnit, Screenshot screenshot) {
         screenshotTextUnit.setScreenshot(screenshot);
 
-        List<TextUnitDTO> textUnitDTOs = getTextUnitsForScreenshotTextUnitRenderedTarget(
-                screenshot.getScreenshotRun().getRepository().getId(),
-                screenshotTextUnit.getRenderedTarget(),
-                screenshot.getLocale().getId());
+        if (screenshotTextUnit.getTmTextUnit() != null) {
 
-        screenshotTextUnit.setNumberOfMatch(textUnitDTOs.size());
+            TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(screenshotTextUnit.getTmTextUnit().getId());
+            if (tmTextUnit != null) {
+                screenshotTextUnit.setName(tmTextUnit.getName());
+                screenshotTextUnit.setNumberOfMatch(1);
+                screenshotTextUnit.setSource(tmTextUnit.getContent());
+            }
 
-        if (textUnitDTOs.size() == 1) {
-            //TODO only match if there is an embedded hidden id in the string?
-            logger.debug("Found unique match, link the screenshot textunit to the tm");
-            TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
-            screenshotTextUnit.setName(textUnitDTO.getName());
-            screenshotTextUnit.setSource(textUnitDTO.getSource());
-            screenshotTextUnit.setTarget(textUnitDTO.getTarget());
-            // screenshotTextUnit.setTmTextUnit(textUnitForName.getTmTextUnitId());
+        } else
+
+        if (screenshot.getScreenshotRun().getRepository() != null) {
+            List<TextUnitDTO> textUnitDTOs = getTextUnitsForScreenshotTextUnitRenderedTarget(
+                    screenshot.getScreenshotRun().getRepository().getId(),
+                    screenshotTextUnit.getRenderedTarget(),
+                    screenshot.getLocale().getId());
+
+            screenshotTextUnit.setNumberOfMatch(textUnitDTOs.size());
+
+            if (textUnitDTOs.size() == 1) {
+                //TODO only match if there is an embedded hidden id in the string?
+                logger.debug("Found unique match, link the screenshot textunit to the tm");
+                TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
+                screenshotTextUnit.setName(textUnitDTO.getName());
+                screenshotTextUnit.setSource(textUnitDTO.getSource());
+                screenshotTextUnit.setTarget(textUnitDTO.getTarget());
+                // screenshotTextUnit.setTmTextUnit(textUnitForName.getTmTextUnitId());
+            }
         }
-
     }
 
     List<TextUnitDTO> getTextUnitsForScreenshotTextUnitRenderedTarget(Long repositoryId, String renderedTarget, Long localeId) {
@@ -203,16 +218,18 @@ public class ScreenshotService {
     /**
      * Searches for screenshot given different criteria.
      *
-     * @param repositoryIds mandatory, filter by repository ids
-     * @param bcp47Tags can be null (no filter), filter by locale tags
-     * @param screenshotName can be null (no filter), filter by screenshot name
-     * @param status can be null (no filter), filter by status
+     * @param forSourceScreenshotRun
+     * @param repositoryIds          mandatory, filter by repository ids
+     * @param bcp47Tags              can be null (no filter), filter by locale tags
+     * @param screenshotName         can be null (no filter), filter by screenshot name
+     * @param status                 can be null (no filter), filter by status
      * @param name
      * @param source
      * @param target
      * @param searchType
-     * @param limit number max of results to be returned
-     * @param offset offset of the first result to be returned
+     * @param manualRun
+     * @param limit                  number max of results to be returned
+     * @param offset                 offset of the first result to be returned
      * @return the screenshots that matche the search parameters
      */
     @Transactional
@@ -225,6 +242,8 @@ public class ScreenshotService {
             String source,
             String target,
             SearchType searchType,
+            Boolean lastSuccessfulRun,
+            Boolean manualRun,
             int limit,
             int offset) {
 
@@ -238,7 +257,18 @@ public class ScreenshotService {
 
         Predicate conjunction = builder.conjunction();
 
-        conjunction.getExpressions().add(builder.isTrue(screenshotRunJoin.get(ScreenshotRun_.lastSuccessfulRun)));
+        if (lastSuccessfulRun != null) {
+            conjunction.getExpressions().add(builder.equal(screenshotRunJoin.get(ScreenshotRun_.lastSuccessfulRun), lastSuccessfulRun));
+        }
+
+        if (manualRun != null) {
+            Path<ScreenshotRun> screenshotRunPath = repositoryJoin.get(Repository_.manualScreenshotRun);
+            if (manualRun) {
+                conjunction.getExpressions().add(builder.equal(screenshotRunPath, screenshotRunJoin.get(ScreenshotRun_.id)));
+            } else {
+                conjunction.getExpressions().add(builder.notEqual(screenshotRunPath, screenshotRunJoin.get(ScreenshotRun_.id)));
+            }
+        }
 
         if (repositoryIds != null) {
             conjunction.getExpressions().add(repositoryJoin.get(Repository_.id).in(repositoryIds));
@@ -336,5 +366,4 @@ public class ScreenshotService {
     public void updateScreenshot(Screenshot screenshot) {
         screenshotRepository.save(screenshot);
     }
-
 }

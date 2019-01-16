@@ -1,11 +1,18 @@
 package com.box.l10n.mojito.rest.screenshot;
 
+import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
+import com.box.l10n.mojito.entity.ScreenshotTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +39,11 @@ public class ScreenshotWS {
 
     @RequestMapping(value = "/api/screenshots", method = RequestMethod.POST)
     public ScreenshotRun createOrUpdateScreenshotRun(@RequestBody ScreenshotRun screenshotRun) {
-        ScreenshotRun screenshotRunSaved = screenshotService.createOrUpdateScreenshotRun(screenshotRun);
+        ScreenshotRun screenshotRunSaved = screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
         return screenshotRunSaved;
     }
 
+    @JsonView(View.Screenshots.class)
     @RequestMapping(value = "/api/screenshots", method = RequestMethod.GET)
     public List<Screenshot> getScreeenshots(
             @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
@@ -46,6 +54,8 @@ public class ScreenshotWS {
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
             @RequestParam(value = "searchType", required = false, defaultValue = "EXACT") SearchType searchType,
+            @RequestParam(value = "lastSuccessfulRun", required = false) Boolean lastSuccessfulRun,
+            @RequestParam(value = "manualRun", required = false) Boolean manualRun,
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) {
        
@@ -58,6 +68,8 @@ public class ScreenshotWS {
                 source,
                 target,
                 searchType,
+                lastSuccessfulRun,
+                manualRun,
                 limit,
                 offset);
     }
