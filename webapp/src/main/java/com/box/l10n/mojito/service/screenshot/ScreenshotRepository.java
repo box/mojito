@@ -13,5 +13,5 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface ScreenshotRepository extends JpaRepository<Screenshot, Long>, JpaSpecificationExecutor<Screenshot> {
 
-    public Screenshot findByScreenshotRunAndNameAndLocale(ScreenshotRun screenshotRun, String name, Locale locale);
+    Screenshot findByScreenshotRunAndNameAndLocale(ScreenshotRun screenshotRun, String name, Locale locale);
 }

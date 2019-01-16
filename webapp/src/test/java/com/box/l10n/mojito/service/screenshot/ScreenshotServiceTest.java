@@ -6,24 +6,28 @@ import com.box.l10n.mojito.entity.ScreenshotRun;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-import org.junit.Assert;
+
+import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
 import static org.junit.Assert.assertEquals;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
+import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
  * @author jeanaurambault
  */
 public class ScreenshotServiceTest extends ServiceTestBase {
@@ -48,6 +52,9 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     @Autowired
     ScreenshotRepository screenshotRepository;
 
+    @Autowired
+    RepositoryRepository repositoryRepository;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -66,14 +73,54 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshotRun.getScreenshots().add(screenshot1);
         screenshotRun.getScreenshots().add(screenshot2);
 
-        ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun);
+        ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
 
         ScreenshotRun createdFromDB = screenshotRunRepository.findOne(createScreenshotRun.getId());
         ArrayList<Screenshot> arrayList = new ArrayList<>(createdFromDB.getScreenshots());
         Assert.assertNotNull(arrayList.get(0).getId());
         Assert.assertNotNull(arrayList.get(1).getId());
     }
-    
+
+    @Test
+    public void testManualRun() throws Exception {
+
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        ScreenshotRun screenshotRun = new ScreenshotRun();
+        screenshotRun.setName(UUID.randomUUID().toString());
+        screenshotRun.setRepository(repository);
+
+        Screenshot screenshot1 = new Screenshot();
+        screenshot1.setName("screen1");
+        screenshot1.setStatus(ACCEPTED);
+        screenshot1.setLocale(repository.getSourceLocale());
+
+        Screenshot screenshot2 = new Screenshot();
+        screenshot2.setName("screen2");
+        screenshot2.setStatus(ACCEPTED);
+        screenshot2.setLocale(repository.getSourceLocale());
+
+        screenshotRun.getScreenshots().add(screenshot1);
+        screenshotRun.getScreenshots().add(screenshot2);
+
+        ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun, false);
+
+        repository.setManualScreenshotRun(createScreenshotRun);
+        repositoryRepository.save(repository);
+
+        List<Screenshot> searchScreenshotsNoManualRuns = screenshotService.searchScreenshots(
+                Arrays.asList(repository.getId()), null, null, null, null,
+                null, null, null, null, false, 10, 0);
+
+        assertTrue(searchScreenshotsNoManualRuns.isEmpty());
+
+        List<Screenshot> searchScreenshotsManualRuns = screenshotService.searchScreenshots(
+                Arrays.asList(repository.getId()), null, null, null, null,
+                null, null, null, null, true, 10, 0);
+        assertEquals("screen1", searchScreenshotsManualRuns.get(0).getName());
+        assertEquals("screen2", searchScreenshotsManualRuns.get(1).getName());
+    }
+
     @Test
     public void testUpdateScreenshotRun() throws Exception {
 
@@ -89,7 +136,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshot2.setName("s2");
         screenshotRun.getScreenshots().add(screenshot1);
         screenshotRun.getScreenshots().add(screenshot2);
-        screenshotService.createOrUpdateScreenshotRun(screenshotRun);
+        screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
 
         ScreenshotRun forUpdate = new ScreenshotRun();
         forUpdate.setRepository(repository);
@@ -99,7 +146,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshot3.setName("s3");
         forUpdate.getScreenshots().add(screenshot3);
 
-        ScreenshotRun updatedScreenshotRun = screenshotService.createOrUpdateScreenshotRun(forUpdate);
+        ScreenshotRun updatedScreenshotRun = screenshotService.createOrUpdateScreenshotRun(forUpdate, true);
 
         ScreenshotRun updatedFromDB = screenshotRunRepository.findOne(updatedScreenshotRun.getId());
         ArrayList<Screenshot> arrayList = new ArrayList<>(updatedFromDB.getScreenshots());
@@ -136,7 +183,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     public void testSearchScreenshotsByRepository() throws RepositoryNameAlreadyUsedException {
         Repository repository = createScreenshotData();
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()), null, null, null, null, null, null, null, 10, 0);
+                Arrays.asList(repository.getId()), null, null, null, null,
+                null, null, null, true, null, 10, 0);
         assertEquals("screen1", searchScreenshots.get(0).getName());
         assertEquals("screen3", searchScreenshots.get(1).getName());
         assertEquals("screen2", searchScreenshots.get(2).getName());
@@ -151,7 +199,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
                 Arrays.asList("fr-FR"),
-                null, null, null, null, null, null, 10, 0);
+                null, null, null, null, null, null,
+                true, null, 10, 0);
 
         assertEquals("screen1", searchScreenshots.get(0).getName());
         assertEquals("screen2", searchScreenshots.get(1).getName());
@@ -160,7 +209,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
                 Arrays.asList("ko-KR"),
-                null, null, null, null, null, null, 10, 0);
+                null, null, null, null, null, null,
+                true, null, 10, 0);
 
         assertEquals("screen3", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
@@ -175,7 +225,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
                 null,
-                "screen2", null, null, null, null, null, 10, 0);
+                "screen2", null, null, null, null, null,
+                true, null, 10, 0);
 
         assertEquals("screen2", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
@@ -189,24 +240,24 @@ public class ScreenshotServiceTest extends ServiceTestBase {
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
-                null, null, Screenshot.Status.NEEDS_REVIEW, 
-                null, null, null, null,10, 0);
+                null, null, Screenshot.Status.NEEDS_REVIEW,
+                null, null, null, null, true, null, 10, 0);
 
         assertEquals("screen3", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
 
         searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
-                null, null, Screenshot.Status.REJECTED, 
-                null, null, null, null, 10, 0);
+                null, null, Screenshot.Status.REJECTED,
+                null, null, null, null, true, null, 10, 0);
 
         assertEquals("screen1", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
 
         searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
-                null, null, Screenshot.Status.ACCEPTED, 
-                null, null, null, null, 10, 0);
+                null, null, ACCEPTED,
+                null, null, null, null, true, null, 10, 0);
 
         assertEquals("screen2", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
@@ -219,8 +270,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         Repository repository = createScreenshotData();
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()), null, null, null, 
-                null, null, null, null, 1, 1);
+                Arrays.asList(repository.getId()), null, null, null,
+                null, null, null, null, true, null, 1, 1);
 
         assertEquals("screen3", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
@@ -234,11 +285,11 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         createScreenshotData(repository);
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()), null, null, null, 
-                null, null, null, null, 10, 0);
+                Arrays.asList(repository.getId()), null, null, null,
+                null, null, null, null, true, null, 10, 0);
 
         assertEquals(3, searchScreenshots.size());
-        
+
     }
 
     private Repository createScreenshotData() {
@@ -247,8 +298,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         return createScreenshotData(repository);
     }
 
-    @Transactional
-    private Repository createScreenshotData(Repository repository) {
+    public Repository createScreenshotData(Repository repository) {
 
         Screenshot screen1 = new Screenshot();
         screen1.setName("screen1");
@@ -260,7 +310,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screen2.setName("screen2");
         screen2.setLocale(localeService.findByBcp47Tag("fr-FR"));
         screen2.setSequence(10L);
-        screen2.setStatus(Screenshot.Status.ACCEPTED);
+        screen2.setStatus(ACCEPTED);
 
         Screenshot screen3 = new Screenshot();
         screen3.setName("screen3");
@@ -273,7 +323,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshotRun.getScreenshots().add(screen1);
         screenshotRun.getScreenshots().add(screen2);
         screenshotRun.getScreenshots().add(screen3);
-        screenshotService.createOrUpdateScreenshotRun(screenshotRun);
+        screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
 
         return repository;
     }
