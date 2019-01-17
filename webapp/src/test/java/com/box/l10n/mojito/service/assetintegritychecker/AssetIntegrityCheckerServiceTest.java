@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.okapi.XliffState;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -85,7 +86,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
         Long tmTextUnitId = tmTextUnits.get(0).getId();
 
         String targetXliff = xliffDataFactory.generateTargetXliff(Arrays.asList(
-                xliffDataFactory.createTextUnit(tmTextUnitId, "tu1", sourceTextUnit, null, "{numFiles, plural, one{Il y a un fichier} other{Il y a # fichiers}", frFR, null)
+                xliffDataFactory.createTextUnit(tmTextUnitId, "tu1", sourceTextUnit, null, "{numFiles, plural, one{Il y a un fichier} other{Il y a # fichiers}", frFR, XliffState.TRANSLATED)
         ), frFR);
 
         Locale frFRLocale = localeService.findByBcp47Tag(frFR);

@@ -61,7 +61,7 @@ public class ImportTranslationsStepTest {
 
         ImportTranslationsByIdStep importTranslationsStep = new ImportTranslationsByIdStep();
 
-        TMTextUnitVariant.Status expResult = TMTextUnitVariant.Status.REVIEW_NEEDED;
+        TMTextUnitVariant.Status expResult = null;
         TMTextUnitVariant.Status result = importTranslationsStep.getStatusForImport(new TMTextUnit(), target);
         assertEquals(expResult, result);
     }

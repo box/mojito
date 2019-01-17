@@ -4,12 +4,12 @@
 <body>
 <trans-unit id="replaced-id" resname="1_hour_duration" xml:space="preserve">
 <source xml:lang="en">1 hour</source>
-<target xml:lang="fr-FR" state="new">Import Xliff Drop - 1 hour fr-FR</target>
+<target xml:lang="fr-FR" state="translated">Import Xliff Drop - 1 hour fr-FR</target>
 <note>File lock dialog duration</note>
 </trans-unit>
 <trans-unit id="replaced-id" resname="1_month_duration" xml:space="preserve">
 <source xml:lang="en">1 month</source>
-<target xml:lang="fr-FR" state="new">Import Xliff Drop - 1 month fr-FR</target>
+<target xml:lang="fr-FR" state="translated">Import Xliff Drop - 1 month fr-FR</target>
 <note>File lock dialog duration</note>
 </trans-unit>
 </body>

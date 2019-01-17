@@ -4,16 +4,16 @@
 <body>
 <trans-unit id="replaced-id" resname="100_character_description_" xml:space="preserve">
 <source xml:lang="en">100 character description:</source>
-<target xml:lang="ja-JP" state="new">Import Xliff Drop - 100 character description: ja-JP</target>
+<target xml:lang="ja-JP" state="translated">Import Xliff Drop - 100 character description: ja-JP</target>
 </trans-unit>
 <trans-unit id="replaced-id" resname="15_min_duration" xml:space="preserve">
 <source xml:lang="en">15 min</source>
-<target xml:lang="ja-JP" state="new">Import Xliff Drop - 15 min ja-JP</target>
+<target xml:lang="ja-JP" state="translated">Import Xliff Drop - 15 min ja-JP</target>
 <note>File lock dialog duration</note>
 </trans-unit>
 <trans-unit id="replaced-id" resname="1_day_duration" xml:space="preserve">
 <source xml:lang="en">1 day</source>
-<target xml:lang="ja-JP" state="new">Import Xliff Drop - 1 day ja-JP</target>
+<target xml:lang="ja-JP" state="translated">Import Xliff Drop - 1 day ja-JP</target>
 <note>File lock dialog duration</note>
 </trans-unit>
 </body>

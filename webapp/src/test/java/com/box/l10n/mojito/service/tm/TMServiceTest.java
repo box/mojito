@@ -13,6 +13,7 @@ import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
+import com.box.l10n.mojito.okapi.XliffState;
 import com.box.l10n.mojito.okapi.filters.SimpleEncoder;
 import com.box.l10n.mojito.okapi.filters.XMLEncoder;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -368,8 +369,8 @@ public class TMServiceTest extends ServiceTestBase {
 
         String targetBcp47Tag = targetLocale.getBcp47Tag();
         String localizedXLIFFContents = xliffDataFactory.generateTargetXliff(Arrays.asList(
-                xliffDataFactory.createTextUnit(tmTextUnit1.getId(), tmTextUnit1.getName(), tmTextUnit1.getContent(), tmTextUnit1.getComment(), "Application name name", targetBcp47Tag, null), // doubled word + source == target
-                xliffDataFactory.createTextUnit(tmTextUnit2.getId(), tmTextUnit2.getName(), tmTextUnit2.getContent(), tmTextUnit2.getComment(), "", targetBcp47Tag, null) // empty translation
+                xliffDataFactory.createTextUnit(tmTextUnit1.getId(), tmTextUnit1.getName(), tmTextUnit1.getContent(), tmTextUnit1.getComment(), "Application name name", targetBcp47Tag, XliffState.TRANSLATED), // doubled word + source == target
+                xliffDataFactory.createTextUnit(tmTextUnit2.getId(), tmTextUnit2.getName(), tmTextUnit2.getContent(), tmTextUnit2.getComment(), "", targetBcp47Tag, XliffState.TRANSLATED) // empty translation
         ), targetBcp47Tag);
         tmService.updateTMWithXLIFFById(localizedXLIFFContents, null);
 
@@ -412,8 +413,8 @@ public class TMServiceTest extends ServiceTestBase {
         String targetBcp47Tag = targetLocale.getBcp47Tag();
 
         return xliffDataFactory.generateTargetXliff(Arrays.asList(
-                xliffDataFactory.createTextUnit(tmTextUnit1.getId(), tmTextUnit1.getName(), tmTextUnit1.getContent(), tmTextUnit1.getComment(), "Nom de l'application", targetBcp47Tag, null),
-                xliffDataFactory.createTextUnit(tmTextUnit2.getId(), tmTextUnit2.getName(), tmTextUnit2.getContent(), tmTextUnit2.getComment(), "Accueil", targetBcp47Tag, null)
+                xliffDataFactory.createTextUnit(tmTextUnit1.getId(), tmTextUnit1.getName(), tmTextUnit1.getContent(), tmTextUnit1.getComment(), "Nom de l'application", targetBcp47Tag, XliffState.TRANSLATED),
+                xliffDataFactory.createTextUnit(tmTextUnit2.getId(), tmTextUnit2.getName(), tmTextUnit2.getContent(), tmTextUnit2.getComment(), "Accueil", targetBcp47Tag, XliffState.TRANSLATED)
         ), targetBcp47Tag);
     }
 

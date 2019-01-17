@@ -1,6 +1,6 @@
 import StatusFilter from "../entity/StatusFilter";
 
-export default class CancelDropConfig {
+export default class ImportDropConfig {
     /**
      * @param {Number} repoId
      * @param {Number} dropId

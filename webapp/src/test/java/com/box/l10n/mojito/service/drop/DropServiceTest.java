@@ -110,6 +110,47 @@ public class DropServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void forNotTranslated() throws Exception {
+
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+        bcp47Tags.add("ko-KR");
+        bcp47Tags.add("ja-JP");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box without updating the state");
+        Drop drop = startExportProcess.get();
+        localizeDropFiles(drop, 1, "new");
+
+        logger.debug("Import drop");
+        PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+
+        logger.debug("Check everything is still untranslated");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+    }
+
+    @Test
     public void forTranslation() throws Exception {
 
         TMTestData tmTestData = new TMTestData(testIdWatcher);
@@ -352,6 +393,10 @@ public class DropServiceTest extends ServiceTestBase {
     }
 
     public void localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException, IOException {
+        localizeDropFiles(drop, round, "translated");
+    }
+
+    public void localizeDropFiles(Drop drop, int round, String xliffState) throws BoxSDKServiceException, DropExporterException, IOException {
 
         logger.debug("Localize files in a drop for testing");
 
@@ -369,7 +414,7 @@ public class DropServiceTest extends ServiceTestBase {
                 localizedContent = localizedContent.replaceAll("</body>",
                         "<trans-unit id=\"badid\" resname=\"TEST2\" xml:space=\"preserve\">\n"
                         + "<source xml:lang=\"en\">Content2</source>\n"
-                        + "<target xml:lang=\"ko-KR\">Import Drop" + round + " - Content2 ko-KR</target>\n"
+                        + "<target xml:lang=\"ko-KR\" state=\"new\">Import Drop" + round + " - Content2 ko-KR</target>\n"
                         + "</trans-unit>\n"
                         + "</body>");
             } else if (sourceFile.getName().startsWith("it-IT")) {
@@ -378,6 +423,7 @@ public class DropServiceTest extends ServiceTestBase {
             } else {
                 localizedContent = XliffUtils.localizeTarget(localizedContent, "Import Drop" + round);
             }
+            localizedContent = XliffUtils.replaceTargetState(localizedContent, xliffState);
 
             //TODO(P1) this logic is being dupplicated everywhere maybe it should go back into the config or service.
             Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
@@ -453,7 +499,7 @@ public class DropServiceTest extends ServiceTestBase {
             logger.debug(importedContent);
             
             String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
-            logger.info(xliffWithoutIds);
+            logger.debug(xliffWithoutIds);
             
             if (round == 1) {
                 assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

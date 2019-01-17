@@ -110,7 +110,7 @@ public class XliffDataFactory {
 
                 Property state = textUnit.getProperty("state");
                 if (state != null) {
-                    xliff += "\" state=\"" + state.getValue() + "\" ";
+                    xliff += " state=\"" + state.getValue() + "\" ";
                 }
 
                 xliff += ">" + textUnit.getTarget(LocaleId.fromBCP47(targetBcp47Tag)).toString() + "</target>\n";

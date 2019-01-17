@@ -45,7 +45,7 @@ class DropClient extends BaseClient {
     }
 
     /**
-     * @param {CancelDropConfig} importDropConfig
+     * @param {ImportDropConfig} importDropConfig
      * @return {Promise}
      */
     importDrop(importDropConfig) {

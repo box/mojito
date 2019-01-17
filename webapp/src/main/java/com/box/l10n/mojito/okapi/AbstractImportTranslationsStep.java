@@ -305,7 +305,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      */
     private TMTextUnitVariant.Status getStatusFromTarget(TextContainer target) {
 
-        TMTextUnitVariant.Status status = TMTextUnitVariant.Status.REVIEW_NEEDED;
+        TMTextUnitVariant.Status status = null;
 
         String state = getTargetState(target);
 
