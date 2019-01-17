@@ -77,7 +77,7 @@ class DropStore {
     }
 
     /**
-     * @param {CancelDropConfig} importDropConfig
+     * @param {ImportDropConfig} importDropConfig
      */
     onImportRequest(importDropConfig) {
         this.getInstance().importRequest(importDropConfig);

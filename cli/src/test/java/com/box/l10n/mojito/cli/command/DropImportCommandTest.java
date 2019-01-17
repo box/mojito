@@ -163,6 +163,7 @@ public class DropImportCommandTest extends CLITestBase {
         for (File sourceFile : sourceFiles) {
             String localizedContent = Files.toString(sourceFile, StandardCharsets.UTF_8);
             localizedContent = XliffUtils.localizeTarget(localizedContent, "Import Drop");
+            localizedContent = XliffUtils.replaceTargetState(localizedContent, "translated");
 
             Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
             Files.write(localizedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
