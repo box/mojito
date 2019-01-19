@@ -127,6 +127,8 @@ class Locales {
      */
     getDisplayName(bcp47Tag) {
 
+        const is_language_only = bcp47Tag.indexOf("-") === -1;
+
         const targetCldr = new Cldr(bcp47Tag);
 
         const language = targetCldr.attributes.language;
@@ -135,7 +137,7 @@ class Locales {
         const languageDisplay = this.cldr.main("localeDisplayNames/languages/" + language);
         const regionDisplay = this.cldr.main("localeDisplayNames/territories/" + territory);
 
-        return languageDisplay + ' (' + regionDisplay + ')';
+        return languageDisplay + (is_language_only ? '' : ' (' + regionDisplay + ')');
     }
 
     /**

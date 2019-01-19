@@ -1,23 +1,17 @@
-import $ from "jquery";
-import _ from "lodash";
 import keycode from "keycode";
 
 import React from "react";
 import {withRouter} from 'react-router';
-import {FormattedMessage, FormattedNumber} from 'react-intl';
 
 import AltContainer from "alt-container";
 
 import SearchConstants from "../../utils/SearchConstants";
-import LocationHistory from "../../utils/LocationHistory";
 
 import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore";
 import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
 import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore";
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
 import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
-import ScreenshotsHistoryStore from "../../stores/screenshots/ScreenshotsHistoryStore";
-import ScreenshotStore from "../../stores/screenshots/ScreenshotStore";
 import ScreenshotsReviewModalStore from "../../stores/screenshots/ScreenshotsReviewModalStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
@@ -39,9 +33,6 @@ import ScreenshotsGrid from "./ScreenshotsGrid";
 import StatusDropdown from "./StatusDropdown";
 import ScreenshotReviewModal from "./ScreenshotReviewModal";
 
-import {StatusCommonTypes} from "./StatusCommon";
-import {Button, Label} from "react-bootstrap";
-
 class ScreenshotsPage extends React.Component {
 
     componentDidMount() {
@@ -53,7 +44,7 @@ class ScreenshotsPage extends React.Component {
     }
 
     /**
-     * Don't update the component has it has no rendering based on props or 
+     * Don't update the component has it has no rendering based on props or
      * state. Avoid useless re-rendering when location changes due to updates
      * from onScreenshotsHistoryStoreChange().
      */
@@ -63,7 +54,7 @@ class ScreenshotsPage extends React.Component {
 
     addWindowKeyUpDownListener() {
         this.keydownEventListener = this.onWindowKeyDown.bind(this)
-        window.addEventListener('keydown', this.keydownEventListener); 
+        window.addEventListener('keydown', this.keydownEventListener);
     }
 
     removeWindowKeyDownEventListener() {
@@ -72,7 +63,7 @@ class ScreenshotsPage extends React.Component {
 
     /**
      * Handle keyboard event to allow screenshots navigation
-     * 
+     *
      * @param {SynteticEvent} e
      * @returns {undefined}
      */
@@ -166,35 +157,35 @@ class ScreenshotsPage extends React.Component {
     }
 
     render() {
-       
+
         return (
                 <div>
                     <div>
                         <div className="pull-left">
                             <AltContainer store={ScreenshotsRepositoryStore}>
-                                <RepositoryDropdown 
+                                <RepositoryDropdown
                                     onSelectedRepositoryIdsChanged={(selectedRepositoryIds) => {
                                         ScreenshotsHistoryActions.disableHistoryUpdate();
                                         ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
                                         ScreenshotsRepositoryActions.changeSelectedRepositoryIds(selectedRepositoryIds);
                                         ScreenshotsHistoryActions.enableHistoryUpdate();
                                         ScreenshotsPageActions.performSearch();
-                                        }} 
+                                        }}
                                     onDropdownToggle={ScreenshotsRepositoryActions.changeDropdownOpen}/>
                             </AltContainer>
                             <AltContainer store={ScreenshotsLocaleStore}>
-                                <LocalesDropdown 
+                                <LocalesDropdown
                                     onSelectedBcp47TagsChanged={(selectedBcp47Tags) => {
                                         ScreenshotsHistoryActions.disableHistoryUpdate();
                                         ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
-                                        ScreenshotsLocaleActions.changeSelectedBcp47Tags(selectedBcp47Tags);                           
+                                        ScreenshotsLocaleActions.changeSelectedBcp47Tags(selectedBcp47Tags);
                                         ScreenshotsHistoryActions.enableHistoryUpdate();
                                         ScreenshotsPageActions.performSearch();
                                         }}
                                     onDropdownToggle={ScreenshotsLocaleActions.changeDropdownOpen}/>
                             </AltContainer>
                         </div>
-                
+
                         <AltContainer store={ScreenshotsSearchTextStore}>
                             <ScreenshotsSearchText
                                 onSearchAttributeChanged={(attribute) => {
@@ -204,7 +195,7 @@ class ScreenshotsPage extends React.Component {
                                     ScreenshotsHistoryActions.enableHistoryUpdate();
                                     ScreenshotsPageActions.performSearch();
                                     }}
-                                onSearchTypeChanged={(type) => {
+                                onSearchTypeChanged={(screenshotRunType) => {
                                     ScreenshotsHistoryActions.disableHistoryUpdate();
                                     ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
                                     ScreenshotsSearchTextActions.changeSearchType(type);
@@ -225,11 +216,12 @@ class ScreenshotsPage extends React.Component {
                                 }}
                                 />
                         </AltContainer>
-                
-                        <AltContainer store={ScreenshotsSearchTextStore}
+
+                            <AltContainer store={ScreenshotsSearchTextStore}
                                       shouldComponentUpdate={(props, nextProps, nextState) => {
                                 //TODO investigate that pattern vs dedicated store
-                                return props.status !== nextState.status
+                                return props.status !== nextState.status ||
+                                       props.screenshotRunType !== nextState.screenshotRunType
                                       }} >
                             <StatusDropdown onStatusChanged={(statusAndIdx) => {
                                     ScreenshotsHistoryActions.disableHistoryUpdate();
@@ -237,11 +229,19 @@ class ScreenshotsPage extends React.Component {
                                     ScreenshotsSearchTextActions.changeStatus(statusAndIdx);
                                     ScreenshotsHistoryActions.enableHistoryUpdate();
                                     ScreenshotsPageActions.performSearch();
-                                            }} />
+                                            }}
+
+                                    onScreenshotRunTypeChanged={(screenshotRunType) => {
+                                        ScreenshotsHistoryActions.disableHistoryUpdate();
+                                        ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
+                                        ScreenshotsSearchTextActions.changeScreenshotRunType(screenshotRunType);
+                                        ScreenshotsHistoryActions.enableHistoryUpdate();
+                                        ScreenshotsPageActions.performSearch();
+                                    }}/>
                         </AltContainer>
-                
+
                         <AltContainer store={ScreenshotsPaginatorStore}>
-                            <Paginator 
+                            <Paginator
                                 onPreviousPageClicked={() => {
                                         ScreenshotsHistoryActions.disableHistoryUpdate();
                                         ScreenshotsPaginatorActions.goToPreviousPage();
@@ -257,14 +257,14 @@ class ScreenshotsPage extends React.Component {
                                             ScreenshotsPageActions.performSearch();
                                 }} />
                         </AltContainer>
-                
+
                     </div>
-                
+
                     <AltContainer store={ScreenshotsPageStore}>
-                        <ScreenshotsGrid 
-                            onScreenshotsTextUnitTargetClick={(e, textUnit, locale) => this.onScreenshotsTextUnitTargetClick(e, textUnit, locale)} 
-                            onScreenshotsTextUnitNameClick={(e, textUnit) => this.onScreenshotsTextUnitNameClick(e, textUnit)} 
-                            onScreenshotClicked={this.onScreenshotClicked} 
+                        <ScreenshotsGrid
+                            onScreenshotsTextUnitTargetClick={(e, textUnit, locale) => this.onScreenshotsTextUnitTargetClick(e, textUnit, locale)}
+                            onScreenshotsTextUnitNameClick={(e, textUnit) => this.onScreenshotsTextUnitNameClick(e, textUnit)}
+                            onScreenshotClicked={this.onScreenshotClicked}
                             onLocaleClick={ (locale) => {
                                                 ScreenshotsHistoryActions.disableHistoryUpdate();
                                                 ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
@@ -291,7 +291,7 @@ class ScreenshotsPage extends React.Component {
                             onStatusChanged={ScreenshotActions.changeStatus}
                             />
                     </AltContainer>
-                
+
                     <AltContainer store={ScreenshotsReviewModalStore}>
                         <ScreenshotReviewModal
                             onCancel={ScreenshotsReviewModalActions.close}

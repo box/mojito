@@ -20,7 +20,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -182,9 +181,7 @@ public class ScreenshotService {
                 screenshotTextUnit.setSource(tmTextUnit.getContent());
             }
 
-        } else
-
-        if (screenshot.getScreenshotRun().getRepository() != null) {
+        } else if (screenshot.getScreenshotRun().getRepository() != null) {
             List<TextUnitDTO> textUnitDTOs = getTextUnitsForScreenshotTextUnitRenderedTarget(
                     screenshot.getScreenshotRun().getRepository().getId(),
                     screenshotTextUnit.getRenderedTarget(),
@@ -228,9 +225,9 @@ public class ScreenshotService {
      * @param source
      * @param target
      * @param searchType
-     * @param manualRun
-     * @param limit                  number max of results to be returned
+     * @param screenshotRunType
      * @param offset                 offset of the first result to be returned
+     * @param limit                  number max of results to be returned
      * @return the screenshots that matche the search parameters
      */
     @Transactional
@@ -243,10 +240,7 @@ public class ScreenshotService {
             String source,
             String target,
             SearchType searchType,
-            Boolean lastSuccessfulRun,
-            Boolean manualRun,
-            int limit,
-            int offset) {
+            ScreenshotRunType screenshotRunType, int offset, int limit) {
 
         CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<Screenshot> query = builder.createQuery(Screenshot.class);
@@ -258,17 +252,11 @@ public class ScreenshotService {
 
         Predicate conjunction = builder.conjunction();
 
-        if (lastSuccessfulRun != null) {
-            conjunction.getExpressions().add(builder.equal(screenshotRunJoin.get(ScreenshotRun_.lastSuccessfulRun), lastSuccessfulRun));
-        }
-
-        if (manualRun != null) {
+        if (ScreenshotRunType.LAST_SUCCESSFUL_RUN.equals(screenshotRunType)) {
+            conjunction.getExpressions().add(builder.isTrue(screenshotRunJoin.get(ScreenshotRun_.lastSuccessfulRun)));
+        } else {
             Path<ScreenshotRun> screenshotRunPath = repositoryJoin.get(Repository_.manualScreenshotRun);
-            if (manualRun) {
-                conjunction.getExpressions().add(builder.equal(screenshotRunPath, screenshotRunJoin.get(ScreenshotRun_.id)));
-            } else {
-                conjunction.getExpressions().add(builder.notEqual(screenshotRunPath, screenshotRunJoin.get(ScreenshotRun_.id)));
-            }
+            conjunction.getExpressions().add(builder.equal(screenshotRunPath, screenshotRunJoin.get(ScreenshotRun_.id)));
         }
 
         if (repositoryIds != null) {

@@ -18,6 +18,7 @@ class ScreenshotsSearchTextStore {
         this.searchText = "";
         this.isSpinnerShown = false;
         this.status = StatusCommonTypes.ALL;
+        this.screenshotRunType = ScreenshotsSearchTextStore.SEARCH_SCREENSHOTRUN_TYPES.MANUAL_RUN;
     }
 
     resetScreenshotSearchParams() {
@@ -40,6 +41,11 @@ class ScreenshotsSearchTextStore {
         this.status = status;
     }
 
+    changeScreenshotRunType(screenshotRunType) {
+        console.log("changeScreenshotRunType" + screenshotRunType);
+        this.screenshotRunType = screenshotRunType;
+    }
+
     performSearch() {
         this.isSpinnerShown = true;
     }
@@ -55,5 +61,10 @@ class ScreenshotsSearchTextStore {
 }
 
 ScreenshotsSearchTextStore.SEARCH_ATTRIBUTES_SCREENSHOT = "screenshot";
+
+ScreenshotsSearchTextStore.SEARCH_SCREENSHOTRUN_TYPES = {
+    "LAST_SUCCESSFUL_RUN": "LAST_SUCCESSFUL_RUN",
+    "MANUAL_RUN" : "MANUAL_RUN"
+}
 
 export default alt.createStore(ScreenshotsSearchTextStore, 'ScreenshotsSearchTextStore');
