@@ -259,8 +259,8 @@ public class TextUnitSearcher {
             conjunction.add(new NativeEqExpFix("rl.to_be_fully_translated", searchParameters.getToBeFullyTranslatedFilter()));
         }
 
-        if (searchParameters.getTmTextUnitId() != null) {
-            conjunction.add(new NativeEqExpFix("tu.id", searchParameters.getTmTextUnitId()));
+        if (searchParameters.getTmTextUnitIds() != null) {
+            conjunction.add(new NativeInExpFix("tu.id", searchParameters.getTmTextUnitIds()));
         }
 
         if (searchParameters.getTmId() != null) {
