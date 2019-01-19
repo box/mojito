@@ -164,7 +164,7 @@ public class BranchStatisticService {
     long getForTranslationCount(long tmTextUnitId) {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-        textUnitSearcherParameters.setTmTextUnitId(tmTextUnitId);
+        textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
         textUnitSearcherParameters.setStatusFilter(FOR_TRANSLATION);
 
         TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
@@ -173,7 +173,7 @@ public class BranchStatisticService {
 
     long getTotalCount(long tmTextUnitId) {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setTmTextUnitId(tmTextUnitId);
+        textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
         TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
         return textUnitAndWordCount.getTextUnitCount();
     }

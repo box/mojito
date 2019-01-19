@@ -122,6 +122,7 @@ public class TextUnitSearcher {
 
             return resultAsList;
         } catch (Exception e) {
+            logger.warn("TextUnitSearcher failed to search, exception", e);
             logger.warn("TextUnitSearcher failed to search, query: {}", c.getQueryInfo().toString());
             throw new TextUnitSearcherError(c, "search", e);
         }
@@ -259,8 +260,8 @@ public class TextUnitSearcher {
             conjunction.add(new NativeEqExpFix("rl.to_be_fully_translated", searchParameters.getToBeFullyTranslatedFilter()));
         }
 
-        if (searchParameters.getTmTextUnitId() != null) {
-            conjunction.add(new NativeEqExpFix("tu.id", searchParameters.getTmTextUnitId()));
+        if (searchParameters.getTmTextUnitIds() != null) {
+            conjunction.add(new NativeInExpFix("tu.id", searchParameters.getTmTextUnitIds()));
         }
 
         if (searchParameters.getTmId() != null) {
