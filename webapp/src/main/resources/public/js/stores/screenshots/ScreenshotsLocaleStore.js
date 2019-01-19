@@ -2,7 +2,6 @@ import alt from "../../alt";
 import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
 import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions";
-import RepositoryLocale from "../../sdk/entity/RepositoryLocale";
 import ScreenshotsRepositoryStore from "./ScreenshotsRepositoryStore";
 
 class ScreenshotsLocaleStore {
@@ -65,7 +64,7 @@ class ScreenshotsLocaleStore {
      * @returns {string[]}
      */
     getSortedBcp47TagsFromStore(selectedRepositoryIds) {
-        return ScreenshotsRepositoryStore.getAllBcp47TagsForRepositoryIds(selectedRepositoryIds).sort();
+        return ScreenshotsRepositoryStore.getAllBcp47TagsForRepositoryIds(selectedRepositoryIds, false, false).sort();
     }
 
     /**
@@ -77,7 +76,7 @@ class ScreenshotsLocaleStore {
      * @returns {string[]}
      */
     getSortedFullyTranslatedBcp47TagsFromStore(selectedRepositoryIds) {
-        return ScreenshotsRepositoryStore.getAllBcp47TagsForRepositoryIds(selectedRepositoryIds, true).sort();
+        return ScreenshotsRepositoryStore.getAllBcp47TagsForRepositoryIds(selectedRepositoryIds, true, false).sort();
     }
 }
 
