@@ -71,7 +71,8 @@ class ScreenshotsRepositoryStore {
         repositories.forEach(repository => {
             if (repository) {
                 repository.repositoryLocales.forEach(repositoryLocale => {
-                    if (!RepositoryLocale.isRootLocale(repositoryLocale)) {
+                    // TODO review this, maybe do optional or better
+                    // if (!RepositoryLocale.isRootLocale(repositoryLocale)) {
                         if (filteredByFullyTranslated) {
                             if (repositoryLocale.toBeFullyTranslated) {
                                 bcp47Tags[repositoryLocale.locale.bcp47Tag] = null;
@@ -79,7 +80,7 @@ class ScreenshotsRepositoryStore {
                         } else {
                             bcp47Tags[repositoryLocale.locale.bcp47Tag] = null;
                         }
-                    }
+                    // }
                 });
             }
         });

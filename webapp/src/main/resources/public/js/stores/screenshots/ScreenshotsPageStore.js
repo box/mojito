@@ -2,11 +2,6 @@ import alt from "../../alt";
 import ScreenshotsDataSource from "../../actions/screenshots/ScreenshotsDataSource";
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
 import ScreenshotActions from "../../actions/screenshots/ScreenshotActions";
-import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
-import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import ScreenshotsRepositoryStore from "./ScreenshotsRepositoryStore";
-import ScreenshotsLocaleStore from "./ScreenshotsLocaleStore";
-import ScreenshotsSearchTextStore from "./ScreenshotsSearchTextStore";
 
 class ScreenshotsPageStore {
 

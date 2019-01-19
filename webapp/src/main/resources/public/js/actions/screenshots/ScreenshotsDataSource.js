@@ -31,8 +31,8 @@ const ScreenshotsDataSource = {
                     repositoryIds: screenshotsRepositoryStoreState.selectedRepositoryIds,
                     bcp47Tags: screenshotsLocaleStoreState.selectedBcp47Tags,
                     status: screenshotsSearchTextStoreState.status === StatusCommonTypes.ALL ? null : screenshotsSearchTextStoreState.status,
-                    manualRun: false, //TODO, finish filter later -- this keeps backward compatiblity
-                    lastSuccessfulRun: true, //TODO, finish filter later -- this keeps backward compatiblity
+                    manualRun: null, //TODO, finish filter later -- show evertying for simplicity
+                    lastSuccessfulRun: null, //TODO, finish filter later -- show evertying for simplicity
                     limit: screenshotsPaginatorStoreState.limit,
                     offset: screenshotsPaginatorStoreState.limit * (screenshotsPaginatorStoreState.currentPageNumber - 1),
                 };

@@ -2,7 +2,6 @@ import alt from "../../alt";
 import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
 import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions";
-import RepositoryLocale from "../../sdk/entity/RepositoryLocale";
 import ScreenshotsRepositoryStore from "./ScreenshotsRepositoryStore";
 
 class ScreenshotsLocaleStore {

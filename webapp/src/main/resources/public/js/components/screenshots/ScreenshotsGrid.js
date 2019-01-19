@@ -3,7 +3,6 @@ import _ from "lodash";
 import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
-import {Label} from "react-bootstrap";
 import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 
 import Screenshot from "./Screenshot";
