@@ -5,11 +5,8 @@ import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageAct
 import ScreenshotsHistoryActions from "../../actions/screenshots/ScreenshotsHistoryActions";
 import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions";
 import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions";
-import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore";
-import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
 import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
-import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore";
 import SearchParamsStore from "../workbench/SearchParamsStore";
 import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
 
@@ -39,6 +36,7 @@ class ScreenshotsHistoryStore {
         this.searchText = "";
         this.searchType = SearchParamsStore.SEARCH_TYPES.CONTAINS;
         this.status = StatusCommonTypes.ALL;
+        this.screenshotRunType = ScreenshotsSearchTextStore.SEARCH_SCREENSHOTRUN_TYPES.MANUAL_RUN;
         this.currentPageNumber = 1;
         this.selectedScreenshotIdx = null;
     }
@@ -79,6 +77,10 @@ class ScreenshotsHistoryStore {
         this.status = status;
     }
 
+    changeScreenshotRunType(screenshotRunType) {
+        this.screenshotRunType =  screenshotRunType;
+    }
+
     goToNextPage() {
         this.currentPageNumber = ScreenshotsPaginatorStore.getState().currentPageNumber;
     }
@@ -98,7 +100,8 @@ class ScreenshotsHistoryStore {
     }
 
     static initStoreFromLocationQuery(query) {
-        let {searchAttribute, searchText, searchType, status, currentPageNumber, selectedScreenshotIdx} = query;
+        let {searchAttribute, searchText, searchType, status, screenshotRunType,
+            currentPageNumber, selectedScreenshotIdx} = query;
 
         let selectedRepositoryIds = query["selectedRepositoryIds[]"];
         let bcp47Tags = query["selectedBcp47Tags[]"];
@@ -145,6 +148,11 @@ class ScreenshotsHistoryStore {
             status = StatusCommonTypes.ALL;
         }
         ScreenshotsSearchTextActions.changeStatus(status);
+
+        if (!screenshotRunType) {
+            screenshotRunType = ScreenshotsSearchTextStore.SEARCH_SCREENSHOTRUN_TYPES.MANUAL_RUN;
+        }
+        ScreenshotsSearchTextActions.changeScreenshotRunType(screenshotRunType);
 
         if (!currentPageNumber) {
             currentPageNumber = 1;
