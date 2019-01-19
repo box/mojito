@@ -116,6 +116,7 @@ public class TextUnitWS {
     public List<TextUnitDTO> getTextUnits(
             @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
             @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames,
+            @RequestParam(value = "tmtextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
@@ -133,8 +134,12 @@ public class TextUnitWS {
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) throws InvalidTextUnitSearchParameterException {
 
-        TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(repositoryIds,
-                repositoryNames, name, source, target, assetPath, pluralFormOther, pluralFormFiltered, searchType, localeTags, usedFilter, statusFilter, doNotTranslateFilter, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter, branchId);
+        TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(
+                repositoryIds,   repositoryNames, tmTextUnitIds,
+                name, source, target, assetPath, pluralFormOther,
+                pluralFormFiltered, searchType, localeTags,
+                usedFilter, statusFilter, doNotTranslateFilter,
+                tmTextUnitCreatedBefore, tmTextUnitCreatedAfter, branchId);
         textUnitSearcherParameters.setLimit(limit);
         textUnitSearcherParameters.setOffset(offset);
         List<TextUnitDTO> search = textUnitSearcher.search(textUnitSearcherParameters);
@@ -147,6 +152,7 @@ public class TextUnitWS {
     public TextUnitAndWordCount getTextUnitsCount(
             @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
             @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames,
+            @RequestParam(value = "tmtextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
@@ -163,7 +169,7 @@ public class TextUnitWS {
             @RequestParam(value = "branchId", required = false) Long branchId) throws InvalidTextUnitSearchParameterException {
 
         TextUnitSearcherParameters textUnitSearcherParameters = queryParamsToTextUnitSearcherParameters(
-                repositoryIds, repositoryNames, name, source, target,
+                repositoryIds, repositoryNames, tmTextUnitIds, name, source, target,
                 assetPath, pluralFormOther, pluralFormFiltered, searchType,
                 localeTags, usedFilter, statusFilter, doNotTranslateFilter,
                 tmTextUnitCreatedBefore, tmTextUnitCreatedAfter, branchId);
@@ -175,6 +181,7 @@ public class TextUnitWS {
     TextUnitSearcherParameters queryParamsToTextUnitSearcherParameters(
             ArrayList<Long> repositoryIds,
             ArrayList<String> repositoryNames,
+            ArrayList<Long> tmTextUnitIds,
             String name,
             String source,
             String target,
@@ -190,8 +197,10 @@ public class TextUnitWS {
             DateTime tmTextUnitCreatedAfter,
             Long branchId) throws InvalidTextUnitSearchParameterException {
 
-        if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames)) {
-            throw new InvalidTextUnitSearchParameterException("Repository ids or names must be provided");
+        if (CollectionUtils.isEmpty(repositoryIds)
+                && CollectionUtils.isEmpty(repositoryNames)
+                && CollectionUtils.isEmpty(tmTextUnitIds)) {
+            throw new InvalidTextUnitSearchParameterException("Repository ids, repository names or tm text unit ids must be provided");
         }
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
@@ -376,7 +385,7 @@ public class TextUnitWS {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repositoryIds);
         textUnitSearcherParameters.setRepositoryNames(repositoryNames);
-        textUnitSearcherParameters.setTmTextUnitId(tmTextUnitId);
+        textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
         textUnitSearcherParameters.setUsedFilter(usedFilter);
         textUnitSearcherParameters.setStatusFilter(statusFilter);
         textUnitSearcherParameters.setDoNotTranslateFilter(doNotTranslateFilter);

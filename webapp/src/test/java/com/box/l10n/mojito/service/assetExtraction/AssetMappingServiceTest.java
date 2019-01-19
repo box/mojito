@@ -384,7 +384,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         TMTextUnit tmTextUnitForLeveraging2 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging2.getMd5());
 
         TextUnitSearcherParameters textUnitSearcherParameters2 = new TextUnitSearcherParameters();
-        textUnitSearcherParameters2.setTmTextUnitId(tmTextUnitForLeveraging2.getId());
+        textUnitSearcherParameters2.setTmTextUnitIds(tmTextUnitForLeveraging2.getId());
         textUnitSearcherParameters2.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters2.setUsedFilter(UsedFilter.USED);
 
@@ -430,7 +430,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         TMTextUnit tmTextUnitForLeveraging3 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging3.getMd5());
 
         TextUnitSearcherParameters textUnitSearcherParameters3 = new TextUnitSearcherParameters();
-        textUnitSearcherParameters3.setTmTextUnitId(tmTextUnitForLeveraging3.getId());
+        textUnitSearcherParameters3.setTmTextUnitIds(tmTextUnitForLeveraging3.getId());
         textUnitSearcherParameters3.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters3.setUsedFilter(UsedFilter.USED);
 
@@ -476,7 +476,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         TMTextUnit tmTextUnitForLeveraging4 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging4.getMd5());
 
         TextUnitSearcherParameters textUnitSearcherParameters4 = new TextUnitSearcherParameters();
-        textUnitSearcherParameters4.setTmTextUnitId(tmTextUnitForLeveraging4.getId());
+        textUnitSearcherParameters4.setTmTextUnitIds(tmTextUnitForLeveraging4.getId());
         textUnitSearcherParameters4.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters4.setUsedFilter(UsedFilter.USED);
 
@@ -525,7 +525,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         TMTextUnit tmTextUnitForLeveraging5c = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging5c.getMd5());
 
         TextUnitSearcherParameters textUnitSearcherParameters5 = new TextUnitSearcherParameters();
-        textUnitSearcherParameters5.setTmTextUnitId(tmTextUnitForLeveraging5.getId());
+        textUnitSearcherParameters5.setTmTextUnitIds(tmTextUnitForLeveraging5.getId());
         textUnitSearcherParameters5.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters5.setUsedFilter(UsedFilter.USED);
 
@@ -559,7 +559,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assertFalse("There shouldn't be any more translations", textUnitDTOsIt5.hasNext());
 
         TextUnitSearcherParameters textUnitSearcherParameters5b = new TextUnitSearcherParameters();
-        textUnitSearcherParameters5b.setTmTextUnitId(tmTextUnitForLeveraging5b.getId());
+        textUnitSearcherParameters5b.setTmTextUnitIds(tmTextUnitForLeveraging5b.getId());
         textUnitSearcherParameters5b.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters5b.setUsedFilter(UsedFilter.USED);
 
@@ -593,7 +593,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assertFalse("There shouldn't be any more translations", textUnitDTOsIt5b.hasNext());
 
         TextUnitSearcherParameters textUnitSearcherParameters5c = new TextUnitSearcherParameters();
-        textUnitSearcherParameters5c.setTmTextUnitId(tmTextUnitForLeveraging5c.getId());
+        textUnitSearcherParameters5c.setTmTextUnitIds(tmTextUnitForLeveraging5c.getId());
         textUnitSearcherParameters5c.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters5c.setUsedFilter(UsedFilter.USED);
 
@@ -639,7 +639,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         TMTextUnit tmTextUnitForLeveraging6 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging6.getMd5());
 
         TextUnitSearcherParameters textUnitSearcherParameters6 = new TextUnitSearcherParameters();
-        textUnitSearcherParameters6.setTmTextUnitId(tmTextUnitForLeveraging6.getId());
+        textUnitSearcherParameters6.setTmTextUnitIds(tmTextUnitForLeveraging6.getId());
         textUnitSearcherParameters6.setStatusFilter(StatusFilter.TRANSLATED);
         textUnitSearcherParameters6.setUsedFilter(UsedFilter.USED);
 

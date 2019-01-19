@@ -5,6 +5,8 @@ import org.joda.time.DateTime;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Parameters for {@link TextUnitSearcher#search(com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters)
@@ -22,6 +24,7 @@ public class TextUnitSearcherParameters {
     SearchType searchType;
     List<Long> repositoryIds;
     List<String> repositoryNames;
+    List<Long> tmTextUnitIds;
     List<String> localeTags;
     Long localeId;
     UsedFilter usedFilter;
@@ -29,7 +32,6 @@ public class TextUnitSearcherParameters {
     Integer offset;
     Integer limit;
     Long assetId;
-    Long tmTextUnitId;
     Long tmId;
     String md5;
     boolean forRootLocale = false;
@@ -143,14 +145,6 @@ public class TextUnitSearcherParameters {
         this.assetId = assetId;
     }
 
-    public Long getTmTextUnitId() {
-        return tmTextUnitId;
-    }
-
-    public void setTmTextUnitId(Long tmTextUnitId) {
-        this.tmTextUnitId = tmTextUnitId;
-    }
-
     public Long getTmId() {
         return tmId;
     }
@@ -261,5 +255,21 @@ public class TextUnitSearcherParameters {
 
     public void setBranchId(Long branchId) {
         this.branchId = branchId;
+    }
+
+    public List<Long> getTmTextUnitIds() {
+        return tmTextUnitIds;
+    }
+
+    public void setTmTextUnitIds(List<Long> tmTextUnitIds) {
+        this.tmTextUnitIds = tmTextUnitIds;
+    }
+
+    public void setTmTextUnitIds(Long... tmTextUnitIds) {
+        List<Long> filtered = Arrays.stream(tmTextUnitIds).filter(Objects::nonNull).collect(Collectors.toList());
+
+        if (!filtered.isEmpty()) {
+            this.tmTextUnitIds = filtered;
+        }
     }
 }
