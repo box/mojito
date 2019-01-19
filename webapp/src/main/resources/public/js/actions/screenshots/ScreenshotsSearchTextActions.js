@@ -8,7 +8,8 @@ class ScreenshotsSearchTextActions {
                 "changeSearchAttribute",
                 "changeSearchType",
                 "changeSearchText",
-                "changeStatus"
+                "changeStatus",
+                "changeScreenshotRunType"
                 );
     }
 }

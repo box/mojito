@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.rest.screenshot;
 
-import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
@@ -16,13 +15,12 @@ import com.box.l10n.mojito.rest.entity.ScreenshotRun;
 import com.box.l10n.mojito.rest.entity.TmTextUnit;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
-import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchTestData;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
-import com.box.l10n.mojito.service.tm.TMTestData;
+import com.box.l10n.mojito.service.screenshot.ScreenshotRunType;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.category.IntegrationTest;
 import org.junit.Assert;
@@ -112,7 +110,7 @@ public class ScreenshotWSTest extends WSTestBase {
         screenshotClient.uploadScreenshots(screenshotRun);
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(Arrays.asList(
                 repository.getId()),
-                null, null, null, null, null, null, null, true, false, 10, 0);
+                null, null, null, null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
         Assert.assertEquals(2, searchScreenshots.size());
     }
 
@@ -154,7 +152,7 @@ public class ScreenshotWSTest extends WSTestBase {
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(Arrays.asList(
                 branchTestData.getRepository().getId()),
-                null, null, null, null, null, null, null, null, true, 10, 0);
+                null, null, null, null, null, null, null, ScreenshotRunType.MANUAL_RUN, 0, 10);
         Assert.assertEquals(1, searchScreenshots.size());
 
         logger.debug("Make sure no cyclical dependencies here and there");

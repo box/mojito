@@ -1,13 +1,10 @@
 package com.box.l10n.mojito.rest.screenshot;
 
-import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
+import com.box.l10n.mojito.service.screenshot.ScreenshotRunType;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +51,7 @@ public class ScreenshotWS {
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
             @RequestParam(value = "searchType", required = false, defaultValue = "EXACT") SearchType searchType,
-            @RequestParam(value = "lastSuccessfulRun", required = false) Boolean lastSuccessfulRun,
-            @RequestParam(value = "manualRun", required = false) Boolean manualRun,
+            @RequestParam(value = "screenshotRunType", required = false) ScreenshotRunType screenshotRunType,
             @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit,
             @RequestParam(value = "offset", required = false, defaultValue = "0") Integer offset) {
        
@@ -68,10 +64,10 @@ public class ScreenshotWS {
                 source,
                 target,
                 searchType,
-                lastSuccessfulRun,
-                manualRun,
-                limit,
-                offset);
+                screenshotRunType,
+                offset,
+                limit
+        );
     }
 
     @RequestMapping(value = "/api/screenshots/{id}", method = RequestMethod.PUT)

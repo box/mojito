@@ -12,21 +12,21 @@ class ScreenshotsRepositoryStore {
         this.bindActions(ScreenshotsPageActions);
         this.registerAsync(ScreenshotsRepositoryDataSource);
     }
-    
+
     setDefaultState() {
         this.repositories = [];
         this.selectedRepositoryIds = [];
         this.dropdownOpen = false;
     }
-    
+
     resetScreenshotSearchParams() {
         this.setDefaultState();
     }
-    
+
     getAllRepositories() {
         this.getInstance().getAllRepositories();
     }
-    
+
     getAllRepositoriesSuccess(repositories) {
         this.repositories = repositories;
     }
@@ -34,8 +34,8 @@ class ScreenshotsRepositoryStore {
     changeSelectedRepositoryIds(selectedRepositoryIds) {
         this.selectedRepositoryIds = selectedRepositoryIds.slice().sort();
     }
-    
-    changeDropdownOpen(dropdownOpen) { 
+
+    changeDropdownOpen(dropdownOpen) {
         this.dropdownOpen = dropdownOpen;
     }
 
@@ -64,21 +64,19 @@ class ScreenshotsRepositoryStore {
      * @param {Boolean} filteredByFullyTranslated [Optional] True to return only fully translated
      * @return {string[]}
      */
-    static getAllBcp47TagsForRepositories(repositories, filteredByFullyTranslated = false) {
+    static getAllBcp47TagsForRepositories(repositories, filteredByFullyTranslated = false, filterRootLocale = false) {
 
         let bcp47Tags = [];
 
         repositories.forEach(repository => {
             if (repository) {
                 repository.repositoryLocales.forEach(repositoryLocale => {
-                    if (!RepositoryLocale.isRootLocale(repositoryLocale)) {
-                        if (filteredByFullyTranslated) {
-                            if (repositoryLocale.toBeFullyTranslated) {
-                                bcp47Tags[repositoryLocale.locale.bcp47Tag] = null;
-                            }
-                        } else {
-                            bcp47Tags[repositoryLocale.locale.bcp47Tag] = null;
-                        }
+
+                    let toFilter = (filterRootLocale && RepositoryLocale.isRootLocale(repositoryLocale)) ||
+                        (filteredByFullyTranslated && repositoryLocale.toBeFullyTranslated)
+
+                    if (!toFilter) {
+                        bcp47Tags[repositoryLocale.locale.bcp47Tag] = null;
                     }
                 });
             }
@@ -94,7 +92,7 @@ class ScreenshotsRepositoryStore {
      */
     static getAllBcp47TagsForRepo(repositoryId) {
         let repository = this.getRepositoryById(repositoryId);
-        return this.getAllBcp47TagsForRepositories([repository]);
+        return this.getAllBcp47TagsForRepositories([repository], false, false);
     }
 
     /**
@@ -104,7 +102,7 @@ class ScreenshotsRepositoryStore {
      */
     static getAllToBeFullyTranslatedBcp47TagsForRepo(repositoryId) {
         let repository = this.getRepositoryById(repositoryId);
-        return this.getAllBcp47TagsForRepositories([repository], true);
+        return this.getAllBcp47TagsForRepositories([repository], true, false);
     }
 
     /**
@@ -113,13 +111,13 @@ class ScreenshotsRepositoryStore {
      * @param {Boolean} filteredByFullyTranslated [Optional] True to return only fully translated
      * @return {string[]}
      */
-    static getAllBcp47TagsForRepositoryIds(repositoryIds, filteredByFullyTranslated = false) {
+    static getAllBcp47TagsForRepositoryIds(repositoryIds, filteredByFullyTranslated = false, filterRootLocale = false) {
 
         let repositories = [];
 
         repositoryIds.forEach(repositoryId => repositories.push(this.getRepositoryById(repositoryId)));
 
-        return this.getAllBcp47TagsForRepositories(repositories, filteredByFullyTranslated);
+        return this.getAllBcp47TagsForRepositories(repositories, filteredByFullyTranslated, filterRootLocale);
     }
 
     /**
