@@ -33,7 +33,7 @@ public class LeveragerByTmTextUnit extends AbstractLeverager {
         logger.debug("Get TextUnitDTOs for leveraging with TmTextUnit");
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setTmTextUnitId(tmTextUnitId);
+        textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
         textUnitSearcherParameters.setAssetId(sourceAssetId);
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
 
