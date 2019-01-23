@@ -48,12 +48,16 @@ public class BranchStatisticWS {
     public Page<BranchStatistic> getBranchesOfRepository(
             @RequestParam(value = "createdByUserName", required = false) String createdByUserName,
             @RequestParam(value = "branchId", required = false) Long branchId,
+            @RequestParam(value = "branchName", required = false) String branchName,
+            @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "deleted", required = false) Boolean deleted,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<BranchStatistic> page = branchStatisticRepository.findAll(where(
                 ifParamNotNull(createdByUserNameEquals(createdByUserName))).and(
                 ifParamNotNull(branchEquals(branchId))).and(
+                ifParamNotNull(branchNameEquals(branchName))).and(
+                ifParamNotNull(search(search))).and(
                 ifParamNotNull(deletedEquals(deleted))), pageable);
 
         return new PageView<>(page);
