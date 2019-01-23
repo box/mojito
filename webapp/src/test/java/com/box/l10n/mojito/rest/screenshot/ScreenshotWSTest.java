@@ -138,7 +138,7 @@ public class ScreenshotWSTest extends WSTestBase {
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(Arrays.asList(
                 tmTestDataSource.repository.getId()),
-                null, null, null, null, null, null, null, false, true, 10, 0);
+                null, null, null, null, null, null, null, null, true, 10, 0);
         Assert.assertEquals(1, searchScreenshots.size());
     }
 }
