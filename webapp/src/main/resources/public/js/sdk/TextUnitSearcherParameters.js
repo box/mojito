@@ -28,6 +28,10 @@ class TextUnitSearcherParameters {
         return this;
     }
 
+    tmtextUnitIds(tmtextUnitIds) {
+        this.params.tmtextUnitIds = tmtextUnitIds;
+    }
+
     branchId(branchId) {
         this.params.branchId = branchId;
     }

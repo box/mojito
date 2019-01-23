@@ -17,10 +17,11 @@ class DashboardStore {
     }
 
     setDefaultState() {
+        this.uploadScreenshotStatus = "upload.screenshot.waiting";
         this.hasNext= false;
         this.hasPrevious= false;
         this.size = 10;
-        this.currentPageNumber = 1;
+        this.currentPageNumber = 0;
         this.first = true;
         this.numberOfElements = 0;
         this.totalPages = 1;
@@ -73,6 +74,7 @@ class DashboardStore {
 
     onScreenshotUploadModalOpen() {
         this.showScreenshotUploadModal = true;
+        this.uploadScreenshotStatus = "upload.screenshot.waiting";
     }
 
     onScreenshotUploadModalClose() {
@@ -100,25 +102,28 @@ class DashboardStore {
 
     uploadScreenshotImage() {
         this.getInstance().performUploadScreenshotImage();
+        this.uploadScreenshotStatus = "upload.image";
     }
 
     uploadScreenshotImageSuccess() {
         // TODO: set imageUrl to this.images[this.uploadingIndex]
+        this.uploadScreenshotStatus = "upload.image.succeed";
+        this.image.url = 'http://localhost:8080/api/images/testing';
         this.getInstance().performUploadScreenshot();
-        this.image.url = '/api/images/testing'
     }
 
     uploadScreenshotImageError() {
-        // TODO: show upload failure
+        this.uploadScreenshotStatus = "upload.image.fail";
         this.resetAllSelectedTextUnitsInCurrentPage();
     }
 
     uploadScreenshotSuccess() {
+        this.uploadScreenshotStatus = "upload.screenshot.succeed";
         this.getInstance().performDashboardSearch();
     }
 
     uploadScreenshotError() {
-        // TODO: show upload failure
+        this.uploadScreenshotStatus = "upload.screenshot.fail";
         this.resetAllSelectedTextUnitsInCurrentPage();
     }
 

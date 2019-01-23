@@ -14,8 +14,11 @@ const DashboardDataSource = {
             let dashboardSearcherParameters = new DashboardSearcherParameters();
 
             if (dashboardSearchParam.searchText) {
-                dashboardSearcherParameters.branchId(dashboardSearchParam.searchText);
-                //dashboardSearcherParameters.createdByUserName(dashboardSearchParam.searchText);
+                if (!isNaN(Number.parseInt(dashboardSearchParam.searchText))) {
+                    dashboardSearcherParameters.branchId(dashboardSearchParam.searchText);
+                } else {
+                    dashboardSearcherParameters.createdByUserName(dashboardSearchParam.searchText);
+                }
             }
 
             if (dashboardSearchParam.isMine) {

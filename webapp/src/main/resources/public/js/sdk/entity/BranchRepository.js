@@ -1,8 +1,3 @@
-import AssetIntegrityChecker from "./AssetIntegrityChecker";
-import User from "./User";
-import RepositoryLocale from "./RepositoryLocale";
-import RepositoryStatistic from "./RepositoryStatistic";
-import TM from "./TM";
 import SourceLocale from "./SourceLocale";
 import ManualScreenshotRun from "./ManualScreenshotRun";
 

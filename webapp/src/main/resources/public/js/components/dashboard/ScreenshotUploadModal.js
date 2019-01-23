@@ -1,16 +1,19 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import {Button, ButtonGroup, ButtonToolbar, FormControl, Modal} from "react-bootstrap";
+import {Button, Modal} from "react-bootstrap";
 import {FormattedMessage} from "react-intl";
 import ImageUpload from "./ImageUpload";
 
 class ScreenshotUploadModal extends React.Component {
     static propTypes = {
+        "uploadScreenshotStatus": PropTypes.string.required,
         "showModal": PropTypes.bool.isRequired,
         "closeModal": PropTypes.func.isRequired,
         "onChooseImageClick": PropTypes.func.isRequired,
         "onUploadImageClick": PropTypes.func.isRequired
     };
+
+
 
 
     render() {
@@ -24,6 +27,7 @@ class ScreenshotUploadModal extends React.Component {
                     <Button onClick={this.props.onUploadImageClick}>
                         Sumbit
                     </Button>
+                    <FormattedMessage id={this.props.uploadScreenshotStatus}/>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={this.props.closeModal}>

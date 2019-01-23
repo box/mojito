@@ -23,11 +23,13 @@ class BranchStatistic extends React.Component {
      *
      * @param {number} repoId
      */
-    updateSearchParamsForNeedsTranslation(branchId) {
+    updateSearchParamsForNeedsTranslation(textUnitId) {
 
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
-            "branchId": branchId
+            "repoIds": [this.props.branchStatistic.branch.repository.id],
+            "branchId": this.props.branchStatistic.branch.id,
+            "tmtextUnitIds" : textUnitId
         });
     }
 
@@ -71,7 +73,7 @@ class BranchStatistic extends React.Component {
                 : branchTextUnitStatistics[0].totalCount;
             translationLabel = (
                 <Link
-                    onClick={this.updateSearchParamsForNeedsTranslation.bind(this, this.props.branchStatistic.branch.id)}
+                    onClick={this.updateSearchParamsForNeedsTranslation.bind(this, textUnits === 1 ? branchTextUnitStatistics[0].tmTextUnit.id : null)}
                     to='/workbench'>
                     <span className="branch-counts"><FormattedNumber value={forTranslationCount}/>&nbsp;</span>
                     (&nbsp;<FormattedMessage values={{numberOfWords: totalCount}}
@@ -86,7 +88,7 @@ class BranchStatistic extends React.Component {
         let numberOfScreenshot = 1;
         let numberOfTotalScreenshots = 2;
         return (
-            <Link onClick={this.updateScreenshotSearchParams.bind(this, this.props.branchStatistic.branch.id)}
+            <Link onClick={this.updateScreenshotSearchParams.bind(this)}
                   to='/screenshots'>
                 <span className="branch-counts"><FormattedNumber value={numberOfScreenshot}/>&nbsp;</span>
                 (&nbsp;<FormattedMessage values={{numberOfScreenshots: numberOfTotalScreenshots}}

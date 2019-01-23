@@ -14,6 +14,7 @@ import SearchConstants from "../../utils/SearchConstants";
 class DashboardSearchResults extends React.Component {
 
     static propTypes = {
+        "uploadScreenshotStatus": PropTypes.string.isRequired,
         "currentPageNumber": PropTypes.number.isRequired,
         "showScreenshotUploadModal": PropTypes.bool.isRequired,
         "branchStatistics": PropTypes.array.isRequired,
@@ -92,7 +93,7 @@ class DashboardSearchResults extends React.Component {
                                 onClick={() => {DashboardPageActions.fetchPreviousPage()}}><span
                             className="glyphicon glyphicon-chevron-left"></span></Button>
                         <label className="mls mrs default-label current-pageNumber">
-                            {this.props.currentPageNumber}
+                            {this.props.currentPageNumber + 1}
                         </label>
                         <Button bsSize="small" disabled={nextPageButtonDisabled}
                                 onClick={() => {DashboardPageActions.fetchNextPage()}}><span
@@ -116,6 +117,7 @@ class DashboardSearchResults extends React.Component {
                 </div>
                 {this.props.branchStatistics.map(this.createBranchStatisticComponent.bind(this))}
                 <ScreenshotUploadModal
+                    uploadScreenshotStatus={this.props.uploadScreenshotStatus}
                     showModal={this.props.showScreenshotUploadModal}
                     closeModal={this.props.closeScreenshotUploadModal}
                     onUploadImageClick={this.props.onUploadImageClick}
