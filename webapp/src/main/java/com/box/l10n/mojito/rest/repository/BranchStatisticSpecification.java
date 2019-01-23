@@ -24,10 +24,34 @@ public class BranchStatisticSpecification {
         return new SingleParamSpecification<BranchStatistic>(branchId) {
             @Override
             public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-
-
-
                 return builder.equal(root.get(BranchStatistic_.branch), branchId);
+            }
+        };
+    }
+
+    public static SingleParamSpecification<BranchStatistic> branchNameEquals(final String branchName) {
+        return new SingleParamSpecification<BranchStatistic>(branchName) {
+            @Override
+            public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+                Join<BranchStatistic, Branch> branchJoin = root.join(BranchStatistic_.branch, JoinType.LEFT);
+                return builder.equal(branchJoin.get(Branch_.name), branchName);
+            }
+        };
+    }
+
+    public static SingleParamSpecification<BranchStatistic> search(final String search) {
+        return new SingleParamSpecification<BranchStatistic>(search) {
+            @Override
+            public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+                Join<BranchStatistic, Branch> branchJoin = root.join(BranchStatistic_.branch, JoinType.LEFT);
+                Join<Branch, User> userJoin = branchJoin.join(Branch_.createdByUser, JoinType.LEFT);
+
+                String ilikeSearch = search.toLowerCase();
+
+                return builder.or(
+                        builder.like(builder.lower(branchJoin.get(Branch_.name)), ilikeSearch),
+                        builder.like(builder.lower(userJoin.get(User_.username)), ilikeSearch)
+                );
             }
         };
     }
