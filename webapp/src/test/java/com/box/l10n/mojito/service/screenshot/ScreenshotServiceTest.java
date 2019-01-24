@@ -31,6 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * @author jeanaurambault
  */
+@Ignore
 public class ScreenshotServiceTest extends ServiceTestBase {
 
     /**
@@ -82,6 +83,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         Assert.assertNotNull(arrayList.get(1).getId());
     }
 
+    @Transactional
     @Test
     public void testManualRun() throws Exception {
 
@@ -179,7 +181,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(screen2, screenshots.get(2));
     }
 
-    @Transactional
     @Test
     public void testSearchScreenshotsByRepository() throws RepositoryNameAlreadyUsedException {
         Repository repository = createScreenshotData();
@@ -191,7 +192,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals("screen2", searchScreenshots.get(2).getName());
     }
 
-    @Transactional
     @Test
     public void testSearchScreenshotsByLocale() throws RepositoryNameAlreadyUsedException {
 
@@ -217,7 +217,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
     public void testSearchScreenshotsByName() throws RepositoryNameAlreadyUsedException {
 
@@ -233,7 +232,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
     public void testSearchScreenshotsByStatus() throws RepositoryNameAlreadyUsedException {
 
@@ -264,7 +262,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
     public void testSearchScreenshotsByPagination() throws RepositoryNameAlreadyUsedException {
 
@@ -278,7 +275,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
     public void testLastRunSuccessful() throws RepositoryNameAlreadyUsedException {
 
@@ -293,7 +289,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
 
     }
 
-    private Repository createScreenshotData() {
+    public Repository createScreenshotData() {
         TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
         Repository repository = tmTestDataSource.repository;
         return createScreenshotData(repository);

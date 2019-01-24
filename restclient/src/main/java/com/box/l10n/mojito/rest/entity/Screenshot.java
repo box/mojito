@@ -18,6 +18,8 @@ public class Screenshot {
     
     private Long takenDate;
 
+    private Branch branch;
+
     @JsonProperty("textUnits")
     Set<ScreenshotTextUnit> screenshotTextUnits = new LinkedHashSet<>();
 
@@ -69,4 +71,11 @@ public class Screenshot {
         this.takenDate = takenDate;
     }
 
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
+    }
 }
