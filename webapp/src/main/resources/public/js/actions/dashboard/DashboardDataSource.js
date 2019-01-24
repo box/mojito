@@ -14,11 +14,7 @@ const DashboardDataSource = {
             let dashboardSearcherParameters = new DashboardSearcherParameters();
 
             if (dashboardSearchParam.searchText) {
-                if (!isNaN(Number.parseInt(dashboardSearchParam.searchText))) {
-                    dashboardSearcherParameters.branchId(dashboardSearchParam.searchText);
-                } else {
-                    dashboardSearcherParameters.createdByUserName(dashboardSearchParam.searchText);
-                }
+               dashboardSearcherParameters.search(dashboardSearchParam.searchText);
             }
 
             if (dashboardSearchParam.isMine) {
@@ -42,12 +38,9 @@ const DashboardDataSource = {
     },
 
     performUploadScreenshotImage: {
-        remote(dashboardStoreState) {
+        remote(dashboardStoreState, generatedUuid) {
             let image = dashboardStoreState.image;
-            // TODO: get imageName and imageContent
-            let imageName = image.file.name;
-            let imageContent = image.imagePreviewUrl;
-            return ImageClient.uploadImage(imageName, imageContent);
+            return ImageClient.uploadImage(generatedUuid, image.imagePreviewUrl);
         },
         success: DashboardPageActions.uploadScreenshotImageSuccess,
         error: DashboardPageActions.uploadScreenshotImageError

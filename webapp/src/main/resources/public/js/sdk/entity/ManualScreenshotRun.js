@@ -6,8 +6,9 @@ export default class ManualScreenshotRun {
     static toManualScreenshotRun(json) {
         let result = new ManualScreenshotRun();
 
-        result.id = json.id;
-
+        if (json) {
+            result.id = json.id;
+        }
         return result;
     }
 

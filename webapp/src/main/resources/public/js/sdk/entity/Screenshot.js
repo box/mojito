@@ -3,6 +3,7 @@ export default class Screenshot {
         this.name = null;
         this.locale = null;
         this.src = null;
+        this.branch = null;
         this.textUnits = [];
     }
 
@@ -13,6 +14,7 @@ export default class Screenshot {
         result.name = uuidv4();
         result.locale = branchStatisticsContent.branch.repository.sourceLocale;
         result.src = image.url;
+        result.branch = {id: branchStatisticsContent.branch.id};
 
         result.textUnits = [];
         for(let i = 0; i < textUnitChecked.length; i++) {

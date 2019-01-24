@@ -6,8 +6,8 @@ class ImageClient extends BaseClient {
         return this.get(this.getUrl(), params);
     }
 
-    uploadImage(imageName, imageContent) {
-        return this.put(this.getUrl() + '/' + imageName, imageContent);
+    uploadImage(generatedUuid, imageContent) {
+        return this.put(this.getUrl() + '/' + generatedUuid, imageContent);
     }
 
     getEntityName() {

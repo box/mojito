@@ -4,7 +4,7 @@ export default class TmTextUnit {
          *
          * @type {BigInt}
          */
-        this.id = id;
+        this.id = null;
 
         /**
          *
@@ -17,6 +17,12 @@ export default class TmTextUnit {
          * @type {String}
          */
         this.content = null;
+
+        /**
+         *
+         * @type {boolean}
+         */
+        this.screenshotUploaded = false;
     }
 
     static toTmTextUnit(json) {
@@ -24,7 +30,7 @@ export default class TmTextUnit {
 
         result.id = json.id;
         result.name = json.name;
-        result.branchStatisticsContent = json.content;
+        result.content = json.content;
 
         return result;
     }

@@ -39,7 +39,9 @@ class ImageUpload extends React.Component {
                 <form>
                     <input className="fileInput"
                            type="file"
-                           onChange={(e)=>this.handleImageChange(e)} />
+                           onChange={(e)=>this.handleImageChange(e)}
+                           webkitdirectory
+                    />
                 </form>
             </div>
         )

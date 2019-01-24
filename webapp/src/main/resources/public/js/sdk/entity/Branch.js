@@ -1,6 +1,7 @@
 import User from "./User"
 import Repository from "./Repository";
 import BranchRepository from "./BranchRepository";
+import BranchStatisticScreenshot from "./BranchStatisticScreenshot";
 
 export default class Branch {
     constructor() {
@@ -29,16 +30,21 @@ export default class Branch {
          */
         this.deleted = null;
 
+        this.screenshots = [];
+
     }
 
     static toBranch(json) {
         let result = new Branch();
 
-        result.id = json.id;
-        result.name = json.name;
-        result.repository = BranchRepository.toBranchRepository(json.repository);
-        result.createdByUser = User.toUser(json.createdByUser);
-        result.deleted = json.deleted;
+        if (json) {
+            result.id = json.id;
+            result.name = json.name;
+            result.repository = BranchRepository.toBranchRepository(json.repository);
+            result.createdByUser = User.toUser(json.createdByUser);
+            result.deleted = json.deleted;
+            result.screenshots = BranchStatisticScreenshot.toBranchStatisticScreenshotList(json.screenshots);
+        }
 
         return result;
     }

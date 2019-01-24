@@ -14,6 +14,16 @@ class DashboardSearcherParameters {
         return this;
     }
 
+    branchName(branchName) {
+        this.params.branchName = branchName;
+        return this;
+    }
+
+    search(search) {
+        this.params.search = search;
+        return this;
+    }
+
     deleted(deleted) {
         this.params.deleted = deleted;
     }
@@ -35,6 +45,6 @@ class DashboardSearcherParameters {
     }
 
     static isReadyForDashboardSearching(dashboardSearcherParams) {
-        return dashboardSearcherParams.params.branchId || dashboardSearcherParams.params.createdByUserName;
+        return dashboardSearcherParams.params.search || dashboardSearcherParams.params.createdByUserName;
     }
 }

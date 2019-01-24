@@ -2,6 +2,7 @@ import alt from "../../alt";
 import DashboardDataSource from "../../actions/dashboard/DashboardDataSource";
 import DashboardSearchParamStore from "./DashboardSearchParamStore";
 import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
+import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
 
 class DashboardStore {
     constructor() {
@@ -31,7 +32,7 @@ class DashboardStore {
         this.searching = false;
         this.showScreenshotUploadModal = false;
         this.image = null;
-        this.screenshotUploaded = [];
+        this.screenshotUploaded = {};
         this.textUnitChecked = [];
         this.isBranchOpen = [];
         this.openBranchIndex = -1;
@@ -55,7 +56,7 @@ class DashboardStore {
         this.totalPages = branchStatistics.totalPages;
         this.totalElements = branchStatistics.totalElements;
         this.last = branchStatistics.last;
-        this.branchStatistics = branchStatistics.content;
+        this.branchStatistics = BranchStatisticsContent.toContentList(branchStatistics.content);
         this.isSearching = false;
         this.isBranchOpen = Array.apply(null, Array(branchStatistics.length)).map(function () {
             return false;
@@ -67,8 +68,27 @@ class DashboardStore {
                 return false
             }));
             this.totalTextUnitsInPage += this.branchStatistics[i].branchTextUnitStatistics.length;
+            this.branchStatistics[i].branchTextUnitStatistics.forEach(e => this.screenshotUploaded[e.tmTextUnit.id] = e.tmTextUnit);
         }
 
+        // this.branchStatistics.forEach(
+        //     e => e.branch.screenshots.forEach(
+        //         screenshot => screenshot.textUnits.forEach(
+        //             textUnit => this.screenshotUploaded[textUnit.tmTextUnit.id].screenshotUploaded = true)));
+
+        for (let i = 0; i < this.branchStatistics.length; i++) {
+            for (let j = 0; j < this.branchStatistics[i].branch.screenshots.length; j++) {
+                for (let k = 0; k < this.branchStatistics[i].branch.screenshots[j].textUnits.length; k++) {
+                    this.screenshotUploaded[this.branchStatistics[i]
+                                                .branch
+                                                .screenshots[j]
+                                                .textUnits[k]
+                                                .tmTextUnit
+                                                .id
+                                            ].screenshotUploaded = true;
+                }
+            }
+        }
 
     }
 
@@ -101,14 +121,16 @@ class DashboardStore {
     }
 
     uploadScreenshotImage() {
-        this.getInstance().performUploadScreenshotImage();
+        const uuidv4 = require('uuid/v4');
+        let generatedUuid = uuidv4();
+        this.image.url = 'http://localhost:8080/api/images/' + generatedUuid;
+        this.getInstance().performUploadScreenshotImage(generatedUuid);
         this.uploadScreenshotStatus = "upload.image";
     }
 
     uploadScreenshotImageSuccess() {
         // TODO: set imageUrl to this.images[this.uploadingIndex]
         this.uploadScreenshotStatus = "upload.image.succeed";
-        this.image.url = 'http://localhost:8080/api/images/testing';
         this.getInstance().performUploadScreenshot();
     }
 
@@ -120,6 +142,7 @@ class DashboardStore {
     uploadScreenshotSuccess() {
         this.uploadScreenshotStatus = "upload.screenshot.succeed";
         this.getInstance().performDashboardSearch();
+
     }
 
     uploadScreenshotError() {

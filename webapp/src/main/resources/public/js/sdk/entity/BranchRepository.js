@@ -26,10 +26,12 @@ export default class BranchRepository {
     static toBranchRepository(json) {
         let result = new BranchRepository();
 
-        result.id = json.id;
-        result.name = json.name;
-        result.sourceLocale = SourceLocale.toSourceLocale(json.sourceLocale);
-        result.manualScreenshotRun = ManualScreenshotRun.toManualScreenshotRun(json.manualScreenshotRun);
+        if (json) {
+            result.id = json.id;
+            result.name = json.name;
+            result.sourceLocale = SourceLocale.toSourceLocale(json.sourceLocale);
+            result.manualScreenshotRun = ManualScreenshotRun.toManualScreenshotRun(json.manualScreenshotRun);
+        }
 
         return result;
     }

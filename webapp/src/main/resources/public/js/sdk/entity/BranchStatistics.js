@@ -1,7 +1,7 @@
 import BranchStatisticsContent from "./BranchStatisticsContent";
 
 
-export default class content {
+export default class BranchStatistics {
     constructor() {
         this.hasNext = false;
         this.size = 0;
@@ -16,18 +16,20 @@ export default class content {
     }
 
     static toBranchStatistics(json) {
-        let result = new content();
+        let result = new BranchStatistics();
 
-        result.hasNext = json.hasNext;
-        result.size = json.size;
-        result.hasPrevious = json.hasPrevious;
-        result.number = json.number;
-        result.first = json.first;
-        result.numberOfElements = json.numberOfElements;
-        result.totalPages = json.totalPages;
-        result.totalElements = json.totalElements;
-        result.last = json.last;
-        this.content = BranchStatisticsContent.toContents(json.content);
+        if (json) {
+            result.hasNext = json.hasNext;
+            result.size = json.size;
+            result.hasPrevious = json.hasPrevious;
+            result.number = json.number;
+            result.first = json.first;
+            result.numberOfElements = json.numberOfElements;
+            result.totalPages = json.totalPages;
+            result.totalElements = json.totalElements;
+            result.last = json.last;
+            this.content = BranchStatisticsContent.toContentList(json.content);
+        }
 
 
         return result;

@@ -53,47 +53,19 @@ class BranchStatistic extends React.Component {
                     <em>{branchTextUnitStatistic.tmTextUnit.content}</em>
                 </Col>
                 <Col md={4}>
-                    {this.getNeedsTranslationLabel([branchTextUnitStatistic])}
+                    <Link
+                        onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchTextUnitStatistic.tmTextUnit.id)}
+                        to='/workbench'>
+                        <span className="branch-counts"><FormattedNumber value={branchTextUnitStatistic.forTranslationCount}/>&nbsp;</span>
+                        (&nbsp;<FormattedMessage values={{numberOfWords: branchTextUnitStatistic.totalCount}}
+                                                 id="repositories.table.row.numberOfWords"/>&nbsp;)
+                    </Link>
+                </Col>
+                <Col md={4}>
+                    {branchTextUnitStatistic.tmTextUnit.screenshotUploaded ?
+                        <button className='glyphicon glyphicon-ok'/> : <button className='glyphicon glyphicon-remove'/>}
                 </Col>
             </Row>
-        );
-    }
-
-    getNeedsTranslationLabel(branchTextUnitStatistics) {
-
-        let translationLabel = "";
-
-        let textUnits = branchTextUnitStatistics.length;
-
-        if (textUnits > 0) {
-
-            let forTranslationCount = textUnits > 1 ? branchTextUnitStatistics.reduce((a, b) => a.forTranslationCount + b.forTranslationCount)
-                : branchTextUnitStatistics[0].forTranslationCount;
-            let totalCount = textUnits > 1 ? branchTextUnitStatistics.reduce((a, b) => a.totalCount + b.totalCount)
-                : branchTextUnitStatistics[0].totalCount;
-            translationLabel = (
-                <Link
-                    onClick={this.updateSearchParamsForNeedsTranslation.bind(this, textUnits === 1 ? branchTextUnitStatistics[0].tmTextUnit.id : null)}
-                    to='/workbench'>
-                    <span className="branch-counts"><FormattedNumber value={forTranslationCount}/>&nbsp;</span>
-                    (&nbsp;<FormattedMessage values={{numberOfWords: totalCount}}
-                                             id="repositories.table.row.numberOfWords"/>&nbsp;)
-                </Link>);
-        }
-
-        return translationLabel;
-    }
-
-    getScreenshotLabel(branchTextUnitStatistics) {
-        let numberOfScreenshot = 1;
-        let numberOfTotalScreenshots = 2;
-        return (
-            <Link onClick={this.updateScreenshotSearchParams.bind(this)}
-                  to='/screenshots'>
-                <span className="branch-counts"><FormattedNumber value={numberOfScreenshot}/>&nbsp;</span>
-                (&nbsp;<FormattedMessage values={{numberOfScreenshots: numberOfTotalScreenshots}}
-                                         id="dashboard.table.row.numberOfScreenshots"/>&nbsp;)
-            </Link>
         );
     }
 
@@ -111,10 +83,13 @@ class BranchStatistic extends React.Component {
                            </Button>
                            </Col>
                            <Col md={4}>
-                           {this.getNeedsTranslationLabel(this.props.branchStatistic.branchTextUnitStatistics)}
-                           </Col>
-                           <Col md={4}>
-                           {this.getScreenshotLabel(this.props.branchStatistic.branchTextUnitStatistics)}
+                               <Link
+                                   onClick={this.updateSearchParamsForNeedsTranslation.bind(this, null)}
+                                   to='/workbench'>
+                                   <span className="branch-counts"><FormattedNumber value={this.props.branchStatistic.forTranslationCount}/>&nbsp;</span>
+                                   (&nbsp;<FormattedMessage values={{numberOfWords: this.props.branchStatistic.totalCount}}
+                                                            id="repositories.table.row.numberOfWords"/>&nbsp;)
+                               </Link>
                            </Col>
                        </Row>
                    </Grid>
