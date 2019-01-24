@@ -20,6 +20,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -328,6 +329,7 @@ public class ScreenshotService {
         }
 
         query.where(conjunction);
+        query.orderBy(builder.asc(screenshot.get(Screenshot_.id)));
 
         List<Screenshot> screenshots = em.createQuery(query.distinct(true).select(screenshot)).setFirstResult(offset).setMaxResults(limit).getResultList();
         return screenshots;
