@@ -5,6 +5,8 @@ import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TM;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
@@ -12,6 +14,7 @@ import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -36,6 +39,9 @@ public class BranchTestData {
     @Autowired
     AssetExtractionService assetExtractionService;
 
+    @Autowired
+    TMTextUnitRepository tmTextUnitRepository;
+
     TestIdWatcher testIdWatcher;
 
     private Repository repository;
@@ -45,6 +51,8 @@ public class BranchTestData {
     private Branch master;
     private Branch branch1;
     private Branch branch2;
+    private TMTextUnit string1Branch1;
+    private TMTextUnit string2Branch1;
 
     public RepositoryLocale getRepositoryLocaleFrFr() {
         return repositoryLocaleFrFr;
@@ -72,6 +80,22 @@ public class BranchTestData {
 
     public Repository getRepository() {
         return repository;
+    }
+
+    public TMTextUnit getString1Branch1() {
+        return string1Branch1;
+    }
+
+    public void setString1Branch1(TMTextUnit string1Branch1) {
+        this.string1Branch1 = string1Branch1;
+    }
+
+    public TMTextUnit getString2Branch1() {
+        return string2Branch1;
+    }
+
+    public void setString2Branch1(TMTextUnit string2Branch1) {
+        this.string2Branch1 = string2Branch1;
     }
 
     public BranchTestData(TestIdWatcher testIdWatcher) {
@@ -112,6 +136,10 @@ public class BranchTestData {
         branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
         AssetContent assetContentBranch2 = assetContentService.createAssetContent(asset, branch2Content, branch2);
         assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null).get();
+
+        string1Branch1 = tmTextUnitRepository.findFirstByAssetAndName(assetContentBranch1.getAsset(), "string1");
+        string2Branch1 = tmTextUnitRepository.findFirstByAssetAndName(assetContentBranch1.getAsset(), "string2");
+
         return this;
     }
 }

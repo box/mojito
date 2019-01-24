@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -51,6 +52,11 @@ public class Screenshot extends SettableAuditableEntity {
     private ScreenshotRun screenshotRun;
 
     @JsonView(View.Screenshots.class)
+    @ManyToOne
+    @JoinColumn(name = "branch_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__BRANCH__ID"))
+    private Branch branch;
+
+    @JsonView(View.Screenshots.class)
     @Basic(optional = false)
     @ManyToOne
     @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__LOCALE__ID"))
@@ -73,7 +79,7 @@ public class Screenshot extends SettableAuditableEntity {
     @Column(name = "comment", length = Integer.MAX_VALUE)
     private String comment;
 
-    @JsonView(View.Screenshots.class)
+    @JsonView({View.Screenshots.class, View.BranchStatistic.class})
     @JsonManagedReference
     @OneToMany(mappedBy = "screenshot", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonProperty("textUnits")
