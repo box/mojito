@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.screenshot;
 
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
@@ -8,11 +9,15 @@ import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.rest.WSTestDataFactory;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.ScreenshotClient;
+import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.entity.ScreenshotRun;
 import com.box.l10n.mojito.rest.entity.TmTextUnit;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
+import com.box.l10n.mojito.service.branch.BranchRepository;
+import com.box.l10n.mojito.service.branch.BranchTestData;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
@@ -21,12 +26,14 @@ import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.category.IntegrationTest;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,6 +76,9 @@ public class ScreenshotWSTest extends WSTestBase {
     @Autowired
     ScreenshotService screenshotService;
 
+    @Autowired
+    RepositoryClient repositoryClient;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -105,40 +115,51 @@ public class ScreenshotWSTest extends WSTestBase {
                 null, null, null, null, null, null, null, true, false, 10, 0);
         Assert.assertEquals(2, searchScreenshots.size());
     }
-    
-    @Test
-    public void testAddManualScreenshot() throws RepositoryNameAlreadyUsedException {
 
-        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+    @Test
+    @Category({IntegrationTest.class})
+    public void testAddManualScreenshot() throws RepositoryNameAlreadyUsedException, RepositoryNotFoundException {
+
+        BranchTestData branchTestData = new BranchTestData(testIdWatcher);
+
+        com.box.l10n.mojito.rest.entity.Branch branch1 = new com.box.l10n.mojito.rest.entity.Branch();
+        branch1.setId(branchTestData.getBranch1().getId());
 
         ScreenshotRun screenshotRun = new ScreenshotRun();
-        screenshotRun.setId(tmTestDataSource.repository.getManualScreenshotRun().getId());
+        screenshotRun.setId(branchTestData.getRepository().getManualScreenshotRun().getId());
 
         com.box.l10n.mojito.rest.entity.Screenshot screenshot = new com.box.l10n.mojito.rest.entity.Screenshot();
         screenshot.setName(UUID.randomUUID().toString());
         screenshot.setLocale(new com.box.l10n.mojito.rest.entity.Locale());
-        screenshot.getLocale().setId(tmTestDataSource.repository.getSourceLocale().getId());
+        screenshot.getLocale().setId(branchTestData.getRepository().getSourceLocale().getId());
         screenshot.setSrc("http://localhost:8080/api/images/1");
+        screenshot.setBranch(branch1);
         screenshotRun.getScreenshots().add(screenshot);
 
         com.box.l10n.mojito.rest.entity.ScreenshotTextUnit screenshotTextUnit = new com.box.l10n.mojito.rest.entity.ScreenshotTextUnit();
         screenshotTextUnit.setTmTextUnit(new TmTextUnit());
-        screenshotTextUnit.getTmTextUnit().setId(tmTestDataSource.addTMTextUnit1.getId());
+        screenshotTextUnit.getTmTextUnit().setId(branchTestData.getString1Branch1().getId());
         screenshot.getScreenshotTextUnits().add(screenshotTextUnit);
+        screenshot.setBranch(branch1);
 
         com.box.l10n.mojito.rest.entity.ScreenshotTextUnit screenshotTextUnit2 = new com.box.l10n.mojito.rest.entity.ScreenshotTextUnit();
         screenshotTextUnit2.setTmTextUnit(new TmTextUnit());
-        screenshotTextUnit2.getTmTextUnit().setId(tmTestDataSource.addTMTextUnit2.getId());
+        screenshotTextUnit2.getTmTextUnit().setId(branchTestData.getString2Branch1().getId());
         screenshot.getScreenshotTextUnits().add(screenshotTextUnit2);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        logger.info(objectMapper.writeValueAsStringUnsafe(screenshotRun));
+        logger.debug(objectMapper.writeValueAsStringUnsafe(screenshotRun));
 
         screenshotClient.uploadScreenshots(screenshotRun);
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(Arrays.asList(
-                tmTestDataSource.repository.getId()),
+                branchTestData.getRepository().getId()),
                 null, null, null, null, null, null, null, null, true, 10, 0);
         Assert.assertEquals(1, searchScreenshots.size());
+
+        logger.debug("Make sure no cyclical dependencies here and there");
+        repositoryClient.getRepositoryByName(branchTestData.getRepository().getName());
+        repositoryClient.getBranches(branchTestData.getRepository().getId(), branch1.getName());
     }
+    
 }

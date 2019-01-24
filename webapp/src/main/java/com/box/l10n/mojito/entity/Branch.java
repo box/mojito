@@ -4,16 +4,15 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.springframework.data.annotation.CreatedBy;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Entity to manage branches of an {@link Asset}.
@@ -52,6 +51,11 @@ public class Branch extends BaseEntity {
     @Column(name = "deleted", nullable = false)
     Boolean deleted = false;
 
+    @JsonView(View.BranchSummary.class)
+    @OneToMany(mappedBy = "branch", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonDeserialize(as = LinkedHashSet.class)
+    Set<Screenshot> screenshots = new HashSet<>();
+
     public Repository getRepository() {
         return repository;
     }
@@ -82,5 +86,13 @@ public class Branch extends BaseEntity {
 
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public Set<Screenshot> getScreenshots() {
+        return screenshots;
+    }
+
+    public void setScreenshots(Set<Screenshot> screenshots) {
+        this.screenshots = screenshots;
     }
 }
