@@ -34,8 +34,13 @@ public class PseudoLocalizeStep extends BasePipelineStep {
      */
     static Logger logger = LoggerFactory.getLogger(PseudoLocalizeStep.class);
 
+    private Asset asset;
     private LocaleId targetLocale;
-    private Map<Long, Set<TextUnitIntegrityChecker>> textUnitIntegrityCheckerMap = new HashMap<>();
+    private Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
+
+    public PseudoLocalizeStep(Asset asset) {
+        this.asset = asset;
+    }
 
     @Autowired
     IntegrityCheckerFactory integrityCheckerFactory;
@@ -63,51 +68,26 @@ public class PseudoLocalizeStep extends BasePipelineStep {
     }
 
     @Override
+    protected Event handleStartDocument(Event event) {
+        textUnitIntegrityCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);
+        if (textUnitIntegrityCheckers.isEmpty()) {
+            logger.debug("There is no integrity checkers for asset id {}", asset.getId());
+        } else {
+            logger.debug("Found {} integrity checker(s) for asset id {}", textUnitIntegrityCheckers.size(), asset.getId());
+        }
+        return event;
+    }
+
+    @Override
     protected Event handleTextUnit(Event event) {
         ITextUnit textUnit = event.getTextUnit();
 
         if (textUnit.isTranslatable()) {
             String source = textUnit.getSource().toString();
-            Set<TextUnitIntegrityChecker> checkers = getTextUnitIntegrityCheckers(textUnit.getId());
-            String pseudoTranslation = pseudoLocalization.convertStringToPseudoLoc(source, checkers);
+            String pseudoTranslation = pseudoLocalization.convertStringToPseudoLoc(source, textUnitIntegrityCheckers);
             textUnit.setTarget(targetLocale, new TextContainer(pseudoTranslation));
         }
 
         return event;
-    }
-
-    /**
-     * @param textUnitId
-     * @return The created or cached TextUnitIntegrityChecker for the given
-     * asset
-     */
-    private Set<TextUnitIntegrityChecker> getTextUnitIntegrityCheckers(String textUnitId) {
-        Set<TextUnitIntegrityChecker> checkers = new HashSet<>();
-        TMTextUnit tmTextUnit = null;
-        Asset asset = null;
-
-        try {
-            Long tmTextUnitId = Long.valueOf(textUnitId);
-            tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
-        } catch (NumberFormatException nfe) {
-            logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
-        }
-
-        if (tmTextUnit != null) {
-            asset = tmTextUnit.getAsset();
-            checkers = textUnitIntegrityCheckerMap.get(asset.getId());
-
-            if (checkers == null) {
-                logger.debug("There is no cached integrity checkers for asset id {}", asset.getId());
-                checkers = integrityCheckerFactory.getTextUnitCheckers(asset);
-                if (checkers.isEmpty()) {
-                    logger.debug("There is no integrity checkers for asset id {}", asset.getId());
-                } else {
-                    logger.debug("Found {} integrity checker(s) for asset id {}", checkers.size(), asset.getId());
-                }
-                textUnitIntegrityCheckerMap.put(asset.getId(), checkers);
-            }
-        }
-        return checkers;
     }
 }

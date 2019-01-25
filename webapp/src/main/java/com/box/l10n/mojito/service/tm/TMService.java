@@ -947,7 +947,7 @@ public class TMService {
 
         String bcp47tag = "en-x-psaccent";
 
-        BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep();
+        BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep(asset);
         return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47tag, pseudoLocalizedStep);
     }
 
