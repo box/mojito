@@ -5,6 +5,8 @@ import org.joda.time.DateTime;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Parameters for {@link TextUnitSearcher#search(com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters)
@@ -264,6 +266,10 @@ public class TextUnitSearcherParameters {
     }
 
     public void setTmTextUnitIds(Long... tmTextUnitIds) {
-        this.tmTextUnitIds = Arrays.asList(tmTextUnitIds);
+        List<Long> filtered = Arrays.stream(tmTextUnitIds).filter(Objects::nonNull).collect(Collectors.toList());
+
+        if (!filtered.isEmpty()) {
+            this.tmTextUnitIds = filtered;
+        }
     }
 }

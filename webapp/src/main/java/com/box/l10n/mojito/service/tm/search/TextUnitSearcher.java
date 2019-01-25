@@ -122,6 +122,7 @@ public class TextUnitSearcher {
 
             return resultAsList;
         } catch (Exception e) {
+            logger.warn("TextUnitSearcher failed to search, exception", e);
             logger.warn("TextUnitSearcher failed to search, query: {}", c.getQueryInfo().toString());
             throw new TextUnitSearcherError(c, "search", e);
         }

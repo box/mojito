@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * @author aloison
+ * @author jeanaurambault
  */
 public class ScreenshotWSTest extends WSTestBase {
 
