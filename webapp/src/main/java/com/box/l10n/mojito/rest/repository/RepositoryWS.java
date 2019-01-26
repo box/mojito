@@ -58,6 +58,7 @@ public class RepositoryWS {
     @Autowired
     BranchRepository branchRepository;
 
+    @JsonView(View.Repository.class)
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
     public Repository getRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
         ResponseEntity<Repository> result;
@@ -88,6 +89,7 @@ public class RepositoryWS {
      * @param repositoryName To filer on the name. Can be {@code null}
      * @return List of {@link Repository}s
      */
+    @JsonView(View.Repository.class)
     @RequestMapping(value = "/api/repositories", params = "name", method = RequestMethod.GET)
     @ResponseStatus(HttpStatus.OK)
     public List<Repository> getRepositories(@RequestParam(value = "name", required = true) String repositoryName) {
@@ -102,6 +104,7 @@ public class RepositoryWS {
      * @param repository
      * @return
      */
+    @JsonView(View.Repository.class)
     @RequestMapping(value = "/api/repositories", method = RequestMethod.POST)
     public ResponseEntity<Repository> createRepository(@RequestBody Repository repository) {
         logger.info("Creating repository");
@@ -217,6 +220,7 @@ public class RepositoryWS {
     }
 
 
+    @JsonView(View.BranchSummary.class)
     @RequestMapping(value = "/api/repositories/{repositoryId}/branches", method = RequestMethod.GET)
     public List<Branch> getBranchesOfRepository(@PathVariable Long repositoryId,
                                                 @RequestParam(value = "name", required = false) String branchName) throws RepositoryWithIdNotFoundException {

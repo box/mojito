@@ -9,7 +9,9 @@ import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.rest.WSTestDataFactory;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.ScreenshotClient;
+import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.entity.ScreenshotRun;
 import com.box.l10n.mojito.rest.entity.TmTextUnit;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -72,6 +74,9 @@ public class ScreenshotWSTest extends WSTestBase {
     @Autowired
     ScreenshotService screenshotService;
 
+    @Autowired
+    RepositoryClient repositoryClient;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -110,7 +115,7 @@ public class ScreenshotWSTest extends WSTestBase {
     }
 
     @Test
-    public void testAddManualScreenshot() throws RepositoryNameAlreadyUsedException {
+    public void testAddManualScreenshot() throws RepositoryNameAlreadyUsedException, RepositoryNotFoundException {
 
         BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
@@ -148,6 +153,10 @@ public class ScreenshotWSTest extends WSTestBase {
                 branchTestData.getRepository().getId()),
                 null, null, null, null, null, null, null, null, true, 10, 0);
         Assert.assertEquals(1, searchScreenshots.size());
+
+        logger.debug("Make sure no cyclical dependencies here and there");
+        repositoryClient.getRepositoryByName(branchTestData.getRepository().getName());
+        repositoryClient.getBranches(branchTestData.getRepository().getId(), branch1.getName());
     }
     
 }

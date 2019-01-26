@@ -3,7 +3,7 @@ package com.box.l10n.mojito.rest;
 /**
  * This class is used with {@JsonView} to filter fields
  * depending on the context of serialization to avoid large payload.
- * 
+ *
  * @author jyi
  */
 public class View {
@@ -31,6 +31,10 @@ public class View {
      * This is used to get repository entity with minimum fields for summary
      */
     public interface RepositorySummary extends IdAndNameAndCreated, LocaleSummary {}
+    /**
+     * This is used to get repository entity
+     */
+    public interface Repository extends RepositorySummary, DropSummary {}
     /**
      * This is used to show {@link Pageable} information
      */

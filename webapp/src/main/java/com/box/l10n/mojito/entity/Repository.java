@@ -44,6 +44,7 @@ public class Repository extends AuditableEntity {
 
     @Column(name = "drop_exporter_type")
     @Enumerated(EnumType.STRING)
+    @JsonView(View.Repository.class)
     private DropExporterType dropExporterType;
 
     @JsonView({View.RepositorySummary.class, View.BranchStatistic.class})
@@ -63,23 +64,27 @@ public class Repository extends AuditableEntity {
     @JoinColumn(name = "repository_statistic_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__REPOSITORY_STATISTIC__ID"))
     RepositoryStatistic repositoryStatistic;
 
+    @JsonView(View.Repository.class)
     @JsonManagedReference
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<AssetIntegrityChecker> assetIntegrityCheckers = new HashSet<>();
 
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     @NotAudited
-    @JsonBackReference
+    @JsonBackReference //TODO removed?
+    @JsonView(View.Repository.class)
     Set<Branch> branches = new HashSet<>();
 
     @OneToOne
     @Basic(optional = false)
     @JoinColumn(name = "tm_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__TM__ID"))
+    @JsonView(View.Repository.class)
     TM tm;
 
     @CreatedBy
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__REPOSITORY__USER__ID"))
+    @JsonView(View.Repository.class)
     protected User createdByUser;
 
     @JsonView(View.BranchStatistic.class)
@@ -92,6 +97,7 @@ public class Repository extends AuditableEntity {
      * page.
      */
     @Column(name = "deleted", nullable = false)
+    @JsonView(View.Repository.class)
     private Boolean deleted = false;
 
     /**

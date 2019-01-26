@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import javax.persistence.Basic;
@@ -12,6 +13,8 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonView;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 
@@ -37,11 +40,13 @@ public class AssetIntegrityChecker extends BaseEntity {
 
     @Basic(optional = false)
     @Column(name = "asset_extension")
+    @JsonView(View.Repository.class)
     private String assetExtension;
 
     @Basic(optional = false)
     @Column(name = "integrity_checker_type")
     @Enumerated(EnumType.STRING)
+    @JsonView(View.Repository.class)
     private IntegrityCheckerType integrityCheckerType;
 
     public Repository getRepository() {
