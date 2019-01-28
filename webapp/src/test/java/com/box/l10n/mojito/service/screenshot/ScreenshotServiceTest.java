@@ -178,8 +178,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(screen2, screenshots.get(2));
     }
 
-    @Transactional
     @Test
+    @Transactional
     public void testSearchScreenshotsByRepository() throws RepositoryNameAlreadyUsedException {
         Repository repository = createScreenshotData();
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
@@ -190,8 +190,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals("screen2", searchScreenshots.get(2).getName());
     }
 
-    @Transactional
     @Test
+    @Transactional
     public void testSearchScreenshotsByLocale() throws RepositoryNameAlreadyUsedException {
 
         Repository repository = createScreenshotData();
@@ -216,8 +216,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
+    @Transactional
     public void testSearchScreenshotsByName() throws RepositoryNameAlreadyUsedException {
 
         Repository repository = createScreenshotData();
@@ -232,8 +232,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
+    @Transactional
     public void testSearchScreenshotsByStatus() throws RepositoryNameAlreadyUsedException {
 
         Repository repository = createScreenshotData();
@@ -263,8 +263,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
+    @Transactional
     public void testSearchScreenshotsByPagination() throws RepositoryNameAlreadyUsedException {
 
         Repository repository = createScreenshotData();
@@ -277,8 +277,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
-    @Transactional
     @Test
+    @Transactional
     public void testLastRunSuccessful() throws RepositoryNameAlreadyUsedException {
 
         Repository repository = createScreenshotData();
