@@ -12,6 +12,10 @@ const SearchDataSource = {
 
             let repositoryIds = searchParams.repoIds;
 
+            let branchId = searchParams.branchId;
+
+            let tmtextUnitIds = searchParams.tmtextUnitIds;
+
             let bcp47Tags = searchParams.bcp47Tags;
 
             let textUnitSearcherParameters = new TextUnitSearcherParameters();
@@ -68,7 +72,7 @@ const SearchDataSource = {
             // ask for one extra text unit to know if there are more text units
             let limit = searchParams.pageSize + 1;
 
-            textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags)
+            textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags).branchId(branchId).tmtextUnitIds(tmtextUnitIds)
                     .offset(searchParams.pageOffset).limit(limit);
 
             let promise;
