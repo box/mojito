@@ -17,6 +17,10 @@ class ScreenshotClient extends BaseClient {
         return this.put(this.getUrl() + '/' + screenshot.id, screenshot);
     }
 
+    createOrUpdateScreenshotRun(screenshotRun) {
+        return this.post(this.getUrl(), screenshotRun);
+    }
+
     getEntityName() {
         return 'screenshots';
     }

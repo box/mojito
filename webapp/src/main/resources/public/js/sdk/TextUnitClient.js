@@ -57,7 +57,7 @@ class TextUnitClient extends BaseClient {
      */
     checkTextUnitIntegrity(textUnit) {
         let request = new TextUnitIntegrityCheckRequest();
-        request.content = textUnit.getTarget();
+        request.branchStatisticsContent = textUnit.getTarget();
         request.tmTextUnitId = textUnit.getTmTextUnitId();
 
         return this.post(this.getUrl() + '/check', request).then(function (jsonTextUnit) {
