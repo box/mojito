@@ -286,7 +286,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
                 null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
 
         assertEquals(3, searchScreenshots.size());
-
     }
 
     public Repository createScreenshotData() {
