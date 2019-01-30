@@ -3,6 +3,7 @@ import DashboardDataSource from "../../actions/dashboard/DashboardDataSource";
 import DashboardSearchParamStore from "./DashboardSearchParamStore";
 import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
 import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
+import v4 from 'uuid/v4'
 
 class DashboardStore {
     constructor() {
@@ -18,7 +19,7 @@ class DashboardStore {
     }
 
     setDefaultState() {
-        this.uploadScreenshotStatus = "upload.screenshot.waiting";
+        this.uploadScreenshotStatus = "upload.screenshot.prompt";
         this.hasNext= false;
         this.hasPrevious= false;
         this.size = 10;
@@ -44,7 +45,6 @@ class DashboardStore {
         this.waitFor(DashboardSearchParamStore);
         this.getInstance().performDashboardSearch();
         this.isSearching = true;
-
     }
 
     getBranchesSuccess(branchStatistics) {
@@ -71,11 +71,6 @@ class DashboardStore {
             this.branchStatistics[i].branchTextUnitStatistics.forEach(e => this.screenshotUploaded[e.tmTextUnit.id] = e.tmTextUnit);
         }
 
-        // this.branchStatistics.forEach(
-        //     e => e.branch.screenshots.forEach(
-        //         screenshot => screenshot.textUnits.forEach(
-        //             textUnit => this.screenshotUploaded[textUnit.tmTextUnit.id].screenshotUploaded = true)));
-
         for (let i = 0; i < this.branchStatistics.length; i++) {
             for (let j = 0; j < this.branchStatistics[i].branch.screenshots.length; j++) {
                 for (let k = 0; k < this.branchStatistics[i].branch.screenshots[j].textUnits.length; k++) {
@@ -94,7 +89,7 @@ class DashboardStore {
 
     onScreenshotUploadModalOpen() {
         this.showScreenshotUploadModal = true;
-        this.uploadScreenshotStatus = "upload.screenshot.waiting";
+        this.uploadScreenshotStatus = "upload.screenshot.prompt";
     }
 
     onScreenshotUploadModalClose() {
@@ -121,17 +116,16 @@ class DashboardStore {
     }
 
     uploadScreenshotImage() {
-        const uuidv4 = require('uuid/v4');
-        let generatedUuid = uuidv4();
+        let generatedUuid = v4();
         this.image.url = 'http://localhost:8080/api/images/' + generatedUuid;
         this.getInstance().performUploadScreenshotImage(generatedUuid);
-        this.uploadScreenshotStatus = "upload.image";
+        this.uploadScreenshotStatus = "upload.image.processing";
     }
 
     uploadScreenshotImageSuccess() {
-        // TODO: set imageUrl to this.images[this.uploadingIndex]
         this.uploadScreenshotStatus = "upload.image.succeed";
         this.getInstance().performUploadScreenshot();
+        this.uploadScreenshotStatus = "upload.screenshot.processing";
     }
 
     uploadScreenshotImageError() {

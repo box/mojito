@@ -26,7 +26,8 @@
     "react-intl": "^2.3.0",
     "react-router": "3.0.5",
     "react-router-bootstrap": "^0.23.3",
-    "react-sidebar": "^2.1.4"
+    "react-sidebar": "^2.1.4",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "app-module-path": "^1.0.3",
