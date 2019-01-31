@@ -114,7 +114,7 @@ public class RepositoryService {
         repository = new Repository();
         repository.setName(name);
         repository.setDescription(description);
-        repository.setCheckSLA(checkSLA);
+        repository.setCheckSLA(checkSLA != null ? checkSLA : false );
         repository.setDropExporterType(dropExporterConfiguration.getType());
 
         if (sourceLocale == null) {
@@ -648,7 +648,6 @@ public class RepositoryService {
     public void updateRepository(Repository repository, String newName, String description, Boolean checkSLA, Set<RepositoryLocale> repositoryLocales, Set<AssetIntegrityChecker> assetIntegrityCheckers) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
 
         logger.debug("Update a repository with name: {}", repository.getName());
-        repository.setCheckSLA(checkSLA);
 
         if (newName != null) {
             // check duplicated name

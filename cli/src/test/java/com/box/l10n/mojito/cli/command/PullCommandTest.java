@@ -382,8 +382,8 @@ public class PullCommandTest extends CLITestBase {
 
     @Test
     public void testLatestTMTextUnitVariant() throws Exception {
-        Repository repository1 = createTestRepoUsingRepoService("repo1");
-        Repository repository2 = createTestRepoUsingRepoService("repo2");
+        Repository repository1 = createTestRepoUsingRepoService("repo1", false);
+        Repository repository2 = createTestRepoUsingRepoService("repo2", false);
 
         getL10nJCommander().run("push", "-r", repository1.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
