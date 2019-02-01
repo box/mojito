@@ -20,6 +20,8 @@ class SearchParamsStore {
     setDefaultParameters() {
 
         this.repoIds = [];
+        this.branchId = null;
+        this.tmtextUnitIds = [];
         this.repoNames = [];
         this.bcp47Tags = [];
 
@@ -174,7 +176,7 @@ class SearchParamsStore {
      * @param {int} pageOffset
      */
     updateAllParameters( {
-    repoIds = null, repoNames = null, bcp47Tags = null, searchText = null,
+    repoIds = null, branchId = null, tmtextUnitIds = null, repoNames = null, bcp47Tags = null, searchText = null,
             searchAttribute = null, searchType = null, status = null, used = null,
             unUsed = null, pageSize = null, currentPageNumber = null,
             pageOffset = null, pluralFormOther = null, translate = null, 
@@ -186,6 +188,14 @@ class SearchParamsStore {
 
         if (repoIds !== null) {
             this.repoIds = repoIds.slice();
+        }
+
+        if (branchId != null) {
+            this.branchId = branchId;
+        }
+
+        if (tmtextUnitIds != null) {
+            this.tmtextUnitIds = tmtextUnitIds;
         }
 
         if (repoNames !== null) {
@@ -402,7 +412,8 @@ SearchParamsStore.STATUS = {
     /**
      * TextUnits that are not rejected, ie includedInLocalizedFile is true.
      */
-    "NOT_REJECTED": "NOT_REJECTED"
+    "NOT_REJECTED": "NOT_REJECTED",
+
 };
 
 export default alt.createStore(SearchParamsStore, 'SearchParamsStore');

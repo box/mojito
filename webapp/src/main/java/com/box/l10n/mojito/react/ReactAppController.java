@@ -68,6 +68,7 @@ public class ReactAppController {
         "repositories",
         "project-requests",
         "workbench",
+        "dashboard",
         "settings",
         "screenshots"
     })
