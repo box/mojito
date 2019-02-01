@@ -56,8 +56,10 @@ public class RepoUpdateCommandTest extends CLITestBase {
 
     @Test
     public void testUpdateLocale() throws Exception {
-        Repository repository = createTestRepoUsingRepoService();
+        Repository repository = createTestRepoUsingRepoService("repo", true);
         String testRepoName = repository.getName();
+        Boolean testCheckSLA = repository.getCheckSLA();
+
         String newName = testRepoName + "_updated";
 
         getL10nJCommander().run(
@@ -71,6 +73,7 @@ public class RepoUpdateCommandTest extends CLITestBase {
 
         repository = repositoryRepository.findByName(newName);
         assertEquals(2, repository.getRepositoryLocales().size());
+        assertEquals(testCheckSLA, repository.getCheckSLA());
         for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
             assertTrue("en".equals(repositoryLocale.getLocale().getBcp47Tag()) || "de-DE".equals(repositoryLocale.getLocale().getBcp47Tag()));
         }
@@ -246,10 +249,10 @@ public class RepoUpdateCommandTest extends CLITestBase {
         Repository repository = createTestRepoUsingRepoService();
         String testRepoName = repository.getName();
 
-        Repository repository2 = createTestRepoUsingRepoService("repo2");
+        Repository repository2 = createTestRepoUsingRepoService("repo2", false);
         String testRepoName2 = repository2.getName();
 
-        Repository repository3 = createTestRepoUsingRepoService("repo3");
+        Repository repository3 = createTestRepoUsingRepoService("repo3", false);
         String testRepoName3 = repository3.getName();
 
         getL10nJCommander().run(

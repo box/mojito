@@ -116,13 +116,13 @@ public class CLITestBase extends IOTestBase {
      * @return
      */
     public Repository createTestRepoUsingRepoService() throws Exception {
-        return createTestRepoUsingRepoService("repo");
+        return createTestRepoUsingRepoService("repo", false);
     }
 
-    public Repository createTestRepoUsingRepoService(String name) throws Exception {
+    public Repository createTestRepoUsingRepoService(String name, Boolean checkSLA) throws Exception {
 
         String repoName = testIdWatcher.getEntityName(name);
-        Repository repository = repositoryService.createRepository(repoName, repoName + " description", null, false);
+        Repository repository = repositoryService.createRepository(repoName, repoName + " description", null, checkSLA);
 
         repositoryService.addRepositoryLocale(repository, "fr-FR");
         repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);

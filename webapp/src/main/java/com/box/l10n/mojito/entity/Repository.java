@@ -93,7 +93,7 @@ public class Repository extends AuditableEntity {
      */
     @JsonView(View.RepositorySummary.class)
     @Column(name = "checkSLA", nullable = false)
-    private Boolean checkSLA = false;
+    private Boolean checkSLA;
 
     public User getCreatedByUser() {
         return createdByUser;
