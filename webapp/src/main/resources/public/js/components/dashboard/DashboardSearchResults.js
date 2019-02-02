@@ -7,7 +7,7 @@ import BranchStatistic from "./BranchStatistic";
 import ScreenshotUploadModal from "./ScreenshotUploadModal";
 import TextUnitSelector from "./TextUnitSelector";
 import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
-import DashboardStore from "../../stores/Dashboard/DashboardStore";
+import DashboardStore from "../../stores/dashboard/DashboardStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 
@@ -27,10 +27,6 @@ class DashboardSearchResults extends React.Component {
         "openScreenshotUploadModal": PropTypes.func.isRequired,
         "closeScreenshotUploadModal": PropTypes.func.isRequired,
     };
-
-
-
-
 
     createBranchStatisticComponent(branchStatistic, arrayIndex) {
         return (

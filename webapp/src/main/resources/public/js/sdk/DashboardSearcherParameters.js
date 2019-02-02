@@ -28,10 +28,6 @@ class DashboardSearcherParameters {
         this.params.deleted = deleted;
     }
 
-    undeleted(undeleted) {
-        this.params.undeleted = undeleted;
-    }
-
     page(page) {
         this.params.page = page;
     }

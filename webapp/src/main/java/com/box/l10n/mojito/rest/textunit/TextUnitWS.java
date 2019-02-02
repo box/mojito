@@ -116,7 +116,7 @@ public class TextUnitWS {
     public List<TextUnitDTO> getTextUnits(
             @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
             @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames,
-            @RequestParam(value = "tmtextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
+            @RequestParam(value = "tmTextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
@@ -152,7 +152,7 @@ public class TextUnitWS {
     public TextUnitAndWordCount getTextUnitsCount(
             @RequestParam(value = "repositoryIds[]", required = false) ArrayList<Long> repositoryIds,
             @RequestParam(value = "repositoryNames[]", required = false) ArrayList<String> repositoryNames,
-            @RequestParam(value = "tmtextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
+            @RequestParam(value = "tmTextUnitIds[]", required = false) ArrayList<Long> tmTextUnitIds,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "source", required = false) String source,
             @RequestParam(value = "target", required = false) String target,
@@ -207,6 +207,7 @@ public class TextUnitWS {
 
         textUnitSearcherParameters.setRepositoryIds(repositoryIds);
         textUnitSearcherParameters.setRepositoryNames(repositoryNames);
+        textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
         textUnitSearcherParameters.setName(name);
         textUnitSearcherParameters.setSource(source);
         textUnitSearcherParameters.setTarget(target);

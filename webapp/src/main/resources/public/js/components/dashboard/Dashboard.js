@@ -2,10 +2,10 @@ import React from "react";
 import {Link, withRouter} from "react-router";
 import AltContainer from "alt-container";
 
-import DashboardStore from "../../stores/Dashboard/DashboardStore";
+import DashboardStore from "../../stores/dashboard/DashboardStore";
 import DashboardSearchText from "./DashboardSearchText";
 import DashboardStatusDropdown from "./DashboardStatusDropdown";
-import DashboardSearchParamStore from "../../stores/Dashboard/DashboardSearchParamStore";
+import DashboardSearchParamStore from "../../stores/dashboard/DashboardSearchParamStore";
 
 import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
 import DashboardSearchParamsActions from "../../actions/dashboard/DashboardSearchParamsActions";
@@ -26,7 +26,8 @@ class Dashboard extends React.Component {
                             }
                         }
                         onPerformSearch={() => {
-                            //DashboardPaginatorAction.changeCurrentPageNumber(1);
+                            // TODO reset pagination
+                            // DashboardPaginatorAction.changeCurrentPageNumber(1);
                             DashboardPageActions.getBranches();
                         }}
                     />

@@ -1,9 +1,7 @@
-import Error from "../../utils/Error";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import TextUnitClient from "../../sdk/TextUnitClient";
 import TextUnitSearcherParameters from "../../sdk/TextUnitSearcherParameters";
 import WorkbenchActions from "./WorkbenchActions";
-import RepositoryStore from "../../stores/RepositoryStore";
 
 const SearchDataSource = {
     performSearch: {
@@ -11,10 +9,6 @@ const SearchDataSource = {
             let returnEmpty = false;
 
             let repositoryIds = searchParams.repoIds;
-
-            let branchId = searchParams.branchId;
-
-            let tmtextUnitIds = searchParams.tmtextUnitIds;
 
             let bcp47Tags = searchParams.bcp47Tags;
 
@@ -69,11 +63,18 @@ const SearchDataSource = {
                 textUnitSearcherParameters.tmTextUnitCreatedAfter(searchParams.tmTextUnitCreatedAfter);
             }
 
+            if (searchParams.tmTextUnitIds != null) {
+                textUnitSearcherParameters.tmTextUnitIds(searchParams.tmTextUnitIds);
+            }
+
+            if (searchParams.branchId != null) {
+                textUnitSearcherParameters.branchId(searchParams.branchId);
+            }
+
             // ask for one extra text unit to know if there are more text units
             let limit = searchParams.pageSize + 1;
 
-            textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags).branchId(branchId).tmtextUnitIds(tmtextUnitIds)
-                    .offset(searchParams.pageOffset).limit(limit);
+            textUnitSearcherParameters.repositoryIds(repositoryIds).localeTags(bcp47Tags).offset(searchParams.pageOffset).limit(limit);
 
             let promise;
 

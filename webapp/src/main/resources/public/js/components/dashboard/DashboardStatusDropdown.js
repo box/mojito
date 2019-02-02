@@ -45,7 +45,9 @@ class DashboardStatusDropdown extends React.Component {
                 title={this.props.intl.formatMessage({id: "search.statusDropdown.title"})}
             >
                 <MenuItem header><FormattedMessage id="dashboardSearch.statusDropdown.owner"/></MenuItem>
-                <MenuItem eventKey={"isMine"} active={this.props.isMine} onSelect={() => this.onFilterSelected("isMine")} >isMine </MenuItem>
+                <MenuItem eventKey={"isMine"} active={this.props.isMine} onSelect={() => this.onFilterSelected("isMine")} >
+                    <FormattedMessage id="dashboardSearch.statusDropdown.owner.mine"/>
+                </MenuItem>
                 <MenuItem divider/>
                 <MenuItem header><FormattedMessage id="dashboardSearch.statusDropdown.deleted"/></MenuItem>
                 {this.renderFilterMenuItem("deleted", true)}

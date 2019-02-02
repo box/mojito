@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from 'prop-types';
 import {DropdownButton, MenuItem} from "react-bootstrap";
 import {FormattedMessage} from "react-intl";
-import DashboardStore from "../../stores/Dashboard/DashboardStore";
+import DashboardStore from "../../stores/dashboard/DashboardStore";
 
 class TextUnitSelector extends React.Component {
     static propTypes = {

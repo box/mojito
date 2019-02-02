@@ -21,7 +21,7 @@ class SearchParamsStore {
 
         this.repoIds = [];
         this.branchId = null;
-        this.tmtextUnitIds = [];
+        this.tmTextUnitIds = [];
         this.repoNames = [];
         this.bcp47Tags = [];
 
@@ -176,7 +176,7 @@ class SearchParamsStore {
      * @param {int} pageOffset
      */
     updateAllParameters( {
-    repoIds = null, branchId = null, tmtextUnitIds = null, repoNames = null, bcp47Tags = null, searchText = null,
+    repoIds = null, branchId = null, tmTextUnitIds = null, repoNames = null, bcp47Tags = null, searchText = null,
             searchAttribute = null, searchType = null, status = null, used = null,
             unUsed = null, pageSize = null, currentPageNumber = null,
             pageOffset = null, pluralFormOther = null, translate = null, 
@@ -194,8 +194,8 @@ class SearchParamsStore {
             this.branchId = branchId;
         }
 
-        if (tmtextUnitIds != null) {
-            this.tmtextUnitIds = tmtextUnitIds;
+        if (tmTextUnitIds != null) {
+            this.tmTextUnitIds = tmTextUnitIds;
         }
 
         if (repoNames !== null) {
@@ -267,9 +267,10 @@ class SearchParamsStore {
             searchAttribute, searchText, searchType,
             status, used, unUsed, translate, doNotTranslate, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter,
             pageSize, currentPageNumber, pageOffset,
-            pluralFormOther} = query;
+            pluralFormOther, branchId} = query;
 
         let repoIds = query["repoIds[]"];
+        let tmTextUnitIds = query["tmTextUnitIds[]"];
         let repoNames = query["repoNames[]"];
         let bcp47Tags = query["bcp47Tags[]"];
 
@@ -287,6 +288,14 @@ class SearchParamsStore {
 
         if (typeof bcp47Tags !== "undefined" && !Array.isArray(bcp47Tags)) {
             bcp47Tags = [bcp47Tags];
+        }
+
+        if (typeof tmTextUnitIds !== "undefined") {
+            if (Array.isArray(tmTextUnitIds)) {
+                tmTextUnitIds = tmTextUnitIds.map((value) => parseInt(value));
+            } else {
+                tmTextUnitIds = [parseInt(tmTextUnitIds)];
+            }
         }
 
         let converted = {
@@ -307,7 +316,9 @@ class SearchParamsStore {
             "pageSize": typeof pageSize !== "undefined" ? parseInt(pageSize) : null,
             "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
             "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null,
-            "pluralFormOther": typeof pluralFormOther !== "undefined" ? pluralFormOther : null
+            "pluralFormOther": typeof pluralFormOther !== "undefined" ? pluralFormOther : null,
+            "tmTextUnitIds": typeof tmTextUnitIds !== "undefined" ? tmTextUnitIds : null,
+            "branchId": typeof branchId !== "undefined" ? branchId : null
         };
 
         return converted;

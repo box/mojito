@@ -116,7 +116,7 @@ class DashboardStore {
     }
 
     uploadScreenshotImage() {
-        let generatedUuid = v4();
+        let generatedUuid = v4() + this.image.file.name;
         this.image.url = 'http://localhost:8080/api/images/' + generatedUuid;
         this.getInstance().performUploadScreenshotImage(generatedUuid);
         this.uploadScreenshotStatus = "upload.image.processing";

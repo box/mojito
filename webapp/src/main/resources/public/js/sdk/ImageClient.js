@@ -7,7 +7,7 @@ class ImageClient extends BaseClient {
     }
 
     uploadImage(generatedUuid, imageContent) {
-        return this.put(this.getUrl() + '/' + generatedUuid, imageContent);
+        return this.putBinaryData(this.getUrl() + '/' + generatedUuid, imageContent);
     }
 
     getEntityName() {

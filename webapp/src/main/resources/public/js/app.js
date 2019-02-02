@@ -148,7 +148,7 @@ function startApp(messages) {
             }
         }
 
-        /*ReactDOM.render(
+        ReactDOM.render(
                 <IntlProvider locale={LOCALE} messages={messages}>
                     <Modal show={true}>
                         <Modal.Header closeButton={true}>
@@ -166,7 +166,7 @@ function startApp(messages) {
                         </Modal.Footer>
                     </Modal>
                 </IntlProvider>
-                , document.getElementById(containerId));*/
+                , document.getElementById(containerId));
     };
 
 }
@@ -191,6 +191,7 @@ function getAllRepositoriesDeffered() {
 
 function getBranchDeffered() {
     setTimeout(() => {
+        RepositoryActions.getAllRepositories();
         DashboardPageActions.getBranches();
     }, 1);
 }
@@ -215,6 +216,11 @@ function loadBasedOnLocation(location) {
 
     if (location.pathname === '/screenshots' && location.action === 'POP') {
         ScreenshotsHistoryStore.initStoreFromLocationQuery(location.query);
+    }
+
+    if (location.pathname === '/dashboard' && location.action === 'POP') {
+        //TODO(ja) init dashboard from location
+        console.log("TDOO init dashboard from location");
     }
 }
 

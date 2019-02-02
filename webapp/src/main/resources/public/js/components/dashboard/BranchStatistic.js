@@ -1,10 +1,12 @@
 import React from "react";
-import {Button, Collapse, Col, Glyphicon, Grid, OverlayTrigger, Row, Tooltip} from "react-bootstrap";
+import {Button, Collapse, Col, Glyphicon, Grid, Row} from "react-bootstrap";
 import {Link} from "react-router";
 import {FormattedMessage, FormattedNumber} from "react-intl";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 import PropTypes from "prop-types";
+import RepositoryStore from "../../stores/RepositoryStore";
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
 
 class BranchStatistic extends React.Component {
@@ -25,11 +27,14 @@ class BranchStatistic extends React.Component {
      */
     updateSearchParamsForNeedsTranslation(textUnitId) {
 
+        let repoIds = [this.props.branchStatistic.branch.repository.id];
+
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
-            "repoIds": [this.props.branchStatistic.branch.repository.id],
+            "repoIds": repoIds,
             "branchId": this.props.branchStatistic.branch.id,
-            "tmtextUnitIds" : textUnitId
+            "tmTextUnitIds" : textUnitId,
+            "bcp47Tags": RepositoryStore.getAllBcp47TagsForRepositoryIds(repoIds),
         });
     }
 
@@ -78,9 +83,10 @@ class BranchStatistic extends React.Component {
                    <Grid fluid={true}>
                        <Row>
                            <Col md={4}>
-                           <Button onClick={() => this.props.onBranchCollapseClick()}>
-                               {this.props.branchStatistic.branch.name}
-                           </Button>
+                                <Button bsSize="xsmall" onClick={() => this.props.onBranchCollapseClick()}>
+                                    <Glyphicon glyph={ this.props.isBranchOpen ? "chevron-down" : "chevron-right"} className="color-gray-light" />
+                                </Button>
+                               <span className="mlm">{this.props.branchStatistic.branch.name}</span>
                            </Col>
                            <Col md={4}>
                                <Link
