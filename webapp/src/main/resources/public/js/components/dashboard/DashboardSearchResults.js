@@ -1,15 +1,12 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import {FormattedMessage, injectIntl} from "react-intl";
-import {Button, ButtonToolbar, Table} from "react-bootstrap";
-import RepositoryHeaderColumn from "../repositories/RepositoryHeaderColumn";
+import {Button, ButtonToolbar, TextUnitSelector, Row, Col} from "react-bootstrap";
 import BranchStatistic from "./BranchStatistic";
 import ScreenshotUploadModal from "./ScreenshotUploadModal";
-import TextUnitSelector from "./TextUnitSelector";
-import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
 import DashboardStore from "../../stores/dashboard/DashboardStore";
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-import SearchConstants from "../../utils/SearchConstants";
+import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
+
 
 class DashboardSearchResults extends React.Component {
 
@@ -67,12 +64,12 @@ class DashboardSearchResults extends React.Component {
 
         return (
             <div>
-                <div>
-                    <div className="pull-left">
+                <div className="mtl mbl">
+                    <div className="col-xs-6">
                         <ButtonToolbar>
-                            <Button bsSize="small" disabled={actionButtonsDisabled}
+                            <Button bsStyle="primary" bsSize="small" disabled={actionButtonsDisabled}
                                     onClick={this.props.openScreenshotUploadModal}>
-                                <FormattedMessage id="label.upload"/>
+                                <FormattedMessage id="dashboard.actions.addScreenshot"/>
                             </Button>
                         </ButtonToolbar>
                     </div>
@@ -85,6 +82,9 @@ class DashboardSearchResults extends React.Component {
                                 DashboardPageActions.resetAllSelectedTextUnitsInCurrentPage();
                             }}
                         />
+
+
+                        {/*TODO(ja) reuse pagingator*/}
                         <Button bsSize="small" disabled={previousPageButtonDisabled}
                                 onClick={() => {DashboardPageActions.fetchPreviousPage()}}><span
                             className="glyphicon glyphicon-chevron-left"></span></Button>
@@ -95,23 +95,24 @@ class DashboardSearchResults extends React.Component {
                                 onClick={() => {DashboardPageActions.fetchNextPage()}}><span
                             className="glyphicon glyphicon-chevron-right"></span></Button>
                     </div>
+                    <div className="textunit-toolbar-clear" />
                 </div>
 
-                <div className="plx prx">
-                    <Table className="repo-table table-padded-sides">
-                        <thead>
-                        <tr>
-                            <RepositoryHeaderColumn className="col-md-3"
-                                                    columnNameMessageId="repositories.table.header.name"/>
-                            <RepositoryHeaderColumn className="col-md-3"
-                                                    columnNameMessageId="repositories.table.header.needsTranslation"/>
-                            <RepositoryHeaderColumn className="col-md-3"
-                                                    columnNameMessageId="dashboard.table.header.screenshot"/>
-                        </tr>
-                        </thead>
-                    </Table>
-                </div>
+
+                <Row>
+                    <Col md={4}>
+                         <FormattedMessage id="repositories.table.header.name"/>
+                    </Col>
+                    <Col md={4}>
+                        <FormattedMessage id="repositories.table.header.needsTranslation"/>
+                    </Col>
+                    <Col md={4}>
+                        <FormattedMessage id="repositories.table.header.screenshot"/>
+                    </Col>
+                </Row>
+
                 {this.props.branchStatistics.map(this.createBranchStatisticComponent.bind(this))}
+
                 <ScreenshotUploadModal
                     uploadScreenshotStatus={this.props.uploadScreenshotStatus}
                     showModal={this.props.showScreenshotUploadModal}

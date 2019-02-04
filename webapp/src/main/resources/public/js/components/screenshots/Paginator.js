@@ -1,9 +1,7 @@
-import $ from "jquery";
-import _ from "lodash";
 import PropTypes from 'prop-types';
 import React from "react";
-import {FormattedMessage, injectIntl} from 'react-intl';
-import {Label, Button} from "react-bootstrap";
+import {injectIntl} from 'react-intl';
+import {Button} from "react-bootstrap";
 
 
 class Paginator extends React.Component {

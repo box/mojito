@@ -5,9 +5,6 @@ import {FormattedMessage, FormattedNumber} from "react-intl";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 import PropTypes from "prop-types";
-import RepositoryStore from "../../stores/RepositoryStore";
-import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-
 
 class BranchStatistic extends React.Component {
     static propTypes = {
@@ -49,7 +46,7 @@ class BranchStatistic extends React.Component {
 
     createTextUnitsCollapsible(branchTextUnitStatistic, arrayIndex) {
         return (
-            <Row className={arrayIndex % 2 == 0 ? "dashboard-branch-collapse-light" : "dashboard-branch-collapse-dark"}>
+            <Row key={arrayIndex} className={arrayIndex % 2 == 0 ? "dashboard-branch-collapse-light" : "dashboard-branch-collapse-dark"}>
                 <Col md={4}>
                     <input
                         type="checkbox"

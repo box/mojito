@@ -13,9 +13,6 @@ class ScreenshotUploadModal extends React.Component {
         "onUploadImageClick": PropTypes.func.isRequired
     };
 
-
-
-
     render() {
         return (
             <Modal show={this.props.showModal} onHide={this.props.closeModal}>
@@ -24,12 +21,12 @@ class ScreenshotUploadModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <ImageUpload onChooseImageClick={this.props.onChooseImageClick}/>
-                    <Button onClick={this.props.onUploadImageClick}>
-                        Sumbit
-                    </Button>
                     <FormattedMessage id={this.props.uploadScreenshotStatus}/>
                 </Modal.Body>
                 <Modal.Footer>
+                    <Button onClick={this.props.onUploadImageClick} bsStyle="primary">
+                        <FormattedMessage id="dashboard.uploadScreenshotModal.upload"/>
+                    </Button>
                     <Button onClick={this.props.closeModal}>
                         <FormattedMessage id="label.cancel"/>
                     </Button>
