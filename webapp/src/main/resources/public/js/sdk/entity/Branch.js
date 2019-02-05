@@ -24,6 +24,9 @@ export default class Branch {
          */
         this.createdByUser = null;
 
+        /** @type {Date} */
+        this.createdDate = null;
+
         /**
          *
          * @type {Boolean}
@@ -42,6 +45,7 @@ export default class Branch {
             result.name = json.name;
             result.repository = BranchRepository.toBranchRepository(json.repository);
             result.createdByUser = User.toUser(json.createdByUser);
+            result.createdDate = new Date(json.createdDate);
             result.deleted = json.deleted;
             result.screenshots = BranchStatisticScreenshot.toBranchStatisticScreenshotList(json.screenshots);
         }

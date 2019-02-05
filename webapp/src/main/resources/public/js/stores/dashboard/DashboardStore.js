@@ -61,6 +61,12 @@ class DashboardStore {
         this.isBranchOpen = Array.apply(null, Array(branchStatistics.length)).map(function () {
             return false;
         });
+
+        if (this.isBranchOpen.length > 0){
+            this.isBranchOpen[0] = true; // TODO(ja) review, select the first branch
+        }
+
+
         this.totalTextUnitsInPage = 0;
         for (let i = 0; i < this.branchStatistics.length; i++) {
             //TODO: update screenshot data

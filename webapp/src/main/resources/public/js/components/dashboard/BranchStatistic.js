@@ -90,29 +90,9 @@ class BranchStatistic extends React.Component {
             <div>
                 <div className="dashboard-branchstatistic-row">
                     <div>
-                        <Row>
-                            <Col md={4}>
-                                <Button bsSize="xsmall" onClick={() => this.props.onBranchCollapseClick()}>
-                                    <Glyphicon glyph={this.props.isBranchOpen ? "chevron-down" : "chevron-right"}
-                                               className="color-gray-light"/>
-                                </Button>
-                                <span>{this.props.branchStatistic.branch.name}</span>
-                            </Col>
-                            <Col md={4}>
-                                <Link
-                                    onClick={this.updateSearchParamsForNeedsTranslation.bind(this, null)}
-                                    to='/workbench'>
-                                <span className="branch-counts"><FormattedNumber
-                                    value={this.props.branchStatistic.forTranslationCount}/>&nbsp;</span>
-                                    (&nbsp;<FormattedMessage
-                                    values={{numberOfWords: this.props.branchStatistic.totalCount}}
-                                    id="repositories.table.row.numberOfWords"/>&nbsp;)
-                                </Link>
-                            </Col>
-                        </Row>
+
                     </div>
                 </div>
-                {this.props.branchStatistic.branchTextUnitStatistics.map(this.createTextUnitsCollapsible.bind(this))}
             </div>
         )
     }
