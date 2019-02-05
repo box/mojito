@@ -6,7 +6,7 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 import PropTypes from "prop-types";
 
-class BranchStatistic extends React.Component {
+class BranchStatisticTU extends React.Component {
     static propTypes = {
         "branchStatistic": PropTypes.any.isRequired,
         "isBranchOpen": PropTypes.bool.isRequired,
@@ -119,4 +119,4 @@ class BranchStatistic extends React.Component {
 
 }
 
-export default BranchStatistic;
+export default BranchStatisticTU;

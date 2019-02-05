@@ -569,6 +569,10 @@ label.current-pageNumber {
     clear: both;
 }
 
+.clear {
+    clear: both;
+}
+
 @media (max-width: 780px) {
     .textunits-container {
         top: 320px;
@@ -748,10 +752,20 @@ label.current-pageNumber {
     box-shadow: 3px 3px 3px #559745;
 }
 
-.dashboard-branch-collapse-light {
-    background-color: #F8F8F8;
+.dashboard-branchstatistic-header {
+    font-size: 12px;
+    font-weight: 400;
+    padding: 8px;
 }
 
-.dashboard-branch-collapse-dark {
-    background-color: #DCDCDC;
+.dashboard-branchstatistic-branch {
+    border-bottom: 1px solid $gray-lighter;
+    margin-top: 2px;
+    padding: 8px;
+}
+
+.dashboard-branchstatistic-branch-textunit {
+    //border-bottom: 1px solid $gray-lighter;
+    margin-top: 2px;
+    padding: 8px;
 }
