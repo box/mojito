@@ -1,16 +1,17 @@
 import React from "react";
-import {Link, withRouter} from "react-router";
+import {withRouter} from "react-router";
 import AltContainer from "alt-container";
 
 import DashboardStore from "../../stores/dashboard/DashboardStore";
 import DashboardSearchText from "./DashboardSearchText";
 import DashboardStatusDropdown from "./DashboardStatusDropdown";
 import DashboardSearchParamStore from "../../stores/dashboard/DashboardSearchParamStore";
-
 import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
 import DashboardSearchParamsActions from "../../actions/dashboard/DashboardSearchParamsActions";
 import DashboardSearchResults from "./DashboardSearchResults";
-
+import DashboardScreenshotUploadModal from "./DashboardScreenshotUploadModal";
+import DashboardScreenshotUploadModalStore from "../../stores/dashboard/DashboardScreenshotUploadModalStore";
+import DashboardScreenshotUploadActions from "../../actions/dashboard/DashboardScreenshotUploadActions";
 
 class Dashboard extends React.Component {
 
@@ -43,26 +44,36 @@ class Dashboard extends React.Component {
 
                 <AltContainer store={DashboardStore}>
                     <DashboardSearchResults
-                        onUploadImageClick={(index) => {
-                            DashboardPageActions.uploadScreenshotImage(index);
-                        }}
-                        onChooseImageClick={(image) => {
-                            DashboardPageActions.onImageChoose(image);
-                        }}
                         onTextUnitCheckboxClick={(indexTuple) => {
                             DashboardPageActions.textUnitCheckboxChanged(indexTuple);
                         }}
                         onBranchCollapseClick={(index) => {
                             DashboardPageActions.onBranchCollapseChange(index);
                         }}
-                        openScreenshotUploadModal={() => {
-                            DashboardPageActions.onScreenshotUploadModalOpen();
-                        }}
-                        closeScreenshotUploadModal={() => {
-                            DashboardPageActions.onScreenshotUploadModalClose();
+
+                        onAddScreenshotClick={() => {
+                            DashboardScreenshotUploadActions.openWithBranch();
                         }}
                     />
                 </AltContainer>
+
+                <AltContainer store={DashboardScreenshotUploadModalStore}>
+                    <DashboardScreenshotUploadModal
+                        onCancel={() => {
+                            DashboardScreenshotUploadActions.close();
+                        }}
+
+                        onSelectedFileChange={(files) => {
+                            DashboardScreenshotUploadActions.changeSelectedFiles(files);
+                        }}
+
+                        onUpload={() => {
+                            DashboardScreenshotUploadActions.uploadScreenshotImage();
+                        }}
+                    />
+                </AltContainer>
+
+
             </div>
         );
     }

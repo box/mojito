@@ -3,8 +3,6 @@ import PropTypes from 'prop-types';
 import {FormattedDate, FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
 import {Button, ButtonToolbar, Col, Collapse, Glyphicon, Grid, OverlayTrigger, Row, Tooltip, Label} from "react-bootstrap";
 import {Link} from "react-router";
-import BranchStatistic from "./BranchStatistic";
-import ScreenshotUploadModal from "./ScreenshotUploadModal";
 import DashboardStore from "../../stores/dashboard/DashboardStore";
 import RepositoryStore from "../../stores/RepositoryStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
@@ -15,45 +13,14 @@ import ClassNames from "classnames";
 class DashboardSearchResults extends React.Component {
 
     static propTypes = {
-        "uploadScreenshotStatus": PropTypes.string.isRequired,
         "currentPageNumber": PropTypes.number.isRequired,
-        "showScreenshotUploadModal": PropTypes.bool.isRequired,
         "branchStatistics": PropTypes.array.isRequired,
         "isBranchOpen": PropTypes.array.isRequired,
         "textUnitChecked": PropTypes.array.isRequired,
         "onTextUnitCheckboxClick": PropTypes.func.isRequired,
         "onBranchCollapseClick": PropTypes.func.isRequired,
-        "onChooseImageClick": PropTypes.func.isRequired,
-        "onUploadImageClick": PropTypes.func.isRequired,
-        "openScreenshotUploadModal": PropTypes.func.isRequired,
-        "closeScreenshotUploadModal": PropTypes.func.isRequired,
+        "onAddScreenshotClick": PropTypes.func.isRequired
     };
-
-    createBranchStatisticComponent(branchStatistic, arrayIndex) {
-        return (
-            <BranchStatistic
-                key={branchStatistic.id}
-                branchStatistic={branchStatistic}
-                isBranchOpen={this.props.isBranchOpen[arrayIndex]}
-                textUnitChecked={this.props.textUnitChecked[arrayIndex]}
-                onUploadImageClick={
-                    () => {
-                        this.props.onUploadImageClick(arrayIndex)
-                    }
-                }
-                onTextUnitForScreenshotUploadClick={
-                    (index) => {
-                        this.props.onTextUnitCheckboxClick({index0: arrayIndex, index1: index})
-                    }
-                }
-                onBranchCollapseClick={
-                    () => {
-                        this.props.onBranchCollapseClick(arrayIndex)
-                    }
-                }
-            />
-        )
-    }
 
     /**
      * Update the Workbench search params to load the translation view for the selected repo
@@ -61,13 +28,7 @@ class DashboardSearchResults extends React.Component {
      * @param {number} repoId
      */
     updateSearchParamsForNeedsTranslation(branchStatistic, textUnitId) {
-
         // TODO(ja) move to page ...
-
-        console.log(branchStatistic)
-        console.log(textUnitId)
-
-
         let repoIds = [branchStatistic.branch.repository.id];
 
         WorkbenchActions.searchParamsChanged({
@@ -202,7 +163,7 @@ class DashboardSearchResults extends React.Component {
         let button = (<div style={{float: "left"}}><Button bsStyle="primary"
                                                            style={actionButtonsDisabled ? {pointerEvents: "none"} : {}}
                                                            bsSize="small" disabled={actionButtonsDisabled}
-                                                           onClick={this.props.openScreenshotUploadModal}>
+                                                           onClick={this.props.onAddScreenshotClick}>
             <FormattedMessage id="dashboard.actions.addScreenshot"/>
         </Button></div>);
 
@@ -221,8 +182,6 @@ class DashboardSearchResults extends React.Component {
 
 
     render() {
-
-
         // function / reuse pagination
         let previousPageButtonDisabled = DashboardStore.getState().hasNext;
         let nextPageButtonDisabled = DashboardStore.getState().hasPrevious;
@@ -293,14 +252,6 @@ class DashboardSearchResults extends React.Component {
                         {this.props.branchStatistics.map(this.branch.bind(this))}
                     </Grid>
                 </div>
-
-                <ScreenshotUploadModal
-                    uploadScreenshotStatus={this.props.uploadScreenshotStatus}
-                    showModal={this.props.showScreenshotUploadModal}
-                    closeModal={this.props.closeScreenshotUploadModal}
-                    onUploadImageClick={this.props.onUploadImageClick}
-                    onChooseImageClick={this.props.onChooseImageClick}
-                />
             </div>
 
         );

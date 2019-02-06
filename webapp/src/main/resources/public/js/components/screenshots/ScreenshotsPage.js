@@ -217,7 +217,7 @@ class ScreenshotsPage extends React.Component {
                                 />
                         </AltContainer>
 
-                            <AltContainer store={ScreenshotsSearchTextStore}
+                        <AltContainer store={ScreenshotsSearchTextStore}
                                       shouldComponentUpdate={(props, nextProps, nextState) => {
                                 //TODO investigate that pattern vs dedicated store
                                 return props.status !== nextState.status ||

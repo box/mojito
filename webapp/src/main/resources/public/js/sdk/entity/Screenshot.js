@@ -7,13 +7,13 @@ export default class Screenshot {
         this.textUnits = [];
     }
 
-    static branchStatisticsContentToScreenshot(branchStatisticsContent, image, textUnitChecked) {
+    static branchStatisticsContentToScreenshot(branchStatisticsContent, imageUrl, textUnitChecked) {
         const uuidv4 = require('uuid/v4');
         let result = new Screenshot();
 
         result.name = uuidv4();
         result.locale = branchStatisticsContent.branch.repository.sourceLocale;
-        result.src = image.url;
+        result.src = imageUrl;
         result.branch = {id: branchStatisticsContent.branch.id};
 
         result.textUnits = [];

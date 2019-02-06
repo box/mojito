@@ -9,17 +9,15 @@ export default class ScreenshotRun {
         this.screenshots = [];
     }
 
-    static branchStatisticsToScreenshotRun(branchStatisticsContent, image, textUnitChecked) {
+    static branchStatisticsToScreenshotRun(branchStatisticsContent, screenshotSrc, textUnitChecked) {
         let result = new ScreenshotRun();
 
         //TODO: 1) add repository to branchStatistics 2) add locale to UI
 
         result.id = branchStatisticsContent.branch.repository.manualScreenshotRun.id;
         result.repository = branchStatisticsContent.branch.repository;
-        result.screenshots.push(Screenshot.branchStatisticsContentToScreenshot(branchStatisticsContent, image, textUnitChecked));
-
+        result.screenshots.push(Screenshot.branchStatisticsContentToScreenshot(branchStatisticsContent, screenshotSrc, textUnitChecked));
 
         return result;
-
     }
 }

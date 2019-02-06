@@ -15,11 +15,9 @@ class DashboardStore {
 
         this.bindActions(DashboardPageActions);
         this.registerAsync(DashboardDataSource);
-
     }
 
     setDefaultState() {
-        this.uploadScreenshotStatus = "upload.screenshot.prompt";
         this.hasNext= false;
         this.hasPrevious= false;
         this.size = 10;
@@ -31,8 +29,6 @@ class DashboardStore {
         this.last = true;
         this.branchStatistics = [];
         this.searching = false;
-        this.showScreenshotUploadModal = false;
-        this.image = null;
         this.screenshotUploaded = {};
         this.textUnitChecked = [];
         this.isBranchOpen = [];
@@ -64,6 +60,7 @@ class DashboardStore {
 
         if (this.isBranchOpen.length > 0){
             this.isBranchOpen[0] = true; // TODO(ja) review, select the first branch
+            this.openBranchIndex = 0;
         }
 
 
@@ -93,15 +90,6 @@ class DashboardStore {
 
     }
 
-    onScreenshotUploadModalOpen() {
-        this.showScreenshotUploadModal = true;
-        this.uploadScreenshotStatus = "upload.screenshot.prompt";
-    }
-
-    onScreenshotUploadModalClose() {
-        this.showScreenshotUploadModal = false;
-    }
-
     onBranchCollapseChange(index) {
         this.resetAllSelectedTextUnitsInCurrentPage();
         let isOpen =  !this.isBranchOpen[index];
@@ -115,39 +103,6 @@ class DashboardStore {
     textUnitCheckboxChanged(index) {
         this.textUnitChecked[index.index0][index.index1] = !this.textUnitChecked[index.index0][index.index1];
         this.numberOfTextUnitChecked +=  this.textUnitChecked[index.index0][index.index1] ? 1 : -1;
-    }
-
-    onImageChoose(image) {
-        this.image = image;
-    }
-
-    uploadScreenshotImage() {
-        let generatedUuid = v4() + this.image.file.name;
-        this.image.url = 'http://localhost:8080/api/images/' + generatedUuid;
-        this.getInstance().performUploadScreenshotImage(generatedUuid);
-        this.uploadScreenshotStatus = "upload.image.processing";
-    }
-
-    uploadScreenshotImageSuccess() {
-        this.uploadScreenshotStatus = "upload.image.succeed";
-        this.getInstance().performUploadScreenshot();
-        this.uploadScreenshotStatus = "upload.screenshot.processing";
-    }
-
-    uploadScreenshotImageError() {
-        this.uploadScreenshotStatus = "upload.image.fail";
-        this.resetAllSelectedTextUnitsInCurrentPage();
-    }
-
-    uploadScreenshotSuccess() {
-        this.uploadScreenshotStatus = "upload.screenshot.succeed";
-        this.getInstance().performDashboardSearch();
-
-    }
-
-    uploadScreenshotError() {
-        this.uploadScreenshotStatus = "upload.screenshot.fail";
-        this.resetAllSelectedTextUnitsInCurrentPage();
     }
 
     selectAllTextUnitsInCurrentPage() {

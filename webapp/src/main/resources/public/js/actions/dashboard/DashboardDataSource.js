@@ -65,25 +65,6 @@ const DashboardDataSource = {
         success: DashboardPageActions.getBranchesSuccess,
         error: DashboardPageActions.getBranchesError
 
-    },
-
-    performUploadScreenshotImage: {
-        remote(dashboardStoreState, generatedUuid) {
-            let image = dashboardStoreState.image;
-            return ImageClient.uploadImage(generatedUuid, image.imagePreviewUrl);
-        },
-        success: DashboardPageActions.uploadScreenshotImageSuccess,
-        error: DashboardPageActions.uploadScreenshotImageError
-    },
-
-    performUploadScreenshot: {
-        remote(dashboardStoreState) {
-
-            let screenshotRun = ScreenshotRun.branchStatisticsToScreenshotRun(dashboardStoreState.branchStatistics[dashboardStoreState.openBranchIndex], dashboardStoreState.image, dashboardStoreState.textUnitChecked[dashboardStoreState.openBranchIndex]);
-            return ScreenshotClient.createOrUpdateScreenshotRun(screenshotRun)
-        },
-        success: DashboardPageActions.uploadScreenshotSuccess,
-        error: DashboardPageActions.uploadScreenshotError
     }
 };
 

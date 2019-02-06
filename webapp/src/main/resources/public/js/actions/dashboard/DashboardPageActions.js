@@ -8,22 +8,12 @@ class DashboardPageActions {
             "getBranches",
             "getBranchesSuccess",
             "getBranchesError",
-            "uploadScreenshotImage",
-            "uploadScreenshotImageSuccess",
-            "uploadScreenshotImageError",
-            "uploadScreenshot",
-            "uploadScreenshotSuccess",
-            "uploadScreenshotError",
             "textUnitCheckboxChanged",
             "onBranchCollapseChange",
-            "onScreenshotUploadModalOpen",
-            "onScreenshotUploadModalClose",
-            "onImageChoose",
             "selectAllTextUnitsInCurrentPage",
             "resetAllSelectedTextUnitsInCurrentPage",
             "fetchPreviousPage",
             "fetchNextPage"
-
         );
     }
 }
