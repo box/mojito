@@ -27,7 +27,7 @@ import java.util.Set;
                 @Index(name = "UK__BRANCH__REPOSITORY_ID__PATH", columnList = "repository_id, name", unique = true),
         }
 )
-public class Branch extends AuditableEntity {
+public class Branch extends SettableAuditableEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__BRANCH__REPOSITORY__ID"))
