@@ -16,7 +16,7 @@ import DashboardScreenshotViewerModal from "./DashboardScreenshotViewerModal";
 import DashboardScreenshotViewerStore from "../../stores/dashboard/DashboardScreenshotViewerStore";
 import DashboardScreenshotViewerActions from "../../actions/dashboard/DashboardScreenshotViewerActions";
 
-class Dashboard extends React.Component {
+class DashboardPage extends React.Component {
 
     render() {
 
@@ -99,4 +99,4 @@ class Dashboard extends React.Component {
     }
 };
 
-export default withRouter(Dashboard);
+export default withRouter(DashboardPage);

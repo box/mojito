@@ -13,7 +13,7 @@ import Main from "./components/Main";
 import Login from "./components/Login";
 import Workbench from "./components/workbench/Workbench";
 import Repositories from "./components/repositories/Repositories";
-import Dashboard from "./components/dashboard/Dashboard";
+import Dashboard from "./components/dashboard/DashboardPage";
 import Drops from "./components/drops/Drops";
 import ScreenshotsPage from "./components/screenshots/ScreenshotsPage";
 import Settings from "./components/settings/Settings";
