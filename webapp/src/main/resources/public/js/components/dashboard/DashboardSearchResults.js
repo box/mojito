@@ -56,9 +56,25 @@ class DashboardSearchResults extends React.Component {
     branch(branchStatistic, arrayIndex) {
         let rows = [];
 
-        var className = ClassNames("dashboard-branchstatistic-branch", {"dashboard-branchstatistic-branch-open": false && this.props.isBranchOpen[arrayIndex]});
+        rows.push((this.renderBranchSummary(branchStatistic, arrayIndex)));
+
+        branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic, arrayIndexTextUnit) => {
+            rows.push((this.renderCollapsable(branchStatistic, branchTextUnitStatistic, arrayIndex, arrayIndexTextUnit)));
+        });
 
         rows.push((
+            <Collapse in={this.props.isBranchOpen[arrayIndex]}><Row
+                className="dashboard-branchstatistic-branch-div"></Row></Collapse>
+        ));
+
+        return rows;
+    }
+
+    renderBranchSummary(branchStatistic, arrayIndex) {
+
+        let className = ClassNames("dashboard-branchstatistic-branch", {"dashboard-branchstatistic-branch-open": false && this.props.isBranchOpen[arrayIndex]});
+
+        return (
             <Row key={"branchStatistic-" + arrayIndex} className={className}>
                 <Col md={4} className="dashboard-branchstatistic-branch-col1">
                     <Button bsSize="xsmall" onClick={() => this.props.onBranchCollapseClick(arrayIndex)}>
@@ -104,67 +120,57 @@ class DashboardSearchResults extends React.Component {
                         <FormattedMessage id="label.no"/>}</span>
                 </Col>
             </Row>
-        ))
-        ;
-
-        className = ClassNames("dashboard-branchstatistic-branch-textunit", {"dashboard-branchstatistic-branch-open": this.props.isBranchOpen[arrayIndex]});
-
-        branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic, arrayIndexTextUnit) => {
-            rows.push((
-                <Collapse in={this.props.isBranchOpen[arrayIndex]}>
-                    <div>
-                        <Row key={"branchStatisticTextUnit-" + arrayIndex} className={className}>
-
-                            <Col md={4} className="dashboard-branchstatistic-branch-col1">
-                                <div>
-                                    <div className="dashboard-branchstatistic-branch-col1-check"><input
-                                        type="checkbox"
-                                        checked={this.props.textUnitChecked[arrayIndex][arrayIndexTextUnit]}
-                                        onChange={(index) => this.props.onTextUnitCheckboxClick({
-                                            index0: arrayIndex,
-                                            index1: arrayIndexTextUnit
-                                        })}/>
-                                    </div>
-                                    <div className="plm">{branchTextUnitStatistic.tmTextUnit.name}</div>
-                                    <div
-                                        className="dashboard-branchstatistic-branch-col1-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
-                                </div>
-                            </Col>
-
-                            <Col md={2}>
-                                <div>
-                                    <Link
-                                        onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic, branchTextUnitStatistic.tmTextUnit.id)}
-                                        to='/workbench'>
-                                    <span className="dashboard-branchstatistic-needstranslation-counts"><FormattedNumber
-                                        value={branchTextUnitStatistic.forTranslationCount}/>&nbsp;</span>
-                                        (&nbsp;<FormattedMessage
-                                        values={{numberOfWords: branchTextUnitStatistic.totalCount}}
-                                        id="repositories.table.row.numberOfWords"/>&nbsp;)
-                                    </Link>
-                                </div>
-                            </Col>
-                            <Col md={1}>
-                                <div>
-                                    {branchTextUnitStatistic.tmTextUnit.screenshotUploaded ?
-                                        <Glyphicon glyph="ok" className="color-gray-light"/> :
-                                        <Glyphicon glyph="remove" className="color-gray-light"/>}
-                                </div>
-                            </Col>
-                        </Row>
-                    </div>
-                </Collapse>
-            ));
-        });
-
-        rows.push((
-            <Collapse in={this.props.isBranchOpen[arrayIndex]}><Row
-                className="dashboard-branchstatistic-branch-div"></Row></Collapse>
-        ));
-
-        return rows;
+        );
     }
 
+    renderCollapsable(branchStatistic, branchTextUnitStatistic, arrayIndex, arrayIndexTextUnit) {
+
+        let className = ClassNames("dashboard-branchstatistic-branch-textunit", {"dashboard-branchstatistic-branch-open": this.props.isBranchOpen[arrayIndex]});
+
+        return (<Collapse in={this.props.isBranchOpen[arrayIndex]}>
+            <div>
+                <Row key={"branchStatisticTextUnit-" + arrayIndex} className={className}>
+
+                    <Col md={4} className="dashboard-branchstatistic-branch-col1">
+                        <div>
+                            <div className="dashboard-branchstatistic-branch-col1-check"><input
+                                type="checkbox"
+                                checked={this.props.textUnitChecked[arrayIndex][arrayIndexTextUnit]}
+                                onChange={(index) => this.props.onTextUnitCheckboxClick({
+                                    index0: arrayIndex,
+                                    index1: arrayIndexTextUnit
+                                })}/>
+                            </div>
+                            <div className="plm">{branchTextUnitStatistic.tmTextUnit.name}</div>
+                            <div
+                                className="dashboard-branchstatistic-branch-col1-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
+                        </div>
+                    </Col>
+
+                    <Col md={2}>
+                        <div>
+                            <Link
+                                onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic, branchTextUnitStatistic.tmTextUnit.id)}
+                                to='/workbench'>
+                                    <span className="dashboard-branchstatistic-needstranslation-counts"><FormattedNumber
+                                        value={branchTextUnitStatistic.forTranslationCount}/>&nbsp;</span>
+                                (&nbsp;<FormattedMessage
+                                values={{numberOfWords: branchTextUnitStatistic.totalCount}}
+                                id="repositories.table.row.numberOfWords"/>&nbsp;)
+                            </Link>
+                        </div>
+                    </Col>
+                    <Col md={1}>
+                        <div>
+                            {branchTextUnitStatistic.tmTextUnit.screenshotUploaded ?
+                                <Glyphicon glyph="ok" className="color-gray-light"/> :
+                                <Glyphicon glyph="remove" className="color-gray-light"/>}
+                        </div>
+                    </Col>
+                </Row>
+            </div>
+        </Collapse>);
+    }
 
     renderAddScreenshot() {
 
