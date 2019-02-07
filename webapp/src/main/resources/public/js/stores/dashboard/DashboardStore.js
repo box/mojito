@@ -3,7 +3,6 @@ import DashboardDataSource from "../../actions/dashboard/DashboardDataSource";
 import DashboardSearchParamStore from "./DashboardSearchParamStore";
 import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
 import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
-import v4 from 'uuid/v4'
 
 class DashboardStore {
     constructor() {

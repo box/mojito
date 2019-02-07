@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from 'prop-types';
 import {Glyphicon, Image, Modal} from "react-bootstrap";
 import keycode from "keycode";
+import ClassNames from "classnames";
 
 class DashboardScreenshotViewerModal extends React.Component {
 
@@ -9,6 +10,7 @@ class DashboardScreenshotViewerModal extends React.Component {
         "show": PropTypes.bool.isRequired,
         "number": PropTypes.number.isRequired,
         "total": PropTypes.number.isRequired,
+        "src": PropTypes.string.isRequired,
         "onClose": PropTypes.func.isRequired,
         "onGoToPrevious": PropTypes.func.isRequired,
         "onGoToNext": PropTypes.func.isRequired
@@ -54,6 +56,10 @@ class DashboardScreenshotViewerModal extends React.Component {
     }
 
     render() {
+
+        let hasPrevious = this.props.number > 1;
+        let hasNext = this.props.number < this.props.total;
+
         return (
             <Modal show={this.props.show} onHide={this.props.onClose}
                    dialogClassName="dashboard-screenshotviewer-modal">
@@ -63,17 +69,17 @@ class DashboardScreenshotViewerModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div>
-                        <Image src="api/images/c28ed1b8-5f06-4894-973e-6110d438a875screen1.png"
+                    <div className="dashboard-screenshotviewer-modal-image-container">
+                        <Image src={this.props.src}
                                responsive
                                className="dashboard-screenshotviewer-modal-image"/>
                     </div>
 
-                    <span className="dashboard-screenshotviewer-modal-gotoprevious" onClick={this.props.onGoToPrevious}>
+                    <span className={ClassNames("dashboard-screenshotviewer-modal-gotoprevious", {"enabled" : hasPrevious})} onClick={this.props.onGoToPrevious}>
                         <Glyphicon glyph="menu-left"/>
                     </span>
 
-                    <span className="dashboard-screenshotviewer-modal-gotonext" onClick={this.props.onGoToNext}>
+                    <span className={ClassNames("dashboard-screenshotviewer-modal-gotonext", {"enabled" : hasNext})} onClick={this.props.onGoToNext}>
                         <Glyphicon glyph="menu-right"/>
                     </span>
 

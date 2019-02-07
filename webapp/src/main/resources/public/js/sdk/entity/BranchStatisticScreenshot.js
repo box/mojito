@@ -19,8 +19,9 @@ export default class BranchStatisticScreenshot {
      */
     static toBranchStatisticScreenshot(json) {
         let result = new BranchStatisticScreenshot();
-        if(json) {
+        if (json) {
             result.id = json.id;
+            result.src = json.src;
             result.textUnits = TextUnit.toTextUnits(json.textUnits);
         }
 
@@ -49,7 +50,7 @@ class TextUnit {
 
     static toTextUnit(json) {
         let result = new TextUnit();
-        if(json) {
+        if (json) {
             result.id = json.id;
             result.tmTextUnit = TmTextUnit.toTmTextUnit(json.tmTextUnit);
         }
@@ -60,8 +61,8 @@ class TextUnit {
     static toTextUnits(jsons) {
         let result = [];
 
-        if(jsons && jsons.length > 0) {
-            for(let json of jsons) {
+        if (jsons && jsons.length > 0) {
+            for (let json of jsons) {
                 result.push(TextUnit.toTextUnit(json));
             }
         }

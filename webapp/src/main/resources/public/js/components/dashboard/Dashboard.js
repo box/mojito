@@ -13,6 +13,8 @@ import DashboardScreenshotUploadModal from "./DashboardScreenshotUploadModal";
 import DashboardScreenshotUploadModalStore from "../../stores/dashboard/DashboardScreenshotUploadModalStore";
 import DashboardScreenshotUploadActions from "../../actions/dashboard/DashboardScreenshotUploadActions";
 import DashboardScreenshotViewerModal from "./DashboardScreenshotViewerModal";
+import DashboardScreenshotViewerStore from "../../stores/dashboard/DashboardScreenshotViewerStore";
+import DashboardScreenshotViewerActions from "../../actions/dashboard/DashboardScreenshotViewerActions";
 
 class Dashboard extends React.Component {
 
@@ -56,10 +58,8 @@ class Dashboard extends React.Component {
                             DashboardScreenshotUploadActions.openWithBranch();
                         }}
 
-                        onShowBranchScreenshotClick={() => {
-                            console.log("onShowBranchScreenshotClick");
-                            //open modal
-                            //get select branch, get selected
+                        onShowBranchScreenshotsClick={(index) => {
+                            DashboardScreenshotViewerActions.open(index);
                         }}
                     />
                 </AltContainer>
@@ -80,14 +80,19 @@ class Dashboard extends React.Component {
                     />
                 </AltContainer>
 
-
-                <DashboardScreenshotViewerModal show={false} uploadDisabled={false} number={1} total={10}
-                                                onGoToPrevious={() => { console.log("finish go to previous")}}
-                                                onGoToNext={() => { console.log("finish go to next")}}
-                                                onClose={() => {console.log("finish on close")}}
-
-                />
-
+                <AltContainer store={DashboardScreenshotViewerStore}>
+                    <DashboardScreenshotViewerModal
+                        onGoToPrevious={() => {
+                            DashboardScreenshotViewerActions.goToPrevious();
+                        }}
+                        onGoToNext={() => {
+                            DashboardScreenshotViewerActions.goToNext();
+                        }}
+                        onClose={() => {
+                            DashboardScreenshotViewerActions.close();
+                        }}
+                    />
+                </AltContainer>
 
             </div>
         );

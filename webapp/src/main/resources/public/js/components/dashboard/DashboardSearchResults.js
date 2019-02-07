@@ -31,7 +31,7 @@ class DashboardSearchResults extends React.Component {
         "onTextUnitCheckboxClick": PropTypes.func.isRequired,
         "onBranchCollapseClick": PropTypes.func.isRequired,
         "onAddScreenshotClick": PropTypes.func.isRequired,
-        "onShowBranchScreenshotClick": PropTypes.func.isRequired
+        "onShowBranchScreenshotsClick": PropTypes.func.isRequired
     };
 
     /**
@@ -88,7 +88,7 @@ class DashboardSearchResults extends React.Component {
                     }
                 </Col>
                 <Col md={1}>
-                    <Link onClick={() => this.props.onShowBranchScreenshotClick(arrayIndex)}>
+                    <Link onClick={() => this.props.onShowBranchScreenshotsClick(arrayIndex)}>
                         <Glyphicon glyph="picture" className="color-gray-light"/>
                     </Link>
                 </Col>

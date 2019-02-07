@@ -816,6 +816,9 @@ label.current-pageNumber {
   background-color: rgb(246, 246, 246);
 }
 
+.dashboard-screenshotviewer-modal .modal-body {
+  height: 90%;
+}
 
 .dashboard-screenshotviewer-modal .modal-header {
   background-color: $color-white;
@@ -828,37 +831,44 @@ label.current-pageNumber {
   font-size: 14px;
 }
 
+.dashboard-screenshotviewer-modal-image-container {
+  display: flex;
+  height: 100%;
+}
+
 .dashboard-screenshotviewer-modal-image {
+  display: block;
   margin: auto;
+  max-width: 100%;
+  max-height: 98%;
+  height: auto;
 }
 
 .dashboard-screenshotviewer-modal-gotoprevious {
-  top: 46%;
-  left: 12px;
+  top: 45%;
+  left: 1px;
   position: fixed;
   height: 38px;
   width: 21px;
   font-size: 30px;
-  font-weight: 100;
   color: $color-gray-light;
 }
 
 .dashboard-screenshotviewer-modal-gotonext {
-  top: 46%;
-  right: 12px;
+  top: 45%;
+  right: 10px;
   position: fixed;
   height: 38px;
   width: 21px;
   font-size: 30px;
-  font-weight: 100;
   color: $color-gray-light;
 }
 
-.dashboard-screenshotviewer-modal-gotonext:hover {
+.dashboard-screenshotviewer-modal-gotonext.enabled:hover {
   color: $gray-light;
 }
 
-.dashboard-screenshotviewer-modal-gotoprevious:hover {
+.dashboard-screenshotviewer-modal-gotoprevious.enabled:hover {
   color: $gray-light;
 }
 
