@@ -804,6 +804,65 @@ label.current-pageNumber {
   padding-left: 23px;
 }
 
+.dashboard-screenshotviewer-modal {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+.dashboard-screenshotviewer-modal .modal-content {
+  height: 100%;
+  border: none;
+  background-color: rgb(246, 246, 246);
+}
+
+
+.dashboard-screenshotviewer-modal .modal-header {
+  background-color: $color-white;
+  padding: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.dashboard-screenshotviewer-modal .modal-title {
+  font-size: 14px;
+}
+
+.dashboard-screenshotviewer-modal-image {
+  margin: auto;
+}
+
+.dashboard-screenshotviewer-modal-gotoprevious {
+  top: 46%;
+  left: 12px;
+  position: fixed;
+  height: 38px;
+  width: 21px;
+  font-size: 30px;
+  font-weight: 100;
+  color: $color-gray-light;
+}
+
+.dashboard-screenshotviewer-modal-gotonext {
+  top: 46%;
+  right: 12px;
+  position: fixed;
+  height: 38px;
+  width: 21px;
+  font-size: 30px;
+  font-weight: 100;
+  color: $color-gray-light;
+}
+
+.dashboard-screenshotviewer-modal-gotonext:hover {
+  color: $gray-light;
+}
+
+.dashboard-screenshotviewer-modal-gotoprevious:hover {
+  color: $gray-light;
+}
+
+//TODO(ja)
 .clear {
   clear: both;
 }

@@ -1,7 +1,18 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import {FormattedDate, FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
-import {Button, ButtonToolbar, Col, Collapse, Glyphicon, Grid, OverlayTrigger, Row, Tooltip, Label} from "react-bootstrap";
+import {
+    Button,
+    ButtonToolbar,
+    Col,
+    Collapse,
+    Glyphicon,
+    Grid,
+    Label,
+    OverlayTrigger,
+    Row,
+    Tooltip
+} from "react-bootstrap";
 import {Link} from "react-router";
 import DashboardStore from "../../stores/dashboard/DashboardStore";
 import RepositoryStore from "../../stores/RepositoryStore";
@@ -19,7 +30,8 @@ class DashboardSearchResults extends React.Component {
         "textUnitChecked": PropTypes.array.isRequired,
         "onTextUnitCheckboxClick": PropTypes.func.isRequired,
         "onBranchCollapseClick": PropTypes.func.isRequired,
-        "onAddScreenshotClick": PropTypes.func.isRequired
+        "onAddScreenshotClick": PropTypes.func.isRequired,
+        "onShowBranchScreenshotClick": PropTypes.func.isRequired
     };
 
     /**
@@ -76,7 +88,9 @@ class DashboardSearchResults extends React.Component {
                     }
                 </Col>
                 <Col md={1}>
-                    -
+                    <Link onClick={() => this.props.onShowBranchScreenshotClick(arrayIndex)}>
+                        <Glyphicon glyph="picture" className="color-gray-light"/>
+                    </Link>
                 </Col>
                 <Col md={2}>
                     <span>{branchStatistic.branch.createdByUser ? branchStatistic.branch.createdByUser.username : "-"}</span>
@@ -86,7 +100,8 @@ class DashboardSearchResults extends React.Component {
                                          year="numeric"/></span>
                 </Col>
                 <Col md={1}>
-                    <span>{branchStatistic.branch.deleted ? "Yes" : "No"}</span>
+                    <span>{branchStatistic.branch.deleted ? <FormattedMessage id="label.yes"/> :
+                        <FormattedMessage id="label.no"/>}</span>
                 </Col>
             </Row>
         ))
@@ -132,8 +147,8 @@ class DashboardSearchResults extends React.Component {
                             <Col md={1}>
                                 <div>
                                     {branchTextUnitStatistic.tmTextUnit.screenshotUploaded ?
-                                        <Glyphicon glyph="ok"/> :
-                                        <Glyphicon glyph="remove"/>}
+                                        <Glyphicon glyph="ok" className="color-gray-light"/> :
+                                        <Glyphicon glyph="remove" className="color-gray-light"/>}
                                 </div>
                             </Col>
                         </Row>
@@ -178,7 +193,6 @@ class DashboardSearchResults extends React.Component {
             return button;
         }
     }
-
 
 
     render() {
