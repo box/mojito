@@ -776,7 +776,7 @@ label.current-pageNumber {
   padding-left: 0px;
 }
 
-.dashboard-branchstatistic-needstranslation-counts {
+.dashboard-branchstatistic-counts {
   font-weight: bold;
   color: $brand-primary;
 }
@@ -793,7 +793,6 @@ label.current-pageNumber {
   margin-bottom: 30px;
 }
 
-
 .dashboard-branchstatistic-branch-col1-check {
   padding-left: 5px;
   padding-right: 5px;
@@ -802,6 +801,8 @@ label.current-pageNumber {
 
 .dashboard-branchstatistic-branch-col1-content {
   padding-left: 23px;
+  color: $gray-light;
+  font-size: 11px;
 }
 
 .dashboard-screenshotviewer-modal {

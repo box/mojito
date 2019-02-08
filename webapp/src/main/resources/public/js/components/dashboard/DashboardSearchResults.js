@@ -19,6 +19,8 @@ import RepositoryStore from "../../stores/RepositoryStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 import ClassNames from "classnames";
+import {withRouter} from 'react-router';
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
 
 class DashboardSearchResults extends React.Component {
@@ -39,17 +41,24 @@ class DashboardSearchResults extends React.Component {
      *
      * @param {number} repoId
      */
-    updateSearchParamsForNeedsTranslation(branchStatistic, textUnitId) {
+    updateSearchParamsForNeedsTranslation(branchStatistic, tmTextUnitId) {
         // TODO(ja) move to page ...
         let repoIds = [branchStatistic.branch.repository.id];
 
-        WorkbenchActions.searchParamsChanged({
+        let params = {
             "changedParam": SearchConstants.UPDATE_ALL,
             "repoIds": repoIds,
             "branchId": branchStatistic.branch.id,
-            "tmTextUnitIds": textUnitId,
             "bcp47Tags": RepositoryStore.getAllBcp47TagsForRepositoryIds(repoIds),
-        });
+            "status": SearchParamsStore.STATUS.FOR_TRANSLATION
+        }
+
+        if (tmTextUnitId != null) {
+            params["tmTextUnitIds"] = [tmTextUnitId];
+        }
+
+        WorkbenchActions.searchParamsChanged(params);
+        this.props.router.push("/workbench", null, null);
     }
 
 
@@ -82,37 +91,30 @@ class DashboardSearchResults extends React.Component {
                                    className="color-gray-light"/>
                     </Button>
                     <span className="mlm">{branchStatistic.branch.name}</span>
-
                 </Col>
                 <Col md={2}>
-
-
                     {branchStatistic.forTranslationCount === 0 ?
                         <Label bsStyle="success" className="mrs clickable">
+                            {/* TODO(ja) remove repository stuff */}
                             <FormattedMessage id="repositories.table.row.done"/>
                         </Label>
                         :
                         <Link
-                            onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic)}
-                            to='/workbench'>
-                                <span className="dashboard-branchstatistic-needstranslation-counts"><FormattedNumber
-                                    value={branchStatistic.forTranslationCount}/>&nbsp;</span>
-                            (&nbsp;<FormattedMessage
-                            values={{numberOfWords: branchStatistic.totalCount}}
-                            id="repositories.table.row.numberOfWords"/>&nbsp;)
+                            onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic, null)} >
+                                <span className="dashboard-branchstatistic-counts"><FormattedNumber
+                                    value={branchStatistic.forTranslationCount}/>&nbsp;</span>/&nbsp;<FormattedNumber
+                            value={branchStatistic.totalCount}/>
                         </Link>
                     }
                 </Col>
-                <Col md={1}>
-                    <Link onClick={() => this.props.onShowBranchScreenshotsClick(arrayIndex)}>
-                        <Glyphicon glyph="picture" className="color-gray-light"/>
-                    </Link>
+                <Col md={2}>
+                    {this.renderScreenshotPreview(branchStatistic, arrayIndex)}
                 </Col>
                 <Col md={2}>
                     <span>{branchStatistic.branch.createdByUser ? branchStatistic.branch.createdByUser.username : "-"}</span>
                 </Col>
-                <Col md={2}>
-                    <span><FormattedDate value={branchStatistic.branch.createdDate} day="numeric" month="long"
+                <Col md={1}>
+                    <span><FormattedDate value={branchStatistic.branch.createdDate} day="numeric" month="numeric"
                                          year="numeric"/></span>
                 </Col>
                 <Col md={1}>
@@ -121,6 +123,19 @@ class DashboardSearchResults extends React.Component {
                 </Col>
             </Row>
         );
+    }
+
+    renderScreenshotPreview(branchStatistic, arrayIndex) {
+
+        let numberOfScreenshots = branchStatistic.textUnitsWithScreenshots.size;
+        let expectedNumberOfScreenshots = branchStatistic.expectedNumberOfScreenshots;
+
+        return (<Link onClick={() => this.props.onShowBranchScreenshotsClick(arrayIndex)}>
+            <span className="dashboard-branchstatistic-counts"><FormattedNumber
+                value={numberOfScreenshots}/>&nbsp;</span>/&nbsp;<FormattedNumber
+            value={expectedNumberOfScreenshots}/>
+        </Link>);
+
     }
 
     renderCollapsable(branchStatistic, branchTextUnitStatistic, arrayIndex, arrayIndexTextUnit) {
@@ -146,21 +161,19 @@ class DashboardSearchResults extends React.Component {
                                 className="dashboard-branchstatistic-branch-col1-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
                         </div>
                     </Col>
-
                     <Col md={2}>
                         <div>
                             <Link
                                 onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic, branchTextUnitStatistic.tmTextUnit.id)}
-                                to='/workbench'>
-                                    <span className="dashboard-branchstatistic-needstranslation-counts"><FormattedNumber
-                                        value={branchTextUnitStatistic.forTranslationCount}/>&nbsp;</span>
-                                (&nbsp;<FormattedMessage
-                                values={{numberOfWords: branchTextUnitStatistic.totalCount}}
-                                id="repositories.table.row.numberOfWords"/>&nbsp;)
+                                >
+                                    <span className="dashboard-branchstatistic-counts"><FormattedNumber
+                                        value={branchTextUnitStatistic.forTranslationCount}/>&nbsp;</span>/&nbsp;
+                                <FormattedNumber
+                                    value={branchTextUnitStatistic.totalCount}/>
                             </Link>
                         </div>
                     </Col>
-                    <Col md={1}>
+                    <Col md={2}>
                         <div>
                             {branchTextUnitStatistic.tmTextUnit.screenshotUploaded ?
                                 <Glyphicon glyph="ok" className="color-gray-light"/> :
@@ -252,18 +265,15 @@ class DashboardSearchResults extends React.Component {
                             <Col md={2}>
                                 <FormattedMessage id="repositories.table.header.needsTranslation"/>
                             </Col>
-                            <Col md={1}>
-                                <FormattedMessage id="dashboard.table.header.screenshot"/>
+                            <Col md={2}>
+                                <FormattedMessage id="dashboard.table.header.screenshots"/>
                             </Col>
-
                             <Col md={2}>
                                 <FormattedMessage id="dashboard.table.header.createdBy"/>
                             </Col>
-
-                            <Col md={2}>
+                            <Col md={1}>
                                 <FormattedMessage id="dashboard.table.header.createdDate"/>
                             </Col>
-
                             <Col md={1}>
                                 <FormattedMessage id="dashboard.table.header.deleted"/>
                             </Col>
@@ -278,4 +288,4 @@ class DashboardSearchResults extends React.Component {
     }
 }
 
-export default injectIntl(DashboardSearchResults);
+export default withRouter(injectIntl(DashboardSearchResults));
