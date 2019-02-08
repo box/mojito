@@ -13,13 +13,12 @@ import {
     Row,
     Tooltip
 } from "react-bootstrap";
-import {Link} from "react-router";
+import {Link, withRouter} from "react-router";
 import DashboardStore from "../../stores/dashboard/DashboardStore";
 import RepositoryStore from "../../stores/RepositoryStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 import ClassNames from "classnames";
-import {withRouter} from 'react-router';
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
 
@@ -100,7 +99,7 @@ class DashboardSearchResults extends React.Component {
                         </Label>
                         :
                         <Link
-                            onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic, null)} >
+                            onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic, null)}>
                                 <span className="dashboard-branchstatistic-counts"><FormattedNumber
                                     value={branchStatistic.forTranslationCount}/>&nbsp;</span>/&nbsp;<FormattedNumber
                             value={branchStatistic.totalCount}/>
@@ -130,11 +129,13 @@ class DashboardSearchResults extends React.Component {
         let numberOfScreenshots = branchStatistic.textUnitsWithScreenshots.size;
         let expectedNumberOfScreenshots = branchStatistic.expectedNumberOfScreenshots;
 
-        return (<Link onClick={() => this.props.onShowBranchScreenshotsClick(arrayIndex)}>
+        return (<div onClick={() => this.props.onShowBranchScreenshotsClick(arrayIndex)}><Link>
             <span className="dashboard-branchstatistic-counts"><FormattedNumber
                 value={numberOfScreenshots}/>&nbsp;</span>/&nbsp;<FormattedNumber
             value={expectedNumberOfScreenshots}/>
-        </Link>);
+        </Link>
+            <Glyphicon className="dashboard-branchstatistic-preview mlm" glyph="picture"/>
+        </div>);
 
     }
 
@@ -165,7 +166,7 @@ class DashboardSearchResults extends React.Component {
                         <div>
                             <Link
                                 onClick={this.updateSearchParamsForNeedsTranslation.bind(this, branchStatistic, branchTextUnitStatistic.tmTextUnit.id)}
-                                >
+                            >
                                     <span className="dashboard-branchstatistic-counts"><FormattedNumber
                                         value={branchTextUnitStatistic.forTranslationCount}/>&nbsp;</span>/&nbsp;
                                 <FormattedNumber

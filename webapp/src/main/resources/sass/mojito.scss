@@ -873,6 +873,16 @@ label.current-pageNumber {
   color: $gray-light;
 }
 
+
+.dashboard-branchstatistic-branch:hover .dashboard-branchstatistic-preview {
+  display: inline;
+}
+
+.dashboard-branchstatistic-preview {
+  display: none;
+  color: $brand-primary
+}
+
 //TODO(ja)
 .clear {
   clear: both;
