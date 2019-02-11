@@ -16,6 +16,7 @@ class DashboardScreenshotViewerStore {
         this.number = 0;
         this.total = 0;
         this.branchIndex = null;
+        this.textUnits = [];
     }
 
     open(branchIndex) {
@@ -32,10 +33,12 @@ class DashboardScreenshotViewerStore {
         console.log(branchStatisticScreenshots);
 
         if (branchStatisticScreenshots.length > 0) {
+            let branchStatisticScreenshot = branchStatisticScreenshots[this.number - 1];
             this.number = number;
             this.branchIndex = branchIndex;
-            this.src = branchStatisticScreenshots[this.number - 1].src;
+            this.src = branchStatisticScreenshot.src;
             this.total = branchStatisticScreenshots.length;
+            this.textUnits = branchStatisticScreenshot.textUnits;
         }
     }
 

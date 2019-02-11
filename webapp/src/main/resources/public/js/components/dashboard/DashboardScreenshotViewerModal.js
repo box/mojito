@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from 'prop-types';
-import {Glyphicon, Image, Modal} from "react-bootstrap";
+import {Col, Glyphicon, Image, Modal} from "react-bootstrap";
 import keycode from "keycode";
 import ClassNames from "classnames";
 
@@ -55,6 +55,16 @@ class DashboardScreenshotViewerModal extends React.Component {
         }
     }
 
+    renderTextUnit(textUnit) {
+        console.log("renderTextUnit", textUnit)
+        return (
+          <div className="mbm">
+              <div>{textUnit.tmTextUnit.name}</div>
+              <div className="color-gray-light">{textUnit.tmTextUnit.content}</div>
+          </div>
+        );
+    }
+
     render() {
 
         let hasPrevious = this.props.number > 1;
@@ -69,17 +79,30 @@ class DashboardScreenshotViewerModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div className="dashboard-screenshotviewer-modal-image-container">
-                        <Image src={this.props.src}
-                               responsive
-                               className="dashboard-screenshotviewer-modal-image"/>
-                    </div>
 
-                    <span className={ClassNames("dashboard-screenshotviewer-modal-gotoprevious", {"enabled" : hasPrevious})} onClick={this.props.onGoToPrevious}>
+                    <Col md={2} className="dashboard-screenshotviewer-modal-cols">
+                        <div className="dashboard-screenshotviewer-modal-textunits-container">
+                            <div className="dashboard-screenshotviewer-modal-textunits">
+                                {this.props.textUnits.map((tu) => this.renderTextUnit(tu))}
+                            </div>
+                        </div>
+                    </Col>
+
+                    <Col md={10} className="dashboard-screenshotviewer-modal-cols">
+                        <div className="dashboard-screenshotviewer-modal-image-container">
+                            <Image src={this.props.src}
+                                   className="dashboard-screenshotviewer-modal-image"/>
+                        </div>
+                    </Col>
+
+                    <span
+                        className={ClassNames("dashboard-screenshotviewer-modal-gotoprevious", {"enabled": hasPrevious})}
+                        onClick={this.props.onGoToPrevious}>
                         <Glyphicon glyph="menu-left"/>
                     </span>
 
-                    <span className={ClassNames("dashboard-screenshotviewer-modal-gotonext", {"enabled" : hasNext})} onClick={this.props.onGoToNext}>
+                    <span className={ClassNames("dashboard-screenshotviewer-modal-gotonext", {"enabled": hasNext})}
+                          onClick={this.props.onGoToNext}>
                         <Glyphicon glyph="menu-right"/>
                     </span>
 
