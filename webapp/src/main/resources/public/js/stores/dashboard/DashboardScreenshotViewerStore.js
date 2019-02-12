@@ -30,12 +30,10 @@ class DashboardScreenshotViewerStore {
 
         let branchStatisticScreenshots = dashboardStoreState.branchStatistics[branchIndex].branch.screenshots
 
-        console.log(branchStatisticScreenshots);
-
         if (branchStatisticScreenshots.length > 0) {
-            let branchStatisticScreenshot = branchStatisticScreenshots[this.number - 1];
             this.number = number;
             this.branchIndex = branchIndex;
+            let branchStatisticScreenshot = branchStatisticScreenshots[this.number - 1];
             this.src = branchStatisticScreenshot.src;
             this.total = branchStatisticScreenshots.length;
             this.textUnits = branchStatisticScreenshot.textUnits;

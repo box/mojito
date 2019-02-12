@@ -817,7 +817,7 @@ label.current-pageNumber {
 }
 
 .dashboard-screenshotviewer-modal .modal-body {
-  height: 95%;
+  height: 96%;
   padding-top: 0px;
   padding-bottom: 0px;
   padding-left: 30px;
@@ -826,7 +826,8 @@ label.current-pageNumber {
 
 .dashboard-screenshotviewer-modal .modal-header {
   background-color: $color-white;
-  height: 5%;
+  height: 4%;
+  min-height: 25px;
   padding: 5px;
   padding-left: 15px;
   padding-right: 15px;

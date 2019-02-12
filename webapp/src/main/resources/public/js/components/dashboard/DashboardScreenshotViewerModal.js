@@ -56,9 +56,8 @@ class DashboardScreenshotViewerModal extends React.Component {
     }
 
     renderTextUnit(textUnit) {
-        console.log("renderTextUnit", textUnit)
         return (
-          <div className="mbm">
+          <div key={textUnit.id} className="mbm">
               <div>{textUnit.tmTextUnit.name}</div>
               <div className="color-gray-light">{textUnit.tmTextUnit.content}</div>
           </div>

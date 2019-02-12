@@ -44,7 +44,6 @@ class DashboardSearchParamStore {
         this.isSpinnerShown = false;
     }
 
-
 }
 
 export default alt.createStore(DashboardSearchParamStore, 'DashboardSearchParamStore');
