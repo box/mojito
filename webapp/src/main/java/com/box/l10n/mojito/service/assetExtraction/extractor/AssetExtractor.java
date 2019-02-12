@@ -7,13 +7,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
 import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.RawDocument;
-import com.box.l10n.mojito.okapi.filters.AndroidFilter;
-import com.box.l10n.mojito.okapi.filters.CSVFilter;
-import com.box.l10n.mojito.okapi.filters.JSFilter;
-import com.box.l10n.mojito.okapi.filters.MacStringsFilter;
-import com.box.l10n.mojito.okapi.filters.MacStringsdictFilter;
-import com.box.l10n.mojito.okapi.filters.POFilter;
-import com.box.l10n.mojito.okapi.filters.XMLFilter;
+import com.box.l10n.mojito.okapi.filters.*;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
@@ -115,6 +109,7 @@ public class AssetExtractor {
         mapper.addConfigurations(XMLFilter.class.getName());
         mapper.addConfigurations(MacStringsFilter.class.getName());
         mapper.addConfigurations(MacStringsdictFilter.class.getName());
+        mapper.addConfigurations(MacStringsdictFilterKey.class.getName());
         mapper.addConfigurations(JSFilter.class.getName());
 
         return mapper;
