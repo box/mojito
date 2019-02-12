@@ -91,12 +91,12 @@ class DashboardPage extends React.Component {
                         onTextUnitCheckboxClick={(indexTuple) => {
                             DashboardPageActions.textUnitCheckboxChanged(indexTuple);
                         }}
-                        onBranchCollapseClick={(index) => {
-                            DashboardPageActions.onBranchCollapseChange(index);
+                        onChangeOpenBranchStatistic={(index) => {
+                            DashboardPageActions.changeOpenBranchStatistic(index);
                         }}
 
-                        onShowBranchScreenshotsClick={(index) => {
-                            DashboardScreenshotViewerActions.open(index);
+                        onShowBranchScreenshotsClick={(branchStatisticId) => {
+                            DashboardScreenshotViewerActions.open(branchStatisticId);
                         }}
                     />
                 </AltContainer>

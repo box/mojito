@@ -1,15 +1,7 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import {FormattedDate, FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
-import {
-    Button,
-    Col,
-    Collapse,
-    Glyphicon,
-    Grid,
-    Label,
-    Row
-} from "react-bootstrap";
+import {Button, Col, Collapse, Glyphicon, Grid, Label, Row} from "react-bootstrap";
 import {Link, withRouter} from "react-router";
 import RepositoryStore from "../../stores/RepositoryStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
@@ -21,13 +13,18 @@ import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 class DashboardSearchResults extends React.Component {
 
     static propTypes = {
-        "currentPageNumber": PropTypes.number.isRequired,
         "branchStatistics": PropTypes.array.isRequired,
-        "isBranchOpen": PropTypes.array.isRequired,
+        "openBranchStatisticId": PropTypes.bool.isRequired,
+
+        "onChangeOpenBranchStatistic": PropTypes.func.isRequired,
+
+
         "textUnitChecked": PropTypes.array.isRequired,
         "onTextUnitCheckboxClick": PropTypes.func.isRequired,
         "onBranchCollapseClick": PropTypes.func.isRequired,
         "onShowBranchScreenshotsClick": PropTypes.func.isRequired
+
+
     };
 
     /**
@@ -56,32 +53,39 @@ class DashboardSearchResults extends React.Component {
     }
 
 
-    branch(branchStatistic, arrayIndex) {
+    isBranchStatisticOpen(branchStatistic) {
+        return this.props.openBranchStatisticId === branchStatistic.id;
+    }
+
+
+    branch(branchStatistic) {
         let rows = [];
 
-        rows.push((this.renderBranchSummary(branchStatistic, arrayIndex)));
+        rows.push((this.renderBranchSummary(branchStatistic)));
 
-        branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic, arrayIndexTextUnit) => {
-            rows.push((this.renderCollapsable(branchStatistic, branchTextUnitStatistic, arrayIndex, arrayIndexTextUnit)));
+        branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic) => {
+            rows.push((this.renderCollapsable(branchStatistic, branchTextUnitStatistic)));
         });
 
         rows.push((
-            <Collapse in={this.props.isBranchOpen[arrayIndex]}><Row
+            <Collapse in={this.isBranchStatisticOpen(branchStatistic)}><Row
                 className="dashboard-branchstatistic-branch-div"></Row></Collapse>
         ));
 
         return rows;
     }
 
-    renderBranchSummary(branchStatistic, arrayIndex) {
+    renderBranchSummary(branchStatistic) {
 
-        let className = ClassNames("dashboard-branchstatistic-branch", {"dashboard-branchstatistic-branch-open": false && this.props.isBranchOpen[arrayIndex]});
+        let isBranchStatisticOpen = this.isBranchStatisticOpen(branchStatistic);
+
+        let className = ClassNames("dashboard-branchstatistic-branch", {"dashboard-branchstatistic-branch-open": isBranchStatisticOpen});
 
         return (
-            <Row key={"branchStatistic-" + arrayIndex} className={className}>
+            <Row key={"branchStatistic-" + branchStatistic.id} className={className}>
                 <Col md={4} className="dashboard-branchstatistic-branch-col1">
-                    <Button bsSize="xsmall" onClick={() => this.props.onBranchCollapseClick(arrayIndex)}>
-                        <Glyphicon glyph={this.props.isBranchOpen[arrayIndex] ? "chevron-down" : "chevron-right"}
+                    <Button bsSize="xsmall" onClick={() => this.props.onChangeOpenBranchStatistic(branchStatistic.id)}>
+                        <Glyphicon glyph={isBranchStatisticOpen ? "chevron-down" : "chevron-right"}
                                    className="color-gray-light"/>
                     </Button>
                     <span className="mlm">{branchStatistic.branch.name}</span>
@@ -102,7 +106,7 @@ class DashboardSearchResults extends React.Component {
                     }
                 </Col>
                 <Col md={2}>
-                    {this.renderScreenshotPreview(branchStatistic, arrayIndex)}
+                    {this.renderScreenshotPreview(branchStatistic)}
                 </Col>
                 <Col md={2}>
                     <span>{branchStatistic.branch.createdByUser ? branchStatistic.branch.createdByUser.username : "-"}</span>
@@ -119,42 +123,43 @@ class DashboardSearchResults extends React.Component {
         );
     }
 
-    renderScreenshotPreview(branchStatistic, arrayIndex) {
+    renderScreenshotPreview(branchStatistic) {
 
         let numberOfScreenshots = branchStatistic.textUnitsWithScreenshots.size;
         let expectedNumberOfScreenshots = branchStatistic.expectedNumberOfScreenshots;
 
-        return (<div onClick={() => this.props.onShowBranchScreenshotsClick(arrayIndex)}><Link>
-            <span className="dashboard-branchstatistic-counts"><FormattedNumber
-                value={numberOfScreenshots}/>&nbsp;</span>/&nbsp;<FormattedNumber
-            value={expectedNumberOfScreenshots}/>
-        </Link>
-            <Glyphicon className="dashboard-branchstatistic-preview mlm" glyph="picture"/>
-        </div>);
+        return (
+            <div onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)}>
+                <Link>
+                    <span className="dashboard-branchstatistic-counts"><FormattedNumber
+                        value={numberOfScreenshots}/>&nbsp;</span>/&nbsp;<FormattedNumber
+                    value={expectedNumberOfScreenshots}/>
+                </Link>
+                <Glyphicon className="dashboard-branchstatistic-preview mlm" glyph="picture"/>
+            </div>
+        );
 
     }
 
-    renderCollapsable(branchStatistic, branchTextUnitStatistic, arrayIndex, arrayIndexTextUnit) {
+    renderCollapsable(branchStatistic, branchTextUnitStatistic) {
 
-        let className = ClassNames("dashboard-branchstatistic-branch-textunit", {"dashboard-branchstatistic-branch-open": this.props.isBranchOpen[arrayIndex]});
+        let isTextUnitChecked = false;
 
-        return (<Collapse in={this.props.isBranchOpen[arrayIndex]}>
+        let className = ClassNames("dashboard-branchstatistic-branch-textunit", {"dashboard-branchstatistic-branch-open": this.isBranchStatisticOpen(branchStatistic)});
+
+        return (<Collapse in={this.isBranchStatisticOpen(branchStatistic)}>
             <div>
-                <Row key={"branchStatisticTextUnit-" + arrayIndex} className={className}>
+                <Row key={"branchStatisticTextUnit-" + branchTextUnitStatistic.id} className={className}>
 
                     <Col md={4} className="dashboard-branchstatistic-branch-col1">
                         <div>
                             <div className="dashboard-branchstatistic-branch-col1-check"><input
                                 type="checkbox"
-                                checked={this.props.textUnitChecked[arrayIndex][arrayIndexTextUnit]}
-                                onChange={(index) => this.props.onTextUnitCheckboxClick({
-                                    index0: arrayIndex,
-                                    index1: arrayIndexTextUnit
-                                })}/>
+                                checked={isTextUnitChecked}
+                                onChange={() => console.log("todo")}/>
                             </div>
                             <div className="plm">{branchTextUnitStatistic.tmTextUnit.name}</div>
-                            <div
-                                className="dashboard-branchstatistic-branch-col1-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
+                            <div className="dashboard-branchstatistic-branch-col1-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
                         </div>
                     </Col>
                     <Col md={2}>
