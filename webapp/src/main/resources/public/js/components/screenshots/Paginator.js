@@ -3,7 +3,7 @@ import React from "react";
 import {injectIntl} from 'react-intl';
 import {Button} from "react-bootstrap";
 
-
+// TODO(ja) move to generic place
 class Paginator extends React.Component {
   
     static propTypes = {

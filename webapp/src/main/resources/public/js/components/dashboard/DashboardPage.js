@@ -2,6 +2,7 @@ import React from "react";
 import {withRouter} from "react-router";
 import AltContainer from "alt-container";
 
+import DashboardAddScreenshotButton from "../../components/dashboard/DashboardAddScreenshotButton";
 import DashboardStore from "../../stores/dashboard/DashboardStore";
 import DashboardSearchText from "./DashboardSearchText";
 import DashboardStatusDropdown from "./DashboardStatusDropdown";
@@ -25,6 +26,23 @@ class DashboardPage extends React.Component {
 
         return (
             <div>
+                <AltContainer stores={
+                    {
+                        disabled: function (props) {
+                            return {
+                                store: DashboardStore,
+                                value: DashboardStore.getState().numberOfTextUnitChecked === 0
+                            };
+                        }
+                    }}>
+                    <DashboardAddScreenshotButton
+                        onClick={() => {
+                            DashboardScreenshotUploadActions.openWithBranch();
+                        }}
+                        disabled={false}
+                    />
+                </AltContainer>
+
                 <AltContainer store={DashboardSearchParamStore}>
                     <DashboardSearchText
                         onDashboardSearchTextChanged={
@@ -63,8 +81,10 @@ class DashboardPage extends React.Component {
                             DashboardPageActions.resetAllSelectedTextUnitsInCurrentPage();
                             // ScreenshotsHistoryActions.enableHistoryUpdate();
                             DashboardPageActions.getBranches();
-                        }} />
+                        }}/>
                 </AltContainer>
+
+                <div className="clear"/>
 
                 <AltContainer store={DashboardStore}>
                     <DashboardSearchResults
@@ -73,10 +93,6 @@ class DashboardPage extends React.Component {
                         }}
                         onBranchCollapseClick={(index) => {
                             DashboardPageActions.onBranchCollapseChange(index);
-                        }}
-
-                        onAddScreenshotClick={() => {
-                            DashboardScreenshotUploadActions.openWithBranch();
                         }}
 
                         onShowBranchScreenshotsClick={(index) => {

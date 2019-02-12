@@ -92,11 +92,6 @@ class DashboardStore {
         this.numberOfTextUnitChecked += this.textUnitChecked[index.index0][index.index1] ? 1 : -1;
     }
 
-    selectAllTextUnitsInCurrentPage() {
-        this.textUnitChecked.forEach(e => e.fill(true));
-        this.numberOfTextUnitChecked = this.totalTextUnitsInPage;
-    }
-
     resetAllSelectedTextUnitsInCurrentPage() {
         this.textUnitChecked.forEach(e => e.fill(false));
         this.numberOfTextUnitChecked = 0;

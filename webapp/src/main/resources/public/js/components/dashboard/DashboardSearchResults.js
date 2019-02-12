@@ -3,15 +3,12 @@ import PropTypes from 'prop-types';
 import {FormattedDate, FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
 import {
     Button,
-    ButtonToolbar,
     Col,
     Collapse,
     Glyphicon,
     Grid,
     Label,
-    OverlayTrigger,
-    Row,
-    Tooltip
+    Row
 } from "react-bootstrap";
 import {Link, withRouter} from "react-router";
 import RepositoryStore from "../../stores/RepositoryStore";
@@ -30,7 +27,6 @@ class DashboardSearchResults extends React.Component {
         "textUnitChecked": PropTypes.array.isRequired,
         "onTextUnitCheckboxClick": PropTypes.func.isRequired,
         "onBranchCollapseClick": PropTypes.func.isRequired,
-        "onAddScreenshotClick": PropTypes.func.isRequired,
         "onShowBranchScreenshotsClick": PropTypes.func.isRequired
     };
 
@@ -185,49 +181,10 @@ class DashboardSearchResults extends React.Component {
         </Collapse>);
     }
 
-    renderAddScreenshot() {
-
-        let actionButtonsDisabled = this.props.textUnitChecked.every(function (row) {
-            return row.every(function (e) {
-                return !e;
-            })
-
-        });
-
-        let button = (<div style={{float: "left"}}><Button bsStyle="primary"
-                                                           style={actionButtonsDisabled ? {pointerEvents: "none"} : {}}
-                                                           bsSize="small" disabled={actionButtonsDisabled}
-                                                           onClick={this.props.onAddScreenshotClick}>
-            <FormattedMessage id="dashboard.actions.addScreenshot"/>
-        </Button></div>);
-
-
-        if (actionButtonsDisabled) {
-            return (<OverlayTrigger placement="bottom"
-                                    overlay={<Tooltip id="addscreenshot-tooltip">Select text units in the branch
-                                        to upload screenhots</Tooltip>}>
-                {button}
-            </OverlayTrigger>);
-        } else {
-            return button;
-        }
-    }
-
-
     render() {
         return (
             <div>
                 <div className="mll mrl">
-                    <div className="mtl mbl">
-                        <div className="col-xs-6">
-                            <ButtonToolbar>
-                                {this.renderAddScreenshot()}
-                            </ButtonToolbar>
-                        </div>
-
-                        <div className="clear"/>
-                    </div>
-
                     <Grid fluid={true} className="dashboard-branchstatistic">
                         <Row className="bms" className="dashboard-branchstatistic-header">
                             <Col md={4} className="dashboard-branchstatistic-branch-col1">
