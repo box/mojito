@@ -31,9 +31,9 @@ class ScreenshotsPageStore {
         this.selectedScreenshotIdx = selectedScreenshotIdx;
     }
 
-    screenshotsSearchResultsReceivedSuccess(screenshotsData) {
-        this.screenshotsData = screenshotsData;
-        if(this.selectedScreenshotIdx >= screenshotsData.length) {
+    screenshotsSearchResultsReceivedSuccess(result) {
+        this.screenshotsData = result.content;
+        if(this.selectedScreenshotIdx >= result.size) {
             this.selectedScreenshotIdx = 0;
         }
         this.searching = false;

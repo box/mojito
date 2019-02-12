@@ -15,6 +15,9 @@ import DashboardScreenshotUploadActions from "../../actions/dashboard/DashboardS
 import DashboardScreenshotViewerModal from "./DashboardScreenshotViewerModal";
 import DashboardScreenshotViewerStore from "../../stores/dashboard/DashboardScreenshotViewerStore";
 import DashboardScreenshotViewerActions from "../../actions/dashboard/DashboardScreenshotViewerActions";
+import Paginator from "../../components/screenshots/Paginator";
+import DashboardPaginatorStore from "../../stores/dashboard/DashboardPaginatorStore";
+import DashboardPaginatorActions from "../../actions/dashboard/DashboardPaginatorActions";
 
 class DashboardPage extends React.Component {
 
@@ -30,8 +33,7 @@ class DashboardPage extends React.Component {
                             }
                         }
                         onPerformSearch={() => {
-                            // TODO reset pagination
-                            // DashboardPaginatorAction.changeCurrentPageNumber(1);
+                            DashboardPaginatorActions.changeCurrentPageNumber(1);
                             DashboardPageActions.getBranches();
                         }}
                     />
@@ -43,6 +45,25 @@ class DashboardPage extends React.Component {
                             DashboardSearchParamsActions.changeSearchFilter(filter);
                         }}
                     />
+                </AltContainer>
+
+                <AltContainer store={DashboardPaginatorStore}>
+                    <Paginator
+                        onPreviousPageClicked={() => {
+                            //TODO(ja) implement history
+                            // ScreenshotsHistoryActions.disableHistoryUpdate();
+                            DashboardPaginatorActions.goToPreviousPage();
+                            DashboardPageActions.resetAllSelectedTextUnitsInCurrentPage();
+                            // ScreenshotsHistoryActions.enableHistoryUpdate();
+                            DashboardPageActions.getBranches();
+                        }}
+                        onNextPageClicked={() => {
+                            // ScreenshotsHistoryActions.disableHistoryUpdate();
+                            DashboardPaginatorActions.goToNextPage();
+                            DashboardPageActions.resetAllSelectedTextUnitsInCurrentPage();
+                            // ScreenshotsHistoryActions.enableHistoryUpdate();
+                            DashboardPageActions.getBranches();
+                        }} />
                 </AltContainer>
 
                 <AltContainer store={DashboardStore}>

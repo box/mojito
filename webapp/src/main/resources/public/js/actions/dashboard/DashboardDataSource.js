@@ -2,10 +2,7 @@ import DashboardClient from "../../sdk/DashboardClient";
 import DashboardPageActions from "./DashboardPageActions";
 import DashboardSearcherParameters from "../../sdk/DashboardSearcherParameters";
 import DashboardSearchParamStore from "../../stores/dashboard/DashboardSearchParamStore";
-import ImageClient from "../../sdk/ImageClient";
-import ScreenshotClient from "../../sdk/ScreenshotClient";
-import ScreenshotRun from "../../sdk/entity/ScreenshotRun";
-import DashboardStore from "../../stores/dashboard/DashboardStore";
+import DashboardPaginatorStore from "../../stores/dashboard/DashboardPaginatorStore";
 
 const DashboardDataSource = {
     performDashboardSearch: {
@@ -13,6 +10,9 @@ const DashboardDataSource = {
             let returnEmpty = false;
 
             let dashboardSearchParam = DashboardSearchParamStore.getState();
+            let dashboardPaginatorStore = DashboardPaginatorStore.getState();
+
+
             let dashboardSearcherParameters = new DashboardSearcherParameters();
 
             if (!DashboardSearcherParameters.isReadyForDashboardSearching(dashboardSearcherParameters)) {
@@ -36,8 +36,8 @@ const DashboardDataSource = {
                 dashboardSearcherParameters.deleted(false);
             }
 
-            dashboardSearcherParameters.page(DashboardStore.getState().currentPageNumber);
-            dashboardSearcherParameters.size(DashboardStore.getState().size);
+            dashboardSearcherParameters.page(dashboardPaginatorStore.currentPageNumber - 1);
+            dashboardSearcherParameters.size(dashboardPaginatorStore.limit);
 
             let promise;
 

@@ -1,62 +1,33 @@
 import alt from "../../alt";
 import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions";
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
+import Paginator from "../../components/screenshots/Paginator";
+import PaginatorStore from "../PaginatorStore";
 
-class ScreenshotsPaginatorStore {
+class ScreenshotsPaginatorStore extends PaginatorStore {
 
     constructor() {
-        this.setDefaultState();
+        super();
         this.bindActions(ScreenshotsPaginatorActions);
         this.bindActions(ScreenshotsPageActions);
     }
-    
+
     setDefaultState() {
-        this.currentPageNumber = 1;
-        this.hasNextPage = true;
-        this.disabled = true;
-        this.shown = false;
+        super.setDefaultState();
         this.limit = 3;
     }
-    
+
     resetScreenshotSearchParams() {
-        this.setDefaultState();
-    }
-    
-    goToNextPage() {
-        if (this.hasNextPage) {
-            this.currentPageNumber++;
-        } else {
-            console.error("There is no next page, goToNextPage shouldn't be called");
-        }
+        super.resetSearchParams();
     }
 
-    goToPreviousPage() {
-        if (this.currentPageNumber > 1) {
-            this.currentPageNumber--;
-        } else {
-            console.error("There is no previous page, goToPreviousPage shouldn't be called");
-        }
-    }
-    
-    changeCurrentPageNumber(currentPageNumber) {
-        this.currentPageNumber = currentPageNumber;
-    }
-    
-    performSearch() {
-        this.disabled = true;
-    }
-    
     screenshotsSearchResultsReceivedSuccess(result) {
-        this.disabled = false;
-        this.shown = result.length > 0 || this.currentPageNumber > 1;
-        this.hasNextPage = result.length === this.limit;
+        super.searchResultsReceivedSuccess(result);
     }
-    
+
     screenshotsSearchResultsReceivedError() {
-        this.disabled = false;
-        this.shown = false;
+        super.searchResultsReceivedError();
     }
-   
 }
 
-export default alt.createStore(ScreenshotsPaginatorStore, 'PaginatorStore');
+export default alt.createStore(ScreenshotsPaginatorStore, 'ScreenshotsPaginatorStore');

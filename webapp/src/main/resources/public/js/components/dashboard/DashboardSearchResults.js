@@ -14,7 +14,6 @@ import {
     Tooltip
 } from "react-bootstrap";
 import {Link, withRouter} from "react-router";
-import DashboardStore from "../../stores/dashboard/DashboardStore";
 import RepositoryStore from "../../stores/RepositoryStore";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
@@ -216,10 +215,6 @@ class DashboardSearchResults extends React.Component {
 
 
     render() {
-        // function / reuse pagination
-        let previousPageButtonDisabled = DashboardStore.getState().hasNext;
-        let nextPageButtonDisabled = DashboardStore.getState().hasPrevious;
-
         return (
             <div>
                 <div className="mll mrl">
@@ -230,31 +225,6 @@ class DashboardSearchResults extends React.Component {
                             </ButtonToolbar>
                         </div>
 
-                        {/*<div className="pull-right">*/}
-                        {/*<TextUnitSelector*/}
-                        {/*selectAllTextUnitsInCurrentPage={() => {*/}
-                        {/*DashboardPageActions.selectAllTextUnitsInCurrentPage();*/}
-                        {/*}}*/}
-                        {/*resetAllSelectedTextUnitsInCurrentPage={() => {*/}
-                        {/*DashboardPageActions.resetAllSelectedTextUnitsInCurrentPage();*/}
-                        {/*}}*/}
-                        {/*/>*/}
-                        {/**/}
-                        {/*<Button bsSize="small" disabled={previousPageButtonDisabled}*/}
-                        {/*onClick={() => {*/}
-                        {/*DashboardPageActions.fetchPreviousPage()*/}
-                        {/*}}><span*/}
-                        {/*className="glyphicon glyphicon-chevron-left"></span></Button>*/}
-                        {/*<label className="mls mrs default-label current-pageNumber">*/}
-                        {/*{this.props.currentPageNumber + 1}*/}
-                        {/*</label>*/}
-
-                        {/*<Button bsSize="small" disabled={nextPageButtonDisabled}*/}
-                        {/*onClick={() => {*/}
-                        {/*DashboardPageActions.fetchNextPage()*/}
-                        {/*}}><span*/}
-                        {/*className="glyphicon glyphicon-chevron-right"></span></Button>*/}
-                        {/*</div>*/}
                         <div className="clear"/>
                     </div>
 
@@ -264,6 +234,7 @@ class DashboardSearchResults extends React.Component {
                                 <FormattedMessage id="dashboard.table.header.branch"/>
                             </Col>
                             <Col md={2}>
+                                {/*TODO(ja) rename those properties*/}
                                 <FormattedMessage id="repositories.table.header.needsTranslation"/>
                             </Col>
                             <Col md={2}>

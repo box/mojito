@@ -10,10 +10,7 @@ class DashboardPageActions {
             "getBranchesError",
             "textUnitCheckboxChanged",
             "onBranchCollapseChange",
-            "selectAllTextUnitsInCurrentPage",
-            "resetAllSelectedTextUnitsInCurrentPage",
-            "fetchPreviousPage",
-            "fetchNextPage"
+            "resetAllSelectedTextUnitsInCurrentPage"
         );
     }
 }

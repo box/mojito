@@ -17,15 +17,6 @@ class DashboardStore {
     }
 
     setDefaultState() {
-        this.hasNext = false;
-        this.hasPrevious = false;
-        this.size = 10;
-        this.currentPageNumber = 0;
-        this.first = true;
-        this.numberOfElements = 0;
-        this.totalPages = 1;
-        this.totalElements = 0;
-        this.last = true;
         this.branchStatistics = [];
         this.searching = false;
         this.screenshotUploaded = {};
@@ -43,14 +34,6 @@ class DashboardStore {
     }
 
     getBranchesSuccess(branchStatistics) {
-        this.hasNext = branchStatistics.hasNext;
-        this.hasPrevious = branchStatistics.hasPrevious;
-        this.currentPageNumber = branchStatistics.number;
-        this.first = branchStatistics.first;
-        this.numberOfElements = branchStatistics.numberOfElements;
-        this.totalPages = branchStatistics.totalPages;
-        this.totalElements = branchStatistics.totalElements;
-        this.last = branchStatistics.last;
         this.branchStatistics = BranchStatisticsContent.toContentList(branchStatistics.content);
         this.isSearching = false;
         this.isBranchOpen = Array.apply(null, Array(branchStatistics.length)).map(function () {
@@ -117,20 +100,6 @@ class DashboardStore {
     resetAllSelectedTextUnitsInCurrentPage() {
         this.textUnitChecked.forEach(e => e.fill(false));
         this.numberOfTextUnitChecked = 0;
-    }
-
-    fetchPreviousPage() {
-        if (this.currentPageNumber > 0) {
-            currentPageNumber--;
-            this.getBranches();
-        }
-    }
-
-    fetchNextPage() {
-        if (this.currentPageNumber < this.totalPages) {
-            currentPageNumber++;
-            this.getBranches();
-        }
     }
 }
 
