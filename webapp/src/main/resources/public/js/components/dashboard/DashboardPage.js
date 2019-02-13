@@ -31,7 +31,7 @@ class DashboardPage extends React.Component {
                         disabled: function (props) {
                             return {
                                 store: DashboardStore,
-                                value: DashboardStore.getState().numberOfTextUnitChecked === 0
+                                value: DashboardStore.getState().selectedBranchTextUnitIds.length === 0
                             };
                         }
                     }}>
@@ -39,7 +39,6 @@ class DashboardPage extends React.Component {
                         onClick={() => {
                             DashboardScreenshotUploadActions.openWithBranch();
                         }}
-                        disabled={false}
                     />
                 </AltContainer>
 
@@ -71,14 +70,14 @@ class DashboardPage extends React.Component {
                             //TODO(ja) implement history
                             // ScreenshotsHistoryActions.disableHistoryUpdate();
                             DashboardPaginatorActions.goToPreviousPage();
-                            DashboardPageActions.resetAllSelectedTextUnitsInCurrentPage();
+                            DashboardPageActions.changeSelectedBranchTextUnitIds([]);
                             // ScreenshotsHistoryActions.enableHistoryUpdate();
                             DashboardPageActions.getBranches();
                         }}
                         onNextPageClicked={() => {
                             // ScreenshotsHistoryActions.disableHistoryUpdate();
                             DashboardPaginatorActions.goToNextPage();
-                            DashboardPageActions.resetAllSelectedTextUnitsInCurrentPage();
+                            DashboardPageActions.changeSelectedBranchTextUnitIds([]);
                             // ScreenshotsHistoryActions.enableHistoryUpdate();
                             DashboardPageActions.getBranches();
                         }}/>
@@ -88,11 +87,13 @@ class DashboardPage extends React.Component {
 
                 <AltContainer store={DashboardStore}>
                     <DashboardSearchResults
-                        onTextUnitCheckboxClick={(indexTuple) => {
-                            DashboardPageActions.textUnitCheckboxChanged(indexTuple);
+                        onChangeSelectedBranchTextUnits={(selectedBranchTextUnitIds) => {
+                            DashboardPageActions.changeSelectedBranchTextUnitIds(selectedBranchTextUnitIds);
                         }}
-                        onChangeOpenBranchStatistic={(index) => {
-                            DashboardPageActions.changeOpenBranchStatistic(index);
+
+                        onChangeOpenBranchStatistic={(branchStatisticId) => {
+                            DashboardPageActions.changeOpenBranchStatistic(branchStatisticId);
+                            DashboardPageActions.changeSelectedBranchTextUnitIds([]);
                         }}
 
                         onShowBranchScreenshotsClick={(branchStatisticId) => {

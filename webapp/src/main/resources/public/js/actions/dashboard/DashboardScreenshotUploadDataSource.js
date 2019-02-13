@@ -16,12 +16,11 @@ const DashboardScreenshotUploadDataSource = {
 
     performUploadScreenshot: {
         remote(state) {
-            let dashboardStoreState =  DashboardStore.getState();
-
+            let dashboardStoreState = DashboardStore.getState();
             let screenshotRun = ScreenshotRun.branchStatisticsToScreenshotRun(
-                dashboardStoreState.branchStatistics[dashboardStoreState.openBranchIndex],
+                DashboardStore.getSelectedBranchStatistic(),
                 state.screenshotSrc,
-                dashboardStoreState.textUnitChecked[dashboardStoreState.openBranchIndex]);
+                dashboardStoreState.selectedBranchTextUnitIds);
 
             return ScreenshotClient.createOrUpdateScreenshotRun(screenshotRun);
         },

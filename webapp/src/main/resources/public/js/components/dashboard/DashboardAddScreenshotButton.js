@@ -13,25 +13,28 @@ class DashboardAddScreenshotButton extends React.Component {
 
     render() {
         var button = (
-            <div className="mrl col-xs-2">
+            <div style={{display: "inline-block"}}>
                 <Button bsStyle="primary"
                         style={this.props.disabled ? {pointerEvents: "none"} : {}}
                         bsSize="small" disabled={this.props.disabled}
                         onClick={this.props.onClick}>
                     <FormattedMessage id="dashboard.actions.addScreenshot"/>
                 </Button>
-            </div>);
+            </div>
+        );
 
         if (this.props.disabled) {
-            button =  (<OverlayTrigger placement="bottom"
-                                    overlay={<Tooltip id="dashboard.actions.addScreenshot">
-                                        <FormattedMessage id="dashboard.actions.addScreenshot.tooltip"/>
-                                    </Tooltip>}>
+            button = (<OverlayTrigger placement="bottom"
+                                      overlay={<Tooltip id="dashboard.actions.addScreenshot">
+                                          <FormattedMessage id="dashboard.actions.addScreenshot.tooltip"/>
+                                      </Tooltip>}>
                 {button}
             </OverlayTrigger>);
         }
 
-        return button;
+        return (
+            <div className="mrl col-xs-2">{button}</div>
+        );
     }
 };
 

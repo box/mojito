@@ -15,24 +15,29 @@ class DashboardScreenshotViewerStore {
         this.src = null;
         this.number = 0;
         this.total = 0;
-        this.branchIndex = null;
+        this.branchStatisticId = null;
         this.textUnits = [];
     }
 
-    open(branchIndex) {
-        this.loadScreenshotByIndex(branchIndex, 1);
+    open(branchStatisticId) {
+        this.loadScreenshotByIndex(branchStatisticId, 1);
         this.show = true;
     }
 
-    loadScreenshotByIndex(branchIndex, number) {
+    loadScreenshotByIndex(branchStatisticId, number) {
+
+        console.log(branchStatisticId);
 
         let dashboardStoreState = DashboardStore.getState();
 
-        let branchStatisticScreenshots = dashboardStoreState.branchStatistics[branchIndex].branch.screenshots
+        let branchStatisticScreenshots = DashboardStore.getBranchStatisticById(branchStatisticId).branch.screenshots
+
+
+        console.log(branchStatisticScreenshots);
 
         if (branchStatisticScreenshots.length > 0) {
             this.number = number;
-            this.branchIndex = branchIndex;
+            this.branchStatisticId = branchStatisticId;
             let branchStatisticScreenshot = branchStatisticScreenshots[this.number - 1];
             this.src = branchStatisticScreenshot.src;
             this.total = branchStatisticScreenshots.length;
@@ -46,13 +51,13 @@ class DashboardScreenshotViewerStore {
 
     goToPrevious() {
         if (this.number > 1) {
-            this.loadScreenshotByIndex(this.branchIndex, this.number - 1);
+            this.loadScreenshotByIndex(this.branchStatisticId, this.number - 1);
         }
     }
 
     goToNext() {
         if (this.number < this.total) {
-            this.loadScreenshotByIndex(this.branchIndex, this.number + 1);
+            this.loadScreenshotByIndex(this.branchStatisticId, this.number + 1);
         }
     }
 }

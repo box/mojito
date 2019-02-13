@@ -13,7 +13,6 @@ class DashboardScreenshotUploadModalStore {
     }
 
     setDefaultState() {
-        console.log("init DashboardScreenshotUploadModalStore");
         this.show = false;
         this.uploadDisabled = true;
 

@@ -14,17 +14,12 @@ class DashboardSearchResults extends React.Component {
 
     static propTypes = {
         "branchStatistics": PropTypes.array.isRequired,
-        "openBranchStatisticId": PropTypes.bool.isRequired,
-
+        "openBranchStatisticId": PropTypes.number.isRequired,
+        "selectedBranchTextUnitIds": PropTypes.array.isRequired,
+        "textUnitsWithScreenshotsByBranchStatisticId":  PropTypes.any.isRequired,
         "onChangeOpenBranchStatistic": PropTypes.func.isRequired,
-
-
-        "textUnitChecked": PropTypes.array.isRequired,
-        "onTextUnitCheckboxClick": PropTypes.func.isRequired,
-        "onBranchCollapseClick": PropTypes.func.isRequired,
+        "onChangeSelectedBranchTextUnits": PropTypes.func.isRequired,
         "onShowBranchScreenshotsClick": PropTypes.func.isRequired
-
-
     };
 
     /**
@@ -57,34 +52,80 @@ class DashboardSearchResults extends React.Component {
         return this.props.openBranchStatisticId === branchStatistic.id;
     }
 
+    renderScreenshotPreview(branchStatistic) {
 
-    branch(branchStatistic) {
+        let numberOfScreenshots = this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size;
+        let expectedNumberOfScreenshots = branchStatistic.branchTextUnitStatistics.length;
+
+        return (
+            <div onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)}>
+                <Link>
+                    <span className="dashboard-branchstatistic-counts"><FormattedNumber
+                        value={numberOfScreenshots}/>&nbsp;</span>/&nbsp;<FormattedNumber
+                    value={expectedNumberOfScreenshots}/>
+                </Link>
+                <Glyphicon className="dashboard-branchstatistic-preview mlm" glyph="picture"/>
+            </div>
+        );
+
+    }
+
+    renderGridHeader() {
+        return (
+            <Row className="bms" className="dashboard-branchstatistic-header">
+                <Col md={4} className="dashboard-branchstatistic-branch-col1">
+                    <FormattedMessage id="dashboard.table.header.branch"/>
+                </Col>
+                <Col md={2}>
+                    {/*TODO(ja) rename those properties*/}
+                    <FormattedMessage id="repositories.table.header.needsTranslation"/>
+                </Col>
+                <Col md={2}>
+                    <FormattedMessage id="dashboard.table.header.screenshots"/>
+                </Col>
+                <Col md={2}>
+                    <FormattedMessage id="dashboard.table.header.createdBy"/>
+                </Col>
+                <Col md={1}>
+                    <FormattedMessage id="dashboard.table.header.createdDate"/>
+                </Col>
+                <Col md={1}>
+                    <FormattedMessage id="dashboard.table.header.deleted"/>
+                </Col>
+            </Row>
+        );
+    }
+
+    renderBranchStatistic(branchStatistic) {
         let rows = [];
 
-        rows.push((this.renderBranchSummary(branchStatistic)));
+        rows.push((this.renderBranchStatisticSummary(branchStatistic)));
 
         branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic) => {
-            rows.push((this.renderCollapsable(branchStatistic, branchTextUnitStatistic)));
+            rows.push((this.renderBranchTextUnitStatistic(branchStatistic, branchTextUnitStatistic)));
         });
 
+        //TODO(ja) clean that up
         rows.push((
-            <Collapse in={this.isBranchStatisticOpen(branchStatistic)}><Row
-                className="dashboard-branchstatistic-branch-div"></Row></Collapse>
+            <Collapse in={this.isBranchStatisticOpen(branchStatistic)}>
+                <Row className="dashboard-branchstatistic-branch-div"></Row>
+            </Collapse>
         ));
 
         return rows;
     }
 
-    renderBranchSummary(branchStatistic) {
+    renderBranchStatisticSummary(branchStatistic) {
 
         let isBranchStatisticOpen = this.isBranchStatisticOpen(branchStatistic);
 
-        let className = ClassNames("dashboard-branchstatistic-branch", {"dashboard-branchstatistic-branch-open": isBranchStatisticOpen});
-
         return (
-            <Row key={"branchStatistic-" + branchStatistic.id} className={className}>
+            <Row key={"branchStatistic-" + branchStatistic.id} className="dashboard-branchstatistic-branch">
                 <Col md={4} className="dashboard-branchstatistic-branch-col1">
-                    <Button bsSize="xsmall" onClick={() => this.props.onChangeOpenBranchStatistic(branchStatistic.id)}>
+                    <Button bsSize="xsmall"
+                            onClick={() =>
+                                this.props.onChangeOpenBranchStatistic(isBranchStatisticOpen ? null : branchStatistic.id)
+                            }>
                         <Glyphicon glyph={isBranchStatisticOpen ? "chevron-down" : "chevron-right"}
                                    className="color-gray-light"/>
                     </Button>
@@ -123,27 +164,9 @@ class DashboardSearchResults extends React.Component {
         );
     }
 
-    renderScreenshotPreview(branchStatistic) {
+    renderBranchTextUnitStatistic(branchStatistic, branchTextUnitStatistic) {
 
-        let numberOfScreenshots = branchStatistic.textUnitsWithScreenshots.size;
-        let expectedNumberOfScreenshots = branchStatistic.expectedNumberOfScreenshots;
-
-        return (
-            <div onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)}>
-                <Link>
-                    <span className="dashboard-branchstatistic-counts"><FormattedNumber
-                        value={numberOfScreenshots}/>&nbsp;</span>/&nbsp;<FormattedNumber
-                    value={expectedNumberOfScreenshots}/>
-                </Link>
-                <Glyphicon className="dashboard-branchstatistic-preview mlm" glyph="picture"/>
-            </div>
-        );
-
-    }
-
-    renderCollapsable(branchStatistic, branchTextUnitStatistic) {
-
-        let isTextUnitChecked = false;
+        let isTextUnitChecked = this.props.selectedBranchTextUnitIds.indexOf(branchTextUnitStatistic.id) !== -1;
 
         let className = ClassNames("dashboard-branchstatistic-branch-textunit", {"dashboard-branchstatistic-branch-open": this.isBranchStatisticOpen(branchStatistic)});
 
@@ -153,13 +176,27 @@ class DashboardSearchResults extends React.Component {
 
                     <Col md={4} className="dashboard-branchstatistic-branch-col1">
                         <div>
-                            <div className="dashboard-branchstatistic-branch-col1-check"><input
-                                type="checkbox"
-                                checked={isTextUnitChecked}
-                                onChange={() => console.log("todo")}/>
+                            <div className="dashboard-branchstatistic-branch-col1-check">
+                                <input
+                                    type="checkbox"
+                                    checked={isTextUnitChecked}
+                                    onClick={(e) => {
+                                        var newSelected = this.props.selectedBranchTextUnitIds.slice();
+
+                                        let index = newSelected.indexOf(branchTextUnitStatistic.id);
+
+                                        if (index !== -1) {
+                                            newSelected.splice(index, 1);
+                                        } else {
+                                            newSelected.push(branchTextUnitStatistic.id);
+                                        }
+
+                                        this.props.onChangeSelectedBranchTextUnits(newSelected);
+                                    }}/>
                             </div>
                             <div className="plm">{branchTextUnitStatistic.tmTextUnit.name}</div>
-                            <div className="dashboard-branchstatistic-branch-col1-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
+                            <div
+                                className="dashboard-branchstatistic-branch-col1-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
                         </div>
                     </Col>
                     <Col md={2}>
@@ -191,33 +228,11 @@ class DashboardSearchResults extends React.Component {
             <div>
                 <div className="mll mrl">
                     <Grid fluid={true} className="dashboard-branchstatistic">
-                        <Row className="bms" className="dashboard-branchstatistic-header">
-                            <Col md={4} className="dashboard-branchstatistic-branch-col1">
-                                <FormattedMessage id="dashboard.table.header.branch"/>
-                            </Col>
-                            <Col md={2}>
-                                {/*TODO(ja) rename those properties*/}
-                                <FormattedMessage id="repositories.table.header.needsTranslation"/>
-                            </Col>
-                            <Col md={2}>
-                                <FormattedMessage id="dashboard.table.header.screenshots"/>
-                            </Col>
-                            <Col md={2}>
-                                <FormattedMessage id="dashboard.table.header.createdBy"/>
-                            </Col>
-                            <Col md={1}>
-                                <FormattedMessage id="dashboard.table.header.createdDate"/>
-                            </Col>
-                            <Col md={1}>
-                                <FormattedMessage id="dashboard.table.header.deleted"/>
-                            </Col>
-                        </Row>
-
-                        {this.props.branchStatistics.map(this.branch.bind(this))}
+                        {this.renderGridHeader()}
+                        {this.props.branchStatistics.map(this.renderBranchStatistic.bind(this))}
                     </Grid>
                 </div>
             </div>
-
         );
     }
 }

@@ -20,15 +20,14 @@ class DashboardStore {
         this.branchStatistics = [];
         this.searching = false;
         this.screenshotUploaded = {};
-        this.textUnitChecked = [];
 
         this.openBranchIndex = -1;
         this.numberOfTextUnitChecked = 0;
 
-
         this.openBranchStatisticId = null;
-        this.selectedTextUnitIds = [];
+        this.selectedBranchTextUnitIds = [];
 
+        this.textUnitsWithScreenshotsByBranchStatisticId = {};
     }
 
     getBranches() {
@@ -38,71 +37,42 @@ class DashboardStore {
     }
 
     getBranchesSuccess(branchStatistics) {
-
         this.branchStatistics = BranchStatisticsContent.toContentList(branchStatistics.content);
-
         this.isSearching = false;
+        this.computeTextUnitsWithScreenshotsByBranchStatisticId();
+    }
 
-
-
+    computeTextUnitsWithScreenshotsByBranchStatisticId() {
         for (let i = 0; i < this.branchStatistics.length; i++) {
-            //TODO: update screenshot data
-            this.textUnitChecked.push(Array.apply(null, Array(this.branchStatistics[i].branchTextUnitStatistics.length)).map(function () {
-                return false
-            }));
-            this.branchStatistics[i].branchTextUnitStatistics.forEach(e => this.screenshotUploaded[e.tmTextUnit.id] = e.tmTextUnit);
-
-            this.branchStatistics[i].numberOfScreenshots = 1;
-            this.branchStatistics[i].expectedNumberOfScreenshots = this.branchStatistics[i].branchTextUnitStatistics.length;
-        }
-
-        for (let i = 0; i < this.branchStatistics.length; i++) {
-
-            this.branchStatistics[i].textUnitsWithScreenshots = new Set();
+            let textUnitsWithScreenshots = new Set();
+            this.textUnitsWithScreenshotsByBranchStatisticId[this.branchStatistics[i].id] = textUnitsWithScreenshots;
 
             for (let j = 0; j < this.branchStatistics[i].branch.screenshots.length; j++) {
-
                 for (let k = 0; k < this.branchStatistics[i].branch.screenshots[j].textUnits.length; k++) {
-
                     let tmTextUnitId = this.branchStatistics[i].branch.screenshots[j].textUnits[k].tmTextUnit.id
-                    this.screenshotUploaded[tmTextUnitId].screenshotUploaded = true;
-                    this.branchStatistics[i].textUnitsWithScreenshots.add(tmTextUnitId);
+                    textUnitsWithScreenshots.add(tmTextUnitId);
                 }
             }
         }
-
     }
 
     changeOpenBranchStatistic(branchStatisticId) {
         this.openBranchStatisticId = branchStatisticId;
     }
 
-    changeSelectedTextUnitIds(textUnitIds) {
-        this.selectedTextUnitIds = textUnitIds;
+    changeSelectedBranchTextUnitIds(selectedBranchTextUnitIds) {
+        this.selectedBranchTextUnitIds = selectedBranchTextUnitIds;
     }
 
-
-    onBranchCollapseChange(index) {
-
-        this.resetAllSelectedTextUnitsInCurrentPage();
-
-        let isOpen = !this.isBranchOpen[index];
-
-        this.isBranchOpen.fill(false);
-        this.isBranchOpen[index] = isOpen;
-        if (isOpen) {
-            this.openBranchIndex = index;
-        }
+    static getBranchStatisticById(branchStatisticId) {
+        let state = this.getState();
+        let branchStatistics = state.branchStatistics.filter((b) => b.id === branchStatisticId);
+        return branchStatistics.length > 0 ? branchStatistics[0] : null;
     }
 
-    textUnitCheckboxChanged(index) {
-        // this.textUnitChecked[index.index0][index.index1] = !this.textUnitChecked[index.index0][index.index1];
-        // this.numberOfTextUnitChecked += this.textUnitChecked[index.index0][index.index1] ? 1 : -1;
-    }
-
-    resetAllSelectedTextUnitsInCurrentPage() {
-        // this.textUnitChecked.forEach(e => e.fill(false));
-        // this.numberOfTextUnitChecked = 0;
+    static getSelectedBranchStatistic() {
+        let state = this.getState();
+        return this.getBranchStatisticById(state.openBranchStatisticId);
     }
 }
 

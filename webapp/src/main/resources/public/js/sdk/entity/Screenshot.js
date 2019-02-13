@@ -1,3 +1,5 @@
+import uuidv4 from "uuid/v4";
+
 export default class Screenshot {
     constructor() {
         this.name = null;
@@ -8,7 +10,6 @@ export default class Screenshot {
     }
 
     static branchStatisticsContentToScreenshot(branchStatisticsContent, imageUrl, textUnitChecked) {
-        const uuidv4 = require('uuid/v4');
         let result = new Screenshot();
 
         result.name = uuidv4();

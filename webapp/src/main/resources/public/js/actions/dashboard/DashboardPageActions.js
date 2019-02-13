@@ -4,22 +4,12 @@ class DashboardPageActions {
 
     constructor() {
         this.generateActions(
-
-
-
-
-
             "updateSearchParams",
-
-
             "getBranches",
             "getBranchesSuccess",
             "getBranchesError",
             "changeOpenBranchStatistic",
-
-            "textUnitCheckboxChanged",
-            "onBranchCollapseChange",
-            "resetAllSelectedTextUnitsInCurrentPage"
+            "changeSelectedBranchTextUnitIds",
         );
     }
 }
