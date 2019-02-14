@@ -20,6 +20,10 @@ import Paginator from "../../components/screenshots/Paginator";
 import DashboardPaginatorStore from "../../stores/dashboard/DashboardPaginatorStore";
 import DashboardPaginatorActions from "../../actions/dashboard/DashboardPaginatorActions";
 import DashboardHistoryActions from "../../actions/dashboard/DashboardHistoryActions";
+import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
+import RepositoryStore from "../../stores/RepositoryStore";
+import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
+import SearchConstants from "../../utils/SearchConstants";
 
 class DashboardPage extends React.Component {
 
@@ -125,6 +129,26 @@ class DashboardPage extends React.Component {
 
                         onShowBranchScreenshotsClick={(branchStatisticId) => {
                             DashboardScreenshotViewerActions.open(branchStatisticId);
+                        }}
+
+                        onNeedTranslationClick={(branchStatistic, tmTextUnitId, forTranslation) => {
+
+                            let repoIds = [branchStatistic.branch.repository.id];
+
+                            let params = {
+                                "changedParam": SearchConstants.UPDATE_ALL,
+                                "repoIds": repoIds,
+                                "branchId": branchStatistic.branch.id,
+                                "bcp47Tags": RepositoryStore.getAllBcp47TagsForRepositoryIds(repoIds),
+                                "status": forTranslation ? SearchParamsStore.STATUS.FOR_TRANSLATION: SearchParamsStore.STATUS.ALL,
+                            }
+
+                            if (tmTextUnitId != null) {
+                                params["tmTextUnitIds"] = [tmTextUnitId];
+                            }
+
+                            WorkbenchActions.searchParamsChanged(params);
+                            this.props.router.push("/workbench", null, null);
                         }}
                     />
                 </AltContainer>
