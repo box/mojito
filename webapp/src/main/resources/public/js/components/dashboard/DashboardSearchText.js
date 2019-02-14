@@ -14,7 +14,6 @@ class DashboardSearchText extends React.Component{
         "onPerformSearch": PropTypes.func.isRequired
     }
 
-
     onKeyDownOnSearchText(e) {
         e.stopPropagation();
         if (e.keyCode === keycode("enter")) {
@@ -34,8 +33,6 @@ class DashboardSearchText extends React.Component{
         );
     }
 
-
-
     render() {
         return (
             <div className="col-xs-6 search-text">
@@ -43,7 +40,7 @@ class DashboardSearchText extends React.Component{
                     <InputGroup>
                         <FormControl type='text' value={this.props.searchText}
                                      onChange={(e) => this.props.onDashboardSearchTextChanged(e.target.value)}
-                                     placeholder={this.props.intl.formatMessage({id: "search.placeholder"})}
+                                     placeholder={this.props.intl.formatMessage({id: "dashboard.searchtext"})}
                                      onKeyDown={(e) => this.onKeyDownOnSearchText(e)}/>
                         <InputGroup>
                             {this.props.isSpinnerShown && (<span className="glyphicon glyphicon-refresh spinning" />)}

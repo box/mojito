@@ -7,11 +7,16 @@ import {DropdownButton, MenuItem} from "react-bootstrap";
 class DashboardStatusDropdown extends React.Component {
 
     static propTypes = {
-        "isMine": PropTypes.bool.isRequired,
+
+        //TODO(ja) remove required for null?
         "deleted": PropTypes.bool.isRequired,
         "undeleted": PropTypes.bool.isRequired,
+        "onlyMyBranches": PropTypes.string.isRequired,
 
-        "onFilterSelected": PropTypes.func.isRequired
+
+        "onDeletedChanged": PropTypes.func.isRequired,
+        "onUndeletedChanged": PropTypes.func.isRequired,
+        "onOnlyMyBranchesChanged": PropTypes.func.isRequired,
 
     }
 
@@ -19,41 +24,38 @@ class DashboardStatusDropdown extends React.Component {
         this.props.onFilterSelected(filter)
     }
 
-    /**
-     * Renders the filter menu item.
-     *
-     * @param filter
-     * @param isYes
-     * @returns {XML}
-     */
-    renderFilterMenuItem(filter, isYes) {
+    renderFilterMenuItem(filter, isYes, prop, callback) {
 
-        let msg = isYes ? this.props.intl.formatMessage({ id: "search.statusDropdown.yes" }) : this.props.intl.formatMessage({ id: "search.statusDropdown.no" });
+        let msg = isYes ? this.props.intl.formatMessage({id: "search.statusDropdown.yes"}) : this.props.intl.formatMessage({id: "search.statusDropdown.no"});
 
         return (
-            <MenuItem eventKey={filter} active={this.props[filter]} onSelect={() => this.onFilterSelected(filter)} >{msg}</MenuItem>
+            <MenuItem eventKey={filter} active={prop}
+                      onSelect={() => {
+                          callback(!prop)
+                      }}>
+                {msg}
+            </MenuItem>
         );
     }
 
-
     render() {
-
+console.log(this.props.onlyMyBranches)
         return (
 
-            <DropdownButton
-                id="DashboardStatusDropdown"
-                title={this.props.intl.formatMessage({id: "search.statusDropdown.title"})}
-            >
+            <DropdownButton id="DashboardStatusDropdown"
+                            title={this.props.intl.formatMessage({id: "search.statusDropdown.title"})}>
+
                 <MenuItem header><FormattedMessage id="dashboardSearch.statusDropdown.owner"/></MenuItem>
-                <MenuItem eventKey={"isMine"} active={this.props.isMine} onSelect={() => this.onFilterSelected("isMine")} >
-                    <FormattedMessage id="dashboardSearch.statusDropdown.owner.mine"/>
+                <MenuItem eventKey={"onlyMyBranches"} active={this.props.onlyMyBranches}
+                          onSelect={() => this.props.onOnlyMyBranchesChanged(!this.props.onlyMyBranches)}>
+                    <FormattedMessage id="dashboardSearch.statusDropdown.owner.onlyMyBranches"/>
                 </MenuItem>
+
                 <MenuItem divider/>
+
                 <MenuItem header><FormattedMessage id="dashboardSearch.statusDropdown.deleted"/></MenuItem>
-                {this.renderFilterMenuItem("deleted", true)}
-                {this.renderFilterMenuItem("undeleted", false)}
-
-
+                {this.renderFilterMenuItem("deleted", true, this.props.deleted, this.props.onDeletedChanged)}
+                {this.renderFilterMenuItem("undeleted", false, this.props.undeleted, this.props.onUndeletedChanged)}
             </DropdownButton>
         );
     }

@@ -6,12 +6,7 @@ import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
 
 class DashboardStore {
     constructor() {
-        /**
-         *
-         * @type {branchStatistics[]}
-         */
         this.setDefaultState();
-
         this.bindActions(DashboardPageActions);
         this.registerAsync(DashboardDataSource);
     }
@@ -19,14 +14,8 @@ class DashboardStore {
     setDefaultState() {
         this.branchStatistics = [];
         this.searching = false;
-        this.screenshotUploaded = {};
-
-        this.openBranchIndex = -1;
-        this.numberOfTextUnitChecked = 0;
-
         this.openBranchStatisticId = null;
         this.selectedBranchTextUnitIds = [];
-
         this.textUnitsWithScreenshotsByBranchStatisticId = {};
     }
 
@@ -38,8 +27,18 @@ class DashboardStore {
 
     getBranchesSuccess(branchStatistics) {
         this.branchStatistics = BranchStatisticsContent.toContentList(branchStatistics.content);
-        this.isSearching = false;
+        //TODO(ja) purge selectedBranchTextUnitIds of bad values?
         this.computeTextUnitsWithScreenshotsByBranchStatisticId();
+        this.openIfSingleMatch();
+        this.isSearching = false;
+    }
+
+    openIfSingleMatch() {
+        if (this.branchStatistics.length === 1) {
+            this.openBranchStatisticId = this.branchStatistics[0].id;
+        } else {
+            this.openBranchStatisticId = null;
+        }
     }
 
     computeTextUnitsWithScreenshotsByBranchStatisticId() {

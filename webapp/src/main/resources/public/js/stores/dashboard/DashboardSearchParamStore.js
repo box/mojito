@@ -13,11 +13,24 @@ class DashboardSearchParamStore {
     }
 
     setDefaultState() {
+        this.deleted = false;
+        this.undeleted = true;
+        this.onlyMyBranches = true;
         this.searchText = "";
         this.isSpinnerShown = false;
-        this.isMine = true;
-        this.deleted = true;
-        this.undeleted = true;
+    }
+
+    changeDeleted(deleted) {
+        this.deleted = deleted;
+    }
+
+    changeUndeleted(undeleted) {
+        this.undeleted = undeleted;
+    }
+
+    changeOnlyMyBranches(onlyMyBranches) {
+        console.log("change branch", onlyMyBranches)
+        this.onlyMyBranches = onlyMyBranches;
     }
 
     resetDashboardSearchParams() {
@@ -26,10 +39,6 @@ class DashboardSearchParamStore {
 
     changeSearchText(text) {
         this.searchText = text;
-    }
-
-    changeSearchFilter(filter) {
-        this[filter] = !this[filter];
     }
 
     getBranches() {

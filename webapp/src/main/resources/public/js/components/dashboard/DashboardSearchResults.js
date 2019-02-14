@@ -67,7 +67,6 @@ class DashboardSearchResults extends React.Component {
                 <Glyphicon className="dashboard-branchstatistic-preview mlm" glyph="picture"/>
             </div>
         );
-
     }
 
     renderGridHeader() {
@@ -170,6 +169,10 @@ class DashboardSearchResults extends React.Component {
 
         let className = ClassNames("dashboard-branchstatistic-branch-textunit", {"dashboard-branchstatistic-branch-open": this.isBranchStatisticOpen(branchStatistic)});
 
+        let propz = this.props;
+
+        console.log(branchTextUnitStatistic.tmTextUnit.id in this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id]);
+
         return (<Collapse in={this.isBranchStatisticOpen(branchStatistic)}>
             <div>
                 <Row key={"branchStatisticTextUnit-" + branchTextUnitStatistic.id} className={className}>
@@ -213,7 +216,7 @@ class DashboardSearchResults extends React.Component {
                     </Col>
                     <Col md={2}>
                         <div>
-                            {branchTextUnitStatistic.tmTextUnit.screenshotUploaded ?
+                            {this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].has(branchTextUnitStatistic.tmTextUnit.id) ?
                                 <Glyphicon glyph="ok" className="color-gray-light"/> :
                                 <Glyphicon glyph="remove" className="color-gray-light"/>}
                         </div>

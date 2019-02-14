@@ -4,10 +4,11 @@ class DashboardSearchParamsActions {
 
     constructor() {
         this.generateActions(
-            "changeSearchFilter",
+            "changeDeleted",
+            "changeUndeleted",
+            "changeOnlyMyBranches",
             "changeSearchText",
             "resetDashboardSearchParams",
-
         );
     }
 }

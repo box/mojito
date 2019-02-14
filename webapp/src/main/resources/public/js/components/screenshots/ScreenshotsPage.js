@@ -8,15 +8,12 @@ import AltContainer from "alt-container";
 import SearchConstants from "../../utils/SearchConstants";
 
 import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore";
-import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
 import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore";
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
 import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
 import ScreenshotsReviewModalStore from "../../stores/screenshots/ScreenshotsReviewModalStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
 import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions";
 import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions";
 import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions";
@@ -24,9 +21,6 @@ import ScreenshotActions from "../../actions/screenshots/ScreenshotActions";
 import ScreenshotsReviewModalActions from "../../actions/screenshots/ScreenshotsReviewModalActions";
 import ScreenshotsHistoryActions from "../../actions/screenshots/ScreenshotsHistoryActions";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-
-import RepositoryDropdown from "./RepositoryDropdown";
-import LocalesDropdown from "./LocalesDropdown";
 import Paginator from "./Paginator";
 import ScreenshotsSearchText from "./ScreenshotsSearchText";
 import ScreenshotsGrid from "./ScreenshotsGrid";
@@ -161,31 +155,6 @@ class ScreenshotsPage extends React.Component {
         return (
                 <div>
                     <div>
-                        <div className="pull-left">
-                            <AltContainer store={ScreenshotsRepositoryStore}>
-                                <RepositoryDropdown
-                                    onSelectedRepositoryIdsChanged={(selectedRepositoryIds) => {
-                                        ScreenshotsHistoryActions.disableHistoryUpdate();
-                                        ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
-                                        ScreenshotsRepositoryActions.changeSelectedRepositoryIds(selectedRepositoryIds);
-                                        ScreenshotsHistoryActions.enableHistoryUpdate();
-                                        ScreenshotsPageActions.performSearch();
-                                        }}
-                                    onDropdownToggle={ScreenshotsRepositoryActions.changeDropdownOpen}/>
-                            </AltContainer>
-                            <AltContainer store={ScreenshotsLocaleStore}>
-                                <LocalesDropdown
-                                    onSelectedBcp47TagsChanged={(selectedBcp47Tags) => {
-                                        ScreenshotsHistoryActions.disableHistoryUpdate();
-                                        ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
-                                        ScreenshotsLocaleActions.changeSelectedBcp47Tags(selectedBcp47Tags);
-                                        ScreenshotsHistoryActions.enableHistoryUpdate();
-                                        ScreenshotsPageActions.performSearch();
-                                        }}
-                                    onDropdownToggle={ScreenshotsLocaleActions.changeDropdownOpen}/>
-                            </AltContainer>
-                        </div>
-
                         <AltContainer store={ScreenshotsSearchTextStore}>
                             <ScreenshotsSearchText
                                 onSearchAttributeChanged={(attribute) => {

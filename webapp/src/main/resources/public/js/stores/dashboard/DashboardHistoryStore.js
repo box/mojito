@@ -1,44 +1,35 @@
 import alt from "../../alt";
-import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
-import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions";
-import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
 import DashboardHistoryActions from "../../actions/dashboard/DashboardHistoryActions";
-import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions";
-import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions";
 import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
-import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
-import SearchParamsStore from "../workbench/SearchParamsStore";
-import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
+import DashboardPageActions from "../../actions/dashboard/DashboardPageActions";
+import DashboardPaginatorActions from "../../actions/dashboard/DashboardPaginatorActions";
+import DashboardSearchParamsActions from "../../actions/dashboard/DashboardSearchParamsActions";
 
 
 class DashboardHistoryStore {
 
     constructor() {
         this.setDefaultState();
-
         this.bindActions(DashboardHistoryActions);
-
-
-        this.bindActions(ScreenshotsPageActions);
-        this.bindActions(ScreenshotsPaginatorActions);
-        this.bindActions(ScreenshotsSearchTextActions);
+        this.bindActions(DashboardPageActions);
+        this.bindActions(DashboardPaginatorActions);
+        this.bindActions(DashboardSearchParamsActions);
+        ;
     }
-    
+
     setDefaultState() {
-        // use to skip location update (Initiated by the ScreenshotsPage) when
+        // use to skip location update (Initiated by the DashboardPage) when
         // this store is initializing from the browser location or to do 
         // group updates together
         this.skipLocationHistoryUpdate = false;
-        
-        this.selectedRepositoryIds = [];
-        this.bcp47Tags = [];
-        this.searchAttribute = SearchParamsStore.SEARCH_ATTRIBUTES.TARGET;
-        this.searchText = "";
-        this.searchType = SearchParamsStore.SEARCH_TYPES.CONTAINS;
-        this.status = StatusCommonTypes.ALL;
-        this.screenshotRunType = ScreenshotsSearchTextStore.SEARCH_SCREENSHOTRUN_TYPES.MANUAL_RUN;
+
+        this.openBranchStatistic = null;
+        // this.selectedBranchTextUnitIds = [];
         this.currentPageNumber = 1;
-        this.selectedScreenshotIdx = null;
+        this.searchText = "";
+        this.deleted = false;
+        this.undeleted = true;
+        this.onlyMyBranches = true;
     }
 
     enableHistoryUpdate() {
@@ -49,36 +40,28 @@ class DashboardHistoryStore {
         this.skipLocationHistoryUpdate = true;
     }
 
-    changeSelectedRepositoryIds(selectedRepositoryIds) {
-        this.selectedRepositoryIds = selectedRepositoryIds;
+    changeOpenBranchStatistic(openBranchStatistic) {
+        this.openBranchStatistic = openBranchStatistic;
     }
 
-    changeSelectedBcp47Tags(selectedBcp47Tags) {
-        this.selectedBcp47Tags = selectedBcp47Tags;
-    }
-
-    changeSelectedScreenshotIdx(selectedScreenshotIdx) {
-        this.selectedScreenshotIdx = selectedScreenshotIdx;
-    }
-
-    changeSearchAttribute(searchAttribute) {
-        this.searchAttribute = searchAttribute;
-    }
-
-    changeSearchType(searchType) {
-        this.searchType = searchType;
-    }
+    // changeSelectedBranchTextUnitIds(selectedBranchTextUnitIds) {
+    //     this.selectedBranchTextUnitIds = selectedBranchTextUnitIds;
+    // }
 
     changeSearchText(searchText) {
         this.searchText = searchText;
     }
 
-    changeStatus(status) {
-        this.status = status;
+    changeDeleted(deleted) {
+        this.deleted = deleted;
     }
 
-    changeScreenshotRunType(screenshotRunType) {
-        this.screenshotRunType =  screenshotRunType;
+    changeUndeleted(undeleted) {
+        this.undeleted = undeleted;
+    }
+
+    changeOnlyMyBranches(onlyMyBranches) {
+        this.onlyMyBranches = onlyMyBranches;
     }
 
     goToNextPage() {
@@ -92,7 +75,7 @@ class DashboardHistoryStore {
     changeCurrentPageNumber(currentPageNumber) {
         this.currentPageNumber = currentPageNumber;
     }
-    
+
     static getQueryParams() {
         let params = this.getState();
         delete params.skipLocationHistoryUpdate;
@@ -100,79 +83,41 @@ class DashboardHistoryStore {
     }
 
     static initStoreFromLocationQuery(query) {
-        let {searchAttribute, searchText, searchType, status, screenshotRunType,
-            currentPageNumber, selectedScreenshotIdx} = query;
+        let {
+            openBranchStatistic, currentPageNumber, searchText,
+            deleted = "false", undeleted = "true", onlyMyBranches = "true"
+        } = query;
 
-        let selectedRepositoryIds = query["selectedRepositoryIds[]"];
-        let bcp47Tags = query["selectedBcp47Tags[]"];
+        let selectedBranchTextUnitIds = query["selectedBranchTextUnitIds[]"];
 
         DashboardHistoryActions.disableHistoryUpdate();
 
-        if (selectedRepositoryIds) {
-            if (!Array.isArray(selectedRepositoryIds)) {
-                selectedRepositoryIds = [parseInt(selectedRepositoryIds)];
+        if (selectedBranchTextUnitIds) {
+            if (!Array.isArray(selectedBranchTextUnitIds)) {
+                selectedBranchTextUnitIds = [parseInt(selectedBranchTextUnitIds)];
             } else {
-                selectedRepositoryIds = selectedRepositoryIds.map((v) => parseInt(v));
+                selectedBranchTextUnitIds = selectedBranchTextUnitIds.map((v) => parseInt(v));
             }
         } else {
-            selectedRepositoryIds = [];
+            selectedBranchTextUnitIds = [];
         }
-        ScreenshotsRepositoryActions.changeSelectedRepositoryIds(selectedRepositoryIds);
-
-
-        if (bcp47Tags) {
-            if (!Array.isArray(bcp47Tags)) {
-                bcp47Tags = [bcp47Tags];
-            }
-        } else {
-            bcp47Tags = [];
-        }
-        ScreenshotsLocaleActions.changeSelectedBcp47Tags(bcp47Tags);
-
-        if (!searchAttribute) {
-            searchAttribute = SearchParamsStore.SEARCH_ATTRIBUTES.TARGET;
-        }
-        ScreenshotsSearchTextActions.changeSearchAttribute(searchAttribute);
+        DashboardPageActions.changeSelectedBranchTextUnitIds(selectedBranchTextUnitIds);
 
         if (!searchText) {
             searchText = "";
         }
-        ScreenshotsSearchTextActions.changeSearchText(searchText);
+        DashboardSearchParamsActions.changeSearchText(searchText);
+        DashboardSearchParamsActions.changeDeleted(deleted === "true");
+        DashboardSearchParamsActions.changeUndeleted(undeleted === "true");
+        DashboardSearchParamsActions.changeOnlyMyBranches(onlyMyBranches === "true");
 
-        if (!searchType) {
-            searchType = SearchParamsStore.SEARCH_TYPES.CONTAINS;
+        if (openBranchStatistic) {
+            DashboardPageActions.changeOpenBranchStatistic(parseInt(openBranchStatistic));
         }
-        ScreenshotsSearchTextActions.changeSearchType(searchType);
-        
-        if (!status) {
-            status = StatusCommonTypes.ALL;
-        }
-        ScreenshotsSearchTextActions.changeStatus(status);
-
-        if (!screenshotRunType) {
-            screenshotRunType = ScreenshotsSearchTextStore.SEARCH_SCREENSHOTRUN_TYPES.MANUAL_RUN;
-        }
-        ScreenshotsSearchTextActions.changeScreenshotRunType(screenshotRunType);
-
-        if (!currentPageNumber) {
-            currentPageNumber = 1;
-        }
-        ScreenshotsPaginatorActions.changeCurrentPageNumber(parseInt(currentPageNumber));
-
-        if (selectedScreenshotIdx === "") {
-            selectedScreenshotIdx = null;
-        } else {
-            selectedScreenshotIdx = parseInt(selectedScreenshotIdx);
-
-            if (!(selectedScreenshotIdx >= 0)) {
-                selectedScreenshotIdx = 0;
-            }
-        }
-        ScreenshotsPageActions.changeSelectedScreenshotIdx(selectedScreenshotIdx);
 
         DashboardHistoryActions.enableHistoryUpdate();
 
-        ScreenshotsPageActions.performSearch();
+        DashboardPageActions.getBranches();
     }
 }
 

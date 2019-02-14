@@ -25,15 +25,8 @@ class DashboardScreenshotViewerStore {
     }
 
     loadScreenshotByIndex(branchStatisticId, number) {
-
-        console.log(branchStatisticId);
-
         let dashboardStoreState = DashboardStore.getState();
-
         let branchStatisticScreenshots = DashboardStore.getBranchStatisticById(branchStatisticId).branch.screenshots
-
-
-        console.log(branchStatisticScreenshots);
 
         if (branchStatisticScreenshots.length > 0) {
             this.number = number;

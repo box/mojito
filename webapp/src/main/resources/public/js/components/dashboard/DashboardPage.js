@@ -19,6 +19,7 @@ import DashboardScreenshotViewerActions from "../../actions/dashboard/DashboardS
 import Paginator from "../../components/screenshots/Paginator";
 import DashboardPaginatorStore from "../../stores/dashboard/DashboardPaginatorStore";
 import DashboardPaginatorActions from "../../actions/dashboard/DashboardPaginatorActions";
+import DashboardHistoryActions from "../../actions/dashboard/DashboardHistoryActions";
 
 class DashboardPage extends React.Component {
 
@@ -46,11 +47,18 @@ class DashboardPage extends React.Component {
                     <DashboardSearchText
                         onDashboardSearchTextChanged={
                             (text) => {
+                                DashboardHistoryActions.disableHistoryUpdate();
                                 DashboardSearchParamsActions.changeSearchText(text);
                             }
                         }
+
                         onPerformSearch={() => {
+                            DashboardHistoryActions.disableHistoryUpdate();
                             DashboardPaginatorActions.changeCurrentPageNumber(1);
+                            DashboardSearchParamsActions.changeOnlyMyBranches(false);
+                            DashboardSearchParamsActions.changeDeleted(true);
+                            DashboardSearchParamsActions.changeUndeleted(true);
+                            DashboardHistoryActions.enableHistoryUpdate();
                             DashboardPageActions.getBranches();
                         }}
                     />
@@ -58,8 +66,28 @@ class DashboardPage extends React.Component {
 
                 <AltContainer store={DashboardSearchParamStore}>
                     <DashboardStatusDropdown
-                        onFilterSelected={(filter) => {
-                            DashboardSearchParamsActions.changeSearchFilter(filter);
+                        onDeletedChanged={(deleted) => {
+                            DashboardHistoryActions.disableHistoryUpdate();
+                            DashboardSearchParamsActions.changeDeleted(deleted);
+                            DashboardPageActions.changeSelectedBranchTextUnitIds([]);
+                            DashboardHistoryActions.enableHistoryUpdate();
+                            DashboardPageActions.getBranches();
+                        }}
+
+                        onUndeletedChanged={(undeleted) => {
+                            DashboardHistoryActions.disableHistoryUpdate();
+                            DashboardSearchParamsActions.changeUndeleted(undeleted);
+                            DashboardPageActions.changeSelectedBranchTextUnitIds([]);
+                            DashboardHistoryActions.enableHistoryUpdate();
+                            DashboardPageActions.getBranches();
+                        }}
+
+                        onOnlyMyBranchesChanged={(onlyMyBranches) => {
+                            DashboardHistoryActions.disableHistoryUpdate();
+                            DashboardSearchParamsActions.changeOnlyMyBranches(onlyMyBranches);
+                            DashboardPageActions.changeSelectedBranchTextUnitIds([]);
+                            DashboardHistoryActions.enableHistoryUpdate();
+                            DashboardPageActions.getBranches();
                         }}
                     />
                 </AltContainer>
@@ -67,18 +95,17 @@ class DashboardPage extends React.Component {
                 <AltContainer store={DashboardPaginatorStore}>
                     <Paginator
                         onPreviousPageClicked={() => {
-                            //TODO(ja) implement history
-                            // ScreenshotsHistoryActions.disableHistoryUpdate();
+                            DashboardHistoryActions.disableHistoryUpdate();
                             DashboardPaginatorActions.goToPreviousPage();
                             DashboardPageActions.changeSelectedBranchTextUnitIds([]);
-                            // ScreenshotsHistoryActions.enableHistoryUpdate();
+                            DashboardHistoryActions.enableHistoryUpdate();
                             DashboardPageActions.getBranches();
                         }}
                         onNextPageClicked={() => {
-                            // ScreenshotsHistoryActions.disableHistoryUpdate();
+                            DashboardHistoryActions.disableHistoryUpdate();
                             DashboardPaginatorActions.goToNextPage();
                             DashboardPageActions.changeSelectedBranchTextUnitIds([]);
-                            // ScreenshotsHistoryActions.enableHistoryUpdate();
+                            DashboardHistoryActions.enableHistoryUpdate();
                             DashboardPageActions.getBranches();
                         }}/>
                 </AltContainer>

@@ -24,8 +24,8 @@ const DashboardDataSource = {
                 dashboardSearcherParameters.search(dashboardSearchParam.searchText);
             }
 
-            if (dashboardSearchParam.isMine) {
-                dashboardSearcherParameters.createdByUserName(USERNAME); // UserUtil
+            if (dashboardSearchParam.onlyMyBranches) {
+                dashboardSearcherParameters.createdByUserName(USERNAME); //TODO(ja) UserUtil
             }
 
             if (!dashboardSearchParam.deleted && !dashboardSearchParam.undeleted) {

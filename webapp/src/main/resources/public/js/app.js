@@ -46,6 +46,7 @@ import pt from 'react-intl/locale-data/pt';
 import zh from 'react-intl/locale-data/zh';
 import DashboardPageActions from "./actions/dashboard/DashboardPageActions";
 import DashboardSearchParamsActions from "./actions/dashboard/DashboardSearchParamsActions";
+import DashboardHistoryStore from "./stores/dashboard/DashboardHistoryStore";
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
 __webpack_public_path__ = CONTEXT_PATH + "/";
@@ -219,8 +220,7 @@ function loadBasedOnLocation(location) {
     }
 
     if (location.pathname === '/dashboard' && location.action === 'POP') {
-        //TODO(ja) init dashboard from location
-        console.log("TODO init dashboard from location");
+        DashboardHistoryStore.initStoreFromLocationQuery(location.query);
     }
 }
 
@@ -232,6 +232,14 @@ function onScreenshotsHistoryStoreChange() {
 
 ScreenshotsHistoryStore.listen(() => onScreenshotsHistoryStoreChange());
 
+
+function onDashboardHistoryStoreChange() {
+    if (!DashboardHistoryStore.getState().skipLocationHistoryUpdate) {
+        LocationHistory.updateLocation(browserHistory, "/dashboard", DashboardHistoryStore.getQueryParams());
+    }
+}
+
+DashboardHistoryStore.listen(() => onDashboardHistoryStoreChange());
 
 /**
  * Listen to history changes, when doing a POP for the workbench, initialize 
