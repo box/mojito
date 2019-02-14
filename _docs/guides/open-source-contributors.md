@@ -96,7 +96,7 @@ To build from a clean slate:
 
 ### Check Java version 
 
-Make sure you have Java 7 or 8 installed:
+Make sure you have Java 8 installed:
 
 ```sh
 [11:05:13] ~/code/mojito (fix_add_text_unit_plural) $ java -version
@@ -127,6 +127,6 @@ If you see an error like:
 
 `Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException`
 
-you most likely have a wrong version of Java. Java 7 or 8 is required. See [Check Java version](#check-java-version)
+you most likely have a wrong version of Java. Java 8 is required. See [Check Java version](#check-java-version)
 
 
