@@ -60,7 +60,7 @@ The port can be changed with the `server.port` property.
 ### MySQL
 
 [Install MySQL 5.7](http://dev.mysql.com/doc/refman/5.7/en/installing.html) and then create a database for {{ site.mojito_green }} 
-(If using Brew: `brew install mysql@5.7`). 
+(with Brew: `brew install mysql@5.7`). 
 
 Connect to MySQL DB as root user
 

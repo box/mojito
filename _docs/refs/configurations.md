@@ -37,8 +37,8 @@ The default database configuration of {{ site.mojito_green }} is in-memory HSQL 
 
 You can override the database configuration with MySQL.
 
-
-[Install MySQL](http://dev.mysql.com/doc/refman/5.7/en/installing.html) and then create a database for {{ site.mojito_green }}.
+[Install MySQL 5.7](http://dev.mysql.com/doc/refman/5.7/en/installing.html) and then create a database for {{ site.mojito_green }} 
+(with Brew: `brew install mysql@5.7`). 
 
 Connect to MySQL DB as root user
 
