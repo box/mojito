@@ -30,9 +30,9 @@ class DashboardSearchResults extends React.Component {
         let needScreenshot = expectedNumberOfScreenshots - numberOfScreenshots;
 
         return (
-            <div onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)}>
+            <div onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)} className="clickable">
                 {needScreenshot === 0 ?
-                    <Label bsStyle="success" className="mrs clickable">
+                    <Label bsStyle="success" className="mrs">
                         <FormattedMessage id="dashboard.done"/>
                     </Label>
                     :
@@ -99,29 +99,36 @@ class DashboardSearchResults extends React.Component {
         return (
             <Row key={"branchStatistic-" + branchStatistic.id} className="dashboard-branchstatistic-branch">
                 <Col md={4} className="dashboard-branchstatistic-branch-col1">
-                    <Button bsSize="xsmall"
-                            onClick={() =>
-                                this.props.onChangeOpenBranchStatistic(isBranchStatisticOpen ? null : branchStatistic.id)
-                            }>
-                        <Glyphicon glyph={isBranchStatisticOpen ? "chevron-down" : "chevron-right"}
-                                   className="color-gray-light"/>
-                    </Button>
-                    <span className="mlm">{branchStatistic.branch.name}</span>
 
-                    {branchStatistic.branch.deleted ?
-                        <Label bsStyle="light" className="float-right mrl">
-                            <FormattedMessage id="dashboard.deleted"/>
-                        </Label>
-                        :
-                        ""
-                    }
+                    <Row>
+                        <Col md={8}>
+                            <Button bsSize="xsmall"
+                                    onClick={() =>
+                                        this.props.onChangeOpenBranchStatistic(isBranchStatisticOpen ? null : branchStatistic.id)
+                                    }>
+                                <Glyphicon glyph={isBranchStatisticOpen ? "chevron-down" : "chevron-right"}
+                                           className="color-gray-light"/>
+                            </Button>
+                            <span className="mlm">{branchStatistic.branch.name}</span>
+                        </Col>
+                        <Col md={4}>
+
+                            {branchStatistic.branch.deleted ?
+                                <Label bsStyle="light">
+                                    <FormattedMessage id="dashboard.deleted"/>
+                                </Label>
+                                :
+                                ""
+                            }
+                        </Col>
+                    </Row>
 
                 </Col>
                 <Col md={2}>
-                    <Link
-                        onClick={() => this.props.onNeedTranslationClick(branchStatistic, null, false)}>
+                    <Link className="clickable"
+                          onClick={() => this.props.onNeedTranslationClick(branchStatistic, null, false)}>
                         {branchStatistic.forTranslationCount === 0 ?
-                            <Label bsStyle="success" className="mrs clickable">
+                            <Label bsStyle="success" className="mrs">
                                 <FormattedMessage id="dashboard.done"/>
                             </Label>
                             :
@@ -184,11 +191,11 @@ class DashboardSearchResults extends React.Component {
                     </Col>
                     <Col md={2}>
                         <div>
-                            <Link
-                                onClick={() => this.props.onNeedTranslationClick(
-                                    branchStatistic,
-                                    branchTextUnitStatistic.tmTextUnit.id,
-                                    branchTextUnitStatistic.forTranslationCount === branchTextUnitStatistic.totalCount)}
+                            <Link className="clickable"
+                                  onClick={() => this.props.onNeedTranslationClick(
+                                      branchStatistic,
+                                      branchTextUnitStatistic.tmTextUnit.id,
+                                      branchTextUnitStatistic.forTranslationCount === branchTextUnitStatistic.totalCount)}
                             >
                                 {branchTextUnitStatistic.forTranslationCount === branchTextUnitStatistic.totalCount ?
                                     <FormattedNumber value={branchTextUnitStatistic.forTranslationCount}/>
