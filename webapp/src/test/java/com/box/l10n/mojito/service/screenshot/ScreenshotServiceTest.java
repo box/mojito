@@ -11,9 +11,11 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import org.junit.Assert;
+import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +33,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * @author jeanaurambault
  */
-@Ignore
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ScreenshotServiceTest extends ServiceTestBase {
 
     /**
@@ -59,31 +61,30 @@ public class ScreenshotServiceTest extends ServiceTestBase {
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
+//
+//    @Test
+//    public void testCreateScreenshotRun() throws Exception {
+//
+//        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+//
+//        ScreenshotRun screenshotRun = new ScreenshotRun();
+//        screenshotRun.setRepository(repository);
+//
+//        Screenshot screenshot1 = new Screenshot();
+//        screenshot1.setName("s1");
+//        Screenshot screenshot2 = new Screenshot();
+//        screenshot2.setName("s2");
+//        screenshotRun.getScreenshots().add(screenshot1);
+//        screenshotRun.getScreenshots().add(screenshot2);
+//
+//        ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
+//
+//        ScreenshotRun createdFromDB = screenshotRunRepository.findOne(createScreenshotRun.getId());
+//        ArrayList<Screenshot> arrayList = new ArrayList<>(createdFromDB.getScreenshots());
+//        Assert.assertNotNull(arrayList.get(0).getId());
+//        Assert.assertNotNull(arrayList.get(1).getId());
+//    }
 
-    @Test
-    public void testCreateScreenshotRun() throws Exception {
-
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-
-        ScreenshotRun screenshotRun = new ScreenshotRun();
-        screenshotRun.setRepository(repository);
-
-        Screenshot screenshot1 = new Screenshot();
-        screenshot1.setName("s1");
-        Screenshot screenshot2 = new Screenshot();
-        screenshot2.setName("s2");
-        screenshotRun.getScreenshots().add(screenshot1);
-        screenshotRun.getScreenshots().add(screenshot2);
-
-        ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
-
-        ScreenshotRun createdFromDB = screenshotRunRepository.findOne(createScreenshotRun.getId());
-        ArrayList<Screenshot> arrayList = new ArrayList<>(createdFromDB.getScreenshots());
-        Assert.assertNotNull(arrayList.get(0).getId());
-        Assert.assertNotNull(arrayList.get(1).getId());
-    }
-
-    @Transactional
     @Test
     public void testManualRun() throws Exception {
 
@@ -181,87 +182,87 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(screen2, screenshots.get(2));
     }
 
-    @Test
-    public void testSearchScreenshotsByRepository() throws RepositoryNameAlreadyUsedException {
-        Repository repository = createScreenshotData();
-        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()), null, null, null, null,
-                null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
-        assertEquals("screen1", searchScreenshots.get(0).getName());
-        assertEquals("screen3", searchScreenshots.get(1).getName());
-        assertEquals("screen2", searchScreenshots.get(2).getName());
-    }
+//    @Test
+//    public void testSearchScreenshotsByRepository() throws RepositoryNameAlreadyUsedException {
+//        Repository repository = createScreenshotData();
+//        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
+//                Arrays.asList(repository.getId()), null, null, null, null,
+//                null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
+//        assertEquals("screen1", searchScreenshots.get(0).getName());
+//        assertEquals("screen3", searchScreenshots.get(1).getName());
+//        assertEquals("screen2", searchScreenshots.get(2).getName());
+//    }
 
-    @Test
-    public void testSearchScreenshotsByLocale() throws RepositoryNameAlreadyUsedException {
+//    @Test
+//    public void testSearchScreenshotsByLocale() throws RepositoryNameAlreadyUsedException {
+//
+//        Repository repository = createScreenshotData();
+//
+//        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
+//                Arrays.asList(repository.getId()),
+//                Arrays.asList("fr-FR"),
+//                null, null, null, null, null, null,
+//                ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
+//
+//        assertEquals("screen1", searchScreenshots.get(0).getName());
+//        assertEquals("screen2", searchScreenshots.get(1).getName());
+//        assertEquals(2, searchScreenshots.size());
+//
+//        searchScreenshots = screenshotService.searchScreenshots(
+//                Arrays.asList(repository.getId()),
+//                Arrays.asList("ko-KR"),
+//                null, null, null, null, null, null,
+//                ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
+//
+//        assertEquals("screen3", searchScreenshots.get(0).getName());
+//        assertEquals(1, searchScreenshots.size());
+//    }
 
-        Repository repository = createScreenshotData();
-
-        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()),
-                Arrays.asList("fr-FR"),
-                null, null, null, null, null, null,
-                ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
-
-        assertEquals("screen1", searchScreenshots.get(0).getName());
-        assertEquals("screen2", searchScreenshots.get(1).getName());
-        assertEquals(2, searchScreenshots.size());
-
-        searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()),
-                Arrays.asList("ko-KR"),
-                null, null, null, null, null, null,
-                ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
-
-        assertEquals("screen3", searchScreenshots.get(0).getName());
-        assertEquals(1, searchScreenshots.size());
-    }
-
-    @Test
-    public void testSearchScreenshotsByName() throws RepositoryNameAlreadyUsedException {
-
-        Repository repository = createScreenshotData();
-
-        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()),
-                null,
-                "screen2", null, null, null, null, null,
-                ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
-
-        assertEquals("screen2", searchScreenshots.get(0).getName());
-        assertEquals(1, searchScreenshots.size());
-    }
-
-    @Test
-    public void testSearchScreenshotsByStatus() throws RepositoryNameAlreadyUsedException {
-
-        Repository repository = createScreenshotData();
-
-        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()),
-                null, null, Screenshot.Status.NEEDS_REVIEW,
-                null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
-
-        assertEquals("screen3", searchScreenshots.get(0).getName());
-        assertEquals(1, searchScreenshots.size());
-
-        searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()),
-                null, null, Screenshot.Status.REJECTED,
-                null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
-
-        assertEquals("screen1", searchScreenshots.get(0).getName());
-        assertEquals(1, searchScreenshots.size());
-
-        searchScreenshots = screenshotService.searchScreenshots(
-                Arrays.asList(repository.getId()),
-                null, null, ACCEPTED,
-                null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
-
-        assertEquals("screen2", searchScreenshots.get(0).getName());
-        assertEquals(1, searchScreenshots.size());
-    }
-
+//    @Test
+//    public void testSearchScreenshotsByName() throws RepositoryNameAlreadyUsedException {
+//
+//        Repository repository = createScreenshotData();
+//
+//        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
+//                Arrays.asList(repository.getId()),
+//                null,
+//                "screen2", null, null, null, null, null,
+//                ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
+//
+//        assertEquals("screen2", searchScreenshots.get(0).getName());
+//        assertEquals(1, searchScreenshots.size());
+//    }
+//
+//    @Test
+//    public void testSearchScreenshotsByStatus() throws RepositoryNameAlreadyUsedException {
+//
+//        Repository repository = createScreenshotData();
+//
+//        List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
+//                Arrays.asList(repository.getId()),
+//                null, null, Screenshot.Status.NEEDS_REVIEW,
+//                null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
+//
+//        assertEquals("screen3", searchScreenshots.get(0).getName());
+//        assertEquals(1, searchScreenshots.size());
+//
+//        searchScreenshots = screenshotService.searchScreenshots(
+//                Arrays.asList(repository.getId()),
+//                null, null, Screenshot.Status.REJECTED,
+//                null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
+//
+//        assertEquals("screen1", searchScreenshots.get(0).getName());
+//        assertEquals(1, searchScreenshots.size());
+//
+//        searchScreenshots = screenshotService.searchScreenshots(
+//                Arrays.asList(repository.getId()),
+//                null, null, ACCEPTED,
+//                null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
+//
+//        assertEquals("screen2", searchScreenshots.get(0).getName());
+//        assertEquals(1, searchScreenshots.size());
+//    }
+//
     @Test
     public void testSearchScreenshotsByPagination() throws RepositoryNameAlreadyUsedException {
 
@@ -271,6 +272,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
                 Arrays.asList(repository.getId()), null, null, null,
                 null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 1, 1);
 
+        logger.error("DD repository: {}", repository.getId());
         assertEquals("screen3", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
     }

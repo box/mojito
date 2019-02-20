@@ -22,8 +22,6 @@ class DashboardScreenshotUploadModal extends React.Component {
                     <Modal.Title><FormattedMessage id="dashboard.screenshotUploadModal.title"/></Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-
-                    {/*TODO(ja) change with react */}
                     <form>
                         <input type="file"
                                onChange={(e) => {

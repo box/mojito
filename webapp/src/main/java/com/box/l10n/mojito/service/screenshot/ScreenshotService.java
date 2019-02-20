@@ -8,6 +8,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.comparator.NullSafeComparator;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
@@ -56,7 +58,7 @@ public class ScreenshotService {
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
 
-    @Autowired
+    @PersistenceContext
     EntityManager em;
 
     /**
@@ -319,7 +321,25 @@ public class ScreenshotService {
         query.where(conjunction);
         query.orderBy(builder.asc(screenshot.get(Screenshot_.id)));
 
+        em.createQuery("from Screenshot").getResultList().stream().forEach(s ->{
+
+            Screenshot screenshot1 = (Screenshot)s;
+        logger.error(ToStringBuilder.reflectionToString(screenshot1));
+        logger.error(ToStringBuilder.reflectionToString(screenshot1.getScreenshotRun()));
+        }
+
+        );
+
+
+
         List<Screenshot> screenshots = em.createQuery(query.distinct(true).select(screenshot)).setFirstResult(offset).setMaxResults(limit).getResultList();
+        logger.error("entitymanager: {}", em);
+
+
+
+
+        screenshotRepository.findAll().stream().forEach(s -> logger.error(s.getName()));
+
         return screenshots;
     }
 

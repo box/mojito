@@ -126,13 +126,13 @@ class DashboardSearchResults extends React.Component {
                 </Col>
                 <Col md={2}>
                     <Link className="clickable"
-                          onClick={() => this.props.onNeedTranslationClick(branchStatistic, null, false)}>
-                        {branchStatistic.forTranslationCount === 0 ?
+                          onClick={() => this.props.onNeedTranslationClick(branchStatistic, null, branchStatistic.forTranslationCount > 0)}>
+                        {branchStatistic.forTranslationCount > 0 ?
+                            <FormattedNumber value={branchStatistic.forTranslationCount}/>
+                            :
                             <Label bsStyle="success" className="mrs">
                                 <FormattedMessage id="dashboard.done"/>
                             </Label>
-                            :
-                            <FormattedNumber value={branchStatistic.forTranslationCount}/>
                         }
                     </Link>
                 </Col>
@@ -155,10 +155,6 @@ class DashboardSearchResults extends React.Component {
         let isTextUnitChecked = this.props.selectedBranchTextUnitIds.indexOf(branchTextUnitStatistic.id) !== -1;
 
         let className = ClassNames("dashboard-branchstatistic-branch-textunit", {"dashboard-branchstatistic-branch-open": this.isBranchStatisticOpen(branchStatistic)});
-
-        let propz = this.props;
-
-        console.log(branchTextUnitStatistic.tmTextUnit.id in this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id]);
 
         return (<Collapse in={this.isBranchStatisticOpen(branchStatistic)}>
             <div>
@@ -195,9 +191,9 @@ class DashboardSearchResults extends React.Component {
                                   onClick={() => this.props.onNeedTranslationClick(
                                       branchStatistic,
                                       branchTextUnitStatistic.tmTextUnit.id,
-                                      branchTextUnitStatistic.forTranslationCount === branchTextUnitStatistic.totalCount)}
+                                      branchTextUnitStatistic.forTranslationCount > 0)}
                             >
-                                {branchTextUnitStatistic.forTranslationCount === branchTextUnitStatistic.totalCount ?
+                                {branchTextUnitStatistic.forTranslationCount > 0 ?
                                     <FormattedNumber value={branchTextUnitStatistic.forTranslationCount}/>
                                     :
                                     <Glyphicon glyph="ok" className="color-gray-light"/>
