@@ -100,7 +100,7 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
     l10n.org.quartz.dataSource.myDS.driver=com.mysql.jdbc.Driver
     l10n.org.quartz.dataSource.myDS.URL=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
     l10n.org.quartz.dataSource.myDS.user=${DB_USERNAME}
-    l10n.org.quartz.dataSource.myDS.password=${DB_USERNAME}
+    l10n.org.quartz.dataSource.myDS.password=${DB_PASSWORD}
     l10n.org.quartz.dataSource.myDS.maxConnections=12
     l10n.org.quartz.dataSource.myDS.validationQuery=select 1
 
