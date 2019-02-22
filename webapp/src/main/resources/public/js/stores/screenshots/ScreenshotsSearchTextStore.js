@@ -42,7 +42,6 @@ class ScreenshotsSearchTextStore {
     }
 
     changeScreenshotRunType(screenshotRunType) {
-        console.log("changeScreenshotRunType" + screenshotRunType);
         this.screenshotRunType = screenshotRunType;
     }
 

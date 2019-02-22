@@ -104,6 +104,21 @@ class BaseClient {
         });
     }
 
+    putBinaryData(url, data) {
+        return fetch(url, {
+            method: 'put',
+            compress: false, // workaround for node-fetch, see this file header
+            credentials: 'include',
+            body: data,
+            headers: {
+                'X-CSRF-TOKEN': this.getCSRF()
+            },
+            follow: 0
+        }).then(response => {
+            this.handleUnauthenticatedResponse(response);
+        });
+    }
+
     post(url, data) {
         return fetch(url, {
             method: 'post',

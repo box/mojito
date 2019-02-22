@@ -1,8 +1,6 @@
-import $ from "jquery";
-import _ from "lodash";
 import PropTypes from 'prop-types';
 import React, {Image} from "react";
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {injectIntl} from 'react-intl';
 import {Label} from "react-bootstrap";
 import ReactDOM from "react-dom";
 import keycode from "keycode";
@@ -66,8 +64,8 @@ class Screenshot extends React.Component {
      * @return {JSX}
      */
     render() {
-      
-        let screenshotClassName = "screenshot"
+
+        let screenshotClassName = "screenshot";
         
         if (this.props.isSelected) {
            screenshotClassName += " screenshot-selected";

@@ -1,22 +1,15 @@
 import keycode from "keycode";
-
 import React from "react";
 import {withRouter} from 'react-router';
-
 import AltContainer from "alt-container";
-
 import SearchConstants from "../../utils/SearchConstants";
-
 import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore";
-import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
 import ScreenshotsPageStore from "../../stores/screenshots/ScreenshotsPageStore";
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
 import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPaginatorStore";
 import ScreenshotsReviewModalStore from "../../stores/screenshots/ScreenshotsReviewModalStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
-import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
 import ScreenshotsLocaleActions from "../../actions/screenshots/ScreenshotsLocaleActions";
 import ScreenshotsSearchTextActions from "../../actions/screenshots/ScreenshotsSearchTextActions";
 import ScreenshotsPaginatorActions from "../../actions/screenshots/ScreenshotsPaginatorActions";
@@ -24,14 +17,15 @@ import ScreenshotActions from "../../actions/screenshots/ScreenshotActions";
 import ScreenshotsReviewModalActions from "../../actions/screenshots/ScreenshotsReviewModalActions";
 import ScreenshotsHistoryActions from "../../actions/screenshots/ScreenshotsHistoryActions";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-
 import RepositoryDropdown from "./RepositoryDropdown";
 import LocalesDropdown from "./LocalesDropdown";
-import Paginator from "./Paginator";
+import Paginator from "../widgets/Paginator";
 import ScreenshotsSearchText from "./ScreenshotsSearchText";
 import ScreenshotsGrid from "./ScreenshotsGrid";
 import StatusDropdown from "./StatusDropdown";
 import ScreenshotReviewModal from "./ScreenshotReviewModal";
+import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsRepositoryActions";
+import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
 
 class ScreenshotsPage extends React.Component {
 
@@ -145,7 +139,8 @@ class ScreenshotsPage extends React.Component {
         let screenshotsPageStoreState = ScreenshotsPageStore.getState();
         let selectedScreenshotIdx = ScreenshotsPageStore.getState().selectedScreenshotIdx;
 
-        if (selectedScreenshotIdx === (screenshotsPaginatorStoreState.limit - 1)) {
+        if (selectedScreenshotIdx === (screenshotsPaginatorStoreState.limit - 1) &&
+            screenshotsPaginatorStoreState.hasNextPage) {
             ScreenshotsHistoryActions.disableHistoryUpdate();
             ScreenshotsPaginatorActions.goToNextPage();
             ScreenshotsPageActions.changeSelectedScreenshotIdx(0);
@@ -217,7 +212,7 @@ class ScreenshotsPage extends React.Component {
                                 />
                         </AltContainer>
 
-                            <AltContainer store={ScreenshotsSearchTextStore}
+                        <AltContainer store={ScreenshotsSearchTextStore}
                                       shouldComponentUpdate={(props, nextProps, nextState) => {
                                 //TODO investigate that pattern vs dedicated store
                                 return props.status !== nextState.status ||

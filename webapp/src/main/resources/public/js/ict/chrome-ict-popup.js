@@ -1,8 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 
-import {Button, ToggleButton, ToggleButtonGroup, Form, FormGroup, FormControl, 
-    ControlLabel, Col} from "react-bootstrap";
+import {Col, ControlLabel, Form, FormControl, FormGroup, ToggleButton, ToggleButtonGroup} from "react-bootstrap";
 
 import "../../../sass/mojito.scss";
 import "../../../sass/ict.scss";

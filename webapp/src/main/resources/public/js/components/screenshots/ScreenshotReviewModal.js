@@ -1,10 +1,7 @@
-import $ from "jquery";
-import _ from "lodash";
 import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
 import {Button, ButtonGroup, ButtonToolbar, FormControl, Modal} from "react-bootstrap";
-import keymirror from "keymirror";
 import StatusCommon, {StatusCommonTypes} from "./StatusCommon";
 
 class ScreenshotReviewModal extends React.Component {
