@@ -30,10 +30,7 @@ public class AssetPathToFilterConfigMapper {
     //TODO(P1) check if we want escaped or not, potentially configurable.
     //TODO(P1) Trim comment coming from this PropertiesFilter? # comment gives " comment"
     public static final String PROPERTIES_FILTER_CONFIG_ID = "okf_properties-outputNotEscaped";
-     
     public static final String MACSTRINGS_FILTER_CONFIG_ID = MacStringsFilter.FILTER_CONFIG_ID + "-macStrings";
-    public static final String MACSTRINGSDICT_FILTER_CONFIG_ID = MacStringsdictFilter.FILTER_CONFIG_ID + "-stringsdict";
-    public static final String MACSTRINGSDICT_FILTER_KEY_CONFIG_ID = MacStringsdictFilterKey.FILTER_CONFIG_ID + "-stringsdict";
     public static final String RESX_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-resx";
     public static final String XTB_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-xtb";
     public static final String JS_FILTER_CONFIG_ID = JSFilter.FILTER_CONFIG_ID + "-js";
@@ -44,7 +41,7 @@ public class AssetPathToFilterConfigMapper {
         PROPERTIES(PROPERTIES_FILTER_CONFIG_ID, "properties"),
         ANDROIDSTRINGS(AndroidFilter.FILTER_CONFIG_ID, "xml"),
         MACSTRINGS(MACSTRINGS_FILTER_CONFIG_ID, "strings"),
-        MACSTRINGSDICT(MACSTRINGSDICT_FILTER_CONFIG_ID, "stringsdict"),
+        MACSTRINGSDICT(MacStringsdictFilter.FILTER_CONFIG_ID, "stringsdict"),
         PO(POFilter.FILTER_CONFIG_ID, "pot"),
         RESX(RESX_FILTER_CONFIG_ID, "resx", "resw"),
         XTB(XTB_FILTER_CONFIG_ID, "xtb"),
