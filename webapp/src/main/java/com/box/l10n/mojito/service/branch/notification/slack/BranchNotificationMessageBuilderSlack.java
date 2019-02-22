@@ -7,6 +7,7 @@ import com.box.l10n.mojito.slack.request.Message;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -89,25 +90,21 @@ public class BranchNotificationMessageBuilderSlack {
         Action actionScreenshot = new Action();
         actionScreenshot.setType(ACTION_TYPE_BUTTON);
         actionScreenshot.setText("Screenshots");
-        actionScreenshot.setUrl(getScreenhostUrl());
+        actionScreenshot.setUrl(getScreenshotUrl(pr));
         actionScreenshot.setStyle(ACTION_STYLE_PRIMARY);
         attachment.getActions().add(actionScreenshot);
-
-        Action actionStatus = new Action();
-        actionStatus.setType(ACTION_TYPE_BUTTON);
-        actionStatus.setText("Status");
-        actionStatus.setUrl(getStatusUrl());
-        attachment.getActions().add(actionStatus);
 
         return message;
     }
 
-    String getScreenhostUrl() {
-        return branchNotificationSlackConfiguration.getMojitoUrl() + "/screenshots";
-    }
-
-    String getStatusUrl() {
-        return branchNotificationSlackConfiguration.getMojitoUrl() + "/status";
+    String getScreenshotUrl(String pr) {
+        return UriComponentsBuilder
+                .fromHttpUrl(branchNotificationSlackConfiguration.getMojitoUrl())
+                .path("branches")
+                .queryParam("searchText", pr)
+                .queryParam("deleted", false)
+                .build()
+                .toUriString();
     }
 
     String getSummaryString(List<String> strings) {
