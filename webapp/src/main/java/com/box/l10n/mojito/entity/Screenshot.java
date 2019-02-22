@@ -62,7 +62,7 @@ public class Screenshot extends SettableAuditableEntity {
     @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__LOCALE__ID"))
     private Locale locale;
 
-    @JsonView(View.Screenshots.class)
+    @JsonView({View.Screenshots.class, View.BranchStatistic.class})
     @Column(name = "src", length = Integer.MAX_VALUE)
     private String src;
 

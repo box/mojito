@@ -46,7 +46,7 @@ public class View {
     /**
      * This is used to get Branch entity with minimum fields for summary
      */
-    public interface BranchSummary extends IdAndName {}
+    public interface BranchSummary extends IdAndNameAndCreated {}
     /**
      * This is used to get TmTextUnit entity with minimum fields for summary
      */
