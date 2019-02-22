@@ -2,9 +2,6 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.springframework.data.annotation.CreatedBy;
@@ -30,7 +27,7 @@ import java.util.Set;
                 @Index(name = "UK__BRANCH__REPOSITORY_ID__PATH", columnList = "repository_id, name", unique = true),
         }
 )
-public class Branch extends BaseEntity {
+public class Branch extends SettableAuditableEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "repository_id", foreignKey = @ForeignKey(name = "FK__BRANCH__REPOSITORY__ID"))
@@ -54,6 +51,7 @@ public class Branch extends BaseEntity {
     @JsonView(View.BranchSummary.class)
     @OneToMany(mappedBy = "branch", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonDeserialize(as = LinkedHashSet.class)
+    @OrderBy("id")
     Set<Screenshot> screenshots = new HashSet<>();
 
     public Repository getRepository() {

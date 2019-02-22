@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import javax.persistence.Column;
@@ -17,6 +19,7 @@ public abstract class SettableAuditableEntity extends BaseEntity {
 
     @Column(name = "created_date")
     @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
+    @JsonView(View.IdAndNameAndCreated.class)
     protected DateTime createdDate;
 
     public DateTime getCreatedDate() {
