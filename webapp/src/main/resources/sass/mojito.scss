@@ -24,7 +24,6 @@ $icon-font-path: "../../../../node_modules/bootstrap-sass/assets/fonts/bootstrap
 @import "../../../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 @import "../../../../node_modules/react-datetime/css/react-datetime.css";
 
-
 body {
     font-weight: $brand-font-weight;
 }
@@ -338,6 +337,10 @@ a.label-container:hover {
     text-align: center;
 }
 
+.float-right {
+    float: right;
+}
+
 .color-info {
     color: $brand-info;
 }
@@ -382,7 +385,7 @@ a.label-container:hover {
  * WORKBENCH
  */
 
-/* override  bootstrap css so that status dropdown options do not wrap in the workbench */
+/* override    bootstrap css so that status dropdown options do not wrap in the workbench */
 div.statusDropdown {
     min-width: 200px;
 }
@@ -644,8 +647,8 @@ label.current-pageNumber {
     padding-top: 10px;
 }
 
-.side-bar-main-content-container-screenshot {  
-    padding-left: 10px; 
+.side-bar-main-content-container-screenshot {
+    padding-left: 10px;
 }
 
 .side-bar-container {
@@ -654,7 +657,7 @@ label.current-pageNumber {
 }
 
 .side-bar-container-screenshot {
-    width: 300px; 
+    width: 300px;
     padding-right: 10px;
 }
 
@@ -724,13 +727,14 @@ label.current-pageNumber {
     display: flex;
     justify-content: center;
     width: 300px;
-    height: 500px;   
+    height: 500px;
 }
 
 .screenshot-placeholder img {
     max-width: 100%;
     max-height: 100%;
 }
+
 .screenshot-description {
     background-color: #fff;
     padding-top: 10px;
@@ -746,4 +750,152 @@ label.current-pageNumber {
 
 .screenshot-selected {
     box-shadow: 3px 3px 3px #559745;
+}
+
+.branches-branchstatistic a {
+    color: $gray-dark;
+}
+
+.branches-branchstatistic-header {
+    font-size: 12px;
+    font-weight: 400;
+    margin-bottom: 15px;
+    margin-top: 15px;
+}
+
+.branches-branchstatistic-summary {
+    border-top: 1px solid $gray-lighter;
+    margin-top: 5px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.branches-branchstatistic-summary:hover .branches-branchstatistic-screenshotpreview {
+    display: inline;
+}
+
+.branches-branchstatistic-screenshotpreview {
+    display: none;
+    color: $brand-primary
+}
+
+.branches-branchstatistic-textunit {
+    border-top: 1px solid $gray-lighter;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.branches-branchstatistic-col1 {
+    padding-left: 0px;
+}
+
+.branches-branchstatistic-textunit-open {
+    border-left: 2px solid $brand-primary;
+}
+
+.branches-branchstatistic-textunit-check {
+    padding-left: 5px;
+    padding-right: 5px;
+    float: left;
+}
+
+.branches-branchstatistic-textunit-content {
+    padding-left: 23px;
+    color: $gray-light;
+    font-size: 11px;
+}
+
+.branches-screenshotviewer-modal {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.branches-screenshotviewer-modal .modal-content {
+    height: 100%;
+    border: none;
+}
+
+.branches-screenshotviewer-modal .modal-body {
+    height: 96%;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.branches-screenshotviewer-modal .modal-header {
+    background-color: $color-white;
+    height: 4%;
+    min-height: 25px;
+    padding: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.branches-screenshotviewer-modal .modal-title {
+    font-size: 14px;
+}
+
+.branches-screenshotviewer-modal-cols {
+    height: 100%;
+}
+
+.branches-screenshotviewer-modal-textunits-container {
+    display: flex;
+    height: 100%;
+}
+
+.branches-screenshotviewer-modal-textunits {
+    display: block;
+    margin-top: auto;
+    margin-bottom: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    font-size: 11px;
+}
+
+.branches-screenshotviewer-modal-image-container {
+    display: flex;
+    height: 100%;
+    background-color: rgb(246, 246, 246);
+}
+
+.branches-screenshotviewer-modal-image {
+    display: block;
+    margin: auto;
+    max-width: 100%;
+    max-height: 100%;
+    height: auto;
+    padding-right: 20px;
+    padding-left: 10px;
+}
+
+.branches-screenshotviewer-modal-gotoprevious {
+    top: 45%;
+    left: 1px;
+    position: fixed;
+    height: 38px;
+    width: 21px;
+    font-size: 30px;
+    color: $color-gray-light;
+}
+
+.branches-screenshotviewer-modal-gotoprevious.enabled:hover {
+    color: $gray-light;
+}
+
+.branches-screenshotviewer-modal-gotonext {
+    top: 45%;
+    right: 10px;
+    position: fixed;
+    height: 38px;
+    width: 21px;
+    font-size: 30px;
+    color: $color-gray-light;
+}
+
+.branches-screenshotviewer-modal-gotonext.enabled:hover {
+    color: $gray-light;
 }

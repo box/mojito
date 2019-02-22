@@ -158,6 +158,7 @@ public class AssetService {
         }
 
         User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor();
+        logger.debug("Branch created by username: {}", branchCreatedByUser.getUsername());
 
         Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
 

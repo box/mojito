@@ -28,6 +28,14 @@ class TextUnitSearcherParameters {
         return this;
     }
 
+    tmTextUnitIds(tmTextUnitIds) {
+        this.params.tmTextUnitIds = tmTextUnitIds;
+    }
+
+    branchId(branchId) {
+        this.params.branchId = branchId;
+    }
+
     localeTags(localeTags) {
         this.params.localeTags = localeTags;
         return this;

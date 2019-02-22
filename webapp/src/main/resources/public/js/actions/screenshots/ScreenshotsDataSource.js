@@ -1,5 +1,4 @@
 import ScreenshotsPageActions from "./ScreenshotsPageActions";
-
 import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore";
 import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
@@ -23,7 +22,7 @@ const ScreenshotsDataSource = {
 
                 promise = new Promise((resolve) => {
                     setTimeout(function () {
-                        resolve([]);
+                        resolve({'content': [], 'hasNext': false, 'size': 0});
                     }, 0);
                 });
             } else {
@@ -32,7 +31,7 @@ const ScreenshotsDataSource = {
                     bcp47Tags: screenshotsLocaleStoreState.selectedBcp47Tags,
                     status: screenshotsSearchTextStoreState.status === StatusCommonTypes.ALL ? null : screenshotsSearchTextStoreState.status,
                     screenshotRunType: screenshotsSearchTextStoreState.screenshotRunType,
-                    limit: screenshotsPaginatorStoreState.limit,
+                    limit: screenshotsPaginatorStoreState.limit + 1,
                     offset: screenshotsPaginatorStoreState.limit * (screenshotsPaginatorStoreState.currentPageNumber - 1),
                 };
 
@@ -51,8 +50,16 @@ const ScreenshotsDataSource = {
                     params.searchType = screenshotsSearchTextStoreState.searchType.toUpperCase();
                 }
 
-                promise = ScreenshotClient.getScreenshots(params).then(function (results) {
-                    return results;
+                promise = ScreenshotClient.getScreenshots(params).then(function (screenshots) {
+
+                    let hasNext = false;
+
+                    if (screenshots.length === screenshotsPaginatorStoreState.limit + 1) {
+                        hasNext = true;
+                        screenshots = screenshots.slice(0, screenshotsPaginatorStoreState.limit);
+                    }
+
+                    return {'content': screenshots, 'hasNext': hasNext, 'size': screenshots.length};
                 });
             }
 

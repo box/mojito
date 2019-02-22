@@ -15,8 +15,8 @@ let ConfirmationModal = React.createClass({
         "modalBodyMessage": PropTypes.string.isRequired,
         "onCancelledCallback": PropTypes.func.isRequired,
         "onConfirmedCallback": PropTypes.func.isRequired,
-        "confirmButtonLabel": PropTypes.func.isRequired,
-        "cancelButtonLabel": PropTypes.func.isRequired
+        "confirmButtonLabel": PropTypes.string.isRequired,
+        "cancelButtonLabel": PropTypes.string.isRequired
     },
 
     getDefaultProps() {

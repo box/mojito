@@ -1,11 +1,9 @@
-import $ from "jquery";
 import React from "react";
 import {Table} from "react-bootstrap";
 import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 import RepositoryStore from "../../stores/RepositoryStore";
 import RepositoryHeaderColumn from "./RepositoryHeaderColumn";
 import RepositoryRow from "./RepositoryRow";
-import RepositoryActions from "../../actions/RepositoryActions";
 import RepositoryStatistic from "../../components/repositories/RepositoryStatistic";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 

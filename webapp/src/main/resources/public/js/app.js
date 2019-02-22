@@ -2,10 +2,10 @@ import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 import ReactDOM from "react-dom";
-import {Router, Route, IndexRoute, useRouterHistory} from "react-router";
-import { createHistory } from 'history'
-        import {Modal, Button} from "react-bootstrap";
-import {FormattedMessage, IntlProvider, addLocaleData} from "react-intl";
+import {IndexRoute, Route, Router, useRouterHistory} from "react-router";
+import {createHistory} from 'history'
+import {Button, Modal} from "react-bootstrap";
+import {addLocaleData, FormattedMessage, IntlProvider} from "react-intl";
 import {AppConfig} from "./utils/AppConfig";
 import App from "./components/App";
 import BaseClient from "./sdk/BaseClient";
@@ -13,6 +13,7 @@ import Main from "./components/Main";
 import Login from "./components/Login";
 import Workbench from "./components/workbench/Workbench";
 import Repositories from "./components/repositories/Repositories";
+import BranchesPage from "./components/branches/BranchesPage";
 import Drops from "./components/drops/Drops";
 import ScreenshotsPage from "./components/screenshots/ScreenshotsPage";
 import Settings from "./components/settings/Settings";
@@ -28,7 +29,6 @@ import SearchParamsStore from "./stores/workbench/SearchParamsStore";
 import IctMetadataBuilder from "./ict/IctMetadataBuilder";
 
 import LocationHistory from "./utils/LocationHistory";
-
 // NOTE this way of adding locale data is only recommeneded if there are a few locales.
 // if there are more, we should load it dynamically using script tags
 // https://github.com/yahoo/react-intl/wiki#locale-data-in-browsers
@@ -43,6 +43,9 @@ import it from 'react-intl/locale-data/it';
 import ja from 'react-intl/locale-data/ja';
 import pt from 'react-intl/locale-data/pt';
 import zh from 'react-intl/locale-data/zh';
+import BranchesPageActions from "./actions/branches/BranchesPageActions";
+import BranchesHistoryStore from "./stores/branches/BranchesHistoryStore";
+
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
 __webpack_public_path__ = CONTEXT_PATH + "/";
@@ -110,6 +113,9 @@ function startApp(messages) {
                                 <Route path="repositories" component={Repositories}
                                        onEnter={getAllRepositoriesDeffered}/>
                                 <Route path="project-requests" component={Drops}/>
+                                <Route path="branches" component={BranchesPage}
+                                       onEnter={onEnterBranches}
+                                       onLeave={BranchesPageActions.resetBranchesSearchParams}/>
                                 <Route path="screenshots" component={ScreenshotsPage}
                                        onEnter={onEnterScreenshots}
                                        onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
@@ -184,6 +190,13 @@ function getAllRepositoriesDeffered() {
     }, 1);
 }
 
+function onEnterBranches() {
+    setTimeout(() => {
+        RepositoryActions.getAllRepositories();
+        BranchesPageActions.getBranches();
+    }, 1);
+}
+
 function onEnterScreenshots() {
     setTimeout(() => {
         ScreenshotsRepositoryActions.getAllRepositories();
@@ -205,6 +218,10 @@ function loadBasedOnLocation(location) {
     if (location.pathname === '/screenshots' && location.action === 'POP') {
         ScreenshotsHistoryStore.initStoreFromLocationQuery(location.query);
     }
+
+    if (location.pathname === '/branches' && location.action === 'POP') {
+        BranchesHistoryStore.initStoreFromLocationQuery(location.query);
+    }
 }
 
 function onScreenshotsHistoryStoreChange() {
@@ -215,6 +232,14 @@ function onScreenshotsHistoryStoreChange() {
 
 ScreenshotsHistoryStore.listen(() => onScreenshotsHistoryStoreChange());
 
+
+function onBranchesHistoryStoreChange() {
+    if (!BranchesHistoryStore.getState().skipLocationHistoryUpdate) {
+        LocationHistory.updateLocation(browserHistory, "/branches", BranchesHistoryStore.getQueryParams());
+    }
+}
+
+BranchesHistoryStore.listen(() => onBranchesHistoryStoreChange());
 
 /**
  * Listen to history changes, when doing a POP for the workbench, initialize 

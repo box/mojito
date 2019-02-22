@@ -17,33 +17,79 @@ class SearchParamsStore {
         this.bindActions(RepositoryActions);
     }
 
-    setDefaultParameters() {
+    /**
+     * Convert location query to search parameters
+     *
+     * @param {string} query The query string from location.query
+     * @return {{repoIds: number[], bcp47Tags: string[], searchAttribute: string, searchText: string,
+     * searchType: string, used: boolean, unUsed: boolean, translate: boolean,
+     * doNotTranslate: boolean, status: SearchParamsStore.STATUS,
+     * tmTextUnitCreatedBefore: SearchParamsStore.CREATED_BEFORE
+     * tmTextUnitCreatedAfter: SearchParamsStore.CREATED_AFTER
+     * pageSize: Number, currentPageNumber: Number, pageOffset: Number }}
+     */
+    static convertQueryToSearchParams(query) {
 
-        this.repoIds = [];
-        this.repoNames = [];
-        this.bcp47Tags = [];
+        let {
+            searchAttribute, searchText, searchType,
+            status, used, unUsed, translate, doNotTranslate, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter,
+            pageSize, currentPageNumber, pageOffset,
+            pluralFormOther, branchId
+        } = query;
 
-        this.searchText = "";
-        this.searchAttribute = SearchParamsStore.SEARCH_ATTRIBUTES.TARGET;
-        this.searchType = SearchParamsStore.SEARCH_TYPES.CONTAINS;
+        let repoIds = query["repoIds[]"];
+        let tmTextUnitIds = query["tmTextUnitIds[]"];
+        let repoNames = query["repoNames[]"];
+        let bcp47Tags = query["bcp47Tags[]"];
 
-        this.pluralFormOther = null;
+        if (typeof repoIds !== "undefined") {
+            if (Array.isArray(repoIds)) {
+                repoIds = repoIds.map((value) => parseInt(value));
+            } else {
+                repoIds = [parseInt(repoIds)];
+            }
+        }
 
-        // 'Filter by' related
-        this.status = SearchParamsStore.STATUS.ALL;
-        this.used = true;
-        this.unUsed = false;
-        
-        this.translate = true;
-        this.doNotTranslate = true;
+        if (typeof repoNames !== "undefined" && !Array.isArray(repoNames)) {
+            repoNames = [repoNames];
+        }
 
-        this.tmTextUnitCreatedBefore = null;
-        this.tmTextUnitCreatedAfter = null;
-        
-        // pagination related attributes
-        this.pageSize = 10;
-        this.currentPageNumber = 1;
-        this.pageOffset = 0;
+        if (typeof bcp47Tags !== "undefined" && !Array.isArray(bcp47Tags)) {
+            bcp47Tags = [bcp47Tags];
+        }
+
+        if (typeof tmTextUnitIds !== "undefined") {
+            if (Array.isArray(tmTextUnitIds)) {
+                tmTextUnitIds = tmTextUnitIds.map((value) => parseInt(value));
+            } else {
+                tmTextUnitIds = [parseInt(tmTextUnitIds)];
+            }
+        }
+
+        let converted = {
+            "changedParam": SearchConstants.UPDATE_ALL,
+            "repoIds": typeof repoIds !== "undefined" ? repoIds : null,
+            "repoNames": typeof repoNames !== "undefined" ? repoNames : null,
+            "bcp47Tags": typeof bcp47Tags !== "undefined" ? bcp47Tags : null,
+            "searchAttribute": typeof searchAttribute !== "undefined" ? searchAttribute : null,
+            "searchText": typeof searchText !== "undefined" ? searchText : null,
+            "searchType": typeof searchType !== "undefined" ? searchType : null,
+            "status": typeof status !== "undefined" ? status : null,
+            "used": typeof used !== "undefined" ? (used === "true") : null,
+            "unUsed": typeof unUsed !== "undefined" ? (unUsed === "true") : null,
+            "translate": typeof translate !== "undefined" ? (translate === "true") : null,
+            "doNotTranslate": typeof doNotTranslate !== "undefined" ? (doNotTranslate === "true") : null,
+            "tmTextUnitCreatedBefore": typeof tmTextUnitCreatedBefore !== "undefined" ? tmTextUnitCreatedBefore : null,
+            "tmTextUnitCreatedAfter": typeof tmTextUnitCreatedAfter !== "undefined" ? tmTextUnitCreatedAfter : null,
+            "pageSize": typeof pageSize !== "undefined" ? parseInt(pageSize) : null,
+            "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
+            "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null,
+            "pluralFormOther": typeof pluralFormOther !== "undefined" ? pluralFormOther : null,
+            "tmTextUnitIds": typeof tmTextUnitIds !== "undefined" ? tmTextUnitIds : null,
+            "branchId": typeof branchId !== "undefined" ? branchId : null
+        };
+
+        return converted;
     }
 
     /**
@@ -156,6 +202,37 @@ class SearchParamsStore {
         }
     }
 
+    setDefaultParameters() {
+
+        this.repoIds = [];
+        this.branchId = null;
+        this.tmTextUnitIds = [];
+        this.repoNames = [];
+        this.bcp47Tags = [];
+
+        this.searchText = "";
+        this.searchAttribute = SearchParamsStore.SEARCH_ATTRIBUTES.TARGET;
+        this.searchType = SearchParamsStore.SEARCH_TYPES.CONTAINS;
+
+        this.pluralFormOther = null;
+
+        // 'Filter by' related
+        this.status = SearchParamsStore.STATUS.ALL;
+        this.used = true;
+        this.unUsed = false;
+
+        this.translate = true;
+        this.doNotTranslate = true;
+
+        this.tmTextUnitCreatedBefore = null;
+        this.tmTextUnitCreatedAfter = null;
+
+        // pagination related attributes
+        this.pageSize = 10;
+        this.currentPageNumber = 1;
+        this.pageOffset = 0;
+    }
+
     /**
      * Merges all values with the current state of the store.
      *
@@ -174,10 +251,10 @@ class SearchParamsStore {
      * @param {int} pageOffset
      */
     updateAllParameters( {
-    repoIds = null, repoNames = null, bcp47Tags = null, searchText = null,
+                             repoIds = null, branchId = null, tmTextUnitIds = null, repoNames = null, bcp47Tags = null, searchText = null,
             searchAttribute = null, searchType = null, status = null, used = null,
             unUsed = null, pageSize = null, currentPageNumber = null,
-            pageOffset = null, pluralFormOther = null, translate = null, 
+            pageOffset = null, pluralFormOther = null, translate = null,
             doNotTranslate = null, tmTextUnitCreatedBefore = null, tmTextUnitCreatedAfter = null
     } = {}) {
 
@@ -186,6 +263,14 @@ class SearchParamsStore {
 
         if (repoIds !== null) {
             this.repoIds = repoIds.slice();
+        }
+
+        if (branchId != null) {
+            this.branchId = branchId;
+        }
+
+        if (tmTextUnitIds != null) {
+            this.tmTextUnitIds = tmTextUnitIds;
         }
 
         if (repoNames !== null) {
@@ -217,19 +302,19 @@ class SearchParamsStore {
 
         if (unUsed !== null)
             this.unUsed = unUsed;
-        
+
         if (translate !== null)
             this.translate = translate;
-        
+
         if (doNotTranslate !== null)
             this.doNotTranslate = doNotTranslate;
-        
+
         if (tmTextUnitCreatedBefore !== null)
             this.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
 
         if (tmTextUnitCreatedAfter !== null)
             this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
-        
+
         if (pageSize !== null)
             this.pageSize = pageSize;
 
@@ -238,69 +323,6 @@ class SearchParamsStore {
 
         if (pageOffset !== null)
             this.pageOffset = pageOffset;
-    }
-
-    /**
-     * Convert location query to search parameters
-     *
-     * @param {string} query The query string from location.query
-     * @return {{repoIds: number[], bcp47Tags: string[], searchAttribute: string, searchText: string,
-     * searchType: string, used: boolean, unUsed: boolean, translate: boolean,
-     * doNotTranslate: boolean, status: SearchParamsStore.STATUS, 
-     * tmTextUnitCreatedBefore: SearchParamsStore.CREATED_BEFORE
-     * tmTextUnitCreatedAfter: SearchParamsStore.CREATED_AFTER
-     * pageSize: Number, currentPageNumber: Number, pageOffset: Number }}
-     */
-    static convertQueryToSearchParams(query) {
-
-        let {
-            searchAttribute, searchText, searchType,
-            status, used, unUsed, translate, doNotTranslate, tmTextUnitCreatedBefore, tmTextUnitCreatedAfter,
-            pageSize, currentPageNumber, pageOffset,
-            pluralFormOther} = query;
-
-        let repoIds = query["repoIds[]"];
-        let repoNames = query["repoNames[]"];
-        let bcp47Tags = query["bcp47Tags[]"];
-
-        if (typeof repoIds !== "undefined") {
-            if (Array.isArray(repoIds)) {
-                repoIds = repoIds.map((value) => parseInt(value));
-            } else {
-                repoIds = [parseInt(repoIds)];
-            }
-        }
-
-        if (typeof repoNames !== "undefined" && !Array.isArray(repoNames)) {
-            repoNames = [repoNames];
-        }
-
-        if (typeof bcp47Tags !== "undefined" && !Array.isArray(bcp47Tags)) {
-            bcp47Tags = [bcp47Tags];
-        }
-
-        let converted = {
-            "changedParam": SearchConstants.UPDATE_ALL,
-            "repoIds": typeof repoIds !== "undefined" ? repoIds : null,
-            "repoNames": typeof repoNames !== "undefined" ? repoNames : null,
-            "bcp47Tags": typeof bcp47Tags !== "undefined" ? bcp47Tags : null,
-            "searchAttribute": typeof searchAttribute !== "undefined" ? searchAttribute : null,
-            "searchText": typeof searchText !== "undefined" ? searchText : null,
-            "searchType": typeof searchType !== "undefined" ? searchType : null,
-            "status": typeof status !== "undefined" ? status : null,
-            "used": typeof used !== "undefined" ? (used === "true") : null,
-            "unUsed": typeof unUsed !== "undefined" ? (unUsed === "true") : null,
-            "translate": typeof translate !== "undefined" ? (translate === "true") : null,
-            "doNotTranslate": typeof doNotTranslate !== "undefined" ? (doNotTranslate === "true") : null,
-            "tmTextUnitCreatedBefore": typeof tmTextUnitCreatedBefore !== "undefined" ? tmTextUnitCreatedBefore : null,
-            "tmTextUnitCreatedAfter": typeof tmTextUnitCreatedAfter !== "undefined" ? tmTextUnitCreatedAfter : null,
-            "pageSize": typeof pageSize !== "undefined" ? parseInt(pageSize) : null,
-            "currentPageNumber": typeof currentPageNumber !== "undefined" ? parseInt(currentPageNumber) : null,
-            "pageOffset": typeof pageOffset !== "undefined" ? parseInt(pageOffset) : null,
-            "pluralFormOther": typeof pluralFormOther !== "undefined" ? pluralFormOther : null
-        };
-
-        return converted;
     }
 
     getAllRepositoriesSuccess(repositories) {
@@ -402,7 +424,8 @@ SearchParamsStore.STATUS = {
     /**
      * TextUnits that are not rejected, ie includedInLocalizedFile is true.
      */
-    "NOT_REJECTED": "NOT_REJECTED"
+    "NOT_REJECTED": "NOT_REJECTED",
+
 };
 
 export default alt.createStore(SearchParamsStore, 'SearchParamsStore');
