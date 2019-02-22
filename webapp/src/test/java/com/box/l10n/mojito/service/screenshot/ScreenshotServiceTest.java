@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.screenshot;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
+import com.box.l10n.mojito.entity.ScreenshotTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
@@ -11,15 +12,14 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,7 +31,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * @author jeanaurambault
  */
-@Ignore
 public class ScreenshotServiceTest extends ServiceTestBase {
 
     /**
@@ -83,7 +82,6 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         Assert.assertNotNull(arrayList.get(1).getId());
     }
 
-    @Transactional
     @Test
     public void testManualRun() throws Exception {
 
@@ -183,7 +181,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
 
     @Test
     public void testSearchScreenshotsByRepository() throws RepositoryNameAlreadyUsedException {
-        Repository repository = createScreenshotData();
+        Repository repository = createScreenshotDataAsRepository();
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()), null, null, null, null,
                 null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 0, 10);
@@ -195,7 +193,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     @Test
     public void testSearchScreenshotsByLocale() throws RepositoryNameAlreadyUsedException {
 
-        Repository repository = createScreenshotData();
+        Repository repository = createScreenshotDataAsRepository();
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
@@ -220,7 +218,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     @Test
     public void testSearchScreenshotsByName() throws RepositoryNameAlreadyUsedException {
 
-        Repository repository = createScreenshotData();
+        Repository repository = createScreenshotDataAsRepository();
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
@@ -235,7 +233,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     @Test
     public void testSearchScreenshotsByStatus() throws RepositoryNameAlreadyUsedException {
 
-        Repository repository = createScreenshotData();
+        Repository repository = createScreenshotDataAsRepository();
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()),
@@ -262,15 +260,17 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(1, searchScreenshots.size());
     }
 
+
     @Test
     public void testSearchScreenshotsByPagination() throws RepositoryNameAlreadyUsedException {
 
-        Repository repository = createScreenshotData();
+        Repository repository = createScreenshotDataAsRepository();
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()), null, null, null,
                 null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 1, 1);
 
+        logger.error("DD repository: {}", repository.getId());
         assertEquals("screen3", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
     }
@@ -278,8 +278,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     @Test
     public void testLastRunSuccessful() throws RepositoryNameAlreadyUsedException {
 
-        Repository repository = createScreenshotData();
-        createScreenshotData(repository);
+        Repository repository = createScreenshotDataAsRepository();
+        createScreenshotDataForRepository(repository);
 
         List<Screenshot> searchScreenshots = screenshotService.searchScreenshots(
                 Arrays.asList(repository.getId()), null, null, null,
@@ -288,13 +288,17 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         assertEquals(3, searchScreenshots.size());
     }
 
-    public Repository createScreenshotData() {
-        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
-        Repository repository = tmTestDataSource.repository;
-        return createScreenshotData(repository);
+    public Repository createScreenshotDataAsRepository() {
+        return createScreenshotData().repository;
     }
 
-    public Repository createScreenshotData(Repository repository) {
+    public TMTestData createScreenshotData() {
+        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+        createScreenshotDataForRepository(tmTestDataSource.repository);
+        return tmTestDataSource;
+    }
+
+    public void createScreenshotDataForRepository(Repository repository) {
 
         Screenshot screen1 = new Screenshot();
         screen1.setName("screen1");
@@ -315,13 +319,12 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screen3.setStatus(Screenshot.Status.NEEDS_REVIEW);
 
         ScreenshotRun screenshotRun = new ScreenshotRun();
+        screenshotRun.setName(UUID.randomUUID().toString());
         screenshotRun.setRepository(repository);
         screenshotRun.getScreenshots().add(screen1);
         screenshotRun.getScreenshots().add(screen2);
         screenshotRun.getScreenshots().add(screen3);
         screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
-
-        return repository;
     }
 
 }
