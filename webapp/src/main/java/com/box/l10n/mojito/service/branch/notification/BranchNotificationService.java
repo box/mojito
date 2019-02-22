@@ -189,7 +189,8 @@ public class BranchNotificationService {
     }
 
     boolean shouldSendUpdatedMessage(BranchNotification branchNotification, BranchNotificationInfo branchNotificationInfo) {
-        return branchNotification.getUpdatedMsgSentAt() == null
+        return branchNotification.getNewMsgSentAt() != null
+                && branchNotification.getUpdatedMsgSentAt() == null
                 && !branchNotificationInfo.getContentMd5().equals(branchNotification.getContentMD5());
     }
 
@@ -198,7 +199,8 @@ public class BranchNotificationService {
     }
 
     boolean shouldSendTranslatedMessage(Branch branch, BranchNotification branchNotification) {
-        return branchNotification.getTranslatedMsgSentAt() == null
+        return branchNotification.getNewMsgSentAt() != null
+                && branchNotification.getTranslatedMsgSentAt() == null
                 && isBranchTranslated(branch);
     }
 
@@ -248,7 +250,7 @@ public class BranchNotificationService {
         } else {
             branchNotification = resetMessageIdIfSenderChanged(branchNotification);
         }
-        
+
         return branchNotification;
     }
 
