@@ -25,6 +25,7 @@ import java.util.Set;
         name = "branch",
         indexes = {
                 @Index(name = "UK__BRANCH__REPOSITORY_ID__PATH", columnList = "repository_id, name", unique = true),
+                @Index(name = "I__BRANCH__DELETED", columnList = "deleted")
         }
 )
 public class Branch extends SettableAuditableEntity {

@@ -29,8 +29,7 @@ public class DDLGenerator extends ServiceTestBase {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(DDLGenerator.class);
-    
-       
+
     @Autowired
     LocalContainerEntityManagerFactoryBean lcemfb;
     

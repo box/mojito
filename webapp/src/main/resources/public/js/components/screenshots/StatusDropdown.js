@@ -63,7 +63,6 @@ class StatusDropdown extends React.Component {
     }
 
     render() {
-        console.log("prop screenshotRunType", this.props.screenshotRunType);
         return (
             <DropdownButton id="screenshotStatusDropdown" 
                             title={this.props.intl.formatMessage({ id: "screenshots.statusDropdown.title" })}>
