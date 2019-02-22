@@ -29,7 +29,7 @@ public class MacStringsdictFilterKey extends XMLFilter {
      */
     static Logger logger = LoggerFactory.getLogger(MacStringsdictFilterKey.class);
 
-    public static final String FILTER_CONFIG_ID = "okf_xml@mojito";
+    public static final String FILTER_CONFIG_ID = "okf_macStringdict@mojito-key";
     public static final String MAC_STRINGSDICT_CONFIG_FILE_NAME = "macStringsdict_mojito.fprm";
 
     // Match single or multi-line comments
@@ -61,7 +61,7 @@ public class MacStringsdictFilterKey extends XMLFilter {
     @Override
     public List<FilterConfiguration> getConfigurations() {
         List<FilterConfiguration> list = new ArrayList<>();
-        list.add(new FilterConfiguration(getName() + "-stringsdict",
+        list.add(new FilterConfiguration(getName(),
                 getMimeType(),
                 getClass().getName(),
                 "Apple Stringsdict",

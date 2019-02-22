@@ -608,7 +608,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "</dict>\n"
                 + "</plist>";
 
-        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null, MACSTRINGSDICT_FILTER_KEY );
+        List<AssetTextUnit> assetTextUnits = getAssetTextUnits(content, "path/to/fake/en.lproj/Localizable.stringsdict", null, MACSTRINGSDICT_FILTER_KEY);
 
         assertEquals("Processing should have extracted 7 text units", 7, assetTextUnits.size());
         assertEquals("%d file(s) remaining_NSStringLocalizedFormatKey", assetTextUnits.get(0).getName());

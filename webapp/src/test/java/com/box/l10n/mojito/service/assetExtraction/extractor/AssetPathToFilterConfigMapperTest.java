@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.assetExtraction.extractor;
 
 import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
+import com.box.l10n.mojito.okapi.filters.MacStringsdictFilter;
 import com.box.l10n.mojito.okapi.filters.POFilter;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
 import static org.junit.Assert.assertEquals;
@@ -77,7 +78,7 @@ public class AssetPathToFilterConfigMapperTest {
         AssetPathToFilterConfigMapper assetPathToFilterConfigMapper = new AssetPathToFilterConfigMapper();
         String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/Localizable.stringsdict");
 
-        assertEquals(AssetPathToFilterConfigMapper.MACSTRINGSDICT_FILTER_CONFIG_ID, filterConfigId);
+        assertEquals(MacStringsdictFilter.FILTER_CONFIG_ID, filterConfigId);
     }
 
     @Test

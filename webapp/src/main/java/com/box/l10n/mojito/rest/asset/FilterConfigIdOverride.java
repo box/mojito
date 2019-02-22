@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.asset;
 
-import static com.box.l10n.mojito.service.assetExtraction.extractor.AssetPathToFilterConfigMapper.MACSTRINGSDICT_FILTER_KEY_CONFIG_ID;
+
+import com.box.l10n.mojito.okapi.filters.MacStringsdictFilterKey;
 
 /**
  * By default Okapi filter configuration is guessed from the file extension.
@@ -8,7 +9,7 @@ import static com.box.l10n.mojito.service.assetExtraction.extractor.AssetPathToF
  */
 public enum FilterConfigIdOverride {
     PROPERTIES_JAVA("okf_properties"),
-    MACSTRINGSDICT_FILTER_KEY(MACSTRINGSDICT_FILTER_KEY_CONFIG_ID);
+    MACSTRINGSDICT_FILTER_KEY(MacStringsdictFilterKey.FILTER_CONFIG_ID);
     String okapiFilterId;
 
     private FilterConfigIdOverride(String okapiFilterId) {
