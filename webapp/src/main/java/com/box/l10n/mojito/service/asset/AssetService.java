@@ -111,8 +111,11 @@ public class AssetService {
             String assetPath,
             String branch,
             String branchCreatedByUsername,
-            FilterConfigIdOverride filterConfigIdOverride) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
-        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch, branchCreatedByUsername, filterConfigIdOverride, PollableTask.INJECT_CURRENT_TASK);
+            FilterConfigIdOverride filterConfigIdOverride,
+            String filterOptions) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
+        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch,
+                branchCreatedByUsername, filterConfigIdOverride, filterOptions,
+                PollableTask.INJECT_CURRENT_TASK);
     }
 
     /**
@@ -137,6 +140,7 @@ public class AssetService {
             String branchName,
             String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride,
+            String filterOptions,
             @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
         PollableFutureTaskResult<Asset> pollableFutureTaskResult = new PollableFutureTaskResult<>();
@@ -166,7 +170,7 @@ public class AssetService {
 
         if (isAssetUpdateNeeded(assetExtractionByBranch, assetContent)) {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, branch);
-            assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, currentTask.getId());
+            assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, filterOptions, currentTask.getId());
         } else {
             undeleteAssetIfDeleted(assetExtractionByBranch);
             logger.debug("Asset content has not changed. Reset number of expected sub task to 0");

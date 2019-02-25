@@ -111,7 +111,8 @@ public class AssetWS {
                 sourceAsset.getPath(),
                 sourceAsset.getBranch(),
                 sourceAsset.getBranchCreatedByUsername(),
-                sourceAsset.getFilterConfigIdOverride()
+                sourceAsset.getFilterConfigIdOverride(),
+                sourceAsset.getFilterOptions()
         );
 
         try {
@@ -158,8 +159,10 @@ public class AssetWS {
                 repositoryLocale,
                 localizedAssetBody.getOutputBcp47tag(),
                 localizedAssetBody.getFilterConfigIdOverride(),
-                localizedAssetBody.getInheritanceMode(),
-                localizedAssetBody.getStatus());
+                localizedAssetBody.getFilterOptions(),
+                localizedAssetBody.getStatus(),
+                localizedAssetBody.getInheritanceMode()
+        );
 
         localizedAssetBody.setContent(generateLocalized);
 
@@ -219,7 +222,8 @@ public class AssetWS {
                 normalizedContent,
                 localeId,
                 importLocalizedAssetBody.getStatusForEqualTarget(),
-                importLocalizedAssetBody.getFilterConfigIdOverride());
+                importLocalizedAssetBody.getFilterConfigIdOverride(),
+                importLocalizedAssetBody.getFilterOptions());
 
         importLocalizedAssetBody.setPollableTask(pollableFuture.getPollableTask());
 

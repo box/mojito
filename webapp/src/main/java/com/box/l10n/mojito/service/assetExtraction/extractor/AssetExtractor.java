@@ -44,10 +44,10 @@ public class AssetExtractor {
     /**
      * Processes the {@link Asset} given the associated {@link AssetExtraction}.
      * The CSV format should follow the old Box WebApp syntax.
-     *
-     * @param assetExtraction the Asset extraction
+     *  @param assetExtraction the Asset extraction
      * @param filterConfigIdOverride Optional, can be null. Allows to specify
      * a specific Okapi filter to use to process the asset
+     * @param filterOptions
      * @param parentTask
      */
     @Transactional
@@ -55,6 +55,7 @@ public class AssetExtractor {
     public void performAssetExtraction(
             AssetExtraction assetExtraction,
             FilterConfigIdOverride filterConfigIdOverride,
+            String filterOptions,
             @ParentTask PollableTask parentTask) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Configuring pipeline");
@@ -65,7 +66,7 @@ public class AssetExtractor {
         driver.addStep(new CheckForDoNotTranslateStep());
         driver.addStep(new AssetExtractionStep(assetExtraction));
 
-        //TODO(10) Is this actually used as we have our own logic to set the filter to be used, see following todo
+        //TODO(P1) Is this actually used as we have our own logic to set the filter to be used, see following todo
         logger.debug("Adding all supported filters to the pipeline driver");
         driver.setFilterConfigurationMapper(getConfiguredFilterConfigurationMapper());
 
@@ -85,6 +86,9 @@ public class AssetExtractor {
         
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
+
+        logger.debug("Filter options: {}", filterOptions);
+        rawDocument.setAnnotation(new FilterOptions(filterOptions));
         
         driver.addBatchItem(rawDocument);
 

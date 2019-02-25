@@ -19,6 +19,7 @@ public class SourceAsset {
     private Long addedAssetId;
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
+    private String filterOptions;
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -74,6 +75,14 @@ public class SourceAsset {
 
     public void setBranchCreatedByUsername(String branchCreatedByUsername) {
         this.branchCreatedByUsername = branchCreatedByUsername;
+    }
+
+    public String getFilterOptions() {
+        return filterOptions;
+    }
+
+    public void setFilterOptions(String filterOptions) {
+        this.filterOptions = filterOptions;
     }
 
     @JsonProperty

@@ -1,9 +1,10 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.sf.okapi.common.encoder.EncoderContext;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This overrides the {@link net.sf.okapi.common.encoder.XMLEncoder} for Android
@@ -20,7 +21,7 @@ import org.apache.commons.lang.StringUtils;
  *
  * @author jyi
  */
-public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
+public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
 
     // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
     private static final Pattern ANDROID_VARIABLE_WITHIN_HTML = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
@@ -29,34 +30,61 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
     private static final Pattern START_WITH_DOUBLE_QUOTE = Pattern.compile("(^\")");
     private static final Pattern UNESCAPED_SINGLE_QUOTE = Pattern.compile("([^\\\\])(')");
     private static final Pattern START_WITH_SINGLE_QUOTE = Pattern.compile("(^')");
-    
-    
-    boolean androidStrings = false;
+
+    /**
+     * New escaping, should be come default but keep it as an option for backward compatibility. Can invert the option
+     * later to old escaping or just remove it
+     */
+    boolean newEscaping = false;
+
+    public AndroidXMLEncoder(boolean newEscaping) {
+        this.newEscaping = newEscaping;
+    }
 
     @Override
     public String encode(String text, EncoderContext context) {
-        String encoded = super.encode(text, context);
-        if (isAndroidStrings()) {
-            encoded = escapeAndroid(encoded);
+        String escaped = super.encode(text, context);
+
+        if (newEscaping) {
+            escaped = escapeAndroidNew(escaped);
+        } else {
+            escaped = escapeAndroid(escaped);
         }
-        return encoded;
+
+        return escaped;
     }
 
-    public boolean isAndroidStrings() {
-        return androidStrings;
+    public String escapeAndroidNew(String text) {
+        text = escapeCommon(text);
+        text = escapeSingleQuotes(text);
+        return text;
     }
 
-    public void setAndroidStrings(boolean androidStrings) {
-        this.androidStrings = androidStrings;
-    }
-  
-    
+    /**
+     * in new version, leading and ending double quotes are unescape remove treatment
+     *
+     * @param text
+     * @return
+     */
     public String escapeAndroid(String text) {
+
         boolean enclosedInDoubleQuotes = StringUtils.startsWith(text, "\"") && StringUtils.endsWith(text, "\"");
+
         if (enclosedInDoubleQuotes) {
             text = text.substring(1, text.length() - 1);
         }
 
+        text = escapeCommon(text);
+
+        if (!enclosedInDoubleQuotes) {
+            text = escapeSingleQuotes(text);
+        }
+
+        return enclosedInDoubleQuotes ? "\"" + text + "\"" : text;
+    }
+
+
+    String escapeCommon(String text) {
         String replacement;
         if (needsAndroidEscapeHTML(text)) {
             replacement = "$1$2$3>";
@@ -67,11 +95,8 @@ public class XMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
         text = text.replaceAll("\n", "\\\\n");
         text = text.replaceAll("\r", "\\\\r");
         text = escapeDoubleQuotes(text);
-        if (!enclosedInDoubleQuotes) {
-            text = escapeSingleQuotes(text);
-        }
-        return enclosedInDoubleQuotes ? "\"" + text + "\"" : text;
 
+        return text;
     }
 
     private boolean needsAndroidEscapeHTML(String text) {

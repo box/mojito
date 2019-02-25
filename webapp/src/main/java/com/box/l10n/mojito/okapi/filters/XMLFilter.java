@@ -9,6 +9,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import net.sf.okapi.common.BOMNewlineEncodingDetector;
 import net.sf.okapi.common.DefaultEntityResolver;
 import net.sf.okapi.common.encoder.EncoderManager;
+import net.sf.okapi.common.encoder.XMLEncoder;
 import net.sf.okapi.common.exceptions.OkapiIOException;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.StartDocument;

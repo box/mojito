@@ -12,6 +12,7 @@ public class ImportLocalizedAssetJobInput {
     String content;
     ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget statusForEqualtarget;
     FilterConfigIdOverride filterConfigIdOverride;
+    String filterOptions;
 
     public Long getAssetId() {
         return assetId;
@@ -51,5 +52,13 @@ public class ImportLocalizedAssetJobInput {
 
     public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
         this.filterConfigIdOverride = filterConfigIdOverride;
+    }
+
+    public String getFilterOptions() {
+        return filterOptions;
+    }
+
+    public void setFilterOptions(String filterOptions) {
+        this.filterOptions = filterOptions;
     }
 }

@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
-import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,8 @@ public class ImportLocalizedAssetJob extends QuartzPollableJob<ImportLocalizedAs
                 input.getContent(),
                 input.getLocaleId(),
                 input.getStatusForEqualtarget(),
-                input.getFilterConfigIdOverride());
+                input.getFilterConfigIdOverride(),
+                input.getFilterOptions());
 
         return null;
     }

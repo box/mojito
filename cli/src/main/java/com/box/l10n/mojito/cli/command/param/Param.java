@@ -59,6 +59,10 @@ public class Param {
     public static final String FILE_TYPE_SHORT = "-ft";
     public static final String FILE_TYPE_DESCRIPTION = "File type (if none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, MAC_STRINGSDICT, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, PROPERTIES_JAVA, RESW, RESX, PO, XTB)";
 
+    public static final String FILTER_OPTIONS_LONG = "--filter-options";
+    public static final String FILTER_OPTIONS_SHORT = "-fo";
+    public static final String FILTER_OPTIONS_DESCRIPTION = "Filter options. Format: option1=value1&option2=value2";
+
     public static final String SOURCE_REGEX_LONG = "--source-regex";
     public static final String SOURCE_REGEX_SHORT = "-sr";
     public static final String SOURCE_REGEX_DESCRIPTION = "Regular expression to match the path of source assets to localize";

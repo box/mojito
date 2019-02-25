@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
@@ -72,6 +71,7 @@ public class AssetClient extends BaseClient {
      * repository locale.
      * @param filterConfigIdOverride Optional, can be null. Allows to specify a
      * specific Okapi filter to use to process the asset
+     * @param filterOptions
      * @return the localized asset content
      */
     public LocalizedAssetBody getLocalizedAssetForContent(
@@ -80,8 +80,9 @@ public class AssetClient extends BaseClient {
             String content,
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride,
-            LocalizedAssetBody.InheritanceMode inheritanceMode,
-            LocalizedAssetBody.Status status) {
+            String filterOptions,
+            LocalizedAssetBody.Status status,
+            LocalizedAssetBody.InheritanceMode inheritanceMode) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -91,6 +92,7 @@ public class AssetClient extends BaseClient {
         localizedAssetBody.setContent(content);
         localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
         localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
+        localizedAssetBody.setFilterOptions(filterOptions);
         localizedAssetBody.setInheritanceMode(inheritanceMode);
         localizedAssetBody.setStatus(status);
 
@@ -111,9 +113,10 @@ public class AssetClient extends BaseClient {
      * @param content the asset content to be pseudolocalized
      * @param filterConfigIdOverride Optional, can be null. Allows to specify a
      * specific Okapi filter to use to process the asset
+     * @param filterOptions
      * @return the pseudoloocalized asset content
      */
-    public LocalizedAssetBody getPseudoLocalizedAssetForContent(Long assetId, String content, FilterConfigIdOverride filterConfigIdOverride) {
+    public LocalizedAssetBody getPseudoLocalizedAssetForContent(Long assetId, String content, FilterConfigIdOverride filterConfigIdOverride, String filterOptions) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromPath(getBasePathForResource(assetId, "pseudo"));
@@ -122,6 +125,7 @@ public class AssetClient extends BaseClient {
         localizedAssetBody.setContent(content);
         localizedAssetBody.setOutputBcp47tag(OUTPUT_BCP47_TAG);
         localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
+        localizedAssetBody.setFilterOptions(filterOptions);
 
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 localizedAssetBody,
@@ -145,14 +149,16 @@ public class AssetClient extends BaseClient {
      * @param statusForEqualTarget the status of the text unit variant when
      * the target is the same as the parent
      * @param filterConfigIdOverride
-     * @return 
+     * @param filterOptions
+     * @return
      */
     public ImportLocalizedAssetBody importLocalizedAssetForContent(
             Long assetId,
             Long localeId,
             String content,
             ImportLocalizedAssetBody.StatusForEqualTarget statusForEqualTarget,
-            FilterConfigIdOverride filterConfigIdOverride) {
+            FilterConfigIdOverride filterConfigIdOverride,
+            String filterOptions) {
         logger.debug("Import localized asset with asset id = {}, locale id = {}", assetId, localeId);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -162,6 +168,7 @@ public class AssetClient extends BaseClient {
         importLocalizedAssetBody.setContent(content);
         importLocalizedAssetBody.setStatusForEqualTarget(statusForEqualTarget);
         importLocalizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
+        importLocalizedAssetBody.setFilterOptions(filterOptions);
 
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 importLocalizedAssetBody,
