@@ -52,6 +52,11 @@ public class LocalizedAssetBody {
      */
     FilterConfigIdOverride filterConfigIdOverride;
 
+    /**
+     * Optional, can be null. To pass options to the Okapi filter
+     */
+    String filterOptions;
+
     InheritanceMode inheritanceMode;
 
     Status status = Status.ALL;
@@ -102,5 +107,13 @@ public class LocalizedAssetBody {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getFilterOptions() {
+        return filterOptions;
+    }
+
+    public void setFilterOptions(String filterOptions) {
+        this.filterOptions = filterOptions;
     }
 }

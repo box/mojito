@@ -2,10 +2,6 @@ package com.box.l10n.mojito.okapi.filters;
 
 import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.IResource;
 import net.sf.okapi.common.LocaleId;
@@ -17,10 +13,16 @@ import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import net.sf.okapi.common.skeleton.GenericSkeletonPart;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -40,6 +42,8 @@ public class AndroidFilter extends XMLFilter {
 
     private static final String XML_COMMENT_PATTERN = "<!--(?<comment>.*?)-->";
     private static final String XML_COMMENT_GROUP_NAME = "comment";
+
+    private static final String OPTION_NEW_ESCAPING = "newEscaping";
 
     @Autowired
     TextUnitUtils textUnitUtils;
@@ -69,14 +73,31 @@ public class AndroidFilter extends XMLFilter {
 
     boolean hasAnnotation;
 
+    /**
+     * Option to enable new escaping for the Android filter. This should become the default option but keep it disable
+     * for backward compatibility until reviewed.
+     */
+    boolean newEscaping = false;
+
+    List<Event> eventQueue = new ArrayList<>();
+
     @Override
     public void open(RawDocument input) {
         super.open(input);
         targetLocale = input.getTargetLocale();
         hasAnnotation = input.getAnnotation(CopyFormsOnImport.class) != null;
+        applyFilterOptions(input);
     }
 
-    List<Event> eventQueue = new ArrayList<>();
+    void applyFilterOptions(RawDocument input) {
+        FilterOptions filterOptions = input.getAnnotation(FilterOptions.class);
+
+        if (filterOptions != null) {
+            filterOptions.getBoolean(OPTION_NEW_ESCAPING, b -> newEscaping = b);
+        }
+
+        logger.debug("filter option, new escaping: {}", newEscaping);
+    }
 
     @Override
     public boolean hasNext() {
@@ -98,14 +119,48 @@ public class AndroidFilter extends XMLFilter {
 
     private void processTextUnit(Event event) {
         if (event != null && event.isTextUnit()) {
-            // if source has escaped double-quotes, single-quotes, \r or \n, unescape
+
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             String sourceString = textUnit.getSource().toString();
-            String unescapedSourceString = unescapeFilter.unescape(sourceString);
+
+            String unescapedSourceString;
+
+            if (newEscaping) {
+                unescapedSourceString = newEscaping(sourceString);
+            } else {
+                unescapedSourceString = unescapeFilter.unescape(sourceString);
+            }
+
             TextContainer source = new TextContainer(unescapedSourceString);
             textUnit.setSource(source);
             extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
         }
+    }
+
+    /**
+     * Should cover the main cases mention in doc:
+     * https://developer.android.com/guide/topics/resources/string-resource#FormattingAndStyling
+     *
+     * @param sourceString
+     * @return
+     */
+    String newEscaping(String sourceString) {
+        String unescapedSourceString;
+
+        unescapedSourceString = sourceString.trim();
+
+        if (StringUtils.startsWith(unescapedSourceString, "\"") && StringUtils.endsWith(unescapedSourceString, "\"")) {
+            unescapedSourceString = unescapedSourceString.substring(1, unescapedSourceString.length() - 1);
+        } else {
+            unescapedSourceString = unescapeFilter.replaceLineFeedWithSpace(unescapedSourceString);
+            unescapedSourceString = unescapeFilter.collapseSpaces(unescapedSourceString).trim();
+        }
+
+        unescapedSourceString = unescapeFilter.replaceEscapedLineFeed(unescapedSourceString);
+        unescapedSourceString = unescapeFilter.replaceEscapedCarriageReturn(unescapedSourceString);
+        unescapedSourceString = unescapeFilter.replaceEscapedCharacters(unescapedSourceString);
+
+        return unescapedSourceString;
     }
 
     protected boolean isPluralGroupStarting(IResource resource) {
@@ -174,10 +229,8 @@ public class AndroidFilter extends XMLFilter {
     }
 
     @Override
-    public XMLEncoder getXMLEncoder() {
-        XMLEncoder xmlEncoder = new XMLEncoder();
-        xmlEncoder.setAndroidStrings(true);
-        return xmlEncoder;
+    public AndroidXMLEncoder getXMLEncoder() {
+        return new AndroidXMLEncoder(newEscaping);
     }
 
     private void readNextEvents() {

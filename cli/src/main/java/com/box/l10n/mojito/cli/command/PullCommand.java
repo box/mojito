@@ -57,6 +57,9 @@ public class PullCommand extends Command {
             converter = FileTypeConverter.class)
     FileType fileType;
 
+    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, arity = 1, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
+    String filterOptions;
+
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
 
@@ -108,9 +111,9 @@ public class PullCommand extends Command {
             consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
 
             if (localeMappingParam != null) {
-                generateLocalizedFilesWithLocaleMaping(repository, sourceFileMatch);
+                generateLocalizedFilesWithLocaleMaping(repository, sourceFileMatch, filterOptions);
             } else {
-                generateLocalizedFilesWithoutLocaleMapping(repository, sourceFileMatch);
+                generateLocalizedFilesWithoutLocaleMapping(repository, sourceFileMatch, filterOptions);
             }
         }
 
@@ -123,14 +126,15 @@ public class PullCommand extends Command {
      *
      * @param repository
      * @param sourceFileMatch
+     * @param filterOptions
      * @throws CommandException
      */
-    void generateLocalizedFilesWithoutLocaleMapping(Repository repository, FileMatch sourceFileMatch) throws CommandException {
+    void generateLocalizedFilesWithoutLocaleMapping(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
 
         logger.debug("Generate localized files (without locale mapping)");
 
         for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale.values()) {
-            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, null);
+            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, null, filterOptions);
             writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
         }
     }
@@ -142,16 +146,17 @@ public class PullCommand extends Command {
      *
      * @param repository
      * @param sourceFileMatch
+     * @param filterOptions
      * @throws CommandException
      */
-    void generateLocalizedFilesWithLocaleMaping(Repository repository, FileMatch sourceFileMatch) throws CommandException {
+    void generateLocalizedFilesWithLocaleMaping(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
 
         logger.debug("Generate localzied files with locale mapping");
 
         for (Map.Entry<String, String> localeMapping : localeMappings.entrySet()) {
             String outputBcp47tag = localeMapping.getKey();
             RepositoryLocale repositoryLocale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
-            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag);
+            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions);
             writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
         }
     }
@@ -216,7 +221,7 @@ public class PullCommand extends Command {
         consoleWriter.a(" --> ").fg(Color.MAGENTA).a(relativeTargetFilePath.toString()).println();
     }
 
-    LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag) throws CommandException {
+    LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, String filterOptions) throws CommandException {
         consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
 
         try {
@@ -238,8 +243,10 @@ public class PullCommand extends Command {
                     assetContent,
                     outputBcp47tag,
                     sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-                    inheritanceMode,
-                    status);
+                    filterOptions,
+                    status,
+                    inheritanceMode
+            );
 
             logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 

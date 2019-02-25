@@ -20,7 +20,9 @@ public class ProcessAssetJob extends QuartzPollableJob<ProcessAssetJobInput, Voi
         assetExtractionService.processAsset(
                 input.getAssetContentId(),
                 input.getFilterConfigIdOverride(),
-                getCurrentPollableTask());
+                input.getFilterOptions(),
+                getCurrentPollableTask()
+        );
 
         return null;
     }

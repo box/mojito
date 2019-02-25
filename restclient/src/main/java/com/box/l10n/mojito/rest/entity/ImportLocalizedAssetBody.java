@@ -21,6 +21,8 @@ public class ImportLocalizedAssetBody {
     StatusForEqualTarget statusForEqualTarget;
 
     FilterConfigIdOverride filterConfigIdOverride;
+
+    String filterOptions;
         
     private PollableTask pollableTask;
 
@@ -50,7 +52,15 @@ public class ImportLocalizedAssetBody {
     public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
-    
+
+    public String getFilterOptions() {
+        return filterOptions;
+    }
+
+    public void setFilterOptions(String filterOptions) {
+        this.filterOptions = filterOptions;
+    }
+
     @JsonProperty
     public PollableTask getPollableTask() {
         return pollableTask;

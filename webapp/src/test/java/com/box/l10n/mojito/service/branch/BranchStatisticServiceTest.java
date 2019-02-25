@@ -16,7 +16,6 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -121,11 +120,11 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         assertEquals(2L, forTranslationCount);
 
         logger.debug("Add translation for french, expect for translation count to change");
-        tmService.importLocalizedAssetAsync(asset.getId(), "string3=content3_fr-FR", repositoryLocaleFrFr.getLocale().getId(), APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(asset.getId(), "string3=content3_fr-FR", repositoryLocaleFrFr.getLocale().getId(), APPROVED, null, null).get();
         assertEquals(1L, branchStatisticService.getForTranslationCount(tmTextUnitId));
 
         logger.debug("Add translation for french, expect for translation count to change");
-        tmService.importLocalizedAssetAsync(asset.getId(), "string3=content3_ja-JP", repositoryLocaleJaJp.getLocale().getId(), APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(asset.getId(), "string3=content3_ja-JP", repositoryLocaleJaJp.getLocale().getId(), APPROVED, null, null).get();
 
         assertEquals(0L, branchStatisticService.getForTranslationCount(tmTextUnitId));
     }
@@ -185,7 +184,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
         logger.debug("Add translation for french, expect ready count to change");
         String localizedAssetContent = "string3=content3_fr-FR";
-        tmService.importLocalizedAssetAsync(asset.getId(), localizedAssetContent, repositoryLocaleFrFr.getLocale().getId(), APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(asset.getId(), localizedAssetContent, repositoryLocaleFrFr.getLocale().getId(), APPROVED, null, null).get();
         branchStatisticService.computeAndSaveBranchStatistics(branch1);
 
         BranchStatistic branchStatisticForBranch1 = branchStatisticRepository.findByBranch(branch1);
@@ -224,8 +223,8 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         assertFalse(itBranch2.hasNext());
 
         logger.debug("Import string on branch2, expect japense to be fully translated, french half translated");
-        tmService.importLocalizedAssetAsync(asset.getId(), "string4=content4_fr-FR", repositoryLocaleFrFr.getLocale().getId(), APPROVED, null).get();
-        tmService.importLocalizedAssetAsync(asset.getId(), "string4=content4_ja-JP\nstring5=content5_ja-JP", repositoryLocaleJaJp.getLocale().getId(), APPROVED, null).get();
+        tmService.importLocalizedAssetAsync(asset.getId(), "string4=content4_fr-FR", repositoryLocaleFrFr.getLocale().getId(), APPROVED, null, null).get();
+        tmService.importLocalizedAssetAsync(asset.getId(), "string4=content4_ja-JP\nstring5=content5_ja-JP", repositoryLocaleJaJp.getLocale().getId(), APPROVED, null, null).get();
         branchStatisticService.computeAndSaveBranchStatistics(branch2);
 
         branchStatisticForBranch2 = branchStatisticRepository.findByBranch(branch2);
@@ -267,7 +266,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         assertFalse(itBranch1.hasNext());
 
         AssetContent assetContentBranch1 = assetContentService.createAssetContent(branchTestData.getAsset(), "", branch1);
-        assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null).get();
+        assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null, null).get();
         branchStatisticService.computeAndSaveBranchStatistics(branch1);
 
         BranchStatistic branchStatisticForBranch1AfterDelete = branchStatisticRepository.findByBranch(branch1);

@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.okapi.*;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
+import com.box.l10n.mojito.okapi.filters.FilterOptions;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
@@ -904,8 +905,9 @@ public class TMService {
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
-     * @param inheritanceMode
+     * @param filterOptions
      * @param status
+     * @param inheritanceMode
      * @return the localized asset
      */
     public String generateLocalized(
@@ -914,8 +916,9 @@ public class TMService {
             RepositoryLocale repositoryLocale,
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride,
-            InheritanceMode inheritanceMode,
-            Status status) throws UnsupportedAssetFilterTypeException {
+            String filterOptions,
+            Status status,
+            InheritanceMode inheritanceMode) throws UnsupportedAssetFilterTypeException {
 
         String bcp47Tag;
 
@@ -929,7 +932,7 @@ public class TMService {
         logger.debug("Configuring pipeline for localized XLIFF generation");
 
         BasePipelineStep translateStep = (BasePipelineStep) new TranslateStep(asset, repositoryLocale, inheritanceMode, status);
-        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47Tag, translateStep);
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
     }
 
     /**
@@ -948,7 +951,7 @@ public class TMService {
         String bcp47tag = "en-x-psaccent";
 
         BasePipelineStep pseudoLocalizedStep = (BasePipelineStep) new PseudoLocalizeStep(asset);
-        return generateLocalizedBase(asset, content, filterConfigIdOverride, bcp47tag, pseudoLocalizedStep);
+        return generateLocalizedBase(asset, content, filterConfigIdOverride, null, pseudoLocalizedStep, bcp47tag);
     }
 
     /**
@@ -960,15 +963,17 @@ public class TMService {
      * @param asset The {@link Asset} used to get translations
      * @param content The content to be localized
      * @param filterConfigIdOverride
+     * @param filterOptions
+     * @param step
      * @param outputBcp47tag Optional, can be null. Allows to generate the file
      * for a bcp47 tag that is different from the repository locale (which is
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
-     * @param step
      * @return the localized asset
      */
-    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride, String outputBcp47tag, BasePipelineStep step) throws UnsupportedAssetFilterTypeException {
+    private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride,
+                                         String filterOptions, BasePipelineStep step, String outputBcp47tag) throws UnsupportedAssetFilterTypeException {
 
         IPipelineDriver driver = new PipelineDriver();
 
@@ -998,6 +1003,9 @@ public class TMService {
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
 
+        logger.debug("Filter options: {}", filterOptions);
+        rawDocument.setAnnotation(new FilterOptions(filterOptions));
+
         driver.addBatchItem(rawDocument);
 
         logger.debug("Start processing batch");
@@ -1020,21 +1028,22 @@ public class TMService {
      * different from target of the parent locale.
      *
      * @param asset the asset for which the content will be imported
-     * @param content the localized asset content
      * @param repositoryLocale the locale of the content to be imported
+     * @param content the localized asset content
      * @param statusForEqualtarget the status of the text unit variant when
      * the source equals the target
      * @param filterConfigIdOverride to override the filter used to process the
      * asset
+     * @param filterOptions
      * @return
      */
-
     public PollableFuture importLocalizedAssetAsync(
             Long assetId,
             String content,
             Long localeId,
             StatusForEqualTarget statusForEqualtarget,
-            FilterConfigIdOverride filterConfigIdOverride) {
+            FilterConfigIdOverride filterConfigIdOverride,
+            String filterOptions) {
 
         ImportLocalizedAssetJobInput importLocalizedAssetJobInput = new ImportLocalizedAssetJobInput();
         importLocalizedAssetJobInput.setAssetId(assetId);
@@ -1042,18 +1051,19 @@ public class TMService {
         importLocalizedAssetJobInput.setContent(content);
         importLocalizedAssetJobInput.setStatusForEqualtarget(statusForEqualtarget);
         importLocalizedAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
+        importLocalizedAssetJobInput.setFilterOptions(filterOptions);
 
         PollableFuture<Void> pollableFuture = quartzPollableTaskScheduler.scheduleJob(ImportLocalizedAssetJob.class, importLocalizedAssetJobInput);
         return pollableFuture;
     }
-
 
     public void importLocalizedAsset(
             Long assetId,
             String content,
             Long localeId,
             StatusForEqualTarget statusForEqualtarget,
-            FilterConfigIdOverride filterConfigIdOverride) throws UnsupportedAssetFilterTypeException {
+            FilterConfigIdOverride filterConfigIdOverride,
+            String filterOptions) throws UnsupportedAssetFilterTypeException {
 
         Asset asset = assetRepository.findOne(assetId);
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
@@ -1077,6 +1087,7 @@ public class TMService {
         LocaleId targetLocaleId = LocaleId.fromBCP47(bcp47Tag);
         RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
         rawDocument.setAnnotation(new CopyFormsOnImport());
+        rawDocument.setAnnotation(new FilterOptions(filterOptions));
 
         String filterConfigId;
 

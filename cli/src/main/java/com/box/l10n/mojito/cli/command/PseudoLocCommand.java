@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
@@ -10,22 +12,15 @@ import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
-
+import org.fusesource.jansi.Ansi.Color;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.util.Map;
-
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.Parameters;
-import static com.box.l10n.mojito.cli.command.PseudoLocCommand.logger;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.fusesource.jansi.Ansi.Color;
 
 @Component
 @Scope("prototype")
@@ -52,6 +47,9 @@ public class PseudoLocCommand extends Command {
     @Parameter(names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT}, arity = 1, required = false, description = Param.FILE_TYPE_DESCRIPTION,
             converter = FileTypeConverter.class)
     FileType fileType;
+
+    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, arity = 1, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
+    String filterOptions;
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
@@ -87,7 +85,7 @@ public class PseudoLocCommand extends Command {
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
             consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
-            generatePseudoLocalizedFile(repository, sourceFileMatch);
+            generatePseudoLocalizedFile(repository, sourceFileMatch, filterOptions);
         }
         consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
     }
@@ -97,14 +95,14 @@ public class PseudoLocCommand extends Command {
      *
      * @param repository
      * @param sourceFileMatch
+     * @param filterOptions
      * @throws CommandException
      */
-    void generatePseudoLocalizedFile(Repository repository, FileMatch sourceFileMatch) throws CommandException {
+    void generatePseudoLocalizedFile(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
         logger.debug("Generate pseudo localzied files");
 
-        LocalizedAssetBody localizedAsset = getPseudoLocalizedAsset(repository, sourceFileMatch);
+        LocalizedAssetBody localizedAsset = getPseudoLocalizedAsset(repository, sourceFileMatch, filterOptions);
         writePseudoLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
-
     }
 
     void writePseudoLocalizedAssetToTargetDirectory(LocalizedAssetBody localizedAsset, FileMatch sourceFileMatch) throws CommandException {
@@ -119,7 +117,7 @@ public class PseudoLocCommand extends Command {
         consoleWriter.a(" --> ").fg(Color.MAGENTA).a(relativeTargetFilePath.toString()).println();
     }
 
-    LocalizedAssetBody getPseudoLocalizedAsset(Repository repository, FileMatch sourceFileMatch) throws CommandException {
+    LocalizedAssetBody getPseudoLocalizedAsset(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
         consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(OUTPUT_BCP47_TAG).print();
 
         try {
@@ -137,7 +135,7 @@ public class PseudoLocCommand extends Command {
             LocalizedAssetBody pseudoLocalizedAsset = assetClient.getPseudoLocalizedAssetForContent(
                     assetByPathAndRepositoryId.getId(),
                     assetContent,
-                    sourceFileMatch.getFileType().getFilterConfigIdOverride());
+                    sourceFileMatch.getFileType().getFilterConfigIdOverride(), filterOptions);
 
             logger.trace("PseudoLocalizedAsset content = {}", pseudoLocalizedAsset.getContent());
             return pseudoLocalizedAsset;

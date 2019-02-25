@@ -16,16 +16,17 @@ import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForEqualTarget;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author jaurambault
@@ -59,6 +60,9 @@ public class ImportLocalizedAssetCommand extends Command {
     @Parameter(names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT}, arity = 1, required = false, description = Param.FILE_TYPE_DESCRIPTION,
             converter = FileTypeConverter.class)
     FileType fileType;
+
+    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, arity = 1, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
+    String filterOptions;
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
@@ -124,7 +128,9 @@ public class ImportLocalizedAssetCommand extends Command {
                     locale.getId(),
                     commandHelper.getFileContent(targetPath),
                     statusForEqualTarget,
-                    fileMatch.getFileType().getFilterConfigIdOverride());
+                    fileMatch.getFileType().getFilterConfigIdOverride(),
+                    filterOptions
+            );
 
             try {
                 commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());

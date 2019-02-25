@@ -17,21 +17,13 @@ import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.box.l10n.mojito.slack.SlackClient;
-import com.box.l10n.mojito.slack.SlackClientException;
-import com.box.l10n.mojito.slack.request.Channel;
-import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -78,7 +70,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
                 + "string6=content6\n";
 
         AssetContent assetContentBranch2 = assetContentService.createAssetContent(branchTestData.getAsset(), branch2ContentUpdated, branchTestData.getBranch2());
-        assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null).get();
+        assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null).get();
 
         translateBranch(branchTestData.getBranch2());
 

@@ -24,6 +24,8 @@ public class ImportLocalizedAssetBody {
 
     FilterConfigIdOverride filterConfigIdOverride;
 
+    String filterOptions;
+
     PollableTask pollableTask;
 
     public ImportLocalizedAssetBody() {
@@ -82,4 +84,11 @@ public class ImportLocalizedAssetBody {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
+    public String getFilterOptions() {
+        return filterOptions;
+    }
+
+    public void setFilterOptions(String filterOptions) {
+        this.filterOptions = filterOptions;
+    }
 }
