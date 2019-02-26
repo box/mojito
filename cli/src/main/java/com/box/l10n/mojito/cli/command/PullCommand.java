@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,8 +58,8 @@ public class PullCommand extends Command {
             converter = FileTypeConverter.class)
     FileType fileType;
 
-    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, arity = 1, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
-    String filterOptions;
+    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, variableArity = true, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
+    List<String> filterOptions;
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
@@ -129,7 +130,7 @@ public class PullCommand extends Command {
      * @param filterOptions
      * @throws CommandException
      */
-    void generateLocalizedFilesWithoutLocaleMapping(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
+    void generateLocalizedFilesWithoutLocaleMapping(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions) throws CommandException {
 
         logger.debug("Generate localized files (without locale mapping)");
 
@@ -149,7 +150,7 @@ public class PullCommand extends Command {
      * @param filterOptions
      * @throws CommandException
      */
-    void generateLocalizedFilesWithLocaleMaping(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
+    void generateLocalizedFilesWithLocaleMaping(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions) throws CommandException {
 
         logger.debug("Generate localzied files with locale mapping");
 
@@ -221,7 +222,7 @@ public class PullCommand extends Command {
         consoleWriter.a(" --> ").fg(Color.MAGENTA).a(relativeTargetFilePath.toString()).println();
     }
 
-    LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, String filterOptions) throws CommandException {
+    LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, List<String> filterOptions) throws CommandException {
         consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
 
         try {

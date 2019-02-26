@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * This class is responsible for setting up the extraction pipeline and
  * extracting text units from assets.
@@ -55,7 +57,7 @@ public class AssetExtractor {
     public void performAssetExtraction(
             AssetExtraction assetExtraction,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions,
+            List<String> filterOptions,
             @ParentTask PollableTask parentTask) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Configuring pipeline");
@@ -115,6 +117,7 @@ public class AssetExtractor {
         mapper.addConfigurations(MacStringsdictFilter.class.getName());
         mapper.addConfigurations(MacStringsdictFilterKey.class.getName());
         mapper.addConfigurations(JSFilter.class.getName());
+        mapper.addConfigurations(JSONFilter.class.getName());
 
         return mapper;
     }

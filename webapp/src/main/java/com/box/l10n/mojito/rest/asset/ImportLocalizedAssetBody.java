@@ -5,6 +5,8 @@ import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 /**
  * @author jaurambault
  */
@@ -24,7 +26,7 @@ public class ImportLocalizedAssetBody {
 
     FilterConfigIdOverride filterConfigIdOverride;
 
-    String filterOptions;
+    List<String> filterOptions;
 
     PollableTask pollableTask;
 
@@ -84,11 +86,11 @@ public class ImportLocalizedAssetBody {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
-    public String getFilterOptions() {
+    public List<String> getFilterOptions() {
         return filterOptions;
     }
 
-    public void setFilterOptions(String filterOptions) {
+    public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
     }
 }

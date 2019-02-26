@@ -80,7 +80,7 @@ public class AssetClient extends BaseClient {
             String content,
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions,
+            List<String> filterOptions,
             LocalizedAssetBody.Status status,
             LocalizedAssetBody.InheritanceMode inheritanceMode) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
@@ -116,7 +116,7 @@ public class AssetClient extends BaseClient {
      * @param filterOptions
      * @return the pseudoloocalized asset content
      */
-    public LocalizedAssetBody getPseudoLocalizedAssetForContent(Long assetId, String content, FilterConfigIdOverride filterConfigIdOverride, String filterOptions) {
+    public LocalizedAssetBody getPseudoLocalizedAssetForContent(Long assetId, String content, FilterConfigIdOverride filterConfigIdOverride, List<String> filterOptions) {
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
                 .fromPath(getBasePathForResource(assetId, "pseudo"));
@@ -158,7 +158,7 @@ public class AssetClient extends BaseClient {
             String content,
             ImportLocalizedAssetBody.StatusForEqualTarget statusForEqualTarget,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions) {
+            List<String> filterOptions) {
         logger.debug("Import localized asset with asset id = {}, locale id = {}", assetId, localeId);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder

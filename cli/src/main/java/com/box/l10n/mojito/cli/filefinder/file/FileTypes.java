@@ -21,6 +21,7 @@ public enum FileTypes {
     XTB(XtbFileType.class),
     CSV(CSVFileType.class),
     JS(JSFileType.class),
+    JSON(JSONFileType.class),
     TS(TSFileType.class);
 
     Class<? extends FileType> clazz;

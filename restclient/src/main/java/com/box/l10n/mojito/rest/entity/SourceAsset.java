@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 /**
  * This is an exact copy of {@link com.box.l10n.mojito.rest.entity.SourceAsset}
  * This should be updated if it either one changes.
@@ -21,7 +23,7 @@ public class SourceAsset {
     private Long addedAssetId;
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
-    private String filterOptions;
+    private List<String> filterOptions;
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -79,11 +81,11 @@ public class SourceAsset {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
-    public String getFilterOptions() {
+    public List<String> getFilterOptions() {
         return filterOptions;
     }
 
-    public void setFilterOptions(String filterOptions) {
+    public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
     }
 

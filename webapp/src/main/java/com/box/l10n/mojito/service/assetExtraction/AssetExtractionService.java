@@ -102,7 +102,7 @@ public class AssetExtractionService {
     public PollableFuture<Asset> processAsset(
             Long assetContentId,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions,
+            List<String> filterOptions,
             PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
 
         logger.debug("Start processing asset content, id: {}", assetContentId);
@@ -305,7 +305,7 @@ public class AssetExtractionService {
     public PollableFuture processAssetAsync(
             Long assetContentId,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions,
+            List<String> filterOptions,
             Long parentTaskId) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
 
         ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();

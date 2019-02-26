@@ -889,7 +889,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, "newEscaping=true");
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, Arrays.asList("newEscaping=true"));
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -905,7 +905,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, "newEscaping=true", Status.ALL, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, Arrays.asList("newEscaping=true"), Status.ALL, InheritanceMode.USE_PARENT);
         logger.debug("localized=\n{}", localizedAsset);
 
         String expected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -2171,6 +2171,62 @@ public class TMServiceTest extends ServiceTestBase {
         logger.debug("localized after import=\n{}", localizedAsset);
         assertEquals(forImport, localizedAsset);
 
+    }
+
+
+    @Test
+    public void testLocalizeJson() throws Exception {
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        List<String> jsonFilterOptions = Arrays.asList("useFullKeyPath=true", "extractAllPairs=false", "exceptions=.*/string");
+
+        String assetContent = "{\n" +
+                "  \"this to ignore\": {\n" +
+                "    \"k1\": \"v1\"\n" +
+                "  },\n" +
+                "  \"hello_world\": {\n" +
+                "    \"string\": \"Hello World\",\n" +
+                "    \"note\": \"The start of every language book.\"\n" +
+                "  },\n" +
+                "  \"num_photos\": {\n" +
+                "    \"string\": \"You have {numPhotos, plural, =0 {no photos.} =1 {one photo.} other {# photos.}}\",\n" +
+                "    \"note\": \"A description that shows the number of photos a user has.\"\n" +
+                "  }\n" +
+                "}";
+        String expectedContent = "\uFEFF" + assetContent;
+
+        asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(),
+                null, null, null, jsonFilterOptions);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(2, textUnitDTOs.size());
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("name=[{}], source=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, jsonFilterOptions, Status.ALL, InheritanceMode.USE_PARENT);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedContent, localizedAsset);
     }
 
     @Test
