@@ -1,19 +1,6 @@
 package com.box.l10n.mojito.cli.filefinder;
 
-import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
-import com.box.l10n.mojito.cli.filefinder.file.CSVFileType;
-import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.cli.filefinder.file.JSFileType;
-import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
-import com.box.l10n.mojito.cli.filefinder.file.MacStringsdictFileType;
-import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
-import com.box.l10n.mojito.cli.filefinder.file.PropertiesNoBasenameFileType;
-import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
-import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
-import com.box.l10n.mojito.cli.filefinder.file.TSFileType;
-import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
-import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
-import com.box.l10n.mojito.cli.filefinder.file.XtbFileType;
+import com.box.l10n.mojito.cli.filefinder.file.*;
 import com.box.l10n.mojito.test.IOTestBase;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -514,6 +501,30 @@ public class FileFinderTest extends IOTestBase {
         Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
         assertEquals(getInputResourcesTestDir().toString() + "/en-GB.ts", itTargets.next().getPath().toString());
         assertEquals(getInputResourcesTestDir().toString() + "/fr-FR.ts", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
+    }
+
+    @Test
+    public void findJSON() throws IOException, FileFinderException {
+        FileFinder fileFinder = initFileFinder(false, new JSONFileType());
+
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(JSONFileType.class, next.fileType.getClass());
+        assertEquals(getInputResourcesTestDir("source").toString() + "/filefinder.json", next.getPath().toString());
+        assertEquals("filefinder_fr-FR.json", next.getTargetPath("fr-FR"));
+
+        next = itSources.next();
+        assertEquals(getInputResourcesTestDir("source").toString() + "/sub/filefinder2.json", next.getPath().toString());
+        assertEquals("sub/filefinder2_fr-FR.json", next.getTargetPath("fr-FR"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir("target").toString() + "/filefinder_fr-FR.json", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir("target").toString() + "/filefinder_fr.json", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir("target").toString() + "/sub/filefinder2_fr.json", itTargets.next().getPath().toString());
         assertFalse(itTargets.hasNext());
     }
 

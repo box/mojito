@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -916,7 +917,7 @@ public class TMService {
             RepositoryLocale repositoryLocale,
             String outputBcp47tag,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions,
+            List<String> filterOptions,
             Status status,
             InheritanceMode inheritanceMode) throws UnsupportedAssetFilterTypeException {
 
@@ -973,7 +974,7 @@ public class TMService {
      * @return the localized asset
      */
     private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride,
-                                         String filterOptions, BasePipelineStep step, String outputBcp47tag) throws UnsupportedAssetFilterTypeException {
+                                         List<String> filterOptions, BasePipelineStep step, String outputBcp47tag) throws UnsupportedAssetFilterTypeException {
 
         IPipelineDriver driver = new PipelineDriver();
 
@@ -1043,7 +1044,7 @@ public class TMService {
             Long localeId,
             StatusForEqualTarget statusForEqualtarget,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions) {
+            List<String> filterOptions) {
 
         ImportLocalizedAssetJobInput importLocalizedAssetJobInput = new ImportLocalizedAssetJobInput();
         importLocalizedAssetJobInput.setAssetId(assetId);
@@ -1063,7 +1064,7 @@ public class TMService {
             Long localeId,
             StatusForEqualTarget statusForEqualtarget,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions) throws UnsupportedAssetFilterTypeException {
+            List<String> filterOptions) throws UnsupportedAssetFilterTypeException {
 
         Asset asset = assetRepository.findOne(assetId);
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);

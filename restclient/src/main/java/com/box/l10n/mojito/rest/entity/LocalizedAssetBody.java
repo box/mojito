@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.entity;
 
+import java.util.List;
+
 /**
  * This is an exact copy of com.box.l10n.mojito.entity.LocalizedAssetBody This
  * should be updated if it either one changes.
@@ -55,7 +57,7 @@ public class LocalizedAssetBody {
     /**
      * Optional, can be null. To pass options to the Okapi filter
      */
-    String filterOptions;
+    List<String> filterOptions;
 
     InheritanceMode inheritanceMode;
 
@@ -109,11 +111,11 @@ public class LocalizedAssetBody {
         this.status = status;
     }
 
-    public String getFilterOptions() {
+    public List<String> getFilterOptions() {
         return filterOptions;
     }
 
-    public void setFilterOptions(String filterOptions) {
+    public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
     }
 }

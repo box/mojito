@@ -50,8 +50,8 @@ public class PushCommand extends Command {
             converter = FileTypeConverter.class)
     FileType fileType;
 
-    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, arity = 1, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
-    String filterOptions;
+    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, variableArity = true, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
+    List<String> filterOptions;
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;

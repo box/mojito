@@ -112,7 +112,7 @@ public class AssetService {
             String branch,
             String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
+            List<String> filterOptions) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
         return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch,
                 branchCreatedByUsername, filterConfigIdOverride, filterOptions,
                 PollableTask.INJECT_CURRENT_TASK);
@@ -140,7 +140,7 @@ public class AssetService {
             String branchName,
             String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride,
-            String filterOptions,
+            List<String> filterOptions,
             @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
         PollableFutureTaskResult<Asset> pollableFutureTaskResult = new PollableFutureTaskResult<>();

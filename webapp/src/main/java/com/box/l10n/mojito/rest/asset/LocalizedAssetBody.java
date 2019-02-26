@@ -3,6 +3,8 @@ package com.box.l10n.mojito.rest.asset;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
 
+import java.util.List;
+
 /**
  * @author wyau
  */
@@ -37,7 +39,7 @@ public class LocalizedAssetBody {
     /**
      * Optional, can be null. To pass options to the Okapi filter
      */
-    String filterOptions;
+    List<String> filterOptions;
 
     InheritanceMode inheritanceMode = InheritanceMode.USE_PARENT;
 
@@ -99,11 +101,11 @@ public class LocalizedAssetBody {
         this.status = status;
     }
 
-    public String getFilterOptions() {
+    public List<String> getFilterOptions() {
         return filterOptions;
     }
 
-    public void setFilterOptions(String filterOptions) {
+    public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
     }
 }

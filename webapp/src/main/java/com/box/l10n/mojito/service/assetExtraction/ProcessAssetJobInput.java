@@ -2,10 +2,12 @@ package com.box.l10n.mojito.service.assetExtraction;
 
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 
+import java.util.List;
+
 public class ProcessAssetJobInput {
     Long assetContentId;
     FilterConfigIdOverride filterConfigIdOverride;
-    String filterOptions;
+    List<String> filterOptions;
 
     public Long getAssetContentId() {
         return assetContentId;
@@ -23,11 +25,11 @@ public class ProcessAssetJobInput {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
-    public String getFilterOptions() {
+    public List<String> getFilterOptions() {
         return filterOptions;
     }
 
-    public void setFilterOptions(String filterOptions) {
+    public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
     }
 }

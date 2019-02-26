@@ -1,18 +1,7 @@
 package com.box.l10n.mojito.cli.filefinder;
 
-import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
-import com.box.l10n.mojito.cli.filefinder.file.CSVFileType;
-import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.cli.filefinder.file.JSFileType;
-import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
-import com.box.l10n.mojito.cli.filefinder.file.MacStringsdictFileType;
-import com.box.l10n.mojito.cli.filefinder.file.POFileType;
-import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
-import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
-import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
-import com.box.l10n.mojito.cli.filefinder.file.TSFileType;
-import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
-import com.box.l10n.mojito.cli.filefinder.file.XtbFileType;
+import com.box.l10n.mojito.cli.filefinder.file.*;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,6 +72,7 @@ public class FileFinder {
         fileTypes.add(new CSVFileType());
         fileTypes.add(new JSFileType());
         fileTypes.add(new TSFileType());
+        fileTypes.add(new JSONFileType());
     }
 
     public Path getSourceDirectory() {

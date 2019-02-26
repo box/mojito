@@ -1,9 +1,9 @@
 package com.box.l10n.mojito.service.tm;
 
-import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+
+import java.util.List;
 
 public class ImportLocalizedAssetJobInput {
 
@@ -12,7 +12,7 @@ public class ImportLocalizedAssetJobInput {
     String content;
     ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget statusForEqualtarget;
     FilterConfigIdOverride filterConfigIdOverride;
-    String filterOptions;
+    List<String> filterOptions;
 
     public Long getAssetId() {
         return assetId;
@@ -54,11 +54,11 @@ public class ImportLocalizedAssetJobInput {
         this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
-    public String getFilterOptions() {
+    public List<String> getFilterOptions() {
         return filterOptions;
     }
 
-    public void setFilterOptions(String filterOptions) {
+    public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
     }
 }

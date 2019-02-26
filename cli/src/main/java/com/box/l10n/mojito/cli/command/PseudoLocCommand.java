@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -48,8 +49,8 @@ public class PseudoLocCommand extends Command {
             converter = FileTypeConverter.class)
     FileType fileType;
 
-    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, arity = 1, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
-    String filterOptions;
+    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, variableArity = true, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
+    List<String> filterOptions;
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
@@ -98,7 +99,7 @@ public class PseudoLocCommand extends Command {
      * @param filterOptions
      * @throws CommandException
      */
-    void generatePseudoLocalizedFile(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
+    void generatePseudoLocalizedFile(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions) throws CommandException {
         logger.debug("Generate pseudo localzied files");
 
         LocalizedAssetBody localizedAsset = getPseudoLocalizedAsset(repository, sourceFileMatch, filterOptions);
@@ -117,7 +118,7 @@ public class PseudoLocCommand extends Command {
         consoleWriter.a(" --> ").fg(Color.MAGENTA).a(relativeTargetFilePath.toString()).println();
     }
 
-    LocalizedAssetBody getPseudoLocalizedAsset(Repository repository, FileMatch sourceFileMatch, String filterOptions) throws CommandException {
+    LocalizedAssetBody getPseudoLocalizedAsset(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions) throws CommandException {
         consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(OUTPUT_BCP47_TAG).print();
 
         try {
