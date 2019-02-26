@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.box.l10n.mojito.entity.Branch;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -53,4 +54,5 @@ public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Lo
 
     List<AssetTextUnit> findByIdIn(List<Long> assetTextUnitIds);
 
+    List<AssetTextUnit> findByBranch(Branch branch);
 }

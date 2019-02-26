@@ -1,13 +1,18 @@
 package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.entity.AssetExtraction;
+import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.okapi.filters.PluralFormAnnotation;
 import com.box.l10n.mojito.okapi.filters.UsagesAnnotation;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
+import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import net.sf.okapi.common.Event;
 import org.slf4j.Logger;
@@ -41,6 +46,12 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
     @Autowired
     PluralFormService pluralFormService;
 
+    @Autowired
+    AssetTextUnitRepository assetTextUnitRepository;
+
+    @Autowired
+    BranchRepository branchRepository;
+
     Set<String> assetTextUnitMD5s;
 
     AssetExtraction assetExtraction;
@@ -67,6 +78,10 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
     @Override
     protected Event handleStartDocument(Event event) {
         assetTextUnitMD5s = new HashSet<>();
+        Branch masterBranch = branchRepository.findByNameAndRepository("master", assetExtraction.getAsset().getRepository());
+        for (AssetTextUnit assetTextUnit : assetTextUnitRepository.findByBranch(masterBranch)) {
+            assetTextUnitMD5s.add(assetTextUnit.getMd5());
+        }
         return super.handleStartDocument(event);
     }
 
