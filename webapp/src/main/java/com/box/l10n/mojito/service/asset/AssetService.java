@@ -87,6 +87,9 @@ public class AssetService {
     @Autowired
     AuditorAwareImpl auditorAware;
 
+    @Autowired
+    FilterOptionsMd5Builder filterOptionsMd5Builder;
+
     /**
      * Adds an {@link Asset} to a {@link Repository}.
      * <p/>
@@ -168,7 +171,7 @@ public class AssetService {
 
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 
-        if (isAssetUpdateNeeded(assetExtractionByBranch, assetContent)) {
+        if (isAssetUpdateNeeded(assetExtractionByBranch, assetContent, filterOptions)) {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, branch);
             assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, filterOptions, currentTask.getId());
         } else {
@@ -239,7 +242,7 @@ public class AssetService {
     /**
      * Indicates if an asset needs to be updated.
      * <p>
-     * First compare the asset content with the new content. If the contents are
+     * First compare the asset content with the new content and the options used for the extraction. If the contents are
      * the same check that the last successful extraction correspond to the
      * latest version of the asset. If not it means an issue happen before and
      * that regardless of the content being the same, the asset needs to updated
@@ -247,17 +250,19 @@ public class AssetService {
      *
      * @param assetContent    The asset to be compared
      * @param newAssetContent The content to be compared
+     * @param optionsMd5
      * @return true if the content of the asset is different from the new
      * content, false otherwise
      */
-    private boolean isAssetUpdateNeeded(AssetExtractionByBranch assetExtractionByBranch, String newAssetContent) {
+    private boolean isAssetUpdateNeeded(AssetExtractionByBranch assetExtractionByBranch, String newAssetContent, List<String> filterOptions) {
 
         boolean assetProcessingNeeded = false;
 
         if (assetExtractionByBranch == null) {
             logger.debug("No active asset extraction, processing needed");
             assetProcessingNeeded = true;
-        } else if (!assetExtractionByBranch.getAssetExtraction().getContentMd5().equals(DigestUtils.md5Hex(newAssetContent))) {
+        } else if (!DigestUtils.md5Hex(newAssetContent).equals(assetExtractionByBranch.getAssetExtraction().getContentMd5()) ||
+                !filterOptionsMd5Builder.md5(filterOptions).equals(assetExtractionByBranch.getAssetExtraction().getFilterOptionsMd5())) {
             logger.debug("Content has changed, processing needed");
             assetProcessingNeeded = true;
         }

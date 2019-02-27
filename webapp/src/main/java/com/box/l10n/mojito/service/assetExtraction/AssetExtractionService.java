@@ -11,6 +11,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.asset.FilterOptionsMd5Builder;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
@@ -86,6 +87,9 @@ public class AssetExtractionService {
     @Autowired
     RetryTemplate retryTemplate;
 
+    @Autowired
+    FilterOptionsMd5Builder filterOptionsMd5Builder;
+
     /**
      * If the asset type is supported, starts the text units extraction for the given asset.
      *
@@ -109,7 +113,7 @@ public class AssetExtractionService {
         AssetContent assetContent = assetContentService.findOne(assetContentId);
         Asset asset = assetContent.getAsset();
 
-        AssetExtraction assetExtraction = createAssetExtraction(assetContent, currentTask);
+        AssetExtraction assetExtraction = createAssetExtraction(assetContent, currentTask, filterOptions);
 
         assetExtractor.performAssetExtraction(assetExtraction, filterConfigIdOverride, filterOptions, currentTask);
 
@@ -349,15 +353,17 @@ public class AssetExtractionService {
      * Creates an AssetExtraction associated to the given asset
      *
      * @param asset The asset associated to the AssetExtraction
+     * @param filterOptions
      * @return The created assetExtraction instance
      */
     @Transactional
-    public AssetExtraction createAssetExtraction(AssetContent assetContent, PollableTask pollableTask) {
+    public AssetExtraction createAssetExtraction(AssetContent assetContent, PollableTask pollableTask, List<String> filterOptions) {
         AssetExtraction assetExtraction = new AssetExtraction();
 
         assetExtraction.setAsset(assetContent.getAsset());
         assetExtraction.setAssetContent(assetContent);
         assetExtraction.setContentMd5(assetContent.getContentMd5());
+        assetExtraction.setFilterOptionsMd5(filterOptionsMd5Builder.md5(filterOptions));
         assetExtraction.setPollableTask(pollableTask);
         assetExtraction = assetExtractionRepository.save(assetExtraction);
 
