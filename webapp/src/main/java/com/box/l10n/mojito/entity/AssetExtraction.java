@@ -40,6 +40,9 @@ public class AssetExtraction extends AuditableEntity {
     @Column(name = "content_md5", length = 32)
     private String contentMd5;
 
+    @Column(name = "filter_options_md5", length = 32)
+    private String filterOptionsMd5;
+
     @JsonManagedReference("assetTextUnits")
     @OneToMany(mappedBy = "assetExtraction")
     private Set<AssetTextUnit> assetTextUnits = new HashSet<>();
@@ -79,6 +82,14 @@ public class AssetExtraction extends AuditableEntity {
 
     public void setContentMd5(String contentMd5) {
         this.contentMd5 = contentMd5;
+    }
+
+    public String getFilterOptionsMd5() {
+        return filterOptionsMd5;
+    }
+
+    public void setFilterOptionsMd5(String filterOptionsMd5) {
+        this.filterOptionsMd5 = filterOptionsMd5;
     }
 
     public Set<AssetTextUnit> getAssetTextUnits() {
