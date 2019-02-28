@@ -39,6 +39,7 @@ public class TextUnitSearcherParameters {
     Boolean toBeFullyTranslatedFilter;
     boolean untranslatedOrTranslationNeeded = false;
     boolean pluralFormsFiltered = true;
+    boolean pluralFormsExcluded = false;
     Long pluralFormId;
     Boolean doNotTranslateFilter;
     DateTime tmTextUnitCreatedBefore;
@@ -223,6 +224,14 @@ public class TextUnitSearcherParameters {
 
     public void setPluralFormId(Long pluralFormId) {
         this.pluralFormId = pluralFormId;
+    }
+
+    public boolean isPluralFormsExcluded() {
+        return pluralFormsExcluded;
+    }
+
+    public void setPluralFormsExcluded(boolean pluralFormsExcluded) {
+        this.pluralFormsExcluded = pluralFormsExcluded;
     }
 
     public Boolean getDoNotTranslateFilter() {
