@@ -272,6 +272,10 @@ public class TextUnitSearcher {
             conjunction.add(new NativeEqExpFix("tu.plural_form_id", searchParameters.getPluralFormId()));
         }
 
+        if (searchParameters.isPluralFormsExcluded()) {
+            conjunction.add(new NativeIsNullExp("tu.plural_form_id"));
+        }
+
         if (searchParameters.getDoNotTranslateFilter() != null) {
             conjunction.add(new NativeEqExpFix("atu.do_not_translate", searchParameters.getDoNotTranslateFilter()));
         }
