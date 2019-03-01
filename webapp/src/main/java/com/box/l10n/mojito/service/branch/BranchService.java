@@ -3,9 +3,13 @@ package com.box.l10n.mojito.service.branch;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.service.asset.AssetService;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -26,6 +30,9 @@ public class BranchService {
 
     @Autowired
     BranchRepository branchRepository;
+
+    @Autowired
+    AssetService assetService;
 
     public Branch createBranch(Repository repository, String branchName, User createdByUser) {
 
@@ -52,5 +59,18 @@ public class BranchService {
         }
 
         return branch;
+    }
+
+    @Transactional
+    public void markBranchDeleted(Long branchId) {
+        Branch branch = branchRepository.findOne(branchId);
+        logger.debug("Mark branch {} as deleted", branch.getName());
+        branch.setDeleted(true);
+        branchRepository.save(branch);
+    }
+
+    public void deleteBranchAsset(Long branchId, Long repositoryId) {
+        Set<Long> assetIds = assetService.findAllAssetIds(repositoryId, null, false, false, branchId);
+        assetService.deleteAssetsOfBranch(assetIds, branchId);
     }
 }

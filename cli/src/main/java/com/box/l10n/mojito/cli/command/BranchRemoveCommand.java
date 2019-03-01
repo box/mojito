@@ -49,18 +49,14 @@ public class BranchRemoveCommand extends Command {
 
     @Override
     public void execute() throws CommandException {
-        consoleWriter.newLine().a(String.format("Marking branch deleted in repository %s for ", repositoryParam)).fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
+        consoleWriter.newLine().a("Marking branch as deleted in ").a(repositoryParam).a(" for branch: ").fg(Ansi.Color.CYAN).a(branchName).println(2);
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         Branch branchToRemove = repositoryClient.getBranch(repository.getId(), branchName);
 
         if (branchToRemove == null) {
             throw new CommandException(String.format("Cannot find branch in %s by branchName %s.", repositoryParam, branchName));
         }
-
-        Set<Long> assetIds = new HashSet<>();
-        assetIds.addAll(assetClient.getAssetIds(repository.getId(), false, false, branchToRemove.getId()));
-        consoleWriter.newLine().a(String.format("AssetIds are fetched for %s : ", branchName)).fg(Ansi.Color.CYAN).a(assetIds.toString()).println(2);
-        assetClient.deleteAssetsInBranch(assetIds, branchToRemove.getId());
+        repositoryClient.deleteBranch(branchToRemove.getId(), repository.getId());
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Mark deleted finished").println(2);
     }
 

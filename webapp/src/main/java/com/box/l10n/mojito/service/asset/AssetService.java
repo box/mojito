@@ -34,6 +34,8 @@ import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -394,6 +396,14 @@ public class AssetService {
                 .and(ifParamNotNull(branchId(branchId, deleted)));
 
         List<Asset> all = assetRepository.findAll(assetSpecifications);
+        return all;
+    }
+
+    public Set<Long> findAllAssetIds(Long repositoryId, String path, Boolean deleted, Boolean virtual, Long branchId) {
+        Set<Long> all = new HashSet<>();
+        for (Asset asset: findAll(repositoryId, path, deleted, virtual, branchId)) {
+            all.add(asset.getId());
+        }
         return all;
     }
 }
