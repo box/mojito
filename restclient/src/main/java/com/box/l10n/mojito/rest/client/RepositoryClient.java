@@ -228,9 +228,8 @@ public class RepositoryClient extends BaseClient {
 
     public void deleteBranch(Long branchId, Long repositoryId) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.
-                fromPath(getBasePath() + "/branch").
-                queryParam("branchId", branchId).
-                queryParam("repositoryId", repositoryId);
+                fromPath(getBasePathForResource(repositoryId, "branches")).
+                queryParam("branchId", branchId);
         authenticatedRestTemplate.delete(uriComponentsBuilder.build().toUriString());
     }
 

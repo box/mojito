@@ -6,6 +6,7 @@ import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.branch.BranchRepository;
+import com.box.l10n.mojito.service.branch.BranchService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -57,6 +58,9 @@ public class RepositoryWS {
 
     @Autowired
     BranchRepository branchRepository;
+
+    @Autowired
+    BranchService branchService;
 
     @JsonView(View.Repository.class)
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
@@ -237,6 +241,16 @@ public class RepositoryWS {
         ));
 
         return branches;
+    }
+
+    @RequestMapping(value ="/api/repositories/{repositoryId}/branches", method = RequestMethod.DELETE)
+    public void deleteBranch(@PathVariable(value = "repositoryId") Long repositoryId,
+                             @RequestParam(value = "branchId") Long branchId) {
+        logger.debug("Deleting branch {} in repository {}", repositoryId, branchId);
+        branchService.deleteBranchAsset(branchId, repositoryId);
+        logger.debug("All assets in branch {} are deleted.", branchId);
+        branchService.markBranchDeleted(branchId);
+        logger.debug("Branch {} is marked as deleted", branchId);
     }
 
 }

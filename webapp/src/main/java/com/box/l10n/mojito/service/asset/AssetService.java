@@ -39,6 +39,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.*;
 import static com.box.l10n.mojito.specification.Specifications.distinct;
@@ -400,10 +401,6 @@ public class AssetService {
     }
 
     public Set<Long> findAllAssetIds(Long repositoryId, String path, Boolean deleted, Boolean virtual, Long branchId) {
-        Set<Long> all = new HashSet<>();
-        for (Asset asset: findAll(repositoryId, path, deleted, virtual, branchId)) {
-            all.add(asset.getId());
-        }
-        return all;
+        return findAll(repositoryId, path, deleted, virtual, branchId).stream().map(Asset::getId).collect(Collectors.toSet());
     }
 }
