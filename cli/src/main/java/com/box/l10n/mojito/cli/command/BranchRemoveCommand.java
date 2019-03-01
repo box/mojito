@@ -16,9 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Component
 @Scope("prototype")
 @Parameters(commandNames = {"branch-remove", "br"}, commandDescription = "remove branch")
@@ -43,7 +40,7 @@ public class BranchRemoveCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
-    @Parameter(names = {"-b", "--branch"}, arity = 1, required = true, description = "branch")
+    @Parameter(names = {Param.BRANCH_LONG, Param.BRANCH_SHORT}, arity = 1, required = true, description = Param.BRANCH_DESCRIPTION)
     String branchName;
 
 
