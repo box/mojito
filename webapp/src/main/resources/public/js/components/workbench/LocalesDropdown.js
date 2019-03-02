@@ -131,18 +131,23 @@ let LocalesDropDown = React.createClass({
      *
      * @param locale the locale that was selected
      */
-    onLocaleSelected(locale) {
-
+    onLocaleSelected(locale, event) {
         this.forceDropdownOpen = true;
 
         let bcp47Tag = locale.bcp47Tag;
 
-        let newSelectedBcp47Tags = this.state.selectedBcp47Tags.slice();
+        let newSelectedBcp47Tags = [];
 
-        if (locale.selected) {
-            _.pull(newSelectedBcp47Tags, bcp47Tag);
+        if (event.shiftKey) {
+            newSelectedBcp47Tags = [bcp47Tag];
         } else {
-            newSelectedBcp47Tags.push(bcp47Tag);
+            newSelectedBcp47Tags =  this.state.selectedBcp47Tags.slice();
+
+            if (locale.selected) {
+                _.pull(newSelectedBcp47Tags, bcp47Tag);
+            } else {
+                newSelectedBcp47Tags.push(bcp47Tag);
+            }
         }
 
         this.searchParamChanged(newSelectedBcp47Tags);
@@ -266,7 +271,11 @@ let LocalesDropDown = React.createClass({
     renderLocales() {
         return this.getSortedLocales().map(
                 (locale) =>
-                        <MenuItem key={"Workbench.LocaleDropdown." + locale.displayName} eventKey={locale} active={locale.selected} onSelect={this.onLocaleSelected}>{locale.displayName}</MenuItem>
+                        <MenuItem key={"Workbench.LocaleDropdown." + locale.displayName}
+                                  eventKey={locale}
+                                  active={locale.selected}
+                                  onSelect={this.onLocaleSelected}
+                        >{locale.displayName}</MenuItem>
         );
     },
 

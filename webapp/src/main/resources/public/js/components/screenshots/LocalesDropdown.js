@@ -1,4 +1,3 @@
-import $ from "jquery";
 import _ from "lodash";
 import PropTypes from 'prop-types';
 import React from "react";
@@ -41,16 +40,22 @@ class LocalesDropDown extends React.Component {
      *
      * @param locale the locale that was selected
      */
-    onLocaleSelected(locale) {
+    onLocaleSelected(locale, event) {
         
         let bcp47Tag = locale.bcp47Tag;
 
-        let newSelectedBcp47Tags = this.props.selectedBcp47Tags.slice();
+        let newSelectedBcp47Tags = null;
 
-        if (locale.selected) {
-            _.pull(newSelectedBcp47Tags, bcp47Tag);
+        if (event.shiftKey) {
+            newSelectedBcp47Tags = [bcp47Tag];
         } else {
-            newSelectedBcp47Tags.push(bcp47Tag);
+            newSelectedBcp47Tags =  this.props.selectedBcp47Tags.slice();
+
+            if (locale.selected) {
+                _.pull(newSelectedBcp47Tags, bcp47Tag);
+            } else {
+                newSelectedBcp47Tags.push(bcp47Tag);
+            }
         }
 
         this.callOnSelectedBcp47TagsChanged(newSelectedBcp47Tags);
@@ -150,7 +155,10 @@ class LocalesDropDown extends React.Component {
     renderLocales() {
         return this.getSortedLocales().map(
                 (locale) =>
-                        <MenuItem key={locale.displayName} eventKey={locale} active={locale.selected} onSelect={(locale) => this.onLocaleSelected(locale)}>{locale.displayName}</MenuItem>
+                        <MenuItem key={locale.displayName}
+                                  eventKey={locale}
+                                  active={locale.selected}
+                                  onSelect={(locale, event) => this.onLocaleSelected(locale, event)}>{locale.displayName}</MenuItem>
         );
     }
 
