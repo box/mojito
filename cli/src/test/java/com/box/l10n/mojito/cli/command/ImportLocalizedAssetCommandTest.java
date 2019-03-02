@@ -270,6 +270,49 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
     }
 
     @Test
+    public void importJson() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir().getAbsolutePath());
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void importJsonWithNote() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir().getAbsolutePath());
+
+        checkExpectedGeneratedResources();
+    }
+
+
+
+
+
+
+    @Test
     public void importXcodeXliff() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();

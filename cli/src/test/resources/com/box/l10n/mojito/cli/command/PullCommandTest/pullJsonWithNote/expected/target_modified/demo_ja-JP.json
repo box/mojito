@@ -1,0 +1,20 @@
+﻿{
+  "100_character_description_": {
+    "string": "Description de 100 caractères :"
+  },
+  "15_min_duration": {
+    "string": "15分",
+    "note": "File lock dialog duration"
+  },
+  "1_hour_duration": {
+    "string": "1時間",
+    "note": "File lock dialog duration"
+  },
+  "1_month_duration": {
+    "string": "1か月",
+    "note": "File lock dialog duration"
+  },
+  "something_new": {
+    "string": "Something new"
+  }
+}

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -34,7 +35,9 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     public static final String FILTER_CONFIG_ID = "okf_json@mojito";
 
     Pattern noteKeyPattern = null;
+    Pattern usagesKeyPattern = null;
     XLIFFNoteAnnotation xliffNoteAnnotation;
+    UsagesAnnotation usagesAnnotation;
     String currentKeyName;
 
     @Override
@@ -65,6 +68,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
         Parameters parameters = this.getParameters();
         logger.debug("Set default value for the filter");
         parameters.setUseFullKeyPath(true);
+        parameters.setUseLeadingSlashOnKeyPath(false);
 
         logger.debug("Override with filter options");
         if (filterOptions != null) {
@@ -75,6 +79,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
             // mojito options
             filterOptions.getString("noteKeyPattern", s -> noteKeyPattern = Pattern.compile(s));
+            filterOptions.getString("usagesKeyPattern", s -> usagesKeyPattern = Pattern.compile(s));
         }
     }
 
@@ -86,6 +91,28 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
     @Override
     public void handleValue(String value, JsonValueTypes valueType) {
+        extractNoteIfMatch(value);
+        extractUsageIfMatch(value);
+        super.handleValue(value, valueType);
+    }
+
+    void extractUsageIfMatch(String value) {
+        if (usagesKeyPattern != null) {
+            Matcher m = usagesKeyPattern.matcher(currentKeyName);
+
+            if (m.matches()) {
+                logger.debug("key matches usagesKeyPattern, add the value as usage");
+
+                if (usagesAnnotation == null) {
+                    usagesAnnotation = new UsagesAnnotation(new HashSet<>());
+                }
+
+                usagesAnnotation.getUsages().add(value);
+            }
+        }
+    }
+
+    void extractNoteIfMatch(String value) {
         if (noteKeyPattern != null) {
             Matcher m = noteKeyPattern.matcher(currentKeyName);
 
@@ -103,14 +130,12 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
                 xliffNoteAnnotation.add(xliffNote);
             }
         }
-        super.handleValue(value, valueType);
     }
 
     @Override
     public void handleObjectEnd() {
 
-        if (xliffNoteAnnotation != null) {
-            logger.debug("We have xliffNoteAnnotation to add");
+        if (xliffNoteAnnotation != null || usagesAnnotation != null) {
 
             JsonEventBuilder eventBuilder = null;
             List<Event> events = null;
@@ -127,15 +152,24 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
             if (event.isPresent()) {
                 ITextUnit textUnit = event.get().getTextUnit();
-                logger.debug("Set note on text unit with name: {}", textUnit.getName());
-                textUnit.setAnnotation(xliffNoteAnnotation);
+
+                if (xliffNoteAnnotation != null) {
+                    logger.debug("Set note on text unit with name: {}", textUnit.getName());
+                    textUnit.setAnnotation(xliffNoteAnnotation);
+                }
+
+                if (usagesAnnotation != null) {
+                    logger.debug("Set usages on text unit with name: {}", textUnit.getName());
+                    textUnit.setAnnotation(usagesAnnotation);
+                }
             } else {
-                logger.debug("We have a note but no text unit. Skip the note");
+                logger.debug("Annotation but no text unit. Skip them");
             }
         }
 
-        logger.debug("Reset the xliffNoteAnnotation");
+        logger.debug("Reset the xliffNoteAnnotation and Usage Annotation");
         xliffNoteAnnotation = null;
+        usagesAnnotation = null;
 
         super.handleObjectEnd();
     }
