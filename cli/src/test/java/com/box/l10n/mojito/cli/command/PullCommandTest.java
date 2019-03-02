@@ -14,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Batch rename when adding a test: find . -name "*properties" -exec rename "s/properties/json/" {} \;
+ */
 public class PullCommandTest extends CLITestBase {
 
     /**
@@ -614,6 +617,55 @@ public class PullCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
                 "-t", getTargetTestDir("target_modified").getAbsolutePath(),
                 "-lm", "fr:fr-FR,ja:ja-JP");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void pullJson() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath());
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath());
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void pullJsonWithNote() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string");
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string");
 
         checkExpectedGeneratedResources();
     }
