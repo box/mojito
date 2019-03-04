@@ -5,8 +5,10 @@ import org.eclipse.jgit.api.BlameCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,6 +99,16 @@ public class GitRepository {
 
     public File getDirectory() {
         return jgitRepository.getDirectory();
+    }
+
+
+    public CanonicalTreeParser getHeadTree() throws IOException {
+        ObjectId headCommit = jgitRepository.resolve("HEAD^{tree}");
+        CanonicalTreeParser treeParser = new CanonicalTreeParser();
+        try (ObjectReader reader = jgitRepository.newObjectReader()) {
+            treeParser.reset(reader, headCommit);
+        }
+        return treeParser;
     }
 
 }
