@@ -18,12 +18,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"branch-remove", "br"}, commandDescription = "remove branch")
-public class BranchRemoveCommand extends Command {
+@Parameters(commandNames = {"branch-delete", "bd"}, commandDescription = "delete branch")
+public class BranchDeleteCommand extends Command {
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(BranchRemoveCommand.class);
+    static Logger logger = LoggerFactory.getLogger(BranchDeleteCommand.class);
 
     @Autowired
     ConsoleWriter consoleWriter;
