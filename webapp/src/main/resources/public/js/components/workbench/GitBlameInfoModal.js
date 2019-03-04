@@ -4,7 +4,11 @@ import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 import {withAppConfig} from "../../utils/AppConfig";
 import LinkHelper from "../../utils/LinkHelper";
-
+import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
+import AltContainer from "alt-container";
+import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
+import GitBlameScreenshotViewerModal from "./GitBlameScreenshotViewerModal";
+import {Link} from "react-router";
 
 let GitBlameInfoModal = React.createClass({
 
@@ -39,6 +43,28 @@ let GitBlameInfoModal = React.createClass({
             <div className={"row git-blame"}>
                 <label className={"col-sm-3 git-blame-label"}>{label}</label>
                 <div className={"col-sm-9 git-blame-info" + gitBlameClass}>{data}</div>
+            </div>
+        );
+    },
+
+    /**
+     * @param label                 The label for the data to display
+     * @param data                  The link text
+     * @param branchScreenshots     The screenshots for this branch
+     * @returns {*}                 The row of label:link to display in the modal
+     */
+    displayScreenshotLink(label, data, branchScreenshots) {
+        if (data == null || branchScreenshots == null) {
+            return this.displayInfo(label,null)
+        }
+        return (
+            <div className={"row git-blame"}>
+                <label className={"col-sm-3 git-blame-label"}>{label}</label>
+                <Link
+                    onClick={() => GitBlameScreenshotViewerActions.open(branchScreenshots)}
+                    className="col-sm-9 git-blame-screenshot clickable">
+                    {data}
+                </Link>
             </div>
         );
     },
@@ -105,6 +131,7 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
                     {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
                     {this.displayInfo("Branch", this.getBranch())}
+                    {this.displayScreenshotLink("Screenshots", "View", this.getBranchScreenshots())}
                 </div>
             );
     },
@@ -162,6 +189,14 @@ let GitBlameInfoModal = React.createClass({
             return this.props.gitBlameWithUsage.branch.name;
         } catch(e) {
             return " - ";
+        }
+    },
+
+    getBranchScreenshots() {
+        try {
+            return this.props.gitBlameWithUsage.branch.screenshots;
+        } catch(e) {
+            return null;
         }
     },
 
@@ -389,35 +424,50 @@ let GitBlameInfoModal = React.createClass({
 
     render() {
         return (
-            <Modal className={"git-blame-modal"} show={this.props.show} onHide={this.closeModal}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{this.getTitle()}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <div className={"row"}>
-                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.textUnit"}/></h4></div>
-                    </div>
-                    {this.renderTextUnitInfo()}
-                    <hr/>
-                    <div className={"row"}>
-                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.gitBlame"}/></h4></div>
-                        <div className={"col-sm-8"}>
-                            {this.props.loading ? (<span className="glyphicon glyphicon-refresh spinning"/>) : ""}
+            <div>
+                <Modal className={"git-blame-modal"} show={this.props.show} onHide={this.closeModal}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{this.getTitle()}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <div className={"row"}>
+                            <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.textUnit"}/></h4></div>
                         </div>
-                    </div>
-                    {this.renderGitBlameInfo()}
-                    <hr/>
-                    <div className={"row"}>
-                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4></div>
-                    </div>
-                    {this.renderDebugInfo()}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button bsStyle="primary" onClick={this.closeModal}>
-                        <FormattedMessage id={"textUnit.gitBlameModal.close"}/>
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+                        {this.renderTextUnitInfo()}
+                        <hr/>
+                        <div className={"row"}>
+                            <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.gitBlame"}/></h4></div>
+                            <div className={"col-sm-8"}>
+                                {this.props.loading ? (<span className="glyphicon glyphicon-refresh spinning"/>) : ""}
+                            </div>
+                        </div>
+                        {this.renderGitBlameInfo()}
+                        <hr/>
+                        <div className={"row"}>
+                            <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4></div>
+                        </div>
+                        {this.renderDebugInfo()}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button bsStyle="primary" onClick={this.closeModal}>
+                            <FormattedMessage id={"textUnit.gitBlameModal.close"}/>
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+                <AltContainer store={GitBlameScreenshotViewerStore}>
+                    <GitBlameScreenshotViewerModal
+                        onGoToPrevious={() => {
+                            GitBlameScreenshotViewerActions.goToPrevious();
+                        }}
+                        onGoToNext={() => {
+                            GitBlameScreenshotViewerActions.goToNext();
+                        }}
+                        onClose={() => {
+                            GitBlameScreenshotViewerActions.close();
+                        }}
+                        />
+                </AltContainer>
+            </div>
         );
     }
 });
