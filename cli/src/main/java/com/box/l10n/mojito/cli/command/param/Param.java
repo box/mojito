@@ -4,6 +4,9 @@ package com.box.l10n.mojito.cli.command.param;
  * @author wyau
  */
 public class Param {
+    public static final String BRANCH_LONG = "--branch";
+    public static final String BRANCH_SHORT = "-b";
+    public static final String BRANCH_DESCRIPTION = "Name of the branch";
 
     public static final String REPOSITORY_LONG = "--repository";
     public static final String REPOSITORY_SHORT = "-r";

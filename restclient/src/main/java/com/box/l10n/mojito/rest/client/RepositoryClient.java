@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.List;
@@ -223,6 +224,13 @@ public class RepositoryClient extends BaseClient {
         }
 
         return branch;
+    }
+
+    public void deleteBranch(Long branchId, Long repositoryId) {
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.
+                fromPath(getBasePathForResource(repositoryId, "branches")).
+                queryParam("branchId", branchId);
+        authenticatedRestTemplate.delete(uriComponentsBuilder.build().toUriString());
     }
 
 }

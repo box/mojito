@@ -318,17 +318,9 @@ public class AssetWS {
                                  @RequestParam(value = "virtual", required = false) Boolean virtual,
                                  @RequestParam(value = "branchId", required = false) Long branchId) {
 
-        HashSet<Long> ids = new HashSet<>();
-
         // not the best to fetch the whole asset (espcially for old one that have content, though with branch that
         // will change. Wanted to use spring project but it is not working for some reason. Since soon asset won't have
         // content anymore this actually ok.
-        List<Asset> all = assetService.findAll(repositoryId, null, deleted, virtual, branchId);
-
-        for (Asset asset : all) {
-            ids.add(asset.getId());
-        }
-
-        return ids;
+        return assetService.findAllAssetIds(repositoryId, null, deleted, virtual, branchId);
     }
 }
