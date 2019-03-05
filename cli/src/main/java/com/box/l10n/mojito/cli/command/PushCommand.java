@@ -59,7 +59,7 @@ public class PushCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    @Parameter(names = {"-b", "--branch"}, arity = 1, required = false, description = "branch")
+    @Parameter(names = {Param.BRANCH_LONG, Param.BRANCH_SHORT}, arity = 1, required = false, description = Param.BRANCH_DESCRIPTION)
     String branchName;
 
     @Parameter(names = {"--branch-createdby", "-bc"}, arity = 1, required = false, description = "username of text unit author")

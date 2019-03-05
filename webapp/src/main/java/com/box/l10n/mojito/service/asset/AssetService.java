@@ -34,9 +34,12 @@ import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.*;
 import static com.box.l10n.mojito.specification.Specifications.distinct;
@@ -400,5 +403,9 @@ public class AssetService {
 
         List<Asset> all = assetRepository.findAll(assetSpecifications);
         return all;
+    }
+
+    public Set<Long> findAllAssetIds(Long repositoryId, String path, Boolean deleted, Boolean virtual, Long branchId) {
+        return findAll(repositoryId, path, deleted, virtual, branchId).stream().map(Asset::getId).collect(Collectors.toSet());
     }
 }
