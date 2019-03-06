@@ -51,7 +51,7 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*}                 The row of label:link to display in the modal
      */
     displayScreenshotLink(label, data, branchScreenshots) {
-        if (data == null || branchScreenshots == null) {
+        if (data == null || !branchScreenshots || !branchScreenshots.length) {
             return this.displayInfo(label,null)
         }
         return (
