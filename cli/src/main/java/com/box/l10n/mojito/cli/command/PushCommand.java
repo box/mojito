@@ -11,19 +11,24 @@ import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.*;
+import com.box.l10n.mojito.rest.entity.Repository;
 import com.google.common.collect.Sets;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.grep4j.core.Grep4j.grep;
+import static org.grep4j.core.Grep4j.regularExpression;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.fusesource.jansi.Ansi;
+import org.grep4j.core.model.ProfileBuilder;
+import org.grep4j.core.options.Option;
+import org.grep4j.core.result.GrepResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +79,9 @@ public class PushCommand extends Command {
     @Parameter(names = {"--git-diff", "-df"}, arity = 1, required = false, description = "only processing git diff files")
     Boolean gitDiff = false;
 
+    @Parameter(names = {"--git-regex", "-gr"}, arity = 1, required = false, description = "only processing git diff files if diff change matches regex")
+    String gitRegex;
+
     @Autowired
     AssetClient assetClient;
 
@@ -97,12 +105,11 @@ public class PushCommand extends Command {
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
-        // filter out source files which do not contain diff changes if git diff is enabled.
         if (gitDiff) {
-            sourceFileMatches = getGitChangeFiles(sourceFileMatches);
-            if (sourceFileMatches.isEmpty()) {
-                logger.debug("No new string has been created. No need to create branch and process asset.");
-                return;
+            try {
+                sourceFileMatches = getGitChangeFiles(sourceFileMatches);
+            } catch (GitAPIException|FileNotFoundException e) {
+                throw new CommandException(e);
             }
         }
 
@@ -171,21 +178,35 @@ public class PushCommand extends Command {
      * @return
      * @throws CommandException
      */
-    private ArrayList<FileMatch> getGitChangeFiles(ArrayList<FileMatch> sourceFileMatches) throws CommandException {
+    private ArrayList<FileMatch> getGitChangeFiles(ArrayList<FileMatch> sourceFileMatches) throws CommandException, GitAPIException, FileNotFoundException {
+        logger.debug("filter out source files which do not contain diff changes.");
         GitRepository gitRepository = new GitRepository();
         gitRepository.init(commandDirectories.getSourceDirectoryPath().toString());
         Git git = new Git(gitRepository.jgitRepository);
         String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
         Set<String> gitDiffFiles = new HashSet<>();
-        try {
-            List<DiffEntry> diffEntries = git.diff().setOldTree(gitRepository.getHeadTree()).call();
-            gitDiffFiles.addAll(diffEntries.stream().map(DiffEntry::getNewPath).collect(Collectors.toSet()));
-        } catch (IOException | GitAPIException e) {
-            logger.debug(e.getMessage());
+
+        List<DiffEntry> diffEntries = new LinkedList<>();
+
+        for(FileMatch fileMatch: sourceFileMatches) {
+            File file = new File(gitPath + "diff_temp.text");
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            List<DiffEntry> diff = git.
+                    diff().
+                    setCached(true).
+                    setPathFilter(PathFilter.create(fileMatch.getPath().toString().substring(gitPath.length()))).
+                    setOutputStream(fileOutputStream).
+                    call();
+            GrepResults grepResults = grep(regularExpression(gitRegex), ProfileBuilder.newBuilder().name("gitFile").filePath(gitPath + "diff_temp.text").onLocalhost().build(), Option.countMatches());
+            if (Integer.parseInt(grepResults.getSingleResult().getText().split("\n")[0].trim()) > 0) {
+                diffEntries.addAll(diff);
+            }
+            file.delete();
         }
+        gitDiffFiles.addAll(diffEntries.stream().map(DiffEntry::getNewPath).collect(Collectors.toSet()));
         return sourceFileMatches.
                 stream().
-                filter(fileMatch -> fileMatch.getPath().toString().startsWith(gitPath) ? gitDiffFiles.contains(fileMatch.getPath().toString().substring(gitPath.length())) : false).
+                filter(fileMatch -> gitDiffFiles.contains(fileMatch.getPath().toString().substring(gitPath.length()))).
                 collect(Collectors.toCollection(ArrayList::new));
     }
 }

@@ -75,6 +75,11 @@
             <artifactId>org.eclipse.jgit</artifactId>
             <version>4.5.2.201704071617-r</version>
         </dependency>
+        <dependency>
+            <groupId>com.googlecode.grep4j</groupId>
+            <artifactId>grep4j</artifactId>
+            <version>1.8.7</version>
+        </dependency>
 
     </dependencies>
 
