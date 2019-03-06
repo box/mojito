@@ -27,6 +27,9 @@ import GitBlameStore from "../../stores/workbench/GitBlameStore";
 import GitBlameInfoModal from "./GitBlameInfoModal";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
 import {OverlayTrigger, Tooltip} from "react-bootstrap";
+import BranchesScreenshotViewerModal from "../branches/BranchesScreenshotViewerModal";
+import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
+import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
 
 let Workbench = React.createClass({
 
@@ -100,6 +103,19 @@ let Workbench = React.createClass({
                 </div>
                 <AltContainer store={GitBlameStore}>
                     <GitBlameInfoModal onCloseModal={GitBlameActions.close}/>
+                </AltContainer>
+                <AltContainer store={GitBlameScreenshotViewerStore}>
+                    <BranchesScreenshotViewerModal
+                        onGoToPrevious={() => {
+                            GitBlameScreenshotViewerActions.goToPrevious();
+                        }}
+                        onGoToNext={() => {
+                            GitBlameScreenshotViewerActions.goToNext();
+                        }}
+                        onClose={() => {
+                            GitBlameScreenshotViewerActions.close();
+                        }}
+                    />
                 </AltContainer>
 
             </div>

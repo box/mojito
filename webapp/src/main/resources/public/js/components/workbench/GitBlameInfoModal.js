@@ -5,9 +5,6 @@ import {Button, Modal} from "react-bootstrap";
 import {withAppConfig} from "../../utils/AppConfig";
 import LinkHelper from "../../utils/LinkHelper";
 import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
-import AltContainer from "alt-container";
-import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
-import GitBlameScreenshotViewerModal from "./GitBlameScreenshotViewerModal";
 import {Link} from "react-router";
 
 let GitBlameInfoModal = React.createClass({
@@ -424,50 +421,35 @@ let GitBlameInfoModal = React.createClass({
 
     render() {
         return (
-            <div>
-                <Modal className={"git-blame-modal"} show={this.props.show} onHide={this.closeModal}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>{this.getTitle()}</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <div className={"row"}>
-                            <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.textUnit"}/></h4></div>
+            <Modal className={"git-blame-modal"} show={this.props.show} onHide={this.closeModal}>
+                <Modal.Header closeButton>
+                    <Modal.Title>{this.getTitle()}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className={"row"}>
+                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.textUnit"}/></h4></div>
+                    </div>
+                    {this.renderTextUnitInfo()}
+                    <hr/>
+                    <div className={"row"}>
+                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.gitBlame"}/></h4></div>
+                        <div className={"col-sm-8"}>
+                            {this.props.loading ? (<span className="glyphicon glyphicon-refresh spinning"/>) : ""}
                         </div>
-                        {this.renderTextUnitInfo()}
-                        <hr/>
-                        <div className={"row"}>
-                            <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.gitBlame"}/></h4></div>
-                            <div className={"col-sm-8"}>
-                                {this.props.loading ? (<span className="glyphicon glyphicon-refresh spinning"/>) : ""}
-                            </div>
-                        </div>
-                        {this.renderGitBlameInfo()}
-                        <hr/>
-                        <div className={"row"}>
-                            <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4></div>
-                        </div>
-                        {this.renderDebugInfo()}
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button bsStyle="primary" onClick={this.closeModal}>
-                            <FormattedMessage id={"textUnit.gitBlameModal.close"}/>
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
-                <AltContainer store={GitBlameScreenshotViewerStore}>
-                    <GitBlameScreenshotViewerModal
-                        onGoToPrevious={() => {
-                            GitBlameScreenshotViewerActions.goToPrevious();
-                        }}
-                        onGoToNext={() => {
-                            GitBlameScreenshotViewerActions.goToNext();
-                        }}
-                        onClose={() => {
-                            GitBlameScreenshotViewerActions.close();
-                        }}
-                        />
-                </AltContainer>
-            </div>
+                    </div>
+                    {this.renderGitBlameInfo()}
+                    <hr/>
+                    <div className={"row"}>
+                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4></div>
+                    </div>
+                    {this.renderDebugInfo()}
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button bsStyle="primary" onClick={this.closeModal}>
+                        <FormattedMessage id={"textUnit.gitBlameModal.close"}/>
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         );
     }
 });

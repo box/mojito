@@ -18,7 +18,6 @@ class GitBlameScreenshotViewerStore {
     }
 
     open(branchScreenshots) {
-        console.log("GitBlameScreenshotViewerStore open", branchScreenshots);
         this.loadScreenshot(branchScreenshots, 1);
         this.show = true;
     }
