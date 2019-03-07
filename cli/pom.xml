@@ -75,11 +75,6 @@
             <artifactId>org.eclipse.jgit</artifactId>
             <version>4.5.2.201704071617-r</version>
         </dependency>
-        <dependency>
-            <groupId>org.unix4j</groupId>
-            <artifactId>unix4j-command</artifactId>
-            <version>0.5</version>
-        </dependency>
 
     </dependencies>
 

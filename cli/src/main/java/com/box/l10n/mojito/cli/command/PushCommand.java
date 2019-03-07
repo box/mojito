@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.unix4j.Unix4j;
-import org.unix4j.unix.Grep;
 
 /**
  * @author jaurambault
@@ -186,6 +184,7 @@ public class PushCommand extends Command {
         String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
         Set<String> gitDiffFiles = new HashSet<>();
 
+        Pattern pattern = Pattern.compile(gitRegex);
         for(FileMatch fileMatch: sourceFileMatches) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             List<DiffEntry> diff = git.
@@ -194,18 +193,13 @@ public class PushCommand extends Command {
                     setOutputStream(byteArrayOutputStream).
                     setPathFilter(PathFilter.create(fileMatch.getPath().toString().substring(gitPath.length()))).
                     call();
-            if(Integer.parseInt(Unix4j.
-                    fromString(byteArrayOutputStream.toString()).
-                    grep(Grep.Options.count, Pattern.compile(gitRegex)).
-                    toStringResult()) > 0) {
+            if(pattern.matcher(byteArrayOutputStream.toString()).find()) {
                 gitDiffFiles.add(gitPath + diff.get(0).getNewPath());
             }
-
-
         }
         return sourceFileMatches.
                 stream().
-                filter(fileMatch -> gitDiffFiles.contains(fileMatch.getPath().toString().substring(gitPath.length()))).
+                filter(fileMatch -> gitDiffFiles.contains(fileMatch.getPath().toString())).
                 collect(Collectors.toCollection(ArrayList::new));
     }
 }
