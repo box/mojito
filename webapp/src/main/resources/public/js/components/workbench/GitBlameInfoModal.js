@@ -4,7 +4,6 @@ import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 import {withAppConfig} from "../../utils/AppConfig";
 import LinkHelper from "../../utils/LinkHelper";
-import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
 import {Link} from "react-router";
 
 let GitBlameInfoModal = React.createClass({
@@ -13,7 +12,8 @@ let GitBlameInfoModal = React.createClass({
         return {
             "show": PropTypes.bool.isRequired,
             "textUnit": PropTypes.object.isRequired,
-            "gitBlameWithUsage": PropTypes.object.isRequired
+            "gitBlameWithUsage": PropTypes.object.isRequired,
+            "onViewScreenshotClick": PropTypes.func.isRequired
         };
     },
 
@@ -52,13 +52,13 @@ let GitBlameInfoModal = React.createClass({
      */
     displayScreenshotLink(label, data, branchScreenshots) {
         if (data == null || !branchScreenshots || !branchScreenshots.length) {
-            return this.displayInfo(label,null)
+            return this.displayInfo(label, null);
         }
         return (
             <div className={"row git-blame"}>
                 <label className={"col-sm-3 git-blame-label"}>{label}</label>
                 <Link
-                    onClick={() => GitBlameScreenshotViewerActions.open(branchScreenshots)}
+                    onClick={() => this.props.onViewScreenshotClick(branchScreenshots)}
                     className="col-sm-9 git-blame-screenshot clickable">
                     {data}
                 </Link>
