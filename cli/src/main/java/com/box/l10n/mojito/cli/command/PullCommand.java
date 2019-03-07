@@ -75,6 +75,9 @@ public class PullCommand extends Command {
             converter = LocalizedAssetBodyStatus.class)
     LocalizedAssetBody.Status status = LocalizedAssetBody.Status.ALL;
 
+    @Parameter(names = {"--asset-mapping", "-am"}, required = false, description = "Asset mapping, format: \"local1:remote1;local2:remote2\"", converter = AssetMappingConverter.class)
+    Map<String, String> assetMapping;
+
     @Autowired
     AssetClient assetClient;
 
@@ -225,36 +228,46 @@ public class PullCommand extends Command {
     LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, List<String> filterOptions) throws CommandException {
         consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
 
-        try {
-            logger.debug("Getting the asset for path: {} and locale: {}", sourceFileMatch.getSourcePath(), repositoryLocale.getLocale().getBcp47Tag());
-            Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(sourceFileMatch.getSourcePath(), repository.getId());
+        String sourcePath = sourceFileMatch.getSourcePath();
 
-            String assetContent = commandHelper.getFileContent(sourceFileMatch.getPath());
-
-            // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
-            // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
-            // See Xcode bug http://www.openradar.me/23410569
-            if (sourceFileMatch.getFileType().getClass() == XcodeXliffFileType.class) {
-                assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
-            }
-
-            LocalizedAssetBody localizedAsset = assetClient.getLocalizedAssetForContent(
-                    assetByPathAndRepositoryId.getId(),
-                    repositoryLocale.getLocale().getId(),
-                    assetContent,
-                    outputBcp47tag,
-                    sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-                    filterOptions,
-                    status,
-                    inheritanceMode
-            );
-
-            logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
-
-            return localizedAsset;
-        } catch (AssetNotFoundException e) {
-            throw new CommandException("Asset with path [" + sourceFileMatch.getSourcePath() + "] was not found in repo [" + repositoryParam + "]", e);
+        if (assetMapping != null && assetMapping.get(sourcePath) != null) {
+            String mapping = assetMapping.get(sourcePath);
+            logger.debug("Use asset mapping from: {} to {}", sourcePath, mapping);
+            sourcePath = mapping;
         }
+
+        Asset assetByPathAndRepositoryId;
+
+        try {
+            logger.debug("Getting the asset for path: {} and locale: {}", sourcePath, repositoryLocale.getLocale().getBcp47Tag());
+            assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(sourcePath, repository.getId());
+        } catch (AssetNotFoundException e) {
+            throw new CommandException("Asset with path [" + sourcePath + "] was not found in repo [" + repositoryParam + "]", e);
+        }
+
+        String assetContent = commandHelper.getFileContent(sourceFileMatch.getPath());
+
+        // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
+        // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
+        // See Xcode bug http://www.openradar.me/23410569
+        if (sourceFileMatch.getFileType().getClass() == XcodeXliffFileType.class) {
+            assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
+        }
+
+        LocalizedAssetBody localizedAsset = assetClient.getLocalizedAssetForContent(
+                assetByPathAndRepositoryId.getId(),
+                repositoryLocale.getLocale().getId(),
+                assetContent,
+                outputBcp47tag,
+                sourceFileMatch.getFileType().getFilterConfigIdOverride(),
+                filterOptions,
+                status,
+                inheritanceMode
+        );
+
+        logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
+
+        return localizedAsset;
     }
 
 }

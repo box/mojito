@@ -238,6 +238,25 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void assetMapping() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("mapping").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-am", "mapping-xliff.xliff:source-xliff.xliff");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void pullAndroidStrings() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
