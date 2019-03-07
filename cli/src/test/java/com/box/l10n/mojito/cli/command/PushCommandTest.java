@@ -11,13 +11,14 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
-import nu.validator.htmlparser.annotation.Auto;
+import org.eclipse.jgit.api.Git;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -299,6 +300,79 @@ public class PushCommandTest extends CLITestBase {
         L10nJCommander l10nJCommander = getL10nJCommander();
         l10nJCommander.run("push", "-r", repository.getName(), "-s", getInputResourcesTestDir().getAbsolutePath());
         assertEquals(0, l10nJCommander.getExitCode());
+    }
+
+    @Test
+    public void testProcessDiffAsset() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        textUnitSearcherParameters.setForRootLocale(true);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+
+        File testDir = getInputResourcesTestDir(),
+                f1 = getInputResourcesTestDir("app1.properties"),
+                f2 = getInputResourcesTestDir("app2.properties");
+        FileOutputStream fileOutputStream1 = new FileOutputStream(f1.getPath(), false), fileOutputStream2 = new FileOutputStream(f2.getPath(), false);
+        GitRepository gitRepository = new GitRepository();
+        gitRepository.init(testDir.getAbsolutePath());
+        Git git = new Git(gitRepository.jgitRepository);
+        String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
+
+        logger.debug("Push two diff changed files and one file match regex filter for git add line starts with match.diff.regex");
+
+        fileOutputStream1.write("match.diff.regex=value from match diff regex".getBytes());
+        fileOutputStream1.close();
+        fileOutputStream2.write("not.match.diff.regex=value from not match diff regex".getBytes());
+        fileOutputStream2.close();
+
+        git.add().addFilepattern(testDir.getAbsolutePath().substring(gitPath.length())).call();
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true", "--git-regex", "(?m)^\\+match.diff.regex");
+
+        List<TextUnitDTO> textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+        assertEquals(1L, textUnitDTOS.size());
+        assertEquals("match.diff.regex", textUnitDTOS.get(0).getName());
+        assertEquals("value from match diff regex", textUnitDTOS.get(0).getSource());
+
+        logger.debug("Push two diff changed files and no regex be set");
+        fileOutputStream1 = new FileOutputStream(f1.getPath(), false);
+        fileOutputStream2 = new FileOutputStream(f2.getPath(), false);
+        fileOutputStream1.write("k1=v1".getBytes());
+        fileOutputStream1.close();
+        fileOutputStream2.write("k2=v2".getBytes());
+        fileOutputStream2.close();
+
+        git.add().addFilepattern(testDir.getAbsolutePath().substring(gitPath.length())).call();
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true");
+
+        List<TextUnitDTO> textUnitDTOS1 = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+        assertEquals(2L, textUnitDTOS1.size());
+        assertEquals("k1", textUnitDTOS1.get(0).getName());
+        assertEquals("v1", textUnitDTOS1.get(0).getSource());
+        assertEquals("k2", textUnitDTOS1.get(1).getName());
+        assertEquals("v2", textUnitDTOS1.get(1).getSource());
+
+        git.reset().call();
+        git.checkout().setAllPaths(true).call();
+
+        logger.debug("Git diff not enable, extract all source file");
+
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath());
+
+        List<TextUnitDTO> textUnitDTOS2 = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+        assertEquals(2L, textUnitDTOS2.size());
+        assertEquals("app3.committed.k1", textUnitDTOS2.get(0).getName());
+        assertEquals("app3 committed v1", textUnitDTOS2.get(0).getSource());
+        assertEquals("app3.committed.k2", textUnitDTOS2.get(1).getName());
+        assertEquals("app3 committed v2", textUnitDTOS2.get(1).getSource());
+
+        logger.debug("No git diff change");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true");
+        assertEquals(0L, getTextUnitDTOsSortedById(textUnitSearcherParameters).size());
+
+
     }
 
     private void checkNumberOfUsedUntranslatedTextUnit(Repository repository, List<String> locales, int expectedNumberOfUnstranslated) {

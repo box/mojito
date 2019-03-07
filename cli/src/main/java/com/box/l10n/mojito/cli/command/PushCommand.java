@@ -74,7 +74,7 @@ public class PushCommand extends Command {
     @Parameter(names = {"--branch-createdby", "-bc"}, arity = 1, required = false, description = "username of text unit author")
     String branchCreatedBy;
 
-    @Parameter(names = {"--git-diff", "-df"}, arity = 1, required = false, description = "only processing git diff files")
+    @Parameter(names = {"--git-diff", "-gd"}, arity = 1, required = false, description = "only processing git diff files")
     Boolean gitDiff = false;
 
     @Parameter(names = {"--git-regex", "-gr"}, arity = 1, required = false, description = "only processing git diff files if diff change matches regex")
@@ -185,7 +185,7 @@ public class PushCommand extends Command {
         String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
         Set<String> gitDiffFiles = new HashSet<>();
 
-        Pattern pattern = Pattern.compile(gitRegex);
+        Pattern pattern = Pattern.compile(gitRegex == null ? "." : gitRegex);
         for(FileMatch fileMatch: sourceFileMatches) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             List<DiffEntry> diff = git.
@@ -194,7 +194,7 @@ public class PushCommand extends Command {
                     setOutputStream(byteArrayOutputStream).
                     setPathFilter(PathFilter.create(fileMatch.getPath().toString().substring(gitPath.length()))).
                     call();
-            if(gitRegex == null || pattern.matcher(byteArrayOutputStream.toString()).find()) {
+            if ((gitRegex == null && !diff.isEmpty()) || pattern.matcher(byteArrayOutputStream.toString()).find()) {
                 gitDiffFiles.add(gitPath + diff.get(0).getNewPath());
             }
         }
