@@ -329,7 +329,7 @@ public class PushCommandTest extends CLITestBase {
         fileOutputStream2.close();
 
         git.add().addFilepattern(testDir.getAbsolutePath().substring(gitPath.length())).call();
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true", "--git-regex", "(?m)^\\+match.diff.regex");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true", "--git-regex", "^\\+not.match.diff.regex.*");
 
         List<TextUnitDTO> textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
         assertEquals(1L, textUnitDTOS.size());

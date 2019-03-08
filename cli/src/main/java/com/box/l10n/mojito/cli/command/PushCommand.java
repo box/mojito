@@ -185,8 +185,8 @@ public class PushCommand extends Command {
         String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
         Set<String> gitDiffFiles = new HashSet<>();
 
-        Pattern pattern = Pattern.compile(gitRegex == null ? "." : gitRegex);
-        for(FileMatch fileMatch: sourceFileMatches) {
+        Pattern pattern = gitRegex == null ? null : Pattern.compile(gitRegex);
+        for (FileMatch fileMatch : sourceFileMatches) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             List<DiffEntry> diff = git.
                     diff().
@@ -194,7 +194,16 @@ public class PushCommand extends Command {
                     setOutputStream(byteArrayOutputStream).
                     setPathFilter(PathFilter.create(fileMatch.getPath().toString().substring(gitPath.length()))).
                     call();
-            if ((gitRegex == null && !diff.isEmpty()) || pattern.matcher(byteArrayOutputStream.toString()).find()) {
+            boolean containsDiffChange = false;
+            for (String line : byteArrayOutputStream.toString().split("\n")) {
+                if (line.startsWith("+") && !line.startsWith("+++") && line.length() > 1) {
+                    if (pattern == null || !pattern.matcher(line).matches()) {
+                        containsDiffChange = true;
+                        break;
+                    }
+                }
+            }
+            if (containsDiffChange) {
                 gitDiffFiles.add(gitPath + diff.get(0).getNewPath());
             }
         }
