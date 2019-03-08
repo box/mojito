@@ -50,7 +50,7 @@ let GitBlameInfoModal = React.createClass({
     displayScreenshotLink() {
         const label = this.props.intl.formatMessage({ id: "textUnit.gitBlameModal.screenshots"});
         const branchScreenshots = this.getBranchScreenshots();
-        if (!branchScreenshots || !branchScreenshots.length) {
+        if (!branchScreenshots.length) {
             return this.displayInfo(label, null);
         }
 
@@ -193,7 +193,7 @@ let GitBlameInfoModal = React.createClass({
         try {
             return this.props.gitBlameWithUsage.branch.screenshots;
         } catch(e) {
-            return null;
+            return [];
         }
     },
 

@@ -9,11 +9,12 @@ class ScreenshotViewerStore {
         this.src = null;
         this.number = 0;
         this.total = 0;
-        this.branchStatisticScreenshots = null;
+        this.branchStatisticScreenshots = [];
         this.textUnits = [];
     }
 
-    open() {
+    open(branchStatisticsScreenshots) {
+        this.branchStatisticScreenshots = branchStatisticsScreenshots;
         this.loadScreenshot(1);
         this.show = true;
     }

@@ -9,11 +9,6 @@ class GitBlameScreenshotViewerStore extends ScreenshotViewerStore {
         this.bindActions(GitBlameScreenshotViewerActions);
     }
 
-    open(branchScreenshots) {
-        this.branchStatisticScreenshots = branchScreenshots;
-        super.open()
-    }
-
 }
 
 export default alt.createStore(GitBlameScreenshotViewerStore, 'GitBlameScreenshotViewerStore');

@@ -12,8 +12,8 @@ class BranchesScreenshotViewerStore extends ScreenshotViewerStore {
     }
 
     open(branchStatisticId) {
-        this.branchStatisticScreenshots = BranchesStore.getBranchStatisticById(branchStatisticId).branch.screenshots;
-        super.open();
+        const branchStatisticScreenshots = BranchesStore.getBranchStatisticById(branchStatisticId).branch.screenshots;
+        super.open(branchStatisticScreenshots);
     }
 
 }
