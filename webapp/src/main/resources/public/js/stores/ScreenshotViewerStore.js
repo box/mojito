@@ -13,6 +13,11 @@ class ScreenshotViewerStore {
         this.textUnits = [];
     }
 
+    open() {
+        this.loadScreenshot(1);
+        this.show = true;
+    }
+
     loadScreenshot(number) {
         if (this.branchStatisticScreenshots.length > 0) {
             this.number = number;

@@ -11,8 +11,7 @@ class GitBlameScreenshotViewerStore extends ScreenshotViewerStore {
 
     open(branchScreenshots) {
         this.branchStatisticScreenshots = branchScreenshots;
-        this.loadScreenshot(1);
-        this.show = true;
+        super.open()
     }
 
 }

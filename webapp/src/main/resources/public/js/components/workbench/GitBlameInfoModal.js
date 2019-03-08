@@ -45,22 +45,22 @@ let GitBlameInfoModal = React.createClass({
     },
 
     /**
-     * @param label                 The label for the data to display
-     * @param data                  The link text
-     * @param branchScreenshots     The screenshots for this branch
-     * @returns {*}                 The row of label:link to display in the modal
+     * @returns {*} The row of label:link to display in the modal
      */
-    displayScreenshotLink(label, data, branchScreenshots) {
-        if (data == null || !branchScreenshots || !branchScreenshots.length) {
+    displayScreenshotLink() {
+        const label = this.props.intl.formatMessage({ id: "textUnit.gitBlameModal.screenshots"});
+        const branchScreenshots = this.getBranchScreenshots();
+        if (!branchScreenshots || !branchScreenshots.length) {
             return this.displayInfo(label, null);
         }
+
         return (
             <div className={"row git-blame"}>
                 <label className={"col-sm-3 git-blame-label"}>{label}</label>
                 <Link
                     onClick={() => this.props.onViewScreenshotClick(branchScreenshots)}
                     className="col-sm-9 git-blame-screenshot clickable">
-                    {data}
+                    <FormattedMessage id="textUnit.gitBlameModal.screenshotModalOpen" />
                 </Link>
             </div>
         );
@@ -128,7 +128,7 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
                     {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
                     {this.displayInfo("Branch", this.getBranch())}
-                    {this.displayScreenshotLink("Screenshots", "View", this.getBranchScreenshots())}
+                    {this.displayScreenshotLink()}
                 </div>
             );
     },
