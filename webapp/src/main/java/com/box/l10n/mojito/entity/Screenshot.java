@@ -62,7 +62,7 @@ public class Screenshot extends SettableAuditableEntity {
     @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT__LOCALE__ID"))
     private Locale locale;
 
-    @JsonView({View.Screenshots.class, View.BranchStatistic.class})
+    @JsonView({View.Screenshots.class, View.BranchStatistic.class, View.GitBlameWithUsage.class})
     @Column(name = "src", length = Integer.MAX_VALUE)
     private String src;
 
@@ -79,7 +79,7 @@ public class Screenshot extends SettableAuditableEntity {
     @Column(name = "comment", length = Integer.MAX_VALUE)
     private String comment;
 
-    @JsonView({View.Screenshots.class, View.BranchStatistic.class})
+    @JsonView({View.Screenshots.class, View.BranchStatistic.class, View.GitBlameWithUsage.class})
     @JsonManagedReference
     @OneToMany(mappedBy = "screenshot", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonProperty("textUnits")
