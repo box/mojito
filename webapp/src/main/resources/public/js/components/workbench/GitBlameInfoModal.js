@@ -4,7 +4,7 @@ import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 import {withAppConfig} from "../../utils/AppConfig";
 import LinkHelper from "../../utils/LinkHelper";
-
+import {Link} from "react-router";
 
 let GitBlameInfoModal = React.createClass({
 
@@ -12,7 +12,8 @@ let GitBlameInfoModal = React.createClass({
         return {
             "show": PropTypes.bool.isRequired,
             "textUnit": PropTypes.object.isRequired,
-            "gitBlameWithUsage": PropTypes.object.isRequired
+            "gitBlameWithUsage": PropTypes.object.isRequired,
+            "onViewScreenshotClick": PropTypes.func.isRequired
         };
     },
 
@@ -39,6 +40,28 @@ let GitBlameInfoModal = React.createClass({
             <div className={"row git-blame"}>
                 <label className={"col-sm-3 git-blame-label"}>{label}</label>
                 <div className={"col-sm-9 git-blame-info" + gitBlameClass}>{data}</div>
+            </div>
+        );
+    },
+
+    /**
+     * @returns {*} The row of label:link to display in the modal
+     */
+    displayScreenshotLink() {
+        const label = this.props.intl.formatMessage({ id: "textUnit.gitBlameModal.screenshots"});
+        const branchScreenshots = this.getBranchScreenshots();
+        if (!branchScreenshots.length) {
+            return this.displayInfo(label, null);
+        }
+
+        return (
+            <div className={"row git-blame"}>
+                <label className={"col-sm-3 git-blame-label"}>{label}</label>
+                <Link
+                    onClick={() => this.props.onViewScreenshotClick(branchScreenshots)}
+                    className="col-sm-9 git-blame-screenshot clickable">
+                    <FormattedMessage id="textUnit.gitBlameModal.screenshotModalOpen" />
+                </Link>
             </div>
         );
     },
@@ -105,6 +128,7 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
                     {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
                     {this.displayInfo("Branch", this.getBranch())}
+                    {this.displayScreenshotLink()}
                 </div>
             );
     },
@@ -162,6 +186,14 @@ let GitBlameInfoModal = React.createClass({
             return this.props.gitBlameWithUsage.branch.name;
         } catch(e) {
             return " - ";
+        }
+    },
+
+    getBranchScreenshots() {
+        try {
+            return this.props.gitBlameWithUsage.branch.screenshots;
+        } catch(e) {
+            return [];
         }
     },
 

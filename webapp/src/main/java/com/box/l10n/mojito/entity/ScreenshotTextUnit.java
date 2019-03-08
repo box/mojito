@@ -47,7 +47,7 @@ public class ScreenshotTextUnit extends BaseEntity {
     @Column(name = "number_of_match")
     private Integer numberOfMatch;
 
-    @JsonView({View.Screenshots.class, View.BranchStatistic.class})
+    @JsonView({View.Screenshots.class, View.BranchStatistic.class, View.GitBlameWithUsage.class})
     @ManyToOne
     @JoinColumn(name = "tm_text_unit_id", foreignKey = @ForeignKey(name = "FK__SCREENSHOT_TEXT_UNIT__TM_TEXT_UNIT__ID"))
     private TMTextUnit tmTextUnit;
