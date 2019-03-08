@@ -59,7 +59,7 @@ let GitBlameInfoModal = React.createClass({
                 <label className={"col-sm-3 git-blame-label"}>{label}</label>
                 <Link
                     onClick={() => this.props.onViewScreenshotClick(branchScreenshots)}
-                    className="col-sm-9 git-blame-screenshot clickable">
+                    className="col-sm-9 clickable">
                     <FormattedMessage id="textUnit.gitBlameModal.screenshotModalOpen" />
                 </Link>
             </div>
