@@ -4,6 +4,7 @@ import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
@@ -11,6 +12,11 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.io.CharSink;
+import com.google.common.io.FileWriteMode;
+import com.google.common.io.Files;
 import org.eclipse.jgit.api.Git;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -18,15 +24,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -41,6 +44,9 @@ public class PushCommandTest extends CLITestBase {
 
     @Autowired
     AssetClient assetClient;
+
+    @Autowired
+    RepositoryClient repositoryClient;
 
     @Autowired
     TextUnitSearcher textUnitSearcher;
@@ -305,74 +311,95 @@ public class PushCommandTest extends CLITestBase {
     @Test
     public void testProcessDiffAsset() throws Exception {
 
-        Repository repository = createTestRepoUsingRepoService();
+        Repository repository = createTestRepoUsingRepoService("processDiff", false);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
         textUnitSearcherParameters.setForRootLocale(true);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
 
-        File testDir = getInputResourcesTestDir(),
-                f1 = getInputResourcesTestDir("app1.properties"),
-                f2 = getInputResourcesTestDir("app2.properties");
-        FileOutputStream fileOutputStream1 = new FileOutputStream(f1.getPath(), false), fileOutputStream2 = new FileOutputStream(f2.getPath(), false);
+        File testDir = getInputResourcesTestDir("branch1"),
+                f1 = getInputResourcesTestDir("branch1/app1.properties"),
+                f2 = getInputResourcesTestDir("branch1/app2.properties"),
+                f3 = getInputResourcesTestDir("branch1/app3.properties");
+        CharSink charSink1 = Files.asCharSink(f1, Charsets.UTF_8, FileWriteMode.APPEND),
+                charSink2 = Files.asCharSink(f2, Charsets.UTF_8, FileWriteMode.APPEND),
+                charSink3 = Files.asCharSink(f3, Charsets.UTF_8, FileWriteMode.APPEND);
         GitRepository gitRepository = new GitRepository();
         gitRepository.init(testDir.getAbsolutePath());
         Git git = new Git(gitRepository.jgitRepository);
         String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
-
-        logger.debug("Push two diff changed files and one file match regex filter for git add line starts with match.diff.regex");
-
-        fileOutputStream1.write("match.diff.regex=value from match diff regex".getBytes());
-        fileOutputStream1.close();
-        fileOutputStream2.write("not.match.diff.regex=value from not match diff regex".getBytes());
-        fileOutputStream2.close();
-
+        charSink1.writeLines(Arrays.asList("included.1.git_branch1=included value 1 git_branch1", "included.2.git_branch1=included value 2 git_branch1"), "\n");
+        charSink2.writeLines(Arrays.asList("excluded.1.git_branch1=excluded value 1 git_branch1", "excluded.2.git_branch1=excluded value 2 git_branch1"), "\n");
+        charSink3.writeLines(Arrays.asList("excluded.3.git_branch1=excluded value 3 git_branch1", "included.3.git_branch1=included value 3 git_branch1"), "\n");
         git.add().addFilepattern(testDir.getAbsolutePath().substring(gitPath.length())).call();
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true", "--git-regex", "^\\+not.match.diff.regex.*");
 
+        logger.debug("Push two diff changed files and one file match git ignore regex filter");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-b", "git_branch1", "-gd", "true", "-gdi", "^\\+excluded");
+
+        textUnitSearcherParameters.setBranchId(repositoryClient.getBranch(repository.getId(), "git_branch1").getId());
         List<TextUnitDTO> textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
-        assertEquals(1L, textUnitDTOS.size());
-        assertEquals("match.diff.regex", textUnitDTOS.get(0).getName());
-        assertEquals("value from match diff regex", textUnitDTOS.get(0).getSource());
+        ImmutableMap pushed = ImmutableMap.of("included.1.git_branch1", "included value 1 git_branch1",
+                "included.2.git_branch1", "included value 2 git_branch1",
+                "excluded.3.git_branch1", "excluded value 3 git_branch1",
+                "included.3.git_branch1", "included value 3 git_branch1");
+        assertTrue(equalsToTextUnitDTOList(pushed, textUnitDTOS));
 
         logger.debug("Push two diff changed files and no regex be set");
-        fileOutputStream1 = new FileOutputStream(f1.getPath(), false);
-        fileOutputStream2 = new FileOutputStream(f2.getPath(), false);
-        fileOutputStream1.write("k1=v1".getBytes());
-        fileOutputStream1.close();
-        fileOutputStream2.write("k2=v2".getBytes());
-        fileOutputStream2.close();
-
+        testDir = getInputResourcesTestDir("branch2");
+        f1 = getInputResourcesTestDir("branch2/app1.properties");
+        f2 = getInputResourcesTestDir("branch2/app2.properties");
+        charSink1 = Files.asCharSink(f1, Charsets.UTF_8, FileWriteMode.APPEND);
+        charSink2 = Files.asCharSink(f2, Charsets.UTF_8, FileWriteMode.APPEND);
+        charSink1.writeLines(Arrays.asList("included.1.git_branch2=included value 1 git_branch2"), "\n");
+        charSink2.writeLines(Arrays.asList("excluded.1.git_branch2=excluded value 1 git_branch2"), "\n");
         git.add().addFilepattern(testDir.getAbsolutePath().substring(gitPath.length())).call();
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-b", "git_branch2", "-gd", "true");
 
+        textUnitSearcherParameters.setBranchId(repositoryClient.getBranch(repository.getId(), "git_branch2").getId());
         List<TextUnitDTO> textUnitDTOS1 = getTextUnitDTOsSortedById(textUnitSearcherParameters);
-        assertEquals(2L, textUnitDTOS1.size());
-        assertEquals("k1", textUnitDTOS1.get(0).getName());
-        assertEquals("v1", textUnitDTOS1.get(0).getSource());
-        assertEquals("k2", textUnitDTOS1.get(1).getName());
-        assertEquals("v2", textUnitDTOS1.get(1).getSource());
+        ImmutableMap pushed1 = ImmutableMap.of("included.1.git_branch2", "included value 1 git_branch2",
+                "excluded.1.git_branch2", "excluded value 1 git_branch2");
+        assertTrue(equalsToTextUnitDTOList(pushed1, textUnitDTOS1));
+
+
+        logger.debug("Push two diff changed files and no regex be set");
+        testDir = getInputResourcesTestDir("branch3");
+        f1 = getInputResourcesTestDir("branch3/app1.properties");
+        f2 = getInputResourcesTestDir("branch3/app2.properties");
+        f3 = getInputResourcesTestDir("branch3/app3.properties");
+        charSink1 = Files.asCharSink(f1, Charsets.UTF_8, FileWriteMode.APPEND);
+        charSink2 = Files.asCharSink(f2, Charsets.UTF_8, FileWriteMode.APPEND);
+        charSink3 = Files.asCharSink(f3, Charsets.UTF_8, FileWriteMode.APPEND);
+        charSink1.writeLines(Arrays.asList("included.1.git_branch3=included value 1 git_branch3", "included.2.git_branch3=included value 2 git_branch3"), "\n");
+        charSink2.writeLines(Arrays.asList("excluded.1.git_branch3=excluded value 1 git_branch3", "excluded.2.git_branch3=excluded value 2 git_branch3"), "\n");
+        charSink3.writeLines(Arrays.asList("excluded.3.git_branch3=excluded value 3 git_branch3", "included.3.git_branch3=included value 3 git_branch3"), "\n");
+        git.add().addFilepattern(testDir.getAbsolutePath().substring(gitPath.length())).call();
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-b", "git_branch3", "-gd", "true", "-gdi", "^\\+excluded|\\+included\\.3");
+
+        textUnitSearcherParameters.setBranchId(repositoryClient.getBranch(repository.getId(), "git_branch3").getId());
+        List<TextUnitDTO> textUnitDTOS2 = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+        ImmutableMap pushed2 = ImmutableMap.of("included.1.git_branch3", "included value 1 git_branch3",
+                "included.2.git_branch3", "included value 2 git_branch3");
+        assertTrue(equalsToTextUnitDTOList(pushed2, textUnitDTOS2));
 
         git.reset().call();
         git.checkout().setAllPaths(true).call();
 
         logger.debug("Git diff not enable, extract all source file");
+        testDir = getInputResourcesTestDir("branch4");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-b", "git_branch4");
 
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath());
+        textUnitSearcherParameters.setBranchId(repositoryClient.getBranch(repository.getId(), "git_branch4").getId());
+        List<TextUnitDTO> textUnitDTOS3 = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+        ImmutableMap pushed3 = ImmutableMap.of("git_branch4.committed.k1", "git_branch4 committed v1",
+                "git_branch4.committed.k2", "git_branch4 committed v2");
+        assertTrue(equalsToTextUnitDTOList(pushed3, textUnitDTOS3));
 
-        List<TextUnitDTO> textUnitDTOS2 = getTextUnitDTOsSortedById(textUnitSearcherParameters);
-        assertEquals(2L, textUnitDTOS2.size());
-        assertEquals("app3.committed.k1", textUnitDTOS2.get(0).getName());
-        assertEquals("app3 committed v1", textUnitDTOS2.get(0).getSource());
-        assertEquals("app3.committed.k2", textUnitDTOS2.get(1).getName());
-        assertEquals("app3 committed v2", textUnitDTOS2.get(1).getSource());
-
-        logger.debug("No git diff change");
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true");
-        assertEquals(0L, getTextUnitDTOsSortedById(textUnitSearcherParameters).size());
-
-
+        logger.debug("No git diff change and no branch will be created");
+        testDir = getInputResourcesTestDir("branch5");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", testDir.getAbsolutePath(), "-gd", "true", "-b", "git_branch5");
+        assertNull(repositoryClient.getBranch(repository.getId(), "git_branch5"));
     }
 
     private void checkNumberOfUsedUntranslatedTextUnit(Repository repository, List<String> locales, int expectedNumberOfUnstranslated) {
@@ -413,6 +440,21 @@ public class PushCommandTest extends CLITestBase {
         }
 
         return textUnitDTOS;
+    }
+
+    private boolean equalsToTextUnitDTOList(ImmutableMap<String, String> pushed,  List<TextUnitDTO> textUnitDTOS) {
+        HashMap<String, String> textUnitMap = new HashMap();
+        textUnitDTOS.stream().forEach(textUnitDTO -> textUnitMap.put(textUnitDTO.getName(), textUnitDTO.getSource()));
+        boolean result = true;
+        for (Map.Entry entry: pushed.entrySet()) {
+            if(textUnitMap.containsKey(entry.getKey()) && textUnitMap.get(entry.getKey()).equals(entry.getValue())) {
+                textUnitMap.remove(entry.getKey());
+            } else {
+                result = false;
+                break;
+            }
+        }
+        return result && textUnitMap.isEmpty();
     }
 
 }

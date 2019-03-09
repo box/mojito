@@ -77,8 +77,8 @@ public class PushCommand extends Command {
     @Parameter(names = {"--git-diff", "-gd"}, arity = 1, required = false, description = "only processing git diff files")
     Boolean gitDiff = false;
 
-    @Parameter(names = {"--git-regex", "-gr"}, arity = 1, required = false, description = "only processing git diff files if diff change matches regex")
-    String gitRegex;
+    @Parameter(names = {"--git-diff-ignore", "-gdi"}, arity = 1, required = false, description = "ignore diff changes if regex matches")
+    String gitDIffIgnoreRegex;
 
     @Autowired
     AssetClient assetClient;
@@ -185,7 +185,7 @@ public class PushCommand extends Command {
         String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
         Set<String> gitDiffFiles = new HashSet<>();
 
-        Pattern pattern = gitRegex == null ? null : Pattern.compile(gitRegex);
+        Pattern pattern = gitDIffIgnoreRegex == null ? null : Pattern.compile(gitDIffIgnoreRegex);
         for (FileMatch fileMatch : sourceFileMatches) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             List<DiffEntry> diff = git.
@@ -197,7 +197,7 @@ public class PushCommand extends Command {
             boolean containsDiffChange = false;
             for (String line : byteArrayOutputStream.toString().split("\n")) {
                 if (line.startsWith("+") && !line.startsWith("+++") && line.length() > 1) {
-                    if (pattern == null || !pattern.matcher(line).matches()) {
+                    if (pattern == null || !pattern.matcher(line).find()) {
                         containsDiffChange = true;
                         break;
                     }
