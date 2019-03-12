@@ -13,16 +13,6 @@
         <artifactId>mojito-parent</artifactId>
         <version>0.97-SNAPSHOT</version>
     </parent>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
-            </plugin>
-        </plugins>
-    </build>
  
     <dependencies>
         <dependency>
