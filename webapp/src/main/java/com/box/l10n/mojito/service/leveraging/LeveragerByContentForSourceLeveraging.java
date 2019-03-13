@@ -38,6 +38,8 @@ public class LeveragerByContentForSourceLeveraging extends AbstractLeverager {
         textUnitSearcherParameters.setAssetId(tmTextUnit.getAsset().getId());
         if (tmTextUnit.getPluralForm() != null) {
             textUnitSearcherParameters.setPluralFormId(tmTextUnit.getPluralForm().getId());
+        } else {
+            textUnitSearcherParameters.setPluralFormsExcluded(true);
         }
         return textUnitSearcher.search(textUnitSearcherParameters);
 
