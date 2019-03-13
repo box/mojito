@@ -34,6 +34,8 @@ public class LeveragerByContent extends AbstractLeverager {
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
         if (tmTextUnit.getPluralForm() != null) {
             textUnitSearcherParameters.setPluralFormId(tmTextUnit.getPluralForm().getId());
+        } else {
+            textUnitSearcherParameters.setPluralFormsExcluded(true);
         }
         return textUnitSearcher.search(textUnitSearcherParameters);
     }

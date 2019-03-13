@@ -198,9 +198,9 @@ public abstract class AbstractLeverager {
                 TextUnitDTO textUnitDTO = iterator.next();
 
                 if (textUnitDTO.getTmTextUnitId().equals(tmTextUnitIdForLeveraging)) {
-                    logger.debug("This translation comes from the same TMTextUnit, keep it");
+                    logger.debug("This translation comes from the same TMTextUnit: {}, keep it", textUnitDTO.getTmTextUnitId());
                 } else {
-                    logger.debug("This translation comes from another TMTextUnit, for consistency skip it.");
+                    logger.debug("This translation comes from another TMTextUnit: {}, for consistency skip it.", textUnitDTO.getTmTextUnitId());
                     iterator.remove();
                 }
             }
