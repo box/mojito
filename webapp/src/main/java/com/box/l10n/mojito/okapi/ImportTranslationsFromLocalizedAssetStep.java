@@ -5,17 +5,20 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.resource.TextContainer;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +46,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     TranslatorWithInheritance translatorWithInheritance;
     boolean hasTranslationWithoutInheritance;
 
+
     public enum StatusForEqualTarget {
         SKIPPED,
         REVIEW_NEEDED,
@@ -62,6 +66,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     @Override
     protected Event handleStartDocument(Event event) {
         event = super.handleStartDocument(event);
+
         initTmTextUnitsMapsForAsset();
         translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, InheritanceMode.USE_PARENT);
         hasTranslationWithoutInheritance = translatorWithInheritance.hasTranslationWithoutInheritance();
@@ -145,7 +150,17 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
         TextUnitDTO currentTranslation = translatorWithInheritance.getTextUnitDTO(tmTextUnit.getMd5());
 
         boolean hasSameTarget;
-        String targetAsString = target.toString();
+        String targetAsString = NormalizationUtils.normalize(target.toString());
+
+//        if (StatusForEqualTarget.SKIPPED.equals(statusForEqualTarget) && tmTextUnit.getContent().equals(target.toString())) {
+//            logger.info("Skip source: {} == target: {}",
+//                    tmTextUnit.getContent(),
+//                    targetAsString);
+//            return null;
+//        }
+
+
+
 
         logger.debug("Check if new target: [{}] is different to either the current, parent or source string: [{}]",
                 targetAsString, currentTranslation);
@@ -154,7 +169,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
             hasSameTarget = targetAsString.equals(currentTranslation.getTarget());
         } else {
             logger.debug("No current or parent, compare with the source");
-            hasSameTarget = targetAsString.equals(tmTextUnit.getContent());
+            hasSameTarget = targetAsString.equals(NormalizationUtils.normalize(tmTextUnit.getContent()));
         }
 
         if (hasSameTarget) {
