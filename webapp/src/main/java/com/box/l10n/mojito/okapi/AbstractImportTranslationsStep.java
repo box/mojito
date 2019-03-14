@@ -11,6 +11,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
+
 import java.util.HashSet;
 import java.util.Set;
 import net.sf.okapi.common.Event;
@@ -21,6 +22,7 @@ import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.StartDocument;
 import net.sf.okapi.common.resource.TextContainer;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +90,8 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      */
     boolean isMultilingual = false;
 
+    DateTime createdDate;
+
     @SuppressWarnings("deprecation")
     @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
     public void setTargetLocale(LocaleId targetLocale) {
@@ -106,6 +110,8 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
 
         StartDocument startDocument = event.getStartDocument();
         isMultilingual = startDocument.isMultilingual();
+
+        createdDate = new DateTime();
 
         return super.handleStartDocument(event);
     }
@@ -192,7 +198,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
                 TMTextUnitVariant.Status statusForImport = getStatusForImport(tmTextUnit, target);
 
                 if (statusForImport != null) {
-                    TMTextUnitVariant importTextUnit = importTextUnit(tmTextUnit, target, statusForImport);
+                    TMTextUnitVariant importTextUnit = importTextUnit(tmTextUnit, target, statusForImport, createdDate);
                     importNoteBuilder = buildImportNoteBuilderFromVariant(importTextUnit);
                     xliffState = getXliffState(importTextUnit);
                 } else {
@@ -343,7 +349,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     }
 
     @Transactional
-    TMTextUnitVariant importTextUnit(TMTextUnit tmTextUnit, TextContainer target, TMTextUnitVariant.Status status) {
+    TMTextUnitVariant importTextUnit(TMTextUnit tmTextUnit, TextContainer target, TMTextUnitVariant.Status status, DateTime createdDate) {
 
         Long targetLocaleId = getTargetLocaleId();
         Long tmTextUnitId = tmTextUnit.getId();
@@ -380,9 +386,9 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
                     null,
                     status,
                     includedInLocalizedFile,
-                    null).getTmTextUnitCurrentVariant().getTmTextUnitVariant();
+                    createdDate).getTmTextUnitCurrentVariant().getTmTextUnitVariant();
         } else {
-            addedTMTextUnitVariant = tmService.addTMTextUnitVariant(tmTextUnitId, targetLocaleId, targetString, null, status, includedInLocalizedFile, null);
+            addedTMTextUnitVariant = tmService.addTMTextUnitVariant(tmTextUnitId, targetLocaleId, targetString, null, status, includedInLocalizedFile, createdDate);
         }
 
         logger.debug("Create comments based on the list TMTextUnitVariantCommentAnnotations");
