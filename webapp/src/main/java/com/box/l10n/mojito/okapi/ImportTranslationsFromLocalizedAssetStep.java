@@ -152,16 +152,6 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
         boolean hasSameTarget;
         String targetAsString = NormalizationUtils.normalize(target.toString());
 
-//        if (StatusForEqualTarget.SKIPPED.equals(statusForEqualTarget) && tmTextUnit.getContent().equals(target.toString())) {
-//            logger.info("Skip source: {} == target: {}",
-//                    tmTextUnit.getContent(),
-//                    targetAsString);
-//            return null;
-//        }
-
-
-
-
         logger.debug("Check if new target: [{}] is different to either the current, parent or source string: [{}]",
                 targetAsString, currentTranslation);
 
@@ -169,7 +159,7 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
             hasSameTarget = targetAsString.equals(currentTranslation.getTarget());
         } else {
             logger.debug("No current or parent, compare with the source");
-            hasSameTarget = targetAsString.equals(NormalizationUtils.normalize(tmTextUnit.getContent()));
+            hasSameTarget = targetAsString.equals(tmTextUnit.getContent());
         }
 
         if (hasSameTarget) {
