@@ -275,15 +275,18 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "JSON");
 
         getL10nJCommander().run("import", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-t", getInputResourcesTestDir("translations").getAbsolutePath());
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-ft", "JSON");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-t", getTargetTestDir().getAbsolutePath());
+                "-t", getTargetTestDir().getAbsolutePath(),
+                "-ft", "JSON");
 
         checkExpectedGeneratedResources();
     }
@@ -294,23 +297,21 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "JSON");
 
         getL10nJCommander().run("import", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-t", getInputResourcesTestDir("translations").getAbsolutePath());
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-ft", "JSON");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-t", getTargetTestDir().getAbsolutePath());
+                "-t", getTargetTestDir().getAbsolutePath(),
+                "-ft", "JSON");
 
         checkExpectedGeneratedResources();
     }
-
-
-
-
-
 
     @Test
     public void importXcodeXliff() throws Exception {
