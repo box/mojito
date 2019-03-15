@@ -72,7 +72,8 @@ public class FileFinder {
         fileTypes.add(new CSVFileType());
         fileTypes.add(new JSFileType());
         fileTypes.add(new TSFileType());
-        fileTypes.add(new JSONFileType());
+        // TODO(ja) disable for now because this is likely to pickyp a lot of files. it might be better to ask for it explicitly 
+        // fileTypes.add(new JSONFileType());
     }
 
     public Path getSourceDirectory() {

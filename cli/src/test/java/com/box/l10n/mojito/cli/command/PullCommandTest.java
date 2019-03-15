@@ -646,7 +646,8 @@ public class PullCommandTest extends CLITestBase {
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "JSON");
 
         Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -654,11 +655,13 @@ public class PullCommandTest extends CLITestBase {
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-t", getTargetTestDir("target").getAbsolutePath());
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-ft", "JSON");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
-                "-t", getTargetTestDir("target_modified").getAbsolutePath());
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-ft", "JSON");
 
         checkExpectedGeneratedResources();
     }
@@ -670,7 +673,8 @@ public class PullCommandTest extends CLITestBase {
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string");
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string",
+                "-ft", "JSON");
 
         Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.json", repository.getId());
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -679,12 +683,14 @@ public class PullCommandTest extends CLITestBase {
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir("target").getAbsolutePath(),
-                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string");
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string",
+                "-ft", "JSON");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
                 "-t", getTargetTestDir("target_modified").getAbsolutePath(),
-                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string");
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string",
+                "-ft", "JSON");
 
         checkExpectedGeneratedResources();
     }
