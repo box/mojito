@@ -5,11 +5,11 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.ImportTextUnitJob;
 import com.box.l10n.mojito.service.asset.ImportTextUnitJobInput;
-import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
@@ -25,18 +25,22 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
 
@@ -148,7 +152,7 @@ public class TextUnitBatchImporterService {
         List<TextUnitDTO> textUnitTDOsForLocaleAndAsset = getTextUnitTDOsForLocaleAndAsset(locale, asset);
 
         Map<Long, TextUnitDTO> tmTextUnitIdToTextUnitDTO = new HashMap<>();
-        Map<String, TextUnitDTO> nameToUsedTextUnitDTO = new HashMap<>();
+        Multimap<String, TextUnitDTO> nameToUsedTextUnitDTO = ArrayListMultimap.create();
         Multimap<String, TextUnitDTO> nameToUnusedTextUnitDTO = ArrayListMultimap.create();
 
         logger.debug("Build maps to match text units to import with existing text units");
@@ -166,18 +170,30 @@ public class TextUnitBatchImporterService {
             TextUnitDTO currentTextUnit = tmTextUnitIdToTextUnitDTO.get(textUnitForBatchImport.getTmTextUnitId());
 
             if (currentTextUnit != null) {
+                logger.debug("Got match by tmTextUnitId: {}", textUnitForBatchImport.getTmTextUnitId());
                 textUnitForBatchImport.setCurrentTextUnit(currentTextUnit);
                 continue;
             }
 
-            currentTextUnit = nameToUsedTextUnitDTO.get(textUnitForBatchImport.getName());
+            Collection<TextUnitDTO> textUnitDTOSByName = nameToUsedTextUnitDTO.get(textUnitForBatchImport.getName());
 
-            if (currentTextUnit != null) {
-                textUnitForBatchImport.setCurrentTextUnit(currentTextUnit);
+            if (!textUnitDTOSByName.isEmpty()) {
+                if (textUnitDTOSByName.size() == 1) {
+                    logger.debug("Unique match by name: {} and used", textUnitForBatchImport.getName());
+                } else {
+                    logger.debug("There are multiple matches by name: {} and used, this will randomly select where the translation is " +
+                            "added and must be avoided by providing tmTextUnitId in the import. Do this to not fail the" +
+                            "import. Dupplicate names can easily happen when working with branches (while without it should not)", textUnitForBatchImport.getName());
+                }
+
+                Iterator<TextUnitDTO> textUnitDTOIterator = textUnitDTOSByName.iterator();
+                textUnitForBatchImport.setCurrentTextUnit(textUnitDTOIterator.next());
+                textUnitDTOIterator.remove();
                 continue;
             }
 
             if (nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName()).size() == 1) {
+                logger.debug("Unique match by name: {} and unused", textUnitForBatchImport.getName());
                 textUnitForBatchImport.setCurrentTextUnit(nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName()).iterator().next());
             }
         }
@@ -358,6 +374,7 @@ public class TextUnitBatchImporterService {
             }
 
             textUnitBatch.setLocale(locale);
+            textUnitBatch.setTmTextUnitId(textUnitDTO.getTmTextUnitId());
             textUnitBatch.setName(textUnitDTO.getName());
             textUnitBatch.setContent(NormalizationUtils.normalize(textUnitDTO.getTarget()));
             textUnitBatch.setComment(textUnitDTO.getComment());

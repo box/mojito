@@ -1,13 +1,19 @@
 package com.box.l10n.mojito.service.tm.importer;
 
+import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetIntegrityChecker;
+import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.asset.VirtualAsset;
 import com.box.l10n.mojito.service.asset.VirtualAssetRequiredException;
 import com.box.l10n.mojito.service.asset.VirtualAssetService;
 import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
+import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
+import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerType;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -15,6 +21,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -22,19 +29,18 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParametersForTesting;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import static org.junit.Assert.*;
 
 /**
  *
@@ -64,7 +70,19 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
 
     @Autowired
     VirtualAssetService virtualAssetService;
- 
+
+    @Autowired
+    TMService tmService;
+
+    @Autowired
+    AssetExtractionRepository assetExtractionRepository;
+
+    @Autowired
+    AssetExtractionService assetExtractionService;
+
+    @Autowired
+    AssetMappingService assetMappingService;
+
     @Test
     public void testAsyncImportTextUnitsNameOnly() throws InterruptedException {
         TMTestData tmTestData = new TMTestData(testIdWatcher);
@@ -137,6 +155,49 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         assertFalse(textUnitDTOs.isEmpty());
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
             assertEquals(textUnitDTO.getName() + " from import", textUnitDTO.getTarget());
+        }
+    }
+
+    @Test
+    public void testAsyncImportTextUnitsDupplicatedNames() throws InterruptedException {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(tmTestData.asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        AssetTextUnit createAssetTextUnit1 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST4", "Content4", "comment4");
+        AssetTextUnit createAssetTextUnit2 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST4", "Content4b", "comment4");
+
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tmTestData.tm.getId(), tmTestData.asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        assetExtractionService.markAssetExtractionAsLastSuccessful(tmTestData.asset, assetExtraction);
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
+        textUnitSearcherParameters.setRepositoryNames(Arrays.asList(tmTestData.repository.getName()));
+        textUnitSearcherParameters.setAssetPath(tmTestData.asset.getPath());
+        textUnitSearcherParameters.setLocaleTags(Arrays.asList("fr-FR"));
+
+        List<TextUnitDTO> textUnitDTOsForImport = textUnitSearcher.search(textUnitSearcherParameters);
+        for (TextUnitDTO textUnitDTO : textUnitDTOsForImport) {
+            if ("Content4".equals(textUnitDTO.getSource())) {
+                textUnitDTO.setTarget(textUnitDTO.getName() + " from import");
+            } else {
+                textUnitDTO.setTarget(textUnitDTO.getName() + " from import b");
+            }
+            textUnitDTO.setTmTextUnitId(null); // we're testing import by name
+        }
+
+        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
+        pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
+
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        assertFalse(textUnitDTOs.isEmpty());
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            if ("Content4".equals(textUnitDTO.getSource())) {
+                assertEquals(textUnitDTO.getName() + " from import", textUnitDTO.getTarget());
+            } else {
+                assertEquals(textUnitDTO.getName() + " from import b", textUnitDTO.getTarget());
+            }
         }
     }
 
