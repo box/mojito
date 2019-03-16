@@ -8,6 +8,10 @@ public class Param {
     public static final String BRANCH_SHORT = "-b";
     public static final String BRANCH_DESCRIPTION = "Name of the branch";
 
+    public static final String BRANCH_NAME_LONG = "--name";
+    public static final String BRANCH_NAME_SHORT = "-n";
+    public static final String BRANCH_NAME_DESCRIPTION = "Name of the branch";
+
     public static final String REPOSITORY_LONG = "--repository";
     public static final String REPOSITORY_SHORT = "-r";
     public static final String REPOSITORY_DESCRIPTION = "Name of the repository";

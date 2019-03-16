@@ -40,9 +40,8 @@ public class BranchDeleteCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
-    @Parameter(names = {Param.BRANCH_LONG, Param.BRANCH_SHORT}, arity = 1, required = true, description = Param.BRANCH_DESCRIPTION)
+    @Parameter(names = {Param.BRANCH_NAME_LONG, Param.BRANCH_NAME_SHORT}, arity = 1, required = true, description = Param.BRANCH_NAME_DESCRIPTION)
     String branchName;
-
 
     @Override
     public void execute() throws CommandException {
