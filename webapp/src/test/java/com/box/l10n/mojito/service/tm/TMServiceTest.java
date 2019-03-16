@@ -2230,7 +2230,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException, AssetUpdateException {
+    public void testImportLocalizedAssetApproved() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
 
@@ -2256,7 +2256,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFReviewNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
+    public void testImportLocalizedAssetReviewNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForEqualTarget.REVIEW_NEEDED);
 
@@ -2279,11 +2279,10 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(TMTextUnitVariant.Status.REVIEW_NEEDED, next.getStatus());
 
         assertFalse(iterator.hasNext());
-
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFTranslationNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
+    public void testImportLocalizedAssetTranslationNeeded() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForEqualTarget.TRANSLATION_NEEDED);
 
@@ -2306,11 +2305,10 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(TMTextUnitVariant.Status.TRANSLATION_NEEDED, next.getStatus());
 
         assertFalse(iterator.hasNext());
-
     }
 
     @Test
-    public void testImportLocalizedAssetXLIFFSkip() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
+    public void testImportLocalizedAssetSkip() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForEqualTarget.SKIPPED);
 
@@ -2329,7 +2327,6 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(TMTextUnitVariant.Status.APPROVED, next.getStatus());
 
         assertFalse(iterator.hasNext());
-
     }
 
     @Test
@@ -2359,10 +2356,9 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(TMTextUnitVariant.Status.APPROVED, next.getStatus());
 
         assertFalse(iterator.hasNext());
-
     }
-    
-     @Test
+
+    @Test
     public void testReImportLocalizedAsset() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException, AssetUpdateException {
 
         baseTestImportLocalizedAsset(StatusForEqualTarget.APPROVED);
@@ -2513,6 +2509,54 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\n"
                 + "";
         tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null, null).get();
+    }
+
+    @Test
+    public void testImportLocalizedWithDupplicatedName() throws Exception {
+        repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repository, "ja-JP");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "k1=v1\n" +
+                "k1=v1b";
+
+        asset = assetService.createAssetWithContent(repository.getId(), "demo.properties", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repository.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, asset.getPath(), null, null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        String localizedAssetContent = "k1=v1-localized\n" +
+                "k1=v1b-localized";
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null, null).get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+        textUnitSearcherParameters.setLocaleId(repoLocale.getLocale().getId());
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        Iterator<TextUnitDTO> iterator = textUnitDTOs.iterator();
+        TextUnitDTO next = iterator.next();
+        assertEquals("v1-localized", next.getTarget());
+        assertEquals(TMTextUnitVariant.Status.APPROVED, next.getStatus());
+
+        next = iterator.next();
+        assertEquals("v1b-localized", next.getTarget());
+        assertEquals(TMTextUnitVariant.Status.APPROVED, next.getStatus());
+
+        assertFalse(iterator.hasNext());
     }
 
     @Test

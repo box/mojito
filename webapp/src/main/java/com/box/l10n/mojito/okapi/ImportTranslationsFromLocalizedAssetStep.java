@@ -10,15 +10,15 @@ import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.resource.TextContainer;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +42,11 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     StatusForEqualTarget statusForEqualTarget;
 
     Map<String, TMTextUnit> textUnitsByMd5 = new HashMap<>();
-    Map<String, TMTextUnit> textUnitsByName = new HashMap<>();
+    ArrayListMultimap<String, TMTextUnit> textUnitsByNameUsed =  ArrayListMultimap.create();
+    ArrayListMultimap<String, TMTextUnit> textUnitsByNameUnused =  ArrayListMultimap.create();
+
     TranslatorWithInheritance translatorWithInheritance;
+
     boolean hasTranslationWithoutInheritance;
 
 
@@ -85,7 +88,8 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
     void initTextUnitsMapByName() {
         logger.debug("initTextUnitsMapByName");
-        Map<String, Long> tmTextUnitIdsByName = new HashMap<>();
+        Multimap<String, Long> tmTextUnitIdsByNameUsed = ArrayListMultimap.create();
+        Multimap<String, Long> tmTextUnitIdsByNameUnused = ArrayListMultimap.create();
 
         logger.debug("Map text unit names to text unit ids. Used text units have priority (if multiple unused, first one is used");
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
@@ -96,17 +100,24 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
 
         for (TextUnitDTO textUnitDTO : textUnitDTOS) {
             if (textUnitDTO.isUsed()) {
-                tmTextUnitIdsByName.put(textUnitDTO.getName(), textUnitDTO.getTmTextUnitId());
+                tmTextUnitIdsByNameUsed.put(textUnitDTO.getName(), textUnitDTO.getTmTextUnitId());
             } else {
-                tmTextUnitIdsByName.putIfAbsent(textUnitDTO.getName(), textUnitDTO.getTmTextUnitId());
+                tmTextUnitIdsByNameUnused.put(textUnitDTO.getName(), textUnitDTO.getTmTextUnitId());
             }
         }
 
-        logger.debug("Fetch the text units and map them by name");
-        List<TMTextUnit> textUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsByName.values());
+        logger.debug("Fetch the used text units and map them by name");
+        List<TMTextUnit> textUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsByNameUsed.values());
 
         for (TMTextUnit tmTextUnit : textUnits) {
-            textUnitsByName.put(tmTextUnit.getName(), tmTextUnit);
+            textUnitsByNameUsed.put(tmTextUnit.getName(), tmTextUnit);
+        }
+
+        logger.debug("Fetch the unused text units and map them by name");
+        List<TMTextUnit> textUnitsUnused = tmTextUnitRepository.findByIdIn(tmTextUnitIdsByNameUnused.values());
+
+        for (TMTextUnit tmTextUnit : textUnitsUnused) {
+            textUnitsByNameUnused.put(tmTextUnit.getName(), tmTextUnit);
         }
     }
 
@@ -132,11 +143,15 @@ public class ImportTranslationsFromLocalizedAssetStep extends AbstractImportTran
     @Override
     TMTextUnit getTMTextUnit() {
 
-        TMTextUnit tmTextUnit;
+        TMTextUnit tmTextUnit = null;
+
         if (isMultilingual) {
-            tmTextUnit = textUnitsByMd5.get(md5);
+            tmTextUnit = textUnitsByMd5.remove(md5);
         } else {
-            tmTextUnit = textUnitsByName.get(name);
+            List<TMTextUnit> tmTextUnits = textUnitsByNameUsed.get(name);
+            if (!tmTextUnits.isEmpty()) {
+                tmTextUnit = tmTextUnits.remove(0);
+            }
         }
 
         return tmTextUnit;
