@@ -34,8 +34,6 @@ import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -170,7 +168,7 @@ public class AssetService {
         User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor();
         logger.debug("Branch created by username: {}", branchCreatedByUser.getUsername());
 
-        Branch branch = branchService.getOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
+        Branch branch = branchService.getUndeletedOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
 
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 

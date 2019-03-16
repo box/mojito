@@ -36,7 +36,7 @@ public class BranchService {
 
     public Branch createBranch(Repository repository, String branchName, User createdByUser) {
 
-        logger.debug("getOrCreateBranch, name: {}, repository id: {}", branchName, repository.getId());
+        logger.debug("createBranch, name: {}, repository id: {}", branchName, repository.getId());
 
         Branch branch = new Branch();
         branch.setName(branchName);
@@ -48,14 +48,17 @@ public class BranchService {
         return branch;
     }
 
-    public Branch getOrCreateBranch(Repository repository, String branchName, User createdByUser) {
+    public Branch getUndeletedOrCreateBranch(Repository repository, String branchName, User createdByUser) {
 
-        logger.debug("getOrCreateBranch, name: {}, repository id: {}", branchName, repository.getId());
+        logger.debug("getUndeletedOrCreateBranch, name: {}, repository id: {}", branchName, repository.getId());
 
         Branch branch = branchRepository.findByNameAndRepository(branchName, repository);
 
         if (branch == null) {
             branch = createBranch(repository, branchName, createdByUser);
+        } else {
+            branch.setDeleted(false);
+            branchRepository.save(branch);
         }
 
         return branch;
