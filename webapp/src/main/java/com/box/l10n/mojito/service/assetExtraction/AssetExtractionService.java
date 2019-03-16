@@ -317,7 +317,7 @@ public class AssetExtractionService {
         processAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
         processAssetJobInput.setFilterOptions(filterOptions);
 
-        String pollableMessage = MessageFormat.format("Process asset: {0}", assetContentId);
+        String pollableMessage = MessageFormat.format("Process asset: {0}", assetContentId.toString());
 
         return quartzPollableTaskScheduler.scheduleJob(ProcessAssetJob.class, processAssetJobInput, parentTaskId, pollableMessage, 2);
     }
