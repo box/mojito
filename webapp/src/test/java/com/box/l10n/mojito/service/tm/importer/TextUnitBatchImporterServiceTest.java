@@ -146,6 +146,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         List<TextUnitDTO> textUnitDTOsForImport = textUnitSearcher.search(textUnitSearcherParameters);
         for (TextUnitDTO textUnitDTO : textUnitDTOsForImport) {
             textUnitDTO.setTarget(textUnitDTO.getName() + " from import");
+            textUnitDTO.setName(null); // make sure we import by id
         }
 
         PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);

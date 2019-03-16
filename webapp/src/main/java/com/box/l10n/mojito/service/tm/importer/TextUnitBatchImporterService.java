@@ -152,8 +152,8 @@ public class TextUnitBatchImporterService {
         List<TextUnitDTO> textUnitTDOsForLocaleAndAsset = getTextUnitTDOsForLocaleAndAsset(locale, asset);
 
         Map<Long, TextUnitDTO> tmTextUnitIdToTextUnitDTO = new HashMap<>();
-        Multimap<String, TextUnitDTO> nameToUsedTextUnitDTO = ArrayListMultimap.create();
-        Multimap<String, TextUnitDTO> nameToUnusedTextUnitDTO = ArrayListMultimap.create();
+        ArrayListMultimap<String, TextUnitDTO> nameToUsedTextUnitDTO = ArrayListMultimap.create();
+        ArrayListMultimap<String, TextUnitDTO> nameToUnusedTextUnitDTO = ArrayListMultimap.create();
 
         logger.debug("Build maps to match text units to import with existing text units");
         for (TextUnitDTO textUnitDTO : textUnitTDOsForLocaleAndAsset) {
@@ -175,7 +175,7 @@ public class TextUnitBatchImporterService {
                 continue;
             }
 
-            Collection<TextUnitDTO> textUnitDTOSByName = nameToUsedTextUnitDTO.get(textUnitForBatchImport.getName());
+            List<TextUnitDTO> textUnitDTOSByName = nameToUsedTextUnitDTO.get(textUnitForBatchImport.getName());
 
             if (!textUnitDTOSByName.isEmpty()) {
                 if (textUnitDTOSByName.size() == 1) {
@@ -186,15 +186,16 @@ public class TextUnitBatchImporterService {
                             "import. Dupplicate names can easily happen when working with branches (while without it should not)", textUnitForBatchImport.getName());
                 }
 
-                Iterator<TextUnitDTO> textUnitDTOIterator = textUnitDTOSByName.iterator();
-                textUnitForBatchImport.setCurrentTextUnit(textUnitDTOIterator.next());
-                textUnitDTOIterator.remove();
+                TextUnitDTO removed = textUnitDTOSByName.remove(0);
+                textUnitForBatchImport.setCurrentTextUnit(removed);
                 continue;
             }
 
-            if (nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName()).size() == 1) {
+            List<TextUnitDTO> textUnitDTOSByNameUnused = nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName());
+
+            if (textUnitDTOSByNameUnused.size() == 1) {
                 logger.debug("Unique match by name: {} and unused", textUnitForBatchImport.getName());
-                textUnitForBatchImport.setCurrentTextUnit(nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName()).iterator().next());
+                textUnitForBatchImport.setCurrentTextUnit(textUnitDTOSByNameUnused.get(0));
             }
         }
     }
