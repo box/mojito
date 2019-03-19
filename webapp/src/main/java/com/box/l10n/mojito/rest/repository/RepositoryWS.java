@@ -246,11 +246,9 @@ public class RepositoryWS {
     @RequestMapping(value ="/api/repositories/{repositoryId}/branches", method = RequestMethod.DELETE)
     public void deleteBranch(@PathVariable(value = "repositoryId") Long repositoryId,
                              @RequestParam(value = "branchId") Long branchId) {
+
         logger.debug("Deleting branch {} in repository {}", repositoryId, branchId);
-        branchService.deleteBranchAsset(branchId, repositoryId);
-        logger.debug("All assets in branch {} are deleted.", branchId);
-        branchService.markBranchDeleted(branchId);
-        logger.debug("Branch {} is marked as deleted", branchId);
+        branchService.deleteBranch(repositoryId, branchId);
     }
 
 }

@@ -147,7 +147,7 @@ public class PushCommandTest extends CLITestBase {
         logger.debug("Push one string to the master branch");
 
         File masterDirectory = getInputResourcesTestDir("master");
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", masterDirectory.getAbsolutePath());
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", masterDirectory.getAbsolutePath(), "-b", "master");
 
         List<TextUnitDTO> textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
         assertEquals(1L, textUnitDTOS.size());
@@ -204,7 +204,6 @@ public class PushCommandTest extends CLITestBase {
         assertEquals("from.branch1", textUnitDTOS.get(2).getName());
         assertEquals("value added in branch 1", textUnitDTOS.get(2).getSource());
 
-
         assertEquals("from.branch2", textUnitDTOS.get(3).getName());
         assertEquals("value added in branch 2", textUnitDTOS.get(3).getSource());
 
@@ -252,6 +251,91 @@ public class PushCommandTest extends CLITestBase {
         assertEquals("from.branch1.app2", textUnitDTOS.get(3).getName());
         assertEquals("value added in branch 1 in app2.properties", textUnitDTOS.get(3).getSource());
         assertEquals("app2.properties", textUnitDTOS.get(3).getAssetPath());
+
+        logger.debug("Remove branch 1");
+        getL10nJCommander().run("branch-delete", "-r", repository.getName(), "-n", "branch1");
+
+        textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+
+        assertEquals(1L, textUnitDTOS.size());
+        assertEquals("from.master", textUnitDTOS.get(0).getName());
+        assertEquals("value from master", textUnitDTOS.get(0).getSource());
+
+        logger.debug("Re-push branch 1");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch1Update.getAbsolutePath(), "-b", "branch1");
+
+        textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+
+        assertEquals(4L, textUnitDTOS.size());
+        assertEquals("from.master", textUnitDTOS.get(0).getName());
+        assertEquals("value from master", textUnitDTOS.get(0).getSource());
+
+        assertEquals("from.master", textUnitDTOS.get(1).getName());
+        assertEquals("master value changed branch 1", textUnitDTOS.get(1).getSource());
+
+        assertEquals("from.branch1", textUnitDTOS.get(2).getName());
+        assertEquals("value added in branch 1", textUnitDTOS.get(2).getSource());
+
+        assertEquals("from.branch1.app2", textUnitDTOS.get(3).getName());
+        assertEquals("value added in branch 1 in app2.properties", textUnitDTOS.get(3).getSource());
+        assertEquals("app2.properties", textUnitDTOS.get(3).getAssetPath());
+    }
+
+    @Test
+    public void testBranchesNull() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repository.getId());
+        textUnitSearcherParameters.setForRootLocale(true);
+        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+
+        logger.debug("Push 1 string to the master null");
+
+        File masterDirectory = getInputResourcesTestDir("null");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", masterDirectory.getAbsolutePath());
+
+        List<TextUnitDTO> textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+        assertEquals(1L, textUnitDTOS.size());
+        assertEquals("from.null", textUnitDTOS.get(0).getName());
+        assertEquals("value from null", textUnitDTOS.get(0).getSource());
+
+        logger.debug("Push 1 string to master branch");
+
+        File branch1 = getInputResourcesTestDir("master");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch1.getAbsolutePath(), "-b", "master");
+
+        textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+
+        assertEquals(2L, textUnitDTOS.size());
+        assertEquals("from.null", textUnitDTOS.get(0).getName());
+        assertEquals("value from null", textUnitDTOS.get(0).getSource());
+
+        assertEquals("from.master", textUnitDTOS.get(1).getName());
+        assertEquals("value from master", textUnitDTOS.get(1).getSource());
+
+        logger.debug("Remove null branch");
+        getL10nJCommander().run("branch-delete", "-r", repository.getName());
+
+        textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+
+        assertEquals(1L, textUnitDTOS.size());
+        assertEquals("from.master", textUnitDTOS.get(0).getName());
+        assertEquals("value from master", textUnitDTOS.get(0).getSource());
+
+        logger.debug("Re push null branch");
+        File branch2Update = getInputResourcesTestDir("null");
+        getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch2Update.getAbsolutePath());
+
+        textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
+
+        assertEquals(2L, textUnitDTOS.size());
+        assertEquals("from.null", textUnitDTOS.get(0).getName());
+        assertEquals("value from null", textUnitDTOS.get(0).getSource());
+
+        assertEquals("from.master", textUnitDTOS.get(1).getName());
+        assertEquals("value from master", textUnitDTOS.get(1).getSource());
     }
 
     @Test

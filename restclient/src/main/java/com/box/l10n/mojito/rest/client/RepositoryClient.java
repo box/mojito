@@ -19,6 +19,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -219,9 +220,9 @@ public class RepositoryClient extends BaseClient {
 
         List<Branch> branches = getBranches(repositoryId, branchName);
 
-        if (!branches.isEmpty()) {
-            branch = branches.get(0);
-        }
+        logger.debug("Support the \"null\" branch (name is null and param filtering doesn't work)");
+        branch = branches.stream().filter((b) -> Objects.equals(b.getName(), branchName))
+                .findFirst().orElse(null);
 
         return branch;
     }

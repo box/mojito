@@ -168,7 +168,6 @@ public class AssetExtractionService {
 
                 if (assetExtractionByBranch == null) {
                     assetExtractionByBranch = new AssetExtractionByBranch();
-                    assetExtractionByBranch.setAssetExtraction(assetExtraction);
                     assetExtractionByBranch.setAsset(assetExtraction.getAsset());
                     assetExtractionByBranch.setBranch(branch);
                 }
@@ -183,7 +182,7 @@ public class AssetExtractionService {
         });
     }
 
-    boolean hasMoreActiveBranches(Asset asset, Branch branch) {
+    public boolean hasMoreActiveBranches(Asset asset, Branch branch) {
         int numberOfBranch = assetExtractionByBranchRepository.countByAssetAndDeletedFalseAndBranchNot(asset, branch);
         logger.debug("There are {} additional branches", numberOfBranch);
         return numberOfBranch > 0;

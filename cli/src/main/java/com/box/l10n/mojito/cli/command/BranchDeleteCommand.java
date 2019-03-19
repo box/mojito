@@ -40,12 +40,13 @@ public class BranchDeleteCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
-    @Parameter(names = {Param.BRANCH_NAME_LONG, Param.BRANCH_NAME_SHORT}, arity = 1, required = true, description = Param.BRANCH_NAME_DESCRIPTION)
-    String branchName;
+    @Parameter(names = {Param.BRANCH_NAME_LONG, Param.BRANCH_NAME_SHORT}, arity = 1, description = Param.BRANCH_NAME_DESCRIPTION)
+    String branchName = null;
 
     @Override
     public void execute() throws CommandException {
-        consoleWriter.newLine().a("Marking branch as deleted in ").a(repositoryParam).a(" for branch: ").fg(Ansi.Color.CYAN).a(branchName).println(2);
+        consoleWriter.newLine().a("Delete branch: ").fg(Ansi.Color.CYAN).a(branchName).reset()
+                .a(" from repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         Branch branchToRemove = repositoryClient.getBranch(repository.getId(), branchName);
 
@@ -53,7 +54,6 @@ public class BranchDeleteCommand extends Command {
             throw new CommandException(String.format("Cannot find branch in %s by branchName %s.", repositoryParam, branchName));
         }
         repositoryClient.deleteBranch(branchToRemove.getId(), repository.getId());
-        consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Mark deleted finished").println(2);
+        consoleWriter.newLine().a("deleted --> branch name: ").fg(Ansi.Color.MAGENTA).a(branchName).println();
     }
-
 }
