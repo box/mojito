@@ -172,12 +172,13 @@ public class AssetService {
 
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 
-        if (isAssetUpdateNeeded(assetExtractionByBranch, assetContent, filterOptions)) {
+        if (isAssetProcessingNeeded(assetExtractionByBranch, assetContent, filterOptions)) {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, branch);
             assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, filterOptions, currentTask.getId());
         } else {
-            undeleteAssetIfDeleted(assetExtractionByBranch);
-            logger.debug("Asset content has not changed. Reset number of expected sub task to 0");
+            undeleteAssetAndAssetExtractionByBranchIfDeleted(assetExtractionByBranch);
+
+            logger.debug("Asset ({}) update not needed. Reset number of expected sub task to 0", assetPath);
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(0);
             pollableFutureTaskResult.setMessageOverride("Asset content has not changed");
         }
@@ -255,17 +256,25 @@ public class AssetService {
      * @return true if the content of the asset is different from the new
      * content, false otherwise
      */
-    private boolean isAssetUpdateNeeded(AssetExtractionByBranch assetExtractionByBranch, String newAssetContent, List<String> filterOptions) {
+    private boolean isAssetProcessingNeeded(AssetExtractionByBranch assetExtractionByBranch, String newAssetContent, List<String> filterOptions) {
 
         boolean assetProcessingNeeded = false;
 
         if (assetExtractionByBranch == null) {
             logger.debug("No active asset extraction, processing needed");
             assetProcessingNeeded = true;
-        } else if (!DigestUtils.md5Hex(newAssetContent).equals(assetExtractionByBranch.getAssetExtraction().getContentMd5()) ||
-                !filterOptionsMd5Builder.md5(filterOptions).equals(assetExtractionByBranch.getAssetExtraction().getFilterOptionsMd5())) {
+        } else if (!DigestUtils.md5Hex(newAssetContent).equals(assetExtractionByBranch.getAssetExtraction().getContentMd5())) {
             logger.debug("Content has changed, processing needed");
             assetProcessingNeeded = true;
+        } else if (!filterOptionsMd5Builder.md5(filterOptions).equals(assetExtractionByBranch.getAssetExtraction().getFilterOptionsMd5())) {
+            logger.debug("filter options have changed, processing needed");
+            assetProcessingNeeded = true;
+        } else if (assetExtractionService.hasMoreActiveBranches(assetExtractionByBranch.getAsset(), assetExtractionByBranch.getBranch())) {
+            logger.debug("There are multiple active branches for this asset. Fully reprocess it for simplicity " +
+                    "(even if content and filter options are same and so should the asset extraction)");
+            assetProcessingNeeded = true;
+        } else {
+            logger.debug("Asset processing not needed");
         }
 
         return assetProcessingNeeded;
@@ -276,27 +285,23 @@ public class AssetService {
      * @param assetContent
      */
     @Transactional
-    private void undeleteAssetIfDeleted(AssetExtractionByBranch assetExtractionByBranch) {
-        Preconditions.checkNotNull(assetExtractionByBranch, "Can't undelete for null branch");
-
-        logger.debug("undeleteAssetIfDeleted");
+    private void undeleteAssetAndAssetExtractionByBranchIfDeleted(AssetExtractionByBranch assetExtractionByBranch) {
+        Preconditions.checkNotNull(assetExtractionByBranch, "Can't undelete, assetExtractionByBranch must be provided");
 
         Asset asset = assetExtractionByBranch.getAsset();
 
+        logger.debug("Undelete asset and asset extraction by branch if deleted: {} ({})",
+                asset.getId(),
+                asset.getPath());
+
         if (asset.getDeleted()) {
-            logger.debug("Undelete asset: {}", asset.getId());
+            logger.debug("Undelete asset: : {} ({})", asset.getId(), asset.getPath());
             asset.setDeleted(false);
             assetRepository.save(asset);
         }
 
         if (assetExtractionByBranch.getDeleted()) {
-            if (asset.getLastSuccessfulAssetExtraction() == null || asset.getLastSuccessfulAssetExtraction().getId() == assetExtractionByBranch.getAssetExtraction().getId()) {
-                logger.debug("This asset extraction is the last sucessful for the asset, just undelete the asset which was done before");
-            } else {
-                logger.debug("Undeleted an active asset extraction, recompute for multiple branches");
-                assetExtractionService.createAssetExtractionForMultipleBranches(asset, null);
-            }
-
+            logger.debug("Undelete asset extraction branch ({}): {}", asset.getPath(), assetExtractionByBranch.getId());
             assetExtractionByBranch.setDeleted(false);
             assetExtractionByBranchRepository.save(assetExtractionByBranch);
         }
@@ -316,6 +321,8 @@ public class AssetService {
         assetRepository.save(asset);
 
         int numberOfAssetExtractionByBranchUpdated = assetExtractionByBranchRepository.setDeletedTrue(asset);
+
+        // when this is marked as deleted, we need to recompute the global extraction
 
         logger.debug("Deleted asset with path: {} (Number of AssetExtractionByBranchUpdated: {})", asset.getPath(), numberOfAssetExtractionByBranchUpdated);
     }
@@ -371,7 +378,7 @@ public class AssetService {
 
                     List<AssetExtractionByBranch> assetExtractionByBranches = assetExtractionByBranchRepository.findByAssetAndDeletedFalse(asset);
                     if (!assetExtractionByBranches.isEmpty()) {
-                        logger.debug("Some branch are still present for asset, create new assset exraction");
+                        logger.debug("Some branch are still present for asset, create new assset extraction");
                         AssetExtraction assetExtraction = assetExtractionService.createAssetExtractionForMultipleBranches(asset, null);
                         assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
                     }

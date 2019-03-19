@@ -56,16 +56,22 @@ public class BranchService {
 
         if (branch == null) {
             branch = createBranch(repository, branchName, createdByUser);
-        } else {
-            branch.setDeleted(false);
-            branchRepository.save(branch);
+        } else if (branch.getDeleted()) {
+            undeleteBranch(branch);
         }
 
         return branch;
     }
 
+    public void undeleteBranch(Branch branch) {
+        branch.setDeleted(false);
+        branchRepository.save(branch);
+    }
+
     @Transactional
-    public void markBranchDeleted(Long branchId) {
+    public void deleteBranch(Long repositoryId, Long branchId) {
+        deleteBranchAsset(branchId, repositoryId);
+
         Branch branch = branchRepository.findOne(branchId);
         logger.debug("Mark branch {} as deleted", branch.getName());
         branch.setDeleted(true);
