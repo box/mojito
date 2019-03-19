@@ -20,12 +20,12 @@ import java.util.List;
 
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"branch-delete", "bd"}, commandDescription = "Delete branches")
-public class BranchDeleteCommand extends Command {
+@Parameters(commandNames = {"branch-view", "bw"}, commandDescription = "View Branches")
+public class BranchViewCommand extends Command {
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(BranchDeleteCommand.class);
+    static Logger logger = LoggerFactory.getLogger(BranchViewCommand.class);
 
     @Autowired
     ConsoleWriter consoleWriter;
@@ -42,20 +42,24 @@ public class BranchDeleteCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
-    @Parameter(names = {Param.BRANCH_NAME_LONG, Param.BRANCH_NAME_SHORT}, arity = 1, description = Param.BRANCH_NAME_DESCRIPTION)
-    String branchName = null;
+    @Parameter(names = {"--deleted", "-d"}, arity = 1, description = "To show deleted branches")
+    Boolean deleted = null;
+
 
     @Override
     public void execute() throws CommandException {
-        consoleWriter.newLine().a("Delete branch: ").fg(Ansi.Color.CYAN).a(branchName).reset()
-                .a(" from repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
+        consoleWriter.newLine().a("Branches in repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println();
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
-        Branch branchToRemove = repositoryClient.getBranch(repository.getId(), branchName);
 
-        if (branchToRemove == null) {
-            throw new CommandException(String.format("Cannot find branch in %s by branchName %s.", repositoryParam, branchName));
+        List<Branch> branches = repositoryClient.getBranches(repository.getId(), null, deleted);
+
+        for (Branch branch : branches) {
+            consoleWriter.newLine().a(" - ").fg(Ansi.Color.CYAN).a(branch.getName()).reset().a(" (" + branch.getId() + ") ");
+            if (branch.getDeleted()) {
+                consoleWriter.fg(Ansi.Color.MAGENTA).a(" deleted").reset();
+            }
         }
-        repositoryClient.deleteBranch(branchToRemove.getId(), repository.getId());
-        consoleWriter.newLine().a("deleted --> branch name: ").fg(Ansi.Color.MAGENTA).a(branchName).println();
+
+        consoleWriter.println(2);
     }
 }

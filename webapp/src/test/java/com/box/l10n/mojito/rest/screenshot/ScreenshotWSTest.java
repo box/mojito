@@ -24,14 +24,12 @@ import com.box.l10n.mojito.service.screenshot.ScreenshotRunType;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.category.IntegrationTest;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -157,7 +155,7 @@ public class ScreenshotWSTest extends WSTestBase {
 
         logger.debug("Make sure no cyclical dependencies here and there");
         repositoryClient.getRepositoryByName(branchTestData.getRepository().getName());
-        repositoryClient.getBranches(branchTestData.getRepository().getId(), branch1.getName());
+        repositoryClient.getBranches(branchTestData.getRepository().getId(), branch1.getName(), null);
     }
     
 }

@@ -12,6 +12,8 @@ public class Branch {
 
     private String name;
 
+    private Boolean deleted;
+
     public Long getId() {
         return id;
     }
@@ -26,5 +28,13 @@ public class Branch {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

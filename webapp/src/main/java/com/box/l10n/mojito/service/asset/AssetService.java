@@ -178,7 +178,7 @@ public class AssetService {
         } else {
             undeleteAssetAndAssetExtractionByBranchIfDeleted(assetExtractionByBranch);
 
-            logger.debug("Asset ({}) update not needed. Reset number of expected sub task to 0", assetPath);
+            logger.debug("Asset ({}) processing not needed. Reset number of expected sub task to 0", assetPath);
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(0);
             pollableFutureTaskResult.setMessageOverride("Asset content has not changed");
         }
