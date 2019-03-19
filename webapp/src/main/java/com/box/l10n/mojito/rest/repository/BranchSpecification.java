@@ -24,6 +24,15 @@ public class BranchSpecification {
         };
     }
 
+    public static SingleParamSpecification<Branch> deletedEquals(final Boolean deleted) {
+        return new SingleParamSpecification<Branch>(deleted) {
+            @Override
+            public Predicate toPredicate(Root<Branch> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+                return builder.equal(root.get(Branch_.deleted), deleted);
+            }
+        };
+    }
+
     public static SingleParamSpecification<Branch> repositoryEquals(final Repository repository) {
         return new SingleParamSpecification<Branch>(repository) {
             @Override
@@ -32,5 +41,6 @@ public class BranchSpecification {
             }
         };
     }
+
 
 }

@@ -202,11 +202,15 @@ public class RepositoryClient extends BaseClient {
 
     }
 
-    public List<Branch> getBranches(Long repositoryId, String branchName) {
+    public List<Branch> getBranches(Long repositoryId, String branchName, Boolean deleted) {
         Map<String, String> filterParams = new HashMap<>();
 
         if (branchName != null) {
             filterParams.put("name", branchName);
+        }
+
+        if (deleted != null) {
+            filterParams.put("deleted", Objects.toString(deleted));
         }
 
         return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
@@ -218,7 +222,7 @@ public class RepositoryClient extends BaseClient {
     public Branch getBranch(Long repositoryId, String branchName) {
         Branch branch = null;
 
-        List<Branch> branches = getBranches(repositoryId, branchName);
+        List<Branch> branches = getBranches(repositoryId, branchName, null);
 
         logger.debug("Support the \"null\" branch (name is null and param filtering doesn't work)");
         branch = branches.stream().filter((b) -> Objects.equals(b.getName(), branchName))

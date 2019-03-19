@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static com.box.l10n.mojito.rest.repository.BranchSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.BranchSpecification.nameEquals;
 import static com.box.l10n.mojito.rest.repository.BranchSpecification.repositoryEquals;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
@@ -227,7 +228,8 @@ public class RepositoryWS {
     @JsonView(View.BranchSummary.class)
     @RequestMapping(value = "/api/repositories/{repositoryId}/branches", method = RequestMethod.GET)
     public List<Branch> getBranchesOfRepository(@PathVariable Long repositoryId,
-                                                @RequestParam(value = "name", required = false) String branchName) throws RepositoryWithIdNotFoundException {
+                                                @RequestParam(value = "name", required = false) String branchName,
+                                                @RequestParam(value = "deleted", required = false) Boolean deleted) throws RepositoryWithIdNotFoundException {
         ResponseEntity<Repository> result;
         Repository repository = repositoryRepository.findOne(repositoryId);
 
@@ -237,7 +239,8 @@ public class RepositoryWS {
 
         List<Branch> branches = branchRepository.findAll(where(
                 ifParamNotNull(nameEquals(branchName))).and(
-                ifParamNotNull(repositoryEquals(repository))
+                ifParamNotNull(repositoryEquals(repository))).and(
+                ifParamNotNull(deletedEquals(deleted))
         ));
 
         return branches;
