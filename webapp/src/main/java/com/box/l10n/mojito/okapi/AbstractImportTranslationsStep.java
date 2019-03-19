@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.okapi.filters.FilterOptions;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotation;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotations;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -20,6 +21,7 @@ import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
+import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.StartDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import org.joda.time.DateTime;
@@ -90,7 +92,15 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      */
     boolean isMultilingual = false;
 
+    /**
+     * Created date used for all the text unit imported
+     */
     DateTime createdDate;
+
+    /**
+     * Target comment to set during import
+     */
+    String targetComment = null;
 
     @SuppressWarnings("deprecation")
     @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
@@ -101,6 +111,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     @StepParameterMapping(parameterType = StepParameterType.INPUT_RAWDOC)
     public void setInputDocument(net.sf.okapi.common.resource.RawDocument rawDocument) {
         this.rawDocument = rawDocument;
+        applyFilterOptions(rawDocument);
     }
 
     @Override
@@ -114,6 +125,20 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
         createdDate = new DateTime();
 
         return super.handleStartDocument(event);
+    }
+
+    /**
+     * TODO reusing filter options in a step might be debatable.. but it is handy to pass the target comment without
+     * a big change. Doing that for now
+     */
+    void applyFilterOptions(RawDocument input) {
+        FilterOptions filterOptions = input.getAnnotation(FilterOptions.class);
+
+        if (filterOptions != null) {
+            filterOptions.getString("targetComment", s -> targetComment = s);
+        }
+
+        logger.debug("filter option, target comment: {}", targetComment);
     }
 
     @Override
@@ -383,7 +408,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
                     tmTextUnitId,
                     targetLocaleId,
                     targetString,
-                    null,
+                    targetComment,
                     status,
                     includedInLocalizedFile,
                     createdDate).getTmTextUnitCurrentVariant().getTmTextUnitVariant();
@@ -454,5 +479,4 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     TMTextUnitCurrentVariant getTMTextUnitCurrentVariant(Long localeId, TMTextUnit tmTextUnit) {
         return tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnit.getId());
     }
-
 }
