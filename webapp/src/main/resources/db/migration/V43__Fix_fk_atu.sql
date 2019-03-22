@@ -1,0 +1,1 @@
+alter table asset_text_unit add constraint FK__ASSET_TEXT_UNIT__BRANCH__ID foreign key (branch_id) references branch(id);
