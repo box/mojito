@@ -67,7 +67,7 @@ public class AssetTextUnit extends AuditableEntity {
     private boolean doNotTranslate = false;
 
     @ManyToOne
-    @JoinColumn(name = "branch_id", foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__ASSET_EXTRACTION__ID"))
+    @JoinColumn(name = "branch_id", foreignKey = @ForeignKey(name = "FK__ASSET_TEXT_UNIT__BRANCH__ID"))
     protected Branch branch;
 
     public User getCreatedByUser() {
