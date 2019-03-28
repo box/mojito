@@ -22,7 +22,8 @@ public enum FileTypes {
     CSV(CSVFileType.class),
     JS(JSFileType.class),
     JSON(JSONFileType.class),
-    TS(TSFileType.class);
+    TS(TSFileType.class),
+    MARKDOWN(MarkdownFileType.class);
 
     Class<? extends FileType> clazz;
 

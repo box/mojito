@@ -5,6 +5,8 @@ import com.box.l10n.mojito.okapi.filters.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import net.sf.okapi.filters.markdown.MarkdownFilter;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ public class AssetPathToFilterConfigMapper {
     public static final String RESX_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-resx";
     public static final String XTB_FILTER_CONFIG_ID = XMLFilter.FILTER_CONFIG_ID + "-xtb";
     public static final String JS_FILTER_CONFIG_ID = JSFilter.FILTER_CONFIG_ID + "-js";
+    public static final String MARKDOWN_FILTER_CONFIG_ID = "okf_markdown";
     
     private enum AssetFilterType {
         CSV(CSVFilter.FILTER_CONFIG_ID, "csv"),
@@ -46,7 +49,8 @@ public class AssetPathToFilterConfigMapper {
         RESX(RESX_FILTER_CONFIG_ID, "resx", "resw"),
         XTB(XTB_FILTER_CONFIG_ID, "xtb"),
         JS(JS_FILTER_CONFIG_ID, "ts", "js"),
-        JSON(JSONFilter.FILTER_CONFIG_ID, "json");
+        JSON(JSONFilter.FILTER_CONFIG_ID, "json"),
+        MARKDOWN(MARKDOWN_FILTER_CONFIG_ID, "md");
 
         private String configId;
         private Set<String> supportedExtensions = new HashSet<>();
