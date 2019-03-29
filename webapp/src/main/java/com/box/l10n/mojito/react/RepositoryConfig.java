@@ -4,6 +4,7 @@ public class RepositoryConfig {
 
     Location location;
     Commit commit;
+    ThirdParty thirdParty;
 
     public Location getLocation() {
         return location;
@@ -19,5 +20,13 @@ public class RepositoryConfig {
 
     public void setCommit(Commit commit) {
         this.commit = commit;
+    }
+
+    public ThirdParty getThirdParty() {
+        return thirdParty;
+    }
+
+    public void setThirdParty(ThirdParty thirdParty) {
+        this.thirdParty = thirdParty;
     }
 }
