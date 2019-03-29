@@ -21,7 +21,7 @@ let GitBlameInfoModal = React.createClass({
      * @returns {string} The title of the modal is the name of the text unit
      */
     getTitle() {
-        return this.props.intl.formatMessage({ id: "workbench.gitBlameModal.info" });
+        return this.props.intl.formatMessage({id: "workbench.gitBlameModal.info"});
     },
 
     /**
@@ -48,7 +48,7 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*} The row of label:link to display in the modal
      */
     displayScreenshotLink() {
-        const label = this.props.intl.formatMessage({ id: "textUnit.gitBlameModal.screenshots"});
+        const label = this.props.intl.formatMessage({id: "textUnit.gitBlameModal.screenshots"});
         const branchScreenshots = this.getBranchScreenshots();
         if (!branchScreenshots.length) {
             return this.displayInfo(label, null);
@@ -60,7 +60,7 @@ let GitBlameInfoModal = React.createClass({
                 <Link
                     onClick={() => this.props.onViewScreenshotClick(branchScreenshots)}
                     className="col-sm-9 clickable">
-                    <FormattedMessage id="textUnit.gitBlameModal.screenshotModalOpen" />
+                    <FormattedMessage id="textUnit.gitBlameModal.screenshotModalOpen"/>
                 </Link>
             </div>
         );
@@ -72,7 +72,7 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*}    The row of label:data to display in the modal
      */
     displayInfoWithId(labelId, data) {
-        return this.displayInfo(this.props.intl.formatMessage({ id: labelId }), data);
+        return this.displayInfo(this.props.intl.formatMessage({id: labelId}), data);
     },
 
     /**
@@ -95,6 +95,7 @@ let GitBlameInfoModal = React.createClass({
                     {this.displayInfoWithId("textUnit.gitBlameModal.comment", this.props.textUnit.getComment())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.targetComment", this.props.textUnit.getTargetComment())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.location", this.getLocationLinks())}
+                    {this.shouldShowThirdPartyTMS() && this.displayInfoWithId("textUnit.gitBlameModal.thirdPartyTMS", this.getThirdPartyLink())}
                 </div>
             );
     },
@@ -184,7 +185,7 @@ let GitBlameInfoModal = React.createClass({
     getBranch() {
         try {
             return this.props.gitBlameWithUsage.branch.name;
-        } catch(e) {
+        } catch (e) {
             return " - ";
         }
     },
@@ -192,9 +193,44 @@ let GitBlameInfoModal = React.createClass({
     getBranchScreenshots() {
         try {
             return this.props.gitBlameWithUsage.branch.screenshots;
-        } catch(e) {
+        } catch (e) {
             return [];
         }
+    },
+
+    getParamsForLinks() {
+        return {
+            textUnitName: this.props.textUnit.getName(),
+            assetPath: this.props.textUnit.getAssetPath(),
+            textUsageNamePrefix: this.props.textUnit.getName().split("_")[0],
+            textUnitNameWithoutPluralForm: this.getTextUnitNameWithoutPluralForm()
+        };
+    },
+
+    getTextUnitNameWithoutPluralForm() {
+        let prefix = this.props.textUnit.getName();
+
+        if (this.props.textUnit.getPluralForm() != null) {
+            // remove plural form. remove optionally a space for this to work with different types but that break
+            // type that don't use it and have a text unit name that ends with space.
+            prefix = prefix.replace(/\s?_(zero|one|two|few|many|other)$/, "");
+        }
+
+        return prefix;
+    },
+
+    renderLink(urlTemplate, urlComponentTemplate, labelTemplate, params) {
+        let url = LinkHelper.renderUrl(urlTemplate, urlComponentTemplate, params);
+        let label = LinkHelper.renderTemplate(labelTemplate, params);
+        return <a href={url}>{label}</a>;
+    },
+
+    getThirdPartyLink() {
+        return this.renderLink(
+            this.getThirdPartyUrlTemplate(),
+            this.getThirdPartyUrlComponentTemplate(),
+            this.getThirdPartyLabelTemplate(),
+            this.getParamsForLinks());
     },
 
     /**
@@ -219,25 +255,17 @@ let GitBlameInfoModal = React.createClass({
      * @returns {*} Creates a link to a single location
      */
     getLocationLink() {
-        const urlTemplate = this.getLocationUrlTemplate();
-        const labelTemplate = this.getLocationLabelTemplate();
-
-        let params = {
-            textUnitName: this.props.textUnit.getName(),
-            assetPath: this.props.textUnit.getAssetPath(),
-            textUsageNamePrefix: this.props.textUnit.getName().split("_")[0],
-        };
-        let url = LinkHelper.getLink(urlTemplate, params);
-        let label = LinkHelper.getLink(labelTemplate, params);
-        return <a href={url}>{label}</a>;
+        return this.renderLink(
+            this.getLocationUrlTemplate(),
+            this.getLocationUrlComponentTemplate(),
+            this.getLocationLabelTemplate(),
+            this.getParamsForLinks());
     },
 
     /**
      * @returns {Array} Creates a list of links corresponding to the usages
      */
     getLocationLinksFromUsages() {
-        const urlTemplate = this.getLocationUrlTemplate();
-        const labelTemplate = this.getLocationLabelTemplate();
         const extractorPrefix = this.getLocationExtractorPrefix();
 
         let links = [];
@@ -257,9 +285,8 @@ let GitBlameInfoModal = React.createClass({
                     assetPath: this.props.textUnit.getAssetPath(),
                     usage: usage
                 };
-                let url = LinkHelper.getLink(urlTemplate, params);
-                let label = LinkHelper.getLink(labelTemplate, params);
-                links.push(<div key={usage}><a href={url}>{label}</a></div>);
+                let link = this.renderLink(this.getLocationUrlTemplate(), this.getLocationUrlComponentTemplate(), this.getLocationLabelTemplate(), params);
+                links.push(<div>{link}</div>);
             }
         }
         return links;
@@ -271,7 +298,7 @@ let GitBlameInfoModal = React.createClass({
      */
     getLocationExtractorPrefix() {
         try {
-            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.extractorPrefix;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.extractorPrefix;
         } catch (e) {
             return "";
         }
@@ -298,7 +325,18 @@ let GitBlameInfoModal = React.createClass({
      */
     getLocationUrlTemplate() {
         try {
-            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.url;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.url;
+        } catch (e) {
+            return "";
+        }
+    },
+
+    /**
+     * @returns {*} Template for location url cmoponent, if in configuration, an empty string otherwise.
+     */
+    getLocationUrlComponentTemplate() {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.urlComponent;
         } catch (e) {
             return "";
         }
@@ -309,7 +347,7 @@ let GitBlameInfoModal = React.createClass({
      */
     getLocationLabelTemplate() {
         try {
-            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.label;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.label;
         } catch (e) {
             return this.getLocationDefaultLabel();
         }
@@ -320,7 +358,7 @@ let GitBlameInfoModal = React.createClass({
      */
     getLocationUseUsage() {
         try {
-            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].location.useUsage;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.useUsage;
         } catch (e) {
             return false;
         }
@@ -339,19 +377,58 @@ let GitBlameInfoModal = React.createClass({
     },
 
     /**
+     * @returns {*} Says if the Third party TMS info should be displayed or not
+     */
+    shouldShowThirdPartyTMS() {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty !== undefined;
+        } catch (e) {
+            return false;
+        }
+    },
+
+    /**
+     * @returns {*} Template for thirdParty url, if in configuration, an empty string otherwise.
+     */
+    getThirdPartyUrlTemplate() {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty.url;
+        } catch (e) {
+            return "";
+        }
+    },
+
+    /**
+     * @returns {*} Template for thirdParty url to be component encoded, if in configuration, an empty string otherwise.
+     */
+    getThirdPartyUrlComponentTemplate() {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty.urlComponent;
+        } catch (e) {
+            return "";
+        }
+    },
+
+    /**
+     * @returns {*} Template for thirdParty label, if in configuration, or the string set in getThirdPartyDefaultLabel otherwise
+     */
+    getThirdPartyLabelTemplate() {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty.label;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    /**
      * @returns {*} Creates a link to current commit if there is one, or value of getCommitDefaultLabel if there is none
      */
     getCommitLink() {
-        const urlTemplate = this.getCommitUrlTemplate();
-        const labelTemplate = this.getCommitLabelTemplate();
         const commit = this.getCommitName();
         let link = this.getCommitDefaultLabel();
 
         if (commit !== null && urlTemplate !== "") {
-            let params = {commit: commit};
-            let url = LinkHelper.getLink(urlTemplate, params);
-            let label = LinkHelper.getLink(labelTemplate, params);
-            link = (<a href={url}>{label}</a>);
+            link = LinkHelper.renderLink(this.getCommitUrlTemplate(), this.getCommitUrlComponentTemplate(), this.getCommitLabelTemplate(), params);
         }
 
         return link;
@@ -362,7 +439,18 @@ let GitBlameInfoModal = React.createClass({
      */
     getCommitUrlTemplate() {
         try {
-            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].commit.url;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].commit.url;
+        } catch (e) {
+            return ""
+        }
+    },
+
+    /**
+     * @returns {*} Template for commit url component, if in configuration, an empty string otherwise.
+     */
+    getCommitUrlComponentTemplate() {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].commit.urlComponent;
         } catch (e) {
             return ""
         }
@@ -373,7 +461,7 @@ let GitBlameInfoModal = React.createClass({
      */
     getCommitLabelTemplate() {
         try {
-            return this.props.appConfig.link.link[this.props.textUnit.getRepositoryName()].commit.label;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].commit.label;
         } catch (e) {
             return this.getCommitDefaultLabel();
         }
@@ -427,12 +515,14 @@ let GitBlameInfoModal = React.createClass({
                 </Modal.Header>
                 <Modal.Body>
                     <div className={"row"}>
-                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.textUnit"}/></h4></div>
+                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.textUnit"}/></h4>
+                        </div>
                     </div>
                     {this.renderTextUnitInfo()}
                     <hr/>
                     <div className={"row"}>
-                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.gitBlame"}/></h4></div>
+                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.gitBlame"}/></h4>
+                        </div>
                         <div className={"col-sm-8"}>
                             {this.props.loading ? (<span className="glyphicon glyphicon-refresh spinning"/>) : ""}
                         </div>
@@ -440,7 +530,8 @@ let GitBlameInfoModal = React.createClass({
                     {this.renderGitBlameInfo()}
                     <hr/>
                     <div className={"row"}>
-                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4></div>
+                        <div className={"col-sm-4"}><h4><FormattedMessage id={"textUnit.gitBlameModal.more"}/></h4>
+                        </div>
                     </div>
                     {this.renderDebugInfo()}
                 </Modal.Body>

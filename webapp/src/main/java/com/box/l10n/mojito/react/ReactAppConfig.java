@@ -1,11 +1,13 @@
 package com.box.l10n.mojito.react;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ReactAppConfig {
 
+    @JsonUnwrapped
     @Autowired
     LinkConfig link;
 
