@@ -381,7 +381,7 @@ let GitBlameInfoModal = React.createClass({
      */
     shouldShowThirdPartyTMS() {
         try {
-            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty !== undefined;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty !== null;
         } catch (e) {
             return false;
         }
