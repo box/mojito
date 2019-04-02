@@ -430,7 +430,7 @@ let GitBlameInfoModal = React.createClass({
 
         if (commit !== null && urlTemplate !== "") {
             let params = {commit: commit};
-            link = LinkHelper.renderLink(urlTemplate, this.getCommitUrlComponentTemplate(), this.getCommitLabelTemplate(), params);
+            link = this.renderLink(urlTemplate, this.getCommitUrlComponentTemplate(), this.getCommitLabelTemplate(), params);
         }
 
         return link;
