@@ -9,13 +9,19 @@ permalink: /docs/refs/mojito-file-formats/
 | Format                             | Source Resource File                   |
 |:-----------------------------------|:---------------------------------------|
 | Android Strings &nbsp;&nbsp;&nbsp; | res/values/strings.xml                 |
+| CSV File                           | *.csv                                  |
 | iOS/Mac Strings                    | Localizable.strings, InfoPList.strings |
 | iOS/Mac Stringsdict                | Localizable.stringsdict                |
 | Java Properties                    | *.properties                           |
+| JS File                            | *.js                                   |
+| JSON File                          | *.json                                 |
 | RESW                               | *.resw                                 |
 | RESX                               | *.resx                                 |
-| XLIFF                              | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
 | PO File                            | *.pot                                  |
+| TS File                            | *.ts                                   |
+| XLIFF                              | *.xlf, *.xliff, *.sdlxliff, *.mxliff   |
+| XTB File                           | *.xtb                                  |
+
 
 
 ### Android Strings Example
@@ -54,6 +60,31 @@ Localized Resource File (Spanish): `es.lproj/Localizable.strings`
 ```c++
 /* Greeting from Main UI */
 "Hello!" = "¡Hola!";
+```
+
+
+### CVS Example
+
+| Column Number | Description |
+|:--------------|:------------|
+| 1             | Source ID   |
+| 2             | Source      |
+| 3             | Target      |
+| 4             | Comment     |
+|||
+
+Source Resource File (English): `example.csv`
+
+
+```csv
+hello,Hello!,Hello!,Greeting from Main UI
+```
+
+Localized Resource File (Spanish): `example_es-ES.csv`
+
+
+```csv
+hello,Hello!,¡Hola!,Greeting from Main UI
 ```
 
 
@@ -131,6 +162,50 @@ hello = ¡Hola!
 ```
 
 
+### JS Example
+Source Resource File (English): `en.js`
+
+
+```jsx
+export default {
+  // Greeting from Main UI
+  "hello": "Hello!"
+}
+```
+
+Localized Resource File (Spanish): `es.js`
+
+
+```jsx
+export default {
+  // Greeting from Main UI
+  "hello": "¡Hola!"
+}
+```
+
+
+### JSON Example
+Source Resource File (English): `example.json`
+
+
+```jsx
+{
+  // Greeting from Main UI
+  "hello": "Hello!"
+}
+```
+
+Localized Resource File (Spanish): `example_es-ES.json`
+
+
+```jsx
+{
+  // Greeting from Main UI
+  "hello": "¡Hola!"
+}
+```
+
+
 ### RESW Example
 Source Resource File (English): `en/Resources.resw`
 
@@ -187,6 +262,32 @@ Localized Resource File (Spanish): `Resources.es-ES.resx`
 ```
 
 
+### TS Example
+Source Resource File (English): `en.ts`
+
+
+```jsx
+namespace Translations {
+  // Greeting from Main UI
+  "hello": "Hello!"
+}
+
+export default Translations;
+```
+
+Localized Resource File (Spanish): `es.ts`
+
+
+```jsx
+namespace Translations {
+  // Greeting from Main UI
+  "hello": "¡Hola!"
+}
+
+export default Translations;
+```
+
+
 ### XLIFF Example
 Source Resource File (English): `resource.xliff`  
 
@@ -222,6 +323,7 @@ Localized Resource File (Spanish): `resource_es-ES.xliff`
   </file>
 </xliff>   
 ```
+
 
 ### PO File Example
 Source Resource File (English): `messages.pot`   
@@ -270,4 +372,28 @@ msgstr ""
 msgctxt "hello"
 msgid "Hello!"
 msgstr "¡Hola!"
+```
+
+
+### XTB Example
+Source Resource File (English): `Example-en-US.xtb`
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE translationbundle>
+<translationbundle lang="en-US">
+    <translation id="1" key="hello" source="example.js">Hello!</translation>
+</translationbundle>
+```
+
+Localized Resource File (Spanish): `Example-es-ES.xtb`
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE translationbundle>
+<translationbundle lang="en-US">
+    <translation id="1" key="hello" source="example.js">¡Hola!</translation>
+</translationbundle>
 ```
