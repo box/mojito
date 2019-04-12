@@ -8,6 +8,7 @@ import net.sf.okapi.common.annotation.XLIFFNote;
 import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
+import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +118,27 @@ public class TextUnitUtils {
         }
 
         xliffNoteAnnotation.add(new XLIFFNote(importExportNoteStr));
+    }
+
+    /**
+     * Gets the source container as a string
+     *
+     * @param textUnit
+     * @return
+     */
+    public String getSourceAsString(ITextUnit textUnit) {
+        return textUnit.getSource().toString();
+    }
+
+    /**
+     * Replace the source container with the given string
+     *
+     * @param textUnit
+     * @param newSource
+     */
+    public void replaceSourceString(TextUnit textUnit, String newSource) {
+        TextContainer source = new TextContainer(newSource);
+        textUnit.setSource(source);
     }
 
 }

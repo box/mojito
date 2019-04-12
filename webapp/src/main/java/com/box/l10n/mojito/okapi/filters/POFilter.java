@@ -4,6 +4,7 @@ import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.po.PoPluralRule;
 import com.google.common.collect.Multimap;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -12,8 +13,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
+import net.sf.okapi.common.MimeTypeMapper;
+import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
@@ -32,7 +36,7 @@ import org.springframework.util.ReflectionUtils;
 /**
  * Extends {@link net.sf.okapi.filters.po.POFilter} to somehow support gettext
  * plural and surface message context as part of the textunit name.
- *
+ * <p>
  * Maps po plural form to cldr using {@link PoPluralRuleHelper
  *
  * @author jaurambualt
@@ -53,6 +57,28 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     @Autowired
     TextUnitUtils textUnitUtils;
 
+    @Autowired
+    UnescapeFilter unescapeFilter;
+
+    @Autowired
+    TextUnitUtils getTextUnitUtils;
+
+    List<Event> eventQueue = new ArrayList<>();
+
+    LocaleId targetLocale;
+
+    PoPluralRule poPluralRule;
+
+    boolean hasCopyFormsOnImport = false;
+
+    String msgIDPlural;
+
+    String msgID;
+
+    Integer poPluralForm;
+
+    EncoderManager encoderManager;
+
     @Override
     public String getName() {
         return FILTER_CONFIG_ID;
@@ -69,20 +95,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
         return list;
     }
-
-    List<Event> eventQueue = new ArrayList<>();
-
-    LocaleId targetLocale;
-
-    PoPluralRule poPluralRule;
-
-    boolean hasCopyFormsOnImport = false;
-
-    String msgIDPlural;
-
-    String msgID;
-
-    Integer poPluralForm;
 
     @Override
     public void open(RawDocument input) {
@@ -128,7 +140,29 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         if (event != null && event.isTextUnit()) {
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             renameTextUnitWithSourceAndContent(textUnit);
+            unescpae(textUnit);
             addUsagesToTextUnit(textUnit);
+        }
+    }
+
+    void unescpae(TextUnit textUnit) {
+        unescapeSource(textUnit);
+        unescapeTarget(textUnit);
+    }
+
+    void unescapeSource(TextUnit textUnit) {
+        String sourceString = textUnitUtils.getSourceAsString(textUnit);
+        String unescapedSourceString = unescapeFilter.replaceEscapedQuotes(sourceString);
+        textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
+    }
+
+    void unescapeTarget(TextUnit textUnit) {
+        TextContainer target = textUnit.getTarget(targetLocale);
+        if (target != null) {
+            String targetString = target.toString();
+            String unescapedTargetString = unescapeFilter.replaceEscapedQuotes(targetString);
+            TextContainer newTarget = new TextContainer(unescapedTargetString);
+            textUnit.setTarget(targetLocale, newTarget);
         }
     }
 
@@ -196,7 +230,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     }
 
     private void setUsagesOnTextUnits(List<Event> pluralEvents, Set<String> usagesFromSkeleton) {
-        for (Event pluralEvent: pluralEvents) {
+        for (Event pluralEvent : pluralEvents) {
             if (pluralEvent.isTextUnit()) {
                 setUsagesAnnotationOnTextUnit(usagesFromSkeleton, pluralEvent.getTextUnit());
             }
@@ -277,7 +311,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
      * If context is present, add it to the text unit name. We keep the
      * generated ID by Okapi for prefix of the text unit name allows to
      * distinguish plural form easily.
-     *
+     * <p>
      * Note: Decided not to go with empty string id only based the message
      * context to have more consistent IDs and support plural forms. It has a
      * little draw back when searching for string though as it prevents exact
@@ -317,20 +351,19 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     void loadMsgIDPluralFromParent() {
         Field msgIDPluralParent = ReflectionUtils.findField(net.sf.okapi.filters.po.POFilter.class,
                 "msgIDPlural");
-        ReflectionUtils.makeAccessible(msgIDPluralParent);
-        try {
-            msgIDPlural = (String) msgIDPluralParent.get(this);
-        } catch (IllegalAccessException | IllegalArgumentException e) {
-            throw new RuntimeException(e);
-        }
+        msgIDPlural = makeAccessibleAndGetString(msgIDPluralParent);
     }
 
     void loadMsgIDFromParent() {
         Field msgIDParent = ReflectionUtils.findField(net.sf.okapi.filters.po.POFilter.class,
                 "msgID");
-        ReflectionUtils.makeAccessible(msgIDParent);
+        msgID = makeAccessibleAndGetString(msgIDParent);
+    }
+
+    String makeAccessibleAndGetString(Field msgID) {
+        ReflectionUtils.makeAccessible(msgID);
         try {
-            msgID = (String) msgIDParent.get(this);
+            return (String) msgID.get(this);
         } catch (IllegalAccessException | IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
@@ -343,7 +376,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     Set<String> getUsagesFromSkeleton(String skeleton) {
         Set<String> locations = new LinkedHashSet<>();
-       
+
         Pattern pattern = Pattern.compile(USAGE_LOCATION_PATTERN);
         Matcher matcher = pattern.matcher(skeleton);
 
@@ -352,6 +385,15 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         }
 
         return locations;
+    }
+
+    @Override
+    public EncoderManager getEncoderManager() {
+        if (encoderManager == null) {
+            encoderManager = new EncoderManager();
+            encoderManager.setMapping(MimeTypeMapper.PO_MIME_TYPE, "com.box.l10n.mojito.okapi.filters.POEncoder");
+        }
+        return encoderManager;
     }
 
 }

@@ -146,10 +146,10 @@ public class TMServiceTest extends ServiceTestBase {
         Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
 
 
-        logger.error("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
+        logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
         String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
-        logger.error("tmtextunit: {}", tmTextUnit);
+        logger.debug("tmtextunit: {}", tmTextUnit);
 
         logger.debug("Add the second text unit");
         Long addTextUnitAndCheck2 = addTextUnitAndCheck(tmId, assetId, "name2", "content", "comment", "d00c1170937aa79458be2424f4d9720e", "9a0364b9e99bb480dd25e1f0284c8555");
@@ -174,10 +174,10 @@ public class TMServiceTest extends ServiceTestBase {
         logger.debug("Add a first text unit");
         Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
 
-        logger.error("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
+        logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
         String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
-        logger.error("tmtextunit: {}", tmTextUnit);
+        logger.debug("tmtextunit: {}", tmTextUnit);
 
         logger.debug("Try to add a second text unit with same logical key, throws a DataIntegrityViolationException");
         TMTextUnit reAdd = tmService.addTMTextUnit(tmId, assetId, "name", "this is the content", "some comment");
@@ -1823,6 +1823,110 @@ public class TMServiceTest extends ServiceTestBase {
         assertEquals(forImport, localizedAsset);
     }
 
+    @Test
+    public void testLocalizePoEscaping() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "ja-JP");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "msgstr \"\"\n" +
+                "\"Project-Id-Version: PACKAGE VERSION\\n\"\n" +
+                "\"Report-Msgid-Bugs-To: \\n\"\n" +
+                "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n" +
+                "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n" +
+                "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n" +
+                "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n" +
+                "\"MIME-Version: 1.0\\n\"\n" +
+                "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n" +
+                "\"Content-Type: text/plain; charset=utf-8\\n\"\n" +
+                "\"Content-Transfer-Encoding: 8bit\\n\"\n" +
+                "#. Comments\n" +
+                "#: core/logic/week_in_review_email_logic.py:49\n" +
+                "msgid \"repin \\\"{}\\\"\"\n" +
+                "msgstr \"\"";
+
+        String expectedLocalizedAsset = "msgstr \"\"\n" +
+                "\"Project-Id-Version: PACKAGE VERSION\\n\"\n" +
+                "\"Report-Msgid-Bugs-To: \\n\"\n" +
+                "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n" +
+                "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n" +
+                "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n" +
+                "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n" +
+                "\"MIME-Version: 1.0\\n\"\n" +
+                "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n" +
+                "\"Content-Type: text/plain; charset=utf-8\\n\"\n" +
+                "\"Content-Transfer-Encoding: 8bit\\n\"\n" +
+                "#. Comments\n" +
+                "#: core/logic/week_in_review_email_logic.py:49\n" +
+                "msgid \"repin \\\"{}\\\"\"\n" +
+                "msgstr \"repin \\\"{}\\\"\"\n";
+
+        asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        assertEquals(1, textUnitDTOs.size());
+        TextUnitDTO textUnitDTO = textUnitDTOs.get(0);
+        assertEquals("repin \\\"{}\\\"", textUnitDTO.getName());
+        assertEquals("repin \"{}\"", textUnitDTO.getSource());
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, null, Status.ALL, InheritanceMode.USE_PARENT);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "msgstr \"\"\n" +
+                "\"Project-Id-Version: PACKAGE VERSION\\n\"\n" +
+                "\"Report-Msgid-Bugs-To: \\n\"\n" +
+                "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n" +
+                "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n" +
+                "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n" +
+                "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n" +
+                "\"MIME-Version: 1.0\\n\"\n" +
+                "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n" +
+                "\"Content-Type: text/plain; charset=utf-8\\n\"\n" +
+                "\"Content-Transfer-Encoding: 8bit\\n\"\n" +
+                "#. Comments\n" +
+                "#: core/logic/week_in_review_email_logic.py:49\n" +
+                "msgid \"repin \\\"{}\\\"\"\n" +
+                "msgstr \"repin \\\"{}\\\" jp\"\n";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
+        logger.debug("localized after import=\n{}", localizedAsset);
+        assertEquals(forImport, localizedAsset);
+
+        textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+        textUnitSearcherParameters.setLocaleId(repoLocale.getLocale().getId());
+        textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        assertEquals(1, textUnitDTOs.size());
+        textUnitDTO = textUnitDTOs.get(0);
+        assertEquals("repin \\\"{}\\\"", textUnitDTO.getName());
+        assertEquals("repin \"{}\"", textUnitDTO.getSource());
+        assertEquals("repin \"{}\" jp", textUnitDTO.getTarget());
+    }
 
     @Test
     public void testLocalizePoPluralRu() throws Exception {
