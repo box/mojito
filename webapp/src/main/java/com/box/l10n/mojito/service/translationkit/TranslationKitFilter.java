@@ -194,8 +194,7 @@ public class TranslationKitFilter implements IFilter {
         TextUnit textUnit = new TextUnit(textUnitDTO.getTmTextUnitId().toString());
 
         textUnit.setName(textUnitDTO.getName());
-        TextContainer sourceTextContainer = new TextContainer(textUnitDTO.getSource());
-        textUnit.setSource(sourceTextContainer);
+        textUnitUtils.replaceSourceString(textUnit, textUnitDTO.getSource());
         textUnit.setAnnotation(new TextUnitDTOAnnotation(textUnitDTO));
 
         TextContainer target;

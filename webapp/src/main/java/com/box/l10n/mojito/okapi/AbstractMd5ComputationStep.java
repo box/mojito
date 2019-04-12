@@ -48,7 +48,7 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
 
         if (textUnit.isTranslatable()) {
             name = Strings.isNullOrEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
-            source = textUnit.getSource().toString();
+            source = textUnitUtils.getSourceAsString(textUnit);
             comments = textUnitUtils.getNote(textUnit);
             if (comments != null && comments.contains(COMMENT_TO_IGNORE)) {
                 comments = null;

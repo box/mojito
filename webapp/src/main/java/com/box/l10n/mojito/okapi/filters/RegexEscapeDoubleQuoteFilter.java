@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.encoder.EncoderManager;
@@ -19,16 +20,18 @@ public class RegexEscapeDoubleQuoteFilter extends RegexFilter {
     @Autowired
     UnescapeFilter unescapeFilter;
 
+    @Autowired
+    TextUnitUtils textUnitUtils;
+
     @Override
     public Event next() {
         Event event = super.next();
         if (event.getEventType() == EventType.TEXT_UNIT) {
             // if source has escaped double-quotes, unescape
             TextUnit textUnit = (TextUnit) event.getTextUnit();
-            String sourceString = textUnit.getSource().toString();
+            String sourceString = textUnitUtils.getSourceAsString(textUnit);
             String unescapedSourceString = unescapeFilter.unescape(sourceString);
-            TextContainer source = new TextContainer(unescapedSourceString);
-            textUnit.setSource(source);
+            textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
         }
         return event;
     }
