@@ -2,6 +2,8 @@ package com.box.l10n.mojito.okapi.filters;
 
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.util.stream.Collectors;
+
 import net.sf.okapi.common.IParameters;
 import net.sf.okapi.common.encoder.EncoderContext;
 import net.sf.okapi.common.encoder.IEncoder;
@@ -28,18 +30,18 @@ public class SimpleEncoder implements IEncoder {
 
     @Override
     public String encode(String text, EncoderContext context) {
-        StringBuilder escaped = new StringBuilder();
-        char ch;
-        for (int i = 0; i < text.length(); i++) {
-            ch = text.charAt(i);
-            escaped.append(encode(ch, context));
-        }
-        return escaped.toString();
+        return text.codePoints().mapToObj(codePoint -> encode(codePoint, context)).collect(Collectors.joining());
     }
 
     @Override
     public String encode(int value, EncoderContext context) {
-        return encode((char) value, context);
+        String encoded;
+        if (Character.isSupplementaryCodePoint(value)) {
+            encoded = new String(Character.toChars(value));
+        } else {
+            encoded = encode((char) value, context);
+        }
+        return encoded;
     }
 
     @Override
