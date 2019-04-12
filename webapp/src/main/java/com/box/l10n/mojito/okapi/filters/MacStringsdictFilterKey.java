@@ -110,10 +110,8 @@ public class MacStringsdictFilterKey extends XMLFilter {
     private void processTextUnit(Event event) {
         if (event != null && event.isTextUnit()) {
             TextUnit textUnit = (TextUnit) event.getTextUnit();
-            String sourceString = textUnit.getSource().toString();
-            TextContainer source = new TextContainer(unescapeFilter.unescape(sourceString));
-            textUnit.setSource(source);
-            extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
+            String sourceString = textUnitUtils.getSourceAsString(textUnit);
+            textUnitUtils.replaceSourceString(textUnit, unescapeFilter.unescape(sourceString));            extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
             textUnitUtils.setNote(textUnit, comment);
             extractUsagesFromTextUnitComments.addUsagesToTextUnit(textUnit);
         }

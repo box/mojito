@@ -25,7 +25,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
  * @author jaurambault
  */
 @Configurable
@@ -121,7 +120,7 @@ public class AndroidFilter extends XMLFilter {
         if (event != null && event.isTextUnit()) {
 
             TextUnit textUnit = (TextUnit) event.getTextUnit();
-            String sourceString = textUnit.getSource().toString();
+            String sourceString = textUnitUtils.getSourceAsString(textUnit);
 
             String unescapedSourceString;
 
@@ -131,8 +130,7 @@ public class AndroidFilter extends XMLFilter {
                 unescapedSourceString = unescapeFilter.unescape(sourceString);
             }
 
-            TextContainer source = new TextContainer(unescapedSourceString);
-            textUnit.setSource(source);
+            textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
             extractNoteFromXMLCommentInSkeletonIfNone(textUnit);
         }
     }

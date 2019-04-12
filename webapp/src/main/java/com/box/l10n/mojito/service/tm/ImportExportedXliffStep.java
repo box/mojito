@@ -263,7 +263,7 @@ public class ImportExportedXliffStep extends BasePipelineStep {
         Locale targetLocale = localeService.findByBcp47Tag(targetLocaleId.toBCP47());
 
         String name = textUnit.getName();
-        String sourceContent = textUnit.getSource().toString();
+        String sourceContent = textUnitUtils.getSourceAsString(textUnit);
         String translation = textUnit.getTarget(targetLocaleId).toString();
         ImportExportNote importExportNote = textUnitUtils.getImportExportNote(textUnit);
 
@@ -327,7 +327,7 @@ public class ImportExportedXliffStep extends BasePipelineStep {
         }
 
         String name = textUnit.getName();
-        String sourceContent = textUnit.getSource().toString();
+        String sourceContent = textUnitUtils.getSourceAsString(textUnit);
         ImportExportNote importExportNote = textUnitUtils.getImportExportNote(textUnit);
 
         PluralForm pluralForm = null;

@@ -196,8 +196,7 @@ public class TMExportFilter implements IFilter {
         TextUnit textUnit = new TextUnit("");
         textUnit.setName(textUnitDTO.getName());
 
-        TextContainer sourceTextContainer = new TextContainer(textUnitDTO.getSource());
-        textUnit.setSource(sourceTextContainer);
+        textUnitUtils.replaceSourceString(textUnit, textUnitDTO.getSource());
 
         TextContainer targetTextContainer = new TextContainer(textUnitDTO.getTarget());
         textUnit.setTarget(targetLocale, targetTextContainer);

@@ -51,6 +51,9 @@ public class PseudoLocalizeStep extends BasePipelineStep {
     @Autowired
     PseudoLocalization pseudoLocalization;
 
+    @Autowired
+    TextUnitUtils textUnitUtils;
+
     @SuppressWarnings("deprecation")
     @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
     public void setTargetLocale(LocaleId targetLocale) {
@@ -83,7 +86,7 @@ public class PseudoLocalizeStep extends BasePipelineStep {
         ITextUnit textUnit = event.getTextUnit();
 
         if (textUnit.isTranslatable()) {
-            String source = textUnit.getSource().toString();
+            String source = textUnitUtils.getSourceAsString(textUnit);
             String pseudoTranslation = pseudoLocalization.convertStringToPseudoLoc(source, textUnitIntegrityCheckers);
             textUnit.setTarget(targetLocale, new TextContainer(pseudoTranslation));
         }
