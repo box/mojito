@@ -96,6 +96,10 @@ public class Drop extends AuditableEntity {
     @JsonView(View.DropSummary.class)
     protected Boolean importFailed;
 
+    @JsonView(View.DropSummary.class)
+    @Column(name = "partiallyImported")
+    private Boolean partiallyImported = false;
+
     public User getCreatedByUser() {
         return createdByUser;
     }
@@ -191,6 +195,14 @@ public class Drop extends AuditableEntity {
 
     public void setImportFailed(Boolean importFailed) {
         this.importFailed = importFailed;
+    }
+
+    public Boolean getPartiallyImported() {
+        return partiallyImported;
+    }
+
+    public void setPartiallyImported(Boolean partiallyImported) {
+        this.partiallyImported = partiallyImported;
     }
 
 }

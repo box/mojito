@@ -224,6 +224,9 @@ let Drops = React.createClass({
         let status = "";
 
         switch (drop.status) {
+            case Drop.STATUS_TYPE.PARTIALLY_IMPORTED:
+                status = this.props.intl.formatMessage({id: "drops.status.partiallyImported"});
+                break;
             case Drop.STATUS_TYPE.IMPORTED:
                 status = this.props.intl.formatMessage({id: "drops.status.imported"});
                 break;

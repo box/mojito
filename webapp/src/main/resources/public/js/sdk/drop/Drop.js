@@ -148,6 +148,11 @@ export default class Drop {
             status = Drop.STATUS_TYPE.IMPORTING;
         } else if (this.lastImportedDate !== null) {
             status = Drop.STATUS_TYPE.IMPORTED;
+            for (let translationKit of this.translationKits) {
+                if (translationKit.imported === false) {
+                    status = Drop.STATUS_TYPE.PARTIALLY_IMPORTED;
+                }
+            }
         } else if (this.translationKits.length > 0) {
             if (this.translationKits[0].type.equals(StatusFilter.Type.Translation)) {
                 status = Drop.STATUS_TYPE.IN_TRANSLATION;
@@ -264,6 +269,7 @@ Drop.STATUS_TYPE = {
     SENDING: Symbol(),
     IN_TRANSLATION: Symbol(),
     IN_REVIEW: Symbol(),
+    PARTIALLY_IMPORTED: Symbol(),
     IMPORTED: Symbol(),
     IMPORTING: Symbol(),
     CANCELED: Symbol(),

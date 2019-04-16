@@ -38,6 +38,13 @@ let DropDetail = React.createClass({
         let translationKits = Locales.sortByDisplayName(this.props.drop.translationKits, translationKit => translationKit.locale.bcp47Tag);
 
         let rows = translationKits.map(tk => {
+            let importLabel = tk.imported ?
+                (
+                    <Label bsStyle="success" className="mrs">
+                        <FormattedMessage id="drops.table.row.imported"/>
+                    </Label>
+                ) : "";
+
             return <tr key={"DropDetail.row." + tk.localeDisplayName}>
                 <td>
                     <div>
@@ -45,6 +52,7 @@ let DropDetail = React.createClass({
                               to='/workbench'>{tk.localeDisplayName}</Link>
                     </div>
                 </td>
+                <td>{importLabel}</td>
                 <td><FormattedNumber value={tk.wordCount}/></td>
             </tr>;
         });
@@ -56,6 +64,7 @@ let DropDetail = React.createClass({
                             <thead>
                             <tr>
                                 <th><FormattedMessage id="drops.tableHeader.locales" /></th>
+                                <th></th>
                                 <th><FormattedMessage id="drops.tableHeader.wordCount" /></th>
                             </tr>
                             </thead>

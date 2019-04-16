@@ -32,12 +32,14 @@ public class DropSpecification {
                 Predicate predicate;
 
                 if (imported) {
-                    predicate = builder.and(builder.isNotNull(root.get(Drop_.lastImportedDate)),
+                    predicate = builder.and(builder.isFalse(root.get(Drop_.partiallyImported)),
+                            builder.isNotNull(root.get(Drop_.lastImportedDate)),
                             builder.or(builder.isNull(root.get(Drop_.importFailed)), builder.isFalse(root.get(Drop_.importFailed))),
                             builder.isNotNull(root.get(Drop_.importPollableTask)),
                             builder.isNotNull(root.join(Drop_.importPollableTask, JoinType.LEFT).get(PollableTask_.finishedDate)));
                 } else {
-                    predicate = builder.or(builder.isNull(root.get(Drop_.lastImportedDate)),
+                    predicate = builder.or(builder.isTrue(root.get(Drop_.partiallyImported)),
+                            builder.isNull(root.get(Drop_.lastImportedDate)),
                             builder.isTrue(root.get(Drop_.importFailed)),
                             builder.isNull(root.get(Drop_.importPollableTask)),
                             builder.isNull(root.join(Drop_.importPollableTask, JoinType.LEFT).get(PollableTask_.finishedDate)));

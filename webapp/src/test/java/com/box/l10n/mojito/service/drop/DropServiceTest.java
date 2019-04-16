@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -148,6 +149,21 @@ public class DropServiceTest extends ServiceTestBase {
 
         logger.debug("Check everything is still untranslated");
         checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
+        checkTranslationKitImported(drop.getId(), false);
+    }
+
+    @Transactional
+    public void checkTranslationKitImported(Long dropId, boolean expected) {
+        Drop drop = dropRepository.findOne(dropId);
+        if (expected) {
+            assertFalse(drop.getPartiallyImported());
+        } else {
+            assertTrue(drop.getPartiallyImported());
+        }
+        List<TranslationKit> translationKits = translationKitRepository.findByDropId(dropId);
+        for (TranslationKit translationKit : translationKits) {
+            assertEquals(expected, translationKit.getImported());
+        }
     }
 
     @Test
@@ -662,6 +678,7 @@ public class DropServiceTest extends ServiceTestBase {
 
             assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), tk.getNumTranslationKitUnits(), tk.getNumTranslatedTranslationKitUnits());
             assertNotNull(tk.getWordCount());
+            assertTrue(tk.getImported());
 
             if (tk.getLocale().getBcp47Tag().equals("ko-KR")) {
                 assertEquals("For locale: " + tk.getLocale().getBcp47Tag(), 1, tk.getNotFoundTextUnitIds().size());
