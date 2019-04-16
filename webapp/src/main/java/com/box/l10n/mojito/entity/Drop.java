@@ -97,7 +97,7 @@ public class Drop extends AuditableEntity {
     protected Boolean importFailed;
 
     @JsonView(View.DropSummary.class)
-    @Column(name = "partiallyImported")
+    @Column(name = "partially_imported")
     private Boolean partiallyImported = false;
 
     public User getCreatedByUser() {
