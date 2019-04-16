@@ -54,6 +54,15 @@ class DropClient extends BaseClient {
     }
 
     /**
+     * @param {number} dropId
+     * @return {Promise}
+     */
+    completeDrop(dropId) {
+        let promise = this.post(this.getUrl() + "/complete/" + dropId);
+        return promise.then((result) => result);
+    }
+
+    /**
      * @param {CancelDropConfig} cancelDropConfig
      * @return {Promise}
      */

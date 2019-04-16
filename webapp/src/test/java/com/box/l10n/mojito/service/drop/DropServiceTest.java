@@ -150,6 +150,17 @@ public class DropServiceTest extends ServiceTestBase {
         logger.debug("Check everything is still untranslated");
         checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 4);
         checkTranslationKitImported(drop.getId(), false);
+
+        logger.debug("Force complete");
+        forceCompleteDrop(drop.getId());
+    }
+
+    @Transactional
+    public void forceCompleteDrop(Long dropId) {
+        Drop drop = dropRepository.findOne(dropId);
+        assertTrue(drop.getPartiallyImported());
+        dropService.completeDrop(drop);
+        assertFalse(drop.getPartiallyImported());
     }
 
     @Transactional

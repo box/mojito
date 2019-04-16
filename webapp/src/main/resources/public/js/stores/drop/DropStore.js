@@ -84,6 +84,13 @@ class DropStore {
     }
 
     /**
+     * @param {number} dropId
+     */
+    onCompleteRequest(dropId) {
+        this.getInstance().completeRequest(dropId);
+    }
+
+    /**
      * @param {CancelDropConfig} cancelDropConfig
      */
     onCancelRequest(cancelDropConfig) {

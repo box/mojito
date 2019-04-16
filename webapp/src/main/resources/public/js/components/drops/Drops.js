@@ -174,6 +174,15 @@ let Drops = React.createClass({
     },
 
     /**
+     * Handle complete onclick event
+     */
+    onClickComplete(dropId) {
+        DropActions.completeRequest(dropId);
+
+        this.delayGetNewRequests(500);
+    },
+
+    /**
      * handle cancel drop onclick event
      * @param {Number} dropId
      * @param {Number} repoId
@@ -320,6 +329,7 @@ let Drops = React.createClass({
         let repoId = drop.repository.id;
 
         let importTitle = <Tooltip id="Drops.tooltip.import"><FormattedMessage id="drops.controlbar.button.tooltip.import"/></Tooltip>;
+        let completeTitle = <Tooltip id="Drops.tooltip.complete"><FormattedMessage id="drops.controlbar.button.tooltip.complete"/></Tooltip>;
         let cancelTitle = <Tooltip id="Drops.tooltip.cancel"><FormattedMessage id="drops.controlbar.button.tooltip.cancel"/></Tooltip>;
 
         let importOverlay = "";
@@ -327,6 +337,15 @@ let Drops = React.createClass({
             importOverlay = (<OverlayTrigger placement="top" overlay={importTitle}>
                 <Button bsStyle="default" onClick={this.onClickImport.bind(this, dropId, repoId)}>
                     <span className="glyphicon glyphicon-import" aria-label={importTitle}/>
+                </Button>
+            </OverlayTrigger>);
+        }
+
+        let completeOverlay = "";
+        if (drop.completable()) {
+            completeOverlay = (<OverlayTrigger placement="top" overlay={completeTitle}>
+                <Button bsStyle="default" onClick={this.onClickComplete.bind(this, dropId)}>
+                    <span className="glyphicon glyphicon-check" aria-label={completeTitle}/>
                 </Button>
             </OverlayTrigger>);
         }
@@ -344,6 +363,7 @@ let Drops = React.createClass({
             <ButtonToolbar>
                 <ButtonGroup>
                     {importOverlay}
+                    {completeOverlay}
                     {cancelOverlay}
                 </ButtonGroup>
             </ButtonToolbar>

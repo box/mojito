@@ -55,6 +55,9 @@ export default class Drop {
 
         /** @type {Boolean|null} */
         this.importFailed = false;
+
+        /** @type {Boolean|null} */
+        this.partiallyImported = false;
     }
 
     getId() {
@@ -147,12 +150,7 @@ export default class Drop {
         } else if (this.isBeingImported()) {
             status = Drop.STATUS_TYPE.IMPORTING;
         } else if (this.lastImportedDate !== null) {
-            status = Drop.STATUS_TYPE.IMPORTED;
-            for (let translationKit of this.translationKits) {
-                if (translationKit.imported === false) {
-                    status = Drop.STATUS_TYPE.PARTIALLY_IMPORTED;
-                }
-            }
+            status = this.partiallyImported ? Drop.STATUS_TYPE.PARTIALLY_IMPORTED : Drop.STATUS_TYPE.IMPORTED;
         } else if (this.translationKits.length > 0) {
             if (this.translationKits[0].type.equals(StatusFilter.Type.Translation)) {
                 status = Drop.STATUS_TYPE.IN_TRANSLATION;
@@ -187,6 +185,7 @@ export default class Drop {
         return !this.isBeingExported() &&
                !this.isBeingImported() &&
                this.status !== Drop.STATUS_TYPE.IMPORTED &&
+               this.status !== Drop.STATUS_TYPE.PARTIALLY_IMPORTED &&
                this.status !== Drop.STATUS_TYPE.CANCELED;
     }
 
@@ -196,6 +195,15 @@ export default class Drop {
     importable() {
         return this.status !== Drop.STATUS_TYPE.EXPORT_FAILED &&
                this.status !== Drop.STATUS_TYPE.CANCELED;
+    }
+
+    /**
+     * @return {boolean}
+     */
+    completable() {
+        return this.status !== Drop.STATUS_TYPE.EXPORT_FAILED &&
+               this.status !== Drop.STATUS_TYPE.CANCELED &&
+               this.status === Drop.STATUS_TYPE.PARTIALLY_IMPORTED;
     }
 
     /**
@@ -235,6 +243,10 @@ export default class Drop {
 
         if (json.importFailed) {
             result.importFailed = json.importFailed;
+        }
+
+        if (json.partiallyImported) {
+            result.partiallyImported = json.partiallyImported;
         }
 
         result.translationKits = TranslationKit.toTranslationKits(json.translationKits);

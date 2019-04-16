@@ -43,6 +43,14 @@ const DropDataSource = {
         error: DropActions.importRequestError
     },
 
+    completeRequest: {
+        remote(dropStoreState, dropId) {
+            return DropClient.completeDrop(dropId);
+        },
+        success: DropActions.completeRequestSuccess,
+        error: DropActions.completeRequestError
+    },
+
     cancelRequest: {
         remote(dropStoreState, cancelDropConfig) {
             return DropClient.cancelDrop(cancelDropConfig);
