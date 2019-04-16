@@ -728,18 +728,6 @@
                                     <arguments>run build</arguments>
                                 </configuration>
                             </execution>
-                            
-                            <!--disable for now, because it requires Chrome and doesn't run on the CI-->
-                            <!--<execution>-->
-                            <!--<id>mocha tests</id>-->
-                            <!--<goals>-->
-                            <!--<goal>npm</goal>-->
-                            <!--</goals>-->
-                            <!--<phase>test</phase>-->
-                            <!--<configuration>-->
-                            <!--<arguments>run tests</arguments>-->
-                            <!--</configuration>-->
-                            <!--</execution>-->
                         </executions>
                     </plugin>
                 </plugins>
