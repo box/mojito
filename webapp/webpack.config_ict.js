@@ -61,12 +61,11 @@ module.exports = function (env) {
                 {
                     test: /\.properties$/,
                     exclude: /node_modules/,
-                    loaders: [
+                    use: [
                         {
-                            loader: 'java-properties-flat-loader'
+                            loader: path.resolve('src/main/webpackloader/properties.js')
                         }
                     ]
-
                 },
                 {
                     // __webpack_public_path__ is not supported by ExtractTextPlugin

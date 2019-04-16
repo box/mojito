@@ -63,21 +63,20 @@ module.exports = function (env) {
                 {
                     test: /\.properties$/,
                     exclude: /node_modules/,
-                    loaders: [
+                    use: [
                         {
-                            loader: 'java-properties-flat-loader'
+                            loader: path.resolve('src/main/webpackloader/properties.js')
                         }
                     ]
-
                 },
                 {
                     // __webpack_public_path__ is not supported by ExtractTextPlugin
-                    // so we inline all the fonts here. If not inlined, references 
-                    // to the font are invalid if mojito is deployed with a 
-                    // specific deploy path. 
+                    // so we inline all the fonts here. If not inlined, references
+                    // to the font are invalid if mojito is deployed with a
+                    // specific deploy path.
                     // hardcoded for deploy path for test -->
                     //    name: '{deployPath}/fonts/[name]-[hash].[ext]'
-                    
+
                     test: /\.(eot|ttf|woff|woff2)$/,
                     loader: 'url-loader',
                     options: {
