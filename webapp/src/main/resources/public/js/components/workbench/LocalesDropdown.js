@@ -1,4 +1,3 @@
-import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 import {FormattedMessage, injectIntl} from 'react-intl';
