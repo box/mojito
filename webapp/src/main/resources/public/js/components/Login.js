@@ -1,6 +1,5 @@
-import $ from "jquery";
 import React from "react";
-import {FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
+import {FormattedMessage, injectIntl} from "react-intl";
 import {FormControl, Button} from "react-bootstrap";
 import UrlHelper from "../utils/UrlHelper";
 
@@ -46,7 +45,7 @@ let Login = React.createClass({
         let result = UrlHelper.getUrlWithContextPath('/login');
 
         if (showPage) {
-            result += '?' + $.param({"showPage": showPage});
+            result += '?' + UrlHelper.toQueryString({"showPage": showPage});
         }
 
         return result;

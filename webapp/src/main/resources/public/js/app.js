@@ -1,4 +1,3 @@
-import $ from "jquery";
 import _ from "lodash";
 import React from "react";
 import ReactDOM from "react-dom";
@@ -53,22 +52,9 @@ __webpack_public_path__ = CONTEXT_PATH + "/";
 const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
 
 import(
-        /* webpackChunkName: "[request]", webpackMode: "lazy" */
-        `../../properties/${LOCALE}.properties`).then(messages => {
-
-    if (!global.Intl) {
-        // NOTE: require.ensure would have been nice to use to do module loading
-        // but webpack doesn't support ES6 so after Babel transcompile,
-        // require.ensure is no longer available.
-        // https://webpack.github.io/docs/code-splitting.html#es6-modules
-        $.getScript(getUrlWithContextPath('/webjars/Intl.js/dist/Intl.min.js'), () => {
-            $.getScript(getUrlWithContextPath('/webjars/Intl.js/locale-data/jsonp/') + LOCALE + '.js', () => {
-                startApp(getMergedMessages(messages));
-            });
-        });
-    } else {
-        startApp(getMergedMessages(messages));
-    }
+    /* webpackChunkName: "[request]", webpackMode: "lazy" */
+    `../../properties/${LOCALE}.properties`).then(messages => {
+    startApp(getMergedMessages(messages));
 });
 
 //TODO should implement merging logic as part of the build in a specific loader
@@ -137,8 +123,9 @@ function startApp(messages) {
      * Override handler to customise behavior
      */
     BaseClient.authenticateHandler = function () {
-        let containerId = "unauthenticated-container";
-        $("body").append("<div id=\"" + containerId + "\" />");
+        let container = document.createElement("div");
+        container.setAttribute("id", "unauthenticated-container")
+        document.body.appendChild(container);
 
         function okOnClick() {
             let pathNameStrippedLeadingSlash = location.pathname.substr(1 + CONTEXT_PATH.length, location.pathname.length);
@@ -147,7 +134,7 @@ function startApp(messages) {
             if (APP_CONFIG.login.oauth2.enabled) {
                 window.location.href = UrlHelper.getUrlWithContextPath(currentLocation);
             } else {
-                window.location.href = UrlHelper.getUrlWithContextPath("/login?") + $.param({"showPage": currentLocation});
+                window.location.href = UrlHelper.getUrlWithContextPath("/login?") + UrlHelper.toQueryString({"showPage": currentLocation});
             }
         }
 
@@ -169,7 +156,7 @@ function startApp(messages) {
                         </Modal.Footer>
                     </Modal>
                 </IntlProvider>
-                , document.getElementById(containerId));
+                , container);
     };
 
 }
@@ -244,7 +231,7 @@ function onBranchesHistoryStoreChange() {
 BranchesHistoryStore.listen(() => onBranchesHistoryStoreChange());
 
 /**
- * Listen to history changes, when doing a POP for the workbench, initialize 
+ * Listen to history changes, when doing a POP for the workbench, initialize
  * the SearchParamStore from the query string
  * For the first load the listener is not active, need to access the current
  * location via getCurrentLocation

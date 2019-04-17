@@ -1,4 +1,3 @@
-import $ from "jquery";
 import UrlHelper from "./UrlHelper";
 
 class LocationHistory {
@@ -42,7 +41,7 @@ class LocationHistory {
     buildQuery(params) {
         let cloneParam = _.clone(params);
         delete cloneParam["changedParam"];
-        return $.param(cloneParam);
+        return UrlHelper.toQueryString(cloneParam);
     }
 };
 

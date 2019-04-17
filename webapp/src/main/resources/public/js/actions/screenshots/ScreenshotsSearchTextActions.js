@@ -1,4 +1,3 @@
-import $ from "jquery";
 import alt from "../../alt";
 
 class ScreenshotsSearchTextActions {

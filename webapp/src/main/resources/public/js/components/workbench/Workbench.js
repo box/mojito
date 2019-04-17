@@ -1,35 +1,22 @@
-import $ from "jquery";
 import _ from "lodash";
-
 import React from "react";
-import { withRouter } from "react-router";
-import {FormattedMessage, FormattedNumber} from 'react-intl';
-
+import {withRouter} from "react-router";
 import FluxyMixin from "alt-mixins/FluxyMixin";
-
 import LocalesDropdown from "./LocalesDropdown";
-
-import RepositoryActions from "../../actions/RepositoryActions";
 import RepositoryDropDown from "./RepositoryDropdown";
-import RepositoryStore from "../../stores/RepositoryStore";
-
 import SearchResults from "./SearchResults";
 import StatusDropdown from "./StatusDropdown";
 import SearchText from "./SearchText";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import SearchConstants from "../../utils/SearchConstants";
-
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-
 import LocationHistory from "../../utils/LocationHistory";
 import AltContainer from "alt-container";
 import GitBlameStore from "../../stores/workbench/GitBlameStore";
 import GitBlameInfoModal from "./GitBlameInfoModal";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
-import {OverlayTrigger, Tooltip} from "react-bootstrap";
 import BranchesScreenshotViewerModal from "../branches/BranchesScreenshotViewerModal";
 import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
 import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
+import UrlHelper from "../../utils/UrlHelper";
 
 let Workbench = React.createClass({
 
@@ -54,7 +41,7 @@ let Workbench = React.createClass({
     onGitBlameStoreUpdated(store) {
         this.setState({"isShowGitBlameModal": store.show});
     },
-    
+
     /**
      * Updates the browser location based to reflect search
      *
@@ -84,7 +71,7 @@ let Workbench = React.createClass({
     buildQuery: function (searchParams) {
         let cloneParam = _.clone(searchParams);
         delete cloneParam["changedParam"];
-        return $.param(cloneParam);
+        return UrlHelper.toQueryString(cloneParam);
     },
 
     render: function () {

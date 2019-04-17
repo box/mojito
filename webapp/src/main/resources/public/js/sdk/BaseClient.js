@@ -1,4 +1,4 @@
-import $ from "jquery";
+import UrlHelper from '../utils/UrlHelper';
 
 class BaseClient {
     constructor() {
@@ -82,7 +82,7 @@ class BaseClient {
     }
 
     get(url, data) {
-        return fetch(url + '?' + $.param(data), {
+        return fetch(url + '?' + UrlHelper.toQueryString(data), {
             follow: 0,
             credentials: 'include' // this is required if using fetch from the browser, not needed with node-fetch
         }).then(response => {

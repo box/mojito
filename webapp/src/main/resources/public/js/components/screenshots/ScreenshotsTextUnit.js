@@ -1,9 +1,7 @@
-import $ from "jquery";
-import _ from "lodash";
 import PropTypes from 'prop-types';
 import React from "react";
-import {FormattedMessage, injectIntl} from 'react-intl';
-import {Label,  Glyphicon} from "react-bootstrap";
+import {injectIntl} from 'react-intl';
+import {Label} from "react-bootstrap";
 
 
 class ScreenshotsTextUnit extends React.Component {

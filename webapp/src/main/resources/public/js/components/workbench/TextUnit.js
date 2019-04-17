@@ -1,4 +1,3 @@
-import $ from "jquery";
 import _ from "lodash";
 import keycode from "keycode";
 import FluxyMixin from "alt-mixins/FluxyMixin";
@@ -18,14 +17,11 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
 import Locales from "../../utils/Locales";
 import {
-    Alert,
     Grid,
     Row,
     Col,
-    Panel,
     Button,
     ButtonToolbar,
-    ButtonGroup,
     FormControl,
     Input,
     Label,
@@ -149,9 +145,8 @@ let TextUnit = React.createClass({
     },
 
     putFocusOnActiveTextUnit() {
-
         if (this.props.isActive) {
-            $(this.refs.textunit).focus();
+           this.refs.textunit.focus();
         }
     },
 
