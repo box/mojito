@@ -28,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -159,6 +160,24 @@ public class DropWS {
         cancelDropConfig.setPollableTask(cancelDropFuture.getPollableTask());
 
         return cancelDropConfig;
+    }
+
+    /**
+     * WS to force complete a partially imported drop
+     *
+     * @param dropId
+     * @throws DropWithIdNotFoundException
+     */
+    @RequestMapping(value = "/api/drops/complete/{dropId}", method = RequestMethod.POST)
+    public void completeDropById(@PathVariable Long dropId) throws DropWithIdNotFoundException {
+        Drop drop = dropRepository.findOne(dropId);
+
+        if (drop == null) {
+            throw new DropWithIdNotFoundException(dropId);
+        }
+
+        dropService.completeDrop(drop);
+
     }
 
     /**

@@ -275,8 +275,28 @@ public class TranslationKitService {
         translationKit.setNumSourceEqualsTarget(translationKitTextUnitRepository.countByTranslationKitAndSourceEqualsTargetTrue(translationKit));
         translationKit.setNumBadLanguageDetections(translationKitTextUnitRepository.countByTranslationKitAndDetectedLanguageNotEqualsDetectedLanguageExpected(translationKit));
         translationKit.setNotFoundTextUnitIds(notFoundTextUnitIds);
+        if (translationKit.getNumTranslatedTranslationKitUnits() > 0) {
+            translationKit.setImported(true);
+        }
 
         translationKitRepository.save(translationKit);
+        checkForPartiallyImported(translationKit.getDrop().getId());
+
+    }
+
+    @Transactional
+    public void checkForPartiallyImported(Long dropId) {
+        Drop drop = dropRepository.findOne(dropId);
+        List<TranslationKit> translationKits = translationKitRepository.findByDropId(drop.getId());
+        boolean partiallyImported = false;
+        for (TranslationKit translationKit : translationKits) {
+            if (!translationKit.getImported()) {
+                partiallyImported = true;
+                break;
+            }
+        }
+        drop.setPartiallyImported(partiallyImported);
+        dropRepository.save(drop);
     }
 
     /**

@@ -19,6 +19,9 @@ class dropActions {
             "importRequest",
             "importRequestSuccess",
             "importRequestError",
+            "completeRequest",
+            "completeRequestSuccess",
+            "completeRequestError",
             "cancelRequest",
             "cancelRequestSuccess",
             "cancelRequestError"

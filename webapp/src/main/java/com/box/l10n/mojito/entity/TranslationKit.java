@@ -108,6 +108,10 @@ public class TranslationKit extends AuditableEntity {
     @Column(name = "word_count")
     private Long wordCount;
 
+    @JsonView(View.DropSummary.class)
+    @Column(name = "imported")
+    private Boolean imported = false;
+
     @ElementCollection
     @CollectionTable(name = "translation_kit_not_found_text_unit_ids",
             joinColumns = @JoinColumn(name = "TRANSLATION_KIT_ID"), foreignKey = @ForeignKey(name = "FK__TRANSLATION_KIT_NOT_FOUND_TEXT_UNIT_IDS__TRANSLATION_KIT__ID"))
@@ -117,6 +121,14 @@ public class TranslationKit extends AuditableEntity {
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__TRANSLATION_KIT__USER__ID"))
     protected User createdByUser;
+
+    public Boolean getImported() {
+        return imported;
+    }
+
+    public void setImported(Boolean imported) {
+        this.imported = imported;
+    }
 
     public User getCreatedByUser() {
         return createdByUser;
