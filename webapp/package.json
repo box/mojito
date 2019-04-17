@@ -16,7 +16,6 @@
     "keymirror": "~0.1.0",
     "lodash": "^3.10.1",
     "moment": "^2.24.0",
-    "object-assign": "^1.0.0",
     "prop-types": "^15.7.2",
     "properties": "^1.2.1",
     "react": "^15.6.2",
