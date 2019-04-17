@@ -178,7 +178,6 @@ let Drops = React.createClass({
      */
     onClickComplete(dropId) {
         DropActions.completeRequest(dropId);
-
         this.delayGetNewRequests(500);
     },
 
