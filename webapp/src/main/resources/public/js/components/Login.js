@@ -3,9 +3,8 @@ import {FormattedMessage, injectIntl} from "react-intl";
 import {FormControl, Button} from "react-bootstrap";
 import UrlHelper from "../utils/UrlHelper";
 
-let Login = React.createClass({
-
-    getLogoutElement: function () {
+class Login extends React.Component {
+    getLogoutElement = () => {
         let {logout} = this.props.location.query;
 
         var logoutElement;
@@ -18,9 +17,9 @@ let Login = React.createClass({
         }
 
         return logoutElement;
-    },
+    };
 
-    getErrorElement: function () {
+    getErrorElement = () => {
         let {error} = this.props.location.query;
 
         var errorElement;
@@ -35,13 +34,13 @@ let Login = React.createClass({
         }
 
         return errorElement;
-    },
+    };
 
     /**
      * @param {string} showPage
      * @return {string}
      */
-    getLoginFormPostUrl: function (showPage) {
+    getLoginFormPostUrl = (showPage) => {
         let result = UrlHelper.getUrlWithContextPath('/login');
 
         if (showPage) {
@@ -49,9 +48,9 @@ let Login = React.createClass({
         }
 
         return result;
-    },
+    };
 
-    render: function () {
+    render() {
         let {logout, error, showPage} = this.props.location.query;
 
         var logoutElement = this.getLogoutElement();
@@ -93,6 +92,6 @@ let Login = React.createClass({
             </div>
         );
     }
-});
+}
 
 export default injectIntl(Login);

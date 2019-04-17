@@ -3,20 +3,17 @@ import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 
-let DeleteConfirmationModal = React.createClass({
-
-    propTypes: {
+class DeleteConfirmationModal extends React.Component {
+    static propTypes = {
         "showModal": PropTypes.bool.isRequired,
         "modalBodyMessage": PropTypes.string.isRequired,
         "onDeleteCancelledCallback": PropTypes.func.isRequired,
         "onDeleteClickedCallback": PropTypes.func.isRequired
-    },
+    };
 
-    getDefaultProps() {
-        return {
-            "showModal": false
-        };
-    },
+    static defaultProps = {
+        "showModal": false
+    };
 
     render() {
         return (
@@ -38,6 +35,6 @@ let DeleteConfirmationModal = React.createClass({
             </Modal>
         );
     }
-});
+}
 
 export default DeleteConfirmationModal;

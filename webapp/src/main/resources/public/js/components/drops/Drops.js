@@ -1,4 +1,5 @@
 import React from "react";
+import createReactClass from 'create-react-class';
 import {
     Alert,
     Button,
@@ -26,7 +27,8 @@ import NewDropModal from "./NewDropModal";
 import RepositoryActions from "../../actions/RepositoryActions";
 import ConfirmationModal from "../widgets/ConfirmationModal";
 
-let Drops = React.createClass({
+let Drops = createReactClass({
+    displayName: 'Drops',
     mixins: [FluxyMixin],
 
     statics: {
@@ -607,8 +609,7 @@ let Drops = React.createClass({
                 </ReactSidebarResponsive>
             </div>
         );
-    }
-
+    },
 });
 
 /** @typedef {Drops.FILTER} Pseudo filter for UI display purpose */

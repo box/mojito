@@ -1,5 +1,6 @@
 import _ from "lodash";
 import React from "react";
+import createReactClass from 'create-react-class';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import {DropdownButton, MenuItem, InputGroup, FormControl, Button, Glyphicon} from "react-bootstrap";
 import DateTime from "react-datetime";
@@ -11,8 +12,8 @@ import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
-let StatusDropdown = React.createClass({
-
+let StatusDropdown = createReactClass({
+    displayName: 'StatusDropdown',
     mixins: [FluxyMixin],
 
     statics: {
@@ -58,13 +59,13 @@ let StatusDropdown = React.createClass({
     getInitialStatus() {
         return this.props.status ? this.props.status : SearchParamsStore.STATUS.ALL;
     },
- 
+
     onStatusSelected(status) {
         if (status !== this.state.status) {
             this.setStateAndCallSearchParamChanged("status", status);
         }
     },
-     
+
     onTmTextUnitCreatedBeforeChange(tmTextUnitCreatedBefore) {
                 
         if (typeof tmTextUnitCreatedBefore === "string") {
@@ -179,7 +180,7 @@ let StatusDropdown = React.createClass({
             </MenuItem>
         );
     },
-       
+
     getCreatedBeforeLocalDate() {      
        let m = moment(this.state.tmTextUnitCreatedBefore);
        return m;
@@ -189,7 +190,7 @@ let StatusDropdown = React.createClass({
         let m = moment(this.state.tmTextUnitCreatedAfter);
         return m;
     },
-    
+
     renderCreatedBeforeInput(props) {
         function clear(){
             props.onChange({target: {value: ''}});
@@ -245,7 +246,7 @@ let StatusDropdown = React.createClass({
             </InputGroup>
         );
     },
-       
+
     render() {  
         
         return (
@@ -303,7 +304,7 @@ let StatusDropdown = React.createClass({
                
             </DropdownButton>
         );
-    }
+    },
 });
 
 

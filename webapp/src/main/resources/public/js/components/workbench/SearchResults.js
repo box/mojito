@@ -2,6 +2,7 @@ import _ from "lodash";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 import keycode from "keycode";
 import React from "react";
+import createReactClass from 'create-react-class';
 import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, ButtonToolbar, DropdownButton, MenuItem} from "react-bootstrap";
 import Error from "../../utils/Error";
@@ -18,8 +19,8 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import ReviewTextUnitsDTO from "../../stores/workbench/ReviewTextUnitsDTO";
 import TextUnitSDK from "../../sdk/TextUnit";
 
-let SearchResults = React.createClass({
-
+let SearchResults = createReactClass({
+    displayName: 'SearchResults',
     mixins: [FluxyMixin],
 
     statics: {
@@ -322,7 +323,6 @@ let SearchResults = React.createClass({
 
         this.hideDoNotTranslateModal();
     },
-
 
     onTranslateModalCancel() {
         this.hideDoNotTranslateModal();
@@ -675,8 +675,7 @@ let SearchResults = React.createClass({
                 {this.getTextUnitsReviewModal()}
             </div>
         );
-    }
-
+    },
 });
 
 export default injectIntl(SearchResults);

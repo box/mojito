@@ -1,5 +1,6 @@
 import _ from "lodash";
 import React from "react";
+import createReactClass from 'create-react-class';
 import {withRouter} from "react-router";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 import LocalesDropdown from "./LocalesDropdown";
@@ -18,8 +19,8 @@ import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScr
 import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
 import UrlHelper from "../../utils/UrlHelper";
 
-let Workbench = React.createClass({
-
+let Workbench = createReactClass({
+    displayName: 'Workbench',
     mixins: [FluxyMixin],
 
     statics: {
@@ -111,7 +112,7 @@ let Workbench = React.createClass({
 
             </div>
         );
-    }
+    },
 });
 
 export default withRouter(Workbench);

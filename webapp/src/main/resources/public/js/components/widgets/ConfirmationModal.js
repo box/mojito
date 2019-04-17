@@ -7,9 +7,8 @@ import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 
-let ConfirmationModal = React.createClass({
-
-    propTypes: {
+class ConfirmationModal extends React.Component {
+    static propTypes = {
         "showModal": PropTypes.bool.isRequired,
         "modalTitleMessage": PropTypes.string.isRequired,
         "modalBodyMessage": PropTypes.string.isRequired,
@@ -17,13 +16,11 @@ let ConfirmationModal = React.createClass({
         "onConfirmedCallback": PropTypes.func.isRequired,
         "confirmButtonLabel": PropTypes.string.isRequired,
         "cancelButtonLabel": PropTypes.string.isRequired
-    },
+    };
 
-    getDefaultProps() {
-        return {
-            "showModal": false
-        };
-    },
+    static defaultProps = {
+        "showModal": false
+    };
 
     render() {
         return (
@@ -45,6 +42,6 @@ let ConfirmationModal = React.createClass({
             </Modal>
         );
     }
-});
+}
 
 export default ConfirmationModal;

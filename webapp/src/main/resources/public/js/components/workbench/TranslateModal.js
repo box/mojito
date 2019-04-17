@@ -3,25 +3,20 @@ import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, Modal, ButtonToolbar, ButtonGroup} from "react-bootstrap";
 
-let TranslateModal = React.createClass({
-
-    propTypes: {
+class TranslateModal extends React.Component {
+    static propTypes = {
         "showModal": PropTypes.bool.isRequired,
         "onCancel": PropTypes.func.isRequired,
         "onSave": PropTypes.func.isRequired
-    },
+    };
 
-    getDefaultProps() {
-        return {
-            "showModal": false
-        };
-    },
+    static defaultProps = {
+        "showModal": false
+    };
 
-    getInitialState() {
-        return {
-            "translate": true
-        }
-    },
+    state = {
+        "translate": true
+    };
 
     render() {
         return (
@@ -60,6 +55,6 @@ let TranslateModal = React.createClass({
             </Modal>
         );
     }
-});
+}
 
 export default TranslateModal;

@@ -1,4 +1,5 @@
 import React from "react";
+import createReactClass from 'create-react-class';
 import {FormattedMessage, injectIntl} from "react-intl";
 import {DropdownButton, MenuItem} from "react-bootstrap";
 import FluxyMixin from "alt-mixins/FluxyMixin";
@@ -7,8 +8,8 @@ import RepositoriesStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 
-let RepositoryDropDown = React.createClass({
-
+let RepositoryDropDown = createReactClass({
+    displayName: 'RepositoryDropDown',
     mixins: [FluxyMixin],
 
     statics: {
@@ -251,8 +252,7 @@ let RepositoryDropDown = React.createClass({
                 </DropdownButton>
                 </span>
         );
-    }
-
+    },
 });
 
 export default injectIntl(RepositoryDropDown);

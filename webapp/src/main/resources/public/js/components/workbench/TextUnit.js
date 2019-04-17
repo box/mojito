@@ -3,6 +3,7 @@ import keycode from "keycode";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 import PropTypes from 'prop-types';
 import React from "react";
+import createReactClass from 'create-react-class';
 import ReactDOM from "react-dom";
 import {FormattedMessage, injectIntl} from "react-intl";
 import Error from "../../utils/Error";
@@ -32,8 +33,8 @@ import {
 } from "react-bootstrap";
 
 
-let TextUnit = React.createClass({
-
+let TextUnit = createReactClass({
+    displayName: 'TextUnit',
     mixins: [FluxyMixin],
 
     statics: {
@@ -203,6 +204,7 @@ let TextUnit = React.createClass({
         e.textUnitIndex = this.props.textUnitIndex;
         WorkbenchActions.textUnitSelection(this.getCloneOfTextUnitFromProps());
     },
+
     /**
      * Prepares the TextUnit for saving
      * @return {TextUnit}
@@ -218,6 +220,7 @@ let TextUnit = React.createClass({
         
         return textUnit;
     },
+
     /**
      * Checks if the textUnit was changed and if so set the new target, reset needsReview and includedInFile state
      * and propagate to the action.
@@ -242,7 +245,6 @@ let TextUnit = React.createClass({
         e.stopPropagation();
         this.cancelEditTextUnitHandler();
     },
-
 
     /**
      * The pending Promise.resolve that is to be called when cancellation occurs or rejected.
@@ -524,7 +526,7 @@ let TextUnit = React.createClass({
             }
         });
     },
-    
+
     /**
      * @returns {JSX} - This area has a readonly mode and an edit mode. This function
      * returns the JSX for the target string area depending on the view mode.
@@ -611,7 +613,6 @@ let TextUnit = React.createClass({
         e.stopPropagation();
     },
 
-
     /**
      * Handle click on the string id: stop event propagation (no need to bubble
      * up as we're reloading the workbench with new data) and update the search
@@ -639,7 +640,7 @@ let TextUnit = React.createClass({
 
         GitBlameActions.openWithTextUnit(this.props.textUnit);
     },
-    
+
     /**
      * Handle click on the asset path icon: stop event propagation (no need to bubble
      * up as we're reloading the workbench with new data) and update the search
@@ -797,7 +798,7 @@ let TextUnit = React.createClass({
             <div className="plx pts textunit-string">{leadingWhitespacesSymbol}{source}{trailingWhitespacesSymbol}</div>
         );
     },
-    
+
     renderName() {
         let assetPathWithZeroWidthSpace = this.addZeroWidthSpace(this.props.textUnit.getAssetPath()); // to make the tooltip text to wrap
         let assetPathTooltip = <Tooltip id="{this.props.textUnit.getId()}-assetPath">{assetPathWithZeroWidthSpace}</Tooltip>;
@@ -819,7 +820,7 @@ let TextUnit = React.createClass({
                 </span>
         );
     },
-    
+
     addZeroWidthSpace(string) {
         
         let newString = "";
@@ -871,7 +872,7 @@ let TextUnit = React.createClass({
 
         return result;
     },
-     
+
     render() {
         // TODO: Must show which repository a string belongs to when multiple repositories are selected
         let textunitClass = "mrm pbm ptm textunit";
@@ -925,7 +926,7 @@ let TextUnit = React.createClass({
                 {this.getCancelConfirmationModel()}
             </div>
         );
-    }
+    },
 });
 
 export default injectIntl(TextUnit);

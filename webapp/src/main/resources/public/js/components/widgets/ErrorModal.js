@@ -2,8 +2,7 @@ import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Alert, Button, Modal} from "react-bootstrap";
 
-let ErrorModal = React.createClass({
-
+class ErrorModal extends React.Component {
     render() {
         return (
             <Modal show={this.props.showModal} onHide={this.props.onErrorModalClosed}>
@@ -20,6 +19,6 @@ let ErrorModal = React.createClass({
             </Modal>
         );
     }
-});
+}
 
 export default ErrorModal;

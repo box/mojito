@@ -160,7 +160,7 @@ class BranchesSearchResults extends React.Component {
                                     type="checkbox"
                                     checked={isTextUnitChecked}
                                     onClick={(e) => {
-                                        var newSelected = this.props.selectedBranchTextUnitIds.slice();
+                                        let newSelected = this.props.selectedBranchTextUnitIds.slice();
 
                                         let index = newSelected.indexOf(branchTextUnitStatistic.id);
 

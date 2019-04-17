@@ -1,11 +1,8 @@
 import React from "react";
 import ReactSidebar from "react-sidebar";
 
-let ReactSidebarResponsive = React.createClass({
-
-    getInitialState() {
-        return {"sidebarEnabled": true};
-    },
+class ReactSidebarResponsive extends React.Component {
+    state = {"sidebarEnabled": true};
 
     componentDidMount() {
         let mql = window.matchMedia(`(min-width: 800px)`);
@@ -15,23 +12,23 @@ let ReactSidebarResponsive = React.createClass({
         this.setState({"sidebarEnabled": mql.matches});
 
         window.addEventListener('resize', this.onWindowResize);
-    },
+    }
 
     componentWillUnmount() {
         this.state.mql.removeListener(this.mediaQueryChanged);
 
         window.removeEventListener('resize', this.onWindowResize);
-    },
+    }
 
-    mediaQueryChanged() {
+    mediaQueryChanged = () => {
         this.setState({"sidebarEnabled": this.state.mql.matches});
-    },
+    };
 
-    onWindowResize() {
+    onWindowResize = () => {
         // NOTE: resetting the state will trigger a re-render so that the main content
         // width can be calculated correctly since our sidebarWidth is dynamic
         this.refs.sidebar.setState({"sidebarWidth": 0});
-    },
+    };
 
     render() {
         return (
@@ -39,6 +36,6 @@ let ReactSidebarResponsive = React.createClass({
                   docked={this.state.sidebarEnabled && this.props.docked} />
         );
     }
-});
+}
 
 export default ReactSidebarResponsive;
