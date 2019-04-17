@@ -1,5 +1,6 @@
 import _ from "lodash";
 import React from "react";
+import createReactClass from 'create-react-class';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import {DropdownButton, MenuItem} from "react-bootstrap";
 import FluxyMixin from "alt-mixins/FluxyMixin";
@@ -10,8 +11,8 @@ import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import Locales from "../../utils/Locales";
 
-let LocalesDropDown = React.createClass({
-
+let LocalesDropDown = createReactClass({
+    displayName: 'LocalesDropDown',
     mixins: [FluxyMixin],
 
     statics: {
@@ -242,7 +243,6 @@ let LocalesDropDown = React.createClass({
         return this.state.selectedBcp47Tags.length > 0 && _.isEqual(this.state.selectedBcp47Tags, this.state.fullyTranslatedBcp47Tags);
     },
 
-
     /**
      * Indicates if the select all menu item should be active.
      *
@@ -260,7 +260,6 @@ let LocalesDropDown = React.createClass({
     isNoneActive() {
         return this.state.selectedBcp47Tags.length === 0;
     },
-
 
     /**
      * Renders the locale menu item list.
@@ -295,7 +294,7 @@ let LocalesDropDown = React.createClass({
                 </span>
         );
 
-    }
+    },
 });
 
 export default injectIntl(LocalesDropDown);

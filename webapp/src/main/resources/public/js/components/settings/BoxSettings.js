@@ -1,4 +1,5 @@
 import React from "react";
+import createReactClass from 'create-react-class';
 import {FormattedMessage, injectIntl} from "react-intl";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 import {Button, Collapse, Modal, Label, OverlayTrigger, Tooltip} from "react-bootstrap";
@@ -7,7 +8,8 @@ import BoxSDKConfigStore from "../../stores/boxsdk/BoxSDKConfigStore";
 import BoxSDKConfig from "../../sdk/entity/BoxSDKConfig";
 import xor from "../../utils/xor";
 
-let BoxSettings = React.createClass({
+let BoxSettings = createReactClass({
+    displayName: 'BoxSettings',
     mixins: [FluxyMixin],
 
     statics: {
@@ -375,7 +377,7 @@ let BoxSettings = React.createClass({
                 {mainContent}
             </div>
         );
-    }
+    },
 });
 
 export default injectIntl(BoxSettings);

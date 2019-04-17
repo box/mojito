@@ -3,15 +3,12 @@ import {Nav, NavItem} from "react-bootstrap";
 
 import BoxSettings from "./BoxSettings";
 
-let Settings = React.createClass({
+class Settings extends React.Component {
+    state = {
+        "currentSettingPanel": "box"
+    };
 
-    getInitialState() {
-        return {
-            "currentSettingPanel": "box"
-        };
-    },
-
-    getMainContent() {
+    getMainContent = () => {
         let result = "";
         switch (this.state.currentSettingPanel) {
             case "box":
@@ -19,12 +16,11 @@ let Settings = React.createClass({
         }
 
         return result;
-    },
+    };
 
-    handleSelect() {
+    handleSelect = () => {
         // TODO add more settings
-    },
-
+    };
 
     render() {
         return (
@@ -37,7 +33,6 @@ let Settings = React.createClass({
             </div>
         );
     }
-
-});
+}
 
 export default Settings;

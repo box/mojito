@@ -1,10 +1,8 @@
 import React from "react";
-import Router from "react-router";
 import Header from "./header/Header";
 
-var App = React.createClass({
-
-    render: function () {
+class App extends React.Component {
+    render() {
         return (
 
             <div>
@@ -19,6 +17,6 @@ var App = React.createClass({
 
         );
     }
-});
+}
 
 export default App;

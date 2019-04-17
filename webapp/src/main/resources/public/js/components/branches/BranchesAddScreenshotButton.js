@@ -12,7 +12,7 @@ class BranchesAddScreenshotButton extends React.Component {
     };
 
     render() {
-        var button = (
+        let button = (
             <div style={{display: "inline-block"}}>
                 <Button bsStyle="primary"
                         style={this.props.disabled ? {pointerEvents: "none"} : {}}

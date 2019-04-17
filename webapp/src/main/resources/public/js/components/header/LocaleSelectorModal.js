@@ -5,77 +5,79 @@ import {Button, Modal, ListGroup, ListGroupItem} from "react-bootstrap";
 import {Router, Route, Link} from "react-router";
 import Locales from "../../utils/Locales";
 
-let LocaleSelectorModal = React.createClass({
-
-    propTypes: {
+class LocaleSelectorModal extends React.Component {
+    static propTypes = {
         "onClose": PropTypes.func.isRequired
-    },
+    };
 
-    getInitialState() {
-        return {
-            "selectedLocale": Locales.getCurrentLocale()
-        };
-    },
+    state = {
+        "selectedLocale": Locales.getCurrentLocale()
+    };
 
     /**
      * Changes the locale of the app by setting the locale cookie and reloading the page.
      */
-    onSaveClicked() {
+    onSaveClicked = () => {
         document.cookie = 'locale=' + this.state.selectedLocale;
         document.location.reload(true);
-    },
+    };
 
     /**
      * Reset the selected locale and calls the onClose callback
      */
-    close() {
+    close = () => {
         this.props.onClose();
-    },
+    };
 
     /**
      * Indicates if the locale
      *
      * @returns {boolean}
      */
-    isNewLocaleSelected() {
+    isNewLocaleSelected = () => {
         return Locales.getCurrentLocale() !== this.state.selectedLocale;
-    },
+    };
 
     /**
      * Selects the locale based on the list item that was clicked
      *
      * @param {string} locale
      */
-    onLocaleClicked(locale) {
+    onLocaleClicked = (locale) => {
         this.setState({
             "selectedLocale": locale
         });
-    },
+    };
 
     /**
      *
      * @param {string} locale BCP47 Tag
      * @return {XML}
      */
-    getLocaleListGroupItem(locale) {
+    getLocaleListGroupItem = (locale) => {
 
         let localeDisplayName = Locales.getNativeDispalyName(locale);
         let active = locale === this.state.selectedLocale;
 
         return (
-            <ListGroupItem active={active} onClick={this.onLocaleClicked.bind(this, locale)}
-                           key={locale}>{localeDisplayName}</ListGroupItem>
+            <ListGroupItem active={active}
+                           onClick={(e) => {
+                               e.stopPropagation();
+                               this.onLocaleClicked(locale);
+                           }}
+                           key={locale}>{localeDisplayName}
+            </ListGroupItem>
         );
-    },
+    };
 
-    getLocaleListGroup() {
+    getLocaleListGroup = () => {
 
         let localeListGroupItems = Locales.getSupportedLocales().map(this.getLocaleListGroupItem);
 
         return (
             <ListGroup>{localeListGroupItems}</ListGroup>
         );
-    },
+    };
 
     render() {
         return (
@@ -98,6 +100,6 @@ let LocaleSelectorModal = React.createClass({
             </Modal>
         );
     }
-});
+}
 
 export default LocaleSelectorModal;

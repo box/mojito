@@ -18,49 +18,45 @@ import {FormControl, Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem} fro
 import UserHelper from "../../utils/UserHelper";
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 
-let Header = React.createClass({
+class Header extends React.Component {
+    state = {
+        showLocaleSelectorModal: false
+    };
 
-    getInitialState() {
-        return {
-            showLocaleSelectorModal: false
-        };
-    },
-
-    logoutSelected: function () {
+    logoutSelected = () => {
         this.refs.logoutForm.submit();
-    },
+    };
 
-    settingsSelected: function () {
+    settingsSelected = () => {
         location.href = UrlHelper.getUrlWithContextPath("/settings");
-    },
+    };
 
-    openLocaleSelectorModal: function () {
+    openLocaleSelectorModal = () => {
         this.setState({
                 showLocaleSelectorModal: true
             }
         );
-    },
+    };
 
-    closeLocaleSelectorModal: function () {
+    closeLocaleSelectorModal = () => {
         this.setState({
             showLocaleSelectorModal: false
         });
-    },
+    };
 
     /**
      * Update the Workbench search params to load the default view
      *
      * @param {number} repoId
      */
-    updateSearchParamsForDefaultView: function () {
+    updateSearchParamsForDefaultView = () => {
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
             "doNotTranslate": true
         });
-    },
+    };
 
-
-    render: function () {
+    render() {
         return (
             <Navbar fluid={true}>
                 <a className="navbar-brand">
@@ -121,6 +117,6 @@ let Header = React.createClass({
             </Navbar>
         );
     }
-});
+}
 
 export default withRouter(Header);

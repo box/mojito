@@ -1,4 +1,5 @@
 import React from "react";
+import createReactClass from 'create-react-class';
 import {Table} from "react-bootstrap";
 import ReactSidebarResponsive from "../misc/ReactSidebarResponsive";
 import RepositoryStore from "../../stores/RepositoryStore";
@@ -7,8 +8,8 @@ import RepositoryRow from "./RepositoryRow";
 import RepositoryStatistic from "../../components/repositories/RepositoryStatistic";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 
-let Repositories = React.createClass({
-
+let Repositories = createReactClass({
+    displayName: 'Repositories',
     mixins: [FluxyMixin],
 
     statics: {
@@ -23,7 +24,7 @@ let Repositories = React.createClass({
         state.activeRepoId = null;
         return state;
     },
-    
+
     onRepositoryStoreChanged: function () {
         this.setState(RepositoryStore.getState());
     },
@@ -96,7 +97,7 @@ let Repositories = React.createClass({
                 </ReactSidebarResponsive>
             </div>
         );
-    }
+    },
 });
 
 export default Repositories;

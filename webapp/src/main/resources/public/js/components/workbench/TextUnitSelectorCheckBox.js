@@ -3,19 +3,18 @@ import {FormattedMessage} from "react-intl";
 import {DropdownButton, MenuItem} from "react-bootstrap";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 
-let TextUnitSelectorCheckBox = React.createClass({
-
+class TextUnitSelectorCheckBox extends React.Component {
     componentWillMount() {
         // TODO: Move these to SearchConstants file. componentWillMount is not the place to create constants.
         this.SELECT_ALL_IN_PAGE = "selectAllInPage";
         this.CLEAR_ALL_IN_PAGE = "clearSelectionsInPage";
         this.CLEAR_ALL = "clearAll";
-    },
+    }
 
     /**
      * @param {string} selection The eventKey for the selected MenuItem in the DropdownButton
      */
-    selectionChanged(selection) {
+    selectionChanged = (selection) => {
         switch (selection) {
             case this.SELECT_ALL_IN_PAGE:
                 WorkbenchActions.selectAllTextUnitsInCurrentPage();
@@ -27,19 +26,19 @@ let TextUnitSelectorCheckBox = React.createClass({
                 WorkbenchActions.resetAllSelectedTextUnits();
                 break;
         }
-    },
+    };
 
     /**
      * @returns {JSX} The JSX to display the number of selected textunits.
      */
-    getTitle() {
+    getTitle = () => {
         let numberOfSelectedTextUnits = this.props.numberOfSelectedTextUnits;
 
         return (
             <FormattedMessage values={{"numberOfSelectedTextUnits": numberOfSelectedTextUnits}}
                               id="workbench.toolbar.numberOfSelectedTextUnits"/>
         );
-    },
+    };
 
     render() {
         return (
@@ -51,6 +50,6 @@ let TextUnitSelectorCheckBox = React.createClass({
             </DropdownButton>
         );
     }
-});
+}
 
 export default TextUnitSelectorCheckBox;

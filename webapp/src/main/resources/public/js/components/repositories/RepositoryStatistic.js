@@ -8,13 +8,10 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchConstants from "../../utils/SearchConstants";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore.js";
 
-let RepositoryStatistics = React.createClass({
+class RepositoryStatistics extends React.Component {
+    state = {};
 
-    getInitialState() {
-        return {};
-    },
-
-    getLocaleStatistics() {
+    getLocaleStatistics = () => {
         let repoId = this.props.repoId;
         let repo = RepositoryStore.getRepositoryById(repoId);
 
@@ -35,14 +32,14 @@ let RepositoryStatistics = React.createClass({
 
 
         return rows;
-    },
+    };
 
     /**
      * Update the Workbench search params to load strings that needs to be translated for a given locale
      *
      * @param {string} bcp47Tag
      */
-    updateSearchParamsForLocale(bcp47Tag) {
+    updateSearchParamsForLocale = (bcp47Tag) => {
 
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
@@ -51,14 +48,14 @@ let RepositoryStatistics = React.createClass({
             "status": SearchParamsStore.STATUS.ALL,
             "doNotTranslate": true
         });
-    },
+    };
 
     /**
      * Update the Workbench search params to load the for translation view for the selected repo
      *
      * @param {string} bcp47Tag
      */
-    updateSearchParamsForNeedsTranslation(bcp47Tag) {
+    updateSearchParamsForNeedsTranslation = (bcp47Tag) => {
 
         let repoId = this.props.repoId;
 
@@ -68,14 +65,14 @@ let RepositoryStatistics = React.createClass({
             "bcp47Tags": [bcp47Tag],
             "status": SearchParamsStore.STATUS.FOR_TRANSLATION
         });
-    },
+    };
 
     /**
      * Update the Workbench search params to load the neeeds review view for the selected repo
      *
      * @param {string} bcp47Tag
      */
-    updateSearchParamsForNeedsReview(bcp47Tag) {
+    updateSearchParamsForNeedsReview = (bcp47Tag) => {
 
         let repoId = this.props.repoId;
 
@@ -85,15 +82,14 @@ let RepositoryStatistics = React.createClass({
             "bcp47Tags": [bcp47Tag],
             "status": SearchParamsStore.STATUS.REVIEW_NEEDED
         });
-    },
-
+    };
 
     /**
      * @param {string} bcp47Tag
      * @param {RepositoryLocaleStatistic}
      * @return {XML}
      */
-    getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic) {
+    getNeedsReviewLabel = (bcp47Tag, repositoryLocaleStatistic) => {
 
         let ui = "";
 
@@ -110,7 +106,7 @@ let RepositoryStatistics = React.createClass({
         }
 
         return ui;
-    },
+    };
 
     /**
      * @param {string} bcp47Tag
@@ -120,7 +116,7 @@ let RepositoryStatistics = React.createClass({
      * @param {RepositoryLocaleStatistic}
      * @return {XML}
      */
-    getNeedsTranslationLabel(bcp47Tag, repositoryLocaleStatistic) {
+    getNeedsTranslationLabel = (bcp47Tag, repositoryLocaleStatistic) => {
 
         let ui = "";
        
@@ -133,7 +129,7 @@ let RepositoryStatistics = React.createClass({
         }
 
         return ui;
-    },
+    };
 
     /**
      * @param {string} bcp47Tag
@@ -144,10 +140,7 @@ let RepositoryStatistics = React.createClass({
      * @param {RepositoryLocaleStatistic}
      * @return {XML}
      */
-    getLocaleStatisticRow(
-            bcp47Tag, 
-            isFullyTranslated, 
-            repositoryLocaleStatistic) {
+    getLocaleStatisticRow = (bcp47Tag, isFullyTranslated, repositoryLocaleStatistic) => {
 
         let rowClassName = "";
 
@@ -169,9 +162,9 @@ let RepositoryStatistics = React.createClass({
                 <td>{this.getNeedsReviewLabel(bcp47Tag, repositoryLocaleStatistic)}</td>
             </tr>
         );
-    },
+    };
 
-    render: function () {
+    render() {
         return (
             <div className="repo-stats-panel" ref="statsContainer">
                 <div className="side-bar-content-container prl">
@@ -191,7 +184,6 @@ let RepositoryStatistics = React.createClass({
             </div>
         );
     }
-
-});
+}
 
 export default RepositoryStatistics;

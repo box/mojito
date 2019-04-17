@@ -1,6 +1,7 @@
 import FluxyMixin from "alt-mixins/FluxyMixin";
 import keycode from "keycode";
 import React from "react";
+import createReactClass from 'create-react-class';
 import {FormattedMessage, injectIntl} from "react-intl";
 import {DropdownButton, FormGroup, FormControl, InputGroup, MenuItem, Button, Glyphicon} from "react-bootstrap";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
@@ -8,8 +9,8 @@ import SearchConstants from "../../utils/SearchConstants";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchResultsStore from "../../stores/workbench/SearchResultsStore";
 
-let SearchText = React.createClass({
-
+let SearchText = createReactClass({
+    displayName: 'SearchText',
     mixins: [FluxyMixin],
 
     statics: {
@@ -122,7 +123,6 @@ let SearchText = React.createClass({
         WorkbenchActions.searchParamsChanged(actionData);
     },
 
-
     getMessageForSearchAttribute(searchAttribute) {
         switch (searchAttribute) {
             case SearchParamsStore.SEARCH_ATTRIBUTES.STRING_ID:
@@ -221,7 +221,7 @@ let SearchText = React.createClass({
                 </FormGroup>
             </div>
         );
-    }
+    },
 });
 
 export default injectIntl(SearchText);

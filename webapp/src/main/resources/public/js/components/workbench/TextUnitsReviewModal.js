@@ -4,73 +4,66 @@ import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, ButtonGroup, ButtonToolbar, FormControl, Modal} from "react-bootstrap";
 import TextUnit from "../../sdk/TextUnit";
 
-let TextUnitsreviewModal = React.createClass({
-
-    propTypes() {
+class TextUnitsreviewModal extends React.Component {
+    static propTypes() {
         return {
             "isShowModal": PropTypes.bool.isRequired
         };
-    },
+    }
 
-    getDefaultProps() {
-        return {
-            "isShowModal": false
-        };
-    },
+    static defaultProps = {
+        "isShowModal": false
+    };
 
-    /**
-     * @returns {{
-     *      currentReviewState: {string} The current review state of the selected textunits in case of bulk operation or the textunit passed in as prop otherwise.
-     *      comment: {string} The target comment to be prepopulated in textarea. In case of bulk operation, this is left blank.
-     *  }}
-     */
-    getInitialState() {
+    constructor(props, context) {
+        super(props, context);
         this.REVIEW = "review";
         this.REJECT = "reject";
         this.ACCEPT = "accept";
         this.TRANSLATE = "translate";
-        return {
+
+        this.state = {
             "currentReviewState": this.getInitialReviewStateOfTextUnits(),
             "comment": this.getInitialTargetCommentOfTextUnits()
         };
-    },
+    }
 
     /**
      * Sets the state of the component to the button that was clicked upon.
      * @param {string} reviewState
      */
-    optionClicked(reviewState) {
+    optionClicked = (reviewState) => {
         this.setState({
             "currentReviewState": reviewState
         });
-    },
+    };
 
     /**
      * Creates the data object containing comments and chosen action option and calls the
      * parent action handler to perform the action on the textunit.
      */
-    onReviewModalSaveClicked() {
+    onReviewModalSaveClicked = () => {
         let modalData = {
             "comment": this.state.comment,
             "textUnitAction": this.state.currentReviewState
         };
         this.props.onReviewModalSaveClicked(modalData);
-    },
+    };
 
     /**
      * Closes the modal and calls the parent action handler to mark the modal as closed
      */
-    closeModal() {
+    closeModal = () => {
         this.setState({
             isShowModal: false
         });
         this.props.onCloseModal();
-    },
+    };
 
     /**
      * @returns {JSX} The JSX for the reject button with class active set according to the current component state
      */
-    getRejectButton() {
+    getRejectButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.REJECT}
                     onClick={this.optionClicked.bind(this, this.REJECT)}>
@@ -78,12 +71,12 @@ let TextUnitsreviewModal = React.createClass({
                 <FormattedMessage id="textUnit.reviewModal.rejected"/>
             </Button>
         );
-    },
+    };
 
     /**
      * @returns {JSX} The JSX for the review button with class active set according to the current component state
      */
-    getReviewButton() {
+    getReviewButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.REVIEW}
                     onClick={this.optionClicked.bind(this, this.REVIEW)}>
@@ -91,12 +84,12 @@ let TextUnitsreviewModal = React.createClass({
                 <FormattedMessage id="textUnit.reviewModal.needsReview"/>
             </Button>
         );
-    },
+    };
 
     /**
      * @returns {JSX} The JSX for the accept button with class active set according to the current component state
      */
-    getAcceptButton() {
+    getAcceptButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.ACCEPT}
                     onClick={this.optionClicked.bind(this, this.ACCEPT)}>
@@ -104,12 +97,12 @@ let TextUnitsreviewModal = React.createClass({
                 <FormattedMessage id="textUnit.reviewModal.accepted"/>
             </Button>
         );
-    },
+    };
 
     /**
      * @returns {JSX} The JSX for the translate button with class active set according to the current component state
      */
-    getTranslateButton() {
+    getTranslateButton = () => {
         return (
             <Button active={this.state.currentReviewState === this.TRANSLATE}
                     onClick={this.optionClicked.bind(this, this.TRANSLATE)}>
@@ -117,13 +110,13 @@ let TextUnitsreviewModal = React.createClass({
                 <FormattedMessage id="textUnit.reviewModal.translationNeeded"/>
             </Button>
         );
-    },
+    };
 
     /**
      * @returns {string} The current review state of the selected textunits (reject/review/accept)
      * if ALL textunits have the same state, empty string otherwise.
      */
-    getInitialReviewStateOfTextUnits() {
+    getInitialReviewStateOfTextUnits = () => {
         let selectedTextUnits = this.props.textUnitsArray;
         let currentReviewState = "";
         if (selectedTextUnits.length > 0) {
@@ -137,13 +130,13 @@ let TextUnitsreviewModal = React.createClass({
             }
         }
         return currentReviewState;
-    },
+    };
 
     /**
      * @returns {string} The target comment of the selected textunits if ALL textunits have
      * the same comment, empty string otherwise.
      */
-    getInitialTargetCommentOfTextUnits() {
+    getInitialTargetCommentOfTextUnits = () => {
         let selectedTextUnits = this.props.textUnitsArray;
         let initialTargetComment = "";
         if (selectedTextUnits.length > 0) {
@@ -157,13 +150,13 @@ let TextUnitsreviewModal = React.createClass({
             }
         }
         return initialTargetComment;
-    },
+    };
 
     /**
      * @param {TextUnit} textUnit
      * @returns {string} The current review state of the textUnit passed in.
      */
-    getReviewStateOfTextUnit(textUnit) {
+    getReviewStateOfTextUnit = (textUnit) => {
         let currentReviewState = "";
         if (typeof textUnit !== "undefined") {
             currentReviewState = this.ACCEPT;
@@ -177,30 +170,32 @@ let TextUnitsreviewModal = React.createClass({
 
         }
         return currentReviewState;
-    },
+    };
 
     /**
      * @param {TextUnit} textUnit
      * @returns {string} The target comment of the textunit passed in.
      */
-    getTargetCommentOfTextUnit(textUnit) {
+    getTargetCommentOfTextUnit = (textUnit) => {
         let targetComment = "";
         if (typeof textUnit !== "undefined") {
             targetComment = textUnit.getTargetComment();
         }
         return targetComment;
-    },
+    };
 
     /**
      * @param {Event} event
      */
-    commentTextAreaOnChange(event) {
+    commentTextAreaOnChange = (event) => {
         this.setState({"comment": event.target.value});
-    },
+    };
 
     render() {
         return (
-            <Modal show={this.props.isShowModal} onHide={this.closeModal}>
+            <Modal show={this.props.isShowModal} onHide={this.closeModal} onKeyUp={(e) => {
+                e.stopPropagation()
+            }}>
                 <Modal.Header closeButton>
                     <Modal.Title><FormattedMessage id="textUnit.reviewModal.title"/></Modal.Title>
                 </Modal.Header>
@@ -209,8 +204,12 @@ let TextUnitsreviewModal = React.createClass({
                         defaultValue={this.state.comment ? this.state.comment : ""}
                         onChange={this.commentTextAreaOnChange}
                         componentClass="textarea"
-                        label={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentLabel" })}
-                        placeholder={this.props.intl.formatMessage({ id: "textUnit.reviewModal.commentPlaceholder" })}/>
+                        label={this.props.intl.formatMessage({id: "textUnit.reviewModal.commentLabel"})}
+                        placeholder={this.props.intl.formatMessage({id: "textUnit.reviewModal.commentPlaceholder"})}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                        }}
+                    />
                     <ButtonToolbar className="mts">
                         <ButtonGroup ref="optionsGroup">
                             {this.getRejectButton()}
@@ -230,8 +229,9 @@ let TextUnitsreviewModal = React.createClass({
                     </Button>
                 </Modal.Footer>
             </Modal>
-        );
+        )
+            ;
     }
-});
+}
 
 export default injectIntl(TextUnitsreviewModal);

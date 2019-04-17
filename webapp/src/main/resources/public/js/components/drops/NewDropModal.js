@@ -1,14 +1,16 @@
 import PropTypes from 'prop-types';
 import React from "react";
+import createReactClass from 'create-react-class';
 import {FormattedMessage} from "react-intl";
-import {Button, ListGroupItem, ListGroup, Modal, Table} from "react-bootstrap";
+import {Button, ListGroupItem, ListGroup, Modal} from "react-bootstrap";
 import FluxyMixin from "alt-mixins/FluxyMixin";
 import ExportDropConfig from "../../sdk/drop/ExportDropConfig";
 import RepositoryStore from "../../stores/RepositoryStore";
 import DropActions from "../../actions/drop/dropActions";
 import StatusFilter from "../../sdk/entity/StatusFilter";
 
-let NewDropModal = React.createClass({
+let NewDropModal = createReactClass({
+    displayName: 'NewDropModal',
     mixins: [FluxyMixin],
 
     statics: {
@@ -133,8 +135,7 @@ let NewDropModal = React.createClass({
                 </Modal.Footer>
             </Modal>
         );
-    }
-
+    },
 });
 
 export default NewDropModal;

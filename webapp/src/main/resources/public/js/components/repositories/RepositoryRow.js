@@ -8,35 +8,32 @@ import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import {withAppConfig} from "../../utils/AppConfig";
 
-let RepositoryRow = React.createClass({
-
+class RepositoryRow extends React.Component {
     /**
      * @return {{percent: number}}
      */
-    getInitialState() {
-        return {
-            "percent": 0,
-            "isActive": false,
-            "isBlurred": false
-        };
-    },
+    state = {
+        "percent": 0,
+        "isActive": false,
+        "isBlurred": false
+    };
 
     /**
      * Get Repo locale statistics
      * @param {number} repoId
      * @return {object}
      */
-    getRepoLocaleStatistics(repoId) {
+    getRepoLocaleStatistics = (repoId) => {
         let repo = RepositoryStore.getRepositoryById(repoId);
         return repo.repositoryStatistic.repositoryLocaleStatistics;
-    },
+    };
 
     /**
      * Get map of repo locale keyed by BCP47 Tag
      * @param {Repository} repo
      * @return {{}}
      */
-    getRepoLocalesMapByBcp47Tag(repo) {
+    getRepoLocalesMapByBcp47Tag = (repo) => {
         let repoLocalesMap = {};
         let repoLocales = repo.repositoryLocales;
         repoLocales.forEach(repoLocale => {
@@ -44,7 +41,7 @@ let RepositoryRow = React.createClass({
         });
 
         return repoLocalesMap;
-    },
+    };
 
     /**
      * Calculate the average of number of needs review across all locales
@@ -52,25 +49,25 @@ let RepositoryRow = React.createClass({
      * @param {number} repoId
      * @return {number}
      */
-    getNumberOfNeedsReview(repoId) {
+    getNumberOfNeedsReview = (repoId) => {
         let needsOfNeedsReview = 0;
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat =>
             needsOfNeedsReview += repoLocaleStat.reviewNeededCount
         );
         return needsOfNeedsReview;
-    },
-    
+    };
+
     /**
      * Get the number of OOSLA text units
      *
      * @param {number} repoId
      * @return {number}
      */
-    getNumberOfOOSLA(repoId) {
+    getNumberOfOOSLA = (repoId) => {
         let repository = RepositoryStore.getRepositoryById(repoId)
         return repository.repositoryStatistic.ooslaTextUnitCount ? repository.repositoryStatistic.ooslaTextUnitCount : 0;
-    },
+    };
 
     /**
      * Get weather check SLA or not
@@ -78,15 +75,15 @@ let RepositoryRow = React.createClass({
      * @param repoId
      * @returns {Boolean}
      */
-    getCheckSLA(repoId) {
+    getCheckSLA = (repoId) => {
         return RepositoryStore.getRepositoryById(repoId).checkSLA;
-    },
-    
-    getOOSLACreatedBefore(repoId) {
+    };
+
+    getOOSLACreatedBefore = (repoId) => {
         let repository = RepositoryStore.getRepositoryById(repoId)
         let date =  new Date(repository.repositoryStatistic.ooslaCreatedBefore).toISOString();
         return date;
-    },
+    };
 
     /**
      * Calculate the total of number of words that needs review across all locales
@@ -94,28 +91,28 @@ let RepositoryRow = React.createClass({
      * @param {number} repoId
      * @return {number}
      */
-    getNumberOfWordNeedsReview(repoId) {
+    getNumberOfWordNeedsReview = (repoId) => {
         let needsOfWordNeedsReview = 0;
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat =>
             needsOfWordNeedsReview += repoLocaleStat.reviewNeededWordCount
         );
         return needsOfWordNeedsReview;
-    },
+    };
 
     /**
      * Calculate the total of number of rejected across all locales
      * @param {string} repoId
      * @return {number}
      */
-    getNumberOfRejected(repoId) {
+    getNumberOfRejected = (repoId) => {
         let numberOfRejected = 0;
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat =>
             numberOfRejected += (repoLocaleStat.translatedCount - repoLocaleStat.includeInFileCount)
         );
         return numberOfRejected;
-    },
+    };
 
     /**
      * Calculate the total number of strings for translation (untranslated + needs translation) across all Locales
@@ -123,7 +120,7 @@ let RepositoryRow = React.createClass({
      * @param {string} repoId
      * @return {number}
      */
-    getNumberOfNeedsTranslation(repoId) {
+    getNumberOfNeedsTranslation = (repoId) => {
         let numberOfNeedsTranslation = 0;
         let repo = RepositoryStore.getRepositoryById(repoId);
         let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
@@ -136,7 +133,7 @@ let RepositoryRow = React.createClass({
         });
 
         return numberOfNeedsTranslation;
-    },
+    };
 
     /**
      * Calculate the total number of words for translation (untranslated + needs translation) across all Locales
@@ -144,7 +141,7 @@ let RepositoryRow = React.createClass({
      * @param {string} repoId
      * @return {number}
      */
-    getNumberOfWordNeedsTranslation(repoId) {
+    getNumberOfWordNeedsTranslation = (repoId) => {
         let numberOfWordNeedsTranslation = 0;
         let repo = RepositoryStore.getRepositoryById(repoId);
         let repoLocalesMap = this.getRepoLocalesMapByBcp47Tag(repo);
@@ -157,14 +154,14 @@ let RepositoryRow = React.createClass({
         });
 
         return numberOfWordNeedsTranslation;
-    },
+    };
 
     /**
      * Update the Workbench search params to load the default view for the selected repo
      *
      * @param {number} repoId
      */
-    updateSearchParamsForRepoDefault(repoId) {
+    updateSearchParamsForRepoDefault = (repoId) => {
 
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
@@ -172,14 +169,14 @@ let RepositoryRow = React.createClass({
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
             "doNotTranslate": true
         });
-    },
-    
+    };
+
     /**
      * Update the Workbench search params to load the OOSLA view for the selected repo
      *
      * @param {number} repoId
      */
-    updateSearchParamsForOOSLA(repoId, ooslaCreatedDate) {
+    updateSearchParamsForOOSLA = (repoId, ooslaCreatedDate) => {
 
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
@@ -189,14 +186,14 @@ let RepositoryRow = React.createClass({
             "status": SearchParamsStore.STATUS.UNTRANSLATED,
             "doNotTranslate" : false
         });
-    },
+    };
 
     /**
      * Update the Workbench search params to load the translation view for the selected repo
      *
      * @param {number} repoId
      */
-    updateSearchParamsForNeedsTranslation(repoId) {
+    updateSearchParamsForNeedsTranslation = (repoId) => {
 
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
@@ -205,14 +202,14 @@ let RepositoryRow = React.createClass({
             "status": SearchParamsStore.STATUS.FOR_TRANSLATION,
             "doNotTranslate" : false
         });
-    },
+    };
 
     /**
      * Update the Workbench search params to load the neeeds review view for the selected repo
      *
      * @param {number} repoId
      */
-    updateSearchParamsForNeedsReview(repoId) {
+    updateSearchParamsForNeedsReview = (repoId) => {
 
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
@@ -221,14 +218,14 @@ let RepositoryRow = React.createClass({
             "status": SearchParamsStore.STATUS.REVIEW_NEEDED,
             "doNotTranslate" : false
         });
-    },
+    };
 
     /**
      * Update the Workbench search params to load the rejected view for the selected repo
      *
      * @param {number} repoId
      */
-    updateSearchParamsForRejected(repoId) {
+    updateSearchParamsForRejected = (repoId) => {
 
         WorkbenchActions.searchParamsChanged({
             "changedParam": SearchConstants.UPDATE_ALL,
@@ -236,13 +233,13 @@ let RepositoryRow = React.createClass({
             "bcp47Tags": RepositoryStore.getAllToBeFullyTranslatedBcp47TagsForRepo(repoId),
             "status": SearchParamsStore.STATUS.REJECTED
         });
-    },
+    };
 
     /**
      * @param {number} numberRejected
      * @return {XML}
      */
-    getRejectedLabel() {
+    getRejectedLabel = () => {
 
         let ui = "";
 
@@ -261,12 +258,12 @@ let RepositoryRow = React.createClass({
         }
 
         return ui;
-    },
+    };
 
     /**
      * @return {XML}
      */
-    getNeedsReviewLabel() {
+    getNeedsReviewLabel = () => {
 
         let ui = "";
 
@@ -284,12 +281,12 @@ let RepositoryRow = React.createClass({
         }
 
         return ui;
-    },
+    };
 
     /**
      * @return {XML}
      */
-    getNeedsTranslationLabel() {
+    getNeedsTranslationLabel = () => {
 
         let ui = "";
 
@@ -306,12 +303,12 @@ let RepositoryRow = React.createClass({
         }
 
         return ui;
-    },
+    };
 
     /**
      * @return {XML}
      */
-    getDoneLabel() {
+    getDoneLabel = () => {
 
         let ui = "";
 
@@ -332,12 +329,12 @@ let RepositoryRow = React.createClass({
         }
 
         return ui;
-    },
-    
+    };
+
     /**
      * @return {XML}
      */
-    getOOSLALabel() {
+    getOOSLALabel = () => {
 
         let ui = "";
 
@@ -355,12 +352,12 @@ let RepositoryRow = React.createClass({
         }
 
         return ui;
-    },
+    };
 
     /**
      * @return {XML}
      */
-    getCheckSLAOffLabel() {
+    getCheckSLAOffLabel = () => {
 
         let ui = "";
 
@@ -377,12 +374,12 @@ let RepositoryRow = React.createClass({
         }
 
         return ui;
-    },
+    };
 
     /**
      * @return {XML}
      */
-    getStatusLabel() {
+    getStatusLabel = () => {
         return (
                 <span>
                     {this.getDoneLabel()}
@@ -391,12 +388,12 @@ let RepositoryRow = React.createClass({
                     {this.getRejectedLabel()}
                 </span>
         );
-    },
+    };
 
     /**
      * Handle when progress bar is clicked
      */
-    onLocalesButtonToggle() {
+    onLocalesButtonToggle = () => {
         if (this.state.isActive) {
             this.setState({
                 "isActive": false
@@ -407,16 +404,16 @@ let RepositoryRow = React.createClass({
             });
         }
         this.props.onLocalesButtonToggle(this.props.rowData.id);
-    },
+    };
 
     /**
      * Set state to be inactive
      */
-    setInActive() {
+    setInActive = () => {
         this.setState({
             "isActive": false
         });
-    },
+    };
 
     /**
      * @return {XML}
@@ -458,5 +455,6 @@ let RepositoryRow = React.createClass({
             </tr>
         );
     }
-});
+}
+
 export default withAppConfig(RepositoryRow);
