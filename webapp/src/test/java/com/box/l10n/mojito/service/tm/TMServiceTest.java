@@ -804,7 +804,7 @@ public class TMServiceTest extends ServiceTestBase {
      *
      * According to Android specification in
      * http://developer.android.com/guide/topics/resources/string-resource.html,
-     * <b>bold</b>, <i>italian</i> and <u>underline</u> should be in localized
+     * <b>bold</b>, <i>italic</i> and <u>underline</u> should be in localized
      * file as-is.
      *
      * @throws Exception
@@ -825,6 +825,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string description=\"Example html markup string1\" name=\"welcome1\">Welcome to <b>Android</b>!</string>\n"
                 + "    <string description=\"Example html markup string2\" name=\"welcome2\">Welcome to <i>Android</i>!</string>\n"
                 + "    <string description=\"Example html markup string3\" name=\"welcome3\">Welcome to <u>Android</u>!</string>\n"
+                + "    <string description=\"Example html markup string4\" name=\"welcome4\">Welcome to <annotation font=\"title_emphasis\">Android</annotation>!</string>\n"
                 + "    <string name=\"subheader_text1\">\\\'Make sure you\\\'d \\\"escaped\\\" special characters like quotes &amp; ampersands.\\n</string>\n"
                 + "    <string name=\"subheader_text2\">\"This'll also work\"</string>\n"
                 + "</resources>";

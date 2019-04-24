@@ -2,6 +2,10 @@ package com.box.l10n.mojito.okapi.filters;
 
 import net.sf.okapi.common.encoder.EncoderContext;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,33 +13,44 @@ import java.util.regex.Pattern;
 /**
  * This overrides the {@link net.sf.okapi.common.encoder.XMLEncoder} for Android
  * strings.
- *
+ * <p>
  * It does not escape supported HTML elements for Android strings unless there
  * are variables within the HTML elements.
  * For example, <b>songs</b> vs. &lt;b>%d songs&lt;/b>
- *
+ * <p>
  * Also it overrides the default quotemode setting so the quotes do not get escaped.
- *
+ * <p>
  * For detailed information, see to Android specification in
  * http://developer.android.com/guide/topics/resources/string-resource.html,
  *
  * @author jyi
  */
+@Configurable
 public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
 
+    /**
+     * logger
+     */
+    static Logger logger = LoggerFactory.getLogger(AndroidXMLEncoder.class);
+
     // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
-    private static final Pattern ANDROID_VARIABLE_WITHIN_HTML = Pattern.compile("(&lt;[b|i|u]&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/[b|i|u]&gt;)");
-    private static final Pattern ANDROID_HTML = Pattern.compile("(&lt;)(/?)(b|i|u)(&gt;)");
+    private static final Pattern ANDROID_VARIABLE_WITHIN_HTML = Pattern.compile("(&lt;(?:b|i|u|annotation.*?)&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/(?:b|i|u|annotation.*?)&gt;)");
+    private static final Pattern ANDROID_HTML = Pattern.compile("(&lt;)(/?)(b|i|u|annotation.*?)(&gt;)");
     private static final Pattern UNESCAPED_DOUBLE_QUOTE = Pattern.compile("([^\\\\])(\")");
     private static final Pattern START_WITH_DOUBLE_QUOTE = Pattern.compile("(^\")");
     private static final Pattern UNESCAPED_SINGLE_QUOTE = Pattern.compile("([^\\\\])(')");
     private static final Pattern START_WITH_SINGLE_QUOTE = Pattern.compile("(^')");
+    private static final Pattern LINE_FEED = Pattern.compile("\n");
+    private static final Pattern CARIAGE_RETURN = Pattern.compile("\r");
 
     /**
      * New escaping, should be come default but keep it as an option for backward compatibility. Can invert the option
      * later to old escaping or just remove it
      */
     boolean newEscaping = false;
+
+    @Autowired
+    UnescapeFilter unescapeFilter;
 
     public AndroidXMLEncoder(boolean newEscaping) {
         this.newEscaping = newEscaping;
@@ -85,18 +100,30 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
 
 
     String escapeCommon(String text) {
-        String replacement;
-        if (needsAndroidEscapeHTML(text)) {
-            replacement = "$1$2$3>";
-        } else {
-            replacement = "<$2$3>";
-        }
-        text = ANDROID_HTML.matcher(text).replaceAll(replacement);
-        text = text.replaceAll("\n", "\\\\n");
-        text = text.replaceAll("\r", "\\\\r");
         text = escapeDoubleQuotes(text);
 
+        boolean needsAndroidEscapeHTML = needsAndroidEscapeHTML(text);
+        Matcher matcher = ANDROID_HTML.matcher(text);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, Matcher.quoteReplacement((needsAndroidEscapeHTML ? matcher.group(1) : "<")
+                    + matcher.group(2) + unescapeFilter.replaceEscapedQuotes(matcher.group(3)) + ">"));
+        }
+        matcher.appendTail(sb);
+        text = sb.toString();
+
+        text = escapeLineFeed(text);
+        text = escapeCariageReturn(text);
+
         return text;
+    }
+
+    private String escapeCariageReturn(String text) {
+        return CARIAGE_RETURN.matcher(text).replaceAll("\\\\r");
+    }
+
+    private String escapeLineFeed(String text) {
+        return LINE_FEED.matcher(text).replaceAll("\\\\n");
     }
 
     private boolean needsAndroidEscapeHTML(String text) {
@@ -104,12 +131,12 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
         return matcher.find();
     }
 
-    private String escapeDoubleQuotes(String text) {
+    String escapeDoubleQuotes(String text) {
         String escaped = UNESCAPED_DOUBLE_QUOTE.matcher(text).replaceAll("$1\\\\$2");
         escaped = START_WITH_DOUBLE_QUOTE.matcher(escaped).replaceFirst("\\\\$1");
         return escaped;
     }
-    
+
     private String escapeSingleQuotes(String text) {
         String escaped = UNESCAPED_SINGLE_QUOTE.matcher(text).replaceAll("$1\\\\$2");
         escaped = START_WITH_SINGLE_QUOTE.matcher(escaped).replaceFirst("\\\\$1");
