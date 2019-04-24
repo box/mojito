@@ -85,7 +85,7 @@ public class AndroidFilterTest {
 
     void testNewEscaping(String input, String expected) {
         AndroidFilter instance = new AndroidFilter();
-        instance.unescapeFilter = new UnescapeFilter();
+        instance.unescapeUtils = new UnescapeUtils();
         String s = instance.newEscaping(input);
         logger.debug("> Input:\n{}\n> Expected:\n{}\n> Actual:\n{}\n>>>", input, expected, s);
         assertEquals(expected, s);

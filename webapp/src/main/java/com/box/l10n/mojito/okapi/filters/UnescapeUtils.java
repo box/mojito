@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
  * @author emagalindan
  */
 @Component
-public class UnescapeFilter {
+public class UnescapeUtils {
 
     /**
      * Logger
      */
-    static Logger logger = LoggerFactory.getLogger(UnescapeFilter.class);
+    static Logger logger = LoggerFactory.getLogger(UnescapeUtils.class);
 
     /**
      * Unescapes line feed, cariage return, single quote and double quote

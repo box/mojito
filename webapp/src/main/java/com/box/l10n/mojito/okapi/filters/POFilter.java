@@ -58,7 +58,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     TextUnitUtils textUnitUtils;
 
     @Autowired
-    UnescapeFilter unescapeFilter;
+    UnescapeUtils unescapeUtils;
 
     @Autowired
     TextUnitUtils getTextUnitUtils;
@@ -152,7 +152,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     void unescapeSource(TextUnit textUnit) {
         String sourceString = textUnitUtils.getSourceAsString(textUnit);
-        String unescapedSourceString = unescapeFilter.replaceEscapedQuotes(sourceString);
+        String unescapedSourceString = unescapeUtils.replaceEscapedQuotes(sourceString);
         textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
     }
 
@@ -160,7 +160,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         TextContainer target = textUnit.getTarget(targetLocale);
         if (target != null) {
             String targetString = target.toString();
-            String unescapedTargetString = unescapeFilter.replaceEscapedQuotes(targetString);
+            String unescapedTargetString = unescapeUtils.replaceEscapedQuotes(targetString);
             TextContainer newTarget = new TextContainer(unescapedTargetString);
             textUnit.setTarget(targetLocale, newTarget);
         }
