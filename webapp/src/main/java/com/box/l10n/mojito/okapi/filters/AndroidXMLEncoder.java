@@ -50,7 +50,7 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
     boolean newEscaping = false;
 
     @Autowired
-    UnescapeFilter unescapeFilter;
+    UnescapeUtils unescapeUtils;
 
     public AndroidXMLEncoder(boolean newEscaping) {
         this.newEscaping = newEscaping;
@@ -107,7 +107,7 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
         StringBuffer sb = new StringBuffer();
         while (matcher.find()) {
             matcher.appendReplacement(sb, Matcher.quoteReplacement((needsAndroidEscapeHTML ? matcher.group(1) : "<")
-                    + matcher.group(2) + unescapeFilter.replaceEscapedQuotes(matcher.group(3)) + ">"));
+                    + matcher.group(2) + unescapeUtils.replaceEscapedQuotes(matcher.group(3)) + ">"));
         }
         matcher.appendTail(sb);
         text = sb.toString();

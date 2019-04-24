@@ -9,7 +9,6 @@ import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.RawDocument;
-import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import net.sf.okapi.common.skeleton.GenericSkeletonPart;
@@ -48,7 +47,7 @@ public class AndroidFilter extends XMLFilter {
     TextUnitUtils textUnitUtils;
 
     @Autowired
-    UnescapeFilter unescapeFilter;
+    UnescapeUtils unescapeUtils;
 
     @Override
     public String getName() {
@@ -127,7 +126,7 @@ public class AndroidFilter extends XMLFilter {
             if (newEscaping) {
                 unescapedSourceString = newEscaping(sourceString);
             } else {
-                unescapedSourceString = unescapeFilter.unescape(sourceString);
+                unescapedSourceString = unescapeUtils.unescape(sourceString);
             }
 
             textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
@@ -150,13 +149,13 @@ public class AndroidFilter extends XMLFilter {
         if (StringUtils.startsWith(unescapedSourceString, "\"") && StringUtils.endsWith(unescapedSourceString, "\"")) {
             unescapedSourceString = unescapedSourceString.substring(1, unescapedSourceString.length() - 1);
         } else {
-            unescapedSourceString = unescapeFilter.replaceLineFeedWithSpace(unescapedSourceString);
-            unescapedSourceString = unescapeFilter.collapseSpaces(unescapedSourceString).trim();
+            unescapedSourceString = unescapeUtils.replaceLineFeedWithSpace(unescapedSourceString);
+            unescapedSourceString = unescapeUtils.collapseSpaces(unescapedSourceString).trim();
         }
 
-        unescapedSourceString = unescapeFilter.replaceEscapedLineFeed(unescapedSourceString);
-        unescapedSourceString = unescapeFilter.replaceEscapedCarriageReturn(unescapedSourceString);
-        unescapedSourceString = unescapeFilter.replaceEscapedCharacters(unescapedSourceString);
+        unescapedSourceString = unescapeUtils.replaceEscapedLineFeed(unescapedSourceString);
+        unescapedSourceString = unescapeUtils.replaceEscapedCarriageReturn(unescapedSourceString);
+        unescapedSourceString = unescapeUtils.replaceEscapedCharacters(unescapedSourceString);
 
         return unescapedSourceString;
     }

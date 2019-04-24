@@ -4,7 +4,6 @@ import com.box.l10n.mojito.okapi.TextUnitUtils;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.encoder.EncoderManager;
-import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.filters.regex.RegexFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 public class RegexEscapeDoubleQuoteFilter extends RegexFilter {
 
     @Autowired
-    UnescapeFilter unescapeFilter;
+    UnescapeUtils unescapeUtils;
 
     @Autowired
     TextUnitUtils textUnitUtils;
@@ -30,7 +29,7 @@ public class RegexEscapeDoubleQuoteFilter extends RegexFilter {
             // if source has escaped double-quotes, unescape
             TextUnit textUnit = (TextUnit) event.getTextUnit();
             String sourceString = textUnitUtils.getSourceAsString(textUnit);
-            String unescapedSourceString = unescapeFilter.unescape(sourceString);
+            String unescapedSourceString = unescapeUtils.unescape(sourceString);
             textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
         }
         return event;

@@ -19,7 +19,7 @@ public class AndroidXMLEncoderTest {
     @Before
     public void before() {
         androidXMLEncoder = new AndroidXMLEncoder(false);
-        androidXMLEncoder.unescapeFilter = new UnescapeFilter();
+        androidXMLEncoder.unescapeUtils = new UnescapeUtils();
     }
 
     @Test
