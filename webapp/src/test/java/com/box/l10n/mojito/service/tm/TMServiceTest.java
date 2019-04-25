@@ -810,8 +810,9 @@ public class TMServiceTest extends ServiceTestBase {
      * @throws Exception
      */
     @Test
-    public void testLocalizeAndroidStringsWithSpecialCharacters() throws Exception {
+    public void testLocalizeAndroidStringsWithSpecialCharactersOldEscaping() throws Exception {
 
+        List<String> filterOptionOldEscaping = Arrays.asList("oldEscaping=true");
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;
         try {
@@ -834,7 +835,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, filterOptionOldEscaping);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -850,13 +851,13 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, null, Status.ALL, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, filterOptionOldEscaping, Status.ALL, InheritanceMode.USE_PARENT);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(assetContent, localizedAsset);
     }
 
     @Test
-    public void testLocalizeAndroidStringsWithSpecialCharactersNewEscaping() throws Exception {
+    public void testLocalizeAndroidStringsWithSpecialCharacters() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;
@@ -890,7 +891,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, Arrays.asList("newEscaping=true"));
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -906,7 +907,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, Arrays.asList("newEscaping=true"), Status.ALL, InheritanceMode.USE_PARENT);
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, null, Status.ALL, InheritanceMode.USE_PARENT);
         logger.debug("localized=\n{}", localizedAsset);
 
         String expected = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -1145,7 +1146,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         String assetContent
                 = "<resources>\n"
-                + "    <string name=\"test\">\"This is test\"</string>\n"
+                + "    <string name=\"test\">This is test</string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
@@ -1179,7 +1180,7 @@ public class TMServiceTest extends ServiceTestBase {
      * @throws Exception
      */
     @Test
-    public void testLocalizeAndroidStringsRemoveUntranslated() throws Exception {
+    public void testLocalizeAndroidStringsRemoveUntranslatedOldEsaping() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;
@@ -1191,8 +1192,8 @@ public class TMServiceTest extends ServiceTestBase {
 
         String assetContent
                 = "<resources>\n"
-                + "    <string name=\"test\">\"This is test\"</string>\n"
-                + "    <string name=\"desc\">\"This is a description\"</string>\n"
+                + "    <string name=\"test\">This is test</string>\n"
+                + "    <string name=\"desc\">This is a description</string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
         asset = assetRepository.findOne(asset.getId());
@@ -1209,7 +1210,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         String forImport
                 = "<resources>\n"
-                + "    <string name=\"test\">\"Le test\"</string>\n"
+                + "    <string name=\"test\">Le test</string>\n"
                 + "</resources>";
 
         tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null, null).get();

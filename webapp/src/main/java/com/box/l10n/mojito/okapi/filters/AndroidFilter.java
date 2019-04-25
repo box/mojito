@@ -41,7 +41,7 @@ public class AndroidFilter extends XMLFilter {
     private static final String XML_COMMENT_PATTERN = "<!--(?<comment>.*?)-->";
     private static final String XML_COMMENT_GROUP_NAME = "comment";
 
-    private static final String OPTION_NEW_ESCAPING = "newEscaping";
+    private static final String OPTION_OLD_ESCAPING = "oldEscaping";
 
     @Autowired
     TextUnitUtils textUnitUtils;
@@ -72,10 +72,14 @@ public class AndroidFilter extends XMLFilter {
     boolean hasAnnotation;
 
     /**
-     * Option to enable new escaping for the Android filter. This should become the default option but keep it disable
-     * for backward compatibility until reviewed.
+     * To set old escaping, can be removed if the oldEscaping option is removed.
      */
-    boolean newEscaping = false;
+    AndroidXMLEncoder androidXMLEncoder;
+
+    /**
+     * Option to enable old escaping for the Android filter.
+     */
+    boolean oldEscaping = false;
 
     List<Event> eventQueue = new ArrayList<>();
 
@@ -91,10 +95,15 @@ public class AndroidFilter extends XMLFilter {
         FilterOptions filterOptions = input.getAnnotation(FilterOptions.class);
 
         if (filterOptions != null) {
-            filterOptions.getBoolean(OPTION_NEW_ESCAPING, b -> newEscaping = b);
+            filterOptions.getBoolean(OPTION_OLD_ESCAPING, b -> {
+                oldEscaping = b;
+                if (androidXMLEncoder != null) {
+                    androidXMLEncoder.oldEscaping = oldEscaping;
+                }
+            });
         }
 
-        logger.debug("filter option, new escaping: {}", newEscaping);
+        logger.debug("filter option, old escaping: {}", oldEscaping);
     }
 
     @Override
@@ -123,10 +132,10 @@ public class AndroidFilter extends XMLFilter {
 
             String unescapedSourceString;
 
-            if (newEscaping) {
-                unescapedSourceString = newEscaping(sourceString);
-            } else {
+            if (oldEscaping) {
                 unescapedSourceString = unescapeUtils.unescape(sourceString);
+            } else {
+                unescapedSourceString = escape(sourceString);
             }
 
             textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
@@ -141,7 +150,7 @@ public class AndroidFilter extends XMLFilter {
      * @param sourceString
      * @return
      */
-    String newEscaping(String sourceString) {
+    String escape(String sourceString) {
         String unescapedSourceString;
 
         unescapedSourceString = sourceString.trim();
@@ -227,7 +236,8 @@ public class AndroidFilter extends XMLFilter {
 
     @Override
     public AndroidXMLEncoder getXMLEncoder() {
-        return new AndroidXMLEncoder(newEscaping);
+        androidXMLEncoder = new AndroidXMLEncoder(oldEscaping);
+        return androidXMLEncoder;
     }
 
     private void readNextEvents() {
