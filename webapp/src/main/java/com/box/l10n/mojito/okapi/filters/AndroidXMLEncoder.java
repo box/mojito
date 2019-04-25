@@ -44,24 +44,23 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
     private static final Pattern CARIAGE_RETURN = Pattern.compile("\r");
 
     /**
-     * New escaping, should be come default but keep it as an option for backward compatibility. Can invert the option
-     * later to old escaping or just remove it
+     * To enable old escaping
      */
-    boolean newEscaping = false;
+    boolean oldEscaping = false;
 
     @Autowired
     UnescapeUtils unescapeUtils;
 
-    public AndroidXMLEncoder(boolean newEscaping) {
-        this.newEscaping = newEscaping;
+    public AndroidXMLEncoder(boolean oldEscaping) {
+        this.oldEscaping = oldEscaping;
     }
 
     @Override
     public String encode(String text, EncoderContext context) {
         String escaped = super.encode(text, context);
 
-        if (newEscaping) {
-            escaped = escapeAndroidNew(escaped);
+        if (oldEscaping) {
+            escaped = escapeAndroidOld(escaped);
         } else {
             escaped = escapeAndroid(escaped);
         }
@@ -69,7 +68,7 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
         return escaped;
     }
 
-    public String escapeAndroidNew(String text) {
+    public String escapeAndroid(String text) {
         text = escapeCommon(text);
         text = escapeSingleQuotes(text);
         return text;
@@ -81,7 +80,7 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
      * @param text
      * @return
      */
-    public String escapeAndroid(String text) {
+    public String escapeAndroidOld(String text) {
 
         boolean enclosedInDoubleQuotes = StringUtils.startsWith(text, "\"") && StringUtils.endsWith(text, "\"");
 

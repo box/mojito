@@ -55,38 +55,38 @@ public class AndroidFilterTest {
     }
 
     @Test
-    public void testNewEscaping() {
-        testNewEscaping("Nothing", "Nothing");
-        testNewEscaping("  does trim   ", "does trim");
-        testNewEscaping("\"  does not trim in quote but remove them  \"", "  does not trim in quote but remove them  ");
-        testNewEscaping(" a \n b\n   c", "a b c");
+    public void testEscaping() {
+        testEscaping("Nothing", "Nothing");
+        testEscaping("  does trim   ", "does trim");
+        testEscaping("\"  does not trim in quote but remove them  \"", "  does not trim in quote but remove them  ");
+        testEscaping(" a \n b\n   c", "a b c");
 
-        testNewEscaping("process escaped line feed \\n", "process escaped line feed \n");
-        testNewEscaping("process escaped cariage return \\r", "process escaped cariage return \r");
-        testNewEscaping("unescape other character too \\a", "unescape other character too a");
+        testEscaping("process escaped line feed \\n", "process escaped line feed \n");
+        testEscaping("process escaped cariage return \\r", "process escaped cariage return \r");
+        testEscaping("unescape other character too \\a", "unescape other character too a");
 
         // this is cover by the global case but call them out since they should be escaped in android
-        testNewEscaping("unescape single quote \'", "unescape single quote '");
-        testNewEscaping("unescape double quote \\\"", "unescape double quote \"");
-        testNewEscaping("unescape at sign \\@", "unescape at sign @");
-        testNewEscaping("unescape question mark \\?", "unescape question mark ?");
+        testEscaping("unescape single quote \'", "unescape single quote '");
+        testEscaping("unescape double quote \\\"", "unescape double quote \"");
+        testEscaping("unescape at sign \\@", "unescape at sign @");
+        testEscaping("unescape question mark \\?", "unescape question mark ?");
 
         // those are cover by the XML parser, no need to process them even though called out in the doc
-        testNewEscaping("&apos;", "&apos;");
-        testNewEscaping("&quot;", "&quot;");
-        testNewEscaping("&lt;", "&lt;");
+        testEscaping("&apos;", "&apos;");
+        testEscaping("&quot;", "&quot;");
+        testEscaping("&lt;", "&lt;");
 
         // some html tag are supported
-        testNewEscaping("<i>bla</i>", "<i>bla</i>");
+        testEscaping("<i>bla</i>", "<i>bla</i>");
 
         // multi lines and spaces
-        testNewEscaping("\n line1   \n   line2 \n", "line1 line2");
+        testEscaping("\n line1   \n   line2 \n", "line1 line2");
     }
 
-    void testNewEscaping(String input, String expected) {
+    void testEscaping(String input, String expected) {
         AndroidFilter instance = new AndroidFilter();
         instance.unescapeUtils = new UnescapeUtils();
-        String s = instance.newEscaping(input);
+        String s = instance.escape(input);
         logger.debug("> Input:\n{}\n> Expected:\n{}\n> Actual:\n{}\n>>>", input, expected, s);
         assertEquals(expected, s);
     }

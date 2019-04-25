@@ -17,7 +17,7 @@
     <!-- Header for the recipe ingredients with the ingredients countsection -->
     <plurals name="pin_recipe_ingredients_with_count">
         <item formatted="false" quantity="one">%1$d ingrédient</item>
-        <item formatted="false" quantity="other">%1$d ingrédients </item>
+        <item formatted="false" quantity="other">%1$d ingrédients</item>
     </plurals>
     
     <!-- Delete a piece of content -->
