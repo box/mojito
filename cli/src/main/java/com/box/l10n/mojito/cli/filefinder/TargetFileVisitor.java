@@ -76,6 +76,6 @@ class TargetFileVisitor extends SimpleFileVisitor<Path> {
             targetMatches.add(fileMatch);
         }
 
-        return FileVisitResult.CONTINUE;
+        return CONTINUE;
     }
 }
