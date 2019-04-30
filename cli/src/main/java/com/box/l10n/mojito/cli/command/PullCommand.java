@@ -138,8 +138,7 @@ public class PullCommand extends Command {
         logger.debug("Generate localized files (without locale mapping)");
 
         for (RepositoryLocale repositoryLocale : repositoryLocalesWithoutRootLocale.values()) {
-            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, null, filterOptions);
-            writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
+            generateLocalizedFile(repository, sourceFileMatch, filterOptions, null, repositoryLocale);
         }
     }
 
@@ -160,9 +159,13 @@ public class PullCommand extends Command {
         for (Map.Entry<String, String> localeMapping : localeMappings.entrySet()) {
             String outputBcp47tag = localeMapping.getKey();
             RepositoryLocale repositoryLocale = getRepositoryLocaleForOutputBcp47Tag(outputBcp47tag);
-            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions);
-            writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
+            generateLocalizedFile(repository, sourceFileMatch, filterOptions, outputBcp47tag, repositoryLocale);
         }
+    }
+
+    void generateLocalizedFile(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions, String outputBcp47tag, RepositoryLocale repositoryLocale) throws CommandException {
+        LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions);
+        writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
     }
 
     /**
