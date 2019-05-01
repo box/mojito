@@ -14,7 +14,7 @@
     "cldrjs": "^0.4.3",
     "keycode": "^2.2.0",
     "keymirror": "~0.1.0",
-    "lodash": "^3.10.1",
+    "lodash": "^4.17.11",
     "moment": "^2.24.0",
     "prop-types": "^15.7.2",
     "properties": "^1.2.1",
