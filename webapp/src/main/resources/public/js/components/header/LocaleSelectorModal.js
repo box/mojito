@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React from "react";
 import {FormattedMessage} from "react-intl";
 import {Button, Modal, ListGroup, ListGroupItem} from "react-bootstrap";
-import {Router, Route, Link} from "react-router";
 import Locales from "../../utils/Locales";
 
 class LocaleSelectorModal extends React.Component {

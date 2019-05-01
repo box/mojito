@@ -1,4 +1,3 @@
-import _ from "lodash";
 import React from "react";
 import {FormattedMessage} from 'react-intl';
 import {withRouter} from "react-router";
@@ -97,8 +96,6 @@ class Header extends React.Component {
                     <NavDropdown title={UserHelper.getUsername()} id="user-menu">
                         <MenuItem onSelect={this.openLocaleSelectorModal}>
                             <Glyphicon glyph="globe"/> {Locales.getCurrentLocaleDisplayName()}
-                            <LocaleSelectorModal key={_.uniqueId()} show={this.state.showLocaleSelectorModal}
-                                                 onClose={this.closeLocaleSelectorModal}/>
                         </MenuItem>
 
                         <MenuItem onSelect={this.settingsSelected}>
@@ -114,6 +111,8 @@ class Header extends React.Component {
                         </MenuItem>
                     </NavDropdown>
                 </Nav>
+                <LocaleSelectorModal key="headerLocaleSelectorModal" show={this.state.showLocaleSelectorModal}
+                                     onClose={this.closeLocaleSelectorModal}/>
             </Navbar>
         );
     }
