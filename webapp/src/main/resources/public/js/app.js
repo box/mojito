@@ -51,14 +51,13 @@ __webpack_public_path__ = CONTEXT_PATH + "/";
 
 const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
 
+import enMessages  from'../../properties/en.properties';
 import(
     /* webpackChunkName: "[request]", webpackMode: "lazy" */
     `../../properties/${LOCALE}.properties`).then(messages => {
     startApp(getMergedMessages(messages));
 });
 
-//TODO should implement merging logic as part of the build in a specific loader
-var enMessages = require(`../../properties/en.properties`);
 
 function getMergedMessages(messages) {
     return messages = _.merge(enMessages, messages);
@@ -75,7 +74,7 @@ function instrumentMessagesForIct(messages, locale) {
     locale = _.get(localesMap, locale, locale);
 
     Object.keys(messages).map((key) => {
-        var stack = new Error().stack; // stack is useless here but for tests 
+        let stack = new Error().stack; // stack is useless here but for tests
         messages[key] = IctMetadataBuilder.getTranslationWithMetadata("mojito", null, key, locale, stack, messages[key]);
     });
 }
