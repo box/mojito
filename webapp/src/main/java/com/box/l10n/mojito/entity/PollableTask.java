@@ -62,7 +62,6 @@ public class PollableTask extends AuditableEntity {
     @Column(name = "error_message", length = Integer.MAX_VALUE)
     private String errorMessage;
 
-    @JsonIgnore
     @Column(name = "error_stacks", length = Integer.MAX_VALUE)
     private String errorStack;
 
