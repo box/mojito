@@ -452,7 +452,7 @@ public class DropServiceTest extends ServiceTestBase {
             }
             localizedContent = XliffUtils.replaceTargetState(localizedContent, xliffState);
 
-            //TODO(P1) this logic is being dupplicated everywhere maybe it should go back into the config or service.
+            //TODO(P1) this logic is being duplicated everywhere maybe it should go back into the config or service.
             Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
             Files.write(localizedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
         }
@@ -472,7 +472,7 @@ public class DropServiceTest extends ServiceTestBase {
             String reviewedContent = Files.toString(sourceFile, StandardCharsets.UTF_8);
             reviewedContent = XliffUtils.replaceTargetState(reviewedContent, XliffState.SIGNED_OFF.toString());
 
-            //TODO(P1) this logic is being dupplicated everywhere maybe it should go back into the config or service.
+            //TODO(P1) this logic is being duplicated everywhere maybe it should go back into the config or service.
             Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
             Files.write(reviewedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
         }

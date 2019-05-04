@@ -107,7 +107,7 @@ public class MessageFormatIntegrityCheckerTest {
      * @throws MessageFormatIntegrityCheckerException
      */
     @Test
-    public void testNamedParametersChangedButWithDupplicates() throws MessageFormatIntegrityCheckerException {
+    public void testNamedParametersChangedButWithDuplicates() throws MessageFormatIntegrityCheckerException {
 
         MessageFormatIntegrityChecker checker = new MessageFormatIntegrityChecker();
         String source = "{1} {1} {2}";

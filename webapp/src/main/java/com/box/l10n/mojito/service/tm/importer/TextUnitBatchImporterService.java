@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -154,14 +155,16 @@ public class TextUnitBatchImporterService {
         Map<Long, TextUnitDTO> tmTextUnitIdToTextUnitDTO = new HashMap<>();
         ArrayListMultimap<String, TextUnitDTO> nameToUsedTextUnitDTO = ArrayListMultimap.create();
         ArrayListMultimap<String, TextUnitDTO> nameToUnusedTextUnitDTO = ArrayListMultimap.create();
+        Set<Long> mappedTmTextUnitIds = new HashSet<>();
 
         logger.debug("Build maps to match text units to import with existing text units");
         for (TextUnitDTO textUnitDTO : textUnitTDOsForLocaleAndAsset) {
             tmTextUnitIdToTextUnitDTO.put(textUnitDTO.getTmTextUnitId(), textUnitDTO);
             if (textUnitDTO.isUsed()) {
                 nameToUsedTextUnitDTO.put(textUnitDTO.getName(), textUnitDTO);
+            } else {
+                nameToUnusedTextUnitDTO.put(textUnitDTO.getName(), textUnitDTO);
             }
-            nameToUnusedTextUnitDTO.put(textUnitDTO.getName(), textUnitDTO);
         }
 
         logger.debug("Start mapping the text units to import with existing text units");
@@ -171,31 +174,38 @@ public class TextUnitBatchImporterService {
 
             if (currentTextUnit != null) {
                 logger.debug("Got match by tmTextUnitId: {}", textUnitForBatchImport.getTmTextUnitId());
-                textUnitForBatchImport.setCurrentTextUnit(currentTextUnit);
-                continue;
-            }
+            } else {
+                List<TextUnitDTO> textUnitDTOSByName = nameToUsedTextUnitDTO.get(textUnitForBatchImport.getName());
 
-            List<TextUnitDTO> textUnitDTOSByName = nameToUsedTextUnitDTO.get(textUnitForBatchImport.getName());
+                if (!textUnitDTOSByName.isEmpty()) {
+                    if (textUnitDTOSByName.size() == 1) {
+                        logger.debug("Unique match by name: {} and used", textUnitForBatchImport.getName());
+                    } else {
+                        logger.debug("There are multiple matches by name: {} and used, this will randomly select where the translation is " +
+                                "added and must be avoided by providing tmTextUnitId in the import. Do this to not fail the" +
+                                "import. Duplicated names can easily happen when working with branches (while without it should not)", textUnitForBatchImport.getName());
+                    }
 
-            if (!textUnitDTOSByName.isEmpty()) {
-                if (textUnitDTOSByName.size() == 1) {
-                    logger.debug("Unique match by name: {} and used", textUnitForBatchImport.getName());
-                } else {
-                    logger.debug("There are multiple matches by name: {} and used, this will randomly select where the translation is " +
-                            "added and must be avoided by providing tmTextUnitId in the import. Do this to not fail the" +
-                            "import. Dupplicate names can easily happen when working with branches (while without it should not)", textUnitForBatchImport.getName());
+                    currentTextUnit = textUnitDTOSByName.remove(0);
                 }
 
-                TextUnitDTO removed = textUnitDTOSByName.remove(0);
-                textUnitForBatchImport.setCurrentTextUnit(removed);
-                continue;
+                if (currentTextUnit == null) {
+                    List<TextUnitDTO> textUnitDTOSByNameUnused = nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName());
+
+                    if (textUnitDTOSByNameUnused.size() == 1) {
+                        logger.debug("Unique match by name: {} and unused", textUnitForBatchImport.getName());
+                        currentTextUnit = textUnitDTOSByNameUnused.get(0);
+                    }
+                }
             }
 
-            List<TextUnitDTO> textUnitDTOSByNameUnused = nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName());
-
-            if (textUnitDTOSByNameUnused.size() == 1) {
-                logger.debug("Unique match by name: {} and unused", textUnitForBatchImport.getName());
-                textUnitForBatchImport.setCurrentTextUnit(textUnitDTOSByNameUnused.get(0));
+            if (currentTextUnit != null) {
+                if (mappedTmTextUnitIds.contains(currentTextUnit.getTmTextUnitId())) {
+                    logger.debug("Text unit ({}) is already mapped, can't used it", currentTextUnit.getName());
+                } else {
+                    textUnitForBatchImport.setCurrentTextUnit(currentTextUnit);
+                    mappedTmTextUnitIds.add(currentTextUnit.getTmTextUnitId());
+                }
             }
         }
     }
@@ -370,7 +380,7 @@ public class TextUnitBatchImporterService {
             }
 
             if (textUnitDTO.getTarget() == null) {
-                logger.debug("Skip, target is null");
+                logger.debug("Skip: {}, target is null", textUnitDTO.getName());
                 continue;
             }
 

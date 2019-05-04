@@ -11,9 +11,9 @@
                 <target>15分</target>
                 <note>File lock dialog duration</note>
             </trans-unit>
-            <trans-unit id="" resname="dupplicate_source" datatype="x-javascript+php">
+            <trans-unit id="" resname="duplicate_source" datatype="x-javascript+php">
                 <source>15 min</source>
-                <target>15分 dupplicate</target>
+                <target>15分 duplicate</target>
             </trans-unit>
             <trans-unit id="" resname="1_day_duration" datatype="x-javascript+php">
                 <source>1 day</source>

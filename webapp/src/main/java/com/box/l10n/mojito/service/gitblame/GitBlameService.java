@@ -202,7 +202,7 @@ public class GitBlameService {
 
     /**
      * Builds a map from {@link com.box.l10n.mojito.entity.TMTextUnit#id} id to {@link GitBlameWithUsage}, removing
-     * dupplicates entries for a given {@link com.box.l10n.mojito.entity.TMTextUnit#id}. The first entry in the list
+     * duplicated entries for a given {@link com.box.l10n.mojito.entity.TMTextUnit#id}. The first entry in the list
      * will be used to get the git information. This is useful in case where there are multiple entries for different
      * plural forms. The client may end up sending the same information for each form but we just need to save it
      * once since it is the same entity. We take arbitrarly the first entity.
