@@ -43,7 +43,6 @@ import java.util.concurrent.ExecutionException;
 import static org.junit.Assert.*;
 
 /**
- *
  * @author jaurambault
  */
 public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
@@ -160,7 +159,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testAsyncImportTextUnitsDupplicatedNames() throws InterruptedException {
+    public void testAsyncImportTextUnitsDuplicatedNames() throws InterruptedException {
         TMTestData tmTestData = new TMTestData(testIdWatcher);
 
         AssetExtraction assetExtraction = new AssetExtraction();
@@ -198,6 +197,49 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
                 assertEquals(textUnitDTO.getName() + " from import", textUnitDTO.getTarget());
             } else {
                 assertEquals(textUnitDTO.getName() + " from import b", textUnitDTO.getTarget());
+            }
+        }
+    }
+
+    @Test
+    public void testAsyncImportTextUnitsDuplicatedEntries() throws InterruptedException {
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(tmTestData.asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        AssetTextUnit createAssetTextUnit1 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST4", "Content4", "comment4");
+
+        assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tmTestData.tm.getId(), tmTestData.asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+        assetExtractionService.markAssetExtractionAsLastSuccessful(tmTestData.asset, assetExtraction);
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
+        textUnitSearcherParameters.setRepositoryNames(Arrays.asList(tmTestData.repository.getName()));
+        textUnitSearcherParameters.setAssetPath(tmTestData.asset.getPath());
+        textUnitSearcherParameters.setLocaleTags(Arrays.asList("fr-FR"));
+
+        List<TextUnitDTO> textUnitDTOsForImport = textUnitSearcher.search(textUnitSearcherParameters);
+
+        TextUnitDTO duplicatedEntry = null;
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOsForImport) {
+            textUnitDTO.setTmTextUnitId(null); // we're testing import by n ame
+            if ("Content4".equals(textUnitDTO.getSource())) {
+                duplicatedEntry = textUnitDTO;
+                duplicatedEntry.setTarget(duplicatedEntry.getSource() + "-duplicated");
+            }
+        }
+        textUnitDTOsForImport.add(duplicatedEntry);
+
+        PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(textUnitDTOsForImport, false, false);
+        pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
+
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        assertFalse(textUnitDTOs.isEmpty());
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            if ("Content4".equals(textUnitDTO.getSource())) {
+                assertEquals(textUnitDTO.getSource() + "-duplicated", textUnitDTO.getTarget());
             }
         }
     }
@@ -254,7 +296,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         assertFalse(textUnitDTOs.isEmpty());
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
             assertEquals(textUnitDTO.getRepositoryName() + ":" + textUnitDTO.getAssetPath()
-                    + ":" + textUnitDTO.getTargetLocale() + ":" + textUnitDTO.getName(),
+                            + ":" + textUnitDTO.getTargetLocale() + ":" + textUnitDTO.getName(),
                     textUnitDTO.getTarget());
         }
     }
@@ -277,7 +319,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         logger.debug("Create a first unused text unit for name1");
         virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit)).get();
         virtualAssetService.replaceTextUnits(virtualAsset1.getId(), new ArrayList<VirtualAssetTextUnit>()).get();
-        
+
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(repository.getName()));
 
@@ -303,7 +345,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         logger.debug("Create a second unused for text unit for name1");
         virtualAssetService.addTextUnits(virtualAsset1.getId(), Arrays.asList(virtualAssetTextUnit)).get();
         virtualAssetService.replaceTextUnits(virtualAsset1.getId(), new ArrayList<VirtualAssetTextUnit>()).get();
-        
+
         textUnitDTO = new TextUnitDTO();
         textUnitDTO.setRepositoryName(repository.getName());
         textUnitDTO.setAssetPath("default");
@@ -361,27 +403,27 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
 
         PollableFuture asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false);
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
-        
+
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(repository.getName()));
         textUnitSearcherParameters.setName("name1");
-        
+
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(1, textUnitDTOs.size());
         assertEquals("name1", textUnitDTOs.get(0).getName());
         assertEquals("with some broken {placeholder", textUnitDTOs.get(0).getTarget());
         assertFalse("Should be excluded with broken placeholder", textUnitDTOs.get(0).isIncludedInLocalizedFile());
-        
+
         textUnitDTO.setTarget("with fixed {placeholder}");
         asyncImportTextUnits = textUnitBatchImporterService.asyncImportTextUnits(Arrays.asList(textUnitDTO), false, false);
         pollableTaskService.waitForPollableTask(asyncImportTextUnits.getPollableTask().getId());
-        
+
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(1, textUnitDTOs.size());
         assertEquals("name1", textUnitDTOs.get(0).getName());
         assertEquals("with fixed {placeholder}", textUnitDTOs.get(0).getTarget());
         assertTrue("should be included with proper placeholder", textUnitDTOs.get(0).isIncludedInLocalizedFile());
-        
+
     }
 
 }

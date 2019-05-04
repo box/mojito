@@ -9,7 +9,7 @@
                 <source>15 min</source>
                 <note>File lock dialog duration</note>
             </trans-unit>
-            <trans-unit id="" resname="dupplicate_source" datatype="x-javascript+php">
+            <trans-unit id="" resname="duplicate_source" datatype="x-javascript+php">
                 <source>15 min</source>
             </trans-unit>  
             <trans-unit id="" resname="1_day_duration" datatype="x-javascript+php">

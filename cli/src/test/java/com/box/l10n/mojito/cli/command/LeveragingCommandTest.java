@@ -126,7 +126,7 @@ public class LeveragingCommandTest extends CLITestBase {
         expectedTargetTranslations.add("100文字の説明："); // ja 
         expectedTargetTranslations.add("15 min"); // en
         expectedTargetTranslations.add("15 min"); // fr
-        expectedTargetTranslations.add("15分"); // ja, we make sure that the translation with same ID is picked up in priority (we don't want: "15分 dupplicate" to be returned)
+        expectedTargetTranslations.add("15分"); // ja, we make sure that the translation with same ID is picked up in priority (we don't want: "15分 duplicate" to be returned)
         expectedTargetTranslations.add("1か月"); // ja
         expectedTargetTranslations.add("1日"); // ja
         expectedTargetTranslations.add("1時間"); // ja

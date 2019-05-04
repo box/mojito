@@ -2618,7 +2618,7 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testImportLocalizedWithDupplicatedName() throws Exception {
+    public void testImportLocalizedWithDuplicatedName() throws Exception {
         repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         RepositoryLocale repoLocale;
         try {
