@@ -22,8 +22,9 @@ import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -32,18 +33,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.AbstractMap;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
+import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
 
 
 /**
@@ -81,13 +81,16 @@ public class TextUnitBatchImporterService {
     @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
+    @Autowired
+    TextUnitForBatchImportMatcher textUnitForBatchImportMatcher;
+
     /**
      * Imports a batch of text units.
      * <p>
      * Assumes the text units have the following mandatory attributes:
-     * repository name, target locale, asset path, name, target
+     * repository name, target locale, asset path, name (or tm textUnit id), target
      * <p>
-     * Optional attribute: tm text unit id, comment, status, includedInFile
+     * Optional attribute: name (or tm text unit id), comment, status, includedInFile
      * <p>
      * If mandatory attributes are missing the text unit will be skipped
      * <p>
@@ -116,32 +119,29 @@ public class TextUnitBatchImporterService {
                                           boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 
         logger.debug("Import {} text units", textUnitDTOs.size());
-        List<TextUnitForBatchImport> skipOrConvertToTextUnitBatch = skipOrConvertToTextUnitBatchs(textUnitDTOs);
-        Map<Locale, Map<Asset, List<TextUnitForBatchImport>>> textUnitsByLocales = groupTextUnitsByLocale(skipOrConvertToTextUnitBatch);
+        List<TextUnitForBatchImport> textUnitForBatchImports = skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOs);
 
-        for (Map.Entry<Locale, Map<Asset, List<TextUnitForBatchImport>>> textUnitsByLocale : textUnitsByLocales.entrySet()) {
-            for (Map.Entry<Asset, List<TextUnitForBatchImport>> textUnitsByAsset : textUnitsByLocale.getValue().entrySet()) {
+        logger.debug("Batch by locale and asset to optimize the import");
+        Map<Locale, Map<Asset, List<TextUnitForBatchImport>>> groupedByLocaleAndAsset = textUnitForBatchImports.stream().
+                collect(Collectors.groupingBy(TextUnitForBatchImport::getLocale,
+                        Collectors.groupingBy(TextUnitForBatchImport::getAsset)));
 
-                Locale locale = textUnitsByLocale.getKey();
-                Asset asset = textUnitsByAsset.getKey();
-                List<TextUnitForBatchImport> textUnitsForBatchImport = textUnitsByAsset.getValue();
-
+        groupedByLocaleAndAsset.forEach((locale, assetMap) -> {
+            assetMap.forEach((asset, textUnitsForBatchImport) -> {
                 mapTextUnitsToImportWithExistingTextUnits(locale, asset, textUnitsForBatchImport);
-
                 if (!integrityCheckSkipped) {
                     applyIntegrityChecks(asset, textUnitsForBatchImport, integrityCheckKeepStatusIfFailedAndSameTarget);
                 }
-
                 importTextUnitsOfLocaleAndAsset(locale, asset, textUnitsForBatchImport);
-            }
-        }
+            });
+        });
 
         return new PollableFutureTaskResult();
     }
 
     /**
      * Maps text units to import with existing text units by first looking up
-     * the tm text unit id then the name of used text unit and finally the name
+     * by the tm text unit id then the name of used text unit and finally the name
      * of unused text unit (if there is only one of them for a given name)
      *
      * @param locale
@@ -149,65 +149,10 @@ public class TextUnitBatchImporterService {
      * @param textUnitsToImport text units to which the current text units must be added
      */
     void mapTextUnitsToImportWithExistingTextUnits(Locale locale, Asset asset, List<TextUnitForBatchImport> textUnitsToImport) {
-
+        logger.debug("Map the text units to import with current text unit for the given locale and asset");
         List<TextUnitDTO> textUnitTDOsForLocaleAndAsset = getTextUnitTDOsForLocaleAndAsset(locale, asset);
-
-        Map<Long, TextUnitDTO> tmTextUnitIdToTextUnitDTO = new HashMap<>();
-        ArrayListMultimap<String, TextUnitDTO> nameToUsedTextUnitDTO = ArrayListMultimap.create();
-        ArrayListMultimap<String, TextUnitDTO> nameToUnusedTextUnitDTO = ArrayListMultimap.create();
-        Set<Long> mappedTmTextUnitIds = new HashSet<>();
-
-        logger.debug("Build maps to match text units to import with existing text units");
-        for (TextUnitDTO textUnitDTO : textUnitTDOsForLocaleAndAsset) {
-            tmTextUnitIdToTextUnitDTO.put(textUnitDTO.getTmTextUnitId(), textUnitDTO);
-            if (textUnitDTO.isUsed()) {
-                nameToUsedTextUnitDTO.put(textUnitDTO.getName(), textUnitDTO);
-            } else {
-                nameToUnusedTextUnitDTO.put(textUnitDTO.getName(), textUnitDTO);
-            }
-        }
-
-        logger.debug("Start mapping the text units to import with existing text units");
-        for (TextUnitForBatchImport textUnitForBatchImport : textUnitsToImport) {
-
-            TextUnitDTO currentTextUnit = tmTextUnitIdToTextUnitDTO.get(textUnitForBatchImport.getTmTextUnitId());
-
-            if (currentTextUnit != null) {
-                logger.debug("Got match by tmTextUnitId: {}", textUnitForBatchImport.getTmTextUnitId());
-            } else {
-                List<TextUnitDTO> textUnitDTOSByName = nameToUsedTextUnitDTO.get(textUnitForBatchImport.getName());
-
-                if (!textUnitDTOSByName.isEmpty()) {
-                    if (textUnitDTOSByName.size() == 1) {
-                        logger.debug("Unique match by name: {} and used", textUnitForBatchImport.getName());
-                    } else {
-                        logger.debug("There are multiple matches by name: {} and used, this will randomly select where the translation is " +
-                                "added and must be avoided by providing tmTextUnitId in the import. Do this to not fail the" +
-                                "import. Duplicated names can easily happen when working with branches (while without it should not)", textUnitForBatchImport.getName());
-                    }
-
-                    currentTextUnit = textUnitDTOSByName.remove(0);
-                }
-
-                if (currentTextUnit == null) {
-                    List<TextUnitDTO> textUnitDTOSByNameUnused = nameToUnusedTextUnitDTO.get(textUnitForBatchImport.getName());
-
-                    if (textUnitDTOSByNameUnused.size() == 1) {
-                        logger.debug("Unique match by name: {} and unused", textUnitForBatchImport.getName());
-                        currentTextUnit = textUnitDTOSByNameUnused.get(0);
-                    }
-                }
-            }
-
-            if (currentTextUnit != null) {
-                if (mappedTmTextUnitIds.contains(currentTextUnit.getTmTextUnitId())) {
-                    logger.debug("Text unit ({}) is already mapped, can't used it", currentTextUnit.getName());
-                } else {
-                    textUnitForBatchImport.setCurrentTextUnit(currentTextUnit);
-                    mappedTmTextUnitIds.add(currentTextUnit.getTmTextUnitId());
-                }
-            }
-        }
+        Function<TextUnitForBatchImport, Optional<TextUnitDTO>> match = textUnitForBatchImportMatcher.match(textUnitTDOsForLocaleAndAsset);
+        textUnitsToImport.forEach(tu -> match.apply(tu).ifPresent(m -> tu.setCurrentTextUnit(m)));
     }
 
     @Transactional
@@ -215,38 +160,32 @@ public class TextUnitBatchImporterService {
         DateTime importTime = new DateTime();
         logger.debug("Start import text units for asset: {} and locale: {}", asset.getPath(), locale.getBcp47Tag());
 
-        for (TextUnitForBatchImport textUnitForBatchImport : textUnitsToImport) {
+        textUnitsToImport.stream().
+                filter(logIfFalse(t -> t.getCurrentTextUnit() != null, logger, "No current text unit, skip: {}", TextUnitForBatchImport::getName)).
+                filter(logIfFalse(t -> t.getContent() != null, logger, "Content can't be null, skip: {}", TextUnitForBatchImport::getName)).
+                filter(logIfFalse(this::isUpdateNeeded, logger, "Update not needed, skip: {}", TextUnitForBatchImport::getName)).
+                forEach(textUnitForBatchImport -> {
+                    logger.debug("Add translation: {} --> {}", textUnitForBatchImport.getName(), textUnitForBatchImport.getContent());
 
-            TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
+                    TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
 
-            if (currentTextUnit == null) {
-                logger.debug("No matching text unit for name: {}", textUnitForBatchImport.getName());
-            } else if (textUnitForBatchImport.getContent() == null) {
-                logger.debug("Content can't be null, skip for name: {}", textUnitForBatchImport.getName());
-            } else if (isUpdateNeeded(textUnitForBatchImport)) {
-                logger.debug("Add translation: {} --> {}", textUnitForBatchImport.getName(), textUnitForBatchImport.getContent());
+                    TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
+                    if (currentTextUnit.getTmTextUnitCurrentVariantId() != null) {
+                        logger.debug("Looking up current variant");
+                        tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(currentTextUnit.getLocaleId(), currentTextUnit.getTmTextUnitId());
+                    }
 
-                TMTextUnitCurrentVariant tmTextUnitCurrentVariant = null;
-                if (currentTextUnit.getTmTextUnitCurrentVariantId() != null) {
-                    logger.debug("Looking up current variant");
-                    tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(currentTextUnit.getLocaleId(), currentTextUnit.getTmTextUnitId());
-                }
-
-                tmService.addTMTextUnitCurrentVariantWithResult(
-                        tmTextUnitCurrentVariant,
-                        asset.getRepository().getTm().getId(),
-                        currentTextUnit.getTmTextUnitId(),
-                        locale.getId(),
-                        textUnitForBatchImport.getContent(),
-                        textUnitForBatchImport.getComment(),
-                        textUnitForBatchImport.getStatus(),
-                        textUnitForBatchImport.isIncludedInLocalizedFile(),
-                        importTime);
-
-            } else {
-                logger.debug("Update not needed, skip: {}", textUnitForBatchImport.getName());
-            }
-        }
+                    tmService.addTMTextUnitCurrentVariantWithResult(
+                            tmTextUnitCurrentVariant,
+                            asset.getRepository().getTm().getId(),
+                            currentTextUnit.getTmTextUnitId(),
+                            locale.getId(),
+                            textUnitForBatchImport.getContent(),
+                            textUnitForBatchImport.getComment(),
+                            textUnitForBatchImport.getStatus(),
+                            textUnitForBatchImport.isIncludedInLocalizedFile(),
+                            importTime);
+                });
     }
 
     boolean isUpdateNeeded(TextUnitForBatchImport textUnitForBatchImport) {
@@ -272,30 +211,6 @@ public class TextUnitBatchImporterService {
         textUnitSearcherParameters.setLocaleId(locale.getId());
 
         return textUnitSearcher.search(textUnitSearcherParameters);
-    }
-
-    Map<Locale, Map<Asset, List<TextUnitForBatchImport>>> groupTextUnitsByLocale(List<TextUnitForBatchImport> textUnitBatches) {
-
-        Map<Locale, Map<Asset, List<TextUnitForBatchImport>>> textUnitsForBatchImportByLocale = new HashMap<>();
-
-        for (TextUnitForBatchImport textUnitBatch : textUnitBatches) {
-
-            Map<Asset, List<TextUnitForBatchImport>> textUnitForBatchImportByLocale = textUnitsForBatchImportByLocale.get(textUnitBatch.getLocale());
-            if (textUnitForBatchImportByLocale == null) {
-                textUnitForBatchImportByLocale = new HashMap<>();
-                textUnitsForBatchImportByLocale.put(textUnitBatch.getLocale(), textUnitForBatchImportByLocale);
-            }
-
-            List<TextUnitForBatchImport> textUnitForBatchImports = textUnitForBatchImportByLocale.get(textUnitBatch.getAsset());
-            if (textUnitForBatchImports == null) {
-                textUnitForBatchImports = new ArrayList<>();
-                textUnitForBatchImportByLocale.put(textUnitBatch.getAsset(), textUnitForBatchImports);
-            }
-
-            textUnitForBatchImports.add(textUnitBatch);
-        }
-
-        return textUnitsForBatchImportByLocale;
     }
 
     void applyIntegrityChecks(
@@ -337,65 +252,49 @@ public class TextUnitBatchImporterService {
         }
     }
 
-    List<TextUnitForBatchImport> skipOrConvertToTextUnitBatchs(List<TextUnitDTO> textUnitDTOs) {
+    List<TextUnitForBatchImport> skipInvalidAndConvertToTextUnitForBatchImport(List<TextUnitDTO> textUnitDTOs) {
 
-        List<TextUnitForBatchImport> textUnitsForBatchImport = new ArrayList<>();
+        logger.debug("Create caches to map convert to TextUnitForBatchImport list");
+        LoadingCache<String, Repository> repositoriesCache = CacheBuilder.newBuilder().build(
+                CacheLoader.from((name) -> repositoryRepository.findByName(name))
+        );
 
-        Map<String, Repository> repositoriesByName = new HashMap<>();
-        Map<Repository, Map<String, Asset>> assetsByRepositoryAndPath = new HashMap<>();
+        LoadingCache<Map.Entry<String, Long>, Asset> assetsCache = CacheBuilder.newBuilder().build(
+                CacheLoader.from((entry) -> assetRepository.findByPathAndRepositoryId(entry.getKey(), entry.getValue()))
+        );
 
-        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+        logger.debug("Start converting to TextUnitForBatchImport");
+        return textUnitDTOs.stream().
 
-            TextUnitForBatchImport textUnitBatch = new TextUnitForBatchImport();
+                filter(logIfFalse(t -> t.getRepositoryName() != null, logger, "Missing mandatory repository name, skip: {}", TextUnitDTO::getName)).
+                filter(logIfFalse(t -> t.getAssetPath() != null, logger, "Missing mandatory asset path, skip: {}", TextUnitDTO::getName)).
+                filter(logIfFalse(t -> t.getTargetLocale() != null, logger, "Missing mandatory target locale, skip: {}", TextUnitDTO::getName)).
+                filter(logIfFalse(t -> !(t.getName() == null && t.getTmTextUnitId() == null), logger, "Missing mandatory name or tmTextUnitId, skip: {}", TextUnitDTO::getName)).
+                filter(logIfFalse(t -> t.getTarget() != null, logger, "Missing mandatory target, skip: {}", TextUnitDTO::getName)).
 
-            Repository repository = repositoriesByName.get(textUnitDTO.getRepositoryName());
-            if (repository == null) {
-                repository = repositoryRepository.findByName(textUnitDTO.getRepositoryName());
-                repositoriesByName.put(textUnitDTO.getRepositoryName(), repository);
-                assetsByRepositoryAndPath.put(repository, new HashMap());
-            }
+                map(t -> {
+                    TextUnitForBatchImport textUnitForBatchImport = new TextUnitForBatchImport();
+                    textUnitForBatchImport.setTmTextUnitId(t.getTmTextUnitId());
 
-            if (repository == null) {
-                logger.debug("Skip, repository name not valid");
-                continue;
-            }
-            textUnitBatch.setRepository(repository);
+                    textUnitForBatchImport.setRepository(repositoriesCache.getUnchecked(t.getRepositoryName()));
+                    if (textUnitForBatchImport.getRepository() != null) {
+                        textUnitForBatchImport.setAsset(assetsCache.getUnchecked(new SimpleEntry<>(t.getAssetPath(), textUnitForBatchImport.getRepository().getId())));
+                    }
+                    textUnitForBatchImport.setName(t.getName());
 
-            Asset asset = assetsByRepositoryAndPath.get(repository).get(textUnitDTO.getAssetPath());
-            if (asset == null) {
-                asset = assetRepository.findByPathAndRepositoryId(textUnitDTO.getAssetPath(), repository.getId());
-                assetsByRepositoryAndPath.get(repository).put(textUnitDTO.getAssetPath(), asset);
-            }
+                    textUnitForBatchImport.setLocale(localeService.findByBcp47Tag(t.getTargetLocale()));
+                    textUnitForBatchImport.setContent(NormalizationUtils.normalize(t.getTarget()));
+                    textUnitForBatchImport.setComment(t.getComment());
+                    textUnitForBatchImport.setIncludedInLocalizedFile(t.isIncludedInLocalizedFile());
+                    textUnitForBatchImport.setStatus(t.getStatus() == null ? APPROVED : t.getStatus());
 
-            if (asset == null) {
-                logger.debug("Skip, asset path not valid");
-                continue;
-            }
-            textUnitBatch.setAsset(asset);
+                    return textUnitForBatchImport;
+                }).
 
-            Locale locale = localeService.findByBcp47Tag(textUnitDTO.getTargetLocale());
-            if (locale == null) {
-                logger.debug("Skip, locale not valid");
-                continue;
-            }
+                filter(logIfFalse(t -> t.getRepository() != null, logger, "No repository found, skip: {}", TextUnitForBatchImport::getName)).
+                filter(logIfFalse(t -> t.getAsset() != null, logger, "No asset found, skip: {}", TextUnitForBatchImport::getName)).
+                filter(logIfFalse(t -> t.getLocale() != null, logger, "No locale found, skip: {}", TextUnitForBatchImport::getName)).
 
-            if (textUnitDTO.getTarget() == null) {
-                logger.debug("Skip: {}, target is null", textUnitDTO.getName());
-                continue;
-            }
-
-            textUnitBatch.setLocale(locale);
-            textUnitBatch.setTmTextUnitId(textUnitDTO.getTmTextUnitId());
-            textUnitBatch.setName(textUnitDTO.getName());
-            textUnitBatch.setContent(NormalizationUtils.normalize(textUnitDTO.getTarget()));
-            textUnitBatch.setComment(textUnitDTO.getComment());
-            textUnitBatch.setIncludedInLocalizedFile(textUnitDTO.isIncludedInLocalizedFile());
-            textUnitBatch.setStatus(textUnitDTO.getStatus() == null ? APPROVED : textUnitDTO.getStatus());
-
-            textUnitsForBatchImport.add(textUnitBatch);
-        }
-
-        return textUnitsForBatchImport;
+                collect(Collectors.toList());
     }
-
 }
