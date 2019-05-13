@@ -7,6 +7,8 @@ import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.Integr
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
+import java.util.Optional;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -35,7 +37,7 @@ public class TMTextUnitIntegrityCheckServiceTest {
         TMTextUnit tmTextUnit = Mockito.mock(TMTextUnit.class);
 
         Mockito.when(tmTextUnit.getAsset()).thenReturn(asset);
-        Mockito.when(tmTextUnitRepository.findOne(Mockito.anyLong())).thenReturn(tmTextUnit);
+        Mockito.when(tmTextUnitRepository.findById(Mockito.anyLong()).get()).thenReturn(tmTextUnit);
         Mockito.when(integrityCheckerFactory.getTextUnitCheckers(asset)).thenReturn(new HashSet<TextUnitIntegrityChecker>());
 
         integrityCheckService.checkTMTextUnitIntegrity(1L, "string to check");
@@ -50,7 +52,7 @@ public class TMTextUnitIntegrityCheckServiceTest {
         TextUnitIntegrityChecker checker = Mockito.mock(TextUnitIntegrityChecker.class);
 
         Mockito.when(tmTextUnit.getAsset()).thenReturn(asset);
-        Mockito.when(tmTextUnitRepository.findOne(Mockito.anyLong())).thenReturn(tmTextUnit);
+        Mockito.when(tmTextUnitRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(tmTextUnit));
         Mockito.when(integrityCheckerFactory.getTextUnitCheckers(asset)).thenReturn(Sets.newHashSet(checker));
 
         integrityCheckService.checkTMTextUnitIntegrity(1L, "string to check");
@@ -65,7 +67,7 @@ public class TMTextUnitIntegrityCheckServiceTest {
         TextUnitIntegrityChecker checker = Mockito.mock(TextUnitIntegrityChecker.class);
 
         Mockito.when(tmTextUnit.getAsset()).thenReturn(asset);
-        Mockito.when(tmTextUnitRepository.findOne(Mockito.anyLong())).thenReturn(tmTextUnit);
+        Mockito.when(tmTextUnitRepository.findById(Mockito.anyLong()).get()).thenReturn(tmTextUnit);
         Mockito.when(integrityCheckerFactory.getTextUnitCheckers(asset)).thenReturn(Sets.newHashSet(checker));
         Mockito.doThrow(new IntegrityCheckException("bad")).when(checker).check(Mockito.anyString(), Mockito.anyString());
 

@@ -14,7 +14,7 @@ import java.util.Map;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Configurable
-public class MyUserInfoTokenServices extends UserInfoTokenServices {
+    public class MyUserInfoTokenServices extends UserInfoTokenServices {
 
     /**
      * logger

@@ -39,7 +39,7 @@ public class TMTextUnitIntegrityCheckService {
     public void checkTMTextUnitIntegrity(Long tmTextUnitId, String contentToCheck) throws IntegrityCheckException {
         logger.debug("Checking Integrity of the TMTextUnit");
 
-        TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
         Asset asset = tmTextUnit.getAsset();
 
         Set<TextUnitIntegrityChecker> textUnitCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);

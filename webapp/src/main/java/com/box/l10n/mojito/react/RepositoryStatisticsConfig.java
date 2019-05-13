@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties("l10n.repositoryStatistics")
+@ConfigurationProperties("l10n.repositorystatistics")
 public class RepositoryStatisticsConfig {
     Boolean computeOutOfSla = false;
 

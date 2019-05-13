@@ -150,13 +150,13 @@ public class LeveragingService {
         Repository repository;
 
         if (assetId == null) {
-            repository = repositoryRepository.findOne(repositoryId);
+            repository = repositoryRepository.findById(repositoryId).orElse(null);
 
             if (repository == null) {
                 throw new RepositoryWithIdNotFoundException(repositoryId);
             }
         } else {
-            Asset asset = assetRepository.findOne(assetId);
+            Asset asset = assetRepository.findById(assetId).orElse(null);
             if (asset == null) {
                 throw new AssetWithIdNotFoundException(assetId);
             }

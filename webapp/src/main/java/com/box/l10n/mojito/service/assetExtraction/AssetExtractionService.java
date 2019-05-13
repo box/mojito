@@ -34,7 +34,6 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -268,7 +267,7 @@ public class AssetExtractionService {
             }
         }
 
-        assetTextUnitRepository.save(mergedAssetTextUnits.values());
+        assetTextUnitRepository.saveAll(mergedAssetTextUnits.values());
 
         Long mergedAssetExtractionId = mergedAssetExtraction.getId();
         Long tmId = asset.getRepository().getTm().getId();
@@ -293,18 +292,15 @@ public class AssetExtractionService {
     private List<AssetExtractionByBranch> sortedAssetExtractionByBranches(List<AssetExtractionByBranch> assetExtractionByBranches) {
 
         Ordering<AssetExtractionByBranch> byName = Ordering.natural().onResultOf(new Function<AssetExtractionByBranch, Comparable>() {
-            @Nullable
             @Override
-            public Comparable apply(@Nullable AssetExtractionByBranch input) {
+            public Comparable apply(AssetExtractionByBranch input) {
                 return PRIMARY_BRANCH.equals(input.getBranch().getName());
             }
         }).reverse();
 
-
         Ordering<AssetExtractionByBranch> byDate = Ordering.natural().nullsLast().onResultOf(new Function<AssetExtractionByBranch, Comparable>() {
-            @Nullable
             @Override
-            public Comparable apply(@Nullable AssetExtractionByBranch input) {
+            public Comparable apply(AssetExtractionByBranch input) {
                 return input.getCreatedDate();
             }
         });

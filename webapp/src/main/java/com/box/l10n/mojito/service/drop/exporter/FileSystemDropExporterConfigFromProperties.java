@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * @author jaurambault
  */
 @Component
-@ConfigurationProperties("l10n.fileSystemDropExporter")
+@ConfigurationProperties("l10n.filesystemdropexporter")
 public class FileSystemDropExporterConfigFromProperties {
 
     /**

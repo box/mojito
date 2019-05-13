@@ -111,7 +111,7 @@ public class DropImportCommandTest extends CLITestBase {
 
         int numberOfFrenchTranslationsBefore = getNumberOfFrenchTranslations(repository);
 
-        localizeDropFiles(dropRepository.findOne(dropId));
+        localizeDropFiles(dropRepository.findById(dropId)).orElse(null);
 
         l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "--number-drop-fetched", "1000"});
 

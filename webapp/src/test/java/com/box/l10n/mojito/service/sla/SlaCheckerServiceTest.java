@@ -9,6 +9,8 @@ import com.box.l10n.mojito.utils.DateTimeUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+
 import org.joda.time.DateTime;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
@@ -152,11 +154,11 @@ public class SlaCheckerServiceTest {
         doReturn(now).when(dateTimeUtils).now();
 
         doReturn(incidentIn).when(slaIncidentRepository).findByClosedDateIsNull();
-        doReturn(incidentOut).when(slaIncidentRepository).save(incidentIn);
+        doReturn(incidentOut).when(slaIncidentRepository).saveAll(incidentIn);
 
         slaCheckerService.closeIncidents();
 
-        verify(slaIncidentRepository).save(incidentIn);
+        verify(slaIncidentRepository).saveAll(incidentIn);
 
         for (SlaIncident slaIncident : incidentIn) {
             verify(slaIncident).setClosedDate(now);

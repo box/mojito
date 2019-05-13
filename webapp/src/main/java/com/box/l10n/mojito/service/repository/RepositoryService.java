@@ -259,7 +259,7 @@ public class RepositoryService {
         }
 
         if (assetIntegrityCheckers.size() > 0) {
-            assetIntegrityCheckerRepository.save(assetIntegrityCheckers);
+            assetIntegrityCheckerRepository.saveAll(assetIntegrityCheckers);
             logger.debug("Added integrity checkers: " + assetIntegrityCheckers.size());
         }
 
@@ -292,7 +292,7 @@ public class RepositoryService {
         }
 
         if (assetIntegrityCheckers.size() > 0) {
-            assetIntegrityCheckerRepository.save(assetIntegrityCheckers);
+            assetIntegrityCheckerRepository.saveAll(assetIntegrityCheckers);
             logger.debug("Added integrity checkers: " + assetIntegrityCheckers.size());
         }
     }

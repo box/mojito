@@ -1,30 +1,22 @@
 package com.box.l10n.mojito.slack;
 
-import com.box.l10n.mojito.mustache.MustacheTemplateEngine;
 import com.box.l10n.mojito.slack.request.Channel;
 import com.box.l10n.mojito.slack.request.Message;
 import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {SlackClientTest.class, SlackClientConfiguration.class})
+@SpringBootTest(classes = {SlackClientTest.class, SlackClientConfiguration.class}, properties = "spring.datasource.initialize=false")
 @EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
 public class SlackClientTest {
 
     @Autowired(required = false)

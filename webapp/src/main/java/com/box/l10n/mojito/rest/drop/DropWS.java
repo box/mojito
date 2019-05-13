@@ -170,7 +170,7 @@ public class DropWS {
      */
     @RequestMapping(value = "/api/drops/complete/{dropId}", method = RequestMethod.POST)
     public void completeDropById(@PathVariable Long dropId) throws DropWithIdNotFoundException {
-        Drop drop = dropRepository.findOne(dropId);
+        Drop drop = dropRepository.findById(dropId).orElse(null);
 
         if (drop == null) {
             throw new DropWithIdNotFoundException(dropId);
@@ -202,7 +202,7 @@ public class DropWS {
     @RequestMapping(method = RequestMethod.POST, value = "/api/drops/importXliff")
     public ImportXliffBody importXliff(@RequestBody ImportXliffBody importXliffBody) throws Exception {
 
-        Repository repository = repositoryRepository.findOne(importXliffBody.getRepositoryId());
+        Repository repository = repositoryRepository.findById(importXliffBody.getRepositoryId()).orElse(null);
 
         String normalizedContent = NormalizationUtils.normalize(importXliffBody.getXliffContent());
         

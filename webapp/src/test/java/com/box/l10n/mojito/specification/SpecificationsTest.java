@@ -52,7 +52,7 @@ public class SpecificationsTest extends ServiceTestBase {
         Repository repository2 =  repositoryService.createRepository(testIdWatcher.getEntityName("repository2")); 
         repository2.setDeleted(true);
         List<Repository> repositories = Arrays.asList(repository1, repository2);
-        repositoryRepository.save(repositories);
+        repositoryRepository.saveAll(repositories);
 
         long expectedNumberOfRepositories = numberOfRepositories + repositories.size();
         long expectedNumberOfNotDeletedRepositories = numberOfRepositories - numberOfDeletedRepositories + 1;

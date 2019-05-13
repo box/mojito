@@ -80,7 +80,7 @@ public class TMImportService {
             String xliffContent,
             boolean updateTM) {
 
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         ImportExportedXliffStep importExportedXliffStep = new ImportExportedXliffStep(asset, xliffContent, updateTM);
         importXLIFF(importExportedXliffStep, xliffContent);
     }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @author jaurambault
  */
 @Component
-@ConfigurationProperties("l10n.consoleWriter")
+@ConfigurationProperties("l10n.consolewriter")
 public class ConsoleWriterConfig {
 
     /**

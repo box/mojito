@@ -5,9 +5,9 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.system.ApplicationPidFileWriter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.orm.jpa.EntityScan;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -40,8 +40,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EntityScan(basePackageClasses = BaseEntity.class)
 public class Application {
 
-    @Value("${org.springframework.http.converter.json.indent_output}")
-    boolean shouldIndentJacksonOutput;
+
+    // TODO, find replacement
+//    @Value("${org.springframework.http.converter.json.indent_output}")
+    boolean shouldIndentJacksonOutput = false;
 
     public static void main(String[] args) throws IOException {
 

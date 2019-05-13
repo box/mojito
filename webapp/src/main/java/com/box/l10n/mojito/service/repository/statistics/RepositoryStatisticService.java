@@ -83,7 +83,7 @@ public class RepositoryStatisticService {
      */
     public void updateStatistics(Long repositoryId) {
 
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         logger.debug("Get the current repository statistics");
         RepositoryStatistic repositoryStatistic = repository.getRepositoryStatistic();

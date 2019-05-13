@@ -17,17 +17,19 @@ import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.List;
+
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * @author jaurambault
  */
 @Ignore("won't work without @DirtiesContext which makes the build to slow")
-@WebIntegrationTest(randomPort = true, value = {"l10n.dropexporter.type=BOX"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"l10n.dropexporter.type=BOX"})
 public class DropServiceBoxTest extends DropServiceTest {
 
     static Logger logger = LoggerFactory.getLogger(DropServiceBoxTest.class);
@@ -94,10 +96,10 @@ public class DropServiceBoxTest extends DropServiceTest {
                 logger.debug("For the Korean file, don't translate but add a corrupted text unit (invalid id) at the end");
                 localizedContent = localizedContent.replaceAll("</body>",
                         "<trans-unit id=\"badid\" resname=\"TEST2\">\n"
-                        + "<source xml:lang=\"en\">Content2</source>\n"
-                        + "<target xml:lang=\"ko-kr\">Import Drop" + round + " -  Content2 ko-kr</target>\n"
-                        + "</trans-unit>\n"
-                        + "</body>");
+                                + "<source xml:lang=\"en\">Content2</source>\n"
+                                + "<target xml:lang=\"ko-kr\">Import Drop" + round + " -  Content2 ko-kr</target>\n"
+                                + "</trans-unit>\n"
+                                + "</body>");
             } else if (sourceFile.getInfo().getName().startsWith("it-IT")) {
                 logger.debug("For the Italien file, don't translate but add a corrupted xml");
                 localizedContent = localizedContent.replaceAll("</body>", "</bod");

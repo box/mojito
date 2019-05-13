@@ -79,7 +79,7 @@ public class ScreenshotService {
         ScreenshotRun currentScreenshotRun;
 
         if (screenshotRun.getId() != null) {
-            currentScreenshotRun = screenshotRunRepository.findOne(screenshotRun.getId());
+            currentScreenshotRun = screenshotRunRepository.findById(screenshotRun.getId()).orElse(null);
         } else {
             currentScreenshotRun = screenshotRunRepository.findByName(screenshotRun.getName());
         }
@@ -177,7 +177,7 @@ public class ScreenshotService {
 
         if (screenshotTextUnit.getTmTextUnit() != null) {
 
-            TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(screenshotTextUnit.getTmTextUnit().getId());
+            TMTextUnit tmTextUnit = tmTextUnitRepository.findById(screenshotTextUnit.getTmTextUnit().getId()).orElse(null);
             if (tmTextUnit != null) {
                 screenshotTextUnit.setName(tmTextUnit.getName());
                 screenshotTextUnit.setNumberOfMatch(1);

@@ -98,6 +98,6 @@ public class SlaCheckerService {
         for (SlaIncident ooSLAIncident : findByIsNullClosedDate) {
             ooSLAIncident.setClosedDate(closedDate);
         }
-        slaIncidentRepository.save(findByIsNullClosedDate);
+        slaIncidentRepository.saveAll(findByIsNullClosedDate);
     }
 }

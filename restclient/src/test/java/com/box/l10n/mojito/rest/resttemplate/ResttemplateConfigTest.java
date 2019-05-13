@@ -5,8 +5,9 @@ import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
@@ -14,8 +15,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author jaurambault
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ComponentScan(basePackageClasses = {ResttemplateConfig.class, })
-@SpringApplicationConfiguration(classes = {ResttemplateConfigTest.class})
+@SpringBootTest
+@ComponentScan(basePackageClasses = {ResttemplateConfig.class})
+@ContextConfiguration(classes = {ResttemplateConfigTest.class})
 @EnableConfigurationProperties
 public class ResttemplateConfigTest {
 

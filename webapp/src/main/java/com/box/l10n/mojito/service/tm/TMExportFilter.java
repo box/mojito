@@ -133,7 +133,7 @@ public class TMExportFilter implements IFilter {
 
         StartDocument startDoc = new StartDocument("Export asset id: " + assetId);
 
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
 
         startDoc.setName(asset.getPath());
         startDoc.setEncoding("UTF-8", true);

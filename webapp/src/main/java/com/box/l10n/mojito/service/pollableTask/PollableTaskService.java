@@ -46,7 +46,7 @@ public class PollableTaskService {
 
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public PollableTask getPollableTask(long id) {
-        return pollableTaskRepository.findOne(id);
+        return pollableTaskRepository.findById(id).orElse(null);
     }
 
     public PollableTask createPollableTask(Long parentId, String name, String message, int expectedSubTaskNumber) {

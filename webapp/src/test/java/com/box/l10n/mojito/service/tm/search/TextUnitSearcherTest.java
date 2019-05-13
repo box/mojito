@@ -439,7 +439,7 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         long numberOfWords = 0;
 
         for (TextUnitDTO textUnitDTO : search) {
-            numberOfWords += tmTextUnitRepository.findOne(textUnitDTO.getTmTextUnitId()).getWordCount();
+            numberOfWords += tmTextUnitRepository.findById(textUnitDTO.getTmTextUnitId()).get().getWordCount();
         }
 
         TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);

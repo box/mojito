@@ -134,7 +134,7 @@ public class RepositoryServiceTest extends ServiceTestBase {
         );
         assertEquals(numberOfRepositories - 1, repositoryRepository.findByDeletedFalseOrderByNameAsc().size());
         assertNull("Found the deleted repository", repositoryRepository.findByName(repositoryName));
-        Repository deletedRepository = repositoryRepository.findOne(repositoryId);
+        Repository deletedRepository = repositoryRepository.findById(repositoryId).orElse(null);
         assertTrue("The repository is not deleted", deletedRepository.getDeleted());
         assertTrue("The deleted repository is not renamed properly", deletedRepository.getName().startsWith("deleted__"));
         

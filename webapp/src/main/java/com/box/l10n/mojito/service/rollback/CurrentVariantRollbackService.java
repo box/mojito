@@ -132,7 +132,7 @@ public class CurrentVariantRollbackService {
 
         AuditQuery auditQuery = buildInsertAuditQuery(rollbackDateTime, tmId, extraParameters);
         List<TMTextUnitCurrentVariant> tmTextUnitCurrentVariantsToAdd = (List<TMTextUnitCurrentVariant>) auditQuery.getResultList();
-        tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariantsToAdd);
+        tmTextUnitCurrentVariantRepository.saveAll(tmTextUnitCurrentVariantsToAdd);
     }
 
     /**

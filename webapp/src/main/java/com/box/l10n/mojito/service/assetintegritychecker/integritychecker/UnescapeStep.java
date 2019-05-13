@@ -65,7 +65,7 @@ public class UnescapeStep extends BasePipelineStep {
 
             try {
                 Long tmTextUnitId = Long.valueOf(textUnit.getId());
-                tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+                tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
             } catch (NumberFormatException nfe) {
                 logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
             }

@@ -157,7 +157,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     @Transactional
     public void forceCompleteDrop(Long dropId) {
-        Drop drop = dropRepository.findOne(dropId);
+        Drop drop = dropRepository.findById(dropId).orElse(null);
         assertTrue(drop.getPartiallyImported());
         dropService.completeDrop(drop);
         assertFalse(drop.getPartiallyImported());
@@ -165,7 +165,7 @@ public class DropServiceTest extends ServiceTestBase {
 
     @Transactional
     public void checkTranslationKitImported(Long dropId, boolean expected) {
-        Drop drop = dropRepository.findOne(dropId);
+        Drop drop = dropRepository.findById(dropId).orElse(null);
         if (expected) {
             assertFalse(drop.getPartiallyImported());
         } else {
@@ -683,7 +683,7 @@ public class DropServiceTest extends ServiceTestBase {
     public void checkTranslationKitStatistics(Drop drop) throws BoxSDKServiceException, DropExporterException {
 
         logger.debug("Check statistics");
-        Drop d = dropRepository.findOne(drop.getId());
+        Drop d = dropRepository.findById(drop.getId()).orElse(null);
 
         for (TranslationKit tk : d.getTranslationKits()) {
 

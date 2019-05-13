@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * @author jeanaurambault
  */
 @Configuration
-@ConfigurationProperties(prefix = "l10n.dropSchedule")
+@ConfigurationProperties(prefix = "l10n.dropschedule")
 public class DropScheduleConfig {
 
     DateTimeZone timezone = DateTimeZone.forID("PST8PDT");

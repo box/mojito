@@ -246,7 +246,7 @@ public class AssetWS {
     @RequestMapping(method = RequestMethod.GET, value = "/api/assets/{assetId}/xliffExport/{tmXliffId}")
     @ResponseStatus(HttpStatus.OK)
     public XliffExportBody xliffExport(@PathVariable("assetId") long assetId, @PathVariable("tmXliffId") long tmXliffId) {
-        TMXliff tmXliff = tmXliffRepository.findOne(tmXliffId);
+        TMXliff tmXliff = tmXliffRepository.findById(tmXliffId).orElse(null);
         XliffExportBody xliffExportBody = new XliffExportBody();
         xliffExportBody.setTmXliffId(tmXliffId);
         xliffExportBody.setContent(tmXliff.getContent());
@@ -284,7 +284,7 @@ public class AssetWS {
     public void deleteAssetById(@PathVariable Long assetId) throws AssetWithIdNotFoundException {
         logger.debug("Deleting asset [{}]", assetId);
 
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
 
         if (asset == null) {
             throw new AssetWithIdNotFoundException(assetId);

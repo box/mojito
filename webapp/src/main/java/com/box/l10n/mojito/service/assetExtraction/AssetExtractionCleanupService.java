@@ -73,7 +73,7 @@ public class AssetExtractionCleanupService {
         int numberMappingsDeleted = assetTextUnitToTMTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
         int numberAssetTextUnitsDeleted = assetTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
         int numberAssetContentDeleted = assetContentRepository.deleteByAssetExtractionsIdIsNull();
-        assetExtractionRepository.delete(assetExtractionIdToDelete);
+        assetExtractionRepository.deleteById(assetExtractionIdToDelete);
         logger.debug("For assetExtractionId: {}, deleted {} mappings, {} asset text units, asset content: {}",
                 assetExtractionIdToDelete, numberMappingsDeleted, numberAssetTextUnitsDeleted, numberAssetContentDeleted);
     }

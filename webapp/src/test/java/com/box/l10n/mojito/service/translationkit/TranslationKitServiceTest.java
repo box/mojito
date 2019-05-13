@@ -88,7 +88,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 + "</xliff>\n", xliffWithoutIds);
 
         logger.debug("Check the translation kit entities");
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
         List<TranslationKitTextUnit> findByTranslationKitId = translationKitTextUnitRepository.findByTranslationKit(translationKit);
 
         assertEquals("The translation kit must be of type translation", TranslationKit.Type.TRANSLATION, translationKit.getType());
@@ -148,7 +148,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 + "", xliffWithoutIds);
 
         logger.debug("Check the translation kit entities");
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
         List<TranslationKitTextUnit> findByTranslationKitId = translationKitTextUnitRepository.findByTranslationKit(translationKit);
 
         assertEquals("The translation kit must be of type review", TranslationKit.Type.TRANSLATION, translationKit.getType());
@@ -206,7 +206,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 + "", xliffWithoutIds);
 
         logger.debug("Check the translation kit entities");
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
         List<TranslationKitTextUnit> findByTranslationKitId = translationKitTextUnitRepository.findByTranslationKit(translationKit);
 
         assertEquals("The translation kit must be of type review", TranslationKit.Type.REVIEW, translationKit.getType());
@@ -239,7 +239,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 tmTestData.frFR.getId(),
                 TranslationKit.Type.TRANSLATION);
 
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
 
         logger.debug("Check the translation kit entities");
         List<TranslationKitTextUnit> findByTranslationKitTextUnits = translationKitTextUnitRepository.findByTranslationKit(translationKit);

@@ -295,7 +295,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         checkMapping(next, assetExtraction, tm);
         assertFalse("There shouldn't be any other mapping reccords", iterator.hasNext());
 
-        Asset updatedAsset = assetRepository.findOne(asset.getId());
+        Asset updatedAsset = assetRepository.findById(asset.getId()).orElse(null);
         assertEquals("Last successfulAssetExtraction should be set", asset.getId(), updatedAsset.getId());
 
         logger.debug("Perform mapping on a second asset extraction that has more AssetTextUnit with same TM (what will happen when we keep updating documents)");

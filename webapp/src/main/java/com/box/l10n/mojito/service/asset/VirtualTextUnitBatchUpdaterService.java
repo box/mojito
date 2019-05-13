@@ -162,7 +162,7 @@ public class VirtualTextUnitBatchUpdaterService {
                         logger.debug("Exact match is used and no change to doNotTranslate, nothing to do");
                     } else {
                         logger.debug("Exact match is used but doNotTranslate changed, update AssetTextUnit");
-                        AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(exactMatch.getAssetTextUnitId());
+                        AssetTextUnit assetTextUnit = assetTextUnitRepository.findById(exactMatch.getAssetTextUnitId()).orElse(null);
                         assetTextUnit.setDoNotTranslate(doNotTranslate);
                         assetTextUnitRepository.save(assetTextUnit);
 
@@ -204,7 +204,7 @@ public class VirtualTextUnitBatchUpdaterService {
         if (previousByName != null) {
             logger.debug("Asset text unit has changed, remove all previous entries");
             assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(previousByName.getAssetTextUnitId());
-            assetTextUnitRepository.delete(previousByName.getAssetTextUnitId());
+            assetTextUnitRepository.deleteById(previousByName.getAssetTextUnitId());
         }
     }
 

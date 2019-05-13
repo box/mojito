@@ -70,7 +70,7 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
 
         try {
             Long translationKitId = Long.valueOf(startSubDocument.getName());
-            translationKit = translationKitRepository.findOne(translationKitId);
+            translationKit = translationKitRepository.findById(translationKitId).orElse(null);
 
             if (translationKit == null) {
                 logger.debug("Cannot find TranslationKit entity for id: {}", translationKitId);
@@ -95,7 +95,7 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
 
         try {
             Long tmTextUnitId = Long.valueOf(textUnit.getId());
-            tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+            tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
         } catch (NumberFormatException nfe) {
             logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
         }

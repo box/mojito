@@ -88,7 +88,7 @@ public class DropXliffImportCommandTest extends CLITestBase {
 
         final Long dropId = DropImportCommandTest.getLastDropIdFromOutput(outputCapture);
 
-        localizeDropFilesAndCopyLocally(dropRepository.findOne(dropId));
+        localizeDropFilesAndCopyLocally(dropRepository.findById(dropId)).orElse(null);
 
         getL10nJCommander().run("drop-xliff-import", "-r", repository.getName(),
                 "--import-by-md5",

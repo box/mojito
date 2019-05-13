@@ -108,7 +108,7 @@ public class DropService {
             ExportDropConfig exportDropConfig,
             @InjectCurrentTask PollableTask currentTask) throws DropExporterException {
 
-        Repository repository = repositoryRepository.findOne(exportDropConfig.getRepositoryId());
+        Repository repository = repositoryRepository.findById(exportDropConfig.getRepositoryId()).orElse(null);
         Drop drop = createDrop(repository);
         drop.setExportPollableTask(currentTask);
 
@@ -214,7 +214,7 @@ public class DropService {
 
         logger.debug("Start importing drop");
 
-        Drop drop = dropRepository.findOne(dropId);
+        Drop drop = dropRepository.findById(dropId).orElse(null);
         drop.setLastImportedDate(new DateTime());
         drop.setImportPollableTask(currentTask);
         drop.setImportFailed(null);
@@ -379,7 +379,7 @@ public class DropService {
     public PollableFuture<Drop> cancelDrop(Long dropId, @InjectCurrentTask PollableTask currentTask) throws DropExporterException, CancelDropException {
 
         logger.debug("Canceling Drop: {}", dropId);
-        Drop drop = dropRepository.findOne(dropId);
+        Drop drop = dropRepository.findById(dropId).orElse(null);
 
         if (isDropBeingProcessed(drop)) {
             throw new CancelDropException("A Drop [" + dropId + "] cannot be canceled while it is not at rest");
