@@ -30,7 +30,7 @@ Default configuration location:
 
 ### Using Executable Jars
 
-`Java 1.7` or `1.8` is required. Executable Jars can be downloaded in the [release section](https://github.com/box/mojito/releases/).
+`Java 1.8` is required. Executable Jars can be downloaded in the [release section](https://github.com/box/mojito/releases/).
 
 Run the Webapp with:
 
@@ -43,8 +43,6 @@ Run the CLI with:
 As {{ site.mojito_green }} is based on Spring Boot, it can be [configured](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-external-config) in many ways.
 
 One simple solution is to add an `application.properties` next to the `jar`. To use a different location use `--spring.config.location=/path/to/your/application.properties`.
-
-The following JVM options might be useful to run the Webapp: `-XX:MaxPermSize=128m -Xmx1024m`.
 
 ## Setup
 
