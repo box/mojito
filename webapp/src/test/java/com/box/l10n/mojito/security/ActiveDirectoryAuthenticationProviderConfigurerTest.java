@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.security;
 
 import java.util.Collection;
-import org.apache.commons.lang.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.ldap.core.DirContextAdapter;

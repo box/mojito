@@ -6,7 +6,8 @@ import com.box.l10n.mojito.rest.client.exception.PollableTaskTimeoutException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang.builder.ToStringBuilder;
+
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.stereotype.Component;
@@ -105,7 +106,7 @@ public class PollableTaskClient extends BaseClient {
             if (!pollableTask.isAllFinished()) {
 
                 if (timeout != NO_TIMEOUT && System.currentTimeMillis() > timeoutTime) {
-                    logger.debug("Timed out waiting for PollableTask: {} to finish. \n{}", pollableId, ToStringBuilder.reflectionToString(pollableTask));
+                    logger.debug("Timed out waiting for PollableTask: {} to finish. \n{}", pollableId, ReflectionToStringBuilder.toString(pollableTask));
                     throw new PollableTaskTimeoutException("Timed out waiting for PollableTask: " + pollableId);
                 }
 
