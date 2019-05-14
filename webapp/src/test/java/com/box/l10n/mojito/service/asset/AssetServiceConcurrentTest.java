@@ -18,7 +18,7 @@ import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -180,7 +180,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
                 assertEquals(assetContent.toString(), asset.getLastSuccessfulAssetExtraction().getAssetContent().getContent());
             } catch (PollableTaskException | InterruptedException e) {
-                logger.error(ExceptionUtils.getFullStackTrace(e));
+                logger.error(ExceptionUtils.getStackTrace(e));
                 exceptions.add(e);
             }
         }
