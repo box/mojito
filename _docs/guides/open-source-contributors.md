@@ -7,7 +7,7 @@ permalink: /docs/guides/open-source-contributors/
 ---
 ## Prerequisites
 
-1. [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) 
+1. [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
            (9 & 10 are not supported)
 2. Install [Maven](https://maven.apache.org/download.cgi) (or use the project Maven wrapper `mvnw`)
 3. Git clone or download {{ site.mojito_green }} source code to ${PROJECT_DIR}
@@ -25,7 +25,7 @@ It is advised to reuse the `npm` version that was downloaded during {{ site.moji
     source webapp/use_local_npm.sh
 
 Else, make sure the global `npm` is compatible.
- 
+
 
 ## Run {{ site.mojito_green }}
     cd ${PROJECT_DIR}/webapp
@@ -62,7 +62,7 @@ Set the properties `l10n.flyway.clean=true` to have Flyway clean the schema firs
 ### To Generate the final migration script before committing code
 - Set `l10n.flyway.clean=true`, Flyway will drop the database and recreate the previous version
 - Set `spring.jpa.hibernate.ddl-auto=none` so that Hibernate won't perform any change on the DB schema
-- Run DDLGenerator to generate the baseline schema to update the database.
+- Run DDLGenerator (in webapp/src/test/java/com/box/l10n/mojito/db) to generate the baseline schema to update the database.
 - The generated code in: `target/db/migration/Vx__yy_zz.sql` must be adapted (eg. if renaming a column, hibernate will add one, so the statements must be changed)
 - Move the update file to: `src/main/resources/db/migration`, rename the file (`x` is the version, `yy_zz` to provide a description: `yy zz`)
 - Test the migration script
@@ -72,28 +72,28 @@ Set the properties `l10n.flyway.clean=true` to have Flyway clean the schema firs
 The `aurambaj/mojito-dev` docker image comes with Java, Maven and some other build dependencies required to build the project easily.
 
 Build reusing host Maven repository (Recommanded):
-    
+
     cd ${PROJECT_DIR}
     docker run -v $(pwd):/mnt/mojito -v ~/.m2:/root/.m2 -it aurambaj/mojito-dev mvn install -DskipTests
 
 Or start the container and run build commands in it
 
     docker run -v $(pwd):/mnt/mojito -v ~/.m2:/root/.m2 -p 8080:8080 -it aurambaj/mojito-dev bash
-    
+
     # and then build commands
     mvn install -DskipTests
     cd webapp/
     npm run start-dev
-    
-    
+
+
 To build from a clean slate:
 
     docker run -v $(pwd):/mnt/mojito -it aurambaj/mojito-dev mvn install -DskipTests
-    
-    
+
+
 ## Troubleshooting
 
-### Check Java version 
+### Check Java version
 
 Make sure you have Java 8 installed:
 
@@ -107,7 +107,7 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
 ### Check Maven version
 
 Maven 3.5+ should work fine. Consider trying the Maven wrapper `mvnw` from the project if you have any issue with Maven or don't want to install it.
-    
+
 If you have multiple version of Java installed, make sure Maven uses the right version (forth line):
 
 ```sh
@@ -122,10 +122,8 @@ OS name: "mac os x", version: "10.13.5", arch: "x86_64", family: "mac"
 
 ### Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException
 
-If you see an error like: 
+If you see an error like:
 
 `Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException`
 
 you most likely have a wrong version of Java. Java 8 is required. See [Check Java version](#check-java-version)
-
-
