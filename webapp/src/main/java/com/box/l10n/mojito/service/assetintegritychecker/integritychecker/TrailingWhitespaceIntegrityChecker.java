@@ -2,7 +2,7 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
 import java.util.regex.Matcher;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -4,7 +4,7 @@ import com.box.l10n.mojito.slack.request.Action;
 import com.box.l10n.mojito.slack.request.Attachment;
 import com.box.l10n.mojito.slack.request.Field;
 import com.box.l10n.mojito.slack.request.Message;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
