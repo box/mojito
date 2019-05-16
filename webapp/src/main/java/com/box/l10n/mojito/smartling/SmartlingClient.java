@@ -5,6 +5,7 @@ import com.box.l10n.mojito.smartling.response.SourceStringsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriTemplate;
 
@@ -30,7 +31,7 @@ public class SmartlingClient {
     private static final String API_PUSH_NEW_CONTEXT = DEFAULT_BASE_HOST + "context-api/v2/projects/{projectId}/contexts";
     private static final String API_BIND_CONTEXT_TO_HASHCODE = DEFAULT_BASE_HOST + "context-api/v2/projects/{projecId}/bindings";
 
-    private RestTemplate restTemplate = new RestTemplate();
+    RestTemplate restTemplate = new RestTemplate();
 
     private String userIdentifier;
     private String userSecret;
@@ -38,8 +39,11 @@ public class SmartlingClient {
     private String refreshToken = null;
     private Instant nextAuthentication = Instant.now();
     private Instant nextRefresh = Instant.now();
+    private Instant lastRefresh = Instant.now();
     // Refresh tokens are valid for up to 1 hour
     private static final Integer refreshDurationMinutes = 50;
+    // Authentication tokens are valid for up to 5 minutes
+    private static final Integer authenticationDurationMinutes = 4;
     // Authentication tokens can be refreshed for up to 24 hours
     private static final Integer authenticationDurationHours = 23;
 
@@ -95,10 +99,11 @@ public class SmartlingClient {
         } else if (!authenticationResponse.isSuccessResponse()) {
             throw new SmartlingClientException(authenticationResponse.getErrorMessage());
         } else {
-            logger.debug("Successful authentication.");
+            logger.debug("Successful authentication with Smartling API.");
             Instant now = Instant.now();
             nextAuthentication = now.plus(Duration.ofHours(authenticationDurationHours));
-            nextRefresh = now.plus(Duration.ofMinutes(refreshDurationMinutes));
+            nextRefresh = now.plus(Duration.ofMinutes(authenticationDurationMinutes));
+            lastRefresh = now;
             authToken = authenticationResponse.getResponse().getData().getAccessToken();
             refreshToken = authenticationResponse.getResponse().getData().getRefreshToken();
         }
@@ -113,10 +118,12 @@ public class SmartlingClient {
 
     public void refresh() throws SmartlingClientException {
         Instant now = Instant.now();
-        Instant nextCalculatedRefresh = now.plus(Duration.ofMinutes(refreshDurationMinutes));
-        if (now.isAfter(nextAuthentication) || nextCalculatedRefresh.isAfter(nextAuthentication)) {
+        // Check if time for next authentication or last refresh was more than ~ an hour ago,
+        // which means our current refresh token has expired. If neither of those conditions satisfied then check if
+        // time for next refresh has passed
+        if (now.isAfter(nextAuthentication) || lastRefresh.plus(Duration.ofMinutes(refreshDurationMinutes)).isBefore(now)) {
             authenticate();
-        } else if (!(nextRefresh.isAfter(now) && nextAuthentication.isAfter(now))) {
+        } else if (!(nextRefresh.isAfter(now))) {
             Map<String, Object> payload = getPayloadMapRefresh();
             AuthenticationResponse authenticationResponse = postForAuthentication(payload, AUTH_API_V2_REFRESH);
 
@@ -126,9 +133,11 @@ public class SmartlingClient {
                 nextRefresh = now;
                 throw new SmartlingClientException(authenticationResponse.getErrorMessage());
             } else {
-                logger.debug("Successful refresh of authentication.");
-                nextRefresh = nextCalculatedRefresh;
+                logger.debug("Successful refresh of authentication with Smartling API.");
+                nextRefresh = now.plus(Duration.ofMinutes(authenticationDurationMinutes));
+                lastRefresh = now;
                 refreshToken = authenticationResponse.getResponse().getData().getRefreshToken();
+                authToken = authenticationResponse.getResponse().getData().getAccessToken();
             }
         }
     }
@@ -144,14 +153,24 @@ public class SmartlingClient {
         pathVariables.put("fileUri", file);
         pathVariables.put("offset", offset.toString());
         UriTemplate template = new UriTemplate(API_PULL_SOURCE_STRINGS);
-        ResponseEntity<SourceStringsResponse> exchange = restTemplate.exchange(
-                template.toString(), HttpMethod.GET, httpEntity, SourceStringsResponse.class, pathVariables);
-        SourceStringsResponse sourceStringsResponse = exchange.getBody();
-        if (sourceStringsResponse != null && sourceStringsResponse.isAuthenticationErrorResponse()) {
-            logger.debug("Authentication error occurred when attempting to pull the source strings.");
-            authenticate();
-        } else if (sourceStringsResponse != null && !sourceStringsResponse.isSuccessResponse()) {
-            throw new SmartlingClientException(sourceStringsResponse.getErrorMessage());
+        SourceStringsResponse sourceStringsResponse = new SourceStringsResponse();
+        ResponseEntity<SourceStringsResponse> exchange = null;
+        try {
+            exchange = restTemplate.exchange(
+                    template.toString(), HttpMethod.GET, httpEntity, SourceStringsResponse.class, pathVariables);
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().equals(HttpStatus.UNAUTHORIZED)) {
+                logger.debug("Unauthorized error occurred when attempting to pull the source strings via Smartling API.");
+                authenticate();
+            } else {
+                throw e;
+            }
+        }
+        if (exchange != null) {
+            sourceStringsResponse = exchange.getBody();
+            if (!sourceStringsResponse.isSuccessResponse()) {
+                throw new SmartlingClientException(sourceStringsResponse.getErrorMessage());
+            }
         }
         return sourceStringsResponse;
     }
