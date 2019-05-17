@@ -11,6 +11,8 @@ import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.asset.VirtualAssetRequiredException;
+import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -298,12 +300,12 @@ public class AssetWS {
      * @return
      */
     @RequestMapping(value = "/api/assets", method = RequestMethod.DELETE)
-    public void deleteAssetsOfBranches(@RequestParam(value = "branchId", required = false) Long branchId,
-                                       @RequestBody Set<Long> ids) {
+    public PollableTask deleteAssetsOfBranches(@RequestParam(value = "branchId", required = false) Long branchId,
+                                               @RequestBody Set<Long> ids) {
         logger.debug("Deleting assets: {} for branch id: {}", ids.toString(), branchId);
-        assetService.deleteAssetsOfBranch(ids, branchId);
+        PollableFuture pollableFuture = assetService.asyncDeleteAssetsOfBranch(ids, branchId);
+        return pollableFuture.getPollableTask();
     }
-
 
     /**
      * Returns list of {@link Asset#id} for a given {@link Repository}
