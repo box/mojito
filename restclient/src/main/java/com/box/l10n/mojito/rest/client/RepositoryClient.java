@@ -7,11 +7,13 @@ import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.rest.entity.ImportRepositoryBody;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.Locale;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -231,11 +233,12 @@ public class RepositoryClient extends BaseClient {
         return branch;
     }
 
-    public void deleteBranch(Long branchId, Long repositoryId) {
+    public PollableTask deleteBranch(Long branchId, Long repositoryId) {
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.
                 fromPath(getBasePathForResource(repositoryId, "branches")).
                 queryParam("branchId", branchId);
-        authenticatedRestTemplate.delete(uriComponentsBuilder.build().toUriString());
+
+        return authenticatedRestTemplate.deleteForObject(uriComponentsBuilder.build().toUriString(), null, PollableTask.class);
     }
 
 }

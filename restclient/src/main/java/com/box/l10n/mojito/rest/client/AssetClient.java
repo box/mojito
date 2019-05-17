@@ -6,6 +6,7 @@ import com.box.l10n.mojito.rest.entity.FilterConfigIdOverride;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.rest.entity.XliffExportBody;
@@ -16,6 +17,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -301,11 +303,10 @@ public class AssetClient extends BaseClient {
 
     /**
      * Deletes multiple {@link Asset} by the list of {@link Asset#id} of a given branch
-     *
-     * @param assetIds
+     *  @param assetIds
      * @param branchId
      */
-    public void deleteAssetsInBranch(Set<Long> assetIds, Long branchId) {
+    public PollableTask deleteAssetsInBranch(Set<Long> assetIds, Long branchId) {
         logger.debug("Deleting assets by asset ids = {} or branch id: {}", assetIds.toString(), branchId);
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath(getBasePath() + "/assets");
@@ -316,7 +317,7 @@ public class AssetClient extends BaseClient {
 
         HttpEntity<Set<Long>> httpEntity = new HttpEntity<>(assetIds);
         String uriString = uriComponentsBuilder.toUriString();
-        authenticatedRestTemplate.delete(uriString, httpEntity);
+        return authenticatedRestTemplate.deleteForObject(uriString, httpEntity, PollableTask.class);
     }
 
     /**

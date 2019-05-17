@@ -9,6 +9,7 @@ import com.box.l10n.mojito.rest.WSTestDataFactory;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.branch.BranchRepository;
@@ -154,7 +155,8 @@ public class AssetWSTest extends WSTestBase {
 
         Branch branch = branchRepository.findByNameAndRepository(null, repository);
 
-        assetClient.deleteAssetsInBranch(Sets.newHashSet(sourceAssetAfterPost2.getAddedAssetId(), sourceAssetAfterPost3.getAddedAssetId()), branch.getId());
+        PollableTask pollableTask = assetClient.deleteAssetsInBranch(Sets.newHashSet(sourceAssetAfterPost2.getAddedAssetId(), sourceAssetAfterPost3.getAddedAssetId()), branch.getId());
+        pollableTaskClient.waitForPollableTask(pollableTask.getId());
         assets = assetClient.getAssetsByRepositoryId(repository.getId());
         assertEquals("There should be three assets for this repository", 3, assets.size());
         assets = assetClient.getAssetsByRepositoryId(repository.getId(), false);
