@@ -140,7 +140,8 @@ public class PushCommand extends Command {
             SourceAsset assetAfterSend = assetClient.sendSourceAsset(sourceAsset);
             pollableTasks.add(assetAfterSend.getPollableTask());
 
-            consoleWriter.a(" --> asset id: ").fg(Ansi.Color.MAGENTA).a(assetAfterSend.getAddedAssetId()).println();
+            consoleWriter.a(" --> asset id: ").fg(Ansi.Color.MAGENTA).a(assetAfterSend.getAddedAssetId()).reset().
+                    a(", task: ").fg(Ansi.Color.MAGENTA).a(assetAfterSend.getPollableTask().getId()).println();
             usedAssetIds.add(assetAfterSend.getAddedAssetId());
         }
 
@@ -163,8 +164,10 @@ public class PushCommand extends Command {
 
             assetIds.removeAll(usedAssetIds);
             if (!assetIds.isEmpty()) {
-                assetClient.deleteAssetsInBranch(assetIds, branch.getId());
-                consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println(2);
+                consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println();
+                PollableTask pollableTask = assetClient.deleteAssetsInBranch(assetIds, branch.getId());
+                consoleWriter.a(" --> task id: ").fg(Ansi.Color.MAGENTA).a(pollableTask.getId()).println();
+                commandHelper.waitForPollableTask(pollableTask.getId());
             }
         }
 
@@ -173,6 +176,7 @@ public class PushCommand extends Command {
 
     /**
      * Get fileMatch list contains git changes against git tree HEAD
+     *
      * @param sourceFileMatches
      * @return
      * @throws CommandException

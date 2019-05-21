@@ -8,6 +8,7 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Branch;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -48,14 +49,16 @@ public class BranchDeleteCommand extends Command {
     @Override
     public void execute() throws CommandException {
         consoleWriter.newLine().a("Delete branch: ").fg(Ansi.Color.CYAN).a(branchName).reset()
-                .a(" from repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
+                .a(" from repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(1);
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         Branch branchToRemove = repositoryClient.getBranch(repository.getId(), branchName);
 
         if (branchToRemove == null) {
             throw new CommandException(String.format("Cannot find branch in %s by branchName %s.", repositoryParam, branchName));
         }
-        repositoryClient.deleteBranch(branchToRemove.getId(), repository.getId());
+        PollableTask pollableTask = repositoryClient.deleteBranch(branchToRemove.getId(), repository.getId());
+        commandHelper.waitForPollableTask(pollableTask.getId());
+
         consoleWriter.newLine().a("deleted --> branch name: ").fg(Ansi.Color.MAGENTA).a(branchName).println();
     }
 }

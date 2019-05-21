@@ -35,11 +35,9 @@ public class QuartzPollableTaskScheduler {
     @Autowired
     ObjectMapper objectMapper;
 
-
     public <T> PollableFuture<T> scheduleJob(Class<? extends QuartzPollableJob> clazz, Object input) {
         return scheduleJob(clazz, input, null, null, 0);
     }
-
 
     public <T> PollableFuture<T> scheduleJob(Class<? extends QuartzPollableJob> clazz,
                                              Object input,

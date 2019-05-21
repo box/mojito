@@ -1,12 +1,14 @@
 package com.box.l10n.mojito.rest.repository;
 
 import com.box.l10n.mojito.entity.Branch;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchService;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -247,11 +249,12 @@ public class RepositoryWS {
     }
 
     @RequestMapping(value ="/api/repositories/{repositoryId}/branches", method = RequestMethod.DELETE)
-    public void deleteBranch(@PathVariable(value = "repositoryId") Long repositoryId,
-                             @RequestParam(value = "branchId") Long branchId) {
+    public PollableTask deleteBranch(@PathVariable(value = "repositoryId") Long repositoryId,
+                                     @RequestParam(value = "branchId") Long branchId) {
 
         logger.debug("Deleting branch {} in repository {}", repositoryId, branchId);
-        branchService.deleteBranch(repositoryId, branchId);
+        PollableFuture pollableFuture = branchService.asyncDeleteBranch(repositoryId, branchId);
+        return pollableFuture.getPollableTask();
     }
 
 }

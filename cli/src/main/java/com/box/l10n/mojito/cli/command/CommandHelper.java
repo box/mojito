@@ -61,9 +61,6 @@ public class CommandHelper {
     PollableTaskClient pollableTaskClient;
 
     @Autowired
-    CommandWaitForPollableTaskListener commandWaitForPollableTaskListener;
-
-    @Autowired
     ConsoleWriter consoleWriter;
 
     /**
@@ -225,7 +222,7 @@ public class CommandHelper {
         consoleWriter.newLine().a("Running, task id: ").fg(Ansi.Color.MAGENTA).a(pollableId).a(" ").println();
 
         try {
-            pollableTaskClient.waitForPollableTask(pollableId, PollableTaskClient.NO_TIMEOUT, commandWaitForPollableTaskListener);
+            pollableTaskClient.waitForPollableTask(pollableId, PollableTaskClient.NO_TIMEOUT, new CommandWaitForPollableTaskListener());
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }

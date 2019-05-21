@@ -265,8 +265,12 @@ public class AuthenticatedRestTemplate {
         return restTemplate.postForEntity(getURIForResource(resourcePath), request, responseType);
     }
 
+    public <T> T deleteForObject(String resourcePath, HttpEntity request, Class<T> responseType) throws RestClientException {
+        return restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.DELETE, request, responseType).getBody();
+    }
+
     public void delete(String resourcePath, HttpEntity request) throws RestClientException {
-        restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.DELETE, request,  Void.class);
+        deleteForObject(resourcePath, request, Void.class);
     }
 
     /**

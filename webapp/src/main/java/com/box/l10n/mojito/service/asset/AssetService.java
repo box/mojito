@@ -9,6 +9,7 @@ import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
@@ -26,6 +27,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -34,8 +36,10 @@ import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -90,6 +94,9 @@ public class AssetService {
 
     @Autowired
     FilterOptionsMd5Builder filterOptionsMd5Builder;
+
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     /**
      * Adds an {@link Asset} to a {@link Repository}.
@@ -345,6 +352,14 @@ public class AssetService {
         }
 
         logger.debug("Deleted assets {}", assetIds.toString());
+    }
+
+    public PollableFuture asyncDeleteAssetsOfBranch(Set<Long> assetIds, Long branchId) {
+        DeleteAssetsOfBranchJobInput deleteAssetsOfBranchJobInput = new DeleteAssetsOfBranchJobInput();
+        deleteAssetsOfBranchJobInput.setAssetIds(assetIds);
+        deleteAssetsOfBranchJobInput.setBranchId(branchId);
+        String pollableMessage = MessageFormat.format(" - Delete assetIds: {0} in branch: {1}", Joiner.on(",").join(assetIds), branchId);
+        return quartzPollableTaskScheduler.scheduleJob(DeleteAssetsOfBranchJob.class, deleteAssetsOfBranchJobInput, null, pollableMessage, 0);
     }
 
     public void deleteAssetsOfBranch(Set<Long> assetIds, Long branchId) {

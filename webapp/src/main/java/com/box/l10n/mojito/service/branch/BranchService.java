@@ -1,14 +1,18 @@
 package com.box.l10n.mojito.service.branch;
 
 import com.box.l10n.mojito.entity.Branch;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.MessageFormat;
 import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -33,6 +37,9 @@ public class BranchService {
 
     @Autowired
     AssetService assetService;
+
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     public Branch createBranch(Repository repository, String branchName, User createdByUser) {
 
@@ -66,6 +73,14 @@ public class BranchService {
     public void undeleteBranch(Branch branch) {
         branch.setDeleted(false);
         branchRepository.save(branch);
+    }
+
+    public PollableFuture asyncDeleteBranch(Long repositoryId, Long branchId) {
+        DeleteBranchJobInput deleteBranchJobInput = new DeleteBranchJobInput();
+        deleteBranchJobInput.setRepositoryId(repositoryId);
+        deleteBranchJobInput.setBranchId(branchId);
+        String pollableMessage = MessageFormat.format(" - Delete branch: {0} from repository: {1}", branchId, repositoryId);
+        return quartzPollableTaskScheduler.scheduleJob(DeleteBranchJob.class, deleteBranchJobInput, null, pollableMessage, 0);
     }
 
     @Transactional
