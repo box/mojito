@@ -12,6 +12,8 @@ class BranchesAddScreenshotButton extends React.Component {
     };
 
     render() {
+
+        // we use this construct instead of putting the button in the overlay because tooltips don't work on disabled buttons
         let button = (
             <div style={{display: "inline-block"}}>
                 <Button bsStyle="primary"

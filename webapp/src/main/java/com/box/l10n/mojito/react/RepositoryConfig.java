@@ -5,6 +5,7 @@ public class RepositoryConfig {
     Location location;
     Commit commit;
     ThirdParty thirdParty;
+    PullRequest pullRequest;
 
     public Location getLocation() {
         return location;
@@ -28,5 +29,13 @@ public class RepositoryConfig {
 
     public void setThirdParty(ThirdParty thirdParty) {
         this.thirdParty = thirdParty;
+    }
+
+    public PullRequest getPullRequest() {
+        return pullRequest;
+    }
+
+    public void setPullRequest(PullRequest pullRequest) {
+        this.pullRequest = pullRequest;
     }
 }
