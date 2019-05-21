@@ -1,41 +1,38 @@
 package com.box.l10n.mojito.smartling;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.AccessTokenProvider;
 import org.springframework.security.oauth2.client.token.AccessTokenProviderChain;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 
 import java.util.Arrays;
 
-/**
- * @author jaurambault
- */
 @Configuration
 @EnableOAuth2Client
 @ConfigurationProperties("l10n.smartling")
 public class SmartlingClientConfiguration {
 
     String baseUri = "https://api.smartling.com/";
-    String accessTokenUri = "https://api.smartling.com/auth-api/v2/authenticate";
-    String refreshTokenUri = "https://api.smartling.com/auth-api/v2/authenticate/refresh";
+    String accessTokenUri = baseUri + "auth-api/v2/authenticate";
+    String refreshTokenUri = baseUri + "auth-api/v2/authenticate/refresh";
 
-    String clientID;
-    String clientSecret;
+    String userIdentifier;
+    String userSecret;
 
     @Bean
     public OAuth2ProtectedResourceDetails smartling() {
         SmartlingOAuth2ProtectedResourceDetails details = new SmartlingOAuth2ProtectedResourceDetails();
-        details.setId("smarlting");
+        details.setId("smartling");
         details.setGrantType("smartling");
-        details.setClientId(clientID);
-        details.setClientSecret(clientSecret);
+        details.setClientId(userIdentifier);
+        details.setClientSecret(userSecret);
         details.setAccessTokenUri(accessTokenUri);
         details.setRefreshUri(refreshTokenUri);
         return details;
@@ -74,19 +71,19 @@ public class SmartlingClientConfiguration {
         this.refreshTokenUri = refreshTokenUri;
     }
 
-    public String getClientID() {
-        return clientID;
+    public String getUserIdentifier() {
+        return userIdentifier;
     }
 
-    public void setClientID(String clientID) {
-        this.clientID = clientID;
+    public void setUserIdentifier(String userIdentifier) {
+        this.userIdentifier = userIdentifier;
     }
 
-    public String getClientSecret() {
-        return clientSecret;
+    public String getUserSecret() {
+        return userSecret;
     }
 
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
+    public void setUserSecret(String userSecret) {
+        this.userSecret = userSecret;
     }
 }

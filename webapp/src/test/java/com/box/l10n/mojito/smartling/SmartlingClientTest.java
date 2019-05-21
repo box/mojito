@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.smartling;
 
 import com.box.l10n.mojito.smartling.response.SourceStringsResponse;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,13 +8,10 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
