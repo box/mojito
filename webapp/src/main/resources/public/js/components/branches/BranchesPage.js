@@ -157,7 +157,7 @@ class BranchesPage extends React.Component {
                             let params = {
                                 "changedParam": SearchConstants.UPDATE_ALL,
                                 "repoIds": repoIds,
-                                "tmTextUnitId": tmTextUnitId,
+                                "tmTextUnitIds": [tmTextUnitId],
                                 "bcp47Tags": RepositoryStore.getAllBcp47TagsForRepositoryIds(repoIds, true),
                                 "status": SearchParamsStore.STATUS.ALL,
                             }
