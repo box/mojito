@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.cli;
 
 import com.ibm.icu.text.MessageFormat;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +35,8 @@ public class CliWS {
     @Value("${info.build.version}")
     String version;
 
-    @Autowired @Qualifier("GitInfoWebapp")
+    @Autowired
+    @Qualifier("GitInfoWebapp")
     GitInfo gitInfo;
 
     @Value("${cli.url}")
@@ -44,15 +47,15 @@ public class CliWS {
 
     /**
      * Entry point do download the CLI that correspond to this server version.
-     * 
-     * Serve a local file (referenced in "cli.file" property) if it exists or 
+     * <p>
+     * Serve a local file (referenced in "cli.file" property) if it exists or
      * redirects to a URL build out of the "cli.url" property which can be a
-     * template with following placeholder: {version}, {gitCommit} and 
+     * template with following placeholder: {version}, {gitCommit} and
      * {gitCommitShort}
-     * 
-     * By default Github release is referenced, so that it works for standard 
+     * <p>
+     * By default Github release is referenced, so that it works for standard
      * releases process.
-     * 
+     *
      * @param httpServletResponse
      * @return
      * @throws IOException
@@ -71,7 +74,17 @@ public class CliWS {
         }
     }
 
-    public String getUrl() {
+    @RequestMapping(value = "/cli/version", method = RequestMethod.GET)
+    public String getVersionWS() throws IOException {
+        String fullVersion = version;
+
+        if (gitInfo.getCommit() != null) {
+            fullVersion += " (git commit id: " + gitInfo.getCommit().getId() + ")";
+        }
+        return fullVersion;
+    }
+
+    String getUrl() {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("version", version);
         arguments.put("gitCommit", gitInfo.getCommit().getId());
