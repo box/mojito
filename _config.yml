@@ -11,7 +11,7 @@ email: mojito-global@googlegroups.com
 description: > # this means to ignore newlines until "baseurl:"
   An open sourced automation platform that enables continuous localization for software development
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "http://www.mojito.global/" # the base hostname & protocol for your site
+url: "https://www.mojito.global/" # the base hostname & protocol for your site
 mojito_green: <span><font color="green">mojito</font><span>
 github_username:  mojito
 # Build settings
