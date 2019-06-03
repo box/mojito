@@ -16,7 +16,7 @@ Click on `New Request`. Select the repository, for which you would like to reque
 
 Your project will appear on the request page with the status `In translation`. 
 
-{{ site.mojito_green }} will create `XLIFF` files containing all text units that need translation and place them in the configured directory.  Refer to [Project Request Configuration]({{ site.github.url }}/docs/refs/configurations/#project-request-configuration).
+{{ site.mojito_green }} will create `XLIFF` files containing all text units that need translation and place them in the configured directory.  Refer to [Project Request Configuration]({{ site.url }}/docs/refs/configurations/#project-request-configuration).
 
 ### Request a review project
 
@@ -26,7 +26,7 @@ Click on `New Request`. Select the repository, for which you would like to reque
 
 Your project will appear on the request page with the status `In review`. 
 
-{{ site.mojito_green }} will create `XLIFF` files containing all text units that need review and place them in the configured directory.  Refer to [Project Request Configuration]({{ site.github.url }}/docs/refs/configurations/#project-request-configuration).
+{{ site.mojito_green }} will create `XLIFF` files containing all text units that need review and place them in the configured directory.  Refer to [Project Request Configuration]({{ site.url }}/docs/refs/configurations/#project-request-configuration).
 
 ### View and filter requests
 
@@ -45,7 +45,7 @@ Use the filter at the top of the page to view projects in progress (projects tha
 
 ![Import request](./images/ImportRequest.gif)
 
-When the files are back from your translation teams and put into the directory configured in [Project Request Configuration]({{ site.github.url }}/docs/refs/configurations/#project-request-configuration), you can import them to {{ site.mojito_green }} by clicking on the `import` button. The `import` button appears when you hover over a project line.
+When the files are back from your translation teams and put into the directory configured in [Project Request Configuration]({{ site.url }}/docs/refs/configurations/#project-request-configuration), you can import them to {{ site.mojito_green }} by clicking on the `import` button. The `import` button appears when you hover over a project line.
 
 {{ site.mojito_green }} has quality checks that help detect some broken text units. Once the import is complete, you can go to the repository page and make sure no text units were rejected.
 

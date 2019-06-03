@@ -133,7 +133,7 @@ Let's say that `java.io.tmpdir` is `/tmp`.  When you create a new project reques
 
 When translators are done, translated xliff files should be put in the `Localized Files` directory.  {{ site.mojito_green }} imports xliff files from this directory.
 
-You can override this default configuration and have project requests to be managed on Box instead of local file system.  Refer to [Integrating with Box]({{ site.github.url }}/docs/guides/integrating-with-box/).
+You can override this default configuration and have project requests to be managed on Box instead of local file system.  Refer to [Integrating with Box]({{ site.url }}/docs/guides/integrating-with-box/).
 
 
 ### Database Authentication
@@ -189,7 +189,7 @@ If you want to authenticate the user running CLI on command-line, set the follow
 
     l10n.resttemplate.authentication.credentialProvider=CONSOLE
 
-Please note that the the username defaults to the current user (Java system property for user.name) running the CLI instead of `admin`.  Before updating this configuration, it is strongly recommended to add usernames of users that would run the CLI as described in [Database Authentication]({{ site.github.url }}/docs/refs/configurations/#database-authentication).
+Please note that the the username defaults to the current user (Java system property for user.name) running the CLI instead of `admin`.  Before updating this configuration, it is strongly recommended to add usernames of users that would run the CLI as described in [Database Authentication]({{ site.url }}/docs/refs/configurations/#database-authentication).
 
 You can override Java system property for user.name with `-Duser.name=admin`.  For example, to run {{ site.mojito_green }} CLI as `admin` user, enter the following:
 

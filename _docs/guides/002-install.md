@@ -49,7 +49,7 @@ One simple solution is to add an `application.properties` next to the `jar`. To 
 The default setup comes with `HSQL` in-memory database, database authentication and runs on port `8080`.
 For production, `MySQL` should be setup. It is also possible to use [LDAP](/docs/guides/ldap-authentication) for authentication.
 
-On the first Webapp startup, a user: `admin/ChangeMe` is created. This can be customized with configuration, see [Manage Users]({{ site.github.url }}/docs/guides/manage-users/#bootstraping).
+On the first Webapp startup, a user: `admin/ChangeMe` is created. This can be customized with configuration, see [Manage Users]({{ site.url }}/docs/guides/manage-users/#bootstraping).
 
 ### Server port
 

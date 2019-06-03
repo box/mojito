@@ -13,7 +13,7 @@ User information is stored in database and all the authentication process
 is handle by the server. Managing users is done 
 via the CLI.
 
-Alternatively, [LDAP]({{ site.github.url }}/docs/guides/ldap-authentication) can be used.
+Alternatively, [LDAP]({{ site.url }}/docs/guides/ldap-authentication) can be used.
        
 ### Bootstraping
 

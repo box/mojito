@@ -33,7 +33,7 @@ Else, make sure the global `npm` is compatible.
 
 {{ site.mojito_green }} should be running on [http://localhost:8080/login](http://localhost:8080/login).  You can login with admin/ChangeMe.
 
-{{ site.mojito_green }} is running with in-memory HSQL DB.  When you restart {{ site.mojito_green }}, all data is reset.  You can configure {{ site.mojito_green }} to run with MySQL.  See [Database Configuration]({{ site.github.url }}/docs/refs/configurations/#database-configuration) for more information.
+{{ site.mojito_green }} is running with in-memory HSQL DB.  When you restart {{ site.mojito_green }}, all data is reset.  You can configure {{ site.mojito_green }} to run with MySQL.  See [Database Configuration]({{ site.url }}/docs/refs/configurations/#database-configuration) for more information.
 
 ## Add Demo Data in {{ site.mojito_green }}
 Make sure {{ site.mojito_green }} is up and running.

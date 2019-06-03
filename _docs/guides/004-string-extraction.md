@@ -8,7 +8,7 @@ permalink: /docs/guides/string-extraction/
 In this guide, we use `mojito-cli` to extract strings from source resource file.  Translatable strings are extracted from source resource file and stored in the repository.  This process is called `push` in {{ site.mojito_green }} because extracted strings are "pushed" to {{ site.mojito_green }}.  
 
 
-For {{ site.mojito_green }} supported source resource files, see [Supported File Formats]({{ site.github.url }}/docs/refs/mojito-file-formats/).
+For {{ site.mojito_green }} supported source resource files, see [Supported File Formats]({{ site.url }}/docs/refs/mojito-file-formats/).
 
 
 ### Push

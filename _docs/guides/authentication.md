@@ -54,7 +54,7 @@ but the server won't contain credentials.
 When a user logs in via `LDAP` and there is no matching user in {{ site.mojito_green }}, a new
  user is automatically created using the information provided by the `LDAP` server.
 
-The [user management]({{ site.github.url }}/docs/guides/manage-users) is different
+The [user management]({{ site.url }}/docs/guides/manage-users) is different
 compared to when using the database. The CLI to manage users will only 
 change the users in {{ site.mojito_green }} and won't interact with the `LDAP` server. This
 means you can't change a user password using this command. 

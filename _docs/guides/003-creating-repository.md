@@ -16,7 +16,7 @@ In this guide, we use `mojito-cli` to create a repository in {{ site.mojito_gree
 This creates a repository with name `MyRepo` with description `Project A`.  Description is optional.
 
 
-It is configured with locales `de-DE es-ES fr-FR ja-JP`.  These locales are used to create translation requests to translators and to generate localized resource files.  For more information about locales, see [Managing Locales]({{ site.github.url }}/docs/guides/managing-locales/).
+It is configured with locales `de-DE es-ES fr-FR ja-JP`.  These locales are used to create translation requests to translators and to generate localized resource files.  For more information about locales, see [Managing Locales]({{ site.url }}/docs/guides/managing-locales/).
 
 
 You can now see the repository `MyRepo` in the Webapp.
@@ -34,7 +34,7 @@ You can now see the repository `MyRepo` in the Webapp.
 This creates a repository with name `MyRepo` with locales `fr-FR`.
 
 
-The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` extension.  Integrity checkers are used to validate translations.  Integrity checker configuration is optional but it is highly recommended to catch translations with errors and reject them.  See [Integrity Checkers]({{ site.github.url }}/docs/guides/integrity-checkers/) for more information.
+The repository is configured to use `COMPOSITE_FORMAT` integrity checker for files with `resw` extension.  Integrity checkers are used to validate translations.  Integrity checker configuration is optional but it is highly recommended to catch translations with errors and reject them.  See [Integrity Checkers]({{ site.url }}/docs/guides/integrity-checkers/) for more information.
 
 
 

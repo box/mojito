@@ -15,7 +15,7 @@ We use `mojito-cli` to configure locales in a repository.  Locales can be config
     mojito repo-update -n MyRepo -l de-DE es-ES fr-FR ja-JP
 
 
-{{ site.mojito_green }} requires that the locale name follows BCP 47 syntax with region subtag, in the form of language-region.  See [Locales]({{ site.github.url }}/docs/refs/mojito-locales/) for the complete list of available locales in {{ site.mojito_green }}.
+{{ site.mojito_green }} requires that the locale name follows BCP 47 syntax with region subtag, in the form of language-region.  See [Locales]({{ site.url }}/docs/refs/mojito-locales/) for the complete list of available locales in {{ site.mojito_green }}.
 
 
 

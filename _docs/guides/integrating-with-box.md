@@ -88,5 +88,5 @@ By default {{ site.mojito_green }} exports to the file system. To enable exporti
 
     l10n.dropExporter.type=BOX
     
-For more information about custom configuration, see [Configurations#box-platform-integration]({{ site.github.url }}/docs/refs/configurations/#box-platform-integration)
+For more information about custom configuration, see [Configurations#box-platform-integration]({{ site.url }}/docs/refs/configurations/#box-platform-integration)
 
