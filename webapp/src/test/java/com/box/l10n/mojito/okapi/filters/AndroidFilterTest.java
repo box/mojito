@@ -55,38 +55,39 @@ public class AndroidFilterTest {
     }
 
     @Test
-    public void testEscaping() {
-        testEscaping("Nothing", "Nothing");
-        testEscaping("  does trim   ", "does trim");
-        testEscaping("\"  does not trim in quote but remove them  \"", "  does not trim in quote but remove them  ");
-        testEscaping(" a \n b\n   c", "a b c");
+    public void testUnescaping() {
+        testUnescaping("Nothing", "Nothing");
+        testUnescaping("  does trim   ", "does trim");
+        testUnescaping("\"  does not trim in quote but remove them  \"", "  does not trim in quote but remove them  ");
+        testUnescaping(" a \n b\n   c", "a b c");
 
-        testEscaping("process escaped line feed \\n", "process escaped line feed \n");
-        testEscaping("process escaped cariage return \\r", "process escaped cariage return \r");
-        testEscaping("unescape other character too \\a", "unescape other character too a");
+        testUnescaping("process escaped line feed \\n", "process escaped line feed \n");
+        testUnescaping("process escaped cariage return \\r", "process escaped cariage return \r");
+        testUnescaping("unescape other character too \\a", "unescape other character too a");
 
         // this is cover by the global case but call them out since they should be escaped in android
-        testEscaping("unescape single quote \'", "unescape single quote '");
-        testEscaping("unescape double quote \\\"", "unescape double quote \"");
-        testEscaping("unescape at sign \\@", "unescape at sign @");
-        testEscaping("unescape question mark \\?", "unescape question mark ?");
+        testUnescaping("unescape single quote \'", "unescape single quote '");
+        testUnescaping("unescape double quote \\\"", "unescape double quote \"");
+        testUnescaping("unescape at sign \\@", "unescape at sign @");
+        testUnescaping("\\@ unescape starting at sign", "@ unescape starting at sign");
+        testUnescaping("unescape question mark \\?", "unescape question mark ?");
 
         // those are cover by the XML parser, no need to process them even though called out in the doc
-        testEscaping("&apos;", "&apos;");
-        testEscaping("&quot;", "&quot;");
-        testEscaping("&lt;", "&lt;");
+        testUnescaping("&apos;", "&apos;");
+        testUnescaping("&quot;", "&quot;");
+        testUnescaping("&lt;", "&lt;");
 
         // some html tag are supported
-        testEscaping("<i>bla</i>", "<i>bla</i>");
+        testUnescaping("<i>bla</i>", "<i>bla</i>");
 
         // multi lines and spaces
-        testEscaping("\n line1   \n   line2 \n", "line1 line2");
+        testUnescaping("\n line1   \n   line2 \n", "line1 line2");
     }
 
-    void testEscaping(String input, String expected) {
+    void testUnescaping(String input, String expected) {
         AndroidFilter instance = new AndroidFilter();
         instance.unescapeUtils = new UnescapeUtils();
-        String s = instance.escape(input);
+        String s = instance.unescape(input);
         logger.debug("> Input:\n{}\n> Expected:\n{}\n> Actual:\n{}\n>>>", input, expected, s);
         assertEquals(expected, s);
     }
