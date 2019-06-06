@@ -1,23 +1,19 @@
 package com.box.l10n.mojito.rest.cli;
 
-import com.ibm.icu.text.MessageFormat;
+import com.box.l10n.mojito.service.cli.CliService;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,29 +28,15 @@ public class CliWS {
      */
     static Logger logger = LoggerFactory.getLogger(CliWS.class);
 
-    @Value("${info.build.version}")
-    String version;
-
     @Autowired
-    @Qualifier("GitInfoWebapp")
-    GitInfo gitInfo;
-
-    @Value("${cli.url}")
-    String cliUrl;
-
-    @Value("${cli.file}")
-    String cliFile;
+    CliService cliService;
 
     /**
-     * Entry point do download the CLI that correspond to this server version.
+     * Entry point do download the CLI that corresponds to this server version.
      * <p>
-     * Serve a local file (referenced in "cli.file" property) if it exists or
-     * redirects to a URL build out of the "cli.url" property which can be a
-     * template with following placeholder: {version}, {gitCommit} and
-     * {gitCommitShort}
+     * Serve the local file if it exists or redirects to the URL where the CLI can be downloaded.
      * <p>
-     * By default Github release is referenced, so that it works for standard
-     * releases process.
+     * By default Github release is referenced (no local file), so that it works for standard releases process.
      *
      * @param httpServletResponse
      * @return
@@ -64,33 +46,46 @@ public class CliWS {
     @ResponseBody
     public FileSystemResource getFile(HttpServletResponse httpServletResponse) throws IOException {
 
-        Path cliFilePath = Paths.get(cliFile);
+        Optional<FileSystemResource> fileSystemResource = cliService.getLocalCliFile();
 
-        if (Files.exists(cliFilePath)) {
-            return new FileSystemResource(cliFilePath.toFile());
-        } else {
-            httpServletResponse.sendRedirect(getUrl());
+        return fileSystemResource.orElseGet(() -> {
+            unsafeSendRedirect(httpServletResponse, cliService.getCliUrl());
             return null;
+        });
+    }
+
+    void unsafeSendRedirect(HttpServletResponse httpServletResponse, String cliUrl) {
+        try {
+            httpServletResponse.sendRedirect(cliUrl);
+        } catch (IOException ioe) {
+            throw new RuntimeException("Can't send redirect for the CLI", ioe);
         }
     }
 
+    /**
+     * Entry point to download a bash script to install the CLI
+     *
+     * @param httpServletRequest
+     * @param installDirectory
+     * @return
+     * @throws IOException
+     */
+    @RequestMapping(value = "/cli/install.sh", method = RequestMethod.GET)
+    @ResponseBody
+    public String getInstallCliScript(
+            HttpServletRequest httpServletRequest,
+            @RequestParam(value = "installDirectory", defaultValue = "#{'$'}{PWD}/.mojito") String installDirectory) throws IOException {
+        String requestUrl = httpServletRequest.getRequestURL().toString();
+        return cliService.generateInstallCliScript(requestUrl, installDirectory);
+    }
+
+    /**
+     * Gets current CLI version of this server.
+     *
+     * @return
+     */
     @RequestMapping(value = "/cli/version", method = RequestMethod.GET)
-    public String getVersionWS() throws IOException {
-        String fullVersion = version;
-
-        if (gitInfo.getCommit() != null) {
-            fullVersion += " (git commit id: " + gitInfo.getCommit().getId() + ")";
-        }
-        return fullVersion;
-    }
-
-    String getUrl() {
-        Map<String, Object> arguments = new HashMap<>();
-        arguments.put("version", version);
-        arguments.put("gitCommit", gitInfo.getCommit().getId());
-        arguments.put("gitShortCommit", gitInfo.getCommit().getId().substring(0, 7));
-
-        String format = MessageFormat.format(cliUrl, arguments);
-        return format;
+    public String getVersion() {
+        return cliService.getVersion();
     }
 }
