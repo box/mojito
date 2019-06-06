@@ -149,6 +149,22 @@ class BranchesPage extends React.Component {
                             WorkbenchActions.searchParamsChanged(params);
                             this.props.router.push("/workbench", null, null);
                         }}
+
+                        onTextUnitNameClick={(branchStatistic, tmTextUnitId) => {
+
+                            let repoIds = [branchStatistic.branch.repository.id];
+
+                            let params = {
+                                "changedParam": SearchConstants.UPDATE_ALL,
+                                "repoIds": repoIds,
+                                "tmTextUnitIds": [tmTextUnitId],
+                                "bcp47Tags": RepositoryStore.getAllBcp47TagsForRepositoryIds(repoIds, true),
+                                "status": SearchParamsStore.STATUS.ALL,
+                            }
+
+                            WorkbenchActions.searchParamsChanged(params);
+                            this.props.router.push("/workbench", null, null);
+                        }}
                     />
                 </AltContainer>
 

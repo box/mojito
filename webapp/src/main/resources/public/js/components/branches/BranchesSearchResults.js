@@ -1,9 +1,11 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import {FormattedDate, FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
-import {Button, Col, Collapse, Glyphicon, Grid, Label, Row} from "react-bootstrap";
+import {Button, Col, Collapse, Glyphicon, Grid, Label, OverlayTrigger, Row, Tooltip} from "react-bootstrap";
 import {Link, withRouter} from "react-router";
 import ClassNames from "classnames";
+import {withAppConfig} from "../../utils/AppConfig";
+import LinkHelper from "../../utils/LinkHelper";
 
 
 class BranchesSearchResults extends React.Component {
@@ -16,7 +18,8 @@ class BranchesSearchResults extends React.Component {
         "onChangeOpenBranchStatistic": PropTypes.func.isRequired,
         "onChangeSelectedBranchTextUnits": PropTypes.func.isRequired,
         "onShowBranchScreenshotsClick": PropTypes.func.isRequired,
-        "onNeedTranslationClick": PropTypes.func.isRequired
+        "onNeedTranslationClick": PropTypes.func.isRequired,
+        "onTextUnitNameClick": PropTypes.func.isRequired,
     };
 
     isBranchStatisticOpen(branchStatistic) {
@@ -29,25 +32,16 @@ class BranchesSearchResults extends React.Component {
         let expectedNumberOfScreenshots = branchStatistic.branchTextUnitStatistics.length;
         let needScreenshot = expectedNumberOfScreenshots - numberOfScreenshots;
 
-        return (
-            <div onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)} className="clickable">
-                {needScreenshot === 0 ?
+        return <div>
+            {
+                needScreenshot === 0 ?
                     <Label bsStyle="success" className="mrs">
                         <FormattedMessage id="branches.done"/>
                     </Label>
                     :
-                    <Link>
-                        <FormattedNumber value={needScreenshot}/>
-                    </Link>
-                }
-
-                {needScreenshot === 0 ?
-                    ""
-                    :
-                    <Glyphicon className="branches-branchstatistic-screenshotpreview mlm" glyph="picture"/>
-                }
-            </div>
-        );
+                    <FormattedNumber value={needScreenshot}/>
+            }
+        </div>;
     }
 
     renderGridHeader() {
@@ -86,6 +80,75 @@ class BranchesSearchResults extends React.Component {
         return rows;
     }
 
+    getPullRequestUrlTemplate = (branch) => {
+        try {
+            return this.props.appConfig.link[branch.repository.name].pullRequest.url;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    getPullRequestUrlComponentTemplate = (branch) => {
+        try {
+            return this.props.appConfig.branches[branch.repository.name].pullRequest.urlComponent;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    hasScreenshot(branchStatistic) {
+        return this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size > 0;
+    }
+
+    renderBranchName(branch) {
+        let renderedBranchName;
+
+        let pullRequestUrlTemplate = this.getPullRequestUrlTemplate(branch);
+
+        if (pullRequestUrlTemplate !== null) {
+            let pullRequestUrlComponentTemplate = this.getPullRequestUrlComponentTemplate(branch);
+
+            const url = LinkHelper.renderUrl(pullRequestUrlTemplate, pullRequestUrlComponentTemplate, {
+                branchName: branch.name
+            })
+
+            renderedBranchName = <a href={url}>{branch.name}</a>;
+        } else {
+            renderedBranchName = branch.name;
+        }
+
+        return renderedBranchName;
+    }
+
+    renderOpenModalScreenshotButton(branchStatistic) {
+
+        let disabled = !this.hasScreenshot(branchStatistic);
+
+        // we use this construct instead of putting the button in the overlay because tooltips don't work on disabled buttons
+        let button = (
+            <div style={{display: "inline-block"}}>
+                <Button bsStyle="default"
+                        style={disabled ? {pointerEvents: "none"} : {}}
+                        bsSize="small" disabled={disabled}
+                        onClick={() => this.props.onShowBranchScreenshotsClick(branchStatistic.id)}>
+                    <Glyphicon className="branches-branchstatistic-col1-screenshot" glyph="picture"/>
+                </Button>
+            </div>
+        );
+
+        button = (
+            <OverlayTrigger placement="bottom"
+                            overlay={<Tooltip id="BranchesSearchResults.tooltip.screenshot">
+                                <FormattedMessage
+                                    id={disabled ? "branches.searchResults.tooltip.noscreenshots" : "branches.searchResults.tooltip.withscreenshots"}/>
+                            </Tooltip>}>
+                {button}
+            </OverlayTrigger>);
+
+
+        return <div className="branches-branchstatistic-screenshotpreview">{button}</div>;
+    }
+
     renderBranchStatisticSummary(branchStatistic) {
 
         let isBranchStatisticOpen = this.isBranchStatisticOpen(branchStatistic);
@@ -93,7 +156,7 @@ class BranchesSearchResults extends React.Component {
         return (
             <Row key={"branchStatistic-" + branchStatistic.id} className="branches-branchstatistic-summary">
                 <Col md={4} className="branches-branchstatistic-col1">
-                    <Row>
+                    <Row className="branches-branchstatistic-col1-row">
                         <Col md={8}>
                             <Button bsSize="xsmall"
                                     onClick={() =>
@@ -102,10 +165,11 @@ class BranchesSearchResults extends React.Component {
                                 <Glyphicon glyph={isBranchStatisticOpen ? "chevron-down" : "chevron-right"}
                                            className="color-gray-light"/>
                             </Button>
-                            <span className="mlm">{branchStatistic.branch.name}</span>
+                            <span className="mlm">
+                                {this.renderBranchName(branchStatistic.branch)}
+                            </span>
                         </Col>
-                        <Col md={4}>
-
+                        <Col md={2}>
                             {branchStatistic.branch.deleted ?
                                 <Label bsStyle="light">
                                     <FormattedMessage id="branches.deleted"/>
@@ -113,6 +177,9 @@ class BranchesSearchResults extends React.Component {
                                 :
                                 ""
                             }
+                        </Col>
+                        <Col md={2}>
+                            {this.renderOpenModalScreenshotButton(branchStatistic)}
                         </Col>
                     </Row>
 
@@ -173,32 +240,36 @@ class BranchesSearchResults extends React.Component {
                                         this.props.onChangeSelectedBranchTextUnits(newSelected);
                                     }}/>
                             </div>
-                            <div className="plm">{branchTextUnitStatistic.tmTextUnit.name}</div>
+                            <div className="plm">
+                                <Link className="clickable"
+                                      onClick={() => {this.props.onTextUnitNameClick(branchStatistic, branchTextUnitStatistic.tmTextUnit.id);}}>
+                                    {branchTextUnitStatistic.tmTextUnit.name}
+                                </Link>
+                            </div>
                             <div
-                                className="branches-branchstatistic-textunit-content">{branchTextUnitStatistic.tmTextUnit.content}</div>
+                                className="branches-branchstatistic-textunit-content">{branchTextUnitStatistic.tmTextUnit.content}
+                            </div>
                         </div>
                     </Col>
                     <Col md={2}>
                         <div>
+                            {branchTextUnitStatistic.forTranslationCount > 0 &&
                             <Link className="clickable"
                                   onClick={() => this.props.onNeedTranslationClick(
                                       branchStatistic,
                                       branchTextUnitStatistic.tmTextUnit.id,
                                       branchTextUnitStatistic.forTranslationCount > 0)}
                             >
-                                {branchTextUnitStatistic.forTranslationCount > 0 ?
-                                    <FormattedNumber value={branchTextUnitStatistic.forTranslationCount}/>
-                                    :
-                                    <Glyphicon glyph="ok" className="color-gray-light"/>
-                                }
+                                <FormattedNumber value={branchTextUnitStatistic.forTranslationCount}/>
                             </Link>
+                            }
                         </div>
                     </Col>
                     <Col md={2}>
                         <div>
                             {this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].has(branchTextUnitStatistic.tmTextUnit.id) ?
-                                <Glyphicon glyph="ok" className="color-gray-light"/> :
-                                <Glyphicon glyph="remove" className="color-gray-light"/>}
+                                "" :
+                                "1"}
                         </div>
                     </Col>
                 </Row>
@@ -228,4 +299,4 @@ class BranchesSearchResults extends React.Component {
     }
 }
 
-export default withRouter(injectIntl(BranchesSearchResults));
+export default withAppConfig(withRouter(injectIntl(BranchesSearchResults)));

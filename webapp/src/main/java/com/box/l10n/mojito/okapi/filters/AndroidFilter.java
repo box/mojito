@@ -135,7 +135,7 @@ public class AndroidFilter extends XMLFilter {
             if (oldEscaping) {
                 unescapedSourceString = unescapeUtils.unescape(sourceString);
             } else {
-                unescapedSourceString = escape(sourceString);
+                unescapedSourceString = unescape(sourceString);
             }
 
             textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
@@ -150,7 +150,7 @@ public class AndroidFilter extends XMLFilter {
      * @param sourceString
      * @return
      */
-    String escape(String sourceString) {
+    String unescape(String sourceString) {
         String unescapedSourceString;
 
         unescapedSourceString = sourceString.trim();
