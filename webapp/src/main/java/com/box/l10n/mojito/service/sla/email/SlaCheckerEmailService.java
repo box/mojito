@@ -30,8 +30,8 @@ public class SlaCheckerEmailService {
     static Logger logger = LoggerFactory.getLogger(SlaCheckerEmailService.class);
 
     static final String EMAIL_SUBJECT = "Out of SLA strings, incident #{incidentId}";
-    static final String OPEN_INCIDENT_TEMPLATE = "email/sla/openIncident";
-    static final String CLOSE_INCIDENT_TEMPLATE = "email/sla/closeIncident";
+    static final String OPEN_INCIDENT_TEMPLATE = "email/sla/openIncident.html";
+    static final String CLOSE_INCIDENT_TEMPLATE = "email/sla/closeIncident.html";
 
     @Autowired
     SlaCheckerEmailConfig slaCheckerEmailConfig;
