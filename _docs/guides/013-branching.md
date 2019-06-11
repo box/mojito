@@ -19,19 +19,27 @@ change the translation in all branches. This is the expected behavior for standa
 Branches are created during the [push process]({{ site.url }}/docs/guides/string-extraction/) by just adding an extra 
 parameter that specifies the branch being processed.
 
-    mojito push -r MyRepo -b branchName
+```bash
+mojito push -r MyRepo -b branchName
+```
 
 It is possible to provide the owner of the branch. This is useful when processing [pull requests](#process-pull-request).
 
-    mojito push -r MyRepo -b branchName -bc branchOwner
+```bash
+mojito push -r MyRepo -b branchName -bc branchOwner
+```
     
 ### View branches
       
-    mojito branch-view -r MyRepo
+```bash
+mojito branch-view -r MyRepo
+```
     
 ### Delete Branches
 
-    mojito branch-delete -r MyRepo -n branchName    
+```bash
+mojito branch-delete -r MyRepo -n branchName    
+```
 
 If no branch name is provided it will attempt to delete the `null` branch (default branch created when not specifying a branch during `push`). 
  
@@ -47,8 +55,9 @@ For example, if creating the `master` branch with:
 # Greeting from Main UI
 hello = Hello!
 ```
+```bash
     mojito push -r MyRepo -b master
-
+```
 and the `feature1` branch with:
 
 ```properties
@@ -57,7 +66,10 @@ hello = Hello!
 # Displayed in the Main UI when user logs out.
 bye = Goodbye. Have a nice day!
 ```
-    mojito push -r MyRepo -b feature1
+
+```bash
+mojito push -r MyRepo -b feature1
+```
 
 then `hello` will be linked to the `master` branch and `bye` to the `feature1` branch. 
 
@@ -73,7 +85,9 @@ hello = Hello!
 # Displayed in the Main UI when user logs out.
 bye = Goodbye. Have a nice day!
 ```
-    mojito push -r MyRepo -b master
+```bash
+mojito push -r MyRepo -b master
+```
 
  `bye` will then be linked to the `master` branch regardless if the 
 `feature1` branch is deleted or still open. 
@@ -112,7 +126,9 @@ automatically when new strings needs to be processed.
 A developer can add a special tag in the commit message like `#translate` to have the CI pipeline react and 
 trigger a job that will run the following command:
 
-    mojito push -r MyRepo -b branchName -bc branchOwner
+```bash
+mojito push -r MyRepo -b branchName -bc branchOwner
+```
 
 ### Slack integration
 
@@ -132,12 +148,11 @@ l10n.branchNotification.slack.userEmailPattern={0}@email.org
 `${SLACK_TOKEN}` can be found under `Features > OAuth & Permissions > Bot User OAuth Access Token` of 
 the Slack app.
 
-`userEmailPattern` is used to lookup the users. Provide the pattern corresponding to your Slack account. `{0}` is the 
-username associated with the branch owner (`-bc` option). 
-
 `${MOJITO_URL}` is the URL used to build links back to Mojito in the notifications and should be set to the URL of the
 running instance.
 
+`userEmailPattern` is used to lookup the users. Provide the pattern corresponding to your Slack account. `{0}` is the 
+username associated with the branch owner (`-bc` option). 
 
 #### Notifcaitions
 
@@ -194,7 +209,9 @@ hello = Hello!
   
 Assuming `Bonjour` is the French translation, when generating the localized files, notice that no branch is specified:
 
-    mojito pull -r MyRepo
+```bash
+mojito pull -r MyRepo
+```
 
 ```properties
 # Greeting from Main UI
@@ -221,7 +238,9 @@ hello = Hello!
 bye = Goodbye!
 ```
 
-    mojito push -r MyRepo -b master
+```bash
+mojito push -r MyRepo -b master
+```
     
 After the `push`, the repository will contain 2 strings: `hello` and `bye + Goodbye!`. Now, in a `feature1` branch, 
 the `bye` string is changed to include the placeholder `username`.
@@ -233,7 +252,9 @@ hello = Hello!
 bye = Goodbye, {username}!
 ```
 
-    mojito push -r MyRepo -b feature1
+```bash
+mojito push -r MyRepo -b feature1
+```
 
 After the `push`, the repository now contains 3 strings: `hello`, `bye + Goodbye!` and `bye + Goodbye, {username}!`. So 
 there are no risks of breaking the application by adding/removing placeholders and sharing the translations across 
