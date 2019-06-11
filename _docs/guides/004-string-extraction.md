@@ -78,3 +78,8 @@ Let's say you have the following source resource files in working directory.
 You can use regular expression to filter source resource files to push.  The following example only processes release-1 related files using `-sr` parameter for regular expression.
 
     mojito push -r MyRepo -sr "^(release-1).*$"
+    
+    
+### Branching (version control)
+
+See this [guide]({{ site.url }}/docs/guides/branching/).
