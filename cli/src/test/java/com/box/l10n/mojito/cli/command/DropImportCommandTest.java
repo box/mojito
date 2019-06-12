@@ -34,10 +34,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static org.mockito.Mockito.when;
+
 import org.springframework.boot.test.OutputCapture;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 /**
  *
@@ -114,6 +114,54 @@ public class DropImportCommandTest extends CLITestBase {
         localizeDropFiles(dropRepository.findOne(dropId));
 
         l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "--number-drop-fetched", "1000"});
+
+        int numberOfFrenchTranslationsAfter = getNumberOfFrenchTranslations(repository);
+
+        assertEquals("2 new french translations must be added", numberOfFrenchTranslationsBefore + 2, numberOfFrenchTranslationsAfter);
+
+        getL10nJCommander().run("tm-export", "-r", repository.getName(),
+                "-t", targetTestDir.getAbsolutePath(),
+                "--target-basename", "fortest");
+
+        modifyFilesInTargetTestDirectory(XliffUtils.replaceCreatedDateFunction());
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void importFetched() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        Asset asset2 = assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
+        importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
+        importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
+
+        getL10nJCommander().run("drop-export", "-r", repository.getName());
+
+        final Long dropId = getLastDropIdFromOutput(outputCapture);
+
+        logger.debug("Mocking the console input");
+        Console mockConsole = mock(Console.class);
+        verify(mockConsole, never()).readLine(Long.class);
+
+        L10nJCommander l10nJCommander = getL10nJCommander();
+
+        DropImportCommand dropImportCommand = l10nJCommander.getCommand(DropImportCommand.class);
+
+        dropImportCommand.console = mockConsole;
+
+        int numberOfFrenchTranslationsBefore = getNumberOfFrenchTranslations(repository);
+
+        localizeDropFiles(dropRepository.findOne(dropId));
+
+        l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "--import-fetched"});
 
         int numberOfFrenchTranslationsAfter = getNumberOfFrenchTranslations(repository);
 
