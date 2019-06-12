@@ -10,8 +10,13 @@ import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,6 +55,9 @@ public class DropImportCommand extends Command {
     @Parameter(names = {Param.DROP_IMPORT_STATUS}, required = false, description = Param.DROP_IMPORT_STATUS_DESCRIPTION,
             converter = ImportDropConfigStatus.class)
     ImportDropConfig.Status importStatusParam = null;
+
+    @Parameter(names = {"--import-fetched"}, required = false, description = "Import all fetched drops")
+    Boolean importFetchedParam = false;
 
     @Autowired
     CommandHelper commandHelper;
@@ -92,14 +100,16 @@ public class DropImportCommand extends Command {
                 consoleWriter.println();
             }
 
-            Long dropId = getSelectedDropId(numberedAvailableDrops);
+            List<Long> dropIds = getSelectedDropIds(numberedAvailableDrops);
 
-            consoleWriter.newLine().a("Import drop: ").fg(Color.CYAN).a(dropId).reset().a(" in repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
+            for(Long dropId: dropIds) {
+                consoleWriter.newLine().a("Import drop: ").fg(Color.CYAN).a(dropId).reset().a(" in repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
 
-            ImportDropConfig importDropConfig = dropClient.importDrop(repository, dropId, importStatusParam);
-            PollableTask pollableTask = importDropConfig.getPollableTask();
+                ImportDropConfig importDropConfig = dropClient.importDrop(repository, dropId, importStatusParam);
+                PollableTask pollableTask = importDropConfig.getPollableTask();
 
-            commandHelper.waitForPollableTask(pollableTask.getId());
+                commandHelper.waitForPollableTask(pollableTask.getId());
+            }
         }
 
         consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
@@ -136,7 +146,7 @@ public class DropImportCommand extends Command {
     }
 
     /**
-     * Gets the selected {@link Drop#id} matching the user input.
+     * Gets the list of selected {@link Drop#id}.
      *
      * <p>
      * First, reads a drop number from the console and then gets the
@@ -147,7 +157,14 @@ public class DropImportCommand extends Command {
      * @throws CommandException if the input doesn't match a number from the map
      * of available {@link Drop}s
      */
-    private Long getSelectedDropId(Map<Long, Drop> numberedAvailableDrops) throws CommandException {
+    private List<Long> getSelectedDropIds(Map<Long, Drop> numberedAvailableDrops) throws CommandException {
+        if (importFetchedParam) {
+            return numberedAvailableDrops.entrySet().stream()
+                    .filter(x -> !Boolean.TRUE.equals(x.getValue().getCanceled()) && x.getValue().getLastImportedDate() == null)
+                    .map(x -> x.getValue().getId())
+                    .collect(Collectors.toList());
+        }
+
         consoleWriter.newLine().a("Enter Drop number to import").println();
         Long dropNumber = console.readLine(Long.class);
 
@@ -155,7 +172,9 @@ public class DropImportCommand extends Command {
             throw new CommandException("Please enter a number from the list: " + numberedAvailableDrops.keySet());
         }
 
-        return numberedAvailableDrops.get(dropNumber).getId();
+        Long selectId = numberedAvailableDrops.get(dropNumber).getId();
+
+        return Arrays.asList(selectId);
     }
 
 }
