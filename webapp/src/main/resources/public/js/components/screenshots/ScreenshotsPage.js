@@ -190,10 +190,10 @@ class ScreenshotsPage extends React.Component {
                                     ScreenshotsHistoryActions.enableHistoryUpdate();
                                     ScreenshotsPageActions.performSearch();
                                     }}
-                                onSearchTypeChanged={(screenshotRunType) => {
+                                onSearchTypeChanged={(searchType) => {
                                     ScreenshotsHistoryActions.disableHistoryUpdate();
                                     ScreenshotsPaginatorActions.changeCurrentPageNumber(1);
-                                    ScreenshotsSearchTextActions.changeSearchType(type);
+                                    ScreenshotsSearchTextActions.changeSearchType(searchType);
                                     ScreenshotsHistoryActions.enableHistoryUpdate();
                                     ScreenshotsPageActions.performSearch();
                                     }}
