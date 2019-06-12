@@ -5,9 +5,11 @@ import com.box.l10n.mojito.slack.request.Channel;
 import com.box.l10n.mojito.slack.request.Message;
 import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -20,23 +22,24 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {SlackClientTest.class})
+@SpringApplicationConfiguration(classes = {SlackClientTest.class, SlackClientConfiguration.class})
 @EnableAutoConfiguration
 @IntegrationTest("spring.datasource.initialize=false")
 public class SlackClientTest {
 
-    @Value("${l10n.slack.token:#{null}}")
-    String token;
+    @Autowired(required = false)
+    SlackClient slackClient;
 
     @Value("${test.l10n.slack.email.destination:someemail@test.com}")
     String email;
 
+    @Before
+    public void assumeClient() {
+        Assume.assumeNotNull(slackClient);
+    }
+
     @Test
     public void testClient() throws SlackClientException {
-        Assume.assumeNotNull(token);
-
-        SlackClient slackClient = new SlackClient(token);
-
         Channel instantMessageChannel = slackClient.getInstantMessageChannel(email);
 
         Message message = new Message();
