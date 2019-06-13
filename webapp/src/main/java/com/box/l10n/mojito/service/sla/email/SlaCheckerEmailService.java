@@ -3,13 +3,13 @@ package com.box.l10n.mojito.service.sla.email;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.mustache.MustacheTemplateEngine;
 import com.box.l10n.mojito.utils.DateTimeUtils;
+import com.box.l10n.mojito.utils.ServerConfig;
 import com.ibm.icu.text.MessageFormat;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.joda.time.DateTime;
@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
-import com.box.l10n.mojito.service.sla.SlaIncidentRepository;
 
 /**
  * @author jeanaurambault
@@ -38,6 +37,9 @@ public class SlaCheckerEmailService {
 
     @Autowired
     JavaMailSender emailSender;
+
+    @Autowired
+    ServerConfig serverConfig;
 
     @Autowired
     MustacheTemplateEngine mustacheTemplateEngine;
@@ -67,7 +69,7 @@ public class SlaCheckerEmailService {
     }
 
     String getOpenIncidentEmailContent(long incidentId, List<Repository> repositories) {
-        OpenIncidentContext slaEmailContext = new OpenIncidentContext(incidentId, repositories, slaCheckerEmailConfig.getMojitoUrl());
+        OpenIncidentContext slaEmailContext = new OpenIncidentContext(incidentId, repositories, serverConfig.getUrl());
         String emailContent = mustacheTemplateEngine.render(OPEN_INCIDENT_TEMPLATE, slaEmailContext);
         return emailContent;
     }

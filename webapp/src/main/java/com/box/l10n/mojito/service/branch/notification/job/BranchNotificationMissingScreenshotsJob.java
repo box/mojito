@@ -28,15 +28,17 @@ public class BranchNotificationMissingScreenshotsJob extends SchedulableJob {
     static Logger logger = LoggerFactory.getLogger(BranchNotificationMissingScreenshotsJob.class);
 
     static final String BRANCH_ID = "branchId";
+    static final String SENDER_TYPE = "senderType";
 
     @Autowired
     BranchNotificationService branchNotificationService;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
-        Long branchId = context.getMergedJobDataMap().getLong("branchId");
-        logger.debug("execute for branchId: {}", branchId);
-        branchNotificationService.sendMissingScreenshotNotificationForBranch(branchId);
+        Long branchId = context.getMergedJobDataMap().getLong(BRANCH_ID);
+        String senderType = context.getMergedJobDataMap().getString(SENDER_TYPE);
+        logger.debug("execute for branchId: {} and sender type: {}", branchId, senderType);
+        branchNotificationService.sendMissingScreenshotNotificationForBranch(branchId, senderType);
     }
 
     @Override
@@ -44,9 +46,10 @@ public class BranchNotificationMissingScreenshotsJob extends SchedulableJob {
         return "Send the screenshot missing notification for a branch if applicable";
     }
 
-    public void schedule(Long branchId, Date triggerStartDate) {
+    public void schedule(Long branchId, String senderType, Date triggerStartDate) {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put(BRANCH_ID, branchId.toString());
+        jobDataMap.put(SENDER_TYPE, senderType);
         schedule(jobDataMap, triggerStartDate, BRANCH_ID);
     }
 }

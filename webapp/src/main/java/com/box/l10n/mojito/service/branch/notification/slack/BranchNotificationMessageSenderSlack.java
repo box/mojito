@@ -9,14 +9,17 @@ import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-@ConditionalOnProperty(value = "l10n.branchNotification.type", havingValue = "slack")
+@ConditionalOnProperty(value = "l10n.branchNotification.slack.enabled", havingValue = "true")
 @Component
 public class BranchNotificationMessageSenderSlack implements BranchNotificationMessageSender {
 
@@ -31,8 +34,8 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     @Autowired
     BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack;
 
-    @Autowired
-    BranchNotificationSlackConfiguration branchNotificationSlackConfiguration;
+    @Value("${l10n.branchNotification.slack.userEmailPattern}")
+    String userEmailPattern;
 
     @Override
     public String sendNewMessage(String branchName, String username, List<String> sourceStrings) throws BranchNotificationMessageSenderException {
@@ -70,7 +73,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     }
 
     @Override
-    public void sendTranslatedMessage(String username, String messageId) throws BranchNotificationMessageSenderException {
+    public void sendTranslatedMessage(String branchName, String username, String messageId) throws BranchNotificationMessageSenderException {
         logger.debug("sendTranslatedMessage to: {}", username);
 
         try {
@@ -83,7 +86,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     }
 
     @Override
-    public void sendScreenshotMissingMessage(String username, String messageId) throws BranchNotificationMessageSenderException {
+    public void sendScreenshotMissingMessage(String branchName, String messageId, String username) throws BranchNotificationMessageSenderException {
         logger.debug("sendScreenshotMissingMessage to: {}", username);
 
         try {
@@ -91,7 +94,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
 
             ChatPostMessageResponse chatPostMessageResponse = slackClient.sendInstantMessage(message);
         } catch (SlackClientException sce) {
-           throw new BranchNotificationMessageSenderException(sce);
+            throw new BranchNotificationMessageSenderException(sce);
         }
     }
 
@@ -100,6 +103,6 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     }
 
     String getEmail(String username) {
-        return MessageFormat.format(branchNotificationSlackConfiguration.getUserEmailPattern(), username);
+        return MessageFormat.format(userEmailPattern, username);
     }
 }

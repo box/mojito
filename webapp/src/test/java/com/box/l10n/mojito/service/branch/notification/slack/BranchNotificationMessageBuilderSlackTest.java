@@ -1,20 +1,40 @@
 package com.box.l10n.mojito.service.branch.notification.slack;
 
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
+import com.box.l10n.mojito.service.branch.notification.phabricator.BranchNotificationMessageBuilderPhabricator;
+import com.box.l10n.mojito.service.branch.notification.phabricator.BranchNotificationMessageBuilderPhabricatorTest;
 import com.box.l10n.mojito.slack.request.Message;
+import com.box.l10n.mojito.utils.ServerConfig;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.IntegrationTest;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = {
+        BranchNotificationMessageBuilderSlack.class,
+        BranchNotificationMessageBuilderSlackTest.class,
+        BranchUrlBuilder.class,
+        ServerConfig.class})
+@EnableAutoConfiguration
+@IntegrationTest("spring.datasource.initialize=false")
 public class BranchNotificationMessageBuilderSlackTest {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
+    @Autowired
+    BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack;
+
     @Test
     public void testGetSummaryString() {
-        BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack = getBranchNotificationMessageBuilder();
         String summaryString = branchNotificationMessageBuilderSlack.getSummaryString(Arrays.asList(
                 "string 1",
                 "very long string 2 ---------------------------------------------------------",
@@ -28,14 +48,12 @@ public class BranchNotificationMessageBuilderSlackTest {
 
     @Test
     public void testGetSummaryString1Element() {
-        BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack = getBranchNotificationMessageBuilder();
         String summaryString = branchNotificationMessageBuilderSlack.getSummaryString(Arrays.asList("string 1"));
         assertEquals("string 1", summaryString);
     }
 
     @Test
     public void testGetNewMessage() {
-        BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack = getBranchNotificationMessageBuilder();
         Message newMessage = branchNotificationMessageBuilderSlack.getNewMessage("channel-test", "pr-test", Arrays.asList("string1", "string2"));
         String json = objectMapper.writeValueAsStringUnsafe(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"W" +
@@ -49,7 +67,6 @@ public class BranchNotificationMessageBuilderSlackTest {
 
     @Test
     public void testGetTranslatedMessage() {
-        BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack = getBranchNotificationMessageBuilder();
         Message newMessage = branchNotificationMessageBuilderSlack.getTranslatedMessage("channel-test", "pr-test");
         String json = objectMapper.writeValueAsStringUnsafe(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":\"Translations are ready !! :party:\",\"attachments\":[],\"thread_ts\":\"pr-test\"}", json);
@@ -57,7 +74,6 @@ public class BranchNotificationMessageBuilderSlackTest {
 
     @Test
     public void testGetScreenshotMissingMessage() {
-        BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack = getBranchNotificationMessageBuilder();
         Message newMessage = branchNotificationMessageBuilderSlack.getScreenshotMissingMessage("channel-test", "pr-test");
         String json = objectMapper.writeValueAsStringUnsafe(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":\":warning: Please provide screenshots to help localization team :warning:\",\"attachments\":[],\"thread_ts\":\"pr-test\"}", json);
@@ -65,8 +81,7 @@ public class BranchNotificationMessageBuilderSlackTest {
 
     @Test
     public void testGetUpdatedMessage() {
-        BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack = getBranchNotificationMessageBuilder();
-        Message newMessage = branchNotificationMessageBuilderSlack.getUpdatedMessage("channel-test", "pr-test", "ts-test" , Arrays.asList("string1", "string2"));
+        Message newMessage = branchNotificationMessageBuilderSlack.getUpdatedMessage("channel-test", "pr-test", "ts-test", Arrays.asList("string1", "string2"));
         String json = objectMapper.writeValueAsStringUnsafe(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"Y" +
                 "our branch was updated with new strings! Please *add screenshots* as soon as possible and *wait for tra" +
@@ -77,12 +92,4 @@ public class BranchNotificationMessageBuilderSlackTest {
                 "short\":null}],\"mrkdwn_in\":[\"text\",\"pretex\",\"fields\"]}],\"thread_ts\":\"pr-test\"}", json);
     }
 
-    BranchNotificationMessageBuilderSlack getBranchNotificationMessageBuilder() {
-        BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack = new BranchNotificationMessageBuilderSlack();
-        BranchNotificationSlackConfiguration branchNotificationSlackConfiguration = new BranchNotificationSlackConfiguration();
-        branchNotificationSlackConfiguration.setMojitoUrl("http://localhost:8080");
-        branchNotificationSlackConfiguration.setUserEmailPattern("{0}@sometest.com");
-        branchNotificationMessageBuilderSlack.branchNotificationSlackConfiguration = branchNotificationSlackConfiguration;
-        return branchNotificationMessageBuilderSlack;
-    }
 }

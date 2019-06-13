@@ -11,6 +11,8 @@ import java.util.List;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+
+import com.box.l10n.mojito.utils.ServerConfig;
 import org.joda.time.DateTime;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -54,6 +56,9 @@ public class SlaCheckerEmailServiceTest {
 
     @Spy
     SlaCheckerEmailConfig slaCheckerEmailConfig;
+
+    @Spy
+    ServerConfig serverConfig;
 
     @Mock
     MustacheTemplateEngine mustacheTemplateEngine;
@@ -140,7 +145,7 @@ public class SlaCheckerEmailServiceTest {
 
         assertEquals(renderedContent, result);
         assertEquals((long) incidentId, (long) acOpenIncidentEmailContext.getValue().incidentId);
-        assertEquals(slaCheckerEmailConfig.mojitoUrl, acOpenIncidentEmailContext.getValue().mojitoUrl);
+        assertEquals(serverConfig.getUrl(), acOpenIncidentEmailContext.getValue().mojitoUrl);
         assertEquals(repositoriesForTest, acOpenIncidentEmailContext.getValue().repositories);
     }
 

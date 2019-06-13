@@ -20,7 +20,7 @@ import javax.persistence.Table;
 @Table(
         name = "branch_notification",
         indexes = {
-                @Index(name = "UK__BRANCH_NOTIFICATION__BRANCH_ID", columnList = "branch_id", unique = true),
+                @Index(name = "UK__BRANCH_NOTIFICATION__BRANCH_ID", columnList = "branch_id, sender_type", unique = true),
         }
 )
 public class BranchNotification extends BaseEntity {
