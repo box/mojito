@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.branch.notification.slack;
 
+import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
 import com.box.l10n.mojito.slack.request.Action;
 import com.box.l10n.mojito.slack.request.Attachment;
 import com.box.l10n.mojito.slack.request.Field;
@@ -24,7 +25,7 @@ public class BranchNotificationMessageBuilderSlack {
     static final int STRING_IN_SUMMARY_ABRREVIATE_LENGHT = 40;
 
     @Autowired
-    BranchNotificationSlackConfiguration branchNotificationSlackConfiguration;
+    BranchUrlBuilder branchUrlBuilder;
 
     public Message getNewMessage(String channel, String pr, List<String> sourceStrings) {
         Message message = getBaseMessage(channel, pr, sourceStrings,
@@ -90,21 +91,11 @@ public class BranchNotificationMessageBuilderSlack {
         Action actionScreenshot = new Action();
         actionScreenshot.setType(ACTION_TYPE_BUTTON);
         actionScreenshot.setText("Screenshots");
-        actionScreenshot.setUrl(getScreenshotUrl(pr));
+        actionScreenshot.setUrl(branchUrlBuilder.getBranchDashboardUrl(pr));
         actionScreenshot.setStyle(ACTION_STYLE_PRIMARY);
         attachment.getActions().add(actionScreenshot);
 
         return message;
-    }
-
-    String getScreenshotUrl(String pr) {
-        return UriComponentsBuilder
-                .fromHttpUrl(branchNotificationSlackConfiguration.getMojitoUrl())
-                .path("branches")
-                .queryParam("searchText", pr)
-                .queryParam("deleted", false)
-                .build()
-                .toUriString();
     }
 
     String getSummaryString(List<String> strings) {

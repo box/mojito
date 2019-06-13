@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification.slack;
+package com.box.l10n.mojito.service.branch.notification;
 
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
@@ -9,6 +9,7 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationService;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
@@ -57,6 +58,8 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
+    String senderType = BranchNotificationMessageSenderNoop.class.getSimpleName();
+
     @Test
     public void allNotfication() throws Exception {
 
@@ -76,13 +79,13 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
 
         waitForCondition("Branch2 translated notification must be sent",
                 () -> {
-                    return branchNotificationRepository.findByBranch(branchTestData.getBranch2()).getTranslatedMsgSentAt() != null;
+                    return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch2(), senderType).getTranslatedMsgSentAt() != null;
                 });
 
 
         waitForCondition("Branch1 new notification must be sent",
                 () -> {
-                    return branchNotificationRepository.findByBranch(branchTestData.getBranch1()).getNewMsgSentAt() != null;
+                    return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType).getNewMsgSentAt() != null;
                 });
     }
 
@@ -91,14 +94,14 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     public void screenshotMissing() throws Exception {
         BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
-        BranchNotification branchNotification = branchNotificationRepository.findByBranch(branchTestData.getBranch1());
+        BranchNotification branchNotification = branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType);
         branchNotification.setScreenshotMissingMsgSentAt(DateTime.now().minusMinutes(31));
 
-        branchNotificationMissingScreenshotsJob.schedule(branchTestData.getBranch1().getId(), new Date());
+        branchNotificationMissingScreenshotsJob.schedule(branchTestData.getBranch1().getId(), senderType, new Date());
 
         waitForCondition("Branch1 new notification must be sent",
                 () -> {
-                    return branchNotificationRepository.findByBranch(branchTestData.getBranch1()).getScreenshotMissingMsgSentAt() != null;
+                    return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType).getScreenshotMissingMsgSentAt() != null;
                 });
     }
 

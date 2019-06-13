@@ -12,5 +12,5 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 @RepositoryRestResource(exported = false)
 public interface BranchNotificationRepository extends JpaRepository<BranchNotification, Long>, JpaSpecificationExecutor<BranchNotification> {
 
-    BranchNotification findByBranch(Branch branch);
+    BranchNotification findByBranchAndSenderType(Branch branch, String senderType);
 }

@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.branch.notification;
 
 import org.slf4j.Logger;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-@ConditionalOnProperty(value = "l10n.branchNotification.type", havingValue = "none", matchIfMissing = true)
+@ConditionalOnProperty(value = "l10n.branchNotification.noop.enabled", havingValue = "true")
 @Component
 public class BranchNotificationMessageSenderNoop implements BranchNotificationMessageSender {
 
@@ -30,12 +31,12 @@ public class BranchNotificationMessageSenderNoop implements BranchNotificationMe
     }
 
     @Override
-    public void sendTranslatedMessage(String username, String messageId) throws BranchNotificationMessageSenderException {
+    public void sendTranslatedMessage(String branchName, String username, String messageId) throws BranchNotificationMessageSenderException {
         logger.debug("noop sendTranslatedMessage to: {}", username);
     }
 
     @Override
-    public void sendScreenshotMissingMessage(String username, String messageId) throws BranchNotificationMessageSenderException {
+    public void sendScreenshotMissingMessage(String branchName, String username, String messageId) throws BranchNotificationMessageSenderException {
         logger.debug("noop sendScreenshotMissingMessage to: {}", username);
     }
 }

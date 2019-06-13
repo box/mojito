@@ -32,7 +32,7 @@ public class SmartlingClientConfiguration {
     @Bean
     public OAuth2ProtectedResourceDetails smartling() {
         SmartlingOAuth2ProtectedResourceDetails details = new SmartlingOAuth2ProtectedResourceDetails();
-        details.setId("smarlting");
+        details.setId("Smartling");
         details.setGrantType("smartling");
         details.setClientId(clientID);
         details.setClientSecret(clientSecret);
@@ -43,7 +43,7 @@ public class SmartlingClientConfiguration {
 
     @Bean
     @Qualifier("smartling")
-    public OAuth2RestTemplate smarltingRestTemplate() {
+    public OAuth2RestTemplate SmartlingRestTemplate() {
         OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(smartling(), new DefaultOAuth2ClientContext());
 
         AccessTokenProviderChain accessTokenProviderChain = new AccessTokenProviderChain(Arrays.asList(

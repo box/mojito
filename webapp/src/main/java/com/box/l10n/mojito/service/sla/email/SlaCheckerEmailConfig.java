@@ -22,8 +22,6 @@ public class SlaCheckerEmailConfig {
      */
     Period periodBetweenEmail = new Period(1, 0, 0, 0);
 
-    String mojitoUrl = "http://localhost:8080/";
-
     public String getFrom() {
         return from;
     }
@@ -46,14 +44,6 @@ public class SlaCheckerEmailConfig {
 
     public void setPeriodBetweenEmail(Period periodBetweenEmail) {
         this.periodBetweenEmail = periodBetweenEmail;
-    }
-
-    public String getMojitoUrl() {
-        return mojitoUrl;
-    }
-
-    public void setMojitoUrl(String mojitoUrl) {
-        this.mojitoUrl = mojitoUrl;
     }
 
 }
