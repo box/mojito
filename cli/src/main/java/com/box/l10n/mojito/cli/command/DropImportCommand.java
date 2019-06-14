@@ -158,13 +158,18 @@ public class DropImportCommand extends Command {
      * of available {@link Drop}s
      */
     private List<Long> getSelectedDropIds(Map<Long, Drop> numberedAvailableDrops) throws CommandException {
+        List<Long> selectedDropIds;
+
         if (importFetchedParam) {
-            return numberedAvailableDrops.entrySet().stream()
-                    .filter(x -> !Boolean.TRUE.equals(x.getValue().getCanceled()) && x.getValue().getLastImportedDate() == null)
-                    .map(x -> x.getValue().getId())
-                    .collect(Collectors.toList());
+            selectedDropIds = getWithImportFetchedDropIds(numberedAvailableDrops);
+        } else {
+            selectedDropIds = getFromConsoleDropIds(numberedAvailableDrops);
         }
 
+        return selectedDropIds;
+    }
+
+    private List<Long> getFromConsoleDropIds(Map<Long, Drop> numberedAvailableDrops) throws CommandException {
         consoleWriter.newLine().a("Enter Drop number to import").println();
         Long dropNumber = console.readLine(Long.class);
 
@@ -175,6 +180,13 @@ public class DropImportCommand extends Command {
         Long selectId = numberedAvailableDrops.get(dropNumber).getId();
 
         return Arrays.asList(selectId);
+    }
+
+    private List<Long> getWithImportFetchedDropIds(Map<Long, Drop> numberedAvailableDrops) {
+        return numberedAvailableDrops.entrySet().stream()
+                .filter(x -> !Boolean.TRUE.equals(x.getValue().getCanceled()))
+                .map(x -> x.getValue().getId())
+                .collect(Collectors.toList());
     }
 
 }
