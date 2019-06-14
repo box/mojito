@@ -59,18 +59,17 @@ public class ThirdPartyTextUnitSearchService {
                                 t.getAssetPath(), thirdPartyTextUnitForBatchImport.getRepository().getId())));
 
                         if (thirdPartyTextUnitForBatchImport.getAsset() != null) {
-                            TMTextUnitCurrentVariant foundCurrentVariant;
+                            String textUnitName = t.getTmTextUnitName();
+
                             if (isPluralFile) {
-                                foundCurrentVariant = tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
-                                        t.getTmTextUnitName() + pluralSuffix,
-                                        thirdPartyTextUnitForBatchImport.getAsset().getId()
-                                );
-                            } else {
-                                foundCurrentVariant = tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
-                                        t.getTmTextUnitName(),
-                                        thirdPartyTextUnitForBatchImport.getAsset().getId()
-                                );
+                                textUnitName += pluralSuffix;
                             }
+
+                            TMTextUnitCurrentVariant foundCurrentVariant = tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
+                                    textUnitName,
+                                    thirdPartyTextUnitForBatchImport.getAsset().getId()
+                            );
+
                             if (foundCurrentVariant != null) {
                                 thirdPartyTextUnitForBatchImport.setTmTextUnit(foundCurrentVariant.getTmTextUnit());
                             }
