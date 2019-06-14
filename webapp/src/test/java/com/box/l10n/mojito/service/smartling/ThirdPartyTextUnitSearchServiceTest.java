@@ -6,24 +6,31 @@ import com.box.l10n.mojito.service.tm.importer.ImporterCacheService;
 import com.google.common.cache.LoadingCache;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.test.IntegrationTest;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-@IntegrationTest("spring.datasource.initialize=false")
+@RunWith(MockitoJUnitRunner.class)
 public class ThirdPartyTextUnitSearchServiceTest {
 
-    private ThirdPartyTextUnitSearchService thirdPartyTextUnitSearchService;
+    @InjectMocks
+    ThirdPartyTextUnitSearchService thirdPartyTextUnitSearchService;
 
-    private ImporterCacheService importerCacheService = Mockito.mock(ImporterCacheService.class);
+    @Mock
+    ImporterCacheService importerCacheService;
 
-    private ThirdPartyTextUnitRepository thirdPartyTextUnitRepository = Mockito.mock(ThirdPartyTextUnitRepository.class);
+    @Mock
+    ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
 
-    private TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository = Mockito.mock(TMTextUnitCurrentVariantRepository.class);
+    @Mock
+    TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
     private TMTextUnit tmTextUnit = new TMTextUnit();
 
@@ -31,7 +38,7 @@ public class ThirdPartyTextUnitSearchServiceTest {
 
     private ThirdPartyTextUnitDTO thirdPartyTextUnitDTO = new ThirdPartyTextUnitDTO(
             null,
-            "test",
+            "thirdPartyTextUnitId",
             "mappingKey",
             null
     );
@@ -40,12 +47,6 @@ public class ThirdPartyTextUnitSearchServiceTest {
 
     @Before
     public void setUp() throws Exception {
-        thirdPartyTextUnitSearchService = new ThirdPartyTextUnitSearchService(
-                importerCacheService,
-                thirdPartyTextUnitRepository,
-                tmTextUnitCurrentVariantRepository
-        );
-
         tmTextUnit.setId(1L);
         thirdPartyTextUnit.setMappingKey("mappingKey");
         thirdPartyTextUnit.setThirdPartyTextUnitId("thirdPartyTextUnitId");
@@ -91,10 +92,10 @@ public class ThirdPartyTextUnitSearchServiceTest {
 
     @Test
     public void getByThirdPartyTextUnitIdsAndMappingKeys() {
-        when(thirdPartyTextUnitRepository.findByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
+        when(thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
                 Collections.singletonList(thirdPartyTextUnit.getThirdPartyTextUnitId()),
                 Collections.singletonList(thirdPartyTextUnit.getMappingKey())
-        )).thenReturn(Collections.singletonList(thirdPartyTextUnit));
+        )).thenReturn(Collections.singletonList(thirdPartyTextUnitDTO));
 
         List<ThirdPartyTextUnitDTO> result = thirdPartyTextUnitSearchService.getByThirdPartyTextUnitIdsAndMappingKeys(
                 Collections.singletonList(thirdPartyTextUnitForBatchImport));
@@ -108,10 +109,10 @@ public class ThirdPartyTextUnitSearchServiceTest {
 
     @Test
     public void search() {
-        when(thirdPartyTextUnitRepository.findByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
+        when(thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
                 Collections.singletonList(thirdPartyTextUnit.getThirdPartyTextUnitId()),
                 Collections.singletonList(thirdPartyTextUnit.getMappingKey())
-        )).thenReturn(Collections.singletonList(thirdPartyTextUnit));
+        )).thenReturn(Collections.singletonList(thirdPartyTextUnitDTO));
 
         List<ThirdPartyTextUnitDTO> result = thirdPartyTextUnitSearchService.search(
                 Collections.singletonList(thirdPartyTextUnit.getThirdPartyTextUnitId()),
@@ -120,17 +121,6 @@ public class ThirdPartyTextUnitSearchServiceTest {
         assertEquals(result.get(0).thirdPartyTextUnitId,
                 thirdPartyTextUnit.getThirdPartyTextUnitId());
         assertEquals(result.get(0).mappingKey,
-                thirdPartyTextUnit.getMappingKey());
-    }
-
-    @Test
-    public void convertEntityToDTO() {
-        ThirdPartyTextUnitDTO thirdPartyTextUnitDTO = thirdPartyTextUnitSearchService.convertEntityToDTO(
-            thirdPartyTextUnit
-        );
-        assertEquals(thirdPartyTextUnitDTO.thirdPartyTextUnitId,
-                thirdPartyTextUnit.getThirdPartyTextUnitId());
-        assertEquals(thirdPartyTextUnitDTO.mappingKey,
                 thirdPartyTextUnit.getMappingKey());
     }
 }

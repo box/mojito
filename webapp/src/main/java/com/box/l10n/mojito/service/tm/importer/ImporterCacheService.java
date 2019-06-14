@@ -2,10 +2,8 @@ package com.box.l10n.mojito.service.tm.importer;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
-import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -17,16 +15,11 @@ import java.util.Map;
 @Component
 public class ImporterCacheService {
 
-    private final RepositoryRepository repositoryRepository;
-
-    private final AssetRepository assetRepository;
+    @Autowired
+    RepositoryRepository repositoryRepository;
 
     @Autowired
-    public ImporterCacheService(RepositoryRepository repositoryRepository,
-                                AssetRepository assetRepository) {
-        this.repositoryRepository = repositoryRepository;
-        this.assetRepository = assetRepository;
-    }
+    AssetRepository assetRepository;
 
     public LoadingCache<String, Repository> createRepositoriesCache() {
         LoadingCache<String, Repository> repositoriesCache = CacheBuilder.newBuilder().build(

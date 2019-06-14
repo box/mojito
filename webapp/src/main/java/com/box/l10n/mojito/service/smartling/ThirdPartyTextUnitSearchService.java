@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.smartling;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
-import com.box.l10n.mojito.entity.ThirdPartyTextUnit;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.importer.ImporterCacheService;
 import com.google.common.cache.LoadingCache;
@@ -26,20 +25,14 @@ public class ThirdPartyTextUnitSearchService {
      */
     static Logger logger = LoggerFactory.getLogger(ThirdPartyTextUnitSearchService.class);
 
-    private final ImporterCacheService importerCacheService;
-
-    private final ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
-
-    private final TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
+    @Autowired
+    ImporterCacheService importerCacheService;
 
     @Autowired
-    public ThirdPartyTextUnitSearchService(ImporterCacheService importerCacheService,
-                                           ThirdPartyTextUnitRepository thirdPartyTextUnitRepository,
-                                           TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository) {
-        this.importerCacheService = importerCacheService;
-        this.thirdPartyTextUnitRepository = thirdPartyTextUnitRepository;
-        this.tmTextUnitCurrentVariantRepository = tmTextUnitCurrentVariantRepository;
-    }
+    ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
+
+    @Autowired
+    TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
     final private String pluralSuffix = "_other";
 
@@ -53,6 +46,7 @@ public class ThirdPartyTextUnitSearchService {
         return thirdPartyTextUnitDTOSet.stream()
                 .filter(logIfFalse(t -> t.getThirdPartyTextUnitId() != null, logger, "Missing mandatory third party text unit id, skip: {}", ThirdPartyTextUnitDTO::getThirdPartyTextUnitId))
                 .filter(logIfFalse(t -> t.getMappingKey() != null, logger, "Missing mandatory mapping key, skip: {}", ThirdPartyTextUnitDTO::getThirdPartyTextUnitId))
+                .filter(logIfFalse(t -> t.getTmTextUnitName() != null, logger, "Missing mandatory text unit name, skip: {}", ThirdPartyTextUnitDTO::getThirdPartyTextUnitId))
 
                 .map(t -> {
                     ThirdPartyTextUnitForBatchImport thirdPartyTextUnitForBatchImport = new ThirdPartyTextUnitForBatchImport();
@@ -109,22 +103,9 @@ public class ThirdPartyTextUnitSearchService {
 
     @Transactional
     public List<ThirdPartyTextUnitDTO> search(List<String> thirdPartyTextUnitIds, List<String> mappingKeys) {
-        List<ThirdPartyTextUnit> thirdPartyTextUnitList = thirdPartyTextUnitRepository.findByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
+        return thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
                 thirdPartyTextUnitIds, mappingKeys
         );
-
-        return thirdPartyTextUnitList
-                .stream()
-                .map(thirdPartyTextUnit -> convertEntityToDTO(thirdPartyTextUnit))
-                .collect(Collectors.toList());
-    }
-
-    ThirdPartyTextUnitDTO convertEntityToDTO(ThirdPartyTextUnit thirdPartyTextUnit) {
-        return new ThirdPartyTextUnitDTO(
-                thirdPartyTextUnit.getId(),
-                thirdPartyTextUnit.getThirdPartyTextUnitId(),
-                thirdPartyTextUnit.getMappingKey(),
-                thirdPartyTextUnit.getTmTextUnit().getId());
     }
 
 }
