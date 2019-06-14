@@ -23,8 +23,7 @@ public class ImporterCacheService {
 
     @Autowired
     public ImporterCacheService(RepositoryRepository repositoryRepository,
-                                AssetRepository assetRepository,
-                                TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository) {
+                                AssetRepository assetRepository) {
         this.repositoryRepository = repositoryRepository;
         this.assetRepository = assetRepository;
     }
