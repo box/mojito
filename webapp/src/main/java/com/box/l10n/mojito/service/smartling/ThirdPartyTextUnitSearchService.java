@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.importer.ImporterCacheService;
 import com.google.common.cache.LoadingCache;
+import org.apache.mina.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
@@ -65,14 +67,12 @@ public class ThirdPartyTextUnitSearchService {
                                 textUnitName += pluralSuffix;
                             }
 
-                            TMTextUnitCurrentVariant foundCurrentVariant = tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
+                            Optional<TMTextUnitCurrentVariant> foundCurrentVariant = tmTextUnitCurrentVariantRepository.findAllByTmTextUnit_NameAndTmTextUnit_Asset_Id(
                                     textUnitName,
                                     thirdPartyTextUnitForBatchImport.getAsset().getId()
-                            );
+                            ).stream().filter(notAlreadyMatched()).findFirst();
 
-                            if (foundCurrentVariant != null) {
-                                thirdPartyTextUnitForBatchImport.setTmTextUnit(foundCurrentVariant.getTmTextUnit());
-                            }
+                            foundCurrentVariant.ifPresent(tmTextUnitCurrentVariant -> thirdPartyTextUnitForBatchImport.setTmTextUnit(tmTextUnitCurrentVariant.getTmTextUnit()));
                         }
                     }
 
@@ -105,6 +105,21 @@ public class ThirdPartyTextUnitSearchService {
         return thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
                 thirdPartyTextUnitIds, mappingKeys
         );
+    }
+
+    // Predicate that make sure that current variant text units are matched only once.
+    private Predicate<TMTextUnitCurrentVariant> notAlreadyMatched() {
+        ConcurrentHashSet<Long> alreadyMappedTmTextUnitIds = new ConcurrentHashSet<>();
+        return (t) -> {
+            boolean notAlreadyMatched = !alreadyMappedTmTextUnitIds.contains(t.getTmTextUnit().getId());
+            if (notAlreadyMatched) {
+                logger.debug("Text unit: {} ({}) not matched yet", t.getTmTextUnit().getId(), t.getTmTextUnit().getName());
+                alreadyMappedTmTextUnitIds.add(t.getTmTextUnit().getId());
+            } else {
+                logger.debug("Text unit: {}, ({}) is already matched, can't used it", t.getTmTextUnit().getId(), t.getTmTextUnit().getName());
+            }
+            return notAlreadyMatched;
+        };
     }
 
 }

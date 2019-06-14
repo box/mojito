@@ -75,8 +75,8 @@ public class ThirdPartyTextUnitSearchServiceTest {
 
         when(importerCacheService.createRepositoriesCache()).thenReturn(repositoryCache);
         when(importerCacheService.createAssetsCache()).thenReturn(assetCache);
-        when(tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(thirdPartyTextUnitDTO.getTmTextUnitName(), asset.getId()))
-            .thenReturn(tmTextUnitCurrentVariant);
+        when(tmTextUnitCurrentVariantRepository.findAllByTmTextUnit_NameAndTmTextUnit_Asset_Id(thirdPartyTextUnitDTO.getTmTextUnitName(), asset.getId()))
+            .thenReturn(Collections.singletonList(tmTextUnitCurrentVariant));
 
         Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet = new HashSet<>();
         thirdPartyTextUnitDTOSet.add(thirdPartyTextUnitDTO);

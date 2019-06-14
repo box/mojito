@@ -13,7 +13,7 @@ public interface TMTextUnitCurrentVariantRepository extends JpaRepository<TMText
 
     TMTextUnitCurrentVariant findByLocale_IdAndTmTextUnit_Id(Long localeId, Long tmTextUnitId);
 
-    TMTextUnitCurrentVariant findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
+    List<TMTextUnitCurrentVariant> findAllByTmTextUnit_NameAndTmTextUnit_Asset_Id(
             String tmTextUnitName, Long tmTextUnitAssetId);
 
     List<TMTextUnitCurrentVariant> findByTmTextUnit_Id(Long tmTextUnitId);
