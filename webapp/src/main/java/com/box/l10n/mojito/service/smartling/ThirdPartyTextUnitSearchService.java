@@ -4,13 +4,12 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.ThirdPartyTextUnit;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.importer.ImporterCacheService;
 import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,30 +21,33 @@ import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
 @Component
 public class ThirdPartyTextUnitSearchService {
 
-    private final ImporterCacheService importerCacheService;
-
-    private final ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
-
-    @Autowired
-    public ThirdPartyTextUnitSearchService(ImporterCacheService importerCacheService,
-                                           ThirdPartyTextUnitRepository thirdPartyTextUnitRepository) {
-        this.importerCacheService = importerCacheService;
-        this.thirdPartyTextUnitRepository = thirdPartyTextUnitRepository;
-    }
-
-    String pluralSuffix = "_other";
-
     /**
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(ThirdPartyTextUnitSearchService.class);
+
+    private final ImporterCacheService importerCacheService;
+
+    private final ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
+
+    private final TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
+
+    @Autowired
+    public ThirdPartyTextUnitSearchService(ImporterCacheService importerCacheService,
+                                           ThirdPartyTextUnitRepository thirdPartyTextUnitRepository,
+                                           TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository) {
+        this.importerCacheService = importerCacheService;
+        this.thirdPartyTextUnitRepository = thirdPartyTextUnitRepository;
+        this.tmTextUnitCurrentVariantRepository = tmTextUnitCurrentVariantRepository;
+    }
+
+    final private String pluralSuffix = "_other";
 
     List<ThirdPartyTextUnitForBatchImport> convertDTOToBatchImport(Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet, boolean isPluralFile) {
 
         logger.debug("Create caches to map convert to ThirdPartyTextUnitForBatchImport list");
         LoadingCache<String, Repository> repositoriesCache = importerCacheService.createRepositoriesCache();
         LoadingCache<Map.Entry<String, Long>, Asset> assetsCache = importerCacheService.createAssetsCache();
-        LoadingCache<Map.Entry<String, Long>, TMTextUnitCurrentVariant> tmTextUnitCurrentVariantCache = importerCacheService.createTmTextUnitCurrentVariantCache();
 
         logger.debug("Convert to ThirdPartyTextUnitForBatchImport");
         return thirdPartyTextUnitDTOSet.stream()
@@ -65,16 +67,14 @@ public class ThirdPartyTextUnitSearchService {
                         if (thirdPartyTextUnitForBatchImport.getAsset() != null) {
                             TMTextUnitCurrentVariant foundCurrentVariant;
                             if (isPluralFile) {
-                                foundCurrentVariant = tmTextUnitCurrentVariantCache.getUnchecked(
-                                        new AbstractMap.SimpleEntry<>(
-                                                t.getTmTextUnitName() + pluralSuffix,
-                                                thirdPartyTextUnitForBatchImport.getAsset().getId())
+                                foundCurrentVariant = tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
+                                        t.getTmTextUnitName() + pluralSuffix,
+                                        thirdPartyTextUnitForBatchImport.getAsset().getId()
                                 );
                             } else {
-                                foundCurrentVariant = tmTextUnitCurrentVariantCache.getUnchecked(
-                                        new AbstractMap.SimpleEntry<>(
-                                                t.getTmTextUnitName(),
-                                                thirdPartyTextUnitForBatchImport.getAsset().getId())
+                                foundCurrentVariant = tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
+                                        t.getTmTextUnitName(),
+                                        thirdPartyTextUnitForBatchImport.getAsset().getId()
                                 );
                             }
                             if (foundCurrentVariant != null) {

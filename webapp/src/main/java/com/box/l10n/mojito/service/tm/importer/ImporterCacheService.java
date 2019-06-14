@@ -21,16 +21,12 @@ public class ImporterCacheService {
 
     private final AssetRepository assetRepository;
 
-    private final TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
-
     @Autowired
     public ImporterCacheService(RepositoryRepository repositoryRepository,
                                 AssetRepository assetRepository,
                                 TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository) {
         this.repositoryRepository = repositoryRepository;
         this.assetRepository = assetRepository;
-        this.tmTextUnitCurrentVariantRepository = tmTextUnitCurrentVariantRepository;
-
     }
 
     public LoadingCache<String, Repository> createRepositoriesCache() {
@@ -45,13 +41,5 @@ public class ImporterCacheService {
                 CacheLoader.from((entry) -> assetRepository.findByPathAndRepositoryId(entry.getKey(), entry.getValue()))
         );
         return assetsCache;
-    }
-
-    public LoadingCache<Map.Entry<String, Long>, TMTextUnitCurrentVariant> createTmTextUnitCurrentVariantCache() {
-        LoadingCache<Map.Entry<String, Long>, TMTextUnitCurrentVariant> tmTextUnitCurrentVariantCache = CacheBuilder.newBuilder().build(
-                CacheLoader.from((entry) -> tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(
-                        entry.getKey(), entry.getValue()
-                )));
-        return tmTextUnitCurrentVariantCache;
     }
 }

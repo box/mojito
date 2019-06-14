@@ -1,12 +1,10 @@
 package com.box.l10n.mojito.service.smartling;
 
 import com.box.l10n.mojito.entity.*;
-import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.importer.ImporterCacheService;
-import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.cache.LoadingCache;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.IntegrationTest;
@@ -17,13 +15,15 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @IntegrationTest("spring.datasource.initialize=false")
-public class ThirdPartyTextUnitSearchServiceTest extends ServiceTestBase {
+public class ThirdPartyTextUnitSearchServiceTest {
 
     private ThirdPartyTextUnitSearchService thirdPartyTextUnitSearchService;
 
     private ImporterCacheService importerCacheService = Mockito.mock(ImporterCacheService.class);
 
     private ThirdPartyTextUnitRepository thirdPartyTextUnitRepository = Mockito.mock(ThirdPartyTextUnitRepository.class);
+
+    private TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository = Mockito.mock(TMTextUnitCurrentVariantRepository.class);
 
     private TMTextUnit tmTextUnit = new TMTextUnit();
 
@@ -42,7 +42,8 @@ public class ThirdPartyTextUnitSearchServiceTest extends ServiceTestBase {
     public void setUp() throws Exception {
         thirdPartyTextUnitSearchService = new ThirdPartyTextUnitSearchService(
                 importerCacheService,
-                thirdPartyTextUnitRepository
+                thirdPartyTextUnitRepository,
+                tmTextUnitCurrentVariantRepository
         );
 
         tmTextUnit.setId(1L);
@@ -60,7 +61,6 @@ public class ThirdPartyTextUnitSearchServiceTest extends ServiceTestBase {
     public void convertDTOToBatchImport() {
         LoadingCache<String, Repository> repositoryCache = Mockito.mock(LoadingCache.class);
         LoadingCache<Map.Entry<String, Long>, Asset> assetCache = Mockito.mock(LoadingCache.class);
-        LoadingCache<Map.Entry<String, Long>, TMTextUnitCurrentVariant> tmTextUnitCurrentVariantCache = Mockito.mock(LoadingCache.class);
 
         Repository repository = new Repository();
         repository.setId(1L);
@@ -71,12 +71,11 @@ public class ThirdPartyTextUnitSearchServiceTest extends ServiceTestBase {
 
         when(repositoryCache.getUnchecked(thirdPartyTextUnitDTO.getRepositoryName())).thenReturn(repository);
         when(assetCache.getUnchecked(new AbstractMap.SimpleEntry<>(thirdPartyTextUnitDTO.getAssetPath(), repository.getId()))).thenReturn(asset);
-        when(tmTextUnitCurrentVariantCache.getUnchecked(new AbstractMap.SimpleEntry<>(thirdPartyTextUnitDTO.getTmTextUnitName(), asset.getId())))
-            .thenReturn(tmTextUnitCurrentVariant);
 
         when(importerCacheService.createRepositoriesCache()).thenReturn(repositoryCache);
         when(importerCacheService.createAssetsCache()).thenReturn(assetCache);
-        when(importerCacheService.createTmTextUnitCurrentVariantCache()).thenReturn(tmTextUnitCurrentVariantCache);
+        when(tmTextUnitCurrentVariantRepository.findByTmTextUnit_NameAndTmTextUnit_Asset_Id(thirdPartyTextUnitDTO.getTmTextUnitName(), asset.getId()))
+            .thenReturn(tmTextUnitCurrentVariant);
 
         Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet = new HashSet<>();
         thirdPartyTextUnitDTOSet.add(thirdPartyTextUnitDTO);
