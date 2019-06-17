@@ -247,8 +247,7 @@ public class TextUnitBatchImporterService {
     List<TextUnitForBatchImport> skipInvalidAndConvertToTextUnitForBatchImport(List<TextUnitDTO> textUnitDTOs) {
 
         logger.debug("Create caches to map convert to TextUnitForBatchImport list");
-        LoadingCache<String, Repository> repositoriesCache = importerCacheService.createRepositoriesCache();
-        LoadingCache<Map.Entry<String, Long>, Asset> assetsCache = importerCacheService.createAssetsCache();
+        LoadingCache<Map.Entry<String, String>, Asset> assetsCache = importerCacheService.createAssetsCache();
 
         logger.debug("Start converting to TextUnitForBatchImport");
         return textUnitDTOs.stream().
@@ -263,9 +262,9 @@ public class TextUnitBatchImporterService {
                     TextUnitForBatchImport textUnitForBatchImport = new TextUnitForBatchImport();
                     textUnitForBatchImport.setTmTextUnitId(t.getTmTextUnitId());
 
-                    textUnitForBatchImport.setRepository(repositoriesCache.getUnchecked(t.getRepositoryName()));
-                    if (textUnitForBatchImport.getRepository() != null) {
-                        textUnitForBatchImport.setAsset(assetsCache.getUnchecked(new SimpleEntry<>(t.getAssetPath(), textUnitForBatchImport.getRepository().getId())));
+                    textUnitForBatchImport.setAsset(assetsCache.getUnchecked(new SimpleEntry<>(t.getAssetPath(), t.getRepositoryName())));
+                    if (textUnitForBatchImport.getAsset() != null) {
+                        textUnitForBatchImport.setRepository(textUnitForBatchImport.getAsset().getRepository());
                     }
                     textUnitForBatchImport.setName(t.getName());
 

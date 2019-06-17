@@ -15,6 +15,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -60,20 +61,18 @@ public class ThirdPartyTextUnitSearchServiceTest {
 
     @Test
     public void convertDTOToBatchImport() {
-        LoadingCache<String, Repository> repositoryCache = Mockito.mock(LoadingCache.class);
-        LoadingCache<Map.Entry<String, Long>, Asset> assetCache = Mockito.mock(LoadingCache.class);
+        LoadingCache<Map.Entry<String, String>, Asset> assetCache = Mockito.mock(LoadingCache.class);
 
         Repository repository = new Repository();
-        repository.setId(1L);
+        repository.setName(thirdPartyTextUnitDTO.getRepositoryName());
         Asset asset = new Asset();
         asset.setId(1L);
+        asset.setRepository(repository);
         TMTextUnitCurrentVariant tmTextUnitCurrentVariant = new TMTextUnitCurrentVariant();
         tmTextUnitCurrentVariant.setTmTextUnit(tmTextUnit);
 
-        when(repositoryCache.getUnchecked(thirdPartyTextUnitDTO.getRepositoryName())).thenReturn(repository);
-        when(assetCache.getUnchecked(new AbstractMap.SimpleEntry<>(thirdPartyTextUnitDTO.getAssetPath(), repository.getId()))).thenReturn(asset);
+        when(assetCache.getUnchecked(new AbstractMap.SimpleEntry<>(thirdPartyTextUnitDTO.getAssetPath(), repository.getName()))).thenReturn(asset);
 
-        when(importerCacheService.createRepositoriesCache()).thenReturn(repositoryCache);
         when(importerCacheService.createAssetsCache()).thenReturn(assetCache);
         when(tmTextUnitCurrentVariantRepository.findAllByTmTextUnit_NameAndTmTextUnit_Asset_Id(thirdPartyTextUnitDTO.getTmTextUnitName(), asset.getId()))
             .thenReturn(Collections.singletonList(tmTextUnitCurrentVariant));
@@ -88,6 +87,44 @@ public class ThirdPartyTextUnitSearchServiceTest {
         assertEquals(thirdPartyTextUnitForBatchImportList.get(0).getAsset(), asset);
         assertEquals(thirdPartyTextUnitForBatchImportList.get(0).getRepository(), repository);
         assertEquals(thirdPartyTextUnitForBatchImportList.get(0).getTmTextUnit(), tmTextUnit);
+    }
+
+    @Test
+    public void convertDTOToBatchImportEmptySet() {
+        Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet = new HashSet<>();
+        List<ThirdPartyTextUnitForBatchImport> thirdPartyTextUnitForBatchImportList = thirdPartyTextUnitSearchService.convertDTOToBatchImport(
+                thirdPartyTextUnitDTOSet, false
+        );
+
+        assertTrue(thirdPartyTextUnitForBatchImportList.isEmpty());
+    }
+
+    @Test
+    public void convertDTOToBatchImportNoTextUnitMatch() {
+        LoadingCache<String, Repository> repositoryCache = Mockito.mock(LoadingCache.class);
+        LoadingCache<Map.Entry<String, String>, Asset> assetCache = Mockito.mock(LoadingCache.class);
+
+        Repository repository = new Repository();
+        repository.setName(thirdPartyTextUnitDTO.getRepositoryName());
+        Asset asset = new Asset();
+        asset.setRepository(repository);
+        asset.setId(1L);
+
+        when(repositoryCache.getUnchecked(thirdPartyTextUnitDTO.getRepositoryName())).thenReturn(repository);
+        when(assetCache.getUnchecked(new AbstractMap.SimpleEntry<>(thirdPartyTextUnitDTO.getAssetPath(), repository.getName()))).thenReturn(asset);
+
+        when(importerCacheService.createAssetsCache()).thenReturn(assetCache);
+        when(tmTextUnitCurrentVariantRepository.findAllByTmTextUnit_NameAndTmTextUnit_Asset_Id(thirdPartyTextUnitDTO.getTmTextUnitName(), asset.getId()))
+                .thenReturn(Collections.emptyList());
+
+        Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet = new HashSet<>();
+        thirdPartyTextUnitDTOSet.add(thirdPartyTextUnitDTO);
+
+        List<ThirdPartyTextUnitForBatchImport> thirdPartyTextUnitForBatchImportList = thirdPartyTextUnitSearchService.convertDTOToBatchImport(
+                thirdPartyTextUnitDTOSet, false
+        );
+
+        assertTrue(thirdPartyTextUnitForBatchImportList.isEmpty());
     }
 
     @Test
@@ -108,6 +145,32 @@ public class ThirdPartyTextUnitSearchServiceTest {
     }
 
     @Test
+    public void getByThirdPartyTextUnitIdsAndMappingKeysPassedEmptyList() {
+        when(thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
+                Collections.emptyList(),
+                Collections.emptyList()
+        )).thenReturn(Collections.emptyList());
+
+        List<ThirdPartyTextUnitDTO> result = thirdPartyTextUnitSearchService.getByThirdPartyTextUnitIdsAndMappingKeys(
+                Collections.emptyList());
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void getByThirdPartyTextUnitIdsAndMappingKeysNoMatchInRepo() {
+        when(thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
+                Collections.singletonList(thirdPartyTextUnit.getThirdPartyTextUnitId()),
+                Collections.singletonList(thirdPartyTextUnit.getMappingKey())
+        )).thenReturn(Collections.emptyList());
+
+        List<ThirdPartyTextUnitDTO> result = thirdPartyTextUnitSearchService.getByThirdPartyTextUnitIdsAndMappingKeys(
+                Collections.singletonList(thirdPartyTextUnitForBatchImport));
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
     public void search() {
         when(thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
                 Collections.singletonList(thirdPartyTextUnit.getThirdPartyTextUnitId()),
@@ -122,5 +185,33 @@ public class ThirdPartyTextUnitSearchServiceTest {
                 thirdPartyTextUnit.getThirdPartyTextUnitId());
         assertEquals(result.get(0).mappingKey,
                 thirdPartyTextUnit.getMappingKey());
+    }
+
+    @Test
+    public void searchNoMatchInRepo() {
+        when(thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
+                Collections.singletonList(thirdPartyTextUnit.getThirdPartyTextUnitId()),
+                Collections.singletonList(thirdPartyTextUnit.getMappingKey())
+        )).thenReturn(Collections.emptyList());
+
+        List<ThirdPartyTextUnitDTO> result = thirdPartyTextUnitSearchService.search(
+                Collections.singletonList(thirdPartyTextUnit.getThirdPartyTextUnitId()),
+                Collections.singletonList(thirdPartyTextUnit.getMappingKey()));
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    public void searchEmptyList() {
+        when(thirdPartyTextUnitRepository.getByThirdPartyTextUnitIdIsInAndMappingKeyIsIn(
+                Collections.emptyList(),
+                Collections.emptyList()
+        )).thenReturn(Collections.emptyList());
+
+        List<ThirdPartyTextUnitDTO> result = thirdPartyTextUnitSearchService.search(
+                Collections.emptyList(),
+                Collections.emptyList());
+
+        assertTrue(result.isEmpty());
     }
 }

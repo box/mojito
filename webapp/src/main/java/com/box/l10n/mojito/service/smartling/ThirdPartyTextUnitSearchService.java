@@ -41,8 +41,7 @@ public class ThirdPartyTextUnitSearchService {
     List<ThirdPartyTextUnitForBatchImport> convertDTOToBatchImport(Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet, boolean isPluralFile) {
 
         logger.debug("Create caches to map convert to ThirdPartyTextUnitForBatchImport list");
-        LoadingCache<String, Repository> repositoriesCache = importerCacheService.createRepositoriesCache();
-        LoadingCache<Map.Entry<String, Long>, Asset> assetsCache = importerCacheService.createAssetsCache();
+        LoadingCache<Map.Entry<String, String>, Asset> assetsCache = importerCacheService.createAssetsCache();
 
         logger.debug("Convert to ThirdPartyTextUnitForBatchImport");
         return thirdPartyTextUnitDTOSet.stream()
@@ -55,25 +54,22 @@ public class ThirdPartyTextUnitSearchService {
                     thirdPartyTextUnitForBatchImport.setThirdPartyTextUnitId(t.getThirdPartyTextUnitId());
                     thirdPartyTextUnitForBatchImport.setMappingKey(t.getMappingKey());
 
-                    thirdPartyTextUnitForBatchImport.setRepository(repositoriesCache.getUnchecked(t.getRepositoryName()));
-                    if (thirdPartyTextUnitForBatchImport.getRepository() != null) {
-                        thirdPartyTextUnitForBatchImport.setAsset(assetsCache.getUnchecked(new AbstractMap.SimpleEntry<>(
-                                t.getAssetPath(), thirdPartyTextUnitForBatchImport.getRepository().getId())));
+                    thirdPartyTextUnitForBatchImport.setAsset(assetsCache.getUnchecked(new AbstractMap.SimpleEntry<>(
+                            t.getAssetPath(), t.getRepositoryName())));
+                    if (thirdPartyTextUnitForBatchImport.getAsset() != null) {
+                        thirdPartyTextUnitForBatchImport.setRepository(thirdPartyTextUnitForBatchImport.getAsset().getRepository());
+                        String textUnitName = t.getTmTextUnitName();
 
-                        if (thirdPartyTextUnitForBatchImport.getAsset() != null) {
-                            String textUnitName = t.getTmTextUnitName();
-
-                            if (isPluralFile) {
-                                textUnitName += pluralSuffix;
-                            }
-
-                            Optional<TMTextUnitCurrentVariant> foundCurrentVariant = tmTextUnitCurrentVariantRepository.findAllByTmTextUnit_NameAndTmTextUnit_Asset_Id(
-                                    textUnitName,
-                                    thirdPartyTextUnitForBatchImport.getAsset().getId()
-                            ).stream().filter(notAlreadyMatched()).findFirst();
-
-                            foundCurrentVariant.ifPresent(tmTextUnitCurrentVariant -> thirdPartyTextUnitForBatchImport.setTmTextUnit(tmTextUnitCurrentVariant.getTmTextUnit()));
+                        if (isPluralFile) {
+                            textUnitName += pluralSuffix;
                         }
+
+                        Optional<TMTextUnitCurrentVariant> foundCurrentVariant = tmTextUnitCurrentVariantRepository.findAllByTmTextUnit_NameAndTmTextUnit_Asset_Id(
+                                textUnitName,
+                                thirdPartyTextUnitForBatchImport.getAsset().getId()
+                        ).stream().filter(notAlreadyMatched()).findFirst();
+
+                        foundCurrentVariant.ifPresent(tmTextUnitCurrentVariant -> thirdPartyTextUnitForBatchImport.setTmTextUnit(tmTextUnitCurrentVariant.getTmTextUnit()));
                     }
 
                     return thirdPartyTextUnitForBatchImport;
