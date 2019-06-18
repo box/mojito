@@ -15,6 +15,8 @@ import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * @author cegbukichi
  */
@@ -37,7 +39,7 @@ public class ThirdPartyTextUnitMatchingCronJob implements Job {
     ThirdPartyTextUnitMatchingService thirdPartyTextUnitMatchingService;
 
     @Value("#{'${l10n.smartling.projectIds}'.split(',')}")
-    String[] smartlingProjectIds;
+    List<String> smartlingProjectIds;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {

@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -43,35 +45,39 @@ public class ThirdPartyTextUnitMatchingService {
     @Autowired
     ThirdPartyTextUnitSearchService thirdPartyTextUnitSearchService;
 
-    String delimiter = "#@#";
+    final String delimiter = "#@#";
 
-    private String fileRegex = ".*\\d+_(singular|plural)_source\\.xml";
+    final Pattern filePattern = Pattern.compile(".*\\d+_(singular|plural)_source\\.xml");
 
-    private String pluralFileIndicator = "plural";
+    final private int maxResults = 500;
+
+    final private String pluralFileIndicator = "plural";
 
     void getSmartlingThirdPartyTextUnits(String projectId) {
         FilesResponse files = smartlingClient.getFiles(projectId);
         for (File file : files.getResponse().getData().getItems()) {
             String fileUri = file.getFileUri();
-            if (fileUri.matches(fileRegex)) {
+            Matcher fileUriMatcher = filePattern.matcher(fileUri);
+            if (fileUriMatcher.matches()) {
                 processFile(fileUri, projectId);
             }
         }
     }
 
     public void processFile(String fileUri, String projectId) {
-        int maxResults = 500;
 
-        // pull all strings for a file then match
+        logger.debug("pulling all strings for file {}", fileUri);
         PageFetcherSplitIterator<StringInfo> sourceStringsPageFetcherSplitIterator = new PageFetcherSplitIterator<>(
-            (offset, limit) -> {
-                List<StringInfo> stringInfoList = new ArrayList<>();
-                SourceStringsResponse sourceStringsResponse = smartlingClient.getSourceStrings(projectId, fileUri, offset);
-                if (sourceStringsResponse.isSuccessResponse()) {
-                    stringInfoList = sourceStringsResponse.getResponse().getData().getItems();
-                }
-                return stringInfoList;
-            }, maxResults
+                (offset, limit) -> {
+                    List<StringInfo> stringInfoList = new ArrayList<>();
+                    SourceStringsResponse sourceStringsResponse = smartlingClient.getSourceStrings(projectId, fileUri, offset);
+                    if (sourceStringsResponse.isSuccessResponse()) {
+                        stringInfoList = sourceStringsResponse.getResponse().getData().getItems();
+                    } else {
+                        logger.error(sourceStringsResponse.getResponse().getCode());
+                    }
+                    return stringInfoList;
+                }, maxResults
         );
         Stream<StringInfo> stream = StreamSupport.stream(sourceStringsPageFetcherSplitIterator, false);
         List<StringInfo> stringInfoToCheck = stream.collect(Collectors.toList());
@@ -114,14 +120,14 @@ public class ThirdPartyTextUnitMatchingService {
                             thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId(),
                             thirdPartyTextUnitForBatchImport.getMappingKey(),
                             thirdPartyTextUnitForBatchImport.getTmTextUnit().getId()
-                            );
+                    );
                     ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
                     ThirdPartyTextUnit existingThirdPartyTextUnitMatch = thirdPartyTextUnitRepository.findByThirdPartyTextUnitId(
                             thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
                     if (existingThirdPartyTextUnitMatch != null) {
-                        logger.info("re-used thirdPartyTextUnitId {}", thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
+                        logger.error("re-used thirdPartyTextUnitId {}", thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
                     } else {
-                        // no matching ThirdPartyTextUnit, create new one
+                        logger.debug("no matching ThirdPartyTextUnit {}, create new one", thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
                         thirdPartyTextUnit.setThirdPartyTextUnitId(thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
                         thirdPartyTextUnit.setMappingKey(thirdPartyTextUnitForBatchImport.getMappingKey());
                         thirdPartyTextUnit.setTmTextUnit(thirdPartyTextUnitForBatchImport.getTmTextUnit());
@@ -139,26 +145,27 @@ public class ThirdPartyTextUnitMatchingService {
 
     Set<ThirdPartyTextUnitDTO> convertStringInfoToDTO(List<StringInfo> stringInfoList, String fileUri) {
         Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet = new HashSet<>();
-        for (StringInfo stringInfo : stringInfoList) {
-            if (stringInfo.getStringVariant() != null && stringInfo.getStringVariant().contains(delimiter)) {
-                ThirdPartyTextUnitDTO thirdPartyTextUnitDTO = new ThirdPartyTextUnitDTO(
-                        null,
-                        stringInfo.getHashcode(),
-                        stringInfo.getStringVariant(),
-                        null);
+        stringInfoList
+            .forEach(stringInfo -> {
+                if (stringInfo.getStringVariant() != null && stringInfo.getStringVariant().contains(delimiter)) {
+                    ThirdPartyTextUnitDTO thirdPartyTextUnitDTO = new ThirdPartyTextUnitDTO(
+                            null,
+                            stringInfo.getHashcode(),
+                            stringInfo.getStringVariant(),
+                            null);
 
-                String[] mappingKeySplit = stringInfo.getStringVariant().split(delimiter);
-                String assetPath = mappingKeySplit[0];
-                String name = mappingKeySplit[1];
-                thirdPartyTextUnitDTO.setAssetPath(assetPath);
-                thirdPartyTextUnitDTO.setTmTextUnitName(name);
+                    String[] mappingKeySplit = stringInfo.getStringVariant().split(delimiter);
+                    String assetPath = mappingKeySplit[0];
+                    String name = mappingKeySplit[1];
+                    thirdPartyTextUnitDTO.setAssetPath(assetPath);
+                    thirdPartyTextUnitDTO.setTmTextUnitName(name);
 
-                String[] fileUriSplit = fileUri.split("/");
-                thirdPartyTextUnitDTO.setRepositoryName(fileUriSplit[0]);
+                    String[] fileUriSplit = fileUri.split("/");
+                    thirdPartyTextUnitDTO.setRepositoryName(fileUriSplit[0]);
 
-                thirdPartyTextUnitDTOSet.add(thirdPartyTextUnitDTO);
-            }
-        }
+                    thirdPartyTextUnitDTOSet.add(thirdPartyTextUnitDTO);
+                }
+            });
         return thirdPartyTextUnitDTOSet;
     }
 

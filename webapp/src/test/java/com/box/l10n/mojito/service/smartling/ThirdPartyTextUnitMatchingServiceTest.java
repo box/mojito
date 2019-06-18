@@ -30,7 +30,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class ThirdPartyTextUnitMatchingServiceTest extends ServiceTestBase {
+public class ThirdPartyTextUnitMatchingServiceTest {
 
     @InjectMocks
     ThirdPartyTextUnitMatchingService thirdPartyTextUnitMatchingService;
@@ -96,7 +96,7 @@ public class ThirdPartyTextUnitMatchingServiceTest extends ServiceTestBase {
         when(smartlingClientMock.getSourceStrings(projectId, fileName, offset)).thenReturn(sourceStringsResponse);
 
         thirdPartyTextUnitForBatchImport.setAsset(asset);
-        when(thirdPartyTextUnitSearchService.convertDTOToBatchImport(Matchers.any(Set.class), Matchers.anyBoolean()))
+        when(thirdPartyTextUnitSearchService.convertDTOToBatchImport(Matchers.anySet(), Matchers.anyBoolean()))
                 .thenReturn(Collections.singletonList(thirdPartyTextUnitForBatchImport));
 
         when(thirdPartyTextUnitSearchService.getByThirdPartyTextUnitIdsAndMappingKeys(Collections.singletonList(thirdPartyTextUnitForBatchImport)))
@@ -105,10 +105,27 @@ public class ThirdPartyTextUnitMatchingServiceTest extends ServiceTestBase {
         thirdPartyTextUnitMatchingService.processFile(fileName, projectId);
 
         Mockito.verify(smartlingClientMock).getSourceStrings(projectId, fileName, offset);
-        Mockito.verify(thirdPartyTextUnitSearchService).convertDTOToBatchImport(Matchers.any(Set.class), Matchers.anyBoolean());
+        Mockito.verify(thirdPartyTextUnitSearchService).convertDTOToBatchImport(Matchers.anySet(), Matchers.anyBoolean());
         Mockito.verify(thirdPartyTextUnitSearchService)
                 .getByThirdPartyTextUnitIdsAndMappingKeys(Collections.singletonList(thirdPartyTextUnitForBatchImport));
-        Mockito.verify(thirdPartyTextUnitRepository, never()).findByThirdPartyTextUnitId(thirdPartyTextUnitDTO.getThirdPartyTextUnitId());
+        Mockito.verify(thirdPartyTextUnitRepository, never()).findByThirdPartyTextUnitId(Matchers.anyString());
+    }
+
+    @Test
+    public void processFileNonSuccessResponse() {
+        SourceStringsResponse sourceStringsResponseNonSuccessCode = new SourceStringsResponse();
+        SourceStringsObject sourceStringsObjectNonSuccessCode = new SourceStringsObject();
+        sourceStringsObjectNonSuccessCode.setCode("error response");
+        sourceStringsResponseNonSuccessCode.setResponse(sourceStringsObjectNonSuccessCode);
+        when(smartlingClientMock.getSourceStrings(projectId, fileName, offset)).thenReturn(sourceStringsResponseNonSuccessCode);
+
+        thirdPartyTextUnitMatchingService.processFile(fileName, projectId);
+
+        Mockito.verify(smartlingClientMock).getSourceStrings(projectId, fileName, offset);
+        Mockito.verify(thirdPartyTextUnitSearchService, never()).convertDTOToBatchImport(Matchers.anySet(), Matchers.anyBoolean());
+        Mockito.verify(thirdPartyTextUnitSearchService, never())
+                .getByThirdPartyTextUnitIdsAndMappingKeys(Matchers.anyList());
+        Mockito.verify(thirdPartyTextUnitRepository, never()).findByThirdPartyTextUnitId(Matchers.anyString());
     }
 
     @Test
