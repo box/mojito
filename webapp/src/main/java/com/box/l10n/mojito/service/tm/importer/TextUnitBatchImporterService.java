@@ -7,7 +7,6 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.NormalizationUtils;
-import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.ImportTextUnitJob;
 import com.box.l10n.mojito.service.asset.ImportTextUnitJobInput;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
@@ -16,14 +15,11 @@ import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUn
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
-import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
@@ -33,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -61,16 +56,10 @@ public class TextUnitBatchImporterService {
     TextUnitSearcher textUnitSearcher;
 
     @Autowired
-    RepositoryRepository repositoryRepository;
-
-    @Autowired
     TMService tmService;
 
     @Autowired
     TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
-
-    @Autowired
-    AssetRepository assetRepository;
 
     @Autowired
     LocaleService localeService;
@@ -83,6 +72,9 @@ public class TextUnitBatchImporterService {
 
     @Autowired
     TextUnitForBatchImportMatcher textUnitForBatchImportMatcher;
+
+    @Autowired
+    ImporterCacheService importerCacheService;
 
     /**
      * Imports a batch of text units.
@@ -255,13 +247,7 @@ public class TextUnitBatchImporterService {
     List<TextUnitForBatchImport> skipInvalidAndConvertToTextUnitForBatchImport(List<TextUnitDTO> textUnitDTOs) {
 
         logger.debug("Create caches to map convert to TextUnitForBatchImport list");
-        LoadingCache<String, Repository> repositoriesCache = CacheBuilder.newBuilder().build(
-                CacheLoader.from((name) -> repositoryRepository.findByName(name))
-        );
-
-        LoadingCache<Map.Entry<String, Long>, Asset> assetsCache = CacheBuilder.newBuilder().build(
-                CacheLoader.from((entry) -> assetRepository.findByPathAndRepositoryId(entry.getKey(), entry.getValue()))
-        );
+        LoadingCache<Map.Entry<String, String>, Asset> assetsCache = importerCacheService.createAssetsCache();
 
         logger.debug("Start converting to TextUnitForBatchImport");
         return textUnitDTOs.stream().
@@ -276,9 +262,9 @@ public class TextUnitBatchImporterService {
                     TextUnitForBatchImport textUnitForBatchImport = new TextUnitForBatchImport();
                     textUnitForBatchImport.setTmTextUnitId(t.getTmTextUnitId());
 
-                    textUnitForBatchImport.setRepository(repositoriesCache.getUnchecked(t.getRepositoryName()));
-                    if (textUnitForBatchImport.getRepository() != null) {
-                        textUnitForBatchImport.setAsset(assetsCache.getUnchecked(new SimpleEntry<>(t.getAssetPath(), textUnitForBatchImport.getRepository().getId())));
+                    textUnitForBatchImport.setAsset(assetsCache.getUnchecked(new SimpleEntry<>(t.getAssetPath(), t.getRepositoryName())));
+                    if (textUnitForBatchImport.getAsset() != null) {
+                        textUnitForBatchImport.setRepository(textUnitForBatchImport.getAsset().getRepository());
                     }
                     textUnitForBatchImport.setName(t.getName());
 

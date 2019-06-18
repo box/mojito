@@ -20,6 +20,8 @@ public interface AssetRepository extends JpaRepository<Asset, Long>, JpaSpecific
 
     Asset findByPathAndRepositoryId(String path, Long repositoryId);
 
+    Asset findByPathAndRepositoryName(String path, String repositoryName);
+
     Asset findTopByRepositoryOrderByLastModifiedDateDesc(Repository repository);
 
     List<Asset> findByRepositoryIdOrderByLastModifiedDateDesc(Long repositoryId);

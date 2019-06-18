@@ -9,7 +9,7 @@ public class ThirdPartyTextUnitDTO {
     private String assetPath;
     private String tmTextUnitName;
 
-    ThirdPartyTextUnitDTO(Long id, String thirdPartyTextUnitId, String mappingKey, Long tmTextUnitId) {
+    public ThirdPartyTextUnitDTO(Long id, String thirdPartyTextUnitId, String mappingKey, Long tmTextUnitId) {
         this.id = id;
         this.thirdPartyTextUnitId = thirdPartyTextUnitId;
         this.mappingKey = mappingKey;
