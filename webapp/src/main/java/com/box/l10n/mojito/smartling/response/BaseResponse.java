@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 public class BaseResponse {
 
     static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);
-    static final String API_SUCCESS_CODE = "SUCCESS";
+    public static final String API_SUCCESS_CODE = "SUCCESS";
     static final String API_INVALID_CREDENTIALS_CODE = "AUTHENTICATION_ERROR";
 
     public String formatErrors(Errors errors) {

@@ -16,7 +16,7 @@ public class PageFetcherSplitIterator<T> extends Spliterators.AbstractSpliterato
     boolean needsFetching = true;
     PageFetcher<T> pageFetcher;
 
-    PageFetcherSplitIterator(PageFetcher<T> pageFetcher, int limit) {
+    public PageFetcherSplitIterator(PageFetcher<T> pageFetcher, int limit) {
         super(Long.MAX_VALUE, 0);
         this.limit = limit;
         this.offset = -limit;
