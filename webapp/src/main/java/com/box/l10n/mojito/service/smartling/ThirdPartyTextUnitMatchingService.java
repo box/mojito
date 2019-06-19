@@ -99,6 +99,8 @@ public class ThirdPartyTextUnitMatchingService {
                 mapThirdPartyTextUnitsToImportWithExisting(asset, thirdPartyTextUnitList);
                 importThirdPartyTextUnitOfAsset(thirdPartyTextUnitList);
             });
+        } else {
+            logger.info("Nothing to do, there are no third party strings eligible for matching in {}", fileUri);
         }
     }
 
