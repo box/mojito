@@ -117,13 +117,14 @@ public class ThirdPartyTextUnitMatchingService {
                             thirdPartyTextUnitForBatchImport.getMappingKey(),
                             thirdPartyTextUnitForBatchImport.getTmTextUnit().getId()
                     );
-                    ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
+
                     ThirdPartyTextUnit existingThirdPartyTextUnitMatch = thirdPartyTextUnitRepository.findByThirdPartyTextUnitId(
                             thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
                     if (existingThirdPartyTextUnitMatch != null) {
                         logger.error("re-used thirdPartyTextUnitId {}", thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
                     } else {
                         logger.debug("no matching ThirdPartyTextUnit {}, create new one", thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
+                        ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
                         thirdPartyTextUnit.setThirdPartyTextUnitId(thirdPartyTextUnitForBatchImport.getThirdPartyTextUnitId());
                         thirdPartyTextUnit.setMappingKey(thirdPartyTextUnitForBatchImport.getMappingKey());
                         thirdPartyTextUnit.setTmTextUnit(thirdPartyTextUnitForBatchImport.getTmTextUnit());
