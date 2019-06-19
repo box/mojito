@@ -45,7 +45,7 @@ public class ThirdPartyTextUnitMatchingCronJob implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         logger.debug("Starting thirdPartyTextUnitMatchingCronJob execution");
         for (String smartlingProjectId : smartlingProjectIds) {
-            thirdPartyTextUnitMatchingService.getSmartlingThirdPartyTextUnits(smartlingProjectId.trim());
+            thirdPartyTextUnitMatchingService.updateThirdPartyTextUnitMapping(smartlingProjectId.trim());
         }
     }
 

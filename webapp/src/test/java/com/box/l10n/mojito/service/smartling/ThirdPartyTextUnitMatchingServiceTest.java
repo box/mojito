@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.smartling;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.ThirdPartyTextUnit;
-import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.request.SourceStringsObject;
 import com.box.l10n.mojito.smartling.request.StringData;

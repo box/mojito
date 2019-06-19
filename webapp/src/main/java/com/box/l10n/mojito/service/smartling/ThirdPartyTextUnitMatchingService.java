@@ -53,7 +53,7 @@ public class ThirdPartyTextUnitMatchingService {
 
     final private String pluralFileIndicator = "plural";
 
-    void getSmartlingThirdPartyTextUnits(String projectId) {
+    void updateThirdPartyTextUnitMapping(String projectId) {
         FilesResponse files = smartlingClient.getFiles(projectId);
         for (File file : files.getResponse().getData().getItems()) {
             String fileUri = file.getFileUri();
@@ -64,8 +64,7 @@ public class ThirdPartyTextUnitMatchingService {
         }
     }
 
-    public void processFile(String fileUri, String projectId) {
-
+    void processFile(String fileUri, String projectId) {
         logger.debug("pulling all strings for file {}", fileUri);
         PageFetcherSplitIterator<StringInfo> sourceStringsPageFetcherSplitIterator = new PageFetcherSplitIterator<>(
                 (offset, limit) -> {
@@ -81,10 +80,11 @@ public class ThirdPartyTextUnitMatchingService {
         );
         Stream<StringInfo> stream = StreamSupport.stream(sourceStringsPageFetcherSplitIterator, false);
         List<StringInfo> stringInfoToCheck = stream.collect(Collectors.toList());
+        checkStringInfo(fileUri, stringInfoToCheck);
+    }
 
-
+    private void checkStringInfo(String fileUri, List<StringInfo> stringInfoToCheck) {
         logger.debug("done pulling strings for file {}, starting matching", fileUri);
-        Instant start = Instant.now();
         Set<ThirdPartyTextUnitDTO> thirdPartyTextUnitDTOSet = convertStringInfoToDTO(stringInfoToCheck, fileUri);
         if (!thirdPartyTextUnitDTOSet.isEmpty()) {
             List<ThirdPartyTextUnitForBatchImport> thirdPartyTextUnitForBatchImportList = thirdPartyTextUnitSearchService.convertDTOToBatchImport(
@@ -95,15 +95,11 @@ public class ThirdPartyTextUnitMatchingService {
                     .stream()
                     .collect(Collectors.groupingBy(ThirdPartyTextUnitForBatchImport::getAsset));
 
-            for (Map.Entry<Asset, List<ThirdPartyTextUnitForBatchImport>> entry : groupedByAsset.entrySet()) {
-                mapThirdPartyTextUnitsToImportWithExisting(entry.getKey(), entry.getValue());
-                importThirdPartyTextUnitOfAsset(entry.getValue());
-            }
+            groupedByAsset.forEach((asset, thirdPartyTextUnitList) -> {
+                mapThirdPartyTextUnitsToImportWithExisting(asset, thirdPartyTextUnitList);
+                importThirdPartyTextUnitOfAsset(thirdPartyTextUnitList);
+            });
         }
-
-        Instant end = Instant.now();
-        logger.debug("ThirdPartyTextUnit matching and saving start for file {}: {}", fileUri, start);
-        logger.debug("ThirdPartyTextUnit matching and saving end for file {}: {}", fileUri, end);
     }
 
     @Transactional
