@@ -7,9 +7,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.box.l10n.mojito.entity.Branch;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Long>, JpaSpecificationExecutor<AssetTextUnit> {
 
     List<AssetTextUnit> findByAssetExtraction(AssetExtraction assetExtraction);
+
+    @Query("select atu.md5 from #{#entityName} atu where atu.assetExtraction = ?1 and not atu.branch = ?2")
+    List<String> findMd5ByAssetExtractionAndBranch(AssetExtraction assetExtraction, Branch branch);
 
     List<AssetTextUnit> findByMd5NotInAndAssetExtraction(Collection<String> excludedMd5s, AssetExtraction assetExtraction);
 
