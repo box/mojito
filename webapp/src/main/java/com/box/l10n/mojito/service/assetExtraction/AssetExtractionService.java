@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -115,7 +116,8 @@ public class AssetExtractionService {
 
         AssetExtraction assetExtraction = createAssetExtraction(assetContent, currentTask, filterOptions);
 
-        assetExtractor.performAssetExtraction(assetExtraction, filterConfigIdOverride, filterOptions, currentTask);
+        List<String> md5sToSkip = getMd5sToSkip(assetContent, asset);
+        assetExtractor.performAssetExtraction(assetExtraction, filterConfigIdOverride, filterOptions, md5sToSkip, currentTask);
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
                 assetExtraction.getId(),
@@ -138,6 +140,20 @@ public class AssetExtractionService {
         logger.info("Done processing asset content id: {}", assetContentId);
 
         return new PollableFutureTaskResult<>(asset);
+    }
+
+    List<String> getMd5sToSkip(AssetContent assetContent, Asset asset) {
+        List<String> skipMd5s = Collections.emptyList();
+
+        if (!isNullOrPrimaryBranch(assetContent)) {
+            skipMd5s = assetTextUnitRepository.findMd5ByAssetExtractionAndBranch(asset.getLastSuccessfulAssetExtraction(), assetContent.getBranch());
+        }
+
+        return skipMd5s;
+    }
+
+    boolean isNullOrPrimaryBranch(AssetContent assetContent) {
+        return PRIMARY_BRANCH.equals(assetContent.getBranch().getName());
     }
 
     /**
