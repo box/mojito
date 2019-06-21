@@ -86,7 +86,7 @@ public class ImageWS {
      * @param imageName an image name
      * @return the media type of the image
      */
-    MediaType getMediaTypeFromImageName(String imageName) {
+    public MediaType getMediaTypeFromImageName(String imageName) {
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
 
         String fileExtension = FilenameUtils.getExtension(imageName).toLowerCase();

@@ -1,0 +1,4 @@
+create table third_party_text_unit_screenshot (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, third_party_screenshot_id varchar(255), screenshot_text_unit_id bigint not null, third_party_text_unit_id bigint not null, primary key (id));
+create index THIRD_PARTY_TEXT_UNIT_SCREENSHOT__THIRD_PARTY_TEXT_UNIT_ID on third_party_text_unit_screenshot (third_party_text_unit_id);
+alter table third_party_text_unit_screenshot add constraint FK__THIRD_PARTY_TEXT_UNIT_SCREENSHOT__SCREENSHOT_TEXT_UNIT__ID foreign key (screenshot_text_unit_id) references screenshot_text_unit (id);
+alter table third_party_text_unit_screenshot add constraint FK__THIRD_PARTY_TEXT_UNIT_SCREENSHOT__THIRD_PARTY_TEXT_UNIT__ID foreign key (third_party_text_unit_id) references third_party_text_unit (id);

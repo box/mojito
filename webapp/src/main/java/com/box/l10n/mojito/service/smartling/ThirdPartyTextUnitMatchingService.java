@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -55,12 +54,16 @@ public class ThirdPartyTextUnitMatchingService {
 
     void updateThirdPartyTextUnitMapping(String projectId) {
         FilesResponse files = smartlingClient.getFiles(projectId);
-        for (File file : files.getResponse().getData().getItems()) {
-            String fileUri = file.getFileUri();
-            Matcher fileUriMatcher = filePattern.matcher(fileUri);
-            if (fileUriMatcher.matches()) {
-                processFile(fileUri, projectId);
+        if (files.isSuccessResponse()) {
+            for (File file : files.getResponse().getData().getItems()) {
+                String fileUri = file.getFileUri();
+                Matcher fileUriMatcher = filePattern.matcher(fileUri);
+                if (fileUriMatcher.matches()) {
+                    processFile(fileUri, projectId);
+                }
             }
+        } else {
+            logger.info("API request to files API failed: {}", files.getErrorMessage());
         }
     }
 
@@ -99,6 +102,7 @@ public class ThirdPartyTextUnitMatchingService {
                 mapThirdPartyTextUnitsToImportWithExisting(asset, thirdPartyTextUnitList);
                 importThirdPartyTextUnitOfAsset(thirdPartyTextUnitList);
             });
+            logger.debug("Done matching strings for file {}", fileUri);
         } else {
             logger.info("Nothing to do, there are no third party strings eligible for matching in {}", fileUri);
         }
