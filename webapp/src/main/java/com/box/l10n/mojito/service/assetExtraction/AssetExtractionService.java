@@ -229,23 +229,14 @@ public class AssetExtractionService {
             logger.debug("Start processing branch: {} for asset: {}", assetExtractionByBranch.getBranch().getName(), assetExtractionByBranch.getAsset().getPath());
             mergedAssetExtractionMd5Builder.append(assetExtractionByBranch.getAssetExtraction().getContentMd5());
 
-            List<AssetTextUnit> assetTextUnitsToMerge;
-
-            if (mergedAssetTextUnits.keySet().isEmpty()) {
-                logger.debug("Get all asset text units");
-                assetTextUnitsToMerge = assetTextUnitRepository.findByAssetExtraction(assetExtractionByBranch.getAssetExtraction());
-
-            } else {
-                logger.debug("Get filtered asset text units (exclude the ones already merged)");
-                assetTextUnitsToMerge = assetTextUnitRepository.findByMd5NotInAndAssetExtraction(mergedAssetTextUnits.keySet(),
-                        assetExtractionByBranch.getAssetExtraction());
-            }
+            logger.debug("Get asset text units of the branch to be merged");
+            List<AssetTextUnit> assetTextUnitsToMerge = assetTextUnitRepository.findByAssetExtraction(assetExtractionByBranch.getAssetExtraction());
 
             for (AssetTextUnit assetTextUnit : assetTextUnitsToMerge) {
                 AssetTextUnit copy = copyAssetTextUnit(assetTextUnit);
                 copy.setBranch(assetExtractionByBranch.getBranch());
                 copy.setAssetExtraction(mergedAssetExtraction);
-                mergedAssetTextUnits.put(copy.getMd5(), copy);
+                mergedAssetTextUnits.putIfAbsent(copy.getMd5(), copy);
             }
         }
 
@@ -367,7 +358,7 @@ public class AssetExtractionService {
     /**
      * Creates an AssetExtraction associated to the given asset
      *
-     * @param asset The asset associated to the AssetExtraction
+     * @param asset         The asset associated to the AssetExtraction
      * @param filterOptions
      * @return The created assetExtraction instance
      */
