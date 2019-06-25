@@ -157,7 +157,7 @@ class BranchesSearchResults extends React.Component {
             <Row key={"branchStatistic-" + branchStatistic.id} className="branches-branchstatistic-summary">
                 <Col md={4} className="branches-branchstatistic-col1">
                     <Row className="branches-branchstatistic-col1-row">
-                        <Col md={8}>
+                        <Col md={4}>
                             <Button bsSize="xsmall"
                                     onClick={() =>
                                         this.props.onChangeOpenBranchStatistic(isBranchStatisticOpen ? null : branchStatistic.id)
@@ -168,6 +168,9 @@ class BranchesSearchResults extends React.Component {
                             <span className="mlm">
                                 {this.renderBranchName(branchStatistic.branch)}
                             </span>
+                        </Col>
+                        <Col md={4}>
+                            <span className="mls color-gray-light2"><small>{branchStatistic.branch.repository.name}</small></span>
                         </Col>
                         <Col md={2}>
                             {branchStatistic.branch.deleted ?
