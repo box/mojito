@@ -1,0 +1,1 @@
+alter table screenshot_text_unit modify name longtext;
