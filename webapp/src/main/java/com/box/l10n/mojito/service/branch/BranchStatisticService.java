@@ -166,6 +166,7 @@ public class BranchStatisticService {
 
         textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
         textUnitSearcherParameters.setStatusFilter(FOR_TRANSLATION);
+        textUnitSearcherParameters.setToBeFullyTranslatedFilter(true);
 
         TextUnitAndWordCount textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
         return textUnitAndWordCount.getTextUnitCount();
