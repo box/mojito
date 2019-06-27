@@ -37,6 +37,9 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     @Value("${l10n.branchNotification.slack.userEmailPattern}")
     String userEmailPattern;
 
+    @Value("${l10n.branchNotification.slack.useDirectMessage:false}")
+    boolean useDirectMessage = false;
+
     @Override
     public String sendNewMessage(String branchName, String username, List<String> sourceStrings) throws BranchNotificationMessageSenderException {
         logger.debug("sendNewMessage to: {}", username);
@@ -99,7 +102,19 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     }
 
     String getSlackChannelForBranch(String username) throws SlackClientException {
-        return slackClient.getInstantMessageChannel(getEmail(username)).getId();
+        String channel;
+
+        if (useDirectMessage) {
+            channel = slackClient.getInstantMessageChannel(getEmail(username)).getId();
+        } else {
+            channel = getSlackbotChannel(username);
+        }
+
+        return channel;
+    }
+
+    String getSlackbotChannel(String username) {
+        return "@" + username;
     }
 
     String getEmail(String username) {
