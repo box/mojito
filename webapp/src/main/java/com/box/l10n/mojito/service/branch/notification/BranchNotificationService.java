@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.branch.notification;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.entity.BranchStatistic;
+import com.box.l10n.mojito.entity.Screenshot;
+import com.box.l10n.mojito.entity.ScreenshotTextUnit;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -237,7 +240,20 @@ public class BranchNotificationService {
     }
 
     boolean shouldSendScreenshotMissingMessage(Branch branch, BranchNotification branchNotification) {
-        return false;
+        return branchNotification.getScreenshotMissingMsgSentAt() == null
+                && isScreenshotMissing(branch);
+    }
+
+    boolean isScreenshotMissing(Branch branch) {
+        BranchStatistic branchStatistic = branchStatisticRepository.findByBranch(branch);
+
+        List<Long> tmTextUnitWithScreenshotIds = branch.getScreenshots().stream().
+                map(Screenshot::getScreenshotTextUnits).
+                flatMap(Collection::stream).
+                map(screenshotTextUnit -> screenshotTextUnit.getTmTextUnit().getId()).
+                distinct().collect(Collectors.toList());
+
+        return tmTextUnitWithScreenshotIds.size() < branchStatistic.getTotalCount();
     }
 
     boolean shouldSendTranslatedMessage(Branch branch, BranchNotification branchNotification) {

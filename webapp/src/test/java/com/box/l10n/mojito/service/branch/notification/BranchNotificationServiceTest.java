@@ -89,7 +89,6 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
                 });
     }
 
-    @Ignore("need to finish screenshot implementation")
     @Test
     public void screenshotMissing() throws Exception {
         BranchTestData branchTestData = new BranchTestData(testIdWatcher);
@@ -99,7 +98,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
 
         branchNotificationMissingScreenshotsJob.schedule(branchTestData.getBranch1().getId(), senderType, new Date());
 
-        waitForCondition("Branch1 new notification must be sent",
+        waitForCondition("Branch1 screenshot missing notification must be sent",
                 () -> {
                     return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType).getScreenshotMissingMsgSentAt() != null;
                 });

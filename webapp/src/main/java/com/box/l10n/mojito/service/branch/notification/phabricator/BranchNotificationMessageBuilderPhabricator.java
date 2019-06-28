@@ -41,7 +41,7 @@ public class BranchNotificationMessageBuilderPhabricator {
     }
 
     public String getScreenshotMissingMessage() {
-        return "Screenshots missing";
+        return "Please provide screenshots to help localization team";
     }
 
     String getFormattedSourceStrings(List<String> sourceStrings) {
