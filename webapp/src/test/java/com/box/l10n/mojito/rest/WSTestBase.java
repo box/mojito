@@ -130,7 +130,7 @@ public class WSTestBase {
 
             if (res) {
                 break;
-            } else if (numberAttempt > 10) {
+            } else if (numberAttempt > 30) {
                 Assert.fail(failMessage);
             }
             Thread.sleep(numberAttempt * 100);

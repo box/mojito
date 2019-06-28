@@ -21,7 +21,7 @@ import static com.box.l10n.mojito.slack.request.Attachment.*;
 @Component
 public class BranchNotificationMessageBuilderSlack {
 
-    static final int STRING_IN_SUMMARY_COUNT = 3;
+    static final int STRING_IN_SUMMARY_COUNT = 20;
     static final int STRING_IN_SUMMARY_ABRREVIATE_LENGHT = 40;
 
     @Autowired

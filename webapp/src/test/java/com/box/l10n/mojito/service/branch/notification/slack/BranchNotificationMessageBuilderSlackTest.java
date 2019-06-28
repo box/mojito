@@ -14,7 +14,9 @@ import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -35,15 +37,16 @@ public class BranchNotificationMessageBuilderSlackTest {
 
     @Test
     public void testGetSummaryString() {
-        String summaryString = branchNotificationMessageBuilderSlack.getSummaryString(Arrays.asList(
-                "string 1",
-                "very long string 2 ---------------------------------------------------------",
-                "string 3",
-                "string 4",
-                "string 5",
-                "string 6"));
+        List<String> strings = new ArrayList<>();
+        strings.add("string 1");
+        strings.add("very long string 2 ---------------------------------------------------------");
 
-        assertEquals("string 1, very long string 2 ------------------..., string 3", summaryString);
+        for (int i = 3; i < 30; i++) {
+            strings.add("s" + i);
+        }
+
+        String summaryString = branchNotificationMessageBuilderSlack.getSummaryString(strings);
+        assertEquals("string 1, very long string 2 ------------------..., s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20", summaryString);
     }
 
     @Test
