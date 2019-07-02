@@ -30,7 +30,7 @@ class BranchesSearchResults extends React.Component {
 
         let numberOfScreenshots = this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size;
         let expectedNumberOfScreenshots = branchStatistic.branchTextUnitStatistics.length;
-        let needScreenshot = expectedNumberOfScreenshots - numberOfScreenshots;
+        let needScreenshot = Math.max(expectedNumberOfScreenshots - numberOfScreenshots, 0);
 
         return <div>
             {
