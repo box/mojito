@@ -6,10 +6,11 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.List;
+import java.util.Set;
 
 
 @RepositoryRestResource(exported = false)
 public interface GitBlameRepository extends JpaRepository<GitBlame, Long>, JpaSpecificationExecutor<GitBlame> {
 
-    List<GitBlame> findByTmTextUnitIdIn(List<Long> ids);
+    List<GitBlame> findByTmTextUnitIdIn(Set<Long> ids);
 }

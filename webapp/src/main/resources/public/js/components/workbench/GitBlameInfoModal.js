@@ -191,7 +191,7 @@ class GitBlameInfoModal extends React.Component {
 
     getBranchScreenshots = () => {
         try {
-            return this.props.gitBlameWithUsage.branch.screenshots;
+            return this.props.gitBlameWithUsage.screenshots;
         } catch (e) {
             return [];
         }
