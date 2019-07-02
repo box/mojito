@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Service to manage screenshots.
@@ -321,6 +324,15 @@ public class ScreenshotService {
 
         List<Screenshot> screenshots = em.createQuery(query.distinct(true).select(screenshot)).setFirstResult(offset).setMaxResults(limit).getResultList();
         return screenshots;
+    }
+
+    public Map<Long, Set<Screenshot>> getScreenshotsByTmTextUnitId(Set<Long> tmTextUnitIds) {
+        List<ScreenshotTextUnit> screenshotTextUnits = screenshotTextUnitRepository.findByTmTextUnitIdIn(tmTextUnitIds);
+        Map<Long, Set<Screenshot>> screenshotsByTextUnit = screenshotTextUnits.stream().collect(Collectors.groupingBy(
+                s -> s.getTmTextUnit().getId(),
+                Collectors.mapping(ScreenshotTextUnit::getScreenshot, Collectors.toSet())));
+
+        return screenshotsByTextUnit;
     }
 
     private Predicate getPredicateForSearchType(

@@ -2,15 +2,18 @@ package com.box.l10n.mojito.service.gitblame;
 
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.GitBlame;
+import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +21,12 @@ import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author jaurambault
@@ -46,6 +50,9 @@ public class GitBlameService {
 
     @Autowired
     GitBlameRepository gitBlameRepository;
+
+    @Autowired
+    ScreenshotService screenshotService;
 
     @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
@@ -75,9 +82,14 @@ public class GitBlameService {
         if (!gitBlameWithUsages.isEmpty()) {
             enrichTextUnitsWithUsages(gitBlameWithUsages);
             enrichTextUnitsWithGitBlame(gitBlameWithUsages);
+            enrichTextUnitsWithScreenshots(gitBlameWithUsages);
         }
 
         return gitBlameWithUsages;
+    }
+
+    Set<Long> getTmTextUnitIds(List<GitBlameWithUsage> gitBlameWithUsages) {
+        return gitBlameWithUsages.stream().map(GitBlameWithUsage::getTmTextUnitId).collect(Collectors.toSet());
     }
 
     List<GitBlameWithUsage> convertTextUnitsDTOsToGitBlameWithUsages(List<TextUnitDTO> textUnitDTOS) {
@@ -98,12 +110,8 @@ public class GitBlameService {
     }
 
     void enrichTextUnitsWithGitBlame(List<GitBlameWithUsage> gitBlameWithUsages) {
-        logger.debug("Enrich text unit with git info");
-        List<Long> tmTextUnitIds = new ArrayList<>();
-
-        for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
-            tmTextUnitIds.add(gitBlameWithUsage.getTmTextUnitId());
-        }
+        logger.debug("Enrich text units with git info");
+        Set<Long> tmTextUnitIds = getTmTextUnitIds(gitBlameWithUsages);
 
         logger.debug("Fetch the Git blame info");
         Map<Long, GitBlame> currentGitBlameForTmTextUnitIds = getCurrentGitBlameForTmTextUnitIds(tmTextUnitIds);
@@ -111,11 +119,11 @@ public class GitBlameService {
         for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
             gitBlameWithUsage.setGitBlame(currentGitBlameForTmTextUnitIds.get(gitBlameWithUsage.getTmTextUnitId()));
         }
-        logger.debug("End enrich text unit with git info");
+        logger.debug("End Enrich text units with git info");
     }
 
     void enrichTextUnitsWithUsages(List<GitBlameWithUsage> gitBlameWithUsages) {
-        logger.debug("Enrich text unit with usages");
+        logger.debug("Enrich text units with usages");
         Map<Long, GitBlameWithUsage> assetTextUnitIdToGitBlameWithUsage = new HashMap<>();
 
         for (GitBlameWithUsage textUnitWithUsage : gitBlameWithUsages) {
@@ -133,7 +141,20 @@ public class GitBlameService {
             gitBlameWithUsage.setBranch(assetTextUnit.getBranch());
         }
 
-        logger.debug("End enrich text unit with usages");
+        logger.debug("End Enrich text units with usages");
+    }
+
+    void enrichTextUnitsWithScreenshots(List<GitBlameWithUsage> gitBlameWithUsages) {
+        logger.debug("Enrich text units with screenshots");
+
+        Set<Long> tmTextUnitIds = getTmTextUnitIds(gitBlameWithUsages);
+        Map<Long, Set<Screenshot>> screenshotsByTextUnit = screenshotService.getScreenshotsByTmTextUnitId(tmTextUnitIds);
+
+        gitBlameWithUsages.forEach(gitBlameWithUsage -> {
+            Set<Screenshot> screenshots = screenshotsByTextUnit.get(gitBlameWithUsage.getTmTextUnitId());
+            screenshots = MoreObjects.firstNonNull(screenshots, Collections.emptySet());
+            gitBlameWithUsage.setScreenshots(screenshots);
+        });
     }
 
     /**
@@ -150,7 +171,7 @@ public class GitBlameService {
 
         HashMap<Long, GitBlameWithUsage> gitBlameWithUsagesByTmTextUnitId = getGitBlameWithUsagesByTmTextUnitId(gitBlameWithUsages);
 
-        Map<Long, GitBlame> currentGitBlameForTmTextUnitIds = getCurrentGitBlameForTmTextUnitIds(new ArrayList<Long>(gitBlameWithUsagesByTmTextUnitId.keySet()));
+        Map<Long, GitBlame> currentGitBlameForTmTextUnitIds = getCurrentGitBlameForTmTextUnitIds(gitBlameWithUsagesByTmTextUnitId.keySet());
 
         for (Map.Entry<Long, GitBlameWithUsage> gitBlameWithUsageEntry : gitBlameWithUsagesByTmTextUnitId.entrySet()) {
             Long tmTextUnitId = gitBlameWithUsageEntry.getKey();
@@ -182,7 +203,7 @@ public class GitBlameService {
         return new PollableFutureTaskResult();
     }
 
-    Map<Long, GitBlame> getCurrentGitBlameForTmTextUnitIds(List<Long> tmTextUnitIds) {
+    Map<Long, GitBlame> getCurrentGitBlameForTmTextUnitIds(Set<Long> tmTextUnitIds) {
         Map<Long, GitBlame> gitBlameMap = new HashMap<>();
 
         List<GitBlame> byTmTextUnitIdIn = gitBlameRepository.findByTmTextUnitIdIn(tmTextUnitIds);
@@ -192,7 +213,7 @@ public class GitBlameService {
             try {
                 gitBlameMap.put(gitBlame.getTmTextUnit().getId(), gitBlame);
                 i++;
-            } catch(Exception e) {
+            } catch (Exception e) {
                 logger.error("getCurrentGitBlameForTmTextUnitIds, id: {} after: {}", gitBlame.getId(), i);
             }
         }

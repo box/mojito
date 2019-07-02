@@ -2,9 +2,11 @@ package com.box.l10n.mojito.service.gitblame;
 
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.GitBlame;
+import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonView;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class GitBlameWithUsage {
@@ -32,6 +34,9 @@ public class GitBlameWithUsage {
 
     @JsonView(View.GitBlameWithUsage.class)
     Branch branch;
+
+    @JsonView(View.GitBlameWithUsage.class)
+    Set<Screenshot> screenshots = new HashSet<>();
 
     public Set<String> getUsages() {
         return usages;
@@ -95,5 +100,13 @@ public class GitBlameWithUsage {
 
     public void setBranch(Branch branch) {
         this.branch = branch;
+    }
+
+    public Set<Screenshot> getScreenshots() {
+        return screenshots;
+    }
+
+    public void setScreenshots(Set<Screenshot> screenshots) {
+        this.screenshots = screenshots;
     }
 }
