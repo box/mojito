@@ -185,6 +185,7 @@ public class BranchNotificationService {
                     branchNotificationInfo.getSourceStrings());
 
             branchNotification.setUpdatedMsgSentAt(dateTimeUtils.now());
+            branchNotification.setTranslatedMsgSentAt(null);
             branchNotification.setMessageId(messageId);
             branchNotification.setContentMD5(branchNotificationInfo.getContentMd5());
 
@@ -236,6 +237,7 @@ public class BranchNotificationService {
 
     boolean shouldSendUpdatedMessage(BranchNotification branchNotification, BranchNotificationInfo branchNotificationInfo) {
         return branchNotification.getNewMsgSentAt() != null
+                && !branchNotificationInfo.getSourceStrings().isEmpty()
                 && !branchNotificationInfo.getContentMd5().equals(branchNotification.getContentMD5());
     }
 
