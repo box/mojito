@@ -93,6 +93,11 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     public void screenshotMissing() throws Exception {
         BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
+        waitForCondition("Branch notification for branch1 is missing",
+                () -> {
+                    return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType) != null;
+                });
+
         BranchNotification branchNotification = branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType);
         branchNotification.setScreenshotMissingMsgSentAt(DateTime.now().minusMinutes(31));
 
