@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.branch;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
+import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJob;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
@@ -13,13 +14,13 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.service.assetExtraction.AssetExtractionService.PRIMARY_BRANCH;
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.FOR_TRANSLATION;
-import static com.box.l10n.mojito.service.tm.search.UsedFilter.USED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Component
@@ -50,6 +51,9 @@ public class BranchStatisticService {
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
+
+    @Autowired
+    AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
     /**
      * Compute statistics for all branches that are not deleted in a given repository.
@@ -152,13 +156,22 @@ public class BranchStatisticService {
     public List<TextUnitDTO> getTextUnitDTOsForBranch(Branch branch) {
         logger.debug("Get text units for branch: {} ({})", branch.getId(), branch.getName());
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setRepositoryIds(branch.getRepository().getId());
-        textUnitSearcherParameters.setBranchId(branch.getId());
-        textUnitSearcherParameters.setForRootLocale(true);
-        textUnitSearcherParameters.setUsedFilter(USED);
+        List<Long> branchTmTextUnitIds = assetTextUnitToTMTextUnitRepository.findByBranch(branch);
 
-        return textUnitSearcher.search(textUnitSearcherParameters);
+        List<TextUnitDTO> textUnitDTOS;
+
+        if (branchTmTextUnitIds.isEmpty()) {
+            textUnitDTOS = Collections.emptyList();
+        } else {
+            TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+            textUnitSearcherParameters.setRepositoryIds(branch.getRepository().getId());
+            textUnitSearcherParameters.setTmTextUnitIds(branchTmTextUnitIds);
+            textUnitSearcherParameters.setForRootLocale(true);
+
+            textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+        }
+
+        return textUnitDTOS;
     }
 
     long getForTranslationCount(long tmTextUnitId) {
