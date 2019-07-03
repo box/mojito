@@ -27,8 +27,4 @@ public interface AssetExtractionRepository extends JpaRepository<AssetExtraction
             + "and pt.finishedDate is not null"
     )
     List<Long> findFinishedAndOldAssetExtractions(Pageable pageable);
-
-    List<AssetExtraction> findByAssetAndPollableTaskIsNotNullAndPollableTaskFinishedDateIsNull(Asset asset);
-
-    AssetExtraction findByAssetAndAssetContentBranch(Asset asset, Branch branch);
 }
