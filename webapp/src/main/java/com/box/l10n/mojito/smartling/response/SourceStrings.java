@@ -1,8 +1,8 @@
-package com.box.l10n.mojito.smartling.request;
+package com.box.l10n.mojito.smartling.response;
 
 import java.util.List;
 
-public class StringData {
+public class SourceStrings {
     List<StringInfo> items;
     Integer totalCount;
 

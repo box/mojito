@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.utils;
 
+import com.box.l10n.mojito.smartling.SmartlingClientException;
+
 import java.util.List;
 
 /**

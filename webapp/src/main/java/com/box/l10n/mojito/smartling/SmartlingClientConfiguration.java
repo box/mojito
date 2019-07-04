@@ -1,13 +1,15 @@
 package com.box.l10n.mojito.smartling;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.box.l10n.mojito.utils.RestTemplateUtils;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.AccessTokenProvider;
 import org.springframework.security.oauth2.client.token.AccessTokenProviderChain;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.web.util.DefaultUriTemplateHandler;
@@ -29,6 +31,12 @@ public class SmartlingClientConfiguration {
     String clientID;
     String clientSecret;
 
+    @ConditionalOnProperty("l10n.smartling.clientID")
+    @Bean
+    public SmartlingClient getSmartlingClient() {
+        return new SmartlingClient(smartlingRestTemplate());
+    }
+
     @Bean
     public OAuth2ProtectedResourceDetails smartling() {
         SmartlingOAuth2ProtectedResourceDetails details = new SmartlingOAuth2ProtectedResourceDetails();
@@ -41,10 +49,11 @@ public class SmartlingClientConfiguration {
         return details;
     }
 
-    @Bean
-    @Qualifier("smartling")
-    public OAuth2RestTemplate SmartlingRestTemplate() {
+    public OAuth2RestTemplate smartlingRestTemplate() {
         OAuth2RestTemplate oAuth2RestTemplate = new OAuth2RestTemplate(smartling(), new DefaultOAuth2ClientContext());
+
+        RestTemplateUtils restTemplateUtils = new RestTemplateUtils();
+        restTemplateUtils.enableFeature(oAuth2RestTemplate, DeserializationFeature.UNWRAP_ROOT_VALUE);
 
         AccessTokenProviderChain accessTokenProviderChain = new AccessTokenProviderChain(Arrays.asList(
                 new SmartlingAuthorizationCodeAccessTokenProvider())
