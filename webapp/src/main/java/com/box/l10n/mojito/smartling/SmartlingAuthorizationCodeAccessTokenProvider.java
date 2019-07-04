@@ -1,10 +1,13 @@
 package com.box.l10n.mojito.smartling;
 
-import com.box.l10n.mojito.smartling.request.AuthenticationData;
+import com.box.l10n.mojito.smartling.response.AuthenticationData;
 import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
+import com.box.l10n.mojito.utils.RestTemplateUtils;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
@@ -30,12 +33,19 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
 
     RestTemplate restTemplate = new RestTemplate();
 
+    RestTemplateUtils restTemplateUtils = new RestTemplateUtils();
+
     public boolean supportsResource(OAuth2ProtectedResourceDetails resource) {
         return resource instanceof SmartlingOAuth2ProtectedResourceDetails && "smartling".equals(resource.getGrantType());
     }
 
+    public SmartlingAuthorizationCodeAccessTokenProvider() {
+        restTemplateUtils.enableFeature(restTemplate, DeserializationFeature.UNWRAP_ROOT_VALUE);
+    }
+
     @Override
     public OAuth2AccessToken obtainAccessToken(OAuth2ProtectedResourceDetails details, AccessTokenRequest accessTokenRequest) throws UserRedirectRequiredException, UserApprovalRequiredException, AccessDeniedException {
+
 
         logger.debug("Get access token");
         Map<String, String> request = new HashMap<>();
@@ -85,7 +95,7 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
     }
 
     DefaultOAuth2AccessToken getDefaultOAuth2AccessToken(DateTime now, AuthenticationResponse authenticationResponse) {
-        AuthenticationData data = authenticationResponse.getResponse().getData();
+        AuthenticationData data = authenticationResponse.getData();
         DefaultOAuth2AccessToken defaultOAuth2AccessToken = new DefaultOAuth2AccessToken(data.getAccessToken());
         defaultOAuth2AccessToken.setExpiration(now.plusSeconds(data.getExpiresIn()).toDate());
         defaultOAuth2AccessToken.setRefreshToken(new DefaultExpiringOAuth2RefreshToken(

@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.smartling.request;
+package com.box.l10n.mojito.smartling.response;
 
 public class AuthenticationData {
     private String accessToken;

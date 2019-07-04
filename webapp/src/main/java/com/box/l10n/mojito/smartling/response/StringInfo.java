@@ -1,13 +1,32 @@
-package com.box.l10n.mojito.smartling.request;
+package com.box.l10n.mojito.smartling.response;
 
 import java.util.List;
 
 public class StringInfo {
+    /**
+     * UUID in Smartling
+     */
     String hashcode;
+
     List<Key> keys;
+
+    /**
+     * This is processed and often can't be match to the source string
+     */
     String parsedStringText;
+    /**
+     * Seems empty
+     */
     String stringText;
+
+    /**
+     * When used with Mojito naming convention, it correspond to: {assetPath}#@#{textUnitName}
+     *
+     * This is not enought to uniquely identify a Mojito text unit. there could multiple text unit for the
+     * same text unit name (different content/comment).
+     */
     String stringVariant;
+
     Integer maxLength;
 
     public String getHashcode() {
