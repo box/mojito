@@ -84,6 +84,17 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     }
 
     @Override
+    public void handleComment(String c) {
+        super.handleComment(c);
+
+        if (c != null) {
+            String comment = c.replaceFirst("//", "").trim();
+            logger.debug("comment found, add it as note");
+            addXliffNoteAnnotation(comment);
+        }
+    }
+
+    @Override
     public void handleKey(String key, JsonValueTypes valueType, JsonKeyTypes keyType) {
         currentKeyName = key;
         super.handleKey(key, valueType, keyType);
@@ -118,18 +129,24 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
             if (m.matches()) {
                 logger.debug("key matches noteKeyPattern, add the value as note");
-                XLIFFNote xliffNote = new XLIFFNote(value);
-                xliffNote.setFrom(currentKeyName);
-                xliffNote.setAnnotates(XLIFFNote.Annotates.SOURCE);
-
-                if (xliffNoteAnnotation == null) {
-                    logger.debug("create the annotation");
-                    xliffNoteAnnotation = new XLIFFNoteAnnotation();
-                }
-
-                xliffNoteAnnotation.add(xliffNote);
+                addXliffNoteAnnotation(value);
             }
         }
+    }
+
+    void addXliffNoteAnnotation(String value) {
+
+        XLIFFNote xliffNote = new XLIFFNote(value);
+        xliffNote.setFrom(currentKeyName);
+        xliffNote.setAnnotates(XLIFFNote.Annotates.SOURCE);
+
+        if (xliffNoteAnnotation == null) {
+            logger.debug("create the xliff note annotation");
+            xliffNoteAnnotation = new XLIFFNoteAnnotation();
+        }
+
+        xliffNoteAnnotation.add(xliffNote);
+
     }
 
     @Override
