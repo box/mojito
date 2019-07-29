@@ -15,7 +15,7 @@ public class ReactAppConfig {
     LoginConfig login;
 
     @Autowired
-    RepositoryStatisticsConfig repositoryStatisticsConfig;
+    RepositoryStatisticsConfig repositoryStatistics;
 
     @Autowired
     GoogleAnalyticsConfig googleAnalytics;
@@ -36,12 +36,12 @@ public class ReactAppConfig {
         this.login = login;
     }
 
-    public RepositoryStatisticsConfig getRepositoryStatisticsConfig() {
-        return repositoryStatisticsConfig;
+    public RepositoryStatisticsConfig getRepositoryStatistics() {
+        return repositoryStatistics;
     }
 
-    public void setRepositoryStatisticsConfig(RepositoryStatisticsConfig repositoryStatisticsConfig) {
-        this.repositoryStatisticsConfig = repositoryStatisticsConfig;
+    public void setRepositoryStatistics(RepositoryStatisticsConfig repositoryStatistics) {
+        this.repositoryStatistics = repositoryStatistics;
     }
 
     public GoogleAnalyticsConfig getGoogleAnalytics() {
