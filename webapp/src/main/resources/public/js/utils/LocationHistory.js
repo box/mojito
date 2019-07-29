@@ -9,7 +9,7 @@ class LocationHistory {
      * (to reflect the params) else if the query has changed
      * push a new state to keep track of the change param modification.
      *
-     * @param {stinrg} pathname the pathname of the url to be processed
+     * @param {string} pathname the pathname of the url to be processed
      * @param {object} params params to build the query string
      */
     updateLocation(router, pathname, params) {

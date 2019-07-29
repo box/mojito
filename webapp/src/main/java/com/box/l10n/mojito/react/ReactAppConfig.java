@@ -17,6 +17,9 @@ public class ReactAppConfig {
     @Autowired
     RepositoryStatisticsConfig repositoryStatisticsConfig;
 
+    @Autowired
+    GoogleAnalyticsConfig googleAnalytics;
+
     public LinkConfig getLink() {
         return link;
     }
@@ -39,5 +42,13 @@ public class ReactAppConfig {
 
     public void setRepositoryStatisticsConfig(RepositoryStatisticsConfig repositoryStatisticsConfig) {
         this.repositoryStatisticsConfig = repositoryStatisticsConfig;
+    }
+
+    public GoogleAnalyticsConfig getGoogleAnalytics() {
+        return googleAnalytics;
+    }
+
+    public void setGoogleAnalytics(GoogleAnalyticsConfig googleAnalytics) {
+        this.googleAnalytics = googleAnalytics;
     }
 }
