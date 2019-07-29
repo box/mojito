@@ -52,12 +52,19 @@ __webpack_public_path__ = CONTEXT_PATH + "/";
 const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
 
 import enMessages  from'../../properties/en.properties';
+import GoogleAnalytics from "./utils/GoogleAnalytics";
 import(
     /* webpackChunkName: "[request]", webpackMode: "lazy" */
     `../../properties/${LOCALE}.properties`).then(messages => {
     startApp(getMergedMessages(messages));
 });
 
+
+if (APP_CONFIG.googleAnalytics.enabled) {
+    let gaUserId = GoogleAnalytics.hash(USERNAME);
+    GoogleAnalytics.enable(APP_CONFIG.googleAnalytics.trackingId, gaUserId);
+    GoogleAnalytics.currentPageView();
+}
 
 function getMergedMessages(messages) {
     return messages = _.merge(enMessages, messages);
@@ -241,4 +248,5 @@ loadBasedOnLocation(currentLocation);
 
 browserHistory.listen(location => {
     loadBasedOnLocation(location);
+    GoogleAnalytics.currentPageView();
 });
