@@ -86,7 +86,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
     @Override
     public void handleComment(String c) {
-        comment = c.replace("//", "").trim();
+        comment = c;
         super.handleComment(c);
     }
 
@@ -101,15 +101,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
         extractNoteIfMatch(value);
         extractUsageIfMatch(value);
         super.handleValue(value, valueType);
-        if (comment != null) {
-            addXliffNote(comment);
-            ITextUnit textUnit = getEventTextUnit();
-            if (textUnit != null) {
-                textUnit.setAnnotation(xliffNoteAnnotation);
-            }
-            comment = null;
-            xliffNoteAnnotation = null;
-        }
+        processComment();
     }
 
     void extractUsageIfMatch(String value) {
@@ -149,6 +141,19 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
                 logger.debug("key matches noteKeyPattern, add the value as note");
                 addXliffNote(value);
             }
+        }
+    }
+
+    void processComment() {
+        if (comment != null) {
+            ITextUnit textUnit = getEventTextUnit();
+            if (textUnit != null) {
+                String xliffNote = comment.replace("//", "").trim();
+                addXliffNote(xliffNote);
+                textUnit.setAnnotation(xliffNoteAnnotation);
+                xliffNoteAnnotation = null;
+            }
+            comment = null;
         }
     }
 
