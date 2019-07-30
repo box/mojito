@@ -2279,6 +2279,56 @@ public class TMServiceTest extends ServiceTestBase {
 
     }
 
+    @Test
+    public void testLocalizeJsonWithComments() throws Exception {
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "{\n"
+                + "  // Greeting from Main UI 1\n"
+                + "  \"hello1\": \"Hello 1\",\n"
+                + "  \"hello2\": \"Hello 2\",\n"
+                + "  // Extra\n"
+                + "  // Greeting from Main UI 3\n"
+                + "  \"hello3\": \"Hello 3\"\n"
+                + "}";
+        String expectedContent = "\uFEFF" + assetContent;
+
+        asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(),
+                null, null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        assertEquals(3, textUnitDTOs.size());
+        assertEquals("Greeting from Main UI 1", textUnitDTOs.get(0).getComment());
+        assertNull(textUnitDTOs.get(1).getComment());
+        assertEquals("Greeting from Main UI 3", textUnitDTOs.get(2).getComment());
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("name=[{}], source=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, null, Status.ALL, InheritanceMode.USE_PARENT);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedContent, localizedAsset);
+    }
 
     @Test
     public void testLocalizeJson() throws Exception {

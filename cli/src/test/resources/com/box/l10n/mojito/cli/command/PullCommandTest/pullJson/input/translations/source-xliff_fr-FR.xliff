@@ -9,18 +9,22 @@
             <trans-unit id="" resname="15_min_duration" datatype="x-javascript+php">
                 <source>15 min</source>
                 <target>15 min</target>
+                <note>File lock dialog duration</note>
             </trans-unit>
             <trans-unit id="" resname="1_day_duration" datatype="x-javascript+php">
                 <source>1 day</source>
                 <target>1 jour</target>
+                <note>File lock dialog duration</note>
             </trans-unit>
             <trans-unit id="" resname="1_hour_duration" datatype="x-javascript+php">
                 <source>1 hour</source>
                 <target>1 heure</target>
+                <note>File lock dialog duration</note>
             </trans-unit>
             <trans-unit id="" resname="1_month_duration" datatype="x-javascript+php">
                 <source>1 month</source>
                 <target>1 mois</target>
+                <note>File lock dialog duration</note>
             </trans-unit>
         </body>
     </file>

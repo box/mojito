@@ -39,6 +39,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     XLIFFNoteAnnotation xliffNoteAnnotation;
     UsagesAnnotation usagesAnnotation;
     String currentKeyName;
+    String comment = null;
 
     @Override
     public String getName() {
@@ -84,6 +85,12 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     }
 
     @Override
+    public void handleComment(String c) {
+        comment = c;
+        super.handleComment(c);
+    }
+
+    @Override
     public void handleKey(String key, JsonValueTypes valueType, JsonKeyTypes keyType) {
         currentKeyName = key;
         super.handleKey(key, valueType, keyType);
@@ -94,6 +101,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
         extractNoteIfMatch(value);
         extractUsageIfMatch(value);
         super.handleValue(value, valueType);
+        processComment();
     }
 
     void extractUsageIfMatch(String value) {
@@ -112,23 +120,40 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
         }
     }
 
+    void addXliffNote(String value) {
+        XLIFFNote xliffNote = new XLIFFNote(value);
+        xliffNote.setFrom(currentKeyName);
+        xliffNote.setAnnotates(XLIFFNote.Annotates.SOURCE);
+
+        if (xliffNoteAnnotation == null) {
+            logger.debug("create the xliff note annotation");
+            xliffNoteAnnotation = new XLIFFNoteAnnotation();
+        }
+
+        xliffNoteAnnotation.add(xliffNote);
+    }
+
     void extractNoteIfMatch(String value) {
         if (noteKeyPattern != null) {
             Matcher m = noteKeyPattern.matcher(currentKeyName);
 
             if (m.matches()) {
                 logger.debug("key matches noteKeyPattern, add the value as note");
-                XLIFFNote xliffNote = new XLIFFNote(value);
-                xliffNote.setFrom(currentKeyName);
-                xliffNote.setAnnotates(XLIFFNote.Annotates.SOURCE);
-
-                if (xliffNoteAnnotation == null) {
-                    logger.debug("create the annotation");
-                    xliffNoteAnnotation = new XLIFFNoteAnnotation();
-                }
-
-                xliffNoteAnnotation.add(xliffNote);
+                addXliffNote(value);
             }
+        }
+    }
+
+    void processComment() {
+        if (comment != null) {
+            ITextUnit textUnit = getEventTextUnit();
+            if (textUnit != null) {
+                String xliffNote = comment.replace("//", "").trim();
+                addXliffNote(xliffNote);
+                textUnit.setAnnotation(xliffNoteAnnotation);
+                xliffNoteAnnotation = null;
+            }
+            comment = null;
         }
     }
 
@@ -137,22 +162,9 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
         if (xliffNoteAnnotation != null || usagesAnnotation != null) {
 
-            JsonEventBuilder eventBuilder = null;
-            List<Event> events = null;
+            ITextUnit textUnit = getEventTextUnit();
 
-            try {
-                eventBuilder = (JsonEventBuilder) FieldUtils.readField(this, "eventBuilder", true);
-                events = (List<Event>) FieldUtils.readField(eventBuilder, "filterEvents", true);
-            } catch (Exception e) {
-                logger.error("Can't get the eventBuilder", eventBuilder);
-                throw new RuntimeException(e);
-            }
-
-            Optional<Event> event = Lists.reverse(events).stream().filter(Event::isTextUnit).findFirst();
-
-            if (event.isPresent()) {
-                ITextUnit textUnit = event.get().getTextUnit();
-
+            if (textUnit != null) {
                 if (xliffNoteAnnotation != null) {
                     logger.debug("Set note on text unit with name: {}", textUnit.getName());
                     textUnit.setAnnotation(xliffNoteAnnotation);
@@ -172,5 +184,26 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
         usagesAnnotation = null;
 
         super.handleObjectEnd();
+    }
+
+    private ITextUnit getEventTextUnit() {
+        ITextUnit textUnit = null;
+        JsonEventBuilder eventBuilder = null;
+        List<Event> events = null;
+
+        try {
+            eventBuilder = (JsonEventBuilder) FieldUtils.readField(this, "eventBuilder", true);
+            events = (List<Event>) FieldUtils.readField(eventBuilder, "filterEvents", true);
+        } catch (Exception e) {
+            logger.error("Can't get the eventBuilder", eventBuilder);
+            throw new RuntimeException(e);
+        }
+
+        Optional<Event> event = Lists.reverse(events).stream().filter(Event::isTextUnit).findFirst();
+
+        if (event.isPresent()) {
+            textUnit = event.get().getTextUnit();
+        }
+        return textUnit;
     }
 }
