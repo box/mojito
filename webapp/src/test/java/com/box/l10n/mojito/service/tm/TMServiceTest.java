@@ -2290,8 +2290,12 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String assetContent = "{\n"
-                + "  // Greeting from Main UI\n"
-                + "  \"hello\": \"Hello!\"\n"
+                + "  // Greeting from Main UI 1\n"
+                + "  \"hello1\": \"Hello 1\",\n"
+                + "  \"hello2\": \"Hello 2\",\n"
+                + "  // Extra\n"
+                + "  // Greeting from Main UI 3\n"
+                + "  \"hello3\": \"Hello 3\"\n"
                 + "}";
         String expectedContent = "\uFEFF" + assetContent;
 
@@ -2313,8 +2317,10 @@ public class TMServiceTest extends ServiceTestBase {
         textUnitSearcherParameters.setRepositoryIds(repo.getId());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
-        assertEquals(1, textUnitDTOs.size());
-        assertEquals("Greeting from Main UI", textUnitDTOs.get(0).getComment());
+        assertEquals(3, textUnitDTOs.size());
+        assertEquals("Greeting from Main UI 1", textUnitDTOs.get(0).getComment());
+        assertNull(textUnitDTOs.get(1).getComment());
+        assertEquals("Greeting from Main UI 3", textUnitDTOs.get(2).getComment());
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
             logger.debug("name=[{}], source=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
         }
