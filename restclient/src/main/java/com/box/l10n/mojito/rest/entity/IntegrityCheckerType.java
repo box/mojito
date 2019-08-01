@@ -14,5 +14,6 @@ public enum IntegrityCheckerType {
     WHITESPACE,
     TRAILING_WHITESPACE,
     HTML_TAG,
-    ELLIPSIS;
+    ELLIPSIS,
+    BACKQUOTE;
 }

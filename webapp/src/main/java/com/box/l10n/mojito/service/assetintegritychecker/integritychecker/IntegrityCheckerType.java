@@ -14,7 +14,8 @@ public enum IntegrityCheckerType {
     WHITESPACE(WhitespaceIntegrityChecker.class.getName()),
     TRAILING_WHITESPACE(TrailingWhitespaceIntegrityChecker.class.getName()),
     HTML_TAG(HtmlTagIntegrityChecker.class.getName()),
-    ELLIPSIS(EllipsisIntegrityChecker.class.getName());
+    ELLIPSIS(EllipsisIntegrityChecker.class.getName()),
+    BACKQUOTE(BackquoteIntegrityChecker.class.getName());
 
     String className;
 
