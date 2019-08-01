@@ -5,6 +5,6 @@ package com.box.l10n.mojito.rest.entity;
  * Use this to define a specific filter configuration to use.
  */
 public enum FilterConfigIdOverride {
-    PROPERTIES_JAVA
-    
+    PROPERTIES_JAVA,
+    XCODE_XLIFF
 }

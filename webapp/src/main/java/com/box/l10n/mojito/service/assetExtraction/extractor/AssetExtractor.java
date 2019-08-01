@@ -120,6 +120,7 @@ public class AssetExtractor {
         mapper.addConfigurations(MacStringsdictFilterKey.class.getName());
         mapper.addConfigurations(JSFilter.class.getName());
         mapper.addConfigurations(JSONFilter.class.getName());
+        mapper.addConfigurations(XcodeXliffFilter.class.getName());
 
         return mapper;
     }
