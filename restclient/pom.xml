@@ -69,7 +69,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
-                        -Dspring.profiles.active=${user.name},test -Xmx1024m -XX:MaxPermSize=256m
+                        -Dspring.profiles.active=${user.name},test -Xmx1024m
                     </argLine>
                 </configuration>
             </plugin>
