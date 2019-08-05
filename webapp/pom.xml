@@ -631,7 +631,7 @@
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
                     <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
-                        -Dspring.profiles.active=${user.name},test -Xmx1024m -XX:MaxPermSize=256m -Duser.timezone=UTC
+                        -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
                  
                     <rerunFailingTestsCount>1</rerunFailingTestsCount>
