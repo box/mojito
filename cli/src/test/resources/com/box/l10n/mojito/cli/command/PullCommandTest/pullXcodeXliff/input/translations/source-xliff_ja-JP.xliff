@@ -3,8 +3,12 @@
     <file original=""  source-language="en" target-language="ja-JP" datatype="x-undefined">
         <body>
             <trans-unit id="" resname="100_character_description_" datatype="php">
-                <source>100 character description:</source>
-                <target>Description de 100 caractères :</target>
+                <source xml:lang="en">&lt;link>100 character description&lt;/link>:
+
+                </source>
+                <target xml:lang="en">&lt;link>100文字の説明&lt;/link>:
+
+                </target>
             </trans-unit>
             <trans-unit id="" resname="15_min_duration" datatype="x-javascript+php">
                 <source>15 min</source>

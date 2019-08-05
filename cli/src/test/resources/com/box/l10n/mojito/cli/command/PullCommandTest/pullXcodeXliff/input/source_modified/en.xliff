@@ -6,7 +6,7 @@
     </header>
     <body>
       <trans-unit id="100_character_description_">
-        <source>100 character description:</source>
+        <source>&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;</source>
       </trans-unit>
       <trans-unit id="15_min_duration">
         <source>15 min</source>

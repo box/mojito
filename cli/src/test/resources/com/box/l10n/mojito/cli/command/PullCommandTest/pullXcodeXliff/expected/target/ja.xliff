@@ -5,8 +5,8 @@
     <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="7.2"></tool></header>
     <body>
       <trans-unit id="100_character_description_" xml:space="preserve">
-        <source>100 character description:</source>
-      <target xml:lang="ja">Description de 100 caractères :</target>
+        <source>&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;</source>
+      <target xml:lang="ja">&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;</target>
 </trans-unit>
       <trans-unit id="15_min_duration" xml:space="preserve">
         <source>15 min</source>
