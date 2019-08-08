@@ -4,14 +4,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mojito-restclient</artifactId>
-    <version>0.101</version>
+    <version>0.102-SNAPSHOT</version>
     <name>Mojito - RestClient</name>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>com.box.l10n.mojito</groupId>
         <artifactId>mojito-parent</artifactId>
-        <version>0.101</version>
+        <version>0.102-SNAPSHOT</version>
     </parent>
 
     <dependencies>
