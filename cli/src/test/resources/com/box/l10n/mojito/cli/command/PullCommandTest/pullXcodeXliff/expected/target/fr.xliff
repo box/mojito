@@ -4,9 +4,13 @@
     <header>
     <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="7.2"></tool></header>
     <body>
-      <trans-unit id="100_character_description_" xml:space="preserve">
-        <source>&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;</source>
-      <target xml:lang="fr">&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;</target>
+      <trans-unit id="&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;" xml:space="preserve">
+        <source>&lt;link>100 character description&lt;/link>:
+
+</source>
+      <target xml:lang="fr">&lt;link>100 character description&lt;/link>:
+
+</target>
 </trans-unit>
       <trans-unit id="15_min_duration" xml:space="preserve">
         <source>15 min</source>
