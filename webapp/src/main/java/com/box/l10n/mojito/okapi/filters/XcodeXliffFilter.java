@@ -35,7 +35,7 @@ public class XcodeXliffFilter extends XLIFFFilter {
                 getClass().getName(),
                 "XCODEXLIFF",
                 "Configuration for XCODE XLIFF documents. Supports XCODE specific metadata",
-                null,
+                "xcode_mojito.fprm",
                 ".xliff"));
         return list;
     }
