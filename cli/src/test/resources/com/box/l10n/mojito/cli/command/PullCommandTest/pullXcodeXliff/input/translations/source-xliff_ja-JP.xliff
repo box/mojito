@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
-    <file original=""  source-language="en" target-language="ja-JP" datatype="x-undefined">
+    <file original=""  source-language="en" target-language="ja-JP" datatype="x-undefined" xml:space="preserve">
         <body>
             <trans-unit id="" resname="&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;" datatype="php">
                 <source xml:lang="en">&lt;link>100 character description&lt;/link>:
 
-                </source>
+</source>
                 <target xml:lang="en">&lt;link>100文字の説明&lt;/link>:
 
-                </target>
+</target>
             </trans-unit>
             <trans-unit id="" resname="15_min_duration" datatype="x-javascript+php">
                 <source>15 min</source>

@@ -5,10 +5,10 @@
     <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="7.2"></tool></header>
     <body>
       <trans-unit id="&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;" xml:space="preserve">
-        <source>&lt;link>100 character description&lt;/link>:
+        <source>&lt;link&gt;100 character description&lt;/link&gt;:
 
 </source>
-      <target xml:lang="fr">&lt;link>100 character description&lt;/link>:
+      <target xml:lang="fr">&lt;link&gt;Description de 100 caractères&lt;/link&gt;:
 
 </target>
 </trans-unit>

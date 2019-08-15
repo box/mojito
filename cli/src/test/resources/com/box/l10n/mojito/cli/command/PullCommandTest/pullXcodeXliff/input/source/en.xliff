@@ -6,7 +6,7 @@
     </header>
     <body>
       <trans-unit id="&lt;link&gt;100 character description&lt;/link&gt;:&#10;&#10;">
-        <source>&lt;link>100 character description&lt;/link>:
+        <source>&lt;link&gt;100 character description&lt;/link&gt;:
 
 </source>
       </trans-unit>
