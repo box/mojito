@@ -179,7 +179,17 @@ public class PullCommand extends Command {
     }
 
     void generateLocalizedFile(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions, String outputBcp47tag, RepositoryLocale repositoryLocale) throws CommandException {
-        if (onlyIfFullyTranslated && repositoryLocale.isToBeFullyTranslated() && !localeFullyTranslated.get(repositoryLocale.getLocale().getBcp47Tag())) {
+        boolean skip = false;
+
+        if (onlyIfFullyTranslated) {
+            if (repositoryLocale.isToBeFullyTranslated()) {
+                skip = !localeFullyTranslated.get(repositoryLocale.getLocale().getBcp47Tag());
+            } else {
+                skip = !localeFullyTranslated.get(repositoryLocale.getParentLocale().getLocale().getBcp47Tag());
+            }
+        }
+
+        if (skip) {
             consoleWriter.a(" - Skipping locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
             consoleWriter.a(" --> ").fg(Color.MAGENTA).a("not fully translated").println();
         } else {
