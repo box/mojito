@@ -13,6 +13,8 @@ import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
+import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +69,7 @@ public class PullCommand extends Command {
     @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
     String sourcePathFilterRegex;
 
-    @Parameter(names = {"--inheritance-mode"}, required = false, description = "Inheritance Mode. Used when there is no translations in the target locale for a text unit. (USE_PARENT to fallback to parent locale translation, REMOVE_TRANSLATED to remove the text unit from the file ",
+    @Parameter(names = {"--inheritance-mode"}, required = false, description = "Inheritance Mode. Used when there is no translations in the target locale for a text unit. (USE_PARENT to fallback to parent locale translation, REMOVE_UNTRANSLATED to remove the text unit from the file ",
             converter = LocalizedAssetBodyInheritanceMode.class)
     LocalizedAssetBody.InheritanceMode inheritanceMode = LocalizedAssetBody.InheritanceMode.USE_PARENT;
 
@@ -77,6 +79,9 @@ public class PullCommand extends Command {
 
     @Parameter(names = {"--asset-mapping", "-am"}, required = false, description = "Asset mapping, format: \"local1:remote1;local2:remote2\"", converter = AssetMappingConverter.class)
     Map<String, String> assetMapping;
+
+    @Parameter(names = {"--fully-translated"}, required = false, description = "To pull localized assets only if all strings for the locale are fully translated")
+    Boolean onlyIfFullyTranslated = false;
 
     @Autowired
     AssetClient assetClient;
@@ -98,12 +103,22 @@ public class PullCommand extends Command {
      */
     Map<String, String> localeMappings;
 
+    /**
+     * Map of locale and the boolean value for fully translated status of the
+     * locale
+     */
+    Map<String, Boolean> localeFullyTranslated = new HashMap<>();
+
     @Override
     public void execute() throws CommandException {
 
         consoleWriter.newLine().a("Pull localized asset from repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
 
         repository = commandHelper.findRepositoryByName(repositoryParam);
+
+        if (onlyIfFullyTranslated) {
+            checkFullyTranslated(repository);
+        }
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
@@ -164,8 +179,13 @@ public class PullCommand extends Command {
     }
 
     void generateLocalizedFile(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions, String outputBcp47tag, RepositoryLocale repositoryLocale) throws CommandException {
-        LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions);
-        writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
+        if (onlyIfFullyTranslated && repositoryLocale.isToBeFullyTranslated() && !localeFullyTranslated.get(repositoryLocale.getLocale().getBcp47Tag())) {
+            consoleWriter.a(" - Skipping locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
+            consoleWriter.a(" --> ").fg(Color.MAGENTA).a("not fully translated").println();
+        } else {
+            LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions);
+            writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
+        }
     }
 
     /**
@@ -271,6 +291,15 @@ public class PullCommand extends Command {
         logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 
         return localizedAsset;
+    }
+
+    private void checkFullyTranslated(Repository repository) {
+        RepositoryStatistic repoStat = repository.getRepositoryStatistic();
+        if (repoStat != null) {
+            for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
+                localeFullyTranslated.put(repoLocaleStat.getLocale().getBcp47Tag(), repoLocaleStat.getForTranslationCount() == 0L);
+            }
+        }
     }
 
 }

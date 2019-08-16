@@ -33,6 +33,8 @@ public class Repository {
     @JsonProperty("assetIntegrityCheckers")
     Set<IntegrityChecker> integrityCheckers = new HashSet<>();
 
+    RepositoryStatistic repositoryStatistic;
+
     public Long getId() {
         return id;
     }
@@ -96,4 +98,13 @@ public class Repository {
     public void setCheckSLA(Boolean checkSLA) {
         this.checkSLA = checkSLA;
     }
+
+    public RepositoryStatistic getRepositoryStatistic() {
+        return repositoryStatistic;
+    }
+
+    public void setRepositoryStatistic(RepositoryStatistic repositoryStatistic) {
+        this.repositoryStatistic = repositoryStatistic;
+    }
+
 }
