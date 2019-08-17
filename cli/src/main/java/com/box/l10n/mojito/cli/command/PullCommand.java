@@ -117,7 +117,7 @@ public class PullCommand extends Command {
         repository = commandHelper.findRepositoryByName(repositoryParam);
 
         if (onlyIfFullyTranslated) {
-            checkFullyTranslated(repository);
+            initLocaleFullyTranslatedMap(repository);
         }
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
@@ -179,22 +179,12 @@ public class PullCommand extends Command {
     }
 
     void generateLocalizedFile(Repository repository, FileMatch sourceFileMatch, List<String> filterOptions, String outputBcp47tag, RepositoryLocale repositoryLocale) throws CommandException {
-        boolean skip = false;
-
-        if (onlyIfFullyTranslated) {
-            if (repositoryLocale.isToBeFullyTranslated()) {
-                skip = !localeFullyTranslated.get(repositoryLocale.getLocale().getBcp47Tag());
-            } else {
-                skip = !localeFullyTranslated.get(repositoryLocale.getParentLocale().getLocale().getBcp47Tag());
-            }
-        }
-
-        if (skip) {
-            consoleWriter.a(" - Skipping locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
-            consoleWriter.a(" --> ").fg(Color.MAGENTA).a("not fully translated").println();
-        } else {
+        if (shouldGenerateLocalizedFile(repositoryLocale)) {
             LocalizedAssetBody localizedAsset = getLocalizedAsset(repository, sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions);
             writeLocalizedAssetToTargetDirectory(localizedAsset, sourceFileMatch);
+        } else {
+            consoleWriter.a(" - Skipping locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
+            consoleWriter.a(" --> ").fg(Color.MAGENTA).a("not fully translated").println();
         }
     }
 
@@ -303,13 +293,27 @@ public class PullCommand extends Command {
         return localizedAsset;
     }
 
-    private void checkFullyTranslated(Repository repository) {
+    private void initLocaleFullyTranslatedMap(Repository repository) {
         RepositoryStatistic repoStat = repository.getRepositoryStatistic();
         if (repoStat != null) {
             for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
                 localeFullyTranslated.put(repoLocaleStat.getLocale().getBcp47Tag(), repoLocaleStat.getForTranslationCount() == 0L);
             }
         }
+    }
+
+    private boolean shouldGenerateLocalizedFile(RepositoryLocale repositoryLocale) {
+        boolean localize = true;
+
+        if (onlyIfFullyTranslated) {
+            if (repositoryLocale.isToBeFullyTranslated()) {
+                localize = localeFullyTranslated.get(repositoryLocale.getLocale().getBcp47Tag());
+            } else {
+                localize = localeFullyTranslated.get(repositoryLocale.getParentLocale().getLocale().getBcp47Tag());
+            }
+        }
+
+        return localize;
     }
 
 }
