@@ -694,4 +694,31 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
+
+    @Test
+    public void pullFullyTranslated() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath());
+
+        // allow time for repo stats to be updated
+        Thread.sleep(1000);
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_fully_translated").getAbsolutePath(),
+                "--fully-translated");
+
+        checkExpectedGeneratedResources();
+    }
 }
