@@ -20,6 +20,7 @@ public class UnescapeUtils {
     private static final Pattern ESCAPED_CARIAGE_RETURN = Pattern.compile("\\\\r");
     private static final Pattern ESCAPED_LINE_FEED = Pattern.compile("\\\\n");
     private static final Pattern ESCAPED_QUOTES = Pattern.compile("\\\\(\"|')");
+    private static final Pattern ESCAPED_BACKQUOTES = Pattern.compile("\\\\(`)");
     private static final Pattern ESCAPED_CHARACTERS = Pattern.compile("\\\\(.)?");
     private static final Pattern SPACES = Pattern.compile("\\s+");
     private static final Pattern LINE_FEED = Pattern.compile("\n");
@@ -53,6 +54,16 @@ public class UnescapeUtils {
      */
     String replaceEscapedQuotes(String text) {
        return ESCAPED_QUOTES.matcher(text).replaceAll("$1");
+    }
+
+    /**
+     * Replaces \` with `
+     *
+     * @param text
+     * @return
+     */
+    String replaceEscapedBackquotes(String text) {
+        return ESCAPED_BACKQUOTES.matcher(text).replaceAll("$1");
     }
 
     /**
