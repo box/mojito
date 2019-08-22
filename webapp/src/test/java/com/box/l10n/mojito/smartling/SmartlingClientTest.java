@@ -1,9 +1,15 @@
 package com.box.l10n.mojito.smartling;
 
+import com.box.l10n.mojito.smartling.request.Binding;
+import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
-import com.box.l10n.mojito.smartling.response.SourceStrings;
+import com.box.l10n.mojito.smartling.response.File;
+import com.box.l10n.mojito.smartling.response.Items;
+import com.box.l10n.mojito.smartling.response.StringInfo;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -16,9 +22,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {SmartlingClientTest.class, SmartlingClientConfiguration.class, ObjectMapper.class})
@@ -48,7 +57,7 @@ public class SmartlingClientTest {
         Assume.assumeNotNull(fileUri);
 
         logger.debug("Test getSourceStrings");
-        SourceStrings sourceStrings = smartlingClient.getSourceStrings(
+        Items<StringInfo> sourceStrings = smartlingClient.getSourceStrings(
                 projectId,
                 fileUri,
                 0,
@@ -79,6 +88,49 @@ public class SmartlingClientTest {
     }
 
     @Test
+    public void testUploadFile() {
+        Assume.assumeNotNull(projectId);
+        smartlingClient.uploadFile(projectId,
+                "strings.xml",
+                "android",
+                "<resources>\n" +
+                        "    <string name=\"hello\">Hello</string>\n" +
+                        "    <string name=\"bye\">Bye</string>\n" +
+                        "</resources>\n",
+                null,
+                null);
+
+    }
+
+    @Test
+    public void testUploadContext() throws IOException {
+        Assume.assumeNotNull(projectId);
+        ClassPathResource classPathResource = new ClassPathResource("/com/box/l10n/mojito/img/1.png");
+        byte[] content = ByteStreams.toByteArray(classPathResource.getInputStream());
+        smartlingClient.uploadContext(projectId, "image1.png", content);
+    }
+
+    @Test
+    public void testGetFiles() {
+        Assume.assumeNotNull(projectId);
+        Items<File> files = smartlingClient.getFiles(projectId);
+        files.getItems().stream().forEach(
+                f -> logger.debug(f.getFileUri())
+        );
+    }
+
+    @Test
+    public void testGetStringInfosFromFiles() {
+        Assume.assumeNotNull(projectId);
+        Items<File> files = smartlingClient.getFiles(projectId);
+        Stream<StringInfo> stringInfosFromFiles = smartlingClient.getStringInfosFromFiles(projectId, files.getItems());
+
+        stringInfosFromFiles.forEach(
+                stringInfo -> logger.debug(stringInfo.getHashcode())
+        );
+    }
+
+    @Test
     public void unwrapRootValueToDeserialize() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enable(DeserializationFeature.UNWRAP_ROOT_VALUE);
@@ -98,5 +150,23 @@ public class SmartlingClientTest {
 
         AuthenticationResponse authenticationResponse = objectMapper.readValue(response, AuthenticationResponse.class);
         Assert.assertEquals("b816424c-2e95-11e7-93ae-92361f002671", authenticationResponse.getData().getAccessToken());
+    }
+
+    @Test
+    public void bindingsSerialization() throws JsonProcessingException {
+        Bindings bindings = new Bindings();
+        Binding binding = new Binding();
+        binding.setContextUid("c1");
+        binding.setStringHashcode("h1");
+        bindings.getBindings().add(binding);
+
+        Binding binding2 = new Binding();
+        binding2.setContextUid("c1");
+        binding2.setStringHashcode("h1");
+        bindings.getBindings().add(binding2);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String str = objectMapper.writeValueAsString(bindings);
+        Assert.assertEquals("{\"bindings\":[{\"contextUid\":\"c1\",\"stringHashCode\":\"h1\"},{\"contextUid\":\"c1\",\"stringHashCode\":\"h1\"}]}", str);
     }
 }

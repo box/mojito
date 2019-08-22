@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.screenshot;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 

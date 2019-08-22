@@ -19,6 +19,8 @@ import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
+import com.box.l10n.mojito.service.tm.TextUnitBatchMatcher;
+import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -33,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +83,7 @@ public class TextUnitBatchImporterService {
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     @Autowired
-    TextUnitForBatchImportMatcher textUnitForBatchImportMatcher;
+    TextUnitBatchMatcher textUnitBatchMatcher;
 
     /**
      * Imports a batch of text units.
@@ -119,12 +120,12 @@ public class TextUnitBatchImporterService {
                                           boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 
         logger.debug("Import {} text units", textUnitDTOs.size());
-        List<TextUnitForBatchImport> textUnitForBatchImports = skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOs);
+        List<TextUnitForBatchMatcherImport> textUnitForBatchImports = skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOs);
 
         logger.debug("Batch by locale and asset to optimize the import");
-        Map<Locale, Map<Asset, List<TextUnitForBatchImport>>> groupedByLocaleAndAsset = textUnitForBatchImports.stream().
-                collect(Collectors.groupingBy(TextUnitForBatchImport::getLocale,
-                        Collectors.groupingBy(TextUnitForBatchImport::getAsset)));
+        Map<Locale, Map<Asset, List<TextUnitForBatchMatcherImport>>> groupedByLocaleAndAsset = textUnitForBatchImports.stream().
+                collect(Collectors.groupingBy(TextUnitForBatchMatcherImport::getLocale,
+                        Collectors.groupingBy(TextUnitForBatchMatcherImport::getAsset)));
 
         groupedByLocaleAndAsset.forEach((locale, assetMap) -> {
             assetMap.forEach((asset, textUnitsForBatchImport) -> {
@@ -148,22 +149,22 @@ public class TextUnitBatchImporterService {
      * @param asset
      * @param textUnitsToImport text units to which the current text units must be added
      */
-    void mapTextUnitsToImportWithExistingTextUnits(Locale locale, Asset asset, List<TextUnitForBatchImport> textUnitsToImport) {
+    void mapTextUnitsToImportWithExistingTextUnits(Locale locale, Asset asset, List<TextUnitForBatchMatcherImport> textUnitsToImport) {
         logger.debug("Map the text units to import with current text unit for the given locale and asset");
         List<TextUnitDTO> textUnitTDOsForLocaleAndAsset = getTextUnitTDOsForLocaleAndAsset(locale, asset);
-        Function<TextUnitForBatchImport, Optional<TextUnitDTO>> match = textUnitForBatchImportMatcher.match(textUnitTDOsForLocaleAndAsset);
+        Function<TextUnitForBatchMatcher, Optional<TextUnitDTO>> match = textUnitBatchMatcher.match(textUnitTDOsForLocaleAndAsset);
         textUnitsToImport.forEach(tu -> match.apply(tu).ifPresent(m -> tu.setCurrentTextUnit(m)));
     }
 
     @Transactional
-    void importTextUnitsOfLocaleAndAsset(Locale locale, Asset asset, List<TextUnitForBatchImport> textUnitsToImport) {
+    void importTextUnitsOfLocaleAndAsset(Locale locale, Asset asset, List<TextUnitForBatchMatcherImport> textUnitsToImport) {
         DateTime importTime = new DateTime();
         logger.debug("Start import text units for asset: {} and locale: {}", asset.getPath(), locale.getBcp47Tag());
 
         textUnitsToImport.stream().
-                filter(logIfFalse(t -> t.getCurrentTextUnit() != null, logger, "No current text unit, skip: {}", TextUnitForBatchImport::getName)).
-                filter(logIfFalse(t -> t.getContent() != null, logger, "Content can't be null, skip: {}", TextUnitForBatchImport::getName)).
-                filter(logIfFalse(this::isUpdateNeeded, logger, "Update not needed, skip: {}", TextUnitForBatchImport::getName)).
+                filter(logIfFalse(t -> t.getCurrentTextUnit() != null, logger, "No current text unit, skip: {}", TextUnitForBatchMatcherImport::getName)).
+                filter(logIfFalse(t -> t.getContent() != null, logger, "Content can't be null, skip: {}", TextUnitForBatchMatcherImport::getName)).
+                filter(logIfFalse(this::isUpdateNeeded, logger, "Update not needed, skip: {}", TextUnitForBatchMatcherImport::getName)).
                 forEach(textUnitForBatchImport -> {
                     logger.debug("Add translation: {} --> {}", textUnitForBatchImport.getName(), textUnitForBatchImport.getContent());
 
@@ -188,7 +189,7 @@ public class TextUnitBatchImporterService {
                 });
     }
 
-    boolean isUpdateNeeded(TextUnitForBatchImport textUnitForBatchImport) {
+    boolean isUpdateNeeded(TextUnitForBatchMatcherImport textUnitForBatchImport) {
 
         TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
 
@@ -215,12 +216,12 @@ public class TextUnitBatchImporterService {
 
     void applyIntegrityChecks(
             Asset asset,
-            List<TextUnitForBatchImport> textUnitsForBatchImport,
+            List<TextUnitForBatchMatcherImport> textUnitsForBatchImport,
             boolean keepStatusIfCheckFailedAndSameTarget) {
 
         Set<TextUnitIntegrityChecker> textUnitCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);
 
-        for (TextUnitForBatchImport textUnitForBatchImport : textUnitsForBatchImport) {
+        for (TextUnitForBatchMatcherImport textUnitForBatchImport : textUnitsForBatchImport) {
 
             TextUnitDTO currentTextUnit = textUnitForBatchImport.getCurrentTextUnit();
 
@@ -252,9 +253,9 @@ public class TextUnitBatchImporterService {
         }
     }
 
-    List<TextUnitForBatchImport> skipInvalidAndConvertToTextUnitForBatchImport(List<TextUnitDTO> textUnitDTOs) {
+    List<TextUnitForBatchMatcherImport> skipInvalidAndConvertToTextUnitForBatchImport(List<TextUnitDTO> textUnitDTOs) {
 
-        logger.debug("Create caches to map convert to TextUnitForBatchImport list");
+        logger.debug("Create caches to map convert to TextUnitForBatchMatcherImport list");
         LoadingCache<String, Repository> repositoriesCache = CacheBuilder.newBuilder().build(
                 CacheLoader.from((name) -> repositoryRepository.findByName(name))
         );
@@ -263,7 +264,7 @@ public class TextUnitBatchImporterService {
                 CacheLoader.from((entry) -> assetRepository.findByPathAndRepositoryId(entry.getKey(), entry.getValue()))
         );
 
-        logger.debug("Start converting to TextUnitForBatchImport");
+        logger.debug("Start converting to TextUnitForBatchMatcherImport");
         return textUnitDTOs.stream().
 
                 filter(logIfFalse(t -> t.getRepositoryName() != null, logger, "Missing mandatory repository name, skip: {}", TextUnitDTO::getName)).
@@ -273,7 +274,7 @@ public class TextUnitBatchImporterService {
                 filter(logIfFalse(t -> t.getTarget() != null, logger, "Missing mandatory target, skip: {}", TextUnitDTO::getName)).
 
                 map(t -> {
-                    TextUnitForBatchImport textUnitForBatchImport = new TextUnitForBatchImport();
+                    TextUnitForBatchMatcherImport textUnitForBatchImport = new TextUnitForBatchMatcherImport();
                     textUnitForBatchImport.setTmTextUnitId(t.getTmTextUnitId());
 
                     textUnitForBatchImport.setRepository(repositoriesCache.getUnchecked(t.getRepositoryName()));
@@ -291,9 +292,9 @@ public class TextUnitBatchImporterService {
                     return textUnitForBatchImport;
                 }).
 
-                filter(logIfFalse(t -> t.getRepository() != null, logger, "No repository found, skip: {}", TextUnitForBatchImport::getName)).
-                filter(logIfFalse(t -> t.getAsset() != null, logger, "No asset found, skip: {}", TextUnitForBatchImport::getName)).
-                filter(logIfFalse(t -> t.getLocale() != null, logger, "No locale found, skip: {}", TextUnitForBatchImport::getName)).
+                filter(logIfFalse(t -> t.getRepository() != null, logger, "No repository found, skip: {}", TextUnitForBatchMatcherImport::getName)).
+                filter(logIfFalse(t -> t.getAsset() != null, logger, "No asset found, skip: {}", TextUnitForBatchMatcherImport::getName)).
+                filter(logIfFalse(t -> t.getLocale() != null, logger, "No locale found, skip: {}", TextUnitForBatchMatcherImport::getName)).
 
                 collect(Collectors.toList());
     }

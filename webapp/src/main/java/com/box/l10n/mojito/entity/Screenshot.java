@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.Basic;
@@ -21,6 +23,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -84,7 +87,10 @@ public class Screenshot extends SettableAuditableEntity {
     @OneToMany(mappedBy = "screenshot", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonProperty("textUnits")
     @JsonDeserialize(as = LinkedHashSet.class)
-    Set<ScreenshotTextUnit> screenshotTextUnits = new LinkedHashSet<>();
+    private Set<ScreenshotTextUnit> screenshotTextUnits = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "screenshot")
+    private Set<ThirdPartyScreenshot> thirdPartyScreenshots = new HashSet<>();
 
     public String getName() {
         return name;
@@ -150,4 +156,19 @@ public class Screenshot extends SettableAuditableEntity {
         this.sequence = sequence;
     }
 
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
+    }
+
+    public Set<ThirdPartyScreenshot> getThirdPartyScreenshots() {
+        return thirdPartyScreenshots;
+    }
+
+    public void setThirdPartyScreenshots(Set<ThirdPartyScreenshot> thirdPartyScreenshots) {
+        this.thirdPartyScreenshots = thirdPartyScreenshots;
+    }
 }
