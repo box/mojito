@@ -2761,13 +2761,22 @@ public class TMServiceTest extends ServiceTestBase {
                 + "        // login comment\n"
                 + "        \"loginText\": \"Log In\",\n"
                 + "        // signup comment\n"
-                + "        \"signupText\": \"Sign up\",\n"
+                + "        \"signupText\": \"Sign up with `backquote`\",\n"
                 + "        \"quotedText\": \"Hello \\\"%s\\\"\",\n"
-                + "        \"noComment\": \"String with no comment\"\n"
+                + "        \"noComment\": \"String with no comment\\nand newline\",\n"
+                + "        // template literals\n"
+                + "        \"templateText1\": `one line`,\n"
+                + "        \"templateText2\": `one line no comment`,\n"
+                + "        \"templateText3\": `one line \\`/special\\` character`,\n"
+                + "        // template multiline literals\n"
+                + "        \"templateMultilineText1\": `first line\nsecond line`,\n"
+                + "        // template multiline literals with escaped backquote\n"
+                + "        \"templateMultilineText2\": `special character\ncheck \\`/command\\` out`,\n\n"
                 + "    };\n"
                 + "}\n"
                 + "\n"
                 + "export default Translations;";
+
         asset = assetService.createAssetWithContent(repo.getId(), "translations.ts", assetContent);
         asset = assetRepository.findOne(asset.getId());
         assetId = asset.getId();
@@ -2785,13 +2794,15 @@ public class TMServiceTest extends ServiceTestBase {
         textUnitSearcherParameters.setRepositoryIds(repo.getId());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
-        assertEquals(4, textUnitDTOs.size());
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
-            if ("quotedText".equals(textUnitDTO.getName())) {
-                assertEquals("Hello \"%s\"", textUnitDTO.getSource());
-            }
             logger.debug("{}\n{}=[{}]", textUnitDTO.getComment(), textUnitDTO.getName(), textUnitDTO.getSource());
         }
+
+        assertEquals(9, textUnitDTOs.size());
+        assertEquals("Sign up with `backquote`", textUnitDTOs.get(1).getSource());
+        assertEquals("Hello \"%s\"", textUnitDTOs.get(2).getSource());
+        assertEquals("String with no comment\nand newline", textUnitDTOs.get(3).getSource());
+        assertEquals("special character\ncheck `/command` out", textUnitDTOs.get(8).getSource());
 
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, null, Status.ALL, InheritanceMode.USE_PARENT);
         logger.debug("localized=\n{}", localizedAsset);

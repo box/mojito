@@ -1,5 +1,6 @@
 namespace Translations {
-  "100_character_description_": "Description de 100 caractères :",
+  "100_character_description_": `Description de
+100 caractères : \`command\``,
   // File lock dialog duration
   "15_min_duration": "15 min",
   // File lock dialog duration
