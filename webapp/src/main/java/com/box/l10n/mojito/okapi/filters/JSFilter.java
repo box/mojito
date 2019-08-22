@@ -293,63 +293,72 @@ public class JSFilter extends AbstractFilter {
         int state = STATE_START;
         int pos = 0;
         boolean backquoted = false;
+        boolean done = false;
 
-        while (pos < textLine.length()) {
-            char c = textLine.charAt(pos);
-            switch (state) {
-                case STATE_START:
-                    buffer.append(c);
-                    if (c == '"') {
-                        skel.append(buffer.toString());
-                        buffer = new StringBuilder();
-                        state++;
-                    }
-                    break;
-
-                case STATE_KEY:
-                    if (c == '"' && textLine.charAt(pos - 1) != '\\') {
-                        skel.append(buffer.toString());
-                        key = buffer.toString();
-                        buffer = new StringBuilder();
-                        state++;
-                    }
-                    buffer.append(c);
-                    break;
-
-                case STATE_SEP:
-                    buffer.append(c);
-                    if (c == '"' || c == '`') {
-                        skel.append(buffer.toString());
-                        buffer = new StringBuilder();
-                        state++;
-                        if (c == '`') {
-                            backquoted = true;
+        while (!done) {
+            // handle empty line
+            if (!textLine.isEmpty()) {
+                char c = textLine.charAt(pos);
+                switch (state) {
+                    case STATE_START:
+                        buffer.append(c);
+                        if (c == '"') {
+                            skel.append(buffer.toString());
+                            buffer = new StringBuilder();
+                            state++;
                         }
-                    }
-                    break;
+                        break;
 
-                case STATE_VALUE:
-                    if ((backquoted && c == '`' && textLine.charAt(pos - 1) != '\\') || (!backquoted && c == '"' && textLine.charAt(pos - 1) != '\\')) {
-                        value = unescapeUtils.unescape(buffer.toString());
-                        if (backquoted) {
-                            value = unescapeUtils.replaceEscapedBackquotes(value);
+                    case STATE_KEY:
+                        if (c == '"' && textLine.charAt(pos - 1) != '\\') {
+                            skel.append(buffer.toString());
+                            key = buffer.toString();
+                            buffer = new StringBuilder();
+                            state++;
                         }
-                        buffer = new StringBuilder();
-                        state++;
-                    }
-                    buffer.append(c);
-                    break;
+                        buffer.append(c);
+                        break;
 
-                default:
-                    buffer.append(c);
+                    case STATE_SEP:
+                        buffer.append(c);
+                        if (c == '"' || c == '`') {
+                            skel.append(buffer.toString());
+                            buffer = new StringBuilder();
+                            state++;
+                            if (c == '`') {
+                                backquoted = true;
+                            }
+                        }
+                        break;
+
+                    case STATE_VALUE:
+                        if ((backquoted && c == '`' && textLine.charAt(pos - 1) != '\\') || (!backquoted && c == '"' && textLine.charAt(pos - 1) != '\\')) {
+                            value = unescapeUtils.unescape(buffer.toString());
+                            if (backquoted) {
+                                value = unescapeUtils.replaceEscapedBackquotes(value);
+                            }
+                            buffer = new StringBuilder();
+                            state++;
+                        }
+                        buffer.append(c);
+                        break;
+
+                    default:
+                        buffer.append(c);
+                }
+                pos++;
             }
-            pos++;
 
-            // end of line reached for multi-line value
-            if (pos == textLine.length() && state == STATE_VALUE && backquoted) {
-                buffer.append(lineBreak);
-                textLine = reader.readLine();
-                pos = 0;
+            // end of line reached 
+            if (pos == textLine.length()) {
+                //check for multi-line value
+                if (state == STATE_VALUE && backquoted) {
+                    buffer.append(lineBreak);
+                    textLine = reader.readLine();
+                    pos = 0;
+                } else {
+                    done = true;
+                }
             }
         }
 
