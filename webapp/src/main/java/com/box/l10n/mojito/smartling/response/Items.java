@@ -2,15 +2,15 @@ package com.box.l10n.mojito.smartling.response;
 
 import java.util.List;
 
-public class SourceStrings {
-    List<StringInfo> items;
+public class Items<T> {
+    List<T> items;
     Integer totalCount;
 
-    public List<StringInfo> getItems() {
+    public List<T> getItems() {
         return items;
     }
 
-    public void setItems(List<StringInfo> items) {
+    public void setItems(List<T> items) {
         this.items = items;
     }
 
@@ -21,5 +21,4 @@ public class SourceStrings {
     public void setTotalCount(Integer totalCount) {
         this.totalCount = totalCount;
     }
-
 }

@@ -130,7 +130,7 @@ public class VirtualTextUnitBatchUpdaterService {
                 logger.debug("Found previous version by name, apply leveraging");
                 new LeveragerByTmTextUnit(matchByName.getTmTextUnitId()).performLeveragingFor(toBeLeveraged, null, null);
             } else if (matchByContent != null) {
-                logger.info("Leverage by content");
+                logger.debug("Leverage by content");
                 leveragerByContentForSourceLeveraging.performLeveragingFor(toBeLeveraged, null, null);
             }
         }

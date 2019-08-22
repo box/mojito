@@ -4,13 +4,14 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 
 /**
  *
  * @author jeanaurambault
  */
-public class TextUnitForBatchImport {
+public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
 
     Repository repository;
     Asset asset;
@@ -71,6 +72,7 @@ public class TextUnitForBatchImport {
         this.comment = comment;
     }
 
+    @Override
     public Long getTmTextUnitId() {
         return tmTextUnitId;
     }

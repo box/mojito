@@ -20,7 +20,7 @@ public class StringInfo {
     String stringText;
 
     /**
-     * When used with Mojito naming convention, it correspond to: {assetPath}#@#{textUnitName}
+     * When used with Mojito naming convention, it corresponds to: {assetPath}#@#{textUnitName}
      *
      * This is not enought to uniquely identify a Mojito text unit. there could multiple text unit for the
      * same text unit name (different content/comment).

@@ -35,8 +35,4 @@ public class ScreenshotClient extends BaseClient {
         authenticatedRestTemplate.postForObject(getBasePath() + "/screenshots", screenshotRun, Void.class);
     }
 
-    public AuthenticatedRestTemplate getAuthenticatedRestTemplate() {
-        return authenticatedRestTemplate;
-    }
-
 }
