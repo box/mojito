@@ -1,0 +1,21 @@
+{
+  "100_character_description_": {
+    "message": "100 character description:"
+  },
+  "15_min_duration": {
+    "message": "15 min",
+    "description": "File lock dialog duration"
+  },
+  "1_day_duration": {
+    "message": "1 day",
+    "description": "File lock dialog duration"
+  },
+  "1_hour_duration": {
+    "message": "1 hour",
+    "description": "File lock dialog duration"
+  },
+  "something_new": {
+    "message": "Something new",
+    "description": ""
+  }
+}

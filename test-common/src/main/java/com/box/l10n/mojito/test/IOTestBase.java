@@ -1,18 +1,28 @@
 package com.box.l10n.mojito.test;
 
 import java.nio.charset.StandardCharsets;
+
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.io.Files;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
 
 public class IOTestBase {
 
@@ -41,7 +51,6 @@ public class IOTestBase {
     /**
      * Creates the test directories to easily compare input/output files with
      * expected files.
-     *
      */
     @Before
     public void initializeTestDirectories() {
@@ -72,13 +81,18 @@ public class IOTestBase {
      * @return
      */
     protected File getBaseDir() {
+        logger.debug("Get \"basedir\" property (must be set by Maven)");
         String basedir = System.getProperty("basedir");
 
         if (basedir == null) {
-            // for running in intellij, needs to setup env. variable basedir=$MODULE_DIR$ in run configuration
+            logger.debug("No \"basedir\" property. Assuming Intellij test run. Looking in env. variable instead");
             basedir = System.getenv().get("basedir");
-        }
 
+            if (basedir == null) {
+                throw new RuntimeException("Missing \"basedir\" to run tests (normally set by Maven). Assuming Intellij test run, setup env. variable:" +
+                        " \"basedir=$MODULE_DIR$\" in run configuration)");
+            }
+        }
 
         return new File(basedir);
     }
@@ -143,7 +157,6 @@ public class IOTestBase {
      * the function on the content.
      *
      * @param fileContentModifier to apply to file content to modify the file
-     *
      * @throws IOException
      */
     public void modifyFilesInTargetTestDirectory(Function<String, String> fileContentModifier) throws IOException {
@@ -178,19 +191,13 @@ public class IOTestBase {
      * @param dir1
      * @param dir2
      * @throws DifferentDirectoryContentException if the two directories are
-     * different
+     *                                            different
      */
     protected void checkDirectoriesContainSameContent(File dir1, File dir2) throws DifferentDirectoryContentException {
 
         try {
             Collection<File> listFiles1 = FileUtils.listFiles(dir1, null, true);
             Collection<File> listFiles2 = FileUtils.listFiles(dir2, null, true);
-
-            if (listFiles1.size() != listFiles2.size()) {
-                throw new DifferentDirectoryContentException("Different file list size");
-            } else {
-                logger.debug("Same file list size");
-            }
 
             // Get all the files inside the source directory, recursively
             for (File file1 : listFiles1) {
@@ -212,6 +219,17 @@ public class IOTestBase {
                 }
             }
 
+            if (listFiles1.size() < listFiles2.size()) {
+                List<Path> listPath1 = listFiles1.stream().map(file -> dir1.toPath().relativize(file.toPath())).collect(toList());
+                String extraFiles = listFiles2.stream().map(file -> dir2.toPath().relativize(file.toPath()))
+                        .filter(path -> !listPath1.contains(path))
+                        .map(Path::toString)
+                        .collect(joining("\n"));
+                throw new DifferentDirectoryContentException("Additional files in dir2:\n" + extraFiles);
+            } else {
+                logger.debug("Same file list size");
+            }
+
         } catch (IOException e) {
             throw new DifferentDirectoryContentException("Failed to compare ", e);
         }
@@ -221,8 +239,8 @@ public class IOTestBase {
      * Writes the given content into a file in given directory.
      *
      * @param directory directory that will contain the file
-     * @param fileName the filename 
-     * @param content file content
+     * @param fileName  the filename
+     * @param content   file content
      */
     public void writeToFileInDirectory(File directory, String fileName, String content) {
 
