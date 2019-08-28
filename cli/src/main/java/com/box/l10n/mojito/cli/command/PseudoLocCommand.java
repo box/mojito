@@ -50,7 +50,7 @@ public class PseudoLocCommand extends Command {
     FileType fileType;
 
     @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, variableArity = true, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
-    List<String> filterOptions;
+    List<String> filterOptionsParam;
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
@@ -86,7 +86,7 @@ public class PseudoLocCommand extends Command {
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
             consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
-            generatePseudoLocalizedFile(repository, sourceFileMatch, filterOptions);
+            generatePseudoLocalizedFile(repository, sourceFileMatch, commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam));
         }
         consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
     }

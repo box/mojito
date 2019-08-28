@@ -18,6 +18,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBiMap;
 import com.google.common.io.Files;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -26,8 +27,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -175,8 +178,8 @@ public class CommandHelper {
     /**
      * Writes the content into a file using same format as source file
      *
-     * @param content content to be written
-     * @param path path to the file
+     * @param content         content to be written
+     * @param path            path to the file
      * @param sourceFileMatch
      * @throws CommandException
      */
@@ -199,7 +202,7 @@ public class CommandHelper {
      * Writes the content into a file in UTF8
      *
      * @param content content to be written
-     * @param path path to the file
+     * @param path    path to the file
      * @throws CommandException
      */
     public void writeFileContent(String content, Path path) throws CommandException {
@@ -309,6 +312,18 @@ public class CommandHelper {
         }
 
         return locales;
+    }
+
+    /**
+     * Returns the filter options provided or defaults to the file type filter options.
+     * (that can be null too)
+     *
+     * @param fileType
+     * @param filterOptions
+     * @return the filter options provided or the default options for the file type (can be null)
+     */
+    public List<String> getFilterOptionsOrDefaults(FileType fileType, List<String> filterOptions) {
+        return filterOptions == null ? fileType.getDefaultFilterOptions() : filterOptions;
     }
 
 }

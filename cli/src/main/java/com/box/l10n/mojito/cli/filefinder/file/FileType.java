@@ -4,6 +4,8 @@ import com.box.l10n.mojito.cli.filefinder.FilePattern;
 import com.box.l10n.mojito.cli.filefinder.locale.LocaleType;
 import com.box.l10n.mojito.rest.entity.FilterConfigIdOverride;
 
+import java.util.List;
+
 /**
  * Provides information about a file type: extension, directory layout, source
  * and target file pattern, etc.
@@ -22,6 +24,7 @@ public abstract class FileType {
     String subPath = "(?:.+/)?";
     FilterConfigIdOverride filterConfigIdOverride;
     GitBlameType gitBlameType = GitBlameType.SOURCE_FILE;
+    List<String> defaultFilterOptions;
 
     public String getSourceFileExtension() {
         return sourceFileExtension;
@@ -33,7 +36,7 @@ public abstract class FileType {
 
     /**
      * Returns the target file extension.
-     *
+     * <p>
      * This is used with format (like PO files) that have different source and
      * target file extension (eg. pot and po)
      *
@@ -118,5 +121,13 @@ public abstract class FileType {
 
     public void setGitBlameType(GitBlameType gitBlameType) {
         this.gitBlameType = gitBlameType;
+    }
+
+    public List<String> getDefaultFilterOptions() {
+        return defaultFilterOptions;
+    }
+
+    public void setDefaultFilterOptions(List<String> defaultFilterOptions) {
+        this.defaultFilterOptions = defaultFilterOptions;
     }
 }

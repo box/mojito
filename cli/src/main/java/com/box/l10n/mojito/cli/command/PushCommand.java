@@ -60,7 +60,7 @@ public class PushCommand extends Command {
     FileType fileType;
 
     @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, variableArity = true, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
-    List<String> filterOptions;
+    List<String> filterOptionsParam;
 
     @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
     String sourceLocale;
@@ -133,7 +133,7 @@ public class PushCommand extends Command {
             sourceAsset.setContent(assetContent);
             sourceAsset.setRepositoryId(repository.getId());
             sourceAsset.setFilterConfigIdOverride(sourceFileMatch.getFileType().getFilterConfigIdOverride());
-            sourceAsset.setFilterOptions(filterOptions);
+            sourceAsset.setFilterOptions(commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam));
 
             consoleWriter.a(" - Uploading: ").fg(Ansi.Color.CYAN).a(sourcePath).println();
 
