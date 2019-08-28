@@ -8,13 +8,14 @@ permalink: /docs/refs/mojito-file-formats/
 
 | Format                             | Source Resource File                   |
 |:-----------------------------------|:---------------------------------------|
-| Android Strings &nbsp;&nbsp;&nbsp; | res/values/strings.xml                 |
+| Android Strings                    | res/values/strings.xml                 |
 | CSV File                           | *.csv                                  |
 | iOS/Mac Strings                    | Localizable.strings, InfoPList.strings |
 | iOS/Mac Stringsdict                | Localizable.stringsdict                |
 | Java Properties                    | *.properties                           |
 | JS File                            | *.js                                   |
 | JSON File                          | *.json                                 |
+| Chrome extension JSON &nbsp;&nbsp; | _locales/{locale}/messages.json                                 |
 | RESW                               | *.resw                                 |
 | RESX                               | *.resx                                 |
 | PO File                            | *.pot                                  |
@@ -24,7 +25,7 @@ permalink: /docs/refs/mojito-file-formats/
 
 
 
-### Android Strings Example
+### Android Strings
 Source Resource File (English): `res/values/strings.xml`
 
 
@@ -45,7 +46,7 @@ Localized Resource File (Spanish): `res/values-es/strings.xml`
 </resources>
 ```
 
-### iOS/Mac Strings Example
+### iOS/Mac Strings
 Source Resource File (English): `en.lproj/Localizable.strings`
 
 
@@ -63,7 +64,7 @@ Localized Resource File (Spanish): `es.lproj/Localizable.strings`
 ```
 
 
-### CVS Example
+### CVS
 
 | Column Number | Description |
 |:--------------|:------------|
@@ -88,7 +89,7 @@ hello,Hello!,¡Hola!,Greeting from Main UI
 ```
 
 
-### iOS/Mac Stringsdict Example
+### iOS/Mac Stringsdict
 Source Resource File (English): `en.lproj/Localizable.stringsdict`
 
 
@@ -144,7 +145,7 @@ Localized Resource File (Spanish): `es.lproj/Localizable.stringsdict`
 ```
 
 
-### Java Properties Example
+### Java Properties
 Source Resource File (English): `en.properties`
 
 
@@ -162,7 +163,7 @@ hello = ¡Hola!
 ```
 
 
-### JS Example
+### JS
 Source Resource File (English): `en.js`
 
 
@@ -184,7 +185,7 @@ export default {
 ```
 
 
-### JSON Example
+### JSON
 Source Resource File (English): `example.json`
 
 
@@ -205,8 +206,31 @@ Localized Resource File (Spanish): `example_es-ES.json`
 }
 ```
 
+### Chrome extension JSON
 
-### RESW Example
+See [chrome.i18n documentation](https://developer.chrome.com/extensions/i18n) documentation for more details
+
+Source Resource File (English): `_locales/en/messages.json`
+```json
+{
+  "hello": {
+    "message": "Hello!",
+    "description": "Greeting from Main UI"
+  }
+}
+```
+
+Localized Resource File (Spanish): `_locales/es-ES/messages.json`
+```json
+{
+  "hello": {
+    "message": "¡Hola!",
+    "description": "Greeting from Main UI"
+  }
+}
+```
+
+### RESW
 Source Resource File (English): `en/Resources.resw`
 
 
@@ -234,7 +258,7 @@ Localized Resource File (Spanish): `es/Resources.resw`
 ```
 
 
-### RESX Example
+### RESX
 Source Resource File (English): `Resources.resx`
 
 
@@ -262,7 +286,7 @@ Localized Resource File (Spanish): `Resources.es-ES.resx`
 ```
 
 
-### TS Example
+### TS
 Source Resource File (English): `en.ts`
 
 
@@ -288,7 +312,7 @@ export default Translations;
 ```
 
 
-### XLIFF Example
+### XLIFF
 Source Resource File (English): `resource.xliff`  
 
 
@@ -325,7 +349,7 @@ Localized Resource File (Spanish): `resource_es-ES.xliff`
 ```
 
 
-### PO File Example
+### PO File
 Source Resource File (English): `messages.pot`   
 
 
@@ -375,7 +399,7 @@ msgstr "¡Hola!"
 ```
 
 
-### XTB Example
+### XTB
 Source Resource File (English): `Example-en-US.xtb`
 
 
