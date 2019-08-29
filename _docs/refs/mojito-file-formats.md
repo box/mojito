@@ -64,7 +64,7 @@ Localized Resource File (Spanish): `es.lproj/Localizable.strings`
 ```
 
 
-### CVS
+### CSV
 
 | Column Number | Description |
 |:--------------|:------------|
