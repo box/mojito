@@ -97,7 +97,7 @@ public class TMImportCommandTest extends CLITestBase {
         Iterator<TMTextUnitVariant> iterator = tmTextUnitsVariantsJapanese.iterator();
 
         tmTextUnitVariant = iterator.next();
-        assertEquals("Description de 100 caractères :", tmTextUnitVariant.getContent());
+        assertEquals("100文字の説明:", tmTextUnitVariant.getContent());
 
         tmTextUnitVariant = iterator.next();
         assertEquals("15分", tmTextUnitVariant.getContent());
@@ -137,7 +137,7 @@ public class TMImportCommandTest extends CLITestBase {
         Iterator<TMTextUnitVariant> iterator = tmTextUnitsVariantsJapanese.iterator();
 
         tmTextUnitVariant = iterator.next();
-        assertEquals("Description de 100 caractères :", tmTextUnitVariant.getContent());
+        assertEquals("100文字の説明:", tmTextUnitVariant.getContent());
 
         tmTextUnitVariant = iterator.next();
         assertEquals("1時間", tmTextUnitVariant.getContent());

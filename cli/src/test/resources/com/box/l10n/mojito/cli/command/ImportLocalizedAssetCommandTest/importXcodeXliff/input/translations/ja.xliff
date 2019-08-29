@@ -5,7 +5,7 @@
     <body>
       <trans-unit id="100_character_description_" xml:space="preserve">
         <source>100 character description:</source>
-      <target xml:lang="ja">Description de 100 caractères :</target>
+      <target xml:lang="ja">100文字の説明:</target>
 </trans-unit>
       <trans-unit id="15_min_duration" xml:space="preserve">
         <source>15 min</source>
