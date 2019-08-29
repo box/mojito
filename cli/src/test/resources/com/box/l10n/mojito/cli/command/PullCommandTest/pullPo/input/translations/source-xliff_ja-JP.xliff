@@ -4,7 +4,7 @@
         <body>
             <trans-unit id="" resname="100 character description: --- 100_character_description_" datatype="php">
                 <source>100 character description:</source>
-                <target>Description de 100 caractères :</target>
+                <target>100文字の説明:</target>
             </trans-unit>
             <trans-unit id="" resname="15 min --- 15_min_duration" datatype="x-javascript+php">
                 <source>15 min</source>

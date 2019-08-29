@@ -21,7 +21,7 @@ msgstr ""
 #: file.js:2
 msgctxt "100_character_description_"
 msgid "100 character description:"
-msgstr "Description de 100 caractères :"
+msgstr "100文字の説明:"
 
 #. File lock dialog duration
 #: file.js:4
