@@ -98,6 +98,18 @@ public class IOTestBase {
     }
 
     /**
+     * Options to override expected test files.
+     *
+     * Test can be run that way: mvn test -DoverrideExpectedTestFiles=true
+     *
+     * @return
+     */
+    protected boolean shouldOverrideExpectedTestFiles() {
+        String overrideExpectedTestFiles = System.getProperty("overrideExpectedTestFiles");
+        return overrideExpectedTestFiles == null ? false : Boolean.valueOf(overrideExpectedTestFiles);
+    }
+
+    /**
      * Gets the directory that contains expected resources.
      *
      * @return
@@ -176,9 +188,19 @@ public class IOTestBase {
      */
     public void checkExpectedGeneratedResources() {
         try {
+            if (shouldOverrideExpectedTestFiles()) {
+                logger.info("Override expected test files (instead of checking)");
+                try {
+                    FileUtils.copyDirectory(targetTestDir, getExpectedResourcesTestDir());
+                } catch (IOException io) {
+                    throw new RuntimeException(io);
+                }
+            }
+
             checkDirectoriesContainSameContent(getExpectedResourcesTestDir(), targetTestDir);
         } catch (DifferentDirectoryContentException e) {
-            String msg = "Generated resources do not match the expected resources";
+            String msg = "Generated resources do not match the expected resource (Use -DoverrideExpectedTestFiles=true " +
+                    "to run test and override expected test files instead of doing this check)";
             logger.debug(msg, e);
             Assert.fail(msg + "\n" + e.getMessage());
         }
