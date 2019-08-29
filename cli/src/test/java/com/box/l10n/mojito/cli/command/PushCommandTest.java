@@ -18,6 +18,7 @@ import com.google.common.io.CharSink;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import org.eclipse.jgit.api.Git;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -392,6 +393,7 @@ public class PushCommandTest extends CLITestBase {
         assertEquals(0, l10nJCommander.getExitCode());
     }
 
+    @Ignore("this remove all uncommited changes when running the test!!")
     @Test
     public void testProcessDiffAsset() throws Exception {
 
