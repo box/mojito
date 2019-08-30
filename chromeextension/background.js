@@ -40,5 +40,5 @@ function addMojitoIctHeader(details) {
 chrome.webRequest.onBeforeSendHeaders.addListener(
         addMojitoIctHeader,
         {urls: ['<all_urls>']},
-        ['requestHeaders', 'blocking']
+        ['requestHeaders', 'blocking','extraHeaders']
         );
