@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.filefinder.file;
 import com.box.l10n.mojito.cli.filefinder.locale.ChromeExtJsonLocaleType;
 
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.BASE_NAME;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.DOT;
@@ -24,6 +25,8 @@ public class ChromeExtensionJSONFileType extends FileType {
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + LOCALE + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = sourceFilePatternTemplate;
         this.localeType = new ChromeExtJsonLocaleType();
+        this.textUnitNameToTextUnitNameInSourceSingular = Pattern.compile("(?<s>.*)/message");
+        this.textUnitNameToTextUnitNameInSourcePlural = Pattern.compile("(?<s>.*)"); // plural not support just accept anything
         this.defaultFilterOptions = Arrays.asList("noteKeyPattern=description", "extractAllPairs=false", "exceptions=message");
     }
 }

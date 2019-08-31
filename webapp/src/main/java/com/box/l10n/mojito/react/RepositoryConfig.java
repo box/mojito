@@ -6,6 +6,7 @@ public class RepositoryConfig {
     Commit commit;
     ThirdParty thirdParty;
     PullRequest pullRequest;
+    TextUnitNameToTextUnitNameInSource textUnitNameToTextUnitNameInSource;
 
     public Location getLocation() {
         return location;
@@ -37,5 +38,13 @@ public class RepositoryConfig {
 
     public void setPullRequest(PullRequest pullRequest) {
         this.pullRequest = pullRequest;
+    }
+
+    public TextUnitNameToTextUnitNameInSource getTextUnitNameToTextUnitNameInSource() {
+        return textUnitNameToTextUnitNameInSource;
+    }
+
+    public void setTextUnitNameToTextUnitNameInSource(TextUnitNameToTextUnitNameInSource textUnitNameToTextUnitNameInSource) {
+        this.textUnitNameToTextUnitNameInSource = textUnitNameToTextUnitNameInSource;
     }
 }

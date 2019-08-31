@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.fusesource.jansi.Ansi.Color.CYAN;
 import static org.fusesource.jansi.Ansi.Color.YELLOW;
@@ -53,6 +55,11 @@ public class GitBlameCommand extends Command {
      * Size of the batch when fetching {@link GitBlameWithUsage}s to be processed
      */
     static final int BATCH_SIZE = 500;
+
+    /**
+     * {@link #textUnitNameToTextUnitNameInSource(String, FileType, boolean)}
+     */
+    static final String GROUP_NAME_FOR_TEXT_UNIT_NAME_IN_SOURCE = "s";
 
     @Autowired
     ConsoleWriter consoleWriter;
@@ -76,7 +83,7 @@ public class GitBlameCommand extends Command {
     @Parameter(names = {"--extracted-prefix"}, arity = 1, required = false, description = "prefix for path of extracted files")
     String extractedFilePrefix;
 
-    @Parameter(names = {"--override"}, required = false, description = "To override current information", converter = GitBlameOverrideConverter.class)
+    @Parameter(names = {"--override"}, arity = 1, required = false, description = "To override current information", converter = GitBlameOverrideConverter.class)
     OverrideType overrideType = OverrideType.NONE;
 
     @Autowired
@@ -130,7 +137,7 @@ public class GitBlameCommand extends Command {
 
             List<GitBlameWithUsage> getGitBlameWithUsagesToProcess = getGitBlameWithUsagesToProcess(gitBlameWithUsages);
 
-            logger.debug("Got: {}, skippped: {} since they already have git blame info",
+            logger.debug("Got: {}, skippped: {}",
                     numGitBlameWithUsages,
                     numGitBlameWithUsages - getGitBlameWithUsagesToProcess.size());
 
@@ -161,7 +168,7 @@ public class GitBlameCommand extends Command {
     /**
      * We just process {@link GitBlameWithUsage} that have no information at all. If there was a reccord saved
      * with empty information it won't be recomputed.
-     *
+     * <p>
      * We can later add an option to force update the content if needed
      *
      * @param gitBlameWithUsages
@@ -189,14 +196,15 @@ public class GitBlameCommand extends Command {
      * @throws CommandException
      */
     void blameSourceFiles(List<GitBlameWithUsage> gitBlameWithUsages) throws CommandException {
+        logger.debug("blameSourceFiles");
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
-
             if (GitBlameType.TEXT_UNIT_USAGES.equals(sourceFileMatch.getFileType().getGitBlameType())) {
                 continue;
             }
+            logger.debug("Processing source file: {}", sourceFileMatch.getPath().toString());
 
             Path sourceRelativePath = gitRepository.getDirectory().getParentFile().toPath().relativize(sourceFileMatch.getPath());
             BlameResult blameResultForFile = gitRepository.getBlameResultForFile(sourceRelativePath.toString());
@@ -205,7 +213,7 @@ public class GitBlameCommand extends Command {
                 for (int i = 0; i < blameResultForFile.getResultContents().size(); i++) {
                     String lineText = blameResultForFile.getResultContents().getString(i);
 
-                    List<GitBlameWithUsage> gitBlameWithUsageList = getGitBlameWithUsagesFromLine(lineText, gitBlameWithUsages);
+                    List<GitBlameWithUsage> gitBlameWithUsageList = getGitBlameWithUsagesFromLine(lineText, gitBlameWithUsages, sourceFileMatch.getFileType());
                     for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsageList) {
                         try {
                             updateBlameResultsInGitBlameWithUsage(i, blameResultForFile, gitBlameWithUsage);
@@ -227,6 +235,7 @@ public class GitBlameCommand extends Command {
      * @throws CommandException
      */
     void blameWithTextUnitUsages(List<GitBlameWithUsage> gitBlameWithUsages) throws CommandException {
+        logger.debug("blameWithTextUnitUsages");
 
         for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
 
@@ -297,15 +306,18 @@ public class GitBlameCommand extends Command {
      *
      * @param line
      * @param gitBlameWithUsages
+     * @param fileType
      * @return list of GitBlameWithUsage objects that match current line
      */
-    List<GitBlameWithUsage> getGitBlameWithUsagesFromLine(String line, List<GitBlameWithUsage> gitBlameWithUsages) {
+    List<GitBlameWithUsage> getGitBlameWithUsagesFromLine(String line, List<GitBlameWithUsage> gitBlameWithUsages, FileType fileType) {
 
         List<GitBlameWithUsage> gitBlameWithUsagesWithLine = new ArrayList<>();
 
         if (line != null) {
             for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
-                if (line.contains(textUnitNameToStringInSourceFile(gitBlameWithUsage.getTextUnitName()))) {
+                String textUnitNameInSource = textUnitNameToTextUnitNameInSource(gitBlameWithUsage.getTextUnitName(), fileType, gitBlameWithUsage.getPluralForm() != null);
+                if (line.contains(textUnitNameInSource)) {
+                    logger.debug("Found match for string in source file: {} in line: {}", textUnitNameInSource, line);
                     gitBlameWithUsagesWithLine.add(gitBlameWithUsage);
                 }
             }
@@ -314,20 +326,40 @@ public class GitBlameCommand extends Command {
     }
 
     /**
-     * Converts text unit name back to how name appears in source code
+     * Converts text unit name to the text unit name in the source code
      *
+     * @param textUnitNameToStringInFilePattern
      * @param textUnitName
      * @return text unit name as string in source file
      */
-    String textUnitNameToStringInSourceFile(String textUnitName) {
+    String textUnitNameToTextUnitNameInSource(String textUnitName, FileType fileType, boolean isPluralForm) {
 
-        String stringInFile = textUnitName;
+        String textUnitNameInSource = textUnitName;
 
-        if (textUnitName != null && textUnitName.matches(".+_(zero|one|two|few|many|other|\\d+)$"))
-            stringInFile = textUnitName.split("_(zero|one|two|few|many|other|\\d+)")[0];
+        Pattern pattern = getTextUnitNameToTextUnitNameInSourcePattern(fileType, isPluralForm);
 
-        return stringInFile;
+        if (pattern != null) {
+            Matcher matcher = pattern.matcher(textUnitName);
+            if (matcher.matches()) {
+                textUnitNameInSource = matcher.group(GROUP_NAME_FOR_TEXT_UNIT_NAME_IN_SOURCE);
+                logger.debug("string in source file: {}", textUnitNameInSource);
+            } else {
+                throw new IllegalArgumentException("The pattern to extract the 'text unit name in source' must match. For text unit name: " + textUnitName);
+            }
+        }
 
+        return textUnitNameInSource;
+    }
+
+    Pattern getTextUnitNameToTextUnitNameInSourcePattern(FileType fileType, boolean isPluralForm) {
+        Pattern pattern = null;
+
+        if (fileType != null) {
+            pattern = isPluralForm ?
+                    fileType.getTextUnitNameToTextUnitNameInSourcePlural() :
+                    fileType.getTextUnitNameToTextUnitNameInSourceSingular();
+        }
+        return pattern;
     }
 
     /**

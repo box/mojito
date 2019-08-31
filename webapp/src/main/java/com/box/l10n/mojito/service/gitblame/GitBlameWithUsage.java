@@ -18,6 +18,9 @@ public class GitBlameWithUsage {
     String textUnitName;
 
     @JsonView(View.GitBlameWithUsage.class)
+    String pluralForm;
+
+    @JsonView(View.GitBlameWithUsage.class)
     Long tmTextUnitId;
 
     @JsonView(View.GitBlameWithUsage.class)
@@ -108,5 +111,13 @@ public class GitBlameWithUsage {
 
     public void setScreenshots(Set<Screenshot> screenshots) {
         this.screenshots = screenshots;
+    }
+
+    public String getPluralForm() {
+        return pluralForm;
+    }
+
+    public void setPluralForm(String pluralForm) {
+        this.pluralForm = pluralForm;
     }
 }

@@ -5,6 +5,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.LocaleType;
 import com.box.l10n.mojito.rest.entity.FilterConfigIdOverride;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Provides information about a file type: extension, directory layout, source
@@ -24,6 +25,8 @@ public abstract class FileType {
     String subPath = "(?:.+/)?";
     FilterConfigIdOverride filterConfigIdOverride;
     GitBlameType gitBlameType = GitBlameType.SOURCE_FILE;
+    Pattern textUnitNameToTextUnitNameInSourceSingular;
+    Pattern textUnitNameToTextUnitNameInSourcePlural = Pattern.compile("(?<s>.*?) _(zero|one|two|few|many|other)$");
     List<String> defaultFilterOptions;
 
     public String getSourceFileExtension() {
@@ -129,5 +132,21 @@ public abstract class FileType {
 
     public void setDefaultFilterOptions(List<String> defaultFilterOptions) {
         this.defaultFilterOptions = defaultFilterOptions;
+    }
+
+    public Pattern getTextUnitNameToTextUnitNameInSourcePlural() {
+        return textUnitNameToTextUnitNameInSourcePlural;
+    }
+
+    public void setTextUnitNameToTextUnitNameInSourcePlural(Pattern textUnitNameToTextUnitNameInSourcePlural) {
+        this.textUnitNameToTextUnitNameInSourcePlural = textUnitNameToTextUnitNameInSourcePlural;
+    }
+
+    public Pattern getTextUnitNameToTextUnitNameInSourceSingular() {
+        return textUnitNameToTextUnitNameInSourceSingular;
+    }
+
+    public void setTextUnitNameToTextUnitNameInSourceSingular(Pattern textUnitNameToTextUnitNameInSourceSingular) {
+        this.textUnitNameToTextUnitNameInSourceSingular = textUnitNameToTextUnitNameInSourceSingular;
     }
 }

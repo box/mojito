@@ -10,6 +10,8 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.PATH_SEPERATOR;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
 import com.box.l10n.mojito.cli.filefinder.locale.AndroidLocaleType;
 
+import java.util.regex.Pattern;
+
 /**
  *
  * @author jaurambault
@@ -23,5 +25,7 @@ public class AndroidStringsFileType extends FileType {
         this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.targetFilePatternTemplate = "{" + PARENT_PATH + "}{" + SUB_PATH + "}" + HYPHEN + "{" + LOCALE + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
         this.localeType = new AndroidLocaleType();
+        this.textUnitNameToTextUnitNameInSourceSingular = Pattern.compile("(?<s>.*?)(_\\d+)?$");
+        this.textUnitNameToTextUnitNameInSourcePlural = Pattern.compile("(?<s>.*?)_(zero|one|two|few|many|other)$");
     }
 }
