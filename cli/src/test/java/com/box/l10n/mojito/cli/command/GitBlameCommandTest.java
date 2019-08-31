@@ -1,6 +1,10 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.ChromeExtensionJSONFileType;
+import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.filefinder.file.POFileType;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.entity.GitBlame;
 import com.box.l10n.mojito.rest.entity.GitBlameWithUsage;
@@ -107,20 +111,56 @@ public class GitBlameCommandTest extends CLITestBase {
         verifyGitBlame(gitBlameWithUsages, gitBlame);
     }
 
-
     @Test
-    public void getStringInSourceFile() {
+    public void textUnitNameToTextUnitNameInSourceDefault() {
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
-        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test"));
-        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_zero"));
-        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_one"));
-        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_two"));
-        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_few"));
-        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_many"));
-        assertEquals("test", gitBlameCommand.textUnitNameToStringInSourceFile("test_other"));
-        assertEquals("test_test", gitBlameCommand.textUnitNameToStringInSourceFile("test_test"));
-        assertEquals("test_test", gitBlameCommand.textUnitNameToStringInSourceFile("test_test_one"));
+        FileType fileType = new POFileType() ;
+
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test", fileType, false));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test _zero", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test _one", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test _two", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test _few", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test _many", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test _other", fileType, true));
+        assertEquals("test_test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_test", fileType, false));
+        assertEquals("test_test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_test _one", fileType, true));
+    }
+
+    @Test
+    public void textUnitNameToTextUnitNameInSourceAndroid() {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+
+        FileType fileType = new AndroidStringsFileType();
+
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test", fileType, false));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_zero", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_one", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_two", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_few", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_many", fileType, true));
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_other", fileType, true));
+        assertEquals("test_test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_test", fileType, false));
+        assertEquals("test_test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_test_one", fileType, true));
+        // array in android
+        assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test_1", fileType, false));
+    }
+
+    @Test
+    public void textUnitNameToTextUnitNameInSourceChromeExtJson() {
+        GitBlameCommand gitBlameCommand = new GitBlameCommand();
+
+        FileType fileType = new ChromeExtensionJSONFileType();
+
+        assertEquals("hello", gitBlameCommand.textUnitNameToTextUnitNameInSource("hello/message", fileType, false));
+        assertEquals("hello/message_zero", gitBlameCommand.textUnitNameToTextUnitNameInSource("hello/message_zero", fileType, true));
+         try {
+             gitBlameCommand.textUnitNameToTextUnitNameInSource("hello_zero", fileType, false);
+            fail("should throw an exception if the regex doesn't match");
+        } catch (IllegalArgumentException iae) {
+            assertEquals("The pattern to extract the 'text unit name in source' must match. For text unit name: hello_zero", iae.getMessage());
+        }
     }
 
     @Test
@@ -140,7 +180,7 @@ public class GitBlameCommandTest extends CLITestBase {
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
         for (int i = 0; i < lines.length; i++) {
-            List<GitBlameWithUsage> gitBlameWithUsages = gitBlameCommand.getGitBlameWithUsagesFromLine(lines[i], textUnitWithUsages);
+            List<GitBlameWithUsage> gitBlameWithUsages = gitBlameCommand.getGitBlameWithUsagesFromLine(lines[i], textUnitWithUsages, new AndroidStringsFileType());
             assertEquals(textUnitWithUsages.get(i), gitBlameWithUsages.get(i));
             assertEquals(2, gitBlameWithUsages.size());
         }
@@ -171,35 +211,12 @@ public class GitBlameCommandTest extends CLITestBase {
         gitBlameWithUsagesExpected.add(gitBlameWithUsage_other);
 
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
-        List<GitBlameWithUsage> gitBlameWithUsagesActual = gitBlameCommand.getGitBlameWithUsagesFromLine(line, gitBlameWithUsagesExpected);
+        List<GitBlameWithUsage> gitBlameWithUsagesActual = gitBlameCommand.getGitBlameWithUsagesFromLine(line, gitBlameWithUsagesExpected, new AndroidStringsFileType());
 
         for (int i = 0; i < gitBlameWithUsagesActual.size(); i++)
             assertEquals(gitBlameWithUsagesExpected.get(i), gitBlameWithUsagesActual.get(i));
     }
 
-
-    @Test
-    public void getTextUnitNameStringArray() {
-        String string_name_0 = "string_array_tests_0";
-        String string_name_1 = "string_array_tests_1";
-        String string_name_2 = "string_array_tests_2";
-        String string_name_3 = "string_array_tests_3";
-        String string_name_4 = "string_array_tests_4";
-        String string_name_5 = "string_array_tests_5";
-
-        List<String> stringArrayNames = new ArrayList<>();
-        stringArrayNames.add(string_name_0);
-        stringArrayNames.add(string_name_1);
-        stringArrayNames.add(string_name_2);
-        stringArrayNames.add(string_name_3);
-        stringArrayNames.add(string_name_4);
-        stringArrayNames.add(string_name_5);
-
-        GitBlameCommand gitBlameCommand = new GitBlameCommand();
-
-        for (int i = 0; i < stringArrayNames.size(); i++)
-            assertEquals("string_array_tests", gitBlameCommand.textUnitNameToStringInSourceFile(stringArrayNames.get(i)));
-    }
 
     @Test
     public void getBlameResultForLines() throws Exception {
@@ -320,6 +337,11 @@ public class GitBlameCommandTest extends CLITestBase {
 
     void verifyGitBlame(List<com.box.l10n.mojito.service.gitblame.GitBlameWithUsage> gitBlameWithUsages, GitBlame gitBlame) {
         assertFalse(gitBlameWithUsages.isEmpty());
+
+        gitBlameWithUsages.stream().forEach(g -> {
+            logger.debug("name: {}, plural: {}, commit: {}", g.getTextUnitName(), g.getPluralForm(), g.getGitBlame().getCommitName());
+        });
+
         for (com.box.l10n.mojito.service.gitblame.GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
             assertEquals(gitBlame.getCommitName(), gitBlameWithUsage.getGitBlame().getCommitName());
             assertEquals(gitBlame.getCommitTime(), gitBlameWithUsage.getGitBlame().getCommitTime());

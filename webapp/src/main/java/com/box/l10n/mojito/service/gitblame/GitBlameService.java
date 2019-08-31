@@ -102,6 +102,7 @@ public class GitBlameService {
             gitBlameWithUsage.setTmTextUnitId(textUnitDTO.getTmTextUnitId());
             gitBlameWithUsage.setAssetTextUnitId(textUnitDTO.getAssetTextUnitId());
             gitBlameWithUsage.setTextUnitName(textUnitDTO.getName());
+            gitBlameWithUsage.setPluralForm(textUnitDTO.getPluralForm());
             gitBlameWithUsage.setContent(textUnitDTO.getSource());
             gitBlameWithUsage.setComment(textUnitDTO.getComment());
             gitBlameWithUsages.add(gitBlameWithUsage);

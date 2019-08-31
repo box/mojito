@@ -8,6 +8,8 @@ public class GitBlameWithUsage {
 
     String textUnitName;
 
+    String pluralForm;
+
     Long tmTextUnitId;
 
     Long assetTextUnitId;
@@ -72,5 +74,13 @@ public class GitBlameWithUsage {
 
     public void setGitBlame(GitBlame gitBlame) {
         this.gitBlame = gitBlame;
+    }
+
+    public String getPluralForm() {
+        return pluralForm;
+    }
+
+    public void setPluralForm(String pluralForm) {
+        this.pluralForm = pluralForm;
     }
 }

@@ -200,23 +200,22 @@ class GitBlameInfoModal extends React.Component {
     getParamsForLinks = () => {
         return {
             textUnitName: this.props.textUnit.getName(),
-            assetPath: this.props.textUnit.getAssetPath(),
-            textUsageNamePrefix: this.props.textUnit.getName().split("_")[0],
-            textUnitNameWithoutPluralForm: this.getTextUnitNameWithoutPluralForm()
+            textUnitNameInSource: this.getTextUnitNameInSource(),
+            assetPath: this.props.textUnit.getAssetPath()
         };
     };
 
-    getTextUnitNameWithoutPluralForm = () => {
-        let prefix = this.props.textUnit.getName();
+    getTextUnitNameInSource() {
+        const regex = this.getTextUnitNameToTextUnitNameInSourceRegex();
+        const match = this.props.textUnit.getName().match(regex);
+        return match[1];
+    }
 
-        if (this.props.textUnit.getPluralForm() != null) {
-            // remove plural form. remove optionally a space for this to work with different types but that break
-            // type that don't use it and have a text unit name that ends with space.
-            prefix = prefix.replace(/\s?_(zero|one|two|few|many|other)$/, "");
-        }
-
-        return prefix;
-    };
+    getTextUnitNameToTextUnitNameInSourceRegex() {
+        return this.props.textUnit.getPluralForm() == null
+            ? this.getTextUnitNameToTextUnitNameInSourceSingular()
+            : this.getTextUnitNameToTextUnitNameInSourcePlural();
+    }
 
     renderLink = (urlTemplate, urlComponentTemplate, labelTemplate, params) => {
         let url = LinkHelper.renderUrl(urlTemplate, urlComponentTemplate, params);
@@ -416,6 +415,30 @@ class GitBlameInfoModal extends React.Component {
             return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty.label;
         } catch (e) {
             return null;
+        }
+    };
+
+    /**
+     * @returns {*} Regex to tranform the text unit name into the text unit name as it appear in source code,
+     * if in configuration, an empty string otherwise.
+     */
+    getTextUnitNameToTextUnitNameInSourceSingular = () => {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].textUnitNameToTextUnitNameInSource.singular;
+        } catch (e) {
+            return "(.*)";
+        }
+    };
+
+    /**
+     * @returns {*} Regex to tranform text unit name into text unit string in code, if in configuration, default
+     * to exp to remove plural otherwise.
+     */
+    getTextUnitNameToTextUnitNameInSourcePlural = () => {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].textUnitNameToTextUnitNameInSource.plural;
+        } catch (e) {
+            return "(.*) ?_(zero|one|two|few|many|other)$";
         }
     };
 
