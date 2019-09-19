@@ -528,6 +528,30 @@ public class FileFinderTest extends IOTestBase {
         assertFalse(itTargets.hasNext());
     }
 
+    @Test
+    public void findJSONNoBasename() throws IOException, FileFinderException {
+        FileFinder fileFinder = initFileFinder(false, new JSONNoBasenameFileType());
+
+        Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+        FileMatch next = itSources.next();
+        assertEquals(JSONNoBasenameFileType.class, next.fileType.getClass());
+        assertEquals(getInputResourcesTestDir("source").toString() + "/en.json", next.getPath().toString());
+        assertEquals("fr-FR.json", next.getTargetPath("fr-FR"));
+
+        next = itSources.next();
+        assertEquals(getInputResourcesTestDir("source").toString() + "/sub/en.json", next.getPath().toString());
+        assertEquals("sub/fr-FR.json", next.getTargetPath("fr-FR"));
+
+        assertFalse(itSources.hasNext());
+
+        Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+        assertEquals(getInputResourcesTestDir("target").toString() + "/fr-FR.json", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir("target").toString() + "/fr.json", itTargets.next().getPath().toString());
+        assertEquals(getInputResourcesTestDir("target").toString() + "/sub/fr.json", itTargets.next().getPath().toString());
+        assertFalse(itTargets.hasNext());
+    }
+
     FileFinder initFileFinder(boolean targetSameAsSourceDirectory, FileType... fileTypes) throws FileFinderException {
         return initFileFinder(targetSameAsSourceDirectory, null, fileTypes);
     }

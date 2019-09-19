@@ -22,6 +22,7 @@ public enum FileTypes {
     CSV(CSVFileType.class),
     JS(JSFileType.class),
     JSON(JSONFileType.class),
+    JSON_NOBASENAME(JSONNoBasenameFileType.class),
     CHROME_EXT_JSON(ChromeExtensionJSONFileType.class),
     TS(TSFileType.class);
 
