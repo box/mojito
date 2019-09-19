@@ -292,6 +292,28 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
     }
 
     @Test
+    public void importJsonNobasename() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME");
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir().getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void importJsonWithNote() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();

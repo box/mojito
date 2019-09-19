@@ -667,6 +667,32 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void pullJsonNobasename() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME");
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void pullJsonWithNote() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
