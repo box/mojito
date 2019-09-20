@@ -17,6 +17,7 @@ public class BranchUrlBuilder {
                 .path("branches")
                 .queryParam("searchText", branchName)
                 .queryParam("deleted", false)
+                .queryParam("onlyMyBranches", false)
                 .build()
                 .toUriString();
     }
