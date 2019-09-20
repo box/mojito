@@ -35,6 +35,9 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
     @Value("${l10n.branchNotification.phabricator.reviewer}")
     String reviewer;
 
+    @Value("${l10n.branchNotification.phabricator.blockingReview:true}")
+    Boolean blockingReview;
+
     @Autowired
     BranchNotificationMessageBuilderPhabricator branchNotificationMessageBuilderPhabricator;
 
@@ -70,7 +73,7 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
 
         try {
             phabricatorClient.addComment(branchName, branchNotificationMessageBuilderPhabricator.getTranslatedMessage());
-            phabricatorClient.removeReviewer(branchName, reviewer, true);
+            phabricatorClient.removeReviewer(branchName, reviewer, blockingReview);
         } catch (PhabricatorClientException e) {
             throw new BranchNotificationMessageSenderException(e);
         }
