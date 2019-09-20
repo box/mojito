@@ -47,7 +47,7 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
 
         try {
             phabricatorClient.addComment(branchName, branchNotificationMessageBuilderPhabricator.getNewMessage(branchName, sourceStrings));
-            phabricatorClient.addReviewer(branchName, reviewer, true);
+            phabricatorClient.addReviewer(branchName, reviewer, blockingReview);
             return null;
         } catch (PhabricatorClientException e) {
             throw new BranchNotificationMessageSenderException(e);
@@ -60,7 +60,7 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
 
         try {
             phabricatorClient.addComment(branchName, branchNotificationMessageBuilderPhabricator.getUpdatedMessage(branchName, sourceStrings));
-            phabricatorClient.addReviewer(branchName, reviewer, true);
+            phabricatorClient.addReviewer(branchName, reviewer, blockingReview);
             return null;
         } catch (PhabricatorClientException e) {
             throw new BranchNotificationMessageSenderException(e);
