@@ -29,6 +29,11 @@ public class PollableTaskCleanupJob implements Job {
     static final String FINISH_ZOMBIE_TASKS_WITH_ERROR = "Finish zombie tasks with error";
 
     /**
+     * in milliseconds
+     */
+    static final int REPEAT_INTERVAL = 30000;
+
+    /**
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(PollableTaskCleanupJob.class);
@@ -60,7 +65,7 @@ public class PollableTaskCleanupJob implements Job {
     public SimpleTriggerFactoryBean triggerPollableTaskCleanup(@Qualifier("jobDetailPollableTaskCleanup") JobDetail job) {
         SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
         trigger.setJobDetail(job);
-        trigger.setRepeatInterval(30000);
+        trigger.setRepeatInterval(REPEAT_INTERVAL);
         trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
         return trigger;
     }
