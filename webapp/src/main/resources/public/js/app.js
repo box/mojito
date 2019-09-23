@@ -61,7 +61,10 @@ import(
 
 
 if (APP_CONFIG.googleAnalytics.enabled) {
-    let gaUserId = GoogleAnalytics.hash(USERNAME);
+    let gaUserId = USERNAME;
+    if (APP_CONFIG.googleAnalytics.hashedUserId) {
+        gaUserId = GoogleAnalytics.hash(gaUserId);
+    }
     GoogleAnalytics.enable(APP_CONFIG.googleAnalytics.trackingId, gaUserId);
     GoogleAnalytics.currentPageView();
 }
