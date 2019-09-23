@@ -62,7 +62,7 @@ public class BranchNotificationMessageBuilderSlackTest {
         assertEquals("{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"W" +
                 "e received your strings! Please *add screenshots* as soon as possible and *wait for translations* befor" +
                 "e releasing.\",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\"text\":\"Screen" +
-                "shots\",\"url\":\"http://localhost:8080/branches?searchText=pr-test&deleted=false\",\"style\":\"prim" +
+                "shots\",\"url\":\"http://localhost:8080/branches?searchText=pr-test&deleted=false&onlyMyBranches=false\",\"style\":\"prim" +
                 "ary\"}],\"fields\":[{\"title\":\"PR\",\"value\":\"pr-test\",\"short\":true},{\"title\":\"String number" +
                 "\",\"value\":\"2\",\"short\":true},{\"title\":\"Strings\",\"value\":\"string1, string2\",\"short\":null" +
                 "}],\"mrkdwn_in\":[\"text\",\"pretex\",\"fields\"]}],\"thread_ts\":null}", json);
@@ -89,7 +89,7 @@ public class BranchNotificationMessageBuilderSlackTest {
         assertEquals("{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"Y" +
                 "our branch was updated with new strings! Please *add screenshots* as soon as possible and *wait for tra" +
                 "nslations* before releasing.\",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\"" +
-                "text\":\"Screenshots\",\"url\":\"http://localhost:8080/branches?searchText=ts-test&deleted=false\",\"" +
+                "text\":\"Screenshots\",\"url\":\"http://localhost:8080/branches?searchText=ts-test&deleted=false&onlyMyBranches=false\",\"" +
                 "style\":\"primary\"}],\"fields\":[{\"title\":\"PR\",\"value\":\"ts-test\",\"short\":true},{\"title\":\"" +
                 "String number\",\"value\":\"2\",\"short\":true},{\"title\":\"Strings\",\"value\":\"string1, string2\",\"" +
                 "short\":null}],\"mrkdwn_in\":[\"text\",\"pretex\",\"fields\"]}],\"thread_ts\":\"pr-test\"}", json);
