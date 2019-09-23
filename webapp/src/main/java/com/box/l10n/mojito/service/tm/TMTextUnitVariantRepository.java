@@ -14,6 +14,8 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
 
     List<TMTextUnitVariant> findAllByLocale_IdAndTmTextUnit_Tm_id(Long localeId, Long tmId);
 
+    List<TMTextUnitVariant> findAllByLocale_IdAndTmTextUnit_Tm_idOrderByCreatedDateDesc(Long localeId, Long tmId);
+
     TMTextUnitVariant findTopByTmTextUnitTmIdOrderByCreatedDateDesc(Long tmId);
     
     List<TMTextUnitVariant> findByTmTextUnitTmRepositoriesOrderByContent(Repository repository);

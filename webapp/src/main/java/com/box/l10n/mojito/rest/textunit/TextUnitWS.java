@@ -1,5 +1,24 @@
 package com.box.l10n.mojito.rest.textunit;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
@@ -21,30 +40,13 @@ import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.TextUnitHistoryDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.apache.commons.collections.CollectionUtils;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Webservices for the workbench. Allows to search for TextUnits and
@@ -180,6 +182,23 @@ public class TextUnitWS {
 
         TextUnitAndWordCount countTextUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
         return countTextUnitAndWordCount;
+    }
+
+    /**
+     * Gets the translation history for a given text unit for a particular locale.
+     *
+     * @param tmTextUnitId            required
+     * @param locale                  required
+     *
+     * @return the translations that matches the search parameters
+     * @throws InvalidTextUnitSearchParameterException
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textunit/history/{tmTextUnitId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<TextUnitHistoryDTO> getTextUnitHistory(
+            @RequestParam(value = "locale", required = true) String locale) throws InvalidTextUnitSearchParameterException {
+
+        return null;
     }
 
     TextUnitSearcherParameters queryParamsToTextUnitSearcherParameters(
