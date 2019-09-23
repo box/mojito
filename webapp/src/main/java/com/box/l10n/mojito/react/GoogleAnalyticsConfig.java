@@ -9,6 +9,8 @@ public class GoogleAnalyticsConfig {
 
     boolean enabled = false;
 
+    boolean hashedUserId = false;
+
     String trackingId;
 
     public boolean isEnabled() {
@@ -25,5 +27,13 @@ public class GoogleAnalyticsConfig {
 
     public void setTrackingId(String trackingId) {
         this.trackingId = trackingId;
+    }
+
+    public boolean isHashedUserId() {
+        return hashedUserId;
+    }
+
+    public void setHashedUserId(boolean hashedUserId) {
+        this.hashedUserId = hashedUserId;
     }
 }
