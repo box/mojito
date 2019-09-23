@@ -31,7 +31,7 @@ public class BranchNotificationMessageBuilderPhabricatorTest {
     public void getNewMessage() {
         String newMessage = branchNotificationMessageBuilderPhabricator.getNewMessage("branchTest", Arrays.asList("string1", "string2"));
         assertEquals("We received your strings! Please **add screenshots** as soon as possible and **wait for translations** " +
-                "before releasing. [→ Go to Mojito](http://localhost:8080/branches?searchText=branchTest&deleted=false)\n" +
+                "before releasing. [→ Go to Mojito](http://localhost:8080/branches?searchText=branchTest&deleted=false&onlyMyBranches=false)\n" +
                 "\n" +
                 "**Strings:**\n" +
                 " - string1\n" +
@@ -43,7 +43,7 @@ public class BranchNotificationMessageBuilderPhabricatorTest {
     public void getUpdatedMessage() {
         String updatedMessage = branchNotificationMessageBuilderPhabricator.getUpdatedMessage("branchTest", Arrays.asList("string1", "string2"));
         assertEquals("Your branch was updated with new strings! Please **add screenshots** as soon as possible and **wait for translations** before " +
-                "releasing. [→ Go to Mojito](http://localhost:8080/branches?searchText=branchTest&deleted=false)\n" +
+                "releasing. [→ Go to Mojito](http://localhost:8080/branches?searchText=branchTest&deleted=false&onlyMyBranches=false)\n" +
                 "\n" +
                 "**Strings:**\n" +
                 " - string1\n" +
