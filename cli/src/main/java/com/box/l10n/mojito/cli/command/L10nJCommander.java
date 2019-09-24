@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,7 +151,8 @@ public class L10nJCommander {
                 logger.error(msg, rae);
                 exitWithError();
             } catch (Throwable t) {
-                printErrorMessage("Unexpected error, see logs for more information");
+                String msg = "Unexpected error: " + t.getMessage() + "\n" + ExceptionUtils.getStackTrace(t);
+                printErrorMessage(msg);
                 logger.error("Unexpected error", t);
                 exitWithError();
             }
