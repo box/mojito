@@ -167,6 +167,6 @@ public class SmartlingClientTest {
 
         ObjectMapper objectMapper = new ObjectMapper();
         String str = objectMapper.writeValueAsString(bindings);
-        Assert.assertEquals("{\"bindings\":[{\"contextUid\":\"c1\",\"stringHashCode\":\"h1\"},{\"contextUid\":\"c1\",\"stringHashCode\":\"h1\"}]}", str);
+        Assert.assertEquals("{\"bindings\":[{\"contextUid\":\"c1\",\"stringHashcode\":\"h1\"},{\"contextUid\":\"c1\",\"stringHashcode\":\"h1\"}]}", str);
     }
 }
