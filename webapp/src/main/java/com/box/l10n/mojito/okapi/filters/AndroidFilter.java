@@ -38,10 +38,16 @@ public class AndroidFilter extends XMLFilter {
 
     public static final String FILTER_CONFIG_ID = "okf_xml@mojito-AndroidStrings";
 
-    private static final String XML_COMMENT_PATTERN = "<!--(?<comment>.*?)-->";
+    private static final String OPTION_OLD_ESCAPING = "oldEscaping";
+
+    private static final Pattern PATTERN_PLURAL_START = Pattern.compile("<plurals");
+    private static final Pattern PATTERN_PLURAL_END = Pattern.compile("</plurals>");
+    private static final Pattern PATTERN_XML_COMMENT = Pattern.compile("<!--(?<comment>.*?)-->");
+    private static final Pattern PATTERN_REPLACE_FORM = Pattern.compile("<.*?item.+?quantity.+?\"(.+?)\"");
+    private static final Pattern PATTERN_UPDATE_FORM = Pattern.compile("(\\s*<.*?item.+?quantity.+?\".+?\">)");
+
     private static final String XML_COMMENT_GROUP_NAME = "comment";
 
-    private static final String OPTION_OLD_ESCAPING = "oldEscaping";
 
     @Autowired
     TextUnitUtils textUnitUtils;
@@ -171,16 +177,14 @@ public class AndroidFilter extends XMLFilter {
 
     protected boolean isPluralGroupStarting(IResource resource) {
         String toString = resource.getSkeleton().toString();
-        Pattern p = Pattern.compile("<plurals");
-        Matcher matcher = p.matcher(toString);
+        Matcher matcher = PATTERN_PLURAL_START.matcher(toString);
         boolean startPlural = matcher.find();
         return startPlural;
     }
 
     protected boolean isPluralGroupEnding(IResource resource) {
         String toString = resource.getSkeleton().toString();
-        Pattern p = Pattern.compile("</plurals>");
-        Matcher matcher = p.matcher(toString);
+        Matcher matcher = PATTERN_PLURAL_END.matcher(toString);
         boolean endPlural = matcher.find();
         return endPlural;
     }
@@ -217,8 +221,7 @@ public class AndroidFilter extends XMLFilter {
 
         StringBuilder commentBuilder = new StringBuilder();
 
-        Pattern pattern = Pattern.compile(XML_COMMENT_PATTERN);
-        Matcher matcher = pattern.matcher(skeleton);
+        Matcher matcher = PATTERN_XML_COMMENT.matcher(skeleton);
 
         while (matcher.find()) {
             if (commentBuilder.length() > 0) {
@@ -335,8 +338,7 @@ public class AndroidFilter extends XMLFilter {
 
         String getPluralFormFromSkeleton(IResource resource) {
             String toString = resource.getSkeleton().toString();
-            Pattern p = Pattern.compile("<.*?item.+?quantity.+?\"(.+?)\"");
-            Matcher matcher = p.matcher(toString);
+            Matcher matcher = PATTERN_REPLACE_FORM.matcher(toString);
             String res = null;
             if (matcher.find()) {
                 res = matcher.group(1);
@@ -349,8 +351,7 @@ public class AndroidFilter extends XMLFilter {
             GenericSkeleton genericSkeleton = (GenericSkeleton) textUnit.getSkeleton();
             for (GenericSkeletonPart genericSkeletonPart : genericSkeleton.getParts()) {
                 String partString = genericSkeletonPart.toString();
-                Pattern p = Pattern.compile("(\\s*<.*?item.+?quantity.+?\".+?\">)");
-                Matcher matcher = p.matcher(partString);
+                Matcher matcher = PATTERN_UPDATE_FORM.matcher(partString);
                 if (matcher.find()) {
                     String match = matcher.group(1);
                     genericSkeletonPart.setData(match);
