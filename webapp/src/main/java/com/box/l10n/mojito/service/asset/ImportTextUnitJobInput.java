@@ -1,10 +1,6 @@
 package com.box.l10n.mojito.service.asset;
 
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
-import org.quartz.DisallowConcurrentExecution;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
