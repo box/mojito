@@ -50,7 +50,7 @@ public class PollableTaskService {
     }
 
     public PollableTask createPollableTask(Long parentId, String name, String message, int expectedSubTaskNumber) {
-        return createPollableTask(parentId, name, message, expectedSubTaskNumber, -1);
+        return createPollableTask(parentId, name, message, expectedSubTaskNumber, NO_TIMEOUT);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
