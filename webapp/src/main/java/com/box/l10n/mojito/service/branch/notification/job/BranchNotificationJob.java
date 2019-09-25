@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
  * Job that sends notifications for a branch.
  */
 @Component
-@DisallowConcurrentExecution
 public class BranchNotificationJob extends SchedulableJob {
 
     /**
