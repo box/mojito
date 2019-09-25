@@ -54,10 +54,7 @@ public abstract class SchedulableJob implements Job {
                 jobDetail = JobBuilder.newJob().ofType(clazz)
                         .withIdentity(keyName, DYNAMIC_GROUP_NAME)
                         .withDescription(getDescription())
-                        .storeDurably()
                         .build();
-
-                scheduler.addJob(jobDetail, true);
             }
 
             logger.debug("Schedule a job for key: {}", keyName);
@@ -68,7 +65,7 @@ public abstract class SchedulableJob implements Job {
                     .withIdentity(triggerKey).build();
 
             if (!scheduler.checkExists(triggerKey)) {
-                scheduler.scheduleJob(trigger);
+                scheduler.scheduleJob(jobDetail, trigger);
             } else {
                 logger.debug("Job already scheduled for key: {}", keyName);
                 scheduler.rescheduleJob(triggerKey, trigger);
@@ -77,7 +74,6 @@ public abstract class SchedulableJob implements Job {
             logger.error("Couldn't schedule a job for key: " + keyName, se);
         }
     }
-
 
     String getUniqueId(JobDataMap jobDataMap, String... keys) {
         return Arrays.stream(keys).map(key -> jobDataMap.get(key).toString()).collect(Collectors.joining("_"));
