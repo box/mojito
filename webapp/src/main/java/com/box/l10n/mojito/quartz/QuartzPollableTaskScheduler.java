@@ -26,6 +26,8 @@ public class QuartzPollableTaskScheduler {
      */
     static Logger logger = LoggerFactory.getLogger(QuartzPollableTaskScheduler.class);
 
+    static final long TIMEOUT = 3600L;
+
     @Autowired
     Scheduler scheduler;
 
@@ -48,7 +50,8 @@ public class QuartzPollableTaskScheduler {
         String pollableTaskName = getPollableTaskName(clazz);
 
         logger.debug("Create currentPollableTask with name: {}", pollableTaskName);
-        PollableTask pollableTask = pollableTaskService.createPollableTask(parentId, pollableTaskName, message, expectedSubTaskNumber);
+        PollableTask pollableTask = pollableTaskService.createPollableTask(parentId, pollableTaskName, message,
+                expectedSubTaskNumber, TIMEOUT);
 
         String keyName = getKeyName(clazz, pollableTask.getId());
 
