@@ -69,7 +69,7 @@ public class Repository extends AuditableEntity {
     @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
     Set<AssetIntegrityChecker> assetIntegrityCheckers = new HashSet<>();
 
-    @OneToMany(mappedBy = "repository", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
     @NotAudited
     Set<Branch> branches = new HashSet<>();
 
