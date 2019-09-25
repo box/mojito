@@ -4,13 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>mojito-test-common</artifactId>
-    <version>0.103-SNAPSHOT</version>
+    <version>0.103</version>
     <name>Mojito - Test common</name>
 
     <parent>
         <groupId>com.box.l10n.mojito</groupId>
         <artifactId>mojito-parent</artifactId>
-        <version>0.103-SNAPSHOT</version>
+        <version>0.103</version>
     </parent>
 
     <dependencies>
