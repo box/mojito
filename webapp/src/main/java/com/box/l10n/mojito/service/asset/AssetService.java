@@ -28,7 +28,6 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +38,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import static com.box.l10n.mojito.rest.asset.AssetSpecification.*;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.branchId;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.deletedEquals;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.pathEquals;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.repositoryIdEquals;
+import static com.box.l10n.mojito.rest.asset.AssetSpecification.virtualEquals;
 import static com.box.l10n.mojito.specification.Specifications.distinct;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -183,8 +185,6 @@ public class AssetService {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, branch);
             assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, filterOptions, currentTask.getId());
         } else {
-            undeleteAssetAndAssetExtractionByBranchIfDeleted(assetExtractionByBranch);
-
             logger.debug("Asset ({}) processing not needed. Reset number of expected sub task to 0", assetPath);
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(0);
             pollableFutureTaskResult.setMessageOverride("Asset content has not changed");
@@ -263,55 +263,27 @@ public class AssetService {
      * @return true if the content of the asset is different from the new
      * content, false otherwise
      */
-    private boolean isAssetProcessingNeeded(AssetExtractionByBranch assetExtractionByBranch, String newAssetContent, List<String> filterOptions) {
+    private boolean isAssetProcessingNeeded(AssetExtractionByBranch assetExtractionByBranch, String newAssetContent, List<String> newFilterOptions) {
 
         boolean assetProcessingNeeded = false;
 
         if (assetExtractionByBranch == null) {
             logger.debug("No active asset extraction, processing needed");
             assetProcessingNeeded = true;
+        } else if (assetExtractionByBranch.getDeleted()) {
+            logger.debug("Asset extraction deleted, processing needed");
+            assetProcessingNeeded = true;
         } else if (!DigestUtils.md5Hex(newAssetContent).equals(assetExtractionByBranch.getAssetExtraction().getContentMd5())) {
             logger.debug("Content has changed, processing needed");
             assetProcessingNeeded = true;
-        } else if (!filterOptionsMd5Builder.md5(filterOptions).equals(assetExtractionByBranch.getAssetExtraction().getFilterOptionsMd5())) {
+        } else if (!filterOptionsMd5Builder.md5(newFilterOptions).equals(assetExtractionByBranch.getAssetExtraction().getFilterOptionsMd5())) {
             logger.debug("filter options have changed, processing needed");
-            assetProcessingNeeded = true;
-        } else if (assetExtractionService.hasMoreActiveBranches(assetExtractionByBranch.getAsset(), assetExtractionByBranch.getBranch())) {
-            logger.debug("There are multiple active branches for this asset. Fully reprocess it for simplicity " +
-                    "(even if content and filter options are same and so should the asset extraction)");
             assetProcessingNeeded = true;
         } else {
             logger.debug("Asset processing not needed");
         }
 
         return assetProcessingNeeded;
-    }
-
-    /**
-     * @param asset
-     * @param assetContent
-     */
-    @Transactional
-    private void undeleteAssetAndAssetExtractionByBranchIfDeleted(AssetExtractionByBranch assetExtractionByBranch) {
-        Preconditions.checkNotNull(assetExtractionByBranch, "Can't undelete, assetExtractionByBranch must be provided");
-
-        Asset asset = assetExtractionByBranch.getAsset();
-
-        logger.debug("Undelete asset and asset extraction by branch if deleted: {} ({})",
-                asset.getId(),
-                asset.getPath());
-
-        if (asset.getDeleted()) {
-            logger.debug("Undelete asset: : {} ({})", asset.getId(), asset.getPath());
-            asset.setDeleted(false);
-            assetRepository.save(asset);
-        }
-
-        if (assetExtractionByBranch.getDeleted()) {
-            logger.debug("Undelete asset extraction branch ({}): {}", asset.getPath(), assetExtractionByBranch.getId());
-            assetExtractionByBranch.setDeleted(false);
-            assetExtractionByBranchRepository.save(assetExtractionByBranch);
-        }
     }
 
     /**

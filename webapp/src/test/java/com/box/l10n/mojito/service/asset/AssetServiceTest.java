@@ -199,7 +199,7 @@ public class AssetServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testAddOrUpdateAssetAndProcessIfNeededShouldNotUpdateAssetContentAndStartExtractionIfAssetDeletedAndAssetExtractionIsSame() throws Exception {
+    public void testAddOrUpdateAssetAndProcessIfNeededReAddingAsset() throws Exception {
 
         String content = "content";
         String path = "path/to/asset.csv";
@@ -218,7 +218,7 @@ public class AssetServiceTest extends ServiceTestBase {
         addAssetAndWaitUntilDoneProcessing(repository.getId(), content, path, null);
 
         assetExtractions = assetExtractionRepository.findByAsset(asset);
-        assertEquals("There should be no more assetExtraction created when the adding an asset with same content", 1, assetExtractions.size());
+        assertEquals("When re-adding an asset (same content as previously deleted), it will get processed as normal", 2, assetExtractions.size());
         assertFalse("The asset extraction process should un-delete the deleted asset", assetRepository.findOne(assetId).getDeleted());
     }
 
