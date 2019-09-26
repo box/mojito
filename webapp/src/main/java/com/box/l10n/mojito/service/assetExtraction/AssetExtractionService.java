@@ -42,6 +42,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Service to manage asset extraction. It processes assets to extract {@link AssetTextUnit}s.
@@ -204,6 +206,32 @@ public class AssetExtractionService {
         return numberOfBranch > 0;
     }
 
+    public String getMergedContentMd5(List<AssetExtractionByBranch> sordedAssetExtractionByBranches) {
+
+        String appendedContentMd5 = sordedAssetExtractionByBranches.stream()
+                .map(AssetExtractionByBranch::getAssetExtraction)
+                .map(AssetExtraction::getContentMd5)
+                .collect(Collectors.joining());
+
+        String md5 = DigestUtils.md5Hex(appendedContentMd5);
+        logger.debug("getMergedContentMd5, res: {}", md5);
+        return md5;
+    }
+
+    public String getMergedFilterOptionsMd5(List<AssetExtractionByBranch> sordedAssetExtractionByBranches) {
+
+        final AtomicBoolean overriden = new AtomicBoolean(false);
+
+        String appendedFilterOptionMd5 = sordedAssetExtractionByBranches.stream()
+                .map(AssetExtractionByBranch::getAssetExtraction)
+                .map(AssetExtraction::getFilterOptionsMd5)
+                .collect(Collectors.joining());
+
+        String md5 = DigestUtils.md5Hex(appendedFilterOptionMd5);
+        logger.debug("getMergedFilterOptionsMd5, res: {}", md5);
+        return md5;
+    }
+
     /**
      * Creates an asset extraction that is a merge of the latest (non deleted) asset extraction of each branch of
      * the asset.
@@ -214,23 +242,23 @@ public class AssetExtractionService {
      */
     public AssetExtraction createAssetExtractionForMultipleBranches(Asset asset, PollableTask pollableTask) {
 
-        logger.debug("Get branches to be merged");
-        List<AssetExtractionByBranch> assetExtractionByBranches = assetExtractionByBranchRepository.findByAssetAndDeletedFalse(asset);
-        assetExtractionByBranches = sortedAssetExtractionByBranches(assetExtractionByBranches);
-
-        StringBuilder mergedAssetExtractionMd5Builder = new StringBuilder();
+        logger.debug("Get branches to be merged, sort order matters to have same md5 when checking the asset should be processed");
+        List<AssetExtractionByBranch> sortedAssetExtractionByBranches = getSordedAssetExtractionByBranches(asset);
 
         logger.debug("Create a new asset extraction that will contain the merge");
         AssetExtraction mergedAssetExtraction = createAssetExtraction(asset, pollableTask);
 
+        mergedAssetExtraction.setContentMd5(getMergedContentMd5(sortedAssetExtractionByBranches));
+        mergedAssetExtraction.setFilterOptionsMd5(getMergedFilterOptionsMd5(sortedAssetExtractionByBranches));
+
         HashMap<String, AssetTextUnit> mergedAssetTextUnits = new LinkedHashMap<>();
 
-        for (AssetExtractionByBranch assetExtractionByBranch : assetExtractionByBranches) {
+        for (AssetExtractionByBranch assetExtractionByBranch : sortedAssetExtractionByBranches) {
             logger.debug("Start processing branch: {} for asset: {}", assetExtractionByBranch.getBranch().getName(), assetExtractionByBranch.getAsset().getPath());
-            mergedAssetExtractionMd5Builder.append(assetExtractionByBranch.getAssetExtraction().getContentMd5());
+            AssetExtraction assetExtraction = assetExtractionByBranch.getAssetExtraction();
 
             logger.debug("Get asset text units of the branch to be merged");
-            List<AssetTextUnit> assetTextUnitsToMerge = assetTextUnitRepository.findByAssetExtraction(assetExtractionByBranch.getAssetExtraction());
+            List<AssetTextUnit> assetTextUnitsToMerge = assetTextUnitRepository.findByAssetExtraction(assetExtraction);
 
             for (AssetTextUnit assetTextUnit : assetTextUnitsToMerge) {
                 AssetTextUnit copy = copyAssetTextUnit(assetTextUnit);
@@ -240,8 +268,6 @@ public class AssetExtractionService {
             }
         }
 
-        mergedAssetExtraction.setContentMd5(DigestUtils.md5Hex(mergedAssetExtractionMd5Builder.toString()));
-
         assetTextUnitRepository.save(mergedAssetTextUnits.values());
 
         Long mergedAssetExtractionId = mergedAssetExtraction.getId();
@@ -250,6 +276,13 @@ public class AssetExtractionService {
         logger.debug("{} text units were mapped for the merged extraction with id: {} and tmId: {}", mapExactMatches, mergedAssetExtractionId, tmId);
 
         return mergedAssetExtraction;
+    }
+
+    public List<AssetExtractionByBranch> getSordedAssetExtractionByBranches(Asset asset) {
+        List<AssetExtractionByBranch> assetExtractionByBranches = assetExtractionByBranchRepository.findByAssetAndDeletedFalse(asset);
+        assetExtractionByBranches = sortedAssetExtractionByBranches(assetExtractionByBranches);
+        logger.debug("getSordedAssetExtractionByBranches, number of branches: {}", assetExtractionByBranches.size());
+        return assetExtractionByBranches;
     }
 
     /**
@@ -289,7 +322,7 @@ public class AssetExtractionService {
         markAssetExtractionAsLastSuccessful(asset, assetExtractionForMultipleBranches);
     }
 
-    public AssetTextUnit copyAssetTextUnit(AssetTextUnit assetTextUnit) {
+    AssetTextUnit copyAssetTextUnit(AssetTextUnit assetTextUnit) {
 
         logger.debug("copyAssetTextUnit with id: {} and name: {}", assetTextUnit.getId(), assetTextUnit.getName());
 
