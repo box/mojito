@@ -26,7 +26,7 @@ public class TMTextUnitHistoryService {
     @Autowired
     TMTextUnitVariantRepository tmTextUnitVariantRepository;
 
-    public List<TMTextUnitVariant> findHistory(Long localeId, Long tmId) {
-        return tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Tm_idOrderByCreatedDateDesc(localeId, tmId);
+    public List<TMTextUnitVariant> findHistory(Long localeId, Long tmTextUnitId) {
+        return tmTextUnitVariantRepository.findAllByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnitId);
     }
 }

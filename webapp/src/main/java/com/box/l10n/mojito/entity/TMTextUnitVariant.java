@@ -1,8 +1,11 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonView;
+
 import org.springframework.data.annotation.CreatedBy;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -73,6 +76,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
     };
 
     @Column(name = "content", length = Integer.MAX_VALUE)
+    @JsonView(View.TranslationHistorySummary.class)
     private String content;
 
     @Basic(optional = false)
@@ -83,6 +87,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
     @Basic(optional = false)
     @ManyToOne
     @JoinColumn(name = "locale_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT__LOCALE__ID"))
+    @JsonView(View.TranslationHistorySummary.class)
     private Locale locale;
 
     /**
@@ -97,11 +102,13 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
      * using the same text as the source).
      */
     @Column(name = "comment", length = Integer.MAX_VALUE)
+    @JsonView(View.TranslationHistorySummary.class)
     private String comment;
     
     @Basic(optional = false)
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
+    @JsonView(View.TranslationHistorySummary.class)
     private Status status = Status.APPROVED;
 
     /**
@@ -120,6 +127,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
     @CreatedBy
     @ManyToOne
     @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT__USER__ID"))
+    @JsonView(View.TranslationHistorySummary.class)
     protected User createdByUser;
 
     public User getCreatedByUser() {
@@ -197,5 +205,4 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
     public void setStatus(Status status) {
         this.status = status;
     }
- 
 }

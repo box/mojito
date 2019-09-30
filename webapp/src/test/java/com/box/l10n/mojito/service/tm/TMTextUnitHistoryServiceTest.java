@@ -1,55 +1,34 @@
 package com.box.l10n.mojito.service.tm;
 
-import com.box.l10n.mojito.entity.*;
-import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
-import com.box.l10n.mojito.okapi.InheritanceMode;
-import com.box.l10n.mojito.okapi.Status;
-import com.box.l10n.mojito.okapi.XliffState;
-import com.box.l10n.mojito.okapi.filters.AndroidXMLEncoder;
-import com.box.l10n.mojito.okapi.filters.SimpleEncoder;
-import com.box.l10n.mojito.service.asset.AssetRepository;
-import com.box.l10n.mojito.service.asset.AssetService;
-import com.box.l10n.mojito.service.asset.AssetUpdateException;
-import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
-import com.box.l10n.mojito.service.locale.LocaleService;
-import com.box.l10n.mojito.service.pollableTask.PollableFuture;
-import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
-import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
-import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
-import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
-import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
-import com.box.l10n.mojito.service.repository.RepositoryService;
-import com.box.l10n.mojito.service.tm.search.StatusFilter;
-import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.box.l10n.mojito.test.TestIdWatcher;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-import net.sf.okapi.common.resource.TextUnit;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Iterator;
+import java.util.List;
+
 import org.hibernate.proxy.HibernateProxy;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 
-import java.io.IOException;
+import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.asset.AssetService;
+import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
+import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
+import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-
-import static org.junit.Assert.*;
 
 /**
  * @author jaurambault
@@ -67,14 +46,10 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
     @Autowired
     TMTextUnitHistoryService tmHistoryService;
 
-    @Autowired
-    TMRepository tmRepository;
-
+    /*
     @Autowired
     TMTextUnitVariantRepository tmTextUnitVariantRepository;
-
-    @Autowired
-    TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
+    */
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
@@ -90,24 +65,6 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
 
     @Autowired
     AssetService assetService;
-
-    @Autowired
-    TMTextUnitVariantCommentRepository tmTextUnitVariantCommentRepository;
-
-    @Autowired
-    TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
-
-    @Autowired
-    RepositoryLocaleRepository repositoryLocaleRepository;
-
-    @Autowired
-    TextUnitSearcher textUnitSearcher;
-
-    @Autowired
-    PollableTaskService pollableTaskService;
-
-    @Autowired
-    TMXliffRepository tmXliffRepository;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -155,6 +112,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertTrue(history.isEmpty());
     }
 
+    @Test
     public void testHistoryOneVariant() throws RepositoryNameAlreadyUsedException {
         createTestData();
 
@@ -164,24 +122,121 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
 
         logger.debug("Add a current translation for french");
         Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
-        
+
         logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
         String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
         logger.debug("tmtextunit: {}", tmTextUnit);
-        
+
         TMTextUnitVariant addCurrentTMTextUnitVariant = addCurrentTMTextUnitVariant(tmTextUnit.getId(), frFRLocale.getId(), "FR[this is the content]", "0a30a359b20fd4095fc17fb586e8db4d");
 
         // then get the history of it without adding any variants
         List<TMTextUnitVariant> history = tmHistoryService.findHistory(frFRLocale.getId(), addTextUnitAndCheck1);
         assertNotNull(history);
         assertFalse(history.isEmpty());
-        
+
         Iterator<TMTextUnitVariant> iterator = history.iterator();
         assertTrue(iterator.hasNext());
-        
+
         TMTextUnitVariant first = iterator.next();
-        assertTrue(first.equals(addCurrentTMTextUnitVariant));
+
+        assertEquals(first.getContent(), "FR[this is the content]");
+        assertEquals(first.getLocale().getBcp47Tag(), "fr-FR");
+        assertEquals(first.getStatus(), TMTextUnitVariant.Status.APPROVED);
+        assertNotNull(first.getCreatedByUser());
+    }
+
+    @Test
+    public void testHistoryMultipleVariants() throws RepositoryNameAlreadyUsedException {
+        createTestData();
+
+        logger.debug("Done creating data for test, start testing");
+
+        Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
+
+        logger.debug("Add a current translation for french");
+        Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
+        Long frLocaleId = frFRLocale.getId();
+
+        logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
+        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
+        logger.debug("tmtextunit: {}", tmTextUnit);
+
+        addCurrentTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "FR[this is the content]", "0a30a359b20fd4095fc17fb586e8db4d");
+
+        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci est le content", "comment 1", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
+        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci, c'est le content", "comment 2", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
+
+        // then get the history of it without adding any variants
+        List<TMTextUnitVariant> history = tmHistoryService.findHistory(frFRLocale.getId(), addTextUnitAndCheck1);
+        assertNotNull(history);
+        assertFalse(history.isEmpty());
+        assertEquals(history.size(), 3);
+
+        Iterator<TMTextUnitVariant> iterator = history.iterator();
+        assertTrue(iterator.hasNext());
+
+        TMTextUnitVariant variant = iterator.next();
+        logger.debug("first: " + variant.toString());
+        assertEquals(variant.getContent(), "FR[this is the content]");
+        assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
+        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.APPROVED);
+        assertNotNull(variant.getCreatedByUser());
+
+        variant = iterator.next();
+        logger.debug("second: " + variant.toString());
+        assertEquals(variant.getContent(), "Ceci est le content");
+        assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
+        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.REVIEW_NEEDED);
+        assertNotNull(variant.getCreatedByUser());
+
+        variant = iterator.next();
+        logger.debug("third: " + variant.toString());
+        assertEquals(variant.getContent(), "Ceci, c'est le content");
+        assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
+        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+        assertNotNull(variant.getCreatedByUser());
+    }
+
+
+    @Test
+    public void testHistorySortedByDate() throws RepositoryNameAlreadyUsedException, InterruptedException {
+        createTestData();
+
+        logger.debug("Done creating data for test, start testing");
+
+        Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
+
+        logger.debug("Add a current translation for french");
+        Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
+        Long frLocaleId = frFRLocale.getId();
+
+        logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
+        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
+        logger.debug("tmtextunit: {}", tmTextUnit);
+
+        addCurrentTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "FR[this is the content]", "0a30a359b20fd4095fc17fb586e8db4d");
+
+        Thread.sleep(200);
+
+        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci est le content", "comment 1", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
+
+        Thread.sleep(200);
+
+        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci, c'est le content", "comment 2", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
+
+        // then get the history of it without adding any variants
+        List<TMTextUnitVariant> history = tmHistoryService.findHistory(frFRLocale.getId(), addTextUnitAndCheck1);
+        assertNotNull(history);
+        assertFalse(history.isEmpty());
+        assertEquals(history.size(), 3);
+
+        ArrayList<TMTextUnitVariant> historyArray = new ArrayList(history);
+
+        assertTrue(historyArray.get(0).getCreatedDate().getMillis() < historyArray.get(1).getCreatedDate().getMillis());
+        assertTrue(historyArray.get(1).getCreatedDate().getMillis() < historyArray.get(2).getCreatedDate().getMillis());
     }
 
     private Long addTextUnitAndCheck(Long tmId, Long assetId, String name, String content, String comment, String md5Check, String contentMd5Check) {
