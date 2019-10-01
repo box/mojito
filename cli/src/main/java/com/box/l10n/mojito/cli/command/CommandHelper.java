@@ -36,6 +36,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.fusesource.jansi.Ansi;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -326,4 +328,17 @@ public class CommandHelper {
         return filterOptions == null ? fileType.getDefaultFilterOptions() : filterOptions;
     }
 
+    /**
+     * Returns the date of last week if the condition is true else {@code null}
+     *
+     * @param condition
+     * @return
+     */
+    DateTime getLastWeekDateIfTrue(boolean condition) {
+        DateTime dateTime = null;
+        if (condition) {
+            dateTime = DateTime.now(DateTimeZone.UTC).minusWeeks(1);
+        }
+        return dateTime;
+    }
 }

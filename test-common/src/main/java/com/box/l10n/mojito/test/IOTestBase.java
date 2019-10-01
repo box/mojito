@@ -85,12 +85,13 @@ public class IOTestBase {
         String basedir = System.getProperty("basedir");
 
         if (basedir == null) {
-            logger.debug("No \"basedir\" property. Assuming Intellij test run. Looking in env. variable instead");
+            logger.debug("Missing \"basedir\" to run tests (normally set by Maven). Assuming Intellij test run, look for env. variable");
             basedir = System.getenv().get("basedir");
 
             if (basedir == null) {
-                throw new RuntimeException("Missing \"basedir\" to run tests (normally set by Maven). Assuming Intellij test run, setup env. variable:" +
-                        " \"basedir=$MODULE_DIR$\" in run configuration)");
+                logger.warn("Missing \"basedir\" to run tests (normally set by Maven). Fallback to \"user.dir\" but if tests fails " +
+                        "set env. variable \"basedir=$MODULE_DIR$\" in run configuration");
+                basedir = System.getProperty("user.dir");
             }
         }
 

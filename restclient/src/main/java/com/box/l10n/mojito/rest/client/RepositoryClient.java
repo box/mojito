@@ -10,10 +10,10 @@ import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author wyau
@@ -204,7 +206,9 @@ public class RepositoryClient extends BaseClient {
 
     }
 
-    public List<Branch> getBranches(Long repositoryId, String branchName, Boolean deleted) {
+    public List<Branch> getBranches(Long repositoryId, String branchName, String branchNameRegex,
+                                    Boolean deleted, Boolean translated, boolean includeNullBranch,
+                                    DateTime createdBefore) {
         Map<String, String> filterParams = new HashMap<>();
 
         if (branchName != null) {
@@ -215,16 +219,38 @@ public class RepositoryClient extends BaseClient {
             filterParams.put("deleted", Objects.toString(deleted));
         }
 
-        return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
+        if (translated != null) {
+            filterParams.put("translated", Objects.toString(translated));
+        }
+
+        if (createdBefore != null) {
+            filterParams.put("createdBefore", createdBefore.toString());
+        }
+
+        List<Branch> branches = authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
                 getBasePathForResource(repositoryId, "branches"),
                 Branch[].class,
                 filterParams);
+
+        if (branchNameRegex != null) {
+            Pattern branchNamePattern = Pattern.compile(branchNameRegex);
+            branches = branches.stream()
+                    .filter(b -> {
+                        if (b.getName() == null) {
+                            return includeNullBranch;
+                        } else {
+                            return branchNamePattern.matcher(b.getName()).matches();
+                        }
+                    }).collect(Collectors.toList());
+        }
+
+        return branches;
     }
 
     public Branch getBranch(Long repositoryId, String branchName) {
         Branch branch = null;
 
-        List<Branch> branches = getBranches(repositoryId, branchName, null);
+        List<Branch> branches = getBranches(repositoryId, branchName, null, null, null, false, null);
 
         logger.debug("Support the \"null\" branch (name is null and param filtering doesn't work)");
         branch = branches.stream().filter((b) -> Objects.equals(b.getName(), branchName))

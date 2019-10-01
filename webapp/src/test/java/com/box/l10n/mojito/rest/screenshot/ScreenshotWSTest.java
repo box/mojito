@@ -155,7 +155,7 @@ public class ScreenshotWSTest extends WSTestBase {
 
         logger.debug("Make sure no cyclical dependencies here and there");
         repositoryClient.getRepositoryByName(branchTestData.getRepository().getName());
-        repositoryClient.getBranches(branchTestData.getRepository().getId(), branch1.getName(), null);
+        repositoryClient.getBranches(branchTestData.getRepository().getId(), branch1.getName(), null, null, null, false, null);
     }
     
 }

@@ -55,6 +55,9 @@ public class Branch extends SettableAuditableEntity {
     @OrderBy("id")
     Set<Screenshot> screenshots = new HashSet<>();
 
+    @OneToOne(mappedBy = "branch", fetch = FetchType.LAZY)
+    BranchStatistic branchStatistic;
+
     public Repository getRepository() {
         return repository;
     }
@@ -93,5 +96,13 @@ public class Branch extends SettableAuditableEntity {
 
     public void setScreenshots(Set<Screenshot> screenshots) {
         this.screenshots = screenshots;
+    }
+
+    public BranchStatistic getBranchStatistic() {
+        return branchStatistic;
+    }
+
+    public void setBranchStatistic(BranchStatistic branchStatistic) {
+        this.branchStatistic = branchStatistic;
     }
 }

@@ -15,6 +15,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static com.box.l10n.mojito.rest.repository.BranchSpecification.branchStatisticTranslated;
+import static com.box.l10n.mojito.rest.repository.BranchSpecification.createdBefore;
 import static com.box.l10n.mojito.rest.repository.BranchSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.BranchSpecification.nameEquals;
 import static com.box.l10n.mojito.rest.repository.BranchSpecification.repositoryEquals;
@@ -231,7 +234,9 @@ public class RepositoryWS {
     @RequestMapping(value = "/api/repositories/{repositoryId}/branches", method = RequestMethod.GET)
     public List<Branch> getBranchesOfRepository(@PathVariable Long repositoryId,
                                                 @RequestParam(value = "name", required = false) String branchName,
-                                                @RequestParam(value = "deleted", required = false) Boolean deleted) throws RepositoryWithIdNotFoundException {
+                                                @RequestParam(value = "deleted", required = false) Boolean deleted,
+                                                @RequestParam(value = "translated", required = false) Boolean translated,
+                                                @RequestParam(value = "createdBefore", required = false) DateTime createdBefore) throws RepositoryWithIdNotFoundException {
         ResponseEntity<Repository> result;
         Repository repository = repositoryRepository.findOne(repositoryId);
 
@@ -242,13 +247,15 @@ public class RepositoryWS {
         List<Branch> branches = branchRepository.findAll(where(
                 ifParamNotNull(nameEquals(branchName))).and(
                 ifParamNotNull(repositoryEquals(repository))).and(
-                ifParamNotNull(deletedEquals(deleted))
-        ));
+                ifParamNotNull(deletedEquals(deleted))).and(
+                ifParamNotNull(branchStatisticTranslated(translated))).and(
+                ifParamNotNull((createdBefore(createdBefore))))
+        );
 
         return branches;
     }
 
-    @RequestMapping(value ="/api/repositories/{repositoryId}/branches", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/api/repositories/{repositoryId}/branches", method = RequestMethod.DELETE)
     public PollableTask deleteBranch(@PathVariable(value = "repositoryId") Long repositoryId,
                                      @RequestParam(value = "branchId") Long branchId) {
 

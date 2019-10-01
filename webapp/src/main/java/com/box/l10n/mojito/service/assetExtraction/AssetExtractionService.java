@@ -242,7 +242,7 @@ public class AssetExtractionService {
      */
     public AssetExtraction createAssetExtractionForMultipleBranches(Asset asset, PollableTask pollableTask) {
 
-        logger.debug("Get branches to be merged, sort order matters to have same md5 when checking the asset should be processed");
+        logger.debug("Get branches to be merged");
         List<AssetExtractionByBranch> sortedAssetExtractionByBranches = getSordedAssetExtractionByBranches(asset);
 
         logger.debug("Create a new asset extraction that will contain the merge");
