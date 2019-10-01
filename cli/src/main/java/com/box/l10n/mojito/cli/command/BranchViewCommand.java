@@ -10,6 +10,8 @@ import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.rest.entity.Repository;
 import org.fusesource.jansi.Ansi;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,16 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_LAST_WEEK_DESCRIPTION;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_LAST_WEEK_LONG;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_CREATED_BEFORE_LAST_WEEK_SHORT;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_NULL_BRANCH_DESCRIPTION;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_NULL_BRANCH_LONG;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_NULL_BRANCH_SHORT;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_TRANSLATED_DESCRIPTION;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_TRANSLATED_LONG;
+import static com.box.l10n.mojito.cli.command.param.Param.BRANCH_TRANSLATED_SHORT;
 
 @Component
 @Scope("prototype")
@@ -45,13 +57,25 @@ public class BranchViewCommand extends Command {
     @Parameter(names = {"--deleted", "-d"}, arity = 1, description = "To show deleted branches")
     Boolean deleted = null;
 
+    @Parameter(names = {BRANCH_TRANSLATED_LONG, BRANCH_TRANSLATED_SHORT}, arity = 1, description = BRANCH_TRANSLATED_DESCRIPTION)
+    Boolean translated = null;
+
+    @Parameter(names = {Param.BRANCH_NAME_REGEX_LONG, Param.BRANCH_NAME_REGEX_SHORT}, arity = 1, description = Param.BRANCH_NAME_REGEX_DESCRIPTION)
+    String branchNameRegex = null;
+
+    @Parameter(names = {BRANCH_NULL_BRANCH_LONG, BRANCH_NULL_BRANCH_SHORT}, arity = 0, description = BRANCH_NULL_BRANCH_DESCRIPTION)
+    boolean includeNullBranch = true;
+
+    @Parameter(names = {BRANCH_CREATED_BEFORE_LAST_WEEK_LONG, BRANCH_CREATED_BEFORE_LAST_WEEK_SHORT}, arity = 0, description = BRANCH_CREATED_BEFORE_LAST_WEEK_DESCRIPTION)
+    boolean beforeLastWeek;
 
     @Override
     public void execute() throws CommandException {
         consoleWriter.newLine().a("Branches in repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println();
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        List<Branch> branches = repositoryClient.getBranches(repository.getId(), null, deleted);
+        List<Branch> branches = repositoryClient.getBranches(repository.getId(), null, branchNameRegex,
+                deleted, translated, includeNullBranch, commandHelper.getLastWeekDateIfTrue(beforeLastWeek));
 
         for (Branch branch : branches) {
             consoleWriter.newLine().a(" - ").fg(Ansi.Color.CYAN).a(branch.getName()).reset().a(" (" + branch.getId() + ") ");
@@ -62,4 +86,6 @@ public class BranchViewCommand extends Command {
 
         consoleWriter.println(2);
     }
+
+
 }

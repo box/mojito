@@ -16,12 +16,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.IOTestBase;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -39,6 +34,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Base class for CLI integration tests. Creates an in-memory instance of tomcat
@@ -163,6 +165,36 @@ public class CLITestBase extends IOTestBase {
             if (textUnitDTO.getTarget() != null) {
                 tmService.addCurrentTMTextUnitVariant(textUnitDTO.getTmTextUnitId(), locale.getId(), textUnitDTO.getTarget(), status, true);
             }
+        }
+    }
+
+    /**
+     * Wait until a condition is true with timeout.
+     *
+     * @param failMessage
+     * @param condition
+     * @throws InterruptedException
+     */
+    protected void waitForCondition(String failMessage, Supplier<Boolean> condition) throws InterruptedException {
+        int numberAttempt = 0;
+        while (true) {
+            numberAttempt++;
+
+            boolean res;
+
+            try {
+                res = condition.get();
+            } catch (Throwable t) {
+                logger.warn("Throwable while waiting for condition", t);
+                res = false;
+            }
+
+            if (res) {
+                break;
+            } else if (numberAttempt > 30) {
+                Assert.fail(failMessage);
+            }
+            Thread.sleep(numberAttempt * 100);
         }
     }
 }

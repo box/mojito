@@ -12,6 +12,23 @@ public class Param {
     public static final String BRANCH_NAME_SHORT = "-n";
     public static final String BRANCH_NAME_DESCRIPTION = "Name of the branch (if none provided it will attempt to remove the \"null\" branch)";
 
+    public static final String BRANCH_NAME_REGEX_LONG = "--name-regex";
+    public static final String BRANCH_NAME_REGEX_SHORT = "-nr";
+    public static final String BRANCH_NAME_REGEX_DESCRIPTION = "Filter the branches by name using a regex. To get all branch not matching \"master\" " +
+            "the regex is \"(?!^master$).*\"";
+
+    public static final String BRANCH_TRANSLATED_LONG = "--translated";
+    public static final String BRANCH_TRANSLATED_SHORT = "-t";
+    public static final String BRANCH_TRANSLATED_DESCRIPTION = "Filter translated branches";
+
+    public static final String BRANCH_NULL_BRANCH_LONG = "--null-branch";
+    public static final String BRANCH_NULL_BRANCH_SHORT = "-nb";
+    public static final String BRANCH_NULL_BRANCH_DESCRIPTION = "Include \"null\" branch when filtering branches by name using a regex (-nr option)";
+
+    public static final String BRANCH_CREATED_BEFORE_LAST_WEEK_LONG = "--created-before-last-week";
+    public static final String BRANCH_CREATED_BEFORE_LAST_WEEK_SHORT = "-cblw";
+    public static final String BRANCH_CREATED_BEFORE_LAST_WEEK_DESCRIPTION = "Filter branches that were created before last week";
+
     public static final String REPOSITORY_LONG = "--repository";
     public static final String REPOSITORY_SHORT = "-r";
     public static final String REPOSITORY_DESCRIPTION = "Name of the repository";

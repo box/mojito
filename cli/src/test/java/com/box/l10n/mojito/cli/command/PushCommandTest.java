@@ -28,6 +28,7 @@ import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -317,7 +318,7 @@ public class PushCommandTest extends CLITestBase {
         assertEquals("value from master", textUnitDTOS.get(1).getSource());
 
         logger.debug("Remove null branch");
-        getL10nJCommander().run("branch-delete", "-r", repository.getName());
+        getL10nJCommander().run("branch-delete", "-r", repository.getName(), "-nr" , "(?!^master$)", "-nb");
 
         textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
 
@@ -516,16 +517,10 @@ public class PushCommandTest extends CLITestBase {
     }
 
     private List<TextUnitDTO> getTextUnitDTOsSortedById(TextUnitSearcherParameters textUnitSearcherParameters){
-        List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
-
-        Comparator<TextUnitDTO> textUnitDTOComparator = Comparator.comparingLong(TextUnitDTO::getTmTextUnitId);
-        Collections.sort(textUnitDTOS, textUnitDTOComparator);
-
-        for (TextUnitDTO textUnitDTO : textUnitDTOS) {
-            logger.debug("name: {}, source: {}", textUnitDTO.getName(), textUnitDTO.getSource());
-        }
-
-        return textUnitDTOS;
+        return textUnitSearcher.search(textUnitSearcherParameters).stream()
+                .sorted(Comparator.comparingLong(TextUnitDTO::getTmTextUnitId))
+                .peek(textUnitDTO -> logger.debug("name: {}, source: {}", textUnitDTO.getName(), textUnitDTO.getSource()))
+                .collect(Collectors.toList());
     }
 
     private boolean equalsToTextUnitDTOList(ImmutableMap<String, String> pushed,  List<TextUnitDTO> textUnitDTOS) {
