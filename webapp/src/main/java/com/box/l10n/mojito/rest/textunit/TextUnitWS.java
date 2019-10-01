@@ -200,7 +200,7 @@ public class TextUnitWS {
      * @return the translations that matches the search parameters
      * @throws InvalidTextUnitSearchParameterException
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/api/textunit/history/{textUnitId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/history/{textUnitId}")
     @ResponseStatus(HttpStatus.OK)
     @JsonView(View.TranslationHistorySummary.class)
     public List<TMTextUnitVariant> getTextUnitHistory(
@@ -208,7 +208,7 @@ public class TextUnitWS {
             @RequestParam(value = "bcp47Tag", required = true) String bcp47Tag) throws InvalidTextUnitSearchParameterException {
 
         Locale locale = localeService.findByBcp47Tag(bcp47Tag);
-        return tmHistoryService.findHistory(locale.getId(), textUnitId);
+        return tmHistoryService.findHistory(textUnitId, locale.getId());
     }
 
     TextUnitSearcherParameters queryParamsToTextUnitSearcherParameters(

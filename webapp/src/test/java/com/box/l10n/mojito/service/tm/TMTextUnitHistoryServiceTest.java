@@ -107,7 +107,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
 
         // then get the history of it without adding any variants
-        List<TMTextUnitVariant> history = tmHistoryService.findHistory(frFRLocale.getId(), addTextUnitAndCheck1);
+        List<TMTextUnitVariant> history = tmHistoryService.findHistory(addTextUnitAndCheck1, frFRLocale.getId());
         assertNotNull(history);
         assertTrue(history.isEmpty());
     }
@@ -131,7 +131,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         TMTextUnitVariant addCurrentTMTextUnitVariant = addCurrentTMTextUnitVariant(tmTextUnit.getId(), frFRLocale.getId(), "FR[this is the content]", "0a30a359b20fd4095fc17fb586e8db4d");
 
         // then get the history of it without adding any variants
-        List<TMTextUnitVariant> history = tmHistoryService.findHistory(frFRLocale.getId(), addTextUnitAndCheck1);
+        List<TMTextUnitVariant> history = tmHistoryService.findHistory(addTextUnitAndCheck1, frFRLocale.getId());
         assertNotNull(history);
         assertFalse(history.isEmpty());
 
@@ -144,6 +144,8 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertEquals(first.getLocale().getBcp47Tag(), "fr-FR");
         assertEquals(first.getStatus(), TMTextUnitVariant.Status.APPROVED);
         assertNotNull(first.getCreatedByUser());
+
+        assertFalse(iterator.hasNext());
     }
 
     @Test
@@ -169,7 +171,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci, c'est le content", "comment 2", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
 
         // then get the history of it without adding any variants
-        List<TMTextUnitVariant> history = tmHistoryService.findHistory(frFRLocale.getId(), addTextUnitAndCheck1);
+        List<TMTextUnitVariant> history = tmHistoryService.findHistory(addTextUnitAndCheck1, frFRLocale.getId());
         assertNotNull(history);
         assertFalse(history.isEmpty());
         assertEquals(history.size(), 3);
@@ -178,25 +180,24 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertTrue(iterator.hasNext());
 
         TMTextUnitVariant variant = iterator.next();
-        logger.debug("first: " + variant.toString());
-        assertEquals(variant.getContent(), "FR[this is the content]");
+        assertEquals(variant.getContent(), "Ceci, c'est le content");
         assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
-        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.APPROVED);
+        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.TRANSLATION_NEEDED);
         assertNotNull(variant.getCreatedByUser());
 
         variant = iterator.next();
-        logger.debug("second: " + variant.toString());
         assertEquals(variant.getContent(), "Ceci est le content");
         assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
         assertEquals(variant.getStatus(), TMTextUnitVariant.Status.REVIEW_NEEDED);
         assertNotNull(variant.getCreatedByUser());
 
         variant = iterator.next();
-        logger.debug("third: " + variant.toString());
-        assertEquals(variant.getContent(), "Ceci, c'est le content");
+        assertEquals(variant.getContent(), "FR[this is the content]");
         assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
-        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.APPROVED);
         assertNotNull(variant.getCreatedByUser());
+
+        assertFalse(iterator.hasNext());
     }
 
 
@@ -219,24 +220,24 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
 
         addCurrentTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "FR[this is the content]", "0a30a359b20fd4095fc17fb586e8db4d");
 
-        Thread.sleep(200);
+        Thread.sleep(20);
 
         tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci est le content", "comment 1", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
 
-        Thread.sleep(200);
+        Thread.sleep(20);
 
         tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci, c'est le content", "comment 2", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
 
         // then get the history of it without adding any variants
-        List<TMTextUnitVariant> history = tmHistoryService.findHistory(frFRLocale.getId(), addTextUnitAndCheck1);
+        List<TMTextUnitVariant> history = tmHistoryService.findHistory(addTextUnitAndCheck1, frFRLocale.getId());
         assertNotNull(history);
         assertFalse(history.isEmpty());
         assertEquals(history.size(), 3);
 
         ArrayList<TMTextUnitVariant> historyArray = new ArrayList(history);
 
-        assertTrue(historyArray.get(0).getCreatedDate().getMillis() < historyArray.get(1).getCreatedDate().getMillis());
-        assertTrue(historyArray.get(1).getCreatedDate().getMillis() < historyArray.get(2).getCreatedDate().getMillis());
+        assertTrue(historyArray.get(0).getCreatedDate().getMillis() > historyArray.get(1).getCreatedDate().getMillis());
+        assertTrue(historyArray.get(1).getCreatedDate().getMillis() > historyArray.get(2).getCreatedDate().getMillis());
     }
 
     private Long addTextUnitAndCheck(Long tmId, Long assetId, String name, String content, String comment, String md5Check, String contentMd5Check) {
