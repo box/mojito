@@ -202,6 +202,7 @@ public class TextUnitWS {
      */
     @RequestMapping(method = RequestMethod.GET, value = "/api/textunit/history/{textUnitId}")
     @ResponseStatus(HttpStatus.OK)
+    @JsonView(View.TranslationHistorySummary.class)
     public List<TMTextUnitVariant> getTextUnitHistory(
             @PathVariable Long textUnitId,
             @RequestParam(value = "bcp47Tag", required = true) String bcp47Tag) throws InvalidTextUnitSearchParameterException {
