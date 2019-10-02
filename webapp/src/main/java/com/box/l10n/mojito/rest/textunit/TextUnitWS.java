@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.textunit;
 
 import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
@@ -11,10 +12,12 @@ import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.gitblame.GitBlameService;
 import com.box.l10n.mojito.service.gitblame.GitBlameWithUsage;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitHistoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitIntegrityCheckService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
@@ -70,6 +73,9 @@ public class TextUnitWS {
     TMService tmService;
 
     @Autowired
+    TMTextUnitHistoryService tmHistoryService;
+
+    @Autowired
     TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
     @Autowired
@@ -83,6 +89,9 @@ public class TextUnitWS {
 
     @Autowired
     GitBlameService gitBlameService;
+
+    @Autowired
+    LocaleService localeService;
 
     /**
      * Gets the TextUnits that matches the search parameters.
@@ -180,6 +189,26 @@ public class TextUnitWS {
 
         TextUnitAndWordCount countTextUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
         return countTextUnitAndWordCount;
+    }
+
+    /**
+     * Gets the translation history for a given text unit for a particular locale.
+     *
+     * @param textUnitId            required
+     * @param bcp47Tag              required
+     *
+     * @return the translations that matches the search parameters
+     * @throws InvalidTextUnitSearchParameterException
+     */
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/history/{textUnitId}")
+    @ResponseStatus(HttpStatus.OK)
+    @JsonView(View.TranslationHistorySummary.class)
+    public List<TMTextUnitVariant> getTextUnitHistory(
+            @PathVariable Long textUnitId,
+            @RequestParam(value = "bcp47Tag", required = true) String bcp47Tag) throws InvalidTextUnitSearchParameterException {
+
+        Locale locale = localeService.findByBcp47Tag(bcp47Tag);
+        return tmHistoryService.findHistory(textUnitId, locale.getId());
     }
 
     TextUnitSearcherParameters queryParamsToTextUnitSearcherParameters(

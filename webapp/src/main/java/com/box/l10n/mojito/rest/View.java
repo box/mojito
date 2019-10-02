@@ -67,4 +67,8 @@ public class View {
      * This is used to restrict screenshot information returned
      */
     public interface Screenshots extends IdAndName, TmTextUnitSummary {};
+    /**
+     * This is used to restrict the fields returned from a translation history query
+     */
+    public interface TranslationHistorySummary extends IdAndNameAndCreated, LocaleSummary {};
 }
