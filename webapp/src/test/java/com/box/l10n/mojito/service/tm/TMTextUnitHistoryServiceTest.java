@@ -46,11 +46,6 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
     @Autowired
     TMTextUnitHistoryService tmHistoryService;
 
-    /*
-    @Autowired
-    TMTextUnitVariantRepository tmTextUnitVariantRepository;
-    */
-
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
 
