@@ -16,6 +16,7 @@ import TextUnitsReviewModal from "./TextUnitsReviewModal";
 import TextUnitSDK from "../../sdk/TextUnit";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
+import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
 import Locales from "../../utils/Locales";
 import {
     Grid,
@@ -641,6 +642,13 @@ let TextUnit = createReactClass({
         GitBlameActions.openWithTextUnit(this.props.textUnit);
     },
 
+    onTranslationHistoryClick(e){
+
+        e.stopPropagation();
+
+        TranslationHistoryActions.openWithTextUnit(this.props.textUnit);
+    },
+
     /**
      * Handle click on the asset path icon: stop event propagation (no need to bubble
      * up as we're reloading the workbench with new data) and update the search
@@ -805,6 +813,9 @@ let TextUnit = createReactClass({
         let assetPathWithGitInfoTooltip =
             <Tooltip id="{this.props.textUnit.getId()}-gitInfo">{this.props.intl.formatMessage( {id: 'workbench.gitBlameModal.info'} )}</Tooltip>;
 
+        let assetPathTranslationHistoryTooltip =
+            <Tooltip id="{this.props.textUnit.getId()}-translation-history">{this.props.intl.formatMessage( {id: 'workbench.translationHistoryModal.info'} )}</Tooltip>;
+
         return (<span className="clickable textunit-name"
                       onClick={this.onStringIdClick}>
                     <span>{this.props.textUnit.getName()}</span>
@@ -816,6 +827,11 @@ let TextUnit = createReactClass({
                     <OverlayTrigger placement="top" overlay={assetPathWithGitInfoTooltip}>
                         <span className="textunit-gitInfo glyphicon glyphicon-info-sign mls"
                               onClick={this.onTextUnitInfoClick} />
+                    </OverlayTrigger>
+
+                    <OverlayTrigger placement="top" overlay={assetPathTranslationHistoryTooltip}>
+                        <span className="textunit-translation-history glyphicon glyphicon-calendar mls"
+                              onClick={this.onTranslationHistoryClick} />
                     </OverlayTrigger>
                 </span>
         );

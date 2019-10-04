@@ -428,6 +428,15 @@ div.textunit label {
     color: $brand-success;
 }
 
+.textunit:hover .textunit-assetpath, .textunit:hover .textunit-translation-history {
+    visibility: visible;
+}
+
+.textunit-name .textunit-assetpath, .textunit-name .textunit-translation-history {
+    visibility: hidden;
+    color: $brand-success;
+}
+
 .textunit-returnline {
     color: $brand-primary;
     font-size: 10px;
