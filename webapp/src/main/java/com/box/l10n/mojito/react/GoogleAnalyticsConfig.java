@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties("l10n.googleAnalytics")
+@ConfigurationProperties("l10n.google-analytics") //TODO need to update config
 public class GoogleAnalyticsConfig {
 
     boolean enabled = false;

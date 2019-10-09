@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,25 +26,25 @@
         <dependency>
             <groupId>org.springframework.session</groupId>
             <artifactId>spring-session-jdbc</artifactId>
-            <version>1.3.3.RELEASE</version>
+            <version>2.1.8.RELEASE</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.session</groupId>
             <artifactId>spring-session</artifactId>
-            <version>1.3.3.RELEASE</version>
+            <version>1.3.5.RELEASE</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mustache</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -68,7 +69,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -175,7 +176,7 @@
             <artifactId>nativeCriteria-core</artifactId>
             <version>2.0</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -210,7 +211,7 @@
             <artifactId>langdetect</artifactId>
             <version>1.1-20120112</version>
         </dependency>
-        
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -495,8 +496,8 @@
         </dependency>
 
         <!--<dependency>-->
-            <!--<groupId>com.googlecode.json-simple</groupId>-->
-            <!--<artifactId>json-simple</artifactId>-->
+        <!--<groupId>com.googlecode.json-simple</groupId>-->
+        <!--<artifactId>json-simple</artifactId>-->
         <!--</dependency>-->
         <!-- TODO(P1) to be removed? -->
 
@@ -517,6 +518,12 @@
             <artifactId>httpclient</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-properties-migrator</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -530,6 +537,7 @@
                             <goal>repackage</goal>
                         </goals>
                     </execution>
+
                 </executions>
             </plugin>
 
@@ -603,7 +611,7 @@
                     </aspectLibraries>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
-                </configuration>                               
+                </configuration>
             </plugin>
 
             <plugin>
@@ -646,19 +654,20 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
-                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
+                    <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
-                 
-                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
-               
+
+                    <!--                    <rerunFailingTestsCount>1</rerunFailingTestsCount>-->
+
                     <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
-               
-                    <!-- Use this to run specific sequence of test to replicate issues-->                   
-                    <!--                    <includes>
-                        <include>**/DropServiceBoxTest.java</include>
-                        <include>**/DropServiceTest.java</include>
-                    </includes>-->
+
+                    <!-- Use this to run specific sequence of test to replicate issues-->
+                    <includes>
+<!--                        <include>**/DropServiceBoxTest.java</include>-->
+                        <include>**/com.box.l10n.mojito.service.bla.BlaServiceTest.java</include>
+<!--                        <include>**/DropServiceTest.java</include>-->
+                    </includes>
                 </configuration>
             </plugin>
 
@@ -669,7 +678,7 @@
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -685,8 +694,8 @@
                         </resource>
                     </resources>
                 </configuration>
-            </plugin> 
-            
+            </plugin>
+
         </plugins>
     </build>
 
@@ -739,7 +748,7 @@
                 </plugins>
             </build>
         </profile>
-        
+
         <!-- Work around for compilation issue with aspectj. See:
         https://github.com/spring-projects/spring-boot/issues/4847 
         http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
@@ -766,7 +775,7 @@
                         <version>${maven.compiler.version}</version>
                         <configuration>
                             <proc>none</proc>
-                        </configuration>                
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

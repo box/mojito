@@ -1,11 +1,13 @@
 package com.box.l10n.mojito.service.branch;
 
+import com.box.l10n.mojito.Application;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -18,8 +20,13 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Iterator;
 import java.util.List;
@@ -31,7 +38,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class BranchStatisticServiceTest extends ServiceTestBase {
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {BranchStatisticServiceTest.class},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"spring.session.store-type=jdbc"}
+)
+@EnableAutoConfiguration
+@ComponentScan(basePackageClasses = Application.class)
+public class BranchStatisticServiceTest {
 
     /**
      * logger

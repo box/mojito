@@ -16,7 +16,7 @@ import org.springframework.jdbc.core.RowMapper;
  *
  * @author jaurambault
  */
-public class V9__Compute_Word_Count implements SpringJdbcMigration {
+public class V9__Compute_Word_Count { // implements SpringJdbcMigration {
 
     /**
      * logger
@@ -27,7 +27,7 @@ public class V9__Compute_Word_Count implements SpringJdbcMigration {
     
     WordCountService  wordCountService = new WordCountService();
         
-    @Override
+//    @Override
     public void migrate(JdbcTemplate jdbcTemplate) throws Exception {
        
         logger.info("Update word count");

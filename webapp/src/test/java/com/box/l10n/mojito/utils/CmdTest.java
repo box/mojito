@@ -8,14 +8,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {Cmd.class, CmdTest.class})
 @EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
+@SpringBootTest(classes = {Cmd.class, CmdTest.class}, properties = "spring.datasource.initialize=false")
 public class CmdTest {
 
     @Value("#{ T(com.box.l10n.mojito.utils.Cmd).getOutputIfSuccess('echo injection') }")
@@ -37,7 +35,7 @@ public class CmdTest {
     public void valueInjection() throws Exception {
         Assert.assertEquals("injection", injection);
     }
-    
+
     @Test
     public void exceptionIfFailure() throws Exception {
         Cmd cmd = new Cmd();

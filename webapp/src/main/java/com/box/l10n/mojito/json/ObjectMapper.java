@@ -10,10 +10,18 @@ import org.springframework.stereotype.Component;
  *
  * @author jaurambault
  */
-@Component
+//TODO see if we can remove @bean in app instead
+//@Component
 public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
 
     public ObjectMapper() {
+        JodaModule jodaModule = new JodaModule();
+        registerModule(jodaModule);
+    }
+
+    public ObjectMapper(ObjectMapper objectMapper) {
+        //TODO can't do better than that?
+        super(objectMapper);
         JodaModule jodaModule = new JodaModule();
         registerModule(jodaModule);
     }
@@ -33,4 +41,9 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         }
     }
 
+    @Override
+    public com.fasterxml.jackson.databind.ObjectMapper copy() {
+        ObjectMapper objectMapper = new ObjectMapper(this);
+        return objectMapper;
+    }
 }

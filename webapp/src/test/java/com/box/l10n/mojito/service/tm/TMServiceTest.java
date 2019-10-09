@@ -2468,7 +2468,7 @@ public class TMServiceTest extends ServiceTestBase {
         String expectedContent = "\uFEFF" + assetContent;
 
         asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 

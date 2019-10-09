@@ -108,7 +108,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         logger.debug("When uploading an image in the ThirdPartyTMS just return an ThirdPartyTMSImage with random id");
         doAnswer((invocation) -> {
             ThirdPartyTMSImage thirdPartyTMSImage = new ThirdPartyTMSImage();
-            thirdPartyTMSImage.setId("img-" + invocation.getArgumentAt(1, String.class));
+            thirdPartyTMSImage.setId("img-" + invocation.getArgument(1));
             return thirdPartyTMSImage;
         }).when(thirdPartyTMSMock).uploadImage(any(), any(), any());
 
@@ -177,7 +177,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals("3rd-plural_things", thirdPartyTextUnits.get(7).getThirdPartyId());
 
         logger.debug("Verify behavior");
-        ArgumentCaptor<List<ThirdPartyImageToTextUnit>> thirdPartyImageToTextUnitsArgumentCaptor = new ArgumentCaptor<>();
+        ArgumentCaptor<List<ThirdPartyImageToTextUnit>> thirdPartyImageToTextUnitsArgumentCaptor = ArgumentCaptor.forClass(List.class);
         verify(thirdPartyTMSMock, times(3)).createImageToTextUnitMappings(
                 eq(projectId),
                 thirdPartyImageToTextUnitsArgumentCaptor.capture()

@@ -29,7 +29,7 @@ public class FlyWayConfig {
      */
     boolean clean = false;
 
-    @Bean
+//    @Bean
     public FlywayMigrationStrategy cleanMigrateStrategy() {
 
         FlywayMigrationStrategy strategy = new FlywayMigrationStrategy() {

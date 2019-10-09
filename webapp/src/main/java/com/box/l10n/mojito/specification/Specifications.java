@@ -85,15 +85,15 @@ public class Specifications {
     }
 
     /**
-     * Like {@link org.springframework.data.jpa.domain.Specifications.where} but with the query returning distinct
+     * Like {@link org.springframework.data.jpa.domain.Specification.where} but with the query returning distinct
      * results.
      *
      * @param spec
      * @param <T>
      * @return
      */
-    public static <T> org.springframework.data.jpa.domain.Specifications<T> distinct(Specification<T> spec) {
-        return org.springframework.data.jpa.domain.Specifications.where(new Specification<T>() {
+    public static <T> Specification<T> distinct(Specification<T> spec) {
+        return Specification.where(new Specification<T>() {
             @Override
             public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 query.distinct(true);

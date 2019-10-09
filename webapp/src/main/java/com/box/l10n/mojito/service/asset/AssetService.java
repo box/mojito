@@ -31,7 +31,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -387,7 +387,7 @@ public class AssetService {
         logger.debug("Find all assets for repositoryId: {}, path: {}, deleted: {}, virtual: {}, branchId: {}",
                 repositoryId, path, deleted, virtual, branchId);
 
-        Specifications<Asset> assetSpecifications = distinct(ifParamNotNull(repositoryIdEquals(repositoryId)))
+        Specification<Asset> assetSpecifications = distinct(ifParamNotNull(repositoryIdEquals(repositoryId)))
                 .and(ifParamNotNull(pathEquals(path)))
                 .and(ifParamNotNull(deletedEquals(deleted)))
                 .and(ifParamNotNull(virtualEquals(virtual)))

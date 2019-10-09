@@ -2,7 +2,6 @@ package com.box.l10n.mojito.rest;
 
 import com.box.l10n.mojito.Application;
 import com.box.l10n.mojito.factory.XliffDataFactory;
-import com.box.l10n.mojito.rest.annotation.WithDefaultTestUser;
 import com.box.l10n.mojito.rest.client.LocaleClient;
 import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
@@ -13,18 +12,10 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
@@ -39,19 +30,27 @@ import java.util.function.Supplier;
  *
  * @author jaurambault
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@TestPropertySource(value = {"l10n.fileSystemDropExporter.path=target/test-output/fileSystemDropExporter"})
-@TestExecutionListeners(
-        listeners = {
-                DependencyInjectionTestExecutionListener.class,
-                DirtiesContextTestExecutionListener.class,
-                TransactionalTestExecutionListener.class,
-                WithSecurityContextTestExecutionListener.class
-        }
-)
-@Configuration
-@WithDefaultTestUser
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@SpringBootTest(classes = WSTestBase.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(
+        classes = {Application.class},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"l10n.filesystemdropexporter.path=target/test-output/fileSystemDropExporter"})
+@EnableAutoConfiguration
+
+//@TestPropertySource(locations = "classpath:config/application.properties", properties = {"l10n.fileSystemDropExporter.path=target/test-output/fileSystemDropExporter"})
+//@TestExecutionListeners(
+//        listeners = {
+//                DependencyInjectionTestExecutionListener.class,
+//                DirtiesContextTestExecutionListener.class,
+//                TransactionalTestExecutionListener.class,
+//                WithSecurityContextTestExecutionListener.class
+//        }
+//)
+//@Configuration
+//@WithDefaultTestUser
 //TODO(P1) see issue with DropServiceBoxTest  @DirtiesContext
 public class WSTestBase {
 
@@ -72,7 +71,7 @@ public class WSTestBase {
     @Autowired
     ResttemplateConfig resttemplateConfig;
 
-    @Value("${local.server.port}")
+    @LocalServerPort
     int port;
 
     @PostConstruct

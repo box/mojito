@@ -94,7 +94,7 @@ public class ThirdPartyService {
             throw new RuntimeException("No ThirdPartyTMS is configured");
         }
 
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
         mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
         uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
     }
@@ -160,7 +160,7 @@ public class ThirdPartyService {
         }).collect(toList());
 
         logger.debug("Save {} entities", thirdPartyTextUnits.size());
-        thirdPartyTextUnitRepository.save(thirdPartyTextUnits);
+        thirdPartyTextUnitRepository.saveAll(thirdPartyTextUnits);
     }
 
     void uploadScreenshotsAndCreateMappings(Repository repository, String projectId) {

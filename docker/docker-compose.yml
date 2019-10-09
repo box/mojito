@@ -23,6 +23,7 @@ services:
       - "8080:8080"
     restart: always
     environment:
+# TODO this is outdated with Spring 2 migration and
       SPRING_APPLICATION_JSON: '{ 
       "flyway.enabled": "true",
       "l10n.flyway.clean" : "true", 

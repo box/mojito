@@ -219,7 +219,7 @@ public class AssetServiceTest extends ServiceTestBase {
 
         assetExtractions = assetExtractionRepository.findByAsset(asset);
         assertEquals("When re-adding an asset (same content as previously deleted), it will get processed as normal", 2, assetExtractions.size());
-        assertFalse("The asset extraction process should un-delete the deleted asset", assetRepository.findOne(assetId).getDeleted());
+        assertFalse("The asset extraction process should un-delete the deleted asset", assetRepository.findById(assetId).orElse(null).getDeleted());
     }
 
     @Test

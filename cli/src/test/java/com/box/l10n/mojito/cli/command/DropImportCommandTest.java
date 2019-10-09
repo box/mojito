@@ -10,8 +10,6 @@ import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.drop.DropRepository;
 import com.box.l10n.mojito.service.drop.DropService;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterException;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterService;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporter;
@@ -20,27 +18,32 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.test.XliffUtils;
-import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.rule.OutputCapture;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.boot.test.OutputCapture;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
- *
  * @author jaurambault
  */
 public class DropImportCommandTest extends CLITestBase {
@@ -111,7 +114,7 @@ public class DropImportCommandTest extends CLITestBase {
 
         int numberOfFrenchTranslationsBefore = getNumberOfFrenchTranslations(repository);
 
-        localizeDropFiles(dropRepository.findById(dropId)).orElse(null);
+        localizeDropFiles(dropRepository.findById(dropId).orElse(null));
 
         l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "--number-drop-fetched", "1000"});
 
@@ -159,7 +162,7 @@ public class DropImportCommandTest extends CLITestBase {
 
         int numberOfFrenchTranslationsBefore = getNumberOfFrenchTranslations(repository);
 
-        localizeDropFiles(dropRepository.findOne(dropId));
+        localizeDropFiles(dropRepository.findById(dropId).orElse(null));
 
         l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "--import-fetched"});
 

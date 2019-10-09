@@ -10,3 +10,5 @@ DROP DATABASE IF EXISTS `l10n`;
 CREATE DATABASE `l10n` CHARACTER SET 'utf8' COLLATE 'utf8_bin';
 
 use `l10n`;
+
+

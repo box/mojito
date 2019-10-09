@@ -60,6 +60,7 @@ public class Application {
      *
      * @return
      */
+    //TODO this is not need anymore?
     @Bean
     public ObjectMapper getObjectMapper() {
         return new ObjectMapper();

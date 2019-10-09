@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * @author jaurambault
  */
 @Component
-@ConfigurationProperties("l10n.dropService")
+@ConfigurationProperties("l10n.dropservice")
 public class DropServiceConfig {
 
     /**
