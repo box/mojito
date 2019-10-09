@@ -133,7 +133,7 @@ public class BranchNotificationService {
      * @param senderType
      */
     void scheduleMissingScreenshotNotificationsForBranch(Branch branch, String senderType) {
-        Date date = DateTime.now().minusMinutes(30).toDate();
+        Date date = DateTime.now().plusMinutes(30).toDate();
         branchNotificationMissingScreenshotsJob.schedule(branch.getId(), senderType, date);
     }
 
