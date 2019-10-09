@@ -816,11 +816,13 @@ let TextUnit = createReactClass({
         let assetPathTranslationHistoryTooltip =
             <Tooltip id="{this.props.textUnit.getId()}-translation-history">{this.props.intl.formatMessage( {id: 'workbench.translationHistoryModal.info'} )}</Tooltip>;
 
+        // Only show the overlay trigger for the translation history if there is a current text unit variant (ie. there is
+        // at least one translation) If not, we have no history to show anyways!
         return (<span className="clickable textunit-name"
                       onClick={this.onStringIdClick}>
                     <span>{this.props.textUnit.getName()}</span>
                     <OverlayTrigger placement="top" overlay={assetPathTooltip}>
-                        <span className="textunit-assetpath glyphicon glyphicon-level-up mls" 
+                        <span className="textunit-assetpath glyphicon glyphicon-level-up mls"
                                onClick={this.onAssetPathClick} />
                     </OverlayTrigger>
 
@@ -828,11 +830,14 @@ let TextUnit = createReactClass({
                         <span className="textunit-gitInfo glyphicon glyphicon-info-sign mls"
                               onClick={this.onTextUnitInfoClick} />
                     </OverlayTrigger>
-
-                    <OverlayTrigger placement="top" overlay={assetPathTranslationHistoryTooltip}>
-                        <span className="textunit-translation-history glyphicon glyphicon-calendar mls"
-                              onClick={this.onTranslationHistoryClick} />
-                    </OverlayTrigger>
+                    {
+                        (this.props.textUnit.getTmTextUnitVariantId()) ?
+                            <OverlayTrigger placement="top" overlay={assetPathTranslationHistoryTooltip}>
+                                <span className="textunit-translation-history glyphicon glyphicon-time mls"
+                                      onClick={this.onTranslationHistoryClick} />
+                            </OverlayTrigger> :
+                            ""
+                    }
                 </span>
         );
     },

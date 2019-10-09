@@ -18,7 +18,7 @@ class TranslationHistoryStore {
     setDefaultState() {
         this.show = false;
         this.textUnit = null;
-        this.translationHistoryWithUsage = null;
+        this.translationHistory = null;
         this.loading = false;
     }
 
@@ -31,14 +31,14 @@ class TranslationHistoryStore {
 
         this.show = true;
         this.textUnit = textUnit;
-        this.translationHistoryWithUsage = null;
+        this.translationHistory = null;
         this.loading = true;
         this.getInstance().getTranslationHistory(textUnit);
     }
 
-    onGetTranslationHistorySuccess(translationHistoryWithUsage) {
+    onGetTranslationHistorySuccess(translationHistory) {
         console.log("TranslationHistoryStore::onGetTranslationHistorySuccess");
-        this.translationHistoryWithUsage = translationHistoryWithUsage[0];
+        this.translationHistory = translationHistory;
         this.loading = false;
     }
 

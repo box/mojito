@@ -105,7 +105,7 @@ class TextUnitClient extends BaseClient {
 
     getTranslationHistory(textUnit) {
         return this.get(this.getUrl() + "/history/" + textUnit.getTmTextUnitId(), {
-            "bcp47Tag": textUnit.targetLocale
+            "bcp47Tag": textUnit.getTargetLocale()
         });
     }
 
