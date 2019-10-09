@@ -31,9 +31,9 @@ class StatusGlyph extends React.Component {
      * @return {JSX}
      */
     render() {
-        return (<Glyphicon 
-                    glyph={this.getGlyph(this.props.status)} 
-                    title={this.props.status} 
+        return (<Glyphicon
+                    glyph={this.getGlyph(this.props.status)}
+                    title={this.props.status}
                     onClick={this.props.onClick}
                     className="btn"
                />);
