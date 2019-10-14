@@ -830,14 +830,11 @@ let TextUnit = createReactClass({
                         <span className="textunit-gitInfo glyphicon glyphicon-info-sign mls"
                               onClick={this.onTextUnitInfoClick} />
                     </OverlayTrigger>
-                    {
-                        (this.props.textUnit.getTmTextUnitVariantId()) ?
-                            <OverlayTrigger placement="top" overlay={assetPathTranslationHistoryTooltip}>
-                                <span className="textunit-translation-history glyphicon glyphicon-time mls"
-                                      onClick={this.onTranslationHistoryClick} />
-                            </OverlayTrigger> :
-                            ""
-                    }
+
+                    <OverlayTrigger placement="top" overlay={assetPathTranslationHistoryTooltip}>
+                        <span className="textunit-translation-history glyphicon glyphicon-time mls"
+                              onClick={this.onTranslationHistoryClick} />
+                    </OverlayTrigger>
                 </span>
         );
     },

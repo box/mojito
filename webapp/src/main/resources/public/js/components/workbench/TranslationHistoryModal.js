@@ -4,6 +4,7 @@ import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 import {Table} from "react-bootstrap";
 import StatusGlyph from '../widgets/StatusGlyph';
+import TextUnitSDK from "../../sdk/TextUnit";
 
 class translationHistoryModal extends React.Component {
     static propTypes() {
@@ -31,26 +32,29 @@ class translationHistoryModal extends React.Component {
      * @returns {*} Generated content for the git blame information section
      */
     rendertranslationHistory = () => {
-        const { translationHistory } = this.props;
+        const { translationHistory, textUnit, intl } = this.props;
 
-        if (translationHistory && translationHistory.length) {
-            return (
-                <Table striped bordered hover responsive="sm">
-                    <thead>
-                        <th><FormattedMessage id="textUnit.translationHistoryModal.User"/></th>
-                        <th><FormattedMessage id="textUnit.translationHistoryModal.Translation"/></th>
-                        <th><FormattedMessage id="textUnit.translationHistoryModal.Date"/></th>
-                        <th><FormattedMessage id="textUnit.translationHistoryModal.Status"/></th>
-                    </thead>
-                    <tbody>
-                    {translationHistory.map(this.renderHistoryItem)}
-                    </tbody>
-                </Table>
-            );
-        } else {
-            // for safety
-            return <div><FormattedMessage id="textUnit.translationHistoryModal.NoTranslations"/></div>;
-        }
+        return (
+            <Table striped bordered hover responsive="sm">
+                <thead>
+                    <th><FormattedMessage id="textUnit.translationHistoryModal.User"/></th>
+                    <th><FormattedMessage id="textUnit.translationHistoryModal.Translation"/></th>
+                    <th><FormattedMessage id="textUnit.translationHistoryModal.Date"/></th>
+                    <th><FormattedMessage id="textUnit.translationHistoryModal.Status"/></th>
+                </thead>
+                <tbody>
+                {(translationHistory && translationHistory.length) ? translationHistory.map(this.renderHistoryItem) : ""}
+                {this.renderHistoryItem({
+                    createdByUser: {
+                        username: "mojito"
+                    },
+                    content: (<span class="history-initial"><FormattedMessage id="textUnit.translationHistoryModal.InitialPush"/></span>),
+                    createdDate: textUnit.getTmTextUnitCreatedDate(),
+                    status: TextUnitSDK.STATUS.TRANSLATION_NEEDED
+                })}
+                </tbody>
+            </Table>
+        );
     };
 
     /**
@@ -88,14 +92,19 @@ class translationHistoryModal extends React.Component {
                 <Modal.Body>
                     <div className={"row"}>
                         <div className={"col-sm-4"}>
-                            <h4>
-                                <FormattedMessage id={"textUnit.translationHistoryModal.header"} values={{
-                                    locale: textUnit.getTargetLocale(),
+                            <div>
+                                <FormattedMessage id={"textUnit.translationHistoryModal.locale"} values={{
+                                    locale: textUnit.getTargetLocale()
+                                }}/>
+                            </div>
+                            <div>
+                                <FormattedMessage id={"textUnit.translationHistoryModal.source"} values={{
                                     source: textUnit.getSource()
                                 }}/>
-                            </h4>
+                            </div>
                         </div>
                     </div>
+                    <p/>
                     <div>
                         {this.rendertranslationHistory()}
                     </div>
