@@ -27,8 +27,6 @@ class TranslationHistoryStore {
     }
 
     openWithTextUnit(textUnit) {
-        console.log("TranslationHistoryStore::openWithTextUnit");
-
         this.show = true;
         this.textUnit = textUnit;
         this.translationHistory = null;
@@ -37,13 +35,11 @@ class TranslationHistoryStore {
     }
 
     onGetTranslationHistorySuccess(translationHistory) {
-        console.log("TranslationHistoryStore::onGetTranslationHistorySuccess");
         this.translationHistory = translationHistory;
         this.loading = false;
     }
 
     onGetTranslationHistoryError(errorResponse) {
-        console.log("TranslationHistoryStore::onGetTranslationHistoryError");
         this.loading = false;
     }
 }

@@ -35,12 +35,14 @@ class translationHistoryModal extends React.Component {
         const { translationHistory, textUnit, intl } = this.props;
 
         return (
-            <Table striped bordered hover responsive="sm">
+            <Table className="repo-table table-padded-sides">
                 <thead>
-                    <th><FormattedMessage id="textUnit.translationHistoryModal.User"/></th>
-                    <th><FormattedMessage id="textUnit.translationHistoryModal.Translation"/></th>
-                    <th><FormattedMessage id="textUnit.translationHistoryModal.Date"/></th>
-                    <th><FormattedMessage id="textUnit.translationHistoryModal.Status"/></th>
+                    <tr>
+                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.User"/></th>
+                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Translation"/></th>
+                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Date"/></th>
+                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Status"/></th>
+                    </tr>
                 </thead>
                 <tbody>
                 {(translationHistory && translationHistory.length) ? translationHistory.map(this.renderHistoryItem) : ""}
@@ -87,16 +89,15 @@ class translationHistoryModal extends React.Component {
         return textUnit ? (
             <Modal className={"git-blame-modal"} show={show} onHide={this.closeModal}>
                 <Modal.Header closeButton>
-                    <Modal.Title><FormattedMessage id="workbench.translationHistoryModal.title"/></Modal.Title>
+                    <Modal.Title>
+                        <FormattedMessage id="workbench.translationHistoryModal.title" values={{
+                            locale: textUnit.getTargetLocale()
+                        }}/>
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className={"row"}>
                         <div className={"col-sm-4"}>
-                            <div>
-                                <FormattedMessage id={"textUnit.translationHistoryModal.locale"} values={{
-                                    locale: textUnit.getTargetLocale()
-                                }}/>
-                            </div>
                             <div>
                                 <FormattedMessage id={"textUnit.translationHistoryModal.source"} values={{
                                     source: textUnit.getSource()

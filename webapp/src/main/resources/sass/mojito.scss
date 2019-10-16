@@ -489,7 +489,13 @@ div.targetstring-container textarea {
 }
 
 .history-initial {
-    color: $brand-primary;
+    color: $gray-light;
+    font-style: italic;
+}
+
+.history-header {
+    font-weight: 400;
+    padding: 8px;
 }
 
 /**
