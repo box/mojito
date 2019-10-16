@@ -808,13 +808,15 @@ let TextUnit = createReactClass({
     },
 
     renderName() {
+        const id = this.props.textUnit.getTmTextUnitId();
+        const locale = this.props.textUnit.getTargetLocale();
         let assetPathWithZeroWidthSpace = this.addZeroWidthSpace(this.props.textUnit.getAssetPath()); // to make the tooltip text to wrap
-        let assetPathTooltip = <Tooltip id="{this.props.textUnit.getId()}-assetPath">{assetPathWithZeroWidthSpace}</Tooltip>;
+        let assetPathTooltip = <Tooltip id={`${id}-${locale}-assetPath`}>{assetPathWithZeroWidthSpace}</Tooltip>;
         let assetPathWithGitInfoTooltip =
-            <Tooltip id="{this.props.textUnit.getId()}-gitInfo">{this.props.intl.formatMessage( {id: 'workbench.gitBlameModal.info'} )}</Tooltip>;
+            <Tooltip id={`${id}-${locale}-gitInfo`}>{this.props.intl.formatMessage( {id: 'workbench.gitBlameModal.info'} )}</Tooltip>;
 
         let assetPathTranslationHistoryTooltip =
-            <Tooltip id="{this.props.textUnit.getId()}-translation-history">{this.props.intl.formatMessage( {id: 'workbench.translationHistoryModal.info'} )}</Tooltip>;
+            <Tooltip id={`${id}-${locale}-translation-history`}>{this.props.intl.formatMessage( {id: 'workbench.translationHistoryModal.info'} )}</Tooltip>;
 
         // Only show the overlay trigger for the translation history if there is a current text unit variant (ie. there is
         // at least one translation) If not, we have no history to show anyways!
