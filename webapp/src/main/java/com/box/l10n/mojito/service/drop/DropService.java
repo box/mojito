@@ -24,6 +24,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.UpdateTMWithXLIFFResult;
+import com.box.l10n.mojito.service.translationkit.TranslationKitAsXliff;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -180,14 +181,16 @@ public class DropService {
 
         logger.trace("Generate and export translation kits for locale: {}", bcp47Tag);
 
-        String translationKitAsXLIFF = translationKitService.generateTranslationKitAsXLIFF(
+        TranslationKitAsXliff translationKitAsXLIFF = translationKitService.generateTranslationKitAsXLIFF(
                 drop.getId(),
                 drop.getRepository().getTm().getId(),
                 localeService.findByBcp47Tag(bcp47Tag).getId(),
                 type,
-                useInheritance).getContent();
+                useInheritance);
 
-        dropExporter.exportSourceFile(bcp47Tag, translationKitAsXLIFF);
+        if (translationKitAsXLIFF != null) {
+            dropExporter.exportSourceFile(bcp47Tag, translationKitAsXLIFF.getContent());
+        }
     }
 
     /**
