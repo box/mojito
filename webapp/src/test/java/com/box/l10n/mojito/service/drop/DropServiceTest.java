@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.okapi.XliffState;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -395,6 +396,47 @@ public class DropServiceTest extends ServiceTestBase {
             assertTrue(next.getErrorMessage().contains("Unexpected close tag"));
         }
 
+    }
+
+    @Test
+    public void forNoEmptyXliffs() throws Exception {
+
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        tmTestData.addCurrentTMTextUnitVariant1KoKR.setStatus(Status.APPROVED);
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+        bcp47Tags.add("ko-KR");
+        bcp47Tags.add("ja-JP");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 3); // no units to translate for Korean
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box without updating the state");
+        Drop drop = startExportProcess.get();
+
+        // Make sure no Korean xliff was generated
+        FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
+        FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
+
+        File koKR = new File(Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME, "ko-KR.xliff").toString());
+
+        assertFalse(koKR.exists());
     }
 
     public void checkNumberOfUntranslatedTextUnit(Repository repository, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
