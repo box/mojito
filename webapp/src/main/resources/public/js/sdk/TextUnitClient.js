@@ -103,6 +103,11 @@ class TextUnitClient extends BaseClient {
         return this.get(this.getUrl() + "/gitBlameWithUsages", {"tmTextUnitId": textUnit.getTmTextUnitId()});
     }
 
+    getTranslationHistory(textUnit) {
+        return this.get(this.getUrl() + "/history/" + textUnit.getTmTextUnitId(), {
+            "bcp47Tag": textUnit.getTargetLocale()
+        });
+    }
 
     getEntityName() {
         return 'textunits';

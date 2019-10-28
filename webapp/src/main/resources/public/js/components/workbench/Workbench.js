@@ -18,6 +18,9 @@ import BranchesScreenshotViewerModal from "../branches/BranchesScreenshotViewerM
 import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
 import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
 import UrlHelper from "../../utils/UrlHelper";
+import TranslationHistoryStore from "../../stores/workbench/TranslationHistoryStore";
+import TranslationHistoryModal from "./TranslationHistoryModal";
+import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
@@ -26,7 +29,8 @@ let Workbench = createReactClass({
     statics: {
         storeListeners: {
             "onSearchParamsStoreChanged": SearchParamsStore,
-            "onGitBlameStoreUpdated": GitBlameStore
+            "onGitBlameStoreUpdated": GitBlameStore,
+            "onTranslationHistoryStoreUpdated": TranslationHistoryStore
         }
     },
 
@@ -41,6 +45,10 @@ let Workbench = createReactClass({
 
     onGitBlameStoreUpdated(store) {
         this.setState({"isShowGitBlameModal": store.show});
+    },
+
+    onTranslationHistoryStoreUpdated(store) {
+        this.setState({"isShowTranslationHistoryModal": store.show});
     },
 
     /**
@@ -109,7 +117,9 @@ let Workbench = createReactClass({
                         }}
                     />
                 </AltContainer>
-
+                <AltContainer store={TranslationHistoryStore}>
+                    <TranslationHistoryModal onCloseModal={TranslationHistoryActions.close}/>
+                </AltContainer>
             </div>
         );
     },

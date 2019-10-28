@@ -3,6 +3,7 @@ import TextUnitError from "../../utils/TextUnitError";
 import TextUnitClient from "../../sdk/TextUnitClient";
 import WorkbenchActions from "./WorkbenchActions";
 import GitBlameActions from "./GitBlameActions";
+import TranslationHistoryActions from "./TranslationHistoryActions";
 
 const TextUnitDataSource = {
     performSaveTextUnit: {
@@ -60,6 +61,14 @@ const TextUnitDataSource = {
         },
         success: GitBlameActions.getGitBlameInfoSuccess,
         error: GitBlameActions.getGitBlameInfoError
+    },
+
+    getTranslationHistory: {
+        remote(translationHistoryStoreState, textUnit) {
+            return TextUnitClient.getTranslationHistory(textUnit);
+        },
+        success: TranslationHistoryActions.getTranslationHistorySuccess,
+        error: TranslationHistoryActions.getTranslationHistoryError
     }
 };
 

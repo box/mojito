@@ -16,6 +16,7 @@ import TextUnitsReviewModal from "./TextUnitsReviewModal";
 import TextUnitSDK from "../../sdk/TextUnit";
 import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
+import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
 import Locales from "../../utils/Locales";
 import {
     Grid,
@@ -641,6 +642,13 @@ let TextUnit = createReactClass({
         GitBlameActions.openWithTextUnit(this.props.textUnit);
     },
 
+    onTranslationHistoryClick(e){
+
+        e.stopPropagation();
+
+        TranslationHistoryActions.openWithTextUnit(this.props.textUnit);
+    },
+
     /**
      * Handle click on the asset path icon: stop event propagation (no need to bubble
      * up as we're reloading the workbench with new data) and update the search
@@ -800,22 +808,34 @@ let TextUnit = createReactClass({
     },
 
     renderName() {
+        const id = this.props.textUnit.getTmTextUnitId();
+        const locale = this.props.textUnit.getTargetLocale();
         let assetPathWithZeroWidthSpace = this.addZeroWidthSpace(this.props.textUnit.getAssetPath()); // to make the tooltip text to wrap
-        let assetPathTooltip = <Tooltip id="{this.props.textUnit.getId()}-assetPath">{assetPathWithZeroWidthSpace}</Tooltip>;
+        let assetPathTooltip = <Tooltip id={`${id}-${locale}-assetPath`}>{assetPathWithZeroWidthSpace}</Tooltip>;
         let assetPathWithGitInfoTooltip =
-            <Tooltip id="{this.props.textUnit.getId()}-gitInfo">{this.props.intl.formatMessage( {id: 'workbench.gitBlameModal.info'} )}</Tooltip>;
+            <Tooltip id={`${id}-${locale}-gitInfo`}>{this.props.intl.formatMessage( {id: 'workbench.gitBlameModal.info'} )}</Tooltip>;
 
+        let assetPathTranslationHistoryTooltip =
+            <Tooltip id={`${id}-${locale}-translation-history`}>{this.props.intl.formatMessage( {id: 'workbench.translationHistoryModal.info'} )}</Tooltip>;
+
+        // Only show the overlay trigger for the translation history if there is a current text unit variant (ie. there is
+        // at least one translation) If not, we have no history to show anyways!
         return (<span className="clickable textunit-name"
                       onClick={this.onStringIdClick}>
                     <span>{this.props.textUnit.getName()}</span>
                     <OverlayTrigger placement="top" overlay={assetPathTooltip}>
-                        <span className="textunit-assetpath glyphicon glyphicon-level-up mls" 
+                        <span className="textunit-assetpath glyphicon glyphicon-level-up mls"
                                onClick={this.onAssetPathClick} />
                     </OverlayTrigger>
 
                     <OverlayTrigger placement="top" overlay={assetPathWithGitInfoTooltip}>
                         <span className="textunit-gitInfo glyphicon glyphicon-info-sign mls"
                               onClick={this.onTextUnitInfoClick} />
+                    </OverlayTrigger>
+
+                    <OverlayTrigger placement="top" overlay={assetPathTranslationHistoryTooltip}>
+                        <span className="textunit-translation-history glyphicon glyphicon-time mls"
+                              onClick={this.onTranslationHistoryClick} />
                     </OverlayTrigger>
                 </span>
         );
