@@ -86,7 +86,7 @@ public class Repository extends AuditableEntity {
     protected User createdByUser;
 
     @JsonView(View.BranchStatistic.class)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manual_screenshot_run_id", foreignKey = @ForeignKey(name = "FK__REPOSITORY__SCREENSHOT_RUN__ID"))
     ScreenshotRun manualScreenshotRun;
 
