@@ -76,11 +76,11 @@ class TextUnitClient extends BaseClient {
             name: textUnit.getName(),
             content: textUnit.getSource(),
             comment: textUnit.getComment(),
-            pluralForm : textUnit.getPluralForm(),
+            pluralForm: textUnit.getPluralForm(),
             pluralFormOther: textUnit.getPluralFormOther(),
             doNotTranslate: textUnit.getDoNotTranslate(),
-        }]).then(function(pollableTask) {
-            return PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id).then(function(pollableTask) {
+        }]).then(function (pollableTask) {
+            return PollableTaskClient.waitForPollableTaskToFinish(pollableTask.id).then(function (pollableTask) {
                 if (pollableTask.errorMessage) {
                     throw new Error(pollableTask.errorMessage);
                 }
@@ -104,7 +104,7 @@ class TextUnitClient extends BaseClient {
     }
 
     getTranslationHistory(textUnit) {
-        return this.get(this.getUrl() + "/history/" + textUnit.getTmTextUnitId(), {
+        return this.get(this.getUrl(textUnit.getTmTextUnitId()) + "/history", {
             "bcp47Tag": textUnit.getTargetLocale()
         });
     }
