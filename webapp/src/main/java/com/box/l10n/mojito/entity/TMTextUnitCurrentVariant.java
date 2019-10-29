@@ -2,9 +2,8 @@ package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
 import org.springframework.data.annotation.CreatedBy;
+
 import javax.persistence.Basic;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -21,7 +20,7 @@ import javax.persistence.Table;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
-@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+//@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 @Table(
         name = "tm_text_unit_current_variant",
         indexes = {

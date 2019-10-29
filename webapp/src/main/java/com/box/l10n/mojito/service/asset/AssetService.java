@@ -267,6 +267,9 @@ public class AssetService {
 
         boolean assetProcessingNeeded = false;
 
+        //TODO for extractor based we need to pre-parse
+
+
         if (assetExtractionByBranch == null) {
             logger.debug("No active asset extraction, processing needed");
             assetProcessingNeeded = true;

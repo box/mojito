@@ -4,6 +4,7 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -11,8 +12,6 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.RelationTargetAuditMode;
 
 /**
  * Entity that describes a locale associated to a repository.
@@ -20,11 +19,11 @@ import org.hibernate.envers.RelationTargetAuditMode;
  * @author aloison
  */
 @Entity
-@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+//@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 @Table(
         name = "repository_locale",
         indexes = {
-            @Index(name = "UK__REPOSITORY_LOCALE__REPOSITORY_ID__LOCALE_ID", columnList = "repository_id, locale_id", unique = true)
+                @Index(name = "UK__REPOSITORY_LOCALE__REPOSITORY_ID__LOCALE_ID", columnList = "repository_id, locale_id", unique = true)
         }
 )
 public class RepositoryLocale extends BaseEntity {
@@ -49,7 +48,6 @@ public class RepositoryLocale extends BaseEntity {
      * <p>
      * For the root locale this is set to {@code false} as we won't send it for
      * translation.
-     *
      */
     @JsonView(View.LocaleSummary.class)
     @Column(name = "to_be_fully_translated")
@@ -86,7 +84,7 @@ public class RepositoryLocale extends BaseEntity {
     public Long getId() {
         return super.getId();
     }
-    
+
     public Repository getRepository() {
         return repository;
     }

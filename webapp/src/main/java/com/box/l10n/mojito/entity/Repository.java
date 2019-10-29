@@ -4,15 +4,25 @@ import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterType;
 import com.box.l10n.mojito.service.repository.RepositoryService;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.hibernate.envers.Audited;
-import org.hibernate.envers.NotAudited;
-import org.hibernate.envers.RelationTargetAuditMode;
 import org.springframework.data.annotation.CreatedBy;
 
-import javax.persistence.*;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,7 +34,7 @@ import java.util.Set;
 @Entity
 @NamedEntityGraph(name = "Repository.statistics",
         attributeNodes = @NamedAttributeNode("repositoryStatistic"))
-@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
+//@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 @Table(name = "repository",
         indexes = {
                 @Index(name = "UK__REPOSITORY__NAME", columnList = "name", unique = true)
@@ -70,8 +80,8 @@ public class Repository extends AuditableEntity {
     Set<AssetIntegrityChecker> assetIntegrityCheckers = new HashSet<>();
 
     @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
-    @NotAudited
-    Set<Branch> branches = new HashSet<>();
+//    @NotAudited
+            Set<Branch> branches = new HashSet<>();
 
     @OneToOne
     @Basic(optional = false)
