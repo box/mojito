@@ -200,7 +200,7 @@ public class TextUnitWS {
      * @return the translations that matches the search parameters
      * @throws InvalidTextUnitSearchParameterException
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/history/{textUnitId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/api/textunits/{textUnitId}/history")
     @ResponseStatus(HttpStatus.OK)
     @JsonView(View.TranslationHistorySummary.class)
     public List<TMTextUnitVariant> getTextUnitHistory(
