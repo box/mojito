@@ -19,7 +19,9 @@ class translationHistoryModal extends React.Component {
         return item ?
             (
                 <tr>
-                    <td>{item.createdByUser.username}</td>
+                    <td className="history-none">{item.createdByUser === null ?
+                        <FormattedMessage id="textUnit.translationHistoryModal.NoUser"/> :
+                        item.createdByUser.username}</td>
                     <td>{item.content}</td>
                     <td>{this.convertDateTime(item.createdDate)}</td>
                     <td><StatusGlyph status={item.status} onClick={() => ""}/></td>
@@ -32,17 +34,17 @@ class translationHistoryModal extends React.Component {
      * @returns {*} Generated content for the git blame information section
      */
     rendertranslationHistory = () => {
-        const { translationHistory, textUnit, intl } = this.props;
+        const {translationHistory, textUnit, intl} = this.props;
 
         return (
             <Table className="repo-table table-padded-sides">
                 <thead>
-                    <tr>
-                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.User"/></th>
-                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Translation"/></th>
-                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Date"/></th>
-                        <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Status"/></th>
-                    </tr>
+                <tr>
+                    <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.User"/></th>
+                    <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Translation"/></th>
+                    <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Date"/></th>
+                    <th className="col-md-4"><FormattedMessage id="textUnit.translationHistoryModal.Status"/></th>
+                </tr>
                 </thead>
                 <tbody>
                 {(translationHistory && translationHistory.length) ? translationHistory.map(this.renderHistoryItem) : ""}
@@ -50,7 +52,8 @@ class translationHistoryModal extends React.Component {
                     createdByUser: {
                         username: "mojito"
                     },
-                    content: (<span class="history-initial"><FormattedMessage id="textUnit.translationHistoryModal.InitialPush"/></span>),
+                    content: (<span class="history-none"><FormattedMessage
+                        id="textUnit.translationHistoryModal.InitialPush"/></span>),
                     createdDate: textUnit.getTmTextUnitCreatedDate(),
                     status: TextUnitSDK.STATUS.TRANSLATION_NEEDED
                 })}
@@ -84,7 +87,7 @@ class translationHistoryModal extends React.Component {
     };
 
     render() {
-        const { textUnit, show } = this.props;
+        const {textUnit, show} = this.props;
 
         return textUnit ? (
             <Modal className={"git-blame-modal"} show={show} onHide={this.closeModal}>
