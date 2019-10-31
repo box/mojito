@@ -234,6 +234,54 @@ public class DropServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void forTranslationWithOneFullyTranslatedLocale() throws Exception {
+
+        TMTestData tmTestData = new TMTestData(testIdWatcher, true);
+
+        Repository repository = tmTestData.repository;
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR"); // fr-FR should be fully translated
+        bcp47Tags.add("ja-JP");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 2);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box");
+        Drop drop = startExportProcess.get();
+
+        int xliffCount = localizeDropFiles(drop, 1);
+
+        logger.debug("Import drop");
+        PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
+
+        logger.debug("Wait for import to finish");
+        pollableTaskService.waitForPollableTask(startImportDrop.getPollableTask().getId(), 60000L);
+
+        logger.debug("Check everything is now translated");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 0);
+
+        logger.debug("Check number of xliffs - should be one for ja-JP because fr-FR is fully translated");
+        assertEquals(1, xliffCount);
+
+        logger.debug("Check everyting is fully imported");
+        assertFalse(drop.getPartiallyImported());
+
+    }
+
+    @Test
     public void forTranslationWithTranslationAddedAfterExport() throws Exception {
 
         TMTestData tmTestData = new TMTestData(testIdWatcher);
@@ -419,12 +467,13 @@ public class DropServiceTest extends ServiceTestBase {
         assertEquals(expectedNumberOfUnstranslated, search.size());
     }
 
-    public void localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException, IOException {
-        localizeDropFiles(drop, round, "translated");
+    public int localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException, IOException {
+        return localizeDropFiles(drop, round, "translated");
     }
 
-    public void localizeDropFiles(Drop drop, int round, String xliffState) throws BoxSDKServiceException, DropExporterException, IOException {
+    public int localizeDropFiles(Drop drop, int round, String xliffState) throws BoxSDKServiceException, DropExporterException, IOException {
 
+        int xliffCount = 0;
         logger.debug("Localize files in a drop for testing");
 
         FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
@@ -455,7 +504,9 @@ public class DropServiceTest extends ServiceTestBase {
             //TODO(P1) this logic is being duplicated everywhere maybe it should go back into the config or service.
             Path localizedFolderPath = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName());
             Files.write(localizedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
+            xliffCount++;
         }
+        return xliffCount;
     }
 
     public void reviewDropFiles(Drop drop) throws DropExporterException, BoxSDKServiceException, IOException {

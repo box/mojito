@@ -77,8 +77,9 @@ public class DropServiceBoxTest extends DropServiceTest {
     }
 
     @Override
-    public void localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException {
+    public int localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException {
 
+        int xliffCount = 0;
         logger.debug("Localize files in a drop for testing");
 
         BoxDropExporter boxDropExporter = (BoxDropExporter) dropExporterService.recreateDropExporter(drop);
@@ -106,7 +107,9 @@ public class DropServiceBoxTest extends DropServiceTest {
             }
 
             boxSDKService.uploadFile(boxDropExporterConfig.getLocalizedFolderId(), sourceFile.getInfo().getName(), localizedContent);
+            xliffCount++;
         }
+        return xliffCount;
     }
 
     @Override

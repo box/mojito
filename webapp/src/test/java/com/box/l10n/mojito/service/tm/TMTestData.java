@@ -74,6 +74,7 @@ public class TMTestData {
     public Asset asset;
     public TMTextUnitVariant addCurrentTMTextUnitVariant1KoKR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant1FrFR;
+    public TMTextUnitVariant addCurrentTMTextUnitVariant2FrFR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant3FrFR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant2FrCA;
     public TMTextUnitVariant addCurrentTMTextUnitVariant3FrCA;
@@ -87,9 +88,15 @@ public class TMTestData {
     public RepositoryLocale repoLocaleKoKR;
 
     TestIdWatcher testIdWatcher;
+    private boolean fullyTranslateOneLocale = false;
 
     public TMTestData(TestIdWatcher testIdWatcher) {
         this.testIdWatcher = testIdWatcher;
+    }
+
+    public TMTestData(TestIdWatcher testIdWatcher, boolean fullyTranslateOneLocale) {
+        this.testIdWatcher = testIdWatcher;
+        this.fullyTranslateOneLocale = fullyTranslateOneLocale;
     }
 
     @PostConstruct
@@ -150,6 +157,10 @@ public class TMTestData {
         addCurrentTMTextUnitVariant3FrFR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit3.getId(), frFR.getId(), "Content3 fr-FR");
         addCurrentTMTextUnitVariant2FrCA = tmService.addCurrentTMTextUnitVariant(addTMTextUnit2.getId(), frCA.getId(), "Content2 fr-CA");
         addCurrentTMTextUnitVariant3FrCA = tmService.addCurrentTMTextUnitVariant(addTMTextUnit3.getId(), frCA.getId(), "Content3 fr-CA");
+
+        if (fullyTranslateOneLocale) {
+            addCurrentTMTextUnitVariant2FrFR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit2.getId(), frFR.getId(), "Content2 fr-FR");
+        }
     }
 
 }
