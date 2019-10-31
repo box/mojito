@@ -17,6 +17,7 @@ import com.box.l10n.mojito.service.drop.exporter.DropExporterException;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterService;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporter;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporterConfig;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskExecutionException;
@@ -89,6 +90,9 @@ public class DropServiceTest extends ServiceTestBase {
 
     @Autowired
     TextUnitSearcher textUnitSearcher;
+
+    @Autowired
+    LocaleService localeService;
 
     @Autowired
     TranslationKitRepository translationKitRepository;
@@ -405,11 +409,12 @@ public class DropServiceTest extends ServiceTestBase {
 
         Repository repository = tmTestData.repository;
 
-        tmTestData.addCurrentTMTextUnitVariant1KoKR.setStatus(Status.APPROVED);
-
+        // make French be fully translated and Japanese not
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.setStatus(Status.APPROVED);
+        tmService.addCurrentTMTextUnitVariant(tmTestData.addTMTextUnit2.getId(), localeService.findByBcp47Tag("fr-FR").getId(), "French stuff here.");
+        
         List<String> bcp47Tags = new ArrayList<>();
         bcp47Tags.add("fr-FR");
-        bcp47Tags.add("ko-KR");
         bcp47Tags.add("ja-JP");
 
         ExportDropConfig exportDropConfig = new ExportDropConfig();
@@ -417,7 +422,7 @@ public class DropServiceTest extends ServiceTestBase {
         exportDropConfig.setBcp47Tags(bcp47Tags);
 
         logger.debug("Check inital number of untranslated units");
-        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 3); // no units to translate for Korean
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 2);
 
         logger.debug("Create an initial drop for the repository");
         PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
@@ -430,11 +435,11 @@ public class DropServiceTest extends ServiceTestBase {
         logger.debug("Drop export finished, localize files in Box without updating the state");
         Drop drop = startExportProcess.get();
 
-        // Make sure no Korean xliff was generated
+        // Make sure no French xliff was generated
         FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
         FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
 
-        File koKR = new File(Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME, "ko-KR.xliff").toString());
+        File koKR = new File(Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME, "fr-FR.xliff").toString());
 
         assertFalse(koKR.exists());
     }
