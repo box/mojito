@@ -7,8 +7,10 @@ import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.entity.ScreenshotRun;
 import com.box.l10n.mojito.entity.TM;
+
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
+
 import com.box.l10n.mojito.service.assetintegritychecker.AssetIntegrityCheckerRepository;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterConfig;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -16,7 +18,9 @@ import com.box.l10n.mojito.service.repository.statistics.RepositoryLocaleStatist
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRunRepository;
 import com.box.l10n.mojito.service.tm.TMRepository;
+
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,7 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+
 import static org.springframework.data.jpa.domain.Specifications.where;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +81,7 @@ public class RepositoryService {
 
     /**
      * Default root locale.
-     *
+     * <p>
      * TODO(P1) Make this customizable during repository creation. Need to be
      * reviewed when working on the WS/CLI/FE
      */
@@ -83,6 +89,26 @@ public class RepositoryService {
 
     /**
      * Gets all the repositories that are not deleted, ordered by name
+     * <p>
+     * Could do something similar with criteria and more complex entity graph. When using more complex entity graph
+     * with spring it returns dupplicates that can be removed using "distinct" but that can't be provided with
+     * the basic spring repository. To do the equivalent with criteria:
+     * <p>
+     * Specifications<Repository> spec = where(deletedEquals(false)).and(ifParamNotNull(nameEquals(repositoryName)));
+     * Sort sort = new Sort(Sort.Direction.ASC, "name");
+     * CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+     * CriteriaQuery<Repository> query = builder.createQuery(Repository.class);
+     * Root<Repository> root = query.from(Repository.class);
+     * query.where(spec.toPredicate(root, query, builder));
+     * query.distinct(true);
+     * query.select(root);
+     * query.orderBy(toOrders(sort, root, builder));
+     * EntityGraph entityGraph = entityManager.getEntityGraph("repository-view-summary");
+     * TypedQuery<Repository> typedQuery = entityManager.createQuery(query);
+     * typedQuery.setHint("javax.persistence.loadgraph", entityGraph);
+     * List<Repository> repositories = typedQuery.getResultList();
+     * return repositories;
+     *
      * @param repositoryName
      * @return
      */
@@ -97,10 +123,10 @@ public class RepositoryService {
      * Creates a {@link Repository}. A {@link TM} is created and linked to the
      * {@link Repository}.
      *
-     * @param name the repository name (must not exist already)
-     * @param description for the repo to be created
+     * @param name         the repository name (must not exist already)
+     * @param description  for the repo to be created
      * @param sourceLocale the source locale of this repository. if null, {@link LocaleService#DEFAULT_LOCALE_BCP47_TAG} is used
-     * @param checkSLA if SLA will be checked for this repository
+     * @param checkSLA     if SLA will be checked for this repository
      * @return the created {@link Repository}
      */
     @Transactional
@@ -119,7 +145,7 @@ public class RepositoryService {
         repository = new Repository();
         repository.setName(name);
         repository.setDescription(description);
-        repository.setCheckSLA(checkSLA != null ? checkSLA : false );
+        repository.setCheckSLA(checkSLA != null ? checkSLA : false);
         repository.setDropExporterType(dropExporterConfiguration.getType());
 
         if (sourceLocale == null) {
@@ -153,7 +179,7 @@ public class RepositoryService {
     /**
      * Adds the {@link com.box.l10n.mojito.entity.ScreenshotRun} that will be used to store screenshots uploaded by
      * developpers/manually.
-     *
+     * <p>
      * This run stays with {@link ScreenshotRun#lastSuccessfulRun} set to {@code false}.
      *
      * @param repository
@@ -189,9 +215,8 @@ public class RepositoryService {
      * @param description
      * @param sourceLocale
      * @param assetIntegrityCheckers
-     * @param repositoryLocales Set of {@link RepositoryLocale}. See
-     * {@link RepositoryService#updateRepositoryLocales} to see requirements
-     *
+     * @param repositoryLocales      Set of {@link RepositoryLocale}. See
+     *                               {@link RepositoryService#updateRepositoryLocales} to see requirements
      * @return The created {@link Repository}
      */
     @Transactional
@@ -274,29 +299,31 @@ public class RepositoryService {
 
     /**
      * Save the Set of {@link RepositoryLocale}.
-     *
+     * <p>
      * {
      *
+     * @param repositoryLocales
+     * @throws com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException
      * @NOTE The Set contains {@link RepositoryLocale} that don't already exists
      * (ie. {@link RepositoryLocale#id}s are null).}
-     *
+     * <p>
      * {
      * @NOTE All {@link RepositoryLocale} are expected to be in the same
      * {@link Repository}}
-     *
+     * <p>
      * {
      * @NOTE All {@link RepositoryLocale} in the {@link Repository} will be
      * cleared before being updated}
-     *
+     * <p>
      * {
      * @NOTE We only expect one level of the hierarchy to be resolved in the
      * input set of {@link RepositoryLocale}}
-     *
+     * <p>
      * {
      * @NOTE The root locale should not be specified in this set}
-     *
+     * <p>
      * For the following example: en-AU ONLY need to specify up to en-CA
-     *
+     * <p>
      * en / \ en-CA en-GB / en-AU
      *
      * <pre>
@@ -312,12 +339,8 @@ public class RepositoryService {
      *
      * }
      * </pre>
-     *
+     * <p>
      * TODO(P1) move RepositoryLocale related into RepositoryLocale service
-     *
-     * @param repositoryLocales
-     * @throws
-     * com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException
      */
     @Transactional
     public void updateRepositoryLocales(Set<RepositoryLocale> repositoryLocales) throws RepositoryLocaleCreationException {
@@ -427,15 +450,15 @@ public class RepositoryService {
 
     /**
      * Convert to a Map keyed by BCP47 Tag
-     *
+     * <p>
      * While it is converting to a map, it does the following:
-     *
+     * <p>
      * 1. Checks for conflict {@link RepositoryLocale}. See
      * {@link RepositoryService#checkConflictInMap} 2. Checks for the same
      * {@link Repository} between {@link RepositoryLocale}
      *
      * @param repositoryLocales {@link Set} of {@link RepositoryLocale} to be
-     * converted to a {@link Map}
+     *                          converted to a {@link Map}
      * @return
      */
     public Map<String, RepositoryLocale> getMapAndCheckConflictAndAssertSameRepository(Set<RepositoryLocale> repositoryLocales) throws RepositoryLocaleCreationException {
@@ -499,7 +522,7 @@ public class RepositoryService {
      * The locale is set to be fully translated.
      *
      * @param repository the repository that owns the {@link RepositoryLocale}
-     * @param bcp47Tag the locale to be added or updated
+     * @param bcp47Tag   the locale to be added or updated
      * @return the added {@link RepositoryLocale}
      */
     public RepositoryLocale addRepositoryLocale(Repository repository, String bcp47Tag) throws RepositoryLocaleCreationException {
@@ -512,11 +535,10 @@ public class RepositoryService {
      * <p>
      * {
      *
-     * @NOTE Must be called only once per repository.}
-     *
      * @param repository the repository that owns the root locale
-     * @param bcp47Tag the bcp47 tag of the root locale
+     * @param bcp47Tag   the bcp47 tag of the root locale
      * @return the created {@link RepositoryLocale} that holds the root locale
+     * @NOTE Must be called only once per repository.}
      */
     @Transactional
     protected RepositoryLocale addRootLocale(Repository repository, Locale sourceLocale) {
@@ -555,20 +577,19 @@ public class RepositoryService {
      * Adds a {@link RepositoryLocale}. This is for adding regular
      * {@link RepositoryLocale} so will use the {@code DEFAULT_ROOT_LOCALE} if
      * no {@code parentLocaleBcp47Tag} is passed in.
-     *
+     * <p>
      * {
      *
+     * @param repository           the repository that owns the {@link RepositoryLocale}
+     * @param bcp47Tag             the locale to be added or updated
+     * @param parentLocaleBcp47Tag the locale the {@link RepositoryLocale} will
+     *                             inherit from. {@code null} means no inheritance will be applied for this
+     *                             locale. See {@link RepositoryLocale#parentLocale}.
+     * @param toBeFullyTranslated  {@code true} if this {@link RepositoryLocale}
+     *                             is meant to be fully translated.
+     * @return the added {@link RepositoryLocale}
      * @NOTE Adding a {@link RepositoryLocale} here doesn't check the hierarchy
      * for cycles or conflict.}
-     *
-     * @param repository the repository that owns the {@link RepositoryLocale}
-     * @param bcp47Tag the locale to be added or updated
-     * @param parentLocaleBcp47Tag the locale the {@link RepositoryLocale} will
-     * inherit from. {@code null} means no inheritance will be applied for this
-     * locale. See {@link RepositoryLocale#parentLocale}.
-     * @param toBeFullyTranslated {@code true} if this {@link RepositoryLocale}
-     * is meant to be fully translated.
-     * @return the added {@link RepositoryLocale}
      */
     @Transactional
     public RepositoryLocale addRepositoryLocale(
@@ -669,8 +690,7 @@ public class RepositoryService {
      * @param repositoryLocales
      * @param assetIntegrityCheckers
      * @throws RepositoryLocaleCreationException
-     * @throws
-     * com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
+     * @throws com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
      */
     @Transactional
     public void updateRepository(Repository repository, String newName, String description, Boolean checkSLA, Set<RepositoryLocale> repositoryLocales, Set<AssetIntegrityChecker> assetIntegrityCheckers) throws RepositoryLocaleCreationException, RepositoryNameAlreadyUsedException {
