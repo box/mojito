@@ -104,7 +104,10 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
     @Test
     public void importPo() throws Exception {
 
+//        System.setProperty("overrideExpectedTestFiles", "true");
+
         Repository repository = createTestRepoUsingRepoService();
+        repositoryService.addRepositoryLocale(repository, "ar-SA");
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
@@ -112,12 +115,12 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
         getL10nJCommander().run("import", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
-                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
+                "-lm", "ar:ar-SA,fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir().getAbsolutePath(),
-                "-lm", "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
+                "-lm", "ar:ar-SA,fr:fr-FR,fr-CA:fr-CA,ja:ja-JP");
 
         checkExpectedGeneratedResources();
     }
@@ -453,5 +456,4 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-
 }

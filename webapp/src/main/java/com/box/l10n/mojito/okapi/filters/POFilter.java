@@ -247,8 +247,13 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         public List<Event> getCompletedForms(LocaleId localeId) {
 
             if (other == null) {
-                logger.debug("Other is not defined, means it is for a language where few can be copied like Russian");
-                other = createCopyOf(few, "few", "other");
+                if (few != null) {
+                    logger.debug("Other is not defined but few is, means it is for a language where few can be copied like Russian");
+                    other = createCopyOf(few, "few", "other");
+                } else if (zero != null) {
+                    logger.debug("Other and few are not defined but one is, means it is for a language where few can be copied like Arabic");
+                    other = createCopyOf(zero, "zero", "other");
+                }
             }
 
             return super.getCompletedForms(localeId);
@@ -257,9 +262,14 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         @Override
         void adaptTextUnitToCLDRForm(ITextUnit textUnit, String cldrPluralForm) {
 
-            if (!"one".equals(cldrPluralForm)) {
-                // source should always be plural form unless for "one" form, 
-                // this is needed for language with only one entry like 
+            if ("one".equals(cldrPluralForm)) {
+                // source should always be singular form for "one" form,
+                // this is needed for language with 6 entry like arabic
+                logger.debug("Set message singular: {}", msgID);
+                textUnit.setSource(new TextContainer(msgID));
+            } else {
+                // source should always be plural form unless for "one" form,
+                // this is needed for language with only one entry like
                 // japanese: [0] --> other
                 logger.debug("Set message plural: {}", msgIDPlural);
                 textUnit.setSource(new TextContainer(msgIDPlural));
