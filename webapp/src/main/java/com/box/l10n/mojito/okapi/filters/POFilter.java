@@ -266,13 +266,13 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
                 // source should always be singular form for "one" form,
                 // this is needed for language with 6 entry like arabic
                 logger.debug("Set message singular: {}", msgID);
-                textUnit.setSource(new TextContainer(msgID));
+                textUnit.setSource(new TextContainer(unescapeUtils.replaceEscapedQuotes(msgID)));
             } else {
                 // source should always be plural form unless for "one" form,
                 // this is needed for language with only one entry like
                 // japanese: [0] --> other
                 logger.debug("Set message plural: {}", msgIDPlural);
-                textUnit.setSource(new TextContainer(msgIDPlural));
+                textUnit.setSource(new TextContainer(unescapeUtils.replaceEscapedQuotes(msgIDPlural)));
             }
         }
 
