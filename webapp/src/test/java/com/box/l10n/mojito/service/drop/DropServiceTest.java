@@ -439,9 +439,9 @@ public class DropServiceTest extends ServiceTestBase {
         FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
         FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
 
-        File koKR = new File(Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME, "fr-FR.xliff").toString());
+        File frFR = new File(Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME, "fr-FR.xliff").toString());
 
-        assertFalse(koKR.exists());
+        assertFalse(frFR.exists());
     }
 
     public void checkNumberOfUntranslatedTextUnit(Repository repository, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
