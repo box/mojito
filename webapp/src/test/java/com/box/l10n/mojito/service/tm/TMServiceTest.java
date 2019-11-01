@@ -450,7 +450,7 @@ public class TMServiceTest extends ServiceTestBase {
         tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
         TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
 
-        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
 
         // Adding current variant that failed integrity checks (should not be included in localized XLIFF)
         //TODO(P1) need to save in comments
@@ -478,9 +478,9 @@ public class TMServiceTest extends ServiceTestBase {
         Locale locale = repositoryLocale.getLocale();
 
         tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
-        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application",  TMTextUnitVariant.Status.APPROVED,true);
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application", TMTextUnitVariant.Status.APPROVED, true);
 
-        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2));
         String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, null, Status.ACCEPTED, InheritanceMode.REMOVE_UNTRANSLATED);
@@ -505,11 +505,11 @@ public class TMServiceTest extends ServiceTestBase {
         Locale locale = repositoryLocale.getLocale();
 
         tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
-        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application",  TMTextUnitVariant.Status.APPROVED,true);
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application", TMTextUnitVariant.Status.APPROVED, true);
 
-        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
 
-        TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve",  TMTextUnitVariant.Status.TRANSLATION_NEEDED,true);
+        TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
         String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, null, Status.ACCEPTED_OR_NEEDS_REVIEW, InheritanceMode.REMOVE_UNTRANSLATED);
@@ -534,11 +534,11 @@ public class TMServiceTest extends ServiceTestBase {
         Locale locale = repositoryLocale.getLocale();
 
         tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
-        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application",  TMTextUnitVariant.Status.APPROVED,true);
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application", TMTextUnitVariant.Status.APPROVED, true);
 
-        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison",  TMTextUnitVariant.Status.REVIEW_NEEDED,true);
+        TMTextUnitVariant variant2 = tmService.addCurrentTMTextUnitVariant(tmTextUnit2.getId(), locale.getId(), "Maison", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
 
-        TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve",  TMTextUnitVariant.Status.TRANSLATION_NEEDED,true);
+        TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
 
         String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
         String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
@@ -599,8 +599,8 @@ public class TMServiceTest extends ServiceTestBase {
     }
 
     private String getExpectedLocalizedXLIFFContent(String targetLocaleBcp47Tag,
-            TMTextUnit tmTextUnit1, TMTextUnit tmTextUnit2, TMTextUnit tmTextUnit3,
-            TMTextUnitVariant variant1) {
+                                                    TMTextUnit tmTextUnit1, TMTextUnit tmTextUnit2, TMTextUnit tmTextUnit3,
+                                                    TMTextUnitVariant variant1) {
 
         return getExpectedLocalizedXLIFFContent(targetLocaleBcp47Tag, newTmTextUnitWithVariant(tmTextUnit1, variant1), newTmTextUnitWithoutVariant(tmTextUnit2), newTmTextUnitWithoutVariant(tmTextUnit3));
     }
@@ -801,7 +801,7 @@ public class TMServiceTest extends ServiceTestBase {
     /**
      * This test is to test {@link AndroidXMLEncoder} with option to override encoding
      * of &lt; and &gt;
-     *
+     * <p>
      * According to Android specification in
      * http://developer.android.com/guide/topics/resources/string-resource.html,
      * <b>bold</b>, <i>italic</i> and <u>underline</u> should be in localized
@@ -1222,7 +1222,7 @@ public class TMServiceTest extends ServiceTestBase {
 
     /**
      * This test is to test {@link SimpleEncoder} with special characters
-     *
+     * <p>
      * According to iOS specification in
      * https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html,
      * the following characters should be escaped with backslash: double-quote,
@@ -2164,8 +2164,8 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
                 + "#. Comments\n"
                 + "#: core/logic/week_in_review_email_logic.py:49\n"
-                + "msgid \"repin\"\n"
-                + "msgid_plural \"repins\"\n"
+                + "msgid \"repin \\\"{placeholder}\\\"\"\n"
+                + "msgid_plural \"repins \\\"{placeholder}\\\"\"\n"
                 + "msgstr[0] \"\"\n"
                 + "msgstr[1] \"\"";
 
@@ -2183,14 +2183,14 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
                 + "#. Comments\n"
                 + "#: core/logic/week_in_review_email_logic.py:49\n"
-                + "msgid \"repin\"\n"
-                + "msgid_plural \"repins\"\n"
-                + "msgstr[0] \"repins\"\n"
-                + "msgstr[1] \"repin\"\n"
-                + "msgstr[2] \"repins\"\n"
-                + "msgstr[3] \"repins\"\n"
-                + "msgstr[4] \"repins\"\n"
-                + "msgstr[5] \"repins\"\n";
+                + "msgid \"repin \\\"{placeholder}\\\"\"\n"
+                + "msgid_plural \"repins \\\"{placeholder}\\\"\"\n"
+                + "msgstr[0] \"repins \\\"{placeholder}\\\"\"\n"
+                + "msgstr[1] \"repin \\\"{placeholder}\\\"\"\n"
+                + "msgstr[2] \"repins \\\"{placeholder}\\\"\"\n"
+                + "msgstr[3] \"repins \\\"{placeholder}\\\"\"\n"
+                + "msgstr[4] \"repins \\\"{placeholder}\\\"\"\n"
+                + "msgstr[5] \"repins \\\"{placeholder}\\\"\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
         asset = assetRepository.findOne(asset.getId());
@@ -2232,14 +2232,14 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
                 + "#. Comments\n"
                 + "#: core/logic/week_in_review_email_logic.py:49\n"
-                + "msgid \"repin\"\n"
-                + "msgid_plural \"repins\"\n"
-                + "msgstr[0] \"repins-ar-0\"\n"
-                + "msgstr[1] \"repins-ar-1\"\n"
-                + "msgstr[2] \"repins-ar-2\"\n"
-                + "msgstr[3] \"repins-ar-3\"\n"
-                + "msgstr[4] \"repins-ar-4\"\n"
-                + "msgstr[5] \"repins-ar-5\"\n";
+                + "msgid \"repin \\\"{placeholder}\\\"\"\n"
+                + "msgid_plural \"repins \\\"{placeholder}\\\"\"\n"
+                + "msgstr[0] \"repins \\\"{placeholder}\\\"-ar-0\"\n"
+                + "msgstr[1] \"repins \\\"{placeholder}\\\"-ar-1\"\n"
+                + "msgstr[2] \"repins \\\"{placeholder}\\\"-ar-2\"\n"
+                + "msgstr[3] \"repins \\\"{placeholder}\\\"-ar-3\"\n"
+                + "msgstr[4] \"repins \\\"{placeholder}\\\"-ar-4\"\n"
+                + "msgstr[5] \"repins \\\"{placeholder}\\\"-ar-5\"\n";
 
         tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null, null).get();
 
@@ -2637,8 +2637,8 @@ public class TMServiceTest extends ServiceTestBase {
         }
 
         String localizedAssetContent = "hello=Bonjour\nbye=Au revoir CA\nsource=target";
-         tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null, null).get();
-         tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null, null).get();
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null, null).get();
+        tmService.importLocalizedAssetAsync(assetId, localizedAssetContent, repoLocale.getLocale().getId(), StatusForEqualTarget.APPROVED, null, null).get();
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
