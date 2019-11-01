@@ -265,7 +265,7 @@ public class TMServiceTest extends ServiceTestBase {
         String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
         assertEquals("3063c39d3cf8ab69bcabbbc5d7187dc9", computeTMTextUnitMD5);
     }
-    
+
     @Test
     public void testComputeTMTextUnitMD5Null() throws IOException {
         String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5(null, "this is the content", null);
@@ -2134,6 +2134,116 @@ public class TMServiceTest extends ServiceTestBase {
         tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "cs-CZ", null, null, Status.ALL, InheritanceMode.USE_PARENT);
+        logger.debug("localized after import=\n{}", localizedAsset);
+
+        assertEquals(forImport, localizedAsset);
+    }
+
+    @Test
+    public void testLocalizePoPluralAr() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "ar-SA");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"\"\n"
+                + "msgstr[1] \"\"";
+
+        String expectedLocalizedAsset = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repins\"\n"
+                + "msgstr[1] \"repin\"\n"
+                + "msgstr[2] \"repins\"\n"
+                + "msgstr[3] \"repins\"\n"
+                + "msgstr[4] \"repins\"\n"
+                + "msgstr[5] \"repins\"\n";
+
+        asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setRepositoryIds(repo.getId());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+        List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+            logger.debug("source=[{}]", textUnitDTO.getSource());
+        }
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ar-SA", null, null, Status.ALL, InheritanceMode.USE_PARENT);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(expectedLocalizedAsset, localizedAsset);
+
+        String forImport = "msgid \"\"\n"
+                + "msgstr \"\"\n"
+                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
+                + "\"Report-Msgid-Bugs-To: \\n\"\n"
+                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
+                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
+                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
+                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
+                + "\"MIME-Version: 1.0\\n\"\n"
+                + "\"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\\n\"\n"
+                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "#. Comments\n"
+                + "#: core/logic/week_in_review_email_logic.py:49\n"
+                + "msgid \"repin\"\n"
+                + "msgid_plural \"repins\"\n"
+                + "msgstr[0] \"repins-ar-0\"\n"
+                + "msgstr[1] \"repins-ar-1\"\n"
+                + "msgstr[2] \"repins-ar-2\"\n"
+                + "msgstr[3] \"repins-ar-3\"\n"
+                + "msgstr[4] \"repins-ar-4\"\n"
+                + "msgstr[5] \"repins-ar-5\"\n";
+
+        tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null, null).get();
+
+        localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ar-AR", null, null, Status.ALL, InheritanceMode.USE_PARENT);
         logger.debug("localized after import=\n{}", localizedAsset);
 
         assertEquals(forImport, localizedAsset);
