@@ -2193,7 +2193,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[5] \"repins \\\"{placeholder}\\\"\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).get();
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
