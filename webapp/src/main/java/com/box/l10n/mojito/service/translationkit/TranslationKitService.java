@@ -18,7 +18,6 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
-import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -103,13 +102,6 @@ public class TranslationKitService {
         logger.debug("Get translation kit for in tmId: {} and locale: {}", tmId, localeId);
         TranslationKit translationKit = addTranslationKit(dropId, localeId, type);
 
-        Long repositoryId = translationKit.getDrop().getRepository().getId();
-        StatusFilter statusFilter = TranslationKit.Type.TRANSLATION.equals(type) ? StatusFilter.FOR_TRANSLATION : StatusFilter.REVIEW_NEEDED;
-
-        if (isEmpty(repositoryId, localeId, statusFilter, useInheritance)) {
-            return null;
-        }
-
         logger.trace("Create XLIFFWriter");
         XLIFFWriter xliffWriter = new XLIFFWriter();
 
@@ -119,10 +111,11 @@ public class TranslationKitService {
         filterEventsWriterStep.setOutputStream(byteArrayOutputStream);
         filterEventsWriterStep.setOutputEncoding(StandardCharsets.UTF_8.toString());
 
+        TranslationKitStep tksStep = new TranslationKitStep(translationKit.getId());
         logger.trace("Prepare the Okapi pipeline");
         IPipelineDriver driver = new PipelineDriver();
         driver.addStep(new RawDocumentToFilterEventsStep(new TranslationKitFilter(translationKit.getId(), type, useInheritance)));
-        driver.addStep(new TranslationKitStep(translationKit.getId()));
+        driver.addStep(tksStep);
         driver.addStep(filterEventsWriterStep);
 
         logger.trace("Add single document with fake output URI to be processed with an outputStream");
@@ -138,6 +131,7 @@ public class TranslationKitService {
         TranslationKitAsXliff translationKitAsXliff = new TranslationKitAsXliff();
         translationKitAsXliff.setContent(StreamUtil.getUTF8OutputStreamAsString(byteArrayOutputStream));
         translationKitAsXliff.setTranslationKitId(translationKit.getId());
+        translationKitAsXliff.setEmpty(tksStep.wordCount < 1);
 
         return translationKitAsXliff;
     }
@@ -283,7 +277,7 @@ public class TranslationKitService {
         translationKit.setNumSourceEqualsTarget(translationKitTextUnitRepository.countByTranslationKitAndSourceEqualsTargetTrue(translationKit));
         translationKit.setNumBadLanguageDetections(translationKitTextUnitRepository.countByTranslationKitAndDetectedLanguageNotEqualsDetectedLanguageExpected(translationKit));
         translationKit.setNotFoundTextUnitIds(notFoundTextUnitIds);
-        if (translationKit.getNumTranslatedTranslationKitUnits() > 0) {
+        if (translationKit.getNumTranslationKitUnits() == 0 || translationKit.getNumTranslatedTranslationKitUnits() > 0) {
             translationKit.setImported(true);
         }
 
@@ -298,7 +292,7 @@ public class TranslationKitService {
         List<TranslationKit> translationKits = translationKitRepository.findByDropId(drop.getId());
         boolean partiallyImported = false;
         for (TranslationKit translationKit : translationKits) {
-            if (translationKit.getNumTranslationKitUnits() > 0 && !translationKit.getImported()) {
+            if (!translationKit.getImported()) {
                 partiallyImported = true;
                 break;
             }
@@ -403,45 +397,5 @@ public class TranslationKitService {
         textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
         return textUnitDTOs;
-    }
-
-    private boolean isEmptyForStatus(Long repositoryId, Long localeId, StatusFilter statusFilter) {
-        TextUnitAndWordCount textUnitAndWordCount;
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-
-        textUnitSearcherParameters.setRepositoryIds(repositoryId);
-        textUnitSearcherParameters.setLocaleId(localeId);
-        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
-        textUnitSearcherParameters.setDoNotTranslateFilter(Boolean.FALSE);
-        if (statusFilter != null) {
-            textUnitSearcherParameters.setStatusFilter(statusFilter);
-        }
-        textUnitAndWordCount = textUnitSearcher.countTextUnitAndWordCount(textUnitSearcherParameters);
-
-        return textUnitAndWordCount.getTextUnitCount() == 0 || textUnitAndWordCount.getTextUnitWordCount() == 0;
-    }
-
-    private boolean isEmpty(Long repositoryId, Long localeId, StatusFilter statusFilter, boolean useInheritance) {
-        if (useInheritance) {
-            Stack<Long> localeIds = getLocaleInheritanceStack(repositoryId, localeId);
-
-            while (!localeIds.empty()) {
-                Long currentLocaleId = localeIds.pop();
-                if (currentLocaleId == localeId) {
-                    // child locale
-                    if (!isEmptyForStatus(repositoryId, currentLocaleId, StatusFilter.REVIEW_NEEDED)) {
-                        return false;
-                    }
-                } else {
-                    // parent locale
-                    if (!isEmptyForStatus(repositoryId, currentLocaleId, StatusFilter.TRANSLATED_AND_NOT_REJECTED)) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        } else {
-            return isEmptyForStatus(repositoryId, localeId, statusFilter);
-        }
     }
 }

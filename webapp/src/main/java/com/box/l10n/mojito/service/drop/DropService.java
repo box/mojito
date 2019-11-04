@@ -188,7 +188,7 @@ public class DropService {
                 type,
                 useInheritance);
 
-        if (translationKitAsXLIFF != null) {
+        if (!translationKitAsXLIFF.isEmpty()) {
             dropExporter.exportSourceFile(bcp47Tag, translationKitAsXLIFF.getContent());
         }
     }

@@ -13,6 +13,7 @@ public class TranslationKitAsXliff {
 
     Long translationKitId;
     String content;
+    boolean empty;
 
     public Long getTranslationKitId() {
         return translationKitId;
@@ -30,4 +31,11 @@ public class TranslationKitAsXliff {
         this.content = NormalizationUtils.normalize(content);
     }
 
+    public boolean isEmpty() {
+        return empty;
+    }
+
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
+    }
 }

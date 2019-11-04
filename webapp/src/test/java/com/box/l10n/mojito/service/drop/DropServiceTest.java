@@ -361,7 +361,7 @@ public class DropServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void allWithSeverError() throws Exception {
+    public void allWithSevereError() throws Exception {
 
         TMTestData tmTestData = new TMTestData(testIdWatcher);
 
@@ -412,7 +412,7 @@ public class DropServiceTest extends ServiceTestBase {
         // make French be fully translated and Japanese not
         tmTestData.addCurrentTMTextUnitVariant1FrFR.setStatus(Status.APPROVED);
         tmService.addCurrentTMTextUnitVariant(tmTestData.addTMTextUnit2.getId(), localeService.findByBcp47Tag("fr-FR").getId(), "French stuff here.");
-        
+
         List<String> bcp47Tags = new ArrayList<>();
         bcp47Tags.add("fr-FR");
         bcp47Tags.add("ja-JP");
@@ -547,9 +547,9 @@ public class DropServiceTest extends ServiceTestBase {
 
     public void checkImportedFilesContent(String filename, String importedContent, int round) {
         if (filename.startsWith("fr-FR")) {
-            
+
             logger.debug(importedContent);
-            
+
             String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
             logger.error(xliffWithoutIds);
             
