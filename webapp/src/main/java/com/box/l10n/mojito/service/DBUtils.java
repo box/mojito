@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DBUtils {
 
-    @Value("${spring.jpa.database}")
+    @Value("${spring.jpa.database:HSQL}")
     String driver;
 
     public boolean isHSQL() {

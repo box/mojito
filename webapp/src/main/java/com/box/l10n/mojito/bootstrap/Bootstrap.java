@@ -54,7 +54,7 @@ public class Bootstrap implements ApplicationListener<ContextRefreshedEvent> {
      * @return {@code true} if data should be created else {@code false}
      */
     public boolean shouldCreateData() {
-        return userRepository.count() == 0;
+        return false && userRepository.count() == 0;
     }
 
     /**

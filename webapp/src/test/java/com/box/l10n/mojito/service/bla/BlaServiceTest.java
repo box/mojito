@@ -18,6 +18,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.util.stream.Collectors;
+
 /**
  * @author jaurambault
  */
@@ -26,7 +30,7 @@ import org.springframework.test.context.junit4.SpringRunner;
         classes = {BlaServiceTest.class, Application.class, Repository.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {"fromtest=fromtestvalue", "blaformconfig=blaformconfigtest"}
-        )
+)
 @SpringBootApplication
 @EntityScan(basePackageClasses = BaseEntity.class)
 public class BlaServiceTest {
@@ -51,9 +55,15 @@ public class BlaServiceTest {
     @LocalServerPort
     int port;
 
+    @Autowired
+    EntityManager entityManager;
+
     @Test
     public void testBla() throws Exception {
         logger.info("here we go: {}, info: {}, port: {}", somevalue, info, port);
         logger.info("someclass: {}", someClass);
+
+        Query showTables = entityManager.createNativeQuery("SELECT * FROM   INFORMATION_SCHEMA.TABLES");
+        logger.info("tables:\n {}", showTables.getResultList().stream().collect(Collectors.joining("\n")) );
     }
 }

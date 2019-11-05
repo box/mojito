@@ -1,6 +1,6 @@
 package com.box.l10n.mojito;
 
-import org.flywaydb.core.Flyway;
+//import org.flywaydb.core.Flyway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
@@ -23,40 +23,40 @@ public class FlyWayConfig {
      */
     static Logger logger = LoggerFactory.getLogger(FlyWayConfig.class);
 
-    /**
-     * To make flyway clean the database before doing migration (ie. re-create
-     * the schema).
-     */
-    boolean clean = false;
-
-//    @Bean
-    public FlywayMigrationStrategy cleanMigrateStrategy() {
-
-        FlywayMigrationStrategy strategy = new FlywayMigrationStrategy() {
-
-            @Override
-            public void migrate(Flyway flyway) {
-
-                if (clean) {
-                    logger.info("Clean DB with Flyway");
-                    flyway.clean();
-                } else {
-                    logger.info("Don't clean DB with Flyway");
-                }
-
-                flyway.migrate();
-            }
-        };
-
-        return strategy;
-    }
-
-    public boolean isClean() {
-        return clean;
-    }
-
-    public void setClean(boolean clean) {
-        this.clean = clean;
-    }
+//    /**
+//     * To make flyway clean the database before doing migration (ie. re-create
+//     * the schema).
+//     */
+//    boolean clean = false;
+//
+////    @Bean
+//    public FlywayMigrationStrategy cleanMigrateStrategy() {
+//
+//        FlywayMigrationStrategy strategy = new FlywayMigrationStrategy() {
+//
+//            @Override
+//            public void migrate(Flyway flyway) {
+//
+//                if (clean) {
+//                    logger.info("Clean DB with Flyway");
+//                    flyway.clean();
+//                } else {
+//                    logger.info("Don't clean DB with Flyway");
+//                }
+//
+//                flyway.migrate();
+//            }
+//        };
+//
+//        return strategy;
+//    }
+//
+//    public boolean isClean() {
+//        return clean;
+//    }
+//
+//    public void setClean(boolean clean) {
+//        this.clean = clean;
+//    }
 
 }
