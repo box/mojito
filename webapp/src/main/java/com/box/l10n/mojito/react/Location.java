@@ -4,7 +4,7 @@ public class Location {
 
     String url;
     String label;
-    String extractorPrefix;
+    String extractorPrefixRegex;
     Boolean useUsage;
 
     public Boolean getUseUsage() {
@@ -23,13 +23,12 @@ public class Location {
         this.url = url;
     }
 
-
-    public String getExtractorPrefix() {
-        return extractorPrefix;
+    public String getExtractorPrefixRegex() {
+        return extractorPrefixRegex;
     }
 
-    public void setExtractorPrefix(String extractorPrefix) {
-        this.extractorPrefix = extractorPrefix;
+    public void setExtractorPrefixRegex(String extractorPrefixRegex) {
+        this.extractorPrefixRegex = extractorPrefixRegex;
     }
 
     public String getLabel() {
