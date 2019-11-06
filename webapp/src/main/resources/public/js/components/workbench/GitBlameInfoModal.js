@@ -264,7 +264,7 @@ class GitBlameInfoModal extends React.Component {
      * @returns {Array} Creates a list of links corresponding to the usages
      */
     getLocationLinksFromUsages = () => {
-        const extractorPrefix = this.getLocationExtractorPrefix();
+        const extractorPrefixRegex = this.getLocationExtractorPrefixRegex();
 
         let links = [];
         let usages = this.getUsages();
@@ -273,8 +273,9 @@ class GitBlameInfoModal extends React.Component {
             links = this.getLocationDefaultLabel();
         } else {
             for (let usage of usages) {
-                if (extractorPrefix !== undefined) {
-                    usage = usage.replace(extractorPrefix, "");
+                if (extractorPrefixRegex !== undefined) {
+                    let regExp = new RegExp(extractorPrefixRegex);
+                    usage = usage.replace(regExp, "");
                 }
                 let params = {
                     filePath: this.getFilePathFromUsage(usage),
@@ -292,11 +293,11 @@ class GitBlameInfoModal extends React.Component {
     };
 
     /**
-     * @returns {*} Returns the extractorPrefix, if in configuration, or an empty string otherwise
+     * @returns {*} Returns the extractorPrefixRegex, if in configuration, or an empty string otherwise
      */
-    getLocationExtractorPrefix = () => {
+    getLocationExtractorPrefixRegex = () => {
         try {
-            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.extractorPrefix;
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.extractorPrefixRegex;
         } catch (e) {
             return "";
         }
