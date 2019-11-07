@@ -111,10 +111,11 @@ public class TranslationKitService {
         filterEventsWriterStep.setOutputStream(byteArrayOutputStream);
         filterEventsWriterStep.setOutputEncoding(StandardCharsets.UTF_8.toString());
 
+        TranslationKitStep tksStep = new TranslationKitStep(translationKit.getId());
         logger.trace("Prepare the Okapi pipeline");
         IPipelineDriver driver = new PipelineDriver();
         driver.addStep(new RawDocumentToFilterEventsStep(new TranslationKitFilter(translationKit.getId(), type, useInheritance)));
-        driver.addStep(new TranslationKitStep(translationKit.getId()));
+        driver.addStep(tksStep);
         driver.addStep(filterEventsWriterStep);
 
         logger.trace("Add single document with fake output URI to be processed with an outputStream");
@@ -130,6 +131,7 @@ public class TranslationKitService {
         TranslationKitAsXliff translationKitAsXliff = new TranslationKitAsXliff();
         translationKitAsXliff.setContent(StreamUtil.getUTF8OutputStreamAsString(byteArrayOutputStream));
         translationKitAsXliff.setTranslationKitId(translationKit.getId());
+        translationKitAsXliff.setEmpty(tksStep.wordCount < 1);
 
         return translationKitAsXliff;
     }
@@ -275,7 +277,7 @@ public class TranslationKitService {
         translationKit.setNumSourceEqualsTarget(translationKitTextUnitRepository.countByTranslationKitAndSourceEqualsTargetTrue(translationKit));
         translationKit.setNumBadLanguageDetections(translationKitTextUnitRepository.countByTranslationKitAndDetectedLanguageNotEqualsDetectedLanguageExpected(translationKit));
         translationKit.setNotFoundTextUnitIds(notFoundTextUnitIds);
-        if (translationKit.getNumTranslatedTranslationKitUnits() > 0) {
+        if (translationKit.getNumTranslationKitUnits() == 0 || translationKit.getNumTranslatedTranslationKitUnits() > 0) {
             translationKit.setImported(true);
         }
 

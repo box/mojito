@@ -7,12 +7,13 @@ import com.box.l10n.mojito.service.NormalizationUtils;
  * Contains a translation kit in XLIFF format along with the corresponding
  * {@link TranslationKit#id}.
  *
-s * @author jaurambault
+ * @author jaurambault
  */
 public class TranslationKitAsXliff {
 
     Long translationKitId;
     String content;
+    boolean empty = false;
 
     public Long getTranslationKitId() {
         return translationKitId;
@@ -30,4 +31,11 @@ public class TranslationKitAsXliff {
         this.content = NormalizationUtils.normalize(content);
     }
 
+    public boolean isEmpty() {
+        return empty;
+    }
+
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
+    }
 }

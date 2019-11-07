@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
 import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.okapi.XliffState;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -16,6 +17,7 @@ import com.box.l10n.mojito.service.drop.exporter.DropExporterException;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterService;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporter;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporterConfig;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskExecutionException;
@@ -90,6 +92,9 @@ public class DropServiceTest extends ServiceTestBase {
     TextUnitSearcher textUnitSearcher;
 
     @Autowired
+    LocaleService localeService;
+
+    @Autowired
     TranslationKitRepository translationKitRepository;
 
     @Autowired
@@ -139,7 +144,7 @@ public class DropServiceTest extends ServiceTestBase {
 
         logger.debug("Drop export finished, localize files in Box without updating the state");
         Drop drop = startExportProcess.get();
-        localizeDropFiles(drop, 1, "new");
+        localizeDropFiles(drop, 1, "new", false);
 
         logger.debug("Import drop");
         PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
@@ -356,14 +361,14 @@ public class DropServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void allWithSeverError() throws Exception {
+    public void allWithSevereError() throws Exception {
 
         TMTestData tmTestData = new TMTestData(testIdWatcher);
 
         Repository repository = tmTestData.repository;
 
         List<String> bcp47Tags = new ArrayList<>();
-        bcp47Tags.add("it-IT");
+        bcp47Tags.add("fr-FR");
 
         ExportDropConfig exportDropConfig = new ExportDropConfig();
         exportDropConfig.setRepositoryId(repository.getId());
@@ -379,7 +384,7 @@ public class DropServiceTest extends ServiceTestBase {
 
         logger.debug("Drop export finished, localize files in Box");
         Drop drop = startExportProcess.get();
-        localizeDropFiles(drop, 1);
+        localizeDropFiles(drop, 1, "translated", true); // introduce syntax error!
 
         logger.debug("Import drop");
         PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
@@ -395,6 +400,48 @@ public class DropServiceTest extends ServiceTestBase {
             assertTrue(next.getErrorMessage().contains("Unexpected close tag"));
         }
 
+    }
+
+    @Test
+    public void forNoEmptyXliffs() throws Exception {
+
+        TMTestData tmTestData = new TMTestData(testIdWatcher);
+
+        Repository repository = tmTestData.repository;
+
+        // make French be fully translated and Japanese not
+        tmTestData.addCurrentTMTextUnitVariant1FrFR.setStatus(Status.APPROVED);
+        tmService.addCurrentTMTextUnitVariant(tmTestData.addTMTextUnit2.getId(), localeService.findByBcp47Tag("fr-FR").getId(), "French stuff here.");
+
+        List<String> bcp47Tags = new ArrayList<>();
+        bcp47Tags.add("fr-FR");
+        bcp47Tags.add("ja-JP");
+
+        ExportDropConfig exportDropConfig = new ExportDropConfig();
+        exportDropConfig.setRepositoryId(repository.getId());
+        exportDropConfig.setBcp47Tags(bcp47Tags);
+
+        logger.debug("Check inital number of untranslated units");
+        checkNumberOfUntranslatedTextUnit(repository, bcp47Tags, 2);
+
+        logger.debug("Create an initial drop for the repository");
+        PollableFuture<Drop> startExportProcess = dropService.startDropExportProcess(exportDropConfig, PollableTask.INJECT_CURRENT_TASK);
+
+        PollableTask pollableTask = startExportProcess.getPollableTask();
+
+        logger.debug("Wait for export to finish");
+        pollableTaskService.waitForPollableTask(pollableTask.getId(), 600000L);
+
+        logger.debug("Drop export finished, localize files in Box without updating the state");
+        Drop drop = startExportProcess.get();
+
+        // Make sure no French xliff was generated
+        FileSystemDropExporter fileSystemDropExporter = (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
+        FileSystemDropExporterConfig fileSystemDropExporterConfig = fileSystemDropExporter.getFileSystemDropExporterConfig();
+
+        File frFR = new File(Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME, "fr-FR.xliff").toString());
+
+        assertFalse(frFR.exists());
     }
 
     public void checkNumberOfUntranslatedTextUnit(Repository repository, List<String> bcp47Tags, int expectedNumberOfUnstranslated) {
@@ -420,10 +467,10 @@ public class DropServiceTest extends ServiceTestBase {
     }
 
     public void localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException, IOException {
-        localizeDropFiles(drop, round, "translated");
+        localizeDropFiles(drop, round, "translated", false);
     }
 
-    public void localizeDropFiles(Drop drop, int round, String xliffState) throws BoxSDKServiceException, DropExporterException, IOException {
+    public void localizeDropFiles(Drop drop, int round, String xliffState, boolean introduceSyntaxError) throws BoxSDKServiceException, DropExporterException, IOException {
 
         logger.debug("Localize files in a drop for testing");
 
@@ -444,12 +491,15 @@ public class DropServiceTest extends ServiceTestBase {
                         + "<target xml:lang=\"ko-KR\" state=\"new\">Import Drop" + round + " - Content2 ko-KR</target>\n"
                         + "</trans-unit>\n"
                         + "</body>");
-            } else if (sourceFile.getName().startsWith("it-IT")) {
-                logger.debug("For the Italien file, don't translate but add a corrupted xml");
-                localizedContent = localizedContent.replaceAll("</body>", "</bod");
-            } else {
+            } else  {
                 localizedContent = XliffUtils.localizeTarget(localizedContent, "Import Drop" + round);
             }
+
+            if (introduceSyntaxError) {
+                logger.debug("Creating a corrupted xml file to test import errors.");
+                localizedContent = localizedContent.replaceAll("</body>", "</bod");
+            }
+
             localizedContent = XliffUtils.replaceTargetState(localizedContent, xliffState);
 
             //TODO(P1) this logic is being duplicated everywhere maybe it should go back into the config or service.
@@ -500,9 +550,9 @@ public class DropServiceTest extends ServiceTestBase {
 
     public void checkImportedFilesContent(String filename, String importedContent, int round) {
         if (filename.startsWith("fr-FR")) {
-            
+
             logger.debug(importedContent);
-            
+
             String xliffWithoutIds = XliffUtils.replaceXliffVariableContent(importedContent);
             logger.error(xliffWithoutIds);
             
