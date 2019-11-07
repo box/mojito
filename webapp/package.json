@@ -49,10 +49,6 @@
     "url-loader": "^0.6.2",
     "webpack": "^2.6.1"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://gitenterprise.inside-box.net/Box/l10n/webapp"
-  },
   "scripts": {
     "start-dev": "npm run start-server & npm run watch",
     "start-server": "mvn spring-boot:run -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC",
