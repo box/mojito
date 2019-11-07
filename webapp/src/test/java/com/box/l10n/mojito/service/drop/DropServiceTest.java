@@ -144,7 +144,7 @@ public class DropServiceTest extends ServiceTestBase {
 
         logger.debug("Drop export finished, localize files in Box without updating the state");
         Drop drop = startExportProcess.get();
-        localizeDropFiles(drop, 1, "new");
+        localizeDropFiles(drop, 1, "new", false);
 
         logger.debug("Import drop");
         PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
@@ -368,7 +368,7 @@ public class DropServiceTest extends ServiceTestBase {
         Repository repository = tmTestData.repository;
 
         List<String> bcp47Tags = new ArrayList<>();
-        bcp47Tags.add("it-IT");
+        bcp47Tags.add("fr-FR");
 
         ExportDropConfig exportDropConfig = new ExportDropConfig();
         exportDropConfig.setRepositoryId(repository.getId());
@@ -384,7 +384,7 @@ public class DropServiceTest extends ServiceTestBase {
 
         logger.debug("Drop export finished, localize files in Box");
         Drop drop = startExportProcess.get();
-        localizeDropFiles(drop, 1);
+        localizeDropFiles(drop, 1, "translated", true); // introduce syntax error!
 
         logger.debug("Import drop");
         PollableFuture startImportDrop = dropService.importDrop(drop.getId(), null, PollableTask.INJECT_CURRENT_TASK);
@@ -467,10 +467,10 @@ public class DropServiceTest extends ServiceTestBase {
     }
 
     public void localizeDropFiles(Drop drop, int round) throws BoxSDKServiceException, DropExporterException, IOException {
-        localizeDropFiles(drop, round, "translated");
+        localizeDropFiles(drop, round, "translated", false);
     }
 
-    public void localizeDropFiles(Drop drop, int round, String xliffState) throws BoxSDKServiceException, DropExporterException, IOException {
+    public void localizeDropFiles(Drop drop, int round, String xliffState, boolean introduceSyntaxError) throws BoxSDKServiceException, DropExporterException, IOException {
 
         logger.debug("Localize files in a drop for testing");
 
@@ -491,12 +491,15 @@ public class DropServiceTest extends ServiceTestBase {
                         + "<target xml:lang=\"ko-KR\" state=\"new\">Import Drop" + round + " - Content2 ko-KR</target>\n"
                         + "</trans-unit>\n"
                         + "</body>");
-            } else if (sourceFile.getName().startsWith("it-IT")) {
-                logger.debug("For the Italien file, don't translate but add a corrupted xml");
-                localizedContent = localizedContent.replaceAll("</body>", "</bod");
-            } else {
+            } else  {
                 localizedContent = XliffUtils.localizeTarget(localizedContent, "Import Drop" + round);
             }
+
+            if (introduceSyntaxError) {
+                logger.debug("Creating a corrupted xml file to test import errors.");
+                localizedContent = localizedContent.replaceAll("</body>", "</bod");
+            }
+
             localizedContent = XliffUtils.replaceTargetState(localizedContent, xliffState);
 
             //TODO(P1) this logic is being duplicated everywhere maybe it should go back into the config or service.

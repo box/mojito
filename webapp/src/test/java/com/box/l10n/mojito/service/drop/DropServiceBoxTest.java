@@ -72,8 +72,8 @@ public class DropServiceBoxTest extends DropServiceTest {
     @Test
     @Category({BoxSDKTest.class, SlowTest.class})
     @Override
-    public void allWithSeverError() throws Exception {
-        super.allWithSeverError();
+    public void allWithSevereError() throws Exception {
+        super.allWithSevereError();
     }
 
     @Override
