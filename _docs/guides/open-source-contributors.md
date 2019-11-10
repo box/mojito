@@ -63,16 +63,26 @@ Note, to install the exact same `maven` version as the wrapper: `brew install ma
 
       
 ### Install on Unbutu 18.4 LTS
-    
-Install the base dependencies: `git`, `java 8` from `OpenJDK`  and `maven` 
 
-```sh    
-sudo apt-get install git vim openjdk-8-jdk maven
+Install `java 8` from `OpenJDK`:
+
+```sh
+sudo apt-get install openjdk-8-jdk
 ```
-
 Check that `java 8` is now in use with `java -version`. If not you, can set it as default with 
 `sudo update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-amd64`. If you need multiple versions of `java` 
 consider using something like `jenv` or `sdkman`.
+
+Install `maven` (latest version should be fine):
+    
+```sh
+sudo apt-get install maven
+```
+
+Install `git` 
+```sh    
+sudo apt-get install git
+```
     
 Optionally, install `Mysql 5.7`
  
