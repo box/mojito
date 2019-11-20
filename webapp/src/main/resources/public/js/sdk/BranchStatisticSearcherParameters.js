@@ -28,6 +28,10 @@ class BranchStatisticSearcherParameters {
         this.params.deleted = deleted;
     }
 
+    empty(empty) {
+        this.params.empty = empty;
+    }
+
     page(page) {
         this.params.page = page;
     }

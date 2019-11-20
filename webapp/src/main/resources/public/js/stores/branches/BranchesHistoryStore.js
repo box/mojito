@@ -28,6 +28,8 @@ class BranchesHistoryStore {
         this.searchText = "";
         this.deleted = false;
         this.undeleted = true;
+        this.empty = true;
+        this.notEmpty = false;
         this.onlyMyBranches = true;
     }
 
@@ -55,6 +57,14 @@ class BranchesHistoryStore {
         this.undeleted = undeleted;
     }
 
+    changeEmpty(empty) {
+        this.empty = empty;
+    }
+
+    changeNotEmpty(notEmpty) {
+        this.notEmpty = notEmpty;
+    }
+
     changeOnlyMyBranches(onlyMyBranches) {
         this.onlyMyBranches = onlyMyBranches;
     }
@@ -80,7 +90,7 @@ class BranchesHistoryStore {
     static initStoreFromLocationQuery(query) {
         let {
             openBranchStatistic, currentPageNumber, searchText,
-            deleted = "false", undeleted = "true", onlyMyBranches = "true"
+            deleted = "false", undeleted = "true", empty = "true", notEmpty = "false", onlyMyBranches = "true"
         } = query;
 
         let selectedBranchTextUnitIds = query["selectedBranchTextUnitIds[]"];
@@ -104,6 +114,8 @@ class BranchesHistoryStore {
         BranchesSearchParamsActions.changeSearchText(searchText);
         BranchesSearchParamsActions.changeDeleted(deleted === "true");
         BranchesSearchParamsActions.changeUndeleted(undeleted === "true");
+        BranchesSearchParamsActions.changeEmpty(empty === "true");
+        BranchesSearchParamsActions.changeNotEmpty(notEmpty === "true");
         BranchesSearchParamsActions.changeOnlyMyBranches(onlyMyBranches === "true");
 
         if (openBranchStatistic) {

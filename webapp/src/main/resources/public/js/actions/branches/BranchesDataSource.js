@@ -30,6 +30,14 @@ const BranchesDataSource = {
                 branchStatisticSearcherParameters.deleted(false);
             }
 
+            if (!branchesSearchParamState.empty && !branchesSearchParamState.notEmpty) {
+                returnEmpty = true;
+            } else if (branchesSearchParamState.empty && !branchesSearchParamState.notEmpty) {
+                branchStatisticSearcherParameters.empty(true);
+            } else if (!branchesSearchParamState.empty && branchesSearchParamState.notEmpty) {
+                branchStatisticSearcherParameters.empty(false);
+            }
+
             branchStatisticSearcherParameters.page(branchesPaginatorState.currentPageNumber - 1);
             branchStatisticSearcherParameters.size(branchesPaginatorState.limit);
 
