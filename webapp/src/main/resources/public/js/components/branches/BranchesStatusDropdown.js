@@ -9,9 +9,13 @@ class BranchesStatusDropdown extends React.Component {
     static propTypes = {
         "deleted": PropTypes.bool.isRequired,
         "undeleted": PropTypes.bool.isRequired,
+        "empty": PropTypes.bool.isRequired,
+        "notEmpty": PropTypes.bool.isRequired,
         "onlyMyBranches": PropTypes.bool.isRequired,
         "onDeletedChanged": PropTypes.func.isRequired,
         "onUndeletedChanged": PropTypes.func.isRequired,
+        "onEmptyChanged": PropTypes.func.isRequired,
+        "onNotEmptyChanged": PropTypes.func.isRequired,
         "onOnlyMyBranchesChanged": PropTypes.func.isRequired,
     }
 
@@ -49,6 +53,13 @@ class BranchesStatusDropdown extends React.Component {
                 <MenuItem header><FormattedMessage id="branches.searchstatusDropdown.deleted"/></MenuItem>
                 {this.renderFilterMenuItem("deleted", true, this.props.deleted, this.props.onDeletedChanged)}
                 {this.renderFilterMenuItem("undeleted", false, this.props.undeleted, this.props.onUndeletedChanged)}
+
+                <MenuItem divider/>
+
+                <MenuItem header><FormattedMessage id="branches.searchstatusDropdown.empty"/></MenuItem>
+                {this.renderFilterMenuItem("empty", true, this.props.empty, this.props.onEmptyChanged)}
+                {this.renderFilterMenuItem("notEmpty", false, this.props.notEmpty, this.props.onNotEmptyChanged)}
+
             </DropdownButton>
         );
     }

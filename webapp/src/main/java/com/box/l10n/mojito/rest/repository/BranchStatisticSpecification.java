@@ -77,4 +77,16 @@ public class BranchStatisticSpecification {
         };
     }
 
+    public static SingleParamSpecification<BranchStatistic> empty(final boolean empty) {
+        return new SingleParamSpecification<BranchStatistic>(empty) {
+            @Override
+            public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+                Predicate predicate = builder.equal(root.get(BranchStatistic_.totalCount), 0L);
+                if (!empty) {
+                    predicate = builder.not(predicate);
+                }
+                return predicate;
+            }
+        };
+    }
 }

@@ -63,6 +63,8 @@ class BranchesPage extends React.Component {
                             BranchesSearchParamsActions.changeOnlyMyBranches(false);
                             BranchesSearchParamsActions.changeDeleted(true);
                             BranchesSearchParamsActions.changeUndeleted(true);
+                            BranchesSearchParamsActions.changeEmpty(true);
+                            BranchesSearchParamsActions.changeNotEmpty(true);
                             BranchesDataSource.enableHistoryUpdate();
                             BranchesPageActions.getBranches();
                         }}
@@ -82,6 +84,22 @@ class BranchesPage extends React.Component {
                         onUndeletedChanged={(undeleted) => {
                             BranchesDataSource.disableHistoryUpdate();
                             BranchesSearchParamsActions.changeUndeleted(undeleted);
+                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                            BranchesDataSource.enableHistoryUpdate();
+                            BranchesPageActions.getBranches();
+                        }}
+
+                        onEmptyChanged={(empty) => {
+                            BranchesDataSource.disableHistoryUpdate();
+                            BranchesSearchParamsActions.changeEmpty(empty);
+                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                            BranchesDataSource.enableHistoryUpdate();
+                            BranchesPageActions.getBranches();
+                        }}
+
+                        onNotEmptyChanged={(notEmpty) => {
+                            BranchesDataSource.disableHistoryUpdate();
+                            BranchesSearchParamsActions.changeNotEmpty(notEmpty);
                             BranchesPageActions.changeSelectedBranchTextUnitIds([]);
                             BranchesDataSource.enableHistoryUpdate();
                             BranchesPageActions.getBranches();

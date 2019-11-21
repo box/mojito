@@ -6,6 +6,8 @@ class BranchesSearchParamsActions {
         this.generateActions(
             "changeDeleted",
             "changeUndeleted",
+            "changeEmpty",
+            "changeNotEmpty",
             "changeOnlyMyBranches",
             "changeSearchText",
             "resetBranchesSearchParams",
