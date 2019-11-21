@@ -253,10 +253,16 @@ public class ThirdPartyService {
      */
     Optional<Image> getImage(Screenshot screenshot) {
         logger.debug("Get image for screenhost: {} and src: {}", screenshot.getId(), screenshot.getSrc());
-        String src = screenshot.getSrc();
-        String imageName = screenshot.getSrc().replaceAll("^api/images/", "");
-        Image image = imageService.getImage(imageName);
-        return Optional.ofNullable(image);
+
+        if (screenshot.getSrc() == null) {
+            logger.warn("Screenshot src is null for screenshot id: {}", screenshot.getId());
+        }
+
+        Optional<Image> image = Optional.ofNullable(screenshot.getSrc())
+                .map(src -> src.replaceAll("^api/images/", ""))
+                .map(name -> imageService.getImage(name));
+
+        return image;
     }
 
     List<TextUnitDTO> getTextUnitTDOsForAsset(Asset asset) {
