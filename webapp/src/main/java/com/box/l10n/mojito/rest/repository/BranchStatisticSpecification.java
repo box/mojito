@@ -7,7 +7,6 @@ import com.box.l10n.mojito.entity.Branch_;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.entity.security.user.User_;
 import com.box.l10n.mojito.specification.SingleParamSpecification;
-import com.box.l10n.mojito.utils.Optionals;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -15,7 +14,6 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.OptionalInt;
 
 /**
  * @author jeanaurambault
