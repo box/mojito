@@ -14,8 +14,8 @@ class BranchesSearchParamStore {
     setDefaultState() {
         this.deleted = false;
         this.undeleted = true;
-        this.empty = true;
-        this.notEmpty = false;
+        this.empty = false;
+        this.notEmpty = true;
         this.onlyMyBranches = true;
         this.searchText = "";
         this.isSpinnerShown = false;
