@@ -57,8 +57,8 @@ class BranchesStatusDropdown extends React.Component {
                 <MenuItem divider/>
 
                 <MenuItem header><FormattedMessage id="branches.searchstatusDropdown.empty"/></MenuItem>
-                {this.renderFilterMenuItem("empty", true, this.props.empty, this.props.onEmptyChanged)}
-                {this.renderFilterMenuItem("notEmpty", false, this.props.notEmpty, this.props.onNotEmptyChanged)}
+                {this.renderFilterMenuItem("empty", false, this.props.empty, this.props.onEmptyChanged)}
+                {this.renderFilterMenuItem("notEmpty", true, this.props.notEmpty, this.props.onNotEmptyChanged)}
 
             </DropdownButton>
         );
