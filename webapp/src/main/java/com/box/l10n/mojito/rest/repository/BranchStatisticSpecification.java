@@ -77,7 +77,7 @@ public class BranchStatisticSpecification {
         };
     }
 
-    public static SingleParamSpecification<BranchStatistic> empty(final Boolean empty) {
+    public static SingleParamSpecification<BranchStatistic> empty(final boolean empty) {
         return new SingleParamSpecification<BranchStatistic>(empty) {
             @Override
             public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
