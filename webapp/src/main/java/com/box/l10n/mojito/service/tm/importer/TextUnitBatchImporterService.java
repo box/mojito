@@ -44,6 +44,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
+import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
 
 
@@ -84,6 +86,9 @@ public class TextUnitBatchImporterService {
 
     @Autowired
     TextUnitBatchMatcher textUnitBatchMatcher;
+
+    @Autowired
+    AuditorAwareImpl auditorAwareImpl;
 
     /**
      * Imports a batch of text units.
@@ -176,6 +181,7 @@ public class TextUnitBatchImporterService {
                         tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(currentTextUnit.getLocaleId(), currentTextUnit.getTmTextUnitId());
                     }
 
+                    User importedBy = auditorAwareImpl.getCurrentAuditor();
                     tmService.addTMTextUnitCurrentVariantWithResult(
                             tmTextUnitCurrentVariant,
                             asset.getRepository().getTm().getId(),
@@ -185,7 +191,8 @@ public class TextUnitBatchImporterService {
                             textUnitForBatchImport.getComment(),
                             textUnitForBatchImport.getStatus(),
                             textUnitForBatchImport.isIncludedInLocalizedFile(),
-                            importTime);
+                            importTime,
+                            importedBy);
                 });
     }
 

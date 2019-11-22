@@ -302,7 +302,7 @@ public class DropService {
             @ParentTask PollableTask parentTask) throws ImportDropException {
 
         try {
-            return tmService.updateTMWithTranslationKitXLIFF(dropFile.getContent(), importStatus);
+            return tmService.updateTMWithTranslationKitXLIFF(dropFile.getContent(), importStatus, dropServiceConfig.getDropImporterUsername());
         } catch (OkapiBadFilterInputException | OkapiIOException okapiException) {
             throw new ImportDropException(okapiException.getMessage(), okapiException);
         }
