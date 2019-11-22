@@ -77,15 +77,19 @@ public class BranchStatisticSpecification {
         };
     }
 
-    public static SingleParamSpecification<BranchStatistic> empty(final boolean empty) {
+    /**
+     *
+     * @param empty if {@code null}, will behave as {@link Boolean#FALSE}
+     * @return
+     */
+    public static SingleParamSpecification<BranchStatistic> empty(final Boolean empty) {
+
         return new SingleParamSpecification<BranchStatistic>(empty) {
             @Override
             public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-                Predicate predicate = builder.equal(root.get(BranchStatistic_.totalCount), 0L);
-                if (!empty) {
-                    predicate = builder.not(predicate);
-                }
-                return predicate;
+                return empty != null && empty
+                        ? builder.equal(root.get(BranchStatistic_.totalCount), 0L)
+                        : builder.notEqual(root.get(BranchStatistic_.totalCount), 0L);
             }
         };
     }
