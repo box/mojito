@@ -292,7 +292,7 @@ public class TranslationKitService {
         List<TranslationKit> translationKits = translationKitRepository.findByDropId(drop.getId());
         boolean partiallyImported = false;
         for (TranslationKit translationKit : translationKits) {
-            if (!translationKit.getImported()) {
+            if (translationKit.getNumTranslationKitUnits() > 0 && !translationKit.getImported()) {
                 partiallyImported = true;
                 break;
             }

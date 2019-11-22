@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * To configure the service that import/export drops.
- * 
+ *
  * @author jaurambault
  */
 @Component
@@ -17,12 +17,27 @@ public class DropServiceConfig {
      */
     int dropNameWeekOffset = 0;
 
+    /**
+     * User for imported translations
+     * If this is not set, then the authenticated user in context 
+     * who is importing the drop is used for all imported translations
+     */
+    String dropImporterUsername;
+
     public int getDropNameWeekOffset() {
         return dropNameWeekOffset;
     }
 
     public void setDropNameWeekOffset(int dropNameWeekOffset) {
         this.dropNameWeekOffset = dropNameWeekOffset;
+    }
+
+    public String getDropImporterUsername() {
+        return dropImporterUsername;
+    }
+
+    public void setDropImporterUsername(String dropImporterUsername) {
+        this.dropImporterUsername = dropImporterUsername;
     }
 
 }

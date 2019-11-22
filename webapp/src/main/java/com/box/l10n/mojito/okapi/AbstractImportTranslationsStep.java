@@ -4,10 +4,13 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.okapi.filters.FilterOptions;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotation;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotations;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
@@ -62,6 +65,12 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     @Autowired
     TMTextUnitVariantCommentService tmMTextUnitVariantCommentService;
 
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    AuditorAwareImpl auditorAwareImpl;
+
     net.sf.okapi.common.resource.RawDocument rawDocument;
 
     LocaleId targetLocale;
@@ -102,6 +111,17 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      */
     String targetComment = null;
 
+    /**
+     * User used for all the text unit imported
+     */
+    User createdBy = null;
+
+    String dropImporterUsernameOverride = null;
+
+    public void setDropImporterUsernameOverride(String dropImporterUsernameOverride) {
+        this.dropImporterUsernameOverride = dropImporterUsernameOverride;
+    }
+
     @SuppressWarnings("deprecation")
     @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
     public void setTargetLocale(LocaleId targetLocale) {
@@ -123,6 +143,11 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
         isMultilingual = startDocument.isMultilingual();
 
         createdDate = new DateTime();
+        if (dropImporterUsernameOverride == null) {
+            createdBy = auditorAwareImpl.getCurrentAuditor();
+        } else {
+            createdBy = userRepository.findByUsername(dropImporterUsernameOverride);
+        }
 
         return super.handleStartDocument(event);
     }
@@ -411,9 +436,10 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
                     targetComment,
                     status,
                     includedInLocalizedFile,
-                    createdDate).getTmTextUnitCurrentVariant().getTmTextUnitVariant();
+                    createdDate,
+                    createdBy).getTmTextUnitCurrentVariant().getTmTextUnitVariant();
         } else {
-            addedTMTextUnitVariant = tmService.addTMTextUnitVariant(tmTextUnitId, targetLocaleId, targetString, null, status, includedInLocalizedFile, createdDate);
+            addedTMTextUnitVariant = tmService.addTMTextUnitVariant(tmTextUnitId, targetLocaleId, targetString, null, status, includedInLocalizedFile, createdDate, createdBy);
         }
 
         logger.debug("Create comments based on the list TMTextUnitVariantCommentAnnotations");

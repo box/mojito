@@ -480,6 +480,7 @@ public class TMService {
             throw new RuntimeException(msg);
         }
 
+        User createdBy = auditorAwareImpl.getCurrentAuditor();
         return addTMTextUnitCurrentVariantWithResult(currentTmTextUnitCurrentVariant,
                 tmTextUnit.getTm().getId(),
                 tmTextUnitId,
@@ -488,7 +489,8 @@ public class TMService {
                 comment,
                 status,
                 includedInLocalizedFile,
-                createdDate);
+                createdDate,
+                createdBy);
     }
 
     /**
@@ -510,6 +512,7 @@ public class TMService {
      * included or not in the localized files
      * @param createdDate to specify a creation date (can be used to re-import
      * old TM), can be {@code null}
+     * @param createdBy to specify the user adding translation
      * @return the result that contains the {@link TMTextUnitCurrentVariant} and
      * indicates if it was updated or not. The {@link TMTextUnitCurrentVariant}
      * holds the created {@link TMTextUnitVariant} or an existing one with same
@@ -526,7 +529,8 @@ public class TMService {
             String comment,
             TMTextUnitVariant.Status status,
             boolean includedInLocalizedFile,
-            DateTime createdDate) {
+            DateTime createdDate,
+            User createdBy) {
 
         boolean noUpdate = false;
 
@@ -534,7 +538,7 @@ public class TMService {
 
         if (tmTextUnitCurrentVariant == null) {
             logger.debug("There is no currrent text unit variant, add entities");
-            tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate);
+            tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate, createdBy);
             tmTextUnitCurrentVariant = makeTMTextUnitVariantCurrent(tmId, tmTextUnitId, localeId, tmTextUnitVariant.getId());
 
             logger.trace("Put the actual tmTextUnitVariant instead of the proxy");
@@ -556,7 +560,7 @@ public class TMService {
 
             if (updateNeeded) {
                 logger.debug("The current text unit variant has different content, comment or needs review. Add entities");
-                tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate);
+                tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate, createdBy);
 
                 logger.debug("Updating the current TextUnitVariant with id: {} current for locale: {}", tmTextUnitVariant.getId(), localeId);
                 tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
@@ -628,6 +632,18 @@ public class TMService {
         return addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, null);
     }
 
+    public TMTextUnitVariant addTMTextUnitVariant(
+            Long tmTextUnitId,
+            Long localeId,
+            String content,
+            String comment,
+            TMTextUnitVariant.Status status,
+            boolean includedInLocalizedFile,
+            DateTime createdDate) {
+        User createdBy = auditorAwareImpl.getCurrentAuditor();
+        return addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate, createdBy);
+    }
+
     /**
      * Adds a {@link TMTextUnitVariant} in a {@link TMTextUnit}.
      * <p/>
@@ -643,6 +659,7 @@ public class TMService {
      * included or not in the localized files
      * @param createdDate to specify a creation date (can be used to re-import
      * old TM), can be {@code null}
+     * @param createdBy to specify a user in action
      * @return the created {@link TMTextUnitVariant}
      * @throws DataIntegrityViolationException If tmTextUnitId or localeId are
      * invalid
@@ -654,7 +671,8 @@ public class TMService {
             String comment,
             TMTextUnitVariant.Status status,
             boolean includedInLocalizedFile,
-            DateTime createdDate) {
+            DateTime createdDate,
+            User createdBy) {
 
         logger.debug("Add TMTextUnitVariant for tmId: {} locale id: {}, content: {}", tmTextUnitId, localeId, content);
 
@@ -673,7 +691,7 @@ public class TMService {
         tmTextUnitVariant.setStatus(status);
         tmTextUnitVariant.setIncludedInLocalizedFile(includedInLocalizedFile);
         tmTextUnitVariant.setCreatedDate(createdDate);
-        tmTextUnitVariant.setCreatedByUser(auditorAwareImpl.getCurrentAuditor());
+        tmTextUnitVariant.setCreatedByUser(createdBy);
         tmTextUnitVariant = tmTextUnitVariantRepository.save(tmTextUnitVariant);
         logger.trace("TMTextUnitVariant saved");
 
@@ -722,20 +740,25 @@ public class TMService {
 
     /**
      * Parses the XLIFF (from a translation kit) content and extract the
-     * new/changed variants. Then updates the TM with these new variants.
+     * new/changed variants.Then updates the TM with these new variants.
      *
      * @param xliffContent The content of the localized XLIFF TODO(P1) Use BCP47
      * tag instead of Locale object?
      * @param importStatus specific status to use when importing translation
+     * @param dropImporterUsernameOverride overrides the user importing translation
      * @return the imported XLIFF with information for each text unit about the
      * import process
      * @throws OkapiBadFilterInputException when XLIFF document is invalid
      */
     public UpdateTMWithXLIFFResult updateTMWithTranslationKitXLIFF(
             String xliffContent,
-            TMTextUnitVariant.Status importStatus) throws OkapiBadFilterInputException {
+            TMTextUnitVariant.Status importStatus,
+            String dropImporterUsernameOverride) throws OkapiBadFilterInputException {
 
-        return updateTMWithXliff(xliffContent, importStatus, new ImportTranslationsWithTranslationKitStep());
+        ImportTranslationsWithTranslationKitStep importTranslationsWithTranslationKitStep = new ImportTranslationsWithTranslationKitStep();
+        importTranslationsWithTranslationKitStep.setDropImporterUsernameOverride(dropImporterUsernameOverride);
+
+        return updateTMWithXliff(xliffContent, importStatus, importTranslationsWithTranslationKitStep);
     }
 
     public UpdateTMWithXLIFFResult updateTMWithXLIFFById(

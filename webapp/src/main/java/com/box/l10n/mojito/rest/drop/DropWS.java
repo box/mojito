@@ -209,7 +209,7 @@ public class DropWS {
         UpdateTMWithXLIFFResult updateTMWithLocalizedXLIFF;
 
         if (importXliffBody.isTranslationKit()) {
-            updateTMWithLocalizedXLIFF = tmService.updateTMWithTranslationKitXLIFF(normalizedContent, importXliffBody.getImportStatus());
+            updateTMWithLocalizedXLIFF = tmService.updateTMWithTranslationKitXLIFF(normalizedContent, importXliffBody.getImportStatus(), null);
         } else {
             updateTMWithLocalizedXLIFF = tmService.updateTMWithXLIFFByMd5(normalizedContent, importXliffBody.getImportStatus(), repository);
         }
