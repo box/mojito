@@ -90,7 +90,7 @@ class BranchesHistoryStore {
     static initStoreFromLocationQuery(query) {
         let {
             openBranchStatistic, currentPageNumber, searchText,
-            deleted = "false", undeleted = "true", empty = "true", notEmpty = "false", onlyMyBranches = "true"
+            deleted = "false", undeleted = "true", empty = "true", notEmpty = "true", onlyMyBranches = "true"
         } = query;
 
         let selectedBranchTextUnitIds = query["selectedBranchTextUnitIds[]"];
