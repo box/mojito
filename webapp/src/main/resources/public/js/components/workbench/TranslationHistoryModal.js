@@ -93,19 +93,13 @@ class translationHistoryModal extends React.Component {
             <Modal className={"git-blame-modal"} show={show} onHide={this.closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        <FormattedMessage id="workbench.translationHistoryModal.title" values={{
-                            locale: textUnit.getTargetLocale()
-                        }}/>
+                        <FormattedMessage id={"workbench.translationHistoryModal.title"}/>
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className={"row"}>
-                        <div className={"col-sm-4"}>
-                            <div>
-                                <FormattedMessage id={"textUnit.translationHistoryModal.source"} values={{
-                                    source: textUnit.getSource()
-                                }}/>
-                            </div>
+                        <div className={"history-source"}>
+                            {textUnit.getSource()}
                         </div>
                     </div>
                     <p/>
