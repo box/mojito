@@ -1,5 +1,6 @@
-package com.box.l10n.mojito.okapi;
+package com.box.l10n.mojito.okapi.steps;
 
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.resource.ITextUnit;

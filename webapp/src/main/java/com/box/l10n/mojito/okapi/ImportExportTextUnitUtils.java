@@ -3,12 +3,11 @@ package com.box.l10n.mojito.okapi;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.tm.ImportExportNote;
 import java.io.IOException;
-import java.util.Objects;
+
 import net.sf.okapi.common.annotation.XLIFFNote;
 import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
-import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,39 +19,18 @@ import org.springframework.stereotype.Component;
  * @author jaurambault
  */
 @Component
-public class TextUnitUtils {
+public class ImportExportTextUnitUtils {
 
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(TextUnitUtils.class);
+    static Logger logger = LoggerFactory.getLogger(ImportExportTextUnitUtils.class);
 
     @Autowired
     ObjectMapper objectMapper;
 
-    /**
-     * Gets the note from a {@link ITextUnit}.
-     *
-     * @param textUnit that contains the note
-     * @return the note or {@code null} if none
-     */
-    public String getNote(ITextUnit textUnit) {
-
-        String note = null;
-
-        if (textUnit != null) {
-
-            XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
-
-            if (xliffNoteAnnotation == null) {
-                note = Objects.toString(textUnit.getProperty(Property.NOTE), null);
-            } else {
-                note = xliffNoteAnnotation.getNote(0).getNoteText();
-            }
-        }
-
-        return note;
-    }
+    @Autowired
+    TextUnitUtils textUnitUtils;
 
     /**
      * Set the note to a {@link ITextUnit}.
@@ -83,7 +61,7 @@ public class TextUnitUtils {
 
         ImportExportNote importExportNote = new ImportExportNote();
 
-        String note = getNote(textUnit);
+        String note = textUnitUtils.getNote(textUnit);
 
         if (note != null) {
             try {
@@ -119,26 +97,4 @@ public class TextUnitUtils {
 
         xliffNoteAnnotation.add(new XLIFFNote(importExportNoteStr));
     }
-
-    /**
-     * Gets the source container as a string
-     *
-     * @param textUnit
-     * @return
-     */
-    public String getSourceAsString(ITextUnit textUnit) {
-        return textUnit.getSource().toString();
-    }
-
-    /**
-     * Replace the source container with the given string
-     *
-     * @param textUnit
-     * @param newSource
-     */
-    public void replaceSourceString(TextUnit textUnit, String newSource) {
-        TextContainer source = new TextContainer(newSource);
-        textUnit.setSource(source);
-    }
-
 }

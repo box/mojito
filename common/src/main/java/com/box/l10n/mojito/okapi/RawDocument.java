@@ -1,12 +1,13 @@
 package com.box.l10n.mojito.okapi;
 
+import net.sf.okapi.common.LocaleId;
+import org.springframework.util.ReflectionUtils;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.UUID;
-import net.sf.okapi.common.LocaleId;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * When creating {@link RawDocument} from a string the URI is not set and setter
@@ -27,7 +28,13 @@ public class RawDocument extends net.sf.okapi.common.resource.RawDocument {
 
         Field inputURIField = ReflectionUtils.findField(RawDocument.class, "inputURI");
         ReflectionUtils.makeAccessible(inputURIField);
-        ReflectionUtils.setField(inputURIField, this, UriComponentsBuilder.fromPath("/some/file/path/to/be/read/from/db").build().toUri());
+
+        try {
+            URI fakeUri = new URI("/some/file/path/to/be/read/from/db");
+            ReflectionUtils.setField(inputURIField, this, fakeUri);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

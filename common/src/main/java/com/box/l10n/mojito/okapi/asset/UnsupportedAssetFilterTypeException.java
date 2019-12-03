@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.assetExtraction.extractor;
+package com.box.l10n.mojito.okapi.asset;
 
 /**
  * @author aloison

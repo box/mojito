@@ -2,6 +2,7 @@ package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;

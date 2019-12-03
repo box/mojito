@@ -15,6 +15,13 @@
     </parent>
 
     <dependencies>
+
+        <dependency>
+            <groupId>com.box.l10n.mojito</groupId>
+            <artifactId>mojito-common</artifactId>
+            <version>0.107-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>

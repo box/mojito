@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.okapi.filters.PluralFormAnnotation;
 import com.box.l10n.mojito.okapi.filters.UsagesAnnotation;
+import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import net.sf.okapi.common.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

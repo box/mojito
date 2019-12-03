@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.ExtractUsagesFromTextUnitComments;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import net.sf.okapi.common.*;

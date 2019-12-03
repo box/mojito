@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -38,12 +39,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mustache</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -68,7 +69,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -159,7 +160,7 @@
             <artifactId>nativeCriteria-core</artifactId>
             <version>2.0</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
@@ -194,10 +195,16 @@
             <artifactId>langdetect</artifactId>
             <version>1.1-20120112</version>
         </dependency>
-        
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.box.l10n.mojito</groupId>
+            <artifactId>mojito-common</artifactId>
+            <version>0.107-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -217,16 +224,8 @@
         <!-- Joda Time -->
         <dependency>
             <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
             <artifactId>joda-time-hibernate</artifactId>
             <version>${hibernate.joda-time.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-joda</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jadira.usertype</groupId>
@@ -234,242 +233,6 @@
             <version>${usertype.core.version}</version>
         </dependency>
         <!-- Joda Time -->
-
-        <!-- Okapi -->
-        <dependency>
-            <groupId>net.sf.okapi</groupId>
-            <artifactId>okapi-core</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.filters</groupId>
-            <artifactId>okapi-filter-table</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.filters</groupId>
-            <artifactId>okapi-filter-xliff</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.filters</groupId>
-            <artifactId>okapi-filter-po</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.filters</groupId>
-            <artifactId>okapi-filter-json</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.filters</groupId>
-            <artifactId>okapi-filter-properties</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.filters</groupId>
-            <artifactId>okapi-filter-regex</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.filters</groupId>
-            <artifactId>okapi-filter-its</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.steps</groupId>
-            <artifactId>okapi-step-common</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.okapi.steps</groupId>
-            <artifactId>okapi-step-qualitycheck</artifactId>
-            <version>${okapi.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.okapi.logbind</groupId>
-                    <artifactId>build-log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.h2database</groupId>
-                    <artifactId>h2</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <!-- TODO(P1) to be removed? -->
         <dependency>
@@ -485,15 +248,13 @@
         <!-- TODO(P1) to be removed? -->
 
         <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.10</version>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-joda</artifactId>
         </dependency>
 
         <dependency>
@@ -587,7 +348,7 @@
                     </aspectLibraries>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
-                </configuration>                               
+                </configuration>
             </plugin>
 
             <plugin>
@@ -633,12 +394,12 @@
                     <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
-                 
+
                     <rerunFailingTestsCount>1</rerunFailingTestsCount>
-               
+
                     <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
-               
-                    <!-- Use this to run specific sequence of test to replicate issues-->                   
+
+                    <!-- Use this to run specific sequence of test to replicate issues-->
                     <!--                    <includes>
                         <include>**/DropServiceBoxTest.java</include>
                         <include>**/DropServiceTest.java</include>
@@ -653,7 +414,7 @@
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -669,8 +430,8 @@
                         </resource>
                     </resources>
                 </configuration>
-            </plugin> 
-            
+            </plugin>
+
         </plugins>
     </build>
 
@@ -723,7 +484,7 @@
                 </plugins>
             </build>
         </profile>
-        
+
         <!-- Work around for compilation issue with aspectj. See:
         https://github.com/spring-projects/spring-boot/issues/4847 
         http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
@@ -750,7 +511,7 @@
                         <version>${maven.compiler.version}</version>
                         <configuration>
                             <proc>none</proc>
-                        </configuration>                
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

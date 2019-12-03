@@ -8,6 +8,7 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.ImportExportTextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -65,6 +66,9 @@ public class ImportExportedXliffStep extends BasePipelineStep {
 
     @Autowired
     TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
+
+    @Autowired
+    ImportExportTextUnitUtils importExportTextUnitUtils;
 
     @Autowired
     TextUnitUtils textUnitUtils;
@@ -265,11 +269,11 @@ public class ImportExportedXliffStep extends BasePipelineStep {
         String name = textUnit.getName();
         String sourceContent = textUnitUtils.getSourceAsString(textUnit);
         String translation = textUnit.getTarget(targetLocaleId).toString();
-        ImportExportNote importExportNote = textUnitUtils.getImportExportNote(textUnit);
+        ImportExportNote importExportNote = importExportTextUnitUtils.getImportExportNote(textUnit);
 
         if (!Strings.isNullOrEmpty(translation)) {
 
-            Long tmTextUnitId = tmTextUnitIdsByMd5ForAsset.get(tmService.computeTMTextUnitMD5(name, sourceContent, importExportNote.getSourceComment()));
+            Long tmTextUnitId = tmTextUnitIdsByMd5ForAsset.get(textUnitUtils.computeTextUnitMD5(name, sourceContent, importExportNote.getSourceComment()));
 
             if (tmTextUnitId == null) {
                 String msg = "Trying to add a translation to an non existing text unit, name: " + name + ", comment: " + importExportNote.getSourceComment() + ", source: " + sourceContent;
@@ -328,7 +332,7 @@ public class ImportExportedXliffStep extends BasePipelineStep {
 
         String name = textUnit.getName();
         String sourceContent = textUnitUtils.getSourceAsString(textUnit);
-        ImportExportNote importExportNote = textUnitUtils.getImportExportNote(textUnit);
+        ImportExportNote importExportNote = importExportTextUnitUtils.getImportExportNote(textUnit);
 
         PluralForm pluralForm = null;
         String pluralFormOther = null;

@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.okapi.ImportNoteBuilder;
 import com.box.l10n.mojito.okapi.TextUnitDTOAnnotation;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.ImportExportTextUnitUtils;
 import com.box.l10n.mojito.okapi.XliffState;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -55,6 +56,9 @@ public class TranslationKitFilter implements IFilter {
 
     @Autowired
     LocaleService localeService;
+
+    @Autowired
+    ImportExportTextUnitUtils importExportTextUnitUtils;
 
     @Autowired
     TextUnitUtils textUnitUtils;
@@ -226,7 +230,7 @@ public class TranslationKitFilter implements IFilter {
         target.setProperty(new Property(com.box.l10n.mojito.okapi.Property.STATE, state.toString()));
 
         if (textUnitDTO.getComment() != null) {
-            textUnitUtils.setNote(textUnit, textUnitDTO.getComment());
+            importExportTextUnitUtils.setNote(textUnit, textUnitDTO.getComment());
 
             XLIFFNoteAnnotation xliffNoteAnnotation = new XLIFFNoteAnnotation();
             XLIFFNote xliffNote = new XLIFFNote(textUnitDTO.getComment());

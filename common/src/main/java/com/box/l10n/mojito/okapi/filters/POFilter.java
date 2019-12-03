@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.po.PoPluralRule;
 import com.google.common.collect.Multimap;
@@ -59,9 +58,6 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
     @Autowired
     UnescapeUtils unescapeUtils;
-
-    @Autowired
-    TextUnitUtils getTextUnitUtils;
 
     List<Event> eventQueue = new ArrayList<>();
 
