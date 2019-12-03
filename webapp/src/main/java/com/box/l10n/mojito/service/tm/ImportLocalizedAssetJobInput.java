@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
-import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 
 import java.util.List;
 

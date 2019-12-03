@@ -1,5 +1,7 @@
-package com.box.l10n.mojito.service.assetExtraction.extractor;
+package com.box.l10n.mojito.okapi.asset;
 
+import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.filters.CSVFilter;
 import com.box.l10n.mojito.okapi.filters.JSONFilter;

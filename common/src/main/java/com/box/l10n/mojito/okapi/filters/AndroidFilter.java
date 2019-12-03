@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.okapi.filters;
 
-import com.box.l10n.mojito.okapi.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.IResource;
@@ -47,7 +46,6 @@ public class AndroidFilter extends XMLFilter {
     private static final Pattern PATTERN_UPDATE_FORM = Pattern.compile("(\\s*<.*?item.+?quantity.+?\".+?\">)");
 
     private static final String XML_COMMENT_GROUP_NAME = "comment";
-
 
     @Autowired
     TextUnitUtils textUnitUtils;

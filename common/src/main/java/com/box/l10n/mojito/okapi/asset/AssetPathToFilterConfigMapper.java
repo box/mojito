@@ -1,11 +1,12 @@
-package com.box.l10n.mojito.service.assetExtraction.extractor;
+package com.box.l10n.mojito.okapi.asset;
 
 import com.box.l10n.mojito.okapi.filters.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import org.apache.commons.io.FilenameUtils;
+
+import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -99,7 +100,7 @@ public class AssetPathToFilterConfigMapper {
      */
     private AssetFilterType getAssetFilterTypeFromPath(String assetPath) throws UnsupportedAssetFilterTypeException {
 
-        String extension = FilenameUtils.getExtension(assetPath).toLowerCase();
+        String extension = Files.getFileExtension(assetPath).toLowerCase();
         AssetFilterType assetFilterType = AssetFilterType.findByExtension(extension);
 
         if (assetFilterType == null) {

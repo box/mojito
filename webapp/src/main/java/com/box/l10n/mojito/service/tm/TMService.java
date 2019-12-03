@@ -5,16 +5,20 @@ import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.okapi.*;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
+import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
+import com.box.l10n.mojito.okapi.filters.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.filters.FilterOptions;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
+import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
+import com.box.l10n.mojito.okapi.steps.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
-import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
-import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
@@ -111,6 +115,12 @@ public class TMService {
 
     @Autowired
     RepositoryLocaleRepository repositoryLocaleRepository;
+
+    @Autowired
+    TextUnitUtils textUnitUtils;
+
+    @Autowired
+    FilterConfigurationMappers filterConfigurationMappers;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -243,7 +253,7 @@ public class TMService {
         tmTextUnit.setName(name);
         tmTextUnit.setContent(content);
         tmTextUnit.setComment(comment);
-        tmTextUnit.setMd5(computeTMTextUnitMD5(name, content, comment));
+        tmTextUnit.setMd5(textUnitUtils.computeTextUnitMD5(name, content, comment));
         tmTextUnit.setWordCount(wordCountService.getEnglishWordCount(content));
         tmTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         tmTextUnit.setCreatedDate(createdDate);
@@ -727,18 +737,6 @@ public class TMService {
     }
 
     /**
-     * Computes a MD5 hash for a {@link TMTextUnit}.
-     *
-     * @param name the text unit name
-     * @param content the text unit content
-     * @param comment the text unit comment
-     * @return the MD5 hash in Hex
-     */
-    public String computeTMTextUnitMD5(String name, String content, String comment) {
-        return DigestUtils.md5Hex(name + content + comment);
-    }
-
-    /**
      * Parses the XLIFF (from a translation kit) content and extract the
      * new/changed variants.Then updates the TM with these new variants.
      *
@@ -1007,7 +1005,7 @@ public class TMService {
 
         //TODO(P1) see assetExtractor comments
         logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(assetExtractor.getConfiguredFilterConfigurationMapper());
+        driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
 
         FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
         driver.addStep(filterEventsToInMemoryRawDocumentStep);
@@ -1103,7 +1101,7 @@ public class TMService {
         driver.addStep(new ImportTranslationsFromLocalizedAssetStep(asset, repositoryLocale, statusForEqualtarget));
 
         logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(assetExtractor.getConfiguredFilterConfigurationMapper());
+        driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
 
         FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
         driver.addStep(filterEventsToInMemoryRawDocumentStep);

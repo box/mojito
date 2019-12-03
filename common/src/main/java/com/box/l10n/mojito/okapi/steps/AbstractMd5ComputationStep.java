@@ -1,6 +1,6 @@
-package com.box.l10n.mojito.okapi;
+package com.box.l10n.mojito.okapi.steps;
 
-import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.google.common.base.Strings;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
@@ -32,10 +32,7 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
     
     @Autowired
     TextUnitUtils textUnitUtils;
-    
-    @Autowired
-    TMService tmService;
-    
+
     protected String name;
     protected String source;
     protected String comments;
@@ -53,7 +50,7 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
             if (comments != null && comments.contains(COMMENT_TO_IGNORE)) {
                 comments = null;
             }
-            md5 = tmService.computeTMTextUnitMD5(name, source, comments);
+            md5 = textUnitUtils.computeTextUnitMD5(name, source, comments);
         }
         
         if (logger.isDebugEnabled()) {
@@ -61,5 +58,5 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
         }
 
         return event;
-    }    
+    }
 }

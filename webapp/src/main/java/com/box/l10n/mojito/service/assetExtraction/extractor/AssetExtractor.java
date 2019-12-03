@@ -1,14 +1,17 @@
 package com.box.l10n.mojito.service.assetExtraction.extractor;
 
+import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
-import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
+import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
+import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.RawDocument;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.filters.*;
-import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import net.sf.okapi.common.LocaleId;
@@ -43,6 +46,9 @@ public class AssetExtractor {
     @Autowired
     AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
 
+    @Autowired
+    FilterConfigurationMappers filterConfigurationMappers;
+
     /**
      * Processes the {@link Asset} given the associated {@link AssetExtraction}.
      * The CSV format should follow the old Box WebApp syntax.
@@ -72,7 +78,7 @@ public class AssetExtractor {
 
         //TODO(P1) Is this actually used as we have our own logic to set the filter to be used, see following todo
         logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(getConfiguredFilterConfigurationMapper());
+        driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
 
         AssetContent assetContent = assetExtraction.getAssetContent();
         Asset asset = assetExtraction.getAsset();
@@ -98,31 +104,6 @@ public class AssetExtractor {
 
         logger.debug("Start processing batch");
         driver.processBatch();
-    }
-
-    /**
-     * @return A {@link FilterConfigurationMapper}, which has been configured with the default mappings
-     */
-    public IFilterConfigurationMapper getConfiguredFilterConfigurationMapper() {
-
-        IFilterConfigurationMapper mapper = new FilterConfigurationMapper();
-
-        // Adding default filter mappings
-        DefaultFilters.setMappings(mapper, false, true);
-
-        // Adding custom filters mappings
-        mapper.addConfigurations(CSVFilter.class.getName());
-        mapper.addConfigurations(AndroidFilter.class.getName());
-        mapper.addConfigurations(POFilter.class.getName());
-        mapper.addConfigurations(XMLFilter.class.getName());
-        mapper.addConfigurations(MacStringsFilter.class.getName());
-        mapper.addConfigurations(MacStringsdictFilter.class.getName());
-        mapper.addConfigurations(MacStringsdictFilterKey.class.getName());
-        mapper.addConfigurations(JSFilter.class.getName());
-        mapper.addConfigurations(JSONFilter.class.getName());
-        mapper.addConfigurations(XcodeXliffFilter.class.getName());
-
-        return mapper;
     }
 
     /**

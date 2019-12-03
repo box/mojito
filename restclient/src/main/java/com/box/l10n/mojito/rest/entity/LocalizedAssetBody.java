@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.entity;
 
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+
 import java.util.List;
 
 /**

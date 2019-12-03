@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.entity;
 
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

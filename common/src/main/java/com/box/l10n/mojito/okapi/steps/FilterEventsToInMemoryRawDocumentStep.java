@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.okapi;
+package com.box.l10n.mojito.okapi.steps;
 
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;

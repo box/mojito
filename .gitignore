@@ -6,6 +6,7 @@ application.pid
 /target/
 /restclient/target/
 /test-common/target/
+/common/target/
 *.iml
 npm-debug.log
 /webapp/node

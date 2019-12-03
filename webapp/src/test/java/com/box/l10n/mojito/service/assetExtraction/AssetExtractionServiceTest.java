@@ -5,7 +5,7 @@ import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import static com.box.l10n.mojito.rest.asset.FilterConfigIdOverride.MACSTRINGSDICT_FILTER_KEY;
+import static com.box.l10n.mojito.okapi.FilterConfigIdOverride.MACSTRINGSDICT_FILTER_KEY;
 import static org.junit.Assert.*;
 import static org.slf4j.LoggerFactory.getLogger;
 

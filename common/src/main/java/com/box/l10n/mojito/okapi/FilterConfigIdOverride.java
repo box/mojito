@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.rest.asset;
+package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.okapi.filters.MacStringsdictFilterKey;
 import com.box.l10n.mojito.okapi.filters.XcodeXliffFilter;
@@ -15,7 +15,7 @@ public enum FilterConfigIdOverride {
 
     String okapiFilterId;
 
-    private FilterConfigIdOverride(String okapiFilterId) {
+    FilterConfigIdOverride(String okapiFilterId) {
         this.okapiFilterId = okapiFilterId;
     }
 

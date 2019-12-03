@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.okapi;
+package com.box.l10n.mojito.okapi.filters;
 
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.encoder.EncoderContext;
