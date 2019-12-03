@@ -10,10 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,6 +97,22 @@ public class SmartlingClientTest {
                 null,
                 null);
 
+    }
+
+    @Test
+    public void testDownloadFile() {
+        Assume.assumeNotNull(projectId);
+        String result = smartlingClient.downloadFile(projectId,
+                "fr-FR",
+                "strings.xml",
+                false,
+                SmartlingClient.RetrievalType.PUBLISHED);
+
+        Assert.assertEquals(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<resources>\n" +
+                "    \n" +
+                "</resources>", result);
     }
 
     @Test
