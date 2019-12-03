@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+   <!--testing regular-->
+   <string name="pinterest">Pinterest</string>
+   <!--testing @ escape-->
+   <string name="atescape">\@</string>
+   <!--testing plural-->
+   <plurals name="pins">
+      <xmlItem quantity="one">1 Pin</xmlItem>
+      <xmlItem quantity="other">{num_pins} Pins</xmlItem>
+   </plurals>
+</resources>
