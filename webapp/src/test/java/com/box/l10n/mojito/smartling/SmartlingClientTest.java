@@ -1,7 +1,5 @@
 package com.box.l10n.mojito.smartling;
 
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.service.thirdparty.ThirdPartyServiceTestData;
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
@@ -13,8 +11,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
