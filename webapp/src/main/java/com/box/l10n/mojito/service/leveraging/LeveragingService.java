@@ -12,17 +12,22 @@ import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.search.StatusFilter;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-
-import java.util.List;
-import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author jaurambault
@@ -64,6 +69,10 @@ public class LeveragingService {
 
     @Autowired
     AssetRepository assetRepository;
+    @Autowired
+    TextUnitSearcher textUnitSearcher;
+    @Autowired
+    TMService tmService;
 
     /**
      * Performs "source" leveraging for a list of {@link TMTextUnit}s.
@@ -121,6 +130,17 @@ public class LeveragingService {
     @Pollable(async = true, message = "Start copying translations between repository")
     public PollableFuture copyTm(CopyTmConfig copyTmConfig) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
 
+        if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
+            copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
+        } else {
+            copyTmBetweenRepositories(copyTmConfig);
+        }
+
+        return new PollableFutureTaskResult();
+    }
+
+    void copyTmBetweenRepositories(CopyTmConfig copyTmConfig) throws RepositoryWithIdNotFoundException, AssetWithIdNotFoundException {
+
         logger.debug("Copy TM, source repository: {}, source asset: {}, target repository: {}, target asset: {}",
                 copyTmConfig.getSourceRepositoryId(),
                 copyTmConfig.getSourceAssetId(),
@@ -132,7 +152,9 @@ public class LeveragingService {
 
         List<TMTextUnit> textUnitsForCopyTM = getTextUnitsForCopyTM(targetRepository, copyTmConfig.getTargetAssetId(), copyTmConfig.getNameRegex());
 
-        if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
+        if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
+            copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
+        } else if (CopyTmConfig.Mode.MD5.equals(copyTmConfig.getMode())) {
             leveragerByMd5.performLeveragingFor(textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
         } else {
             logger.debug("First perform leveraging by name and content (to give priority to string with same tags");
@@ -141,8 +163,36 @@ public class LeveragingService {
             logger.debug("Now, perform leveraging only on the name");
             leveragerByContent.performLeveragingFor(textUnitsForCopyTM, sourceRepository.getTm().getId(), copyTmConfig.getSourceAssetId());
         }
+    }
 
-        return new PollableFutureTaskResult();
+
+    void copyTranslationBetweenTextUnits(Map<Long, Long> sourceToTargetTmTextUnitId) {
+        if (sourceToTargetTmTextUnitId != null) {
+            for (Map.Entry<Long, Long> sourceToTargetTmTextUnit : sourceToTargetTmTextUnitId.entrySet()) {
+                copyTranslationsBetweenTextUnits(sourceToTargetTmTextUnit.getKey(), sourceToTargetTmTextUnit.getValue());
+            }
+        } else {
+            logger.debug("copyTranslationBetweenTextUnits called without a map, do nothing");
+        }
+    }
+
+    void copyTranslationsBetweenTextUnits(Long sourceTmTextUnitId, Long targetTmTextUnitId) {
+        logger.debug("Copy translations from: {} to {}", sourceTmTextUnitId, targetTmTextUnitId);
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setTmTextUnitIds(sourceTmTextUnitId);
+        textUnitSearcherParameters.setRootLocaleExcluded(true);
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED_AND_NOT_REJECTED);
+        List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+
+        for (TextUnitDTO textUnitDTO : textUnitDTOS) {
+            tmService.addCurrentTMTextUnitVariant(
+                    targetTmTextUnitId,
+                    textUnitDTO.getLocaleId(),
+                    textUnitDTO.getTarget(),
+                    textUnitDTO.getStatus(),
+                    textUnitDTO.isIncludedInLocalizedFile()
+            );
+        }
     }
 
     Repository getRepositoryForCopy(Long repositoryId, Long assetId) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
