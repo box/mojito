@@ -73,7 +73,7 @@ public class ImportLocalizedAssetCommand extends Command {
 
     @Parameter(names = {"--status-equal-target"}, required = false, description = "Status of the imported translation when the target is the same as "
             + "the parent (SKIPPED for no import). Applies only to fully translated locales",
-            converter = ImportLocalizedAssetBodyStatusForEqualTarget.class)
+            converter = ImportLocalizedAssetBodyStatusForEqualTargetConverter.class)
     StatusForEqualTarget statusForEqualTarget = StatusForEqualTarget.APPROVED;
 
     @Autowired

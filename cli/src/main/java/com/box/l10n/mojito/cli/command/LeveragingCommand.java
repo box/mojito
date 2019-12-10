@@ -55,7 +55,7 @@ public class LeveragingCommand extends Command {
 
     @Parameter(names = {"--mode", "-m"}, arity = 1, required = false, description = "Matching mode. "
             + "MD5 will perform matching based on the ID, content and comment. "
-            + "EXACT match is only using the content.", converter = CopyTmConfigMode.class)
+            + "EXACT match is only using the content.", converter = CopyTmConfigModeConverter.class)
     CopyTmConfig.Mode mode = CopyTmConfig.Mode.MD5;
 
     @Parameter(names = {"--tuids-mapping"}, required = false,

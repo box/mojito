@@ -53,7 +53,7 @@ public class DropImportCommand extends Command {
     Boolean alsoShowImportedParam = false;
 
     @Parameter(names = {Param.DROP_IMPORT_STATUS}, required = false, description = Param.DROP_IMPORT_STATUS_DESCRIPTION,
-            converter = ImportDropConfigStatus.class)
+            converter = ImportDropConfigStatusConverter.class)
     ImportDropConfig.Status importStatusParam = null;
 
     @Parameter(names = {"--import-fetched"}, required = false, description = "Import all fetched drops")

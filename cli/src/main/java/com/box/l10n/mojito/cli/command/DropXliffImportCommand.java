@@ -49,7 +49,7 @@ public class DropXliffImportCommand extends Command {
     String targetDirectoryParam;
 
     @Parameter(names = {Param.DROP_IMPORT_STATUS}, required = false, description = Param.DROP_IMPORT_STATUS_DESCRIPTION,
-            converter = ImportDropConfigStatus.class)
+            converter = ImportDropConfigStatusConverter.class)
     ImportDropConfig.Status importStatusParam = null;
     
     @Parameter(names = {"--import-by-md5"}, required = false, description = "To import using MD5 (only option if translation kit not available)")
