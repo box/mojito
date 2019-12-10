@@ -106,13 +106,17 @@ public class ThirdPartyService {
 
         if (actions.contains(Action.PUSH)) {
             // TODO
-        } else if (actions.contains(Action.PUSH_TRANSLATION)) {
+        }
+        if (actions.contains(Action.PUSH_TRANSLATION)) {
             // TODO
-        } else if (actions.contains(Action.PULL)) {
+        }
+        if (actions.contains(Action.PULL)) {
             // TODO
-        } else if (actions.contains(Action.MAP_TEXTUNIT)) {
+        }
+        if (actions.contains(Action.MAP_TEXTUNIT)) {
             mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
-        } else if (actions.contains(Action.PUSH_SCREENSHOT)) {
+        }
+        if (actions.contains(Action.PUSH_SCREENSHOT)) {
             uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
         }
     }
