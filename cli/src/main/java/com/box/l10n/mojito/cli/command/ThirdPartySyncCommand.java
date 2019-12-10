@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.fusesource.jansi.Ansi.Color.CYAN;
 
@@ -47,7 +48,7 @@ public class ThirdPartySyncCommand extends Command {
     List<ThirdPartySync.Action> actions = Arrays.asList(ThirdPartySync.Action.MAP_TEXTUNIT, ThirdPartySync.Action.PUSH_SCREENSHOT);
 
     @Parameter(names = {"--options", "-o"}, variableArity = true, required = false, description = "Options to synchronize")
-    List<String> options = new ArrayList<>();
+    List<String> options;
 
     @Autowired
     ThirdPartyClient thirdPartyClient;
@@ -60,8 +61,8 @@ public class ThirdPartySyncCommand extends Command {
 
         consoleWriter.newLine().a("Third party TMS synchronization for repository: ").fg(CYAN).a(repositoryParam).reset()
                 .a(" project id: ").fg(CYAN).a(thirdPartyProjectId).reset()
-                .a(" actions: ").fg(CYAN).a(actions.toString()).reset()
-                .a(" options: ").fg(CYAN).a(options.toString()).println(2);
+                .a(" actions: ").fg(CYAN).a(Objects.toString(actions)).reset()
+                .a(" options: ").fg(CYAN).a(Objects.toString(options)).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 

@@ -105,13 +105,13 @@ public class ThirdPartyService {
         Repository repository = repositoryRepository.findOne(repositoryId);
 
         if (actions.contains(Action.PUSH)) {
-            // TODO
+            throw new UnsupportedOperationException();
         }
         if (actions.contains(Action.PUSH_TRANSLATION)) {
-            // TODO
+            throw new UnsupportedOperationException();
         }
         if (actions.contains(Action.PULL)) {
-            // TODO
+            throw new UnsupportedOperationException();
         }
         if (actions.contains(Action.MAP_TEXTUNIT)) {
             mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
