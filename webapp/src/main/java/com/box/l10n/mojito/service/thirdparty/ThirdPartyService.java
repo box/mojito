@@ -78,7 +78,7 @@ public class ThirdPartyService {
     @Autowired
     ImageService imageService;
 
-    @Autowired(required = false)
+    @Autowired
     ThirdPartyTMS thirdPartyTMS;
 
     public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId) {
@@ -90,10 +90,6 @@ public class ThirdPartyService {
 
     void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
-        if (thirdPartyTMS == null) {
-            throw new RuntimeException("No ThirdPartyTMS is configured");
-        }
-
         Repository repository = repositoryRepository.findOne(repositoryId);
         mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
         uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
