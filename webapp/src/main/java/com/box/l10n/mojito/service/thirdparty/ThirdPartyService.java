@@ -104,22 +104,16 @@ public class ThirdPartyService {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
         Repository repository = repositoryRepository.findOne(repositoryId);
 
-        actions.sort((o1, o2) -> Integer.compare(o1.ordinal(), o2.ordinal()));
-        for (Action action : actions) {
-            switch (action) {
-                case PUSH:
-                    break;
-                case PUSH_TRANSLATION:
-                    break;
-                case PULL:
-                    break;
-                case MAP_TEXTUNIT:
-                    mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
-                    break;
-                case PUSH_SCREENSHOT:
-                    uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
-                    break;
-            }
+        if (actions.contains(Action.PUSH)) {
+            // TODO
+        } else if (actions.contains(Action.PUSH_TRANSLATION)) {
+            // TODO
+        } else if (actions.contains(Action.PULL)) {
+            // TODO
+        } else if (actions.contains(Action.MAP_TEXTUNIT)) {
+            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
+        } else if (actions.contains(Action.PUSH_SCREENSHOT)) {
+            uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
         }
     }
 

@@ -43,10 +43,10 @@ public class ThirdPartySyncCommand extends Command {
     @Parameter(names = {"--project", "-p"}, arity = 1, required = true, description = "Third party project to synchronize with")
     String thirdPartyProjectId;
 
-    @Parameter(names = {"--actions", "-a"}, arity = 1, required = false, description = "Actions to synchronize", listConverter = ThirdPartySyncActionsConverter.class)
+    @Parameter(names = {"--actions", "-a"}, variableArity = true, required = false, description = "Actions to synchronize", converter = ThirdPartySyncActionsConverter.class)
     List<ThirdPartySync.Action> actions = Arrays.asList(ThirdPartySync.Action.MAP_TEXTUNIT, ThirdPartySync.Action.PUSH_SCREENSHOT);
 
-    @Parameter(names = {"--options", "-o"}, arity = 1, required = false, description = "Options to synchronize")
+    @Parameter(names = {"--options", "-o"}, variableArity = true, required = false, description = "Options to synchronize")
     List<String> options = new ArrayList<>();
 
     @Autowired
