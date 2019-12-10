@@ -134,7 +134,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
         logger.debug("Invoke function to test");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId).get();
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, null, null).get();
 
         logger.debug("Verify states");
         thirdPartyTextUnitRepository.findAll().stream()

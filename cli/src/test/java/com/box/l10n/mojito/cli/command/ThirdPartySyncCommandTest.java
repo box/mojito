@@ -2,17 +2,15 @@ package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.Locale;
+import com.box.l10n.mojito.rest.client.ThirdPartySync;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ThirdPartySyncCommandTest extends CLITestBase {
 
@@ -26,6 +24,9 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
         String repoName = testIdWatcher.getEntityName("thirdpartysync_execute");
         Repository repository = repositoryService.createRepository(repoName, repoName + " description", null, false);
         getL10nJCommander().run("thirdparty-sync", "-r", repository.getName(), "-p", "does-not-matter-yet");
+
+        String outputString = outputCapture.toString();
+        assertTrue(outputString.contains(Arrays.asList(ThirdPartySync.Action.MAP_TEXTUNIT, ThirdPartySync.Action.PUSH_SCREENSHOT).toString()));
     }
 
 }

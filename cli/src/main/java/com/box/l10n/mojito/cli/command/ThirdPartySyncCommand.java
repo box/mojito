@@ -5,6 +5,7 @@ import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.rest.client.ThirdPartyClient;
+import com.box.l10n.mojito.rest.client.ThirdPartySync;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import org.fusesource.jansi.Ansi;
@@ -13,6 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.fusesource.jansi.Ansi.Color.CYAN;
 
@@ -38,6 +43,12 @@ public class ThirdPartySyncCommand extends Command {
     @Parameter(names = {"--project", "-p"}, arity = 1, required = true, description = "Third party project to synchronize with")
     String thirdPartyProjectId;
 
+    @Parameter(names = {"--actions", "-a"}, arity = 1, required = false, description = "Actions to synchronize", listConverter = ThirdPartySyncActionsConverter.class)
+    List<ThirdPartySync.Action> actions = Arrays.asList(ThirdPartySync.Action.MAP_TEXTUNIT, ThirdPartySync.Action.PUSH_SCREENSHOT);
+
+    @Parameter(names = {"--options", "-o"}, arity = 1, required = false, description = "Options to synchronize")
+    List<String> options = new ArrayList<>();
+
     @Autowired
     ThirdPartyClient thirdPartyClient;
 
@@ -48,11 +59,13 @@ public class ThirdPartySyncCommand extends Command {
     public void execute() throws CommandException {
 
         consoleWriter.newLine().a("Third party TMS synchronization for repository: ").fg(CYAN).a(repositoryParam).reset()
-                .a(" project id: ").fg(CYAN).a(thirdPartyProjectId).println(2);
+                .a(" project id: ").fg(CYAN).a(thirdPartyProjectId).reset()
+                .a(" actions: ").fg(CYAN).a(actions.toString()).reset()
+                .a(" options: ").fg(CYAN).a(options.toString()).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        PollableTask pollableTask = thirdPartyClient.sync(repository.getId(), thirdPartyProjectId);
+        PollableTask pollableTask = thirdPartyClient.sync(repository.getId(), thirdPartyProjectId, actions, options);
 
         commandHelper.waitForPollableTask(pollableTask.getId());
 

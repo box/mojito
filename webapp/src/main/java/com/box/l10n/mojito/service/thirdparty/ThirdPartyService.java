@@ -46,6 +46,14 @@ import static java.util.stream.Collectors.toList;
 @Component
 public class ThirdPartyService {
 
+    public enum Action {
+        PUSH,
+        PUSH_TRANSLATION,
+        PULL,
+        MAP_TEXTUNIT,
+        PUSH_SCREENSHOT
+    }
+
     static Logger logger = LoggerFactory.getLogger(ThirdPartyService.class);
 
     @Autowired
@@ -81,18 +89,38 @@ public class ThirdPartyService {
     @Autowired
     ThirdPartyTMS thirdPartyTMS;
 
-    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId) {
+    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, List<String> options) {
         ThirdPartySyncJobInput thirdPartySyncJobInput = new ThirdPartySyncJobInput();
+
         thirdPartySyncJobInput.setRepositoryId(repositoryId);
         thirdPartySyncJobInput.setThirdPartyProjectId(thirdPartyProjectId);
+        thirdPartySyncJobInput.setActions(actions);
+        thirdPartySyncJobInput.setOptions(options);
+
         return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
     }
 
-    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId) {
+    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, List<String> options) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
         Repository repository = repositoryRepository.findOne(repositoryId);
-        mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
-        uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
+
+        actions.sort((o1, o2) -> Integer.compare(o1.ordinal(), o2.ordinal()));
+        for (Action action : actions) {
+            switch (action) {
+                case PUSH:
+                    break;
+                case PUSH_TRANSLATION:
+                    break;
+                case PULL:
+                    break;
+                case MAP_TEXTUNIT:
+                    mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
+                    break;
+                case PUSH_SCREENSHOT:
+                    uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
+                    break;
+            }
+        }
     }
 
     void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId) {
