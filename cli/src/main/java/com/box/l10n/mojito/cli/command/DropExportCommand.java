@@ -40,7 +40,7 @@ public class DropExportCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
-    @Parameter(names = {"--type", "-t"}, arity = 1, required = false, description = "Type of export to perfom: TRANSLATION or REVIEW", converter = ExportDropConfigType.class)
+    @Parameter(names = {"--type", "-t"}, arity = 1, required = false, description = "Type of export to perfom: TRANSLATION or REVIEW", converter = ExportDropConfigTypeConverter.class)
     ExportDropConfig.Type typeParam;
 
     @Parameter(names = {Param.EXPORT_LOCALES_LONG, Param.EXPORT_LOCALES_SHORT}, arity = 1, required = false, description = Param.EXPORT_LOCALES_DESCRIPTION)
