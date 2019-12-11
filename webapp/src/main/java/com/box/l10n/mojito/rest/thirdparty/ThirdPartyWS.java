@@ -24,8 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 
     @RequestMapping(value = "/api/thirdparty/sync", method = RequestMethod.POST)
     public PollableTask thirdpartySyn(@RequestBody ThirdPartySync thirdPartySync) {
-        logger.debug("Sync repository: {} with third party project: {}", thirdPartySync.getRepositoryId(), thirdPartySync.getProjectId());
-        PollableFuture pollableFuture = thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync.getRepositoryId(), thirdPartySync.getProjectId());
+        logger.debug("Sync repository: {} with third party project: {} actions: {} options: {}",
+                thirdPartySync.getRepositoryId(), thirdPartySync.getProjectId(), thirdPartySync.getActions(), thirdPartySync.getOptions());
+        PollableFuture pollableFuture = thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(
+                thirdPartySync.getRepositoryId(), thirdPartySync.getProjectId(), thirdPartySync.getActions(), thirdPartySync.getOptions());
         return pollableFuture.getPollableTask();
     }
 }
