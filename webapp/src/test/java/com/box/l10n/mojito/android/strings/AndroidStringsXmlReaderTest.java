@@ -2,21 +2,20 @@ package com.box.l10n.mojito.android.strings;
 
 import com.google.common.io.Resources;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.util.List;
 
-import static com.box.l10n.mojito.android.strings.XmlHelper.*;
+import static com.box.l10n.mojito.android.strings.AndroidStringsXmlHelper.*;
 import static org.junit.Assert.*;
 
-public class XmlReaderTest {
+public class AndroidStringsXmlReaderTest {
 
     @Test
     public void fromFileTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard.xml").getPath());
+        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard.xml").getPath());
         List<Item> itemList = xmlDocument.getItems();
 
         int index = 0;
@@ -42,7 +41,7 @@ public class XmlReaderTest {
 
     @Test
     public void fromFilePluralSeparatorTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_plural_separator.xml").getPath(), "_");
+        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_plural_separator.xml").getPath(), "_");
         List<Item> itemList = xmlDocument.getItems();
 
         int index = 0;
@@ -64,7 +63,7 @@ public class XmlReaderTest {
 
     @Test
     public void fromFileKoreanTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_ko-KR.xml").getPath());
+        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_ko-KR.xml").getPath());
         List<Item> itemList = xmlDocument.getItems();
 
         int index = 0;
@@ -80,7 +79,7 @@ public class XmlReaderTest {
 
     @Test
     public void fromStringTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlReader().fromText(
+        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromText(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" 
                 + "<resources>\n"
                 + "<!--testing regular-->\n"
@@ -117,7 +116,7 @@ public class XmlReaderTest {
     }
     
     public void fromStringWithId() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlReader().fromText(
+        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromText(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<resources>\n"
                         + "<!--testing regular-->\n"

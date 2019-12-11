@@ -3,13 +3,17 @@ package com.box.l10n.mojito.android.strings;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Comparator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class XmlHelper {
+public class AndroidStringsXmlHelper {
 
     public static final String OTHER_ITEM_NAME = PluralName.other.toString();
 

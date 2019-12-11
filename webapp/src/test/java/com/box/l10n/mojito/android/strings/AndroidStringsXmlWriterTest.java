@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.box.l10n.mojito.android.strings.XmlHelper.*;
+import static com.box.l10n.mojito.android.strings.AndroidStringsXmlHelper.*;
 import static org.junit.Assert.*;
 
-public class XmlWriterTest {
+public class AndroidStringsXmlWriterTest {
 
     @Test
     public void addStringTest() throws TransformerException, ParserConfigurationException {
@@ -25,7 +25,7 @@ public class XmlWriterTest {
                         "<!--comment-->\n" +
                         "<string name=\"name\">content</string>\n" +
                         "</resources>\n",
-                new XmlWriter().toText(xmlDocument.getItems()));
+                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
     }
 
     @Test
@@ -38,7 +38,7 @@ public class XmlWriterTest {
                         "<!--comment-->\n" +
                         "<string name=\"name&quot;\">content\\\"</string>\n" +
                         "</resources>\n",
-                new XmlWriter().toText(xmlDocument.getItems()));
+                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
     }
     
     @Test
@@ -57,7 +57,7 @@ public class XmlWriterTest {
                         "<item quantity=\"other\">plural</item>\n" +
                         "</plurals>\n" +
                         "</resources>\n",
-                new XmlWriter().toText(xmlDocument.getItems()));
+                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
     }
     
     @Test
@@ -91,13 +91,13 @@ public class XmlWriterTest {
                         "<item quantity=\"other\">plural3</item>\n" +
                         "</plurals>\n" +
                         "</resources>\n",
-                new XmlWriter().toText(xmlDocument.getItems()));
+                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
     }
 
     @Test
     public void listIsEmptyTest() throws TransformerException, ParserConfigurationException {
         assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources/>\n",
-                new XmlWriter().toText(new ArrayList<>()));
+                new AndroidStringsXmlWriter().toText(new ArrayList<>()));
     }
 
     @Test
@@ -120,7 +120,7 @@ public class XmlWriterTest {
                         "<!--comment2-->\n" +
                         "<string name=\"name2\">content2</string>\n" +
                         "</resources>\n",
-                new XmlWriter().toText(itemList));
+                new AndroidStringsXmlWriter().toText(itemList));
     }
 
     @Test
@@ -143,7 +143,7 @@ public class XmlWriterTest {
                         "<!--comment2-->\n" +
                         "<string name=\"name2\" tmTextUnitId=\"126\">content2</string>\n" +
                         "</resources>\n",
-                new XmlWriter().toText(itemList));
+                new AndroidStringsXmlWriter().toText(itemList));
     }
 
     @Test
@@ -158,7 +158,7 @@ public class XmlWriterTest {
                         "<item quantity=\"other\">content1</item>\n" +
                         "</plurals>\n" +
                         "</resources>\n",
-                new XmlWriter().toText(itemList));
+                new AndroidStringsXmlWriter().toText(itemList));
     }
 
 }

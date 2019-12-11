@@ -16,10 +16,10 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.box.l10n.mojito.android.strings.XmlHelper.*;
+import static com.box.l10n.mojito.android.strings.AndroidStringsXmlHelper.*;
 
 @Component
-public class XmlWriter {
+public class AndroidStringsXmlWriter {
 
     private static String addEscape(String str) {
         if (str == null) {
@@ -51,7 +51,7 @@ public class XmlWriter {
         }
     }
 
-    private static void addSingle(Document document, Node node, Item item) {
+    private static void addSingularString(Document document, Node node, Item item) {
         Xml.addComment(document, node, item.getComment());
         Element child = Xml.createChild(document, node, SINGULAR_ELEMENT_NAME);
         Xml.addText(child, addEscape(item.getContent()));
@@ -59,7 +59,7 @@ public class XmlWriter {
         Xml.addAttribute(child, ID_ATTRIBUTE_NAME, item.getId());
     }
 
-    private static Node addPlural(Document document, Node node, Item item) {
+    private static Node addPluralString(Document document, Node node, Item item) {
         Xml.addComment(document, node, item.getComment());
         Element child = Xml.createChild(document, node, PLURAL_ELEMENT_NAME);
         Xml.addAttribute(child, NAME_ATTRIBUTE_NAME,
@@ -86,9 +86,9 @@ public class XmlWriter {
 
         for (int i = 0; i < itemList.size(); i++) {
             if (itemList.get(i).getPluralForm() == null) {
-                addSingle(document, node, itemList.get(i));
+                addSingularString(document, node, itemList.get(i));
             } else {
-                node = addPlural(document, node, itemList.get(i));
+                node = addPluralString(document, node, itemList.get(i));
                 List<Item> pluralList = new ArrayList<>();
                 for (; i < itemList.size() && itemList.get(i).getPluralForm() != null; i++) {
                     pluralList.add(itemList.get(i));

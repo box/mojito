@@ -12,10 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 
-import static com.box.l10n.mojito.android.strings.XmlHelper.*;
+import static com.box.l10n.mojito.android.strings.AndroidStringsXmlHelper.*;
 
 @Component
-public class XmlReader {
+public class AndroidStringsXmlReader {
 
     private static String removeEscape(String str) {
         if (str == null) {
@@ -45,19 +45,7 @@ public class XmlReader {
 
             return null;
         }
-/*
-        private static Node getOther(Node node) {
-            if (node != null) {
-                for (int i = 0; i < node.getChildNodes().getLength(); i++) {
-                    if (OTHER_ITEM_NAME.equals(getAttribute(node.getChildNodes().item(i), QUANTITY_ATTRIBUTE_NAME))) {
-                        return node.getChildNodes().item(i);
-                    }
-                }
-            }
-
-            return null;
-        }
-*/    }
+    }
 
     private static XmlDocument fromDocument(Document document, XmlDocument result) {
 
