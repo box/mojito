@@ -4,6 +4,8 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
 /**
  * Configuration to start the copy TM process
  *
@@ -16,6 +18,7 @@ public class CopyTmConfig {
     Long targetAssetId;
     Long sourceAssetId;
     String nameRegex;
+    Map<Long, Long> sourceToTargetTmTextUnitIds;
 
     Mode mode = Mode.MD5;
 
@@ -85,6 +88,14 @@ public class CopyTmConfig {
         this.targetAssetId = targetAssetId;
     }
 
+    public Map<Long, Long> getSourceToTargetTmTextUnitIds() {
+        return sourceToTargetTmTextUnitIds;
+    }
+
+    public void setSourceToTargetTmTextUnitIds(Map<Long, Long> sourceToTargetTmTextUnitIds) {
+        this.sourceToTargetTmTextUnitIds = sourceToTargetTmTextUnitIds;
+    }
+
     /**
      * Matching mode for leveraging
      */
@@ -98,6 +109,10 @@ public class CopyTmConfig {
          * comment are not checked)
          */
         EXACT,
+        /**
+         * Copy based on a Map source to target tmTextUnitId
+         */
+        TUIDS
     }
 
 }

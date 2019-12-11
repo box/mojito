@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+
 /**
  * Client to upload to trigger tasks related to third party synchronization.
  *
@@ -24,10 +26,14 @@ public class ThirdPartyClient extends BaseClient {
         return "thirdparty";
     }
 
-    public PollableTask sync(Long repositoryId, String projectId) {
+    public PollableTask sync(Long repositoryId, String projectId, List<ThirdPartySync.Action> actions, List<String> options) {
         ThirdPartySync thirdPartySync = new ThirdPartySync();
+
         thirdPartySync.setRepositoryId(repositoryId);
         thirdPartySync.setProjectId(projectId);
+        thirdPartySync.setActions(actions);
+        thirdPartySync.setOptions(options);
+
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath(getBasePathForEntity()).pathSegment("sync");
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(), thirdPartySync, PollableTask.class);
     }

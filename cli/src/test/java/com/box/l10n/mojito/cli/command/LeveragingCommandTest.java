@@ -8,18 +8,19 @@ import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+
 /**
- *
  * @author jaurambault
  */
 public class LeveragingCommandTest extends CLITestBase {
@@ -113,9 +114,9 @@ public class LeveragingCommandTest extends CLITestBase {
         getL10nJCommander().run("leveraging-copy-tm", "-s", sourceRepository.getName(), "-t", targetRepository.getName(), "-m", "EXACT");
 
         List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository);
-        
+
         List<String> expectedTargetTranslations = new ArrayList<>();
-        
+
         expectedTargetTranslations.add("1 day"); // en
         expectedTargetTranslations.add("1 heure"); // fr
         expectedTargetTranslations.add("1 hour"); // en
@@ -131,14 +132,88 @@ public class LeveragingCommandTest extends CLITestBase {
         expectedTargetTranslations.add("1日"); // ja
         expectedTargetTranslations.add("1時間"); // ja
         expectedTargetTranslations.add("Description de 100 caractères :"); //fr
-                
+
         Iterator<TMTextUnitVariant> itTargetTranslations = targetTranslations.iterator();
         Iterator<String> itExpectedTargetTranslations = expectedTargetTranslations.iterator();
-        
+
         for (TMTextUnitVariant targetTranslation : targetTranslations) {
             logger.error("target translation: {}", targetTranslation.getContent());
         }
-        
+
+        while (itExpectedTargetTranslations.hasNext()) {
+            Assert.assertEquals("translation in source and target must be the same", itExpectedTargetTranslations.next(), itTargetTranslations.next().getContent());
+        }
+
+        Assert.assertFalse(itExpectedTargetTranslations.hasNext());
+        Assert.assertFalse(itTargetTranslations.hasNext());
+    }
+
+    @Test
+    public void copyTMModeTUIDs() throws Exception {
+
+        Repository sourceRepository = repositoryService.createRepository(testIdWatcher.getEntityName("source-repoisotry"));
+        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("target-repoisotry"));
+
+        repositoryService.addRepositoryLocale(sourceRepository, "fr-FR");
+        repositoryService.addRepositoryLocale(sourceRepository, "fr-CA", "fr-FR", false);
+        repositoryService.addRepositoryLocale(sourceRepository, "ja-JP");
+
+        repositoryService.addRepositoryLocale(targetRepository, "fr-FR");
+        repositoryService.addRepositoryLocale(targetRepository, "fr-CA", "fr-FR", false);
+        repositoryService.addRepositoryLocale(targetRepository, "ja-JP");
+
+        getL10nJCommander().run("push", "-r", sourceRepository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        getL10nJCommander().run("push", "-r", targetRepository.getName(),
+                "-s", getInputResourcesTestDir("source2").getAbsolutePath());
+
+
+        List<TMTextUnitVariant> initialSource = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(sourceRepository);
+        Long sourceTmTextUnitId1 = initialSource.get(0).getTmTextUnit().getId();
+        Long sourceTmTextUnitId2 = initialSource.get(3).getTmTextUnit().getId();
+
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", sourceRepository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        List<TMTextUnitVariant> initialTargetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository);
+
+        assertEquals("There must be only english for now", 5, initialTargetTranslations.size());
+
+        Long targetTmTextUnitId1 = initialTargetTranslations.get(0).getTmTextUnit().getId();
+        Long targetTmTextUnitId2 = initialTargetTranslations.get(3).getTmTextUnit().getId();
+
+
+        String tmTextUnitIdMapping = new StringBuilder()
+                .append(sourceTmTextUnitId1).append(":").append(targetTmTextUnitId1).append(";")
+                .append(sourceTmTextUnitId2).append(":").append(targetTmTextUnitId2)
+                .toString();
+
+        getL10nJCommander().run("leveraging-copy-tm", "-m", "TUIDS", "--tuids-mapping", tmTextUnitIdMapping);
+
+        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesOrderByContent(targetRepository);
+
+        List<String> expectedTargetTranslations = new ArrayList<>();
+
+        expectedTargetTranslations.add("1 day"); // en
+        expectedTargetTranslations.add("1 hour"); // en
+        expectedTargetTranslations.add("1 jour"); // fr
+        expectedTargetTranslations.add("1 month"); // en
+        expectedTargetTranslations.add("100 character description:"); // en
+        expectedTargetTranslations.add("100文字の説明："); // ja
+        expectedTargetTranslations.add("15 min"); // en
+        expectedTargetTranslations.add("1日"); // ja
+        expectedTargetTranslations.add("Description de 100 caractères :"); //fr
+
+        Iterator<TMTextUnitVariant> itTargetTranslations = targetTranslations.iterator();
+        Iterator<String> itExpectedTargetTranslations = expectedTargetTranslations.iterator();
+
+        for (TMTextUnitVariant targetTranslation : targetTranslations) {
+            logger.error("target translation: {}", targetTranslation.getContent());
+        }
+
         while (itExpectedTargetTranslations.hasNext()) {
             Assert.assertEquals("translation in source and target must be the same", itExpectedTargetTranslations.next(), itTargetTranslations.next().getContent());
         }

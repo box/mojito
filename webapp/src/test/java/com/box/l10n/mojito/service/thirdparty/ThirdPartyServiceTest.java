@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -134,7 +135,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
         logger.debug("Invoke function to test");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId).get();
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT, ThirdPartyService.Action.PUSH_SCREENSHOT), new ArrayList<>()).get();
 
         logger.debug("Verify states");
         thirdPartyTextUnitRepository.findAll().stream()

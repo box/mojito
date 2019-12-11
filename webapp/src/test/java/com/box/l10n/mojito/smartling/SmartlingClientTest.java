@@ -6,6 +6,7 @@ import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
 import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.Items;
 import com.box.l10n.mojito.smartling.response.StringInfo;
+import com.box.l10n.mojito.test.TestIdWatcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +25,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
@@ -36,6 +37,9 @@ import java.util.stream.Stream;
 public class SmartlingClientTest {
 
     static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);
+
+    @Rule
+    public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
     @Autowired(required = false)
     SmartlingClient smartlingClient;
@@ -90,8 +94,12 @@ public class SmartlingClientTest {
     @Test
     public void testUploadFile() {
         Assume.assumeNotNull(projectId);
+        uploadFile(projectId, "strings.xml");
+    }
+
+    private void uploadFile(String projectId, String fileName) {
         smartlingClient.uploadFile(projectId,
-                "strings.xml",
+                fileName,
                 "android",
                 "<resources>\n" +
                         "    <string name=\"hello\">Hello</string>\n" +
@@ -99,7 +107,29 @@ public class SmartlingClientTest {
                         "</resources>\n",
                 null,
                 null);
+    }
 
+    @Test
+    public void testUploadDownloadAndDeleteFile() {
+        Assume.assumeNotNull(projectId);
+        String fileName = testIdWatcher.getEntityName("") + "-string.xml";
+
+        uploadFile(projectId, fileName);
+        try {
+            String result = smartlingClient.downloadFile(projectId,
+                    "fr-FR",
+                    fileName,
+                    false,
+                    SmartlingClient.RetrievalType.PUBLISHED);
+
+            Assert.assertEquals(
+                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                            "<resources>\n" +
+                            "    \n" +
+                            "</resources>", result);
+        } finally {
+            smartlingClient.deleteFile(projectId, fileName);
+        }
     }
 
     @Test

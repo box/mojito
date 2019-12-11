@@ -46,6 +46,14 @@ import static java.util.stream.Collectors.toList;
 @Component
 public class ThirdPartyService {
 
+    public enum Action {
+        PUSH,
+        PUSH_TRANSLATION,
+        PULL,
+        MAP_TEXTUNIT,
+        PUSH_SCREENSHOT
+    }
+
     static Logger logger = LoggerFactory.getLogger(ThirdPartyService.class);
 
     @Autowired
@@ -78,25 +86,39 @@ public class ThirdPartyService {
     @Autowired
     ImageService imageService;
 
-    @Autowired(required = false)
+    @Autowired
     ThirdPartyTMS thirdPartyTMS;
 
-    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId) {
+    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, List<String> options) {
         ThirdPartySyncJobInput thirdPartySyncJobInput = new ThirdPartySyncJobInput();
+
         thirdPartySyncJobInput.setRepositoryId(repositoryId);
         thirdPartySyncJobInput.setThirdPartyProjectId(thirdPartyProjectId);
+        thirdPartySyncJobInput.setActions(actions);
+        thirdPartySyncJobInput.setOptions(options);
+
         return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
     }
 
-    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId) {
+    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, List<String> options) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
-        if (thirdPartyTMS == null) {
-            throw new RuntimeException("No ThirdPartyTMS is configured");
-        }
-
         Repository repository = repositoryRepository.findOne(repositoryId);
-        mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
-        uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
+
+        if (actions.contains(Action.PUSH)) {
+            throw new UnsupportedOperationException();
+        }
+        if (actions.contains(Action.PUSH_TRANSLATION)) {
+            throw new UnsupportedOperationException();
+        }
+        if (actions.contains(Action.PULL)) {
+            throw new UnsupportedOperationException();
+        }
+        if (actions.contains(Action.MAP_TEXTUNIT)) {
+            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
+        }
+        if (actions.contains(Action.PUSH_SCREENSHOT)) {
+            uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
+        }
     }
 
     void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId) {

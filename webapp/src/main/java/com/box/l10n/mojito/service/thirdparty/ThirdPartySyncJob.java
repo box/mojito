@@ -29,7 +29,9 @@ public class ThirdPartySyncJob extends QuartzPollableJob<ThirdPartySyncJobInput,
         logger.debug("Run ThirdPartyMapJob");
         thirdPartyService.syncMojitoWithThirdPartyTMS(
                 input.getRepositoryId(),
-                input.getThirdPartyProjectId());
+                input.getThirdPartyProjectId(),
+                input.getActions(),
+                input.getOptions());
         return null;
     }
 }

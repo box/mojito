@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * Command to create copy TM from a source repository into a target repository.
  *
@@ -36,10 +38,10 @@ public class LeveragingCommand extends Command {
     @Autowired
     ConsoleWriter consoleWriter;
 
-    @Parameter(names = {Param.SOURCE_REPOSITORY_LONG, Param.SOURCE_REPOSITORY_SHORT}, arity = 1, required = true, description = Param.SOURCE_REPOSITORY_DESCRIPTION)
+    @Parameter(names = {Param.SOURCE_REPOSITORY_LONG, Param.SOURCE_REPOSITORY_SHORT}, arity = 1, required = false, description = Param.SOURCE_REPOSITORY_DESCRIPTION)
     String sourceRepositoryParam;
 
-    @Parameter(names = {Param.TARGET_REPOSITORY_LONG, Param.TARGET_REPOSITORY_SHORT}, arity = 1, required = true, description = Param.TARGET_REPOSITORY_DESCRIPTION)
+    @Parameter(names = {Param.TARGET_REPOSITORY_LONG, Param.TARGET_REPOSITORY_SHORT}, arity = 1, required = false, description = Param.TARGET_REPOSITORY_DESCRIPTION)
     String targetRepositoryParam;
 
     @Parameter(names = {"--name-regex", "-nr"}, arity = 1, required = false, description = "Leveraging will be performed only for target text units whose name matches provided regex")
@@ -53,8 +55,13 @@ public class LeveragingCommand extends Command {
 
     @Parameter(names = {"--mode", "-m"}, arity = 1, required = false, description = "Matching mode. "
             + "MD5 will perform matching based on the ID, content and comment. "
-            + "EXACT match is only using the content.", converter = CopyTmConfigMode.class)
+            + "EXACT match is only using the content.", converter = CopyTmConfigModeConverter.class)
     CopyTmConfig.Mode mode = CopyTmConfig.Mode.MD5;
+
+    @Parameter(names = {"--tuids-mapping"}, required = false,
+            description = "Text unit mapping for TUIDS mode (source to target tmTextUnit id), format: \"1001:2001;1002:2002\"",
+            converter = TmTextUnitMappingConverter.class)
+    Map<Long, Long> sourceToTargetTmTextUnitMapping;
 
     @Autowired
     CommandHelper commandHelper;
@@ -67,6 +74,19 @@ public class LeveragingCommand extends Command {
 
     @Override
     public void execute() throws CommandException {
+
+        if (CopyTmConfig.Mode.TUIDS.equals(mode)) {
+            copyTranslationBetweenTextUnits();
+        } else {
+            copyTmBetweenRepositories();
+        }
+    }
+
+    void copyTmBetweenRepositories() throws CommandException {
+
+        if (sourceRepositoryParam == null || targetRepositoryParam == null) {
+            throw new CommandException("Both --source-repository and --target-repository options must be provided in mode: " + mode.toString());
+        }
 
         consoleWriter.newLine().a("Copy TM from repository: ").fg(Color.CYAN).a(sourceRepositoryParam).
                 reset().a(" into repository: ").fg(Color.CYAN).a(targetRepositoryParam).println(2);
@@ -83,25 +103,46 @@ public class LeveragingCommand extends Command {
             if (mode != null) {
                 copyTmConfig.setMode(mode);
             }
-            
+
             if (targetAssetPathParam != null) {
-                 Asset asset = assetClient.getAssetByPathAndRepositoryId(targetAssetPathParam, targetRepository.getId());
-                 copyTmConfig.setTargetAssetId(asset.getId());
+                Asset asset = assetClient.getAssetByPathAndRepositoryId(targetAssetPathParam, targetRepository.getId());
+                copyTmConfig.setTargetAssetId(asset.getId());
             }
-            
+
             if (sourceAssetPathParam != null) {
-                 Asset asset = assetClient.getAssetByPathAndRepositoryId(sourceAssetPathParam, sourceRepository.getId());
-                 copyTmConfig.setSourceAssetId(asset.getId());
+                Asset asset = assetClient.getAssetByPathAndRepositoryId(sourceAssetPathParam, sourceRepository.getId());
+                copyTmConfig.setSourceAssetId(asset.getId());
             }
-            
+
             copyTmConfig = leveragingClient.copyTM(copyTmConfig);
-           
+
             PollableTask pollableTask = copyTmConfig.getPollableTask();
             commandHelper.waitForPollableTask(pollableTask.getId());
 
         } catch (AssetNotFoundException assetNotFoundException) {
             throw new CommandException(assetNotFoundException);
         }
+    }
+
+    void copyTranslationBetweenTextUnits() throws CommandException {
+        consoleWriter.newLine().a("Copy TM with mapping: ").println();
+
+        for (Map.Entry<Long, Long> entry : sourceToTargetTmTextUnitMapping.entrySet()) {
+            consoleWriter.newLine()
+                    .fg(Color.MAGENTA).a(entry.getKey())
+                    .reset().a(" --> ")
+                    .fg(Color.MAGENTA).a(entry.getValue());
+        }
+
+        CopyTmConfig copyTmConfig = new CopyTmConfig();
+        copyTmConfig.setNameRegex(nameRegexParam);
+        copyTmConfig.setMode(CopyTmConfig.Mode.TUIDS);
+        copyTmConfig.setSourceToTargetTmTextUnitIds(sourceToTargetTmTextUnitMapping);
+
+        copyTmConfig = leveragingClient.copyTM(copyTmConfig);
+
+        PollableTask pollableTask = copyTmConfig.getPollableTask();
+        commandHelper.waitForPollableTask(pollableTask.getId());
     }
 
 }

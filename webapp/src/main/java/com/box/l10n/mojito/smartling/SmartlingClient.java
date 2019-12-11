@@ -16,8 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -28,6 +30,23 @@ import java.util.stream.StreamSupport;
 
 public class SmartlingClient {
 
+    public enum RetrievalType {
+        PENDING("pending"),
+        PUBLISHED("published"),
+        PSEUDO("pseudo"),
+        CONTEXT_MATCHING_INSTRUMENTED("contextmatchinginstrumented");
+
+        private String value;
+
+        RetrievalType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+
     /**
      * logger
      */
@@ -36,6 +55,8 @@ public class SmartlingClient {
     static final String API_SOURCE_STRINGS = "strings-api/v2/projects/{projectId}/source-strings?fileUri={fileUri}&offset={offset}&offset={limit}";
     static final String API_FILES_LIST = "files-api/v2/projects/{projectId}/files/list";
     static final String API_FILES_UPLOAD = "files-api/v2/projects/{projectId}/file";
+    static final String API_FILES_DOWNLOAD = "files-api/v2/projects/{projectId}/locales/{locale_id}/file?fileUri={fileUri}&includeOriginalStrings={includeOriginalStrings}&retrievalType={retrievalType}";
+    static final String API_FILES_DELETE = "files-api/v2/projects/{projectId}/file/delete";
     static final String API_CONTEXTS = "context-api/v2/projects/{projectId}/contexts";
     static final String API_BINDINGS = "context-api/v2/projects/{projectId}/bindings";
 
@@ -72,6 +93,26 @@ public class SmartlingClient {
         FilesResponse filesResponse = oAuth2RestTemplate.getForObject(API_FILES_LIST, FilesResponse.class, projectId);
         throwExceptionOnError(filesResponse, "Can't get files");
         return filesResponse.getData();
+    }
+
+    public String downloadFile(String projectId, String local, String fileUri, boolean includeOriginalStrings, RetrievalType retrievalType) {
+        ResponseEntity<String> response = oAuth2RestTemplate.getForEntity(
+                API_FILES_DOWNLOAD, String.class, projectId, local, fileUri, includeOriginalStrings, retrievalType.getValue());
+        throwExceptionOnError(response, "Can't download file: %s ", fileUri);
+        return response.getBody();
+    }
+
+    public void deleteFile(String projectId, String fileUri) {
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("fileUri", fileUri);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        Response response = oAuth2RestTemplate.postForObject(API_FILES_DELETE, requestEntity, Response.class, projectId);
+        throwExceptionOnError(response, "Can't delete file: %s ", fileUri);
     }
 
     public FileUploadResponse uploadFile(String projectId, String fileUri, String fileType, String fileContent, String placeholderFormat, String placeholderFormatCustom) {
@@ -132,9 +173,15 @@ public class SmartlingClient {
         logger.debug("create binding: {}", s);
     }
 
-    <T> void throwExceptionOnError(Response<T> response, String msg) {
+    <T> void throwExceptionOnError(Response<T> response, String msg, Object... vars) {
         if (!API_SUCCESS_CODE.equals(response.getCode())) {
-            throw new SmartlingClientException(msg + "(code: " + response.getCode() + ")");
+            throw new SmartlingClientException(String.format(msg, vars) + "(code: " + response.getCode() + ")");
+        }
+    }
+
+    <T> void throwExceptionOnError(ResponseEntity<T> response, String msg, Object... vars) {
+        if (HttpStatus.OK != response.getStatusCode()) {
+            throw new SmartlingClientException(String.format(msg, vars) + "(code: " + response.getStatusCode().value() + ")");
         }
     }
 

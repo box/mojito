@@ -70,11 +70,11 @@ public class PullCommand extends Command {
     String sourcePathFilterRegex;
 
     @Parameter(names = {"--inheritance-mode"}, required = false, description = "Inheritance Mode. Used when there is no translations in the target locale for a text unit. (USE_PARENT to fallback to parent locale translation, REMOVE_UNTRANSLATED to remove the text unit from the file ",
-            converter = LocalizedAssetBodyInheritanceMode.class)
+            converter = LocalizedAssetBodyInheritanceModeConverter.class)
     LocalizedAssetBody.InheritanceMode inheritanceMode = LocalizedAssetBody.InheritanceMode.USE_PARENT;
 
     @Parameter(names = {"--status"}, required = false, description = "To choose the translations used to generate the file based on their status. ACCEPTED: only includes translations that are accepted. ACCEPTED_OR_NEEDS_REVIEW: includes translations that are accepted or that need review. ALL: includes all translations available even if they need re-translation (\"rejected\" translations are always excluded as they are considered harmful).",
-            converter = LocalizedAssetBodyStatus.class)
+            converter = LocalizedAssetBodyStatusConverter.class)
     LocalizedAssetBody.Status status = LocalizedAssetBody.Status.ALL;
 
     @Parameter(names = {"--asset-mapping", "-am"}, required = false, description = "Asset mapping, format: \"local1:remote1;local2:remote2\"", converter = AssetMappingConverter.class)
