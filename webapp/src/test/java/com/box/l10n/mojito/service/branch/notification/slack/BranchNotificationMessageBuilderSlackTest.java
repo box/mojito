@@ -2,8 +2,6 @@ package com.box.l10n.mojito.service.branch.notification.slack;
 
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
-import com.box.l10n.mojito.service.branch.notification.phabricator.BranchNotificationMessageBuilderPhabricator;
-import com.box.l10n.mojito.service.branch.notification.phabricator.BranchNotificationMessageBuilderPhabricatorTest;
 import com.box.l10n.mojito.slack.request.Message;
 import com.box.l10n.mojito.utils.ServerConfig;
 import org.junit.Test;
@@ -58,7 +56,7 @@ public class BranchNotificationMessageBuilderSlackTest {
     @Test
     public void testGetNewMessage() {
         Message newMessage = branchNotificationMessageBuilderSlack.getNewMessage("channel-test", "pr-test", Arrays.asList("string1", "string2"));
-        String json = objectMapper.writeValueAsStringUnsafe(newMessage);
+        String json = objectMapper.writeValueAsStringUnchecked(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"W" +
                 "e received your strings! Please *add screenshots* as soon as possible and *wait for translations* befor" +
                 "e releasing.\",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\"text\":\"Screen" +
@@ -71,21 +69,21 @@ public class BranchNotificationMessageBuilderSlackTest {
     @Test
     public void testGetTranslatedMessage() {
         Message newMessage = branchNotificationMessageBuilderSlack.getTranslatedMessage("channel-test", "pr-test");
-        String json = objectMapper.writeValueAsStringUnsafe(newMessage);
+        String json = objectMapper.writeValueAsStringUnchecked(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":\"Translations are ready !! :party:\",\"attachments\":[],\"thread_ts\":\"pr-test\"}", json);
     }
 
     @Test
     public void testGetScreenshotMissingMessage() {
         Message newMessage = branchNotificationMessageBuilderSlack.getScreenshotMissingMessage("channel-test", "pr-test");
-        String json = objectMapper.writeValueAsStringUnsafe(newMessage);
+        String json = objectMapper.writeValueAsStringUnchecked(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":\":warning: Please provide screenshots to help localization team :warning:\",\"attachments\":[],\"thread_ts\":\"pr-test\"}", json);
     }
 
     @Test
     public void testGetUpdatedMessage() {
         Message newMessage = branchNotificationMessageBuilderSlack.getUpdatedMessage("channel-test", "pr-test", "ts-test", Arrays.asList("string1", "string2"));
-        String json = objectMapper.writeValueAsStringUnsafe(newMessage);
+        String json = objectMapper.writeValueAsStringUnchecked(newMessage);
         assertEquals("{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"Y" +
                 "our branch was updated with new strings! Please *add screenshots* as soon as possible and *wait for tra" +
                 "nslations* before releasing.\",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\"" +

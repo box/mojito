@@ -2,8 +2,6 @@ package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.tm.ImportExportNote;
-import java.io.IOException;
-
 import net.sf.okapi.common.annotation.XLIFFNote;
 import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
@@ -14,8 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+
 /**
- *
  * @author jaurambault
  */
 @Component
@@ -36,7 +35,7 @@ public class ImportExportTextUnitUtils {
      * Set the note to a {@link ITextUnit}.
      *
      * @param textUnit to link with note
-     * @param note note to set
+     * @param note     note to set
      */
     public void setNote(ITextUnit textUnit, String note) {
 
@@ -79,12 +78,12 @@ public class ImportExportTextUnitUtils {
      * Converts the {@link ImportExportNote} to JSON and assigned it to the
      * {@link ITextUnit}.
      *
-     * @param textUnit to be updated with the note
+     * @param textUnit         to be updated with the note
      * @param importExportNote to be converted into a JSON string for the note
      */
     public void setImportExportNote(ITextUnit textUnit, ImportExportNote importExportNote) {
 
-        String importExportNoteStr = objectMapper.writeValueAsStringUnsafe(importExportNote);
+        String importExportNoteStr = objectMapper.writeValueAsStringUnchecked(importExportNote);
 
         XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
 

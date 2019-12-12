@@ -1,23 +1,20 @@
 package com.box.l10n.mojito.service.assetExtraction.extractor;
 
-import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
-import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
-import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
-import com.box.l10n.mojito.okapi.RawDocument;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
-import com.box.l10n.mojito.okapi.filters.*;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.RawDocument;
+import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
+import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.filters.FilterOptions;
+import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import net.sf.okapi.common.LocaleId;
-import net.sf.okapi.common.filters.DefaultFilters;
-import net.sf.okapi.common.filters.FilterConfigurationMapper;
-import net.sf.okapi.common.filters.IFilterConfigurationMapper;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
 import net.sf.okapi.steps.common.RawDocumentToFilterEventsStep;
@@ -84,27 +81,28 @@ public class AssetExtractor {
         Asset asset = assetExtraction.getAsset();
 
         RawDocument rawDocument = new RawDocument(assetExtraction.getAssetContent().getContent(), LocaleId.ENGLISH);
-        
+
         //TODO(P1) I think Okapi already implement this logic
         String filterConfigId;
-        
+
         if (filterConfigIdOverride != null) {
             filterConfigId = filterConfigIdOverride.getOkapiFilterId();
         } else {
             filterConfigId = getFilterConfigIdForAsset(asset);
         }
-        
+
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
 
         logger.debug("Filter options: {}", filterOptions);
         rawDocument.setAnnotation(new FilterOptions(filterOptions));
-        
+
         driver.addBatchItem(rawDocument);
 
         logger.debug("Start processing batch");
         driver.processBatch();
     }
+
 
     /**
      * @param asset The asset to be extracted

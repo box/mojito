@@ -2,7 +2,10 @@ package com.box.l10n.mojito.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
-import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 /**
  * Extends {@link com.fasterxml.jackson.databind.ObjectMapper} to provide
@@ -10,7 +13,6 @@ import org.springframework.stereotype.Component;
  *
  * @author jaurambault
  */
-@Component
 public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
 
     public ObjectMapper() {
@@ -25,11 +27,27 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
      * @param value
      * @return
      */
-    public String writeValueAsStringUnsafe(Object value) {
+    public String writeValueAsStringUnchecked(Object value) {
         try {
             return super.writeValueAsString(value);
         } catch (JsonProcessingException jpe) {
             throw new RuntimeException(jpe);
+        }
+    }
+
+    public <T> T readValueUnchecked(File src, Class<T> valueType) {
+        try {
+            return super.readValue(src, valueType);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public void writeValueUnchecked(File file, Object content) {
+        try {
+            super.writeValue(file, content);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
