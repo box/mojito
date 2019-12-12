@@ -192,6 +192,7 @@ public class IOTestBase {
             if (shouldOverrideExpectedTestFiles()) {
                 logger.info("Override expected test files (instead of checking)");
                 try {
+                    FileUtils.deleteDirectory(getExpectedResourcesTestDir());
                     FileUtils.copyDirectory(targetTestDir, getExpectedResourcesTestDir());
                 } catch (IOException io) {
                     throw new RuntimeException(io);

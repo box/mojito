@@ -21,7 +21,7 @@ npm-debug.log
 release.properties
 **/nb-configuration.xml
 **/.DS_Store
-
+.mojito/
 /chromeextension/ict-popup-bundle.js
 /chromeextension/ict-bundle.js
 /chromeextension/img/

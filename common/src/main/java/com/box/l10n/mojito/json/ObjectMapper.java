@@ -1,11 +1,13 @@
 package com.box.l10n.mojito.json;
 
+import com.box.l10n.mojito.io.Files;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 
 /**
  * Extends {@link com.fasterxml.jackson.databind.ObjectMapper} to provide
@@ -49,6 +51,11 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public void createDirectoriesAndWrite(Path path, Object content) {
+        Files.createDirectories(path.getParent());
+        writeValueUnchecked(path.toFile(), content);
     }
 
 }
