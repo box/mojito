@@ -1,27 +1,29 @@
 package com.box.l10n.mojito.service.drop.exporter;
 
 import com.box.l10n.mojito.json.ObjectMapper;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_IMPORTED_FILES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUERIES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUOTES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 import com.box.l10n.mojito.service.drop.importer.DropImporter;
 import com.box.l10n.mojito.service.drop.importer.FileSystemDropImporter;
-import java.nio.charset.StandardCharsets;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.FileSystemUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_IMPORTED_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUERIES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUOTES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 
 /**
  * A {@link DropExporter} that uses the file system as storage.
@@ -54,7 +56,7 @@ public class FileSystemDropExporter implements DropExporter {
 
     @Override
     public String getConfig() {
-        return objectMapper.writeValueAsStringUnsafe(fileSystemDropExporterConfig);
+        return objectMapper.writeValueAsStringUnchecked(fileSystemDropExporterConfig);
     }
 
     @Override

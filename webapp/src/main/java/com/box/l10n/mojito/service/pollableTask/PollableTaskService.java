@@ -3,8 +3,6 @@ package com.box.l10n.mojito.service.pollableTask;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.google.common.base.Throwables;
-import java.util.ArrayList;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Services to manage pollable tasks.
@@ -31,13 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PollableTaskService {
 
+    public final static Long NO_TIMEOUT = -1L;
     /**
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(PollableTaskService.class);
-
-    public final static Long NO_TIMEOUT = -1L;
-
     @Autowired
     ObjectMapper objectMapper;
 
@@ -91,7 +90,7 @@ public class PollableTaskService {
 
         if (exceptionHolder != null && exceptionHolder.getException() != null) {
             pollableTask.setErrorStack(Throwables.getStackTraceAsString(exceptionHolder.getException()));
-            pollableTask.setErrorMessage(objectMapper.writeValueAsStringUnsafe(exceptionHolder));
+            pollableTask.setErrorMessage(objectMapper.writeValueAsStringUnchecked(exceptionHolder));
         }
 
         if (messageOverride != null) {
@@ -166,8 +165,8 @@ public class PollableTaskService {
             List<PollableTask> pollableTaskWithErrors = getAllPollableTasksWithError(pollableTask);
             if (!pollableTaskWithErrors.isEmpty()) {
                 for (PollableTask pollableTaskWithError : pollableTaskWithErrors) {
-                    logger.error("Error happened in PollableTask: {}\n{}", 
-                            pollableTaskWithError.getId(), 
+                    logger.error("Error happened in PollableTask: {}\n{}",
+                            pollableTaskWithError.getId(),
                             pollableTaskWithError.getErrorStack());
                 }
                 throw new PollableTaskExecutionException("Error happened in PollableTask or sub tasks: " + pollableTask.getId());

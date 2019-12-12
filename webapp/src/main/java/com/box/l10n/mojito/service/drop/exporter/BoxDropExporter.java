@@ -3,23 +3,25 @@ package com.box.l10n.mojito.service.drop.exporter;
 import com.box.l10n.mojito.boxsdk.BoxSDKService;
 import com.box.l10n.mojito.boxsdk.BoxSDKServiceException;
 import com.box.l10n.mojito.json.ObjectMapper;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_IMPORTED_FILES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUERIES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUOTES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 import com.box.l10n.mojito.service.drop.importer.BoxDropImporter;
 import com.box.l10n.mojito.service.drop.importer.DropImporter;
 import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_IMPORTED_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUERIES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_QUOTES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 
 /**
  * A {@link DropExporter} that uses Box as storage and exchange platform.
@@ -50,7 +52,7 @@ public class BoxDropExporter implements DropExporter {
 
     @Override
     public String getConfig() {
-        return objectMapper.writeValueAsStringUnsafe(boxDropExporterConfig);
+        return objectMapper.writeValueAsStringUnchecked(boxDropExporterConfig);
     }
 
     @Override
@@ -200,7 +202,7 @@ public class BoxDropExporter implements DropExporter {
 
     @Override
     public void addCommentToFile(String fileId, String comment) throws DropExporterException {
-        
+
         if (comment != null) {
             try {
                 boxSDKService.addCommentToFile(fileId, comment);

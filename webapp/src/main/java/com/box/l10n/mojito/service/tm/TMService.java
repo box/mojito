@@ -1,11 +1,35 @@
 package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.common.StreamUtil;
-import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PluralForm;
+import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TM;
+import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.entity.security.user.User;
-import com.box.l10n.mojito.okapi.*;
+import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
+import com.box.l10n.mojito.okapi.ImportTranslationsByMd5Step;
+import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
+import com.box.l10n.mojito.okapi.ImportTranslationsStepAnnotation;
+import com.box.l10n.mojito.okapi.ImportTranslationsWithTranslationKitStep;
+import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.PseudoLocalizeStep;
+import com.box.l10n.mojito.okapi.RawDocument;
+import com.box.l10n.mojito.okapi.Status;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.TranslateStep;
+import com.box.l10n.mojito.okapi.XLIFFWriter;
 import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.filters.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.filters.FilterOptions;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
@@ -13,12 +37,10 @@ import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.steps.FilterEventsToInMemoryRawDocumentStep;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
-import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
@@ -44,7 +66,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -204,37 +225,7 @@ public class TMService {
         return tmTextUnit;
     }
 
-    /**
-     * Adds a {@link TMTextUnit} in a {@link TM}.
-     *
-     * @param tmId        the {@link TM} id (must be valid)
-     * @param assetId     the {@link Asset} id (must be valid)
-     * @param name        the text unit name
-     * @param content     the text unit content
-     * @param comment     the text unit comment, can be {@code null}
-     * @param createdDate to specify a creation date (can be used to re-import
-     * old TM), can be {@code null}
-     * @return the create {@link TMTextUnit}
-     */
-    @Autowired
-    private RetryTemplate retryTemplate;
-
-    /**
-     * with retry. if wrap in the transaction this won't work since the transactin/session will be marked as bad.
-     *
-     * @param tmId
-     * @param assetId
-     * @param name
-     * @param content
-     * @param comment
-     * @param createdByUser
-     * @param createdDate
-     * @param pluralForm
-     * @param pluralFormOther
-     * @param sourceLocaleId
-     * @return
-     */
-    public TMTextUnit addTMTextUnit(
+    TMTextUnit addTMTextUnit(
             final Long tmId,
             final Long assetId,
             final String name,

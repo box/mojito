@@ -1,6 +1,20 @@
 package com.box.l10n.mojito.cli.filefinder;
 
-import com.box.l10n.mojito.cli.filefinder.file.*;
+import com.box.l10n.mojito.cli.filefinder.file.AndroidStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.CSVFileType;
+import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.filefinder.file.JSFileType;
+import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.MacStringsdictFileType;
+import com.box.l10n.mojito.cli.filefinder.file.POFileType;
+import com.box.l10n.mojito.cli.filefinder.file.PropertiesFileType;
+import com.box.l10n.mojito.cli.filefinder.file.ReswFileType;
+import com.box.l10n.mojito.cli.filefinder.file.ResxFileType;
+import com.box.l10n.mojito.cli.filefinder.file.TSFileType;
+import com.box.l10n.mojito.cli.filefinder.file.XliffFileType;
+import com.box.l10n.mojito.cli.filefinder.file.XtbFileType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,8 +22,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The {@code FileFinder} class is used to search source and target files for
@@ -57,7 +69,6 @@ public class FileFinder {
      *
      * To set specific types, use {@link #setFileTypes(com.box.l10n.mojito.cli.filefinder.file.FileType...)
      * }
-     *
      */
     public FileFinder() {
         fileTypes.add(new XliffFileType());
@@ -72,7 +83,7 @@ public class FileFinder {
         fileTypes.add(new CSVFileType());
         fileTypes.add(new JSFileType());
         fileTypes.add(new TSFileType());
-        // TODO(ja) disable for now because this is likely to pickyp a lot of files. it might be better to ask for it explicitly 
+        // TODO(ja) disable for now because this is likely to pickup a lot of files. it might be better to ask for it explicitly
         // fileTypes.add(new JSONFileType());
     }
 
@@ -228,7 +239,6 @@ public class FileFinder {
      * @param sourceMatchCandidates list of source matches
      * @param targetMatchCandidates list of target match candidates
      * @return the filtered target matches
-     *
      */
     private List<FileMatch> filterTargetMatchesWithoutSourceMatches(List<FileMatch> sourceMatchCandidates, List<FileMatch> targetMatchCandidates) {
 
@@ -247,7 +257,7 @@ public class FileFinder {
 
     /**
      * Removes from source matches entries that are also a target match.
-     *
+     * <p>
      * In some cases regex can match both as a source and a target (eg.
      * file.fr.resx will be returned as source with basename: file.fr and target
      * with basename: file) so in that case the file is consider to be a target
