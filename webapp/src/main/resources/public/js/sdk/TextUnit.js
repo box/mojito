@@ -57,6 +57,14 @@ class TextUnit {
         this.data.tmTextUnitVariantId = tmTextUnitVariantId;
     }
 
+    getThirdPartyTextUnitId() {
+        return this.data.thirdPartyTextUnitId;
+    }
+
+    setThirdPartyTextUnitId(thirdPartyTextUnitId) {
+        this.data.thirdPartyTextUnitId = thirdPartyTextUnitId;
+    }
+
     /**
      * Locale id.
      *

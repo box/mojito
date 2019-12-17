@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * @author jeanaurambault
@@ -20,4 +21,5 @@ public interface ThirdPartyTextUnitRepository extends JpaRepository<ThirdPartyTe
     HashSet<String> findThirdPartyIdsByRepository(Repository repository);
 
     ThirdPartyTextUnit findByTmTextUnit(TMTextUnit tmTextUnit);
+    List<ThirdPartyTextUnit> findByTmTextUnitIdIn(List<Long> TmTextUnitIdList);
 }

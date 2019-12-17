@@ -3,16 +3,19 @@ package com.box.l10n.mojito.service.gitblame;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.GitBlame;
 import com.box.l10n.mojito.entity.Screenshot;
+import com.box.l10n.mojito.entity.ThirdPartyTextUnit;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartyTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +60,9 @@ public class GitBlameService {
     @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
+    @Autowired
+    ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
+
     /**
      * Gets the {@link GitBlameWithUsage} information that matches the search parameters.
      *
@@ -83,6 +89,7 @@ public class GitBlameService {
             enrichTextUnitsWithUsages(gitBlameWithUsages);
             enrichTextUnitsWithGitBlame(gitBlameWithUsages);
             enrichTextUnitsWithScreenshots(gitBlameWithUsages);
+            enrichTextUnitsWithThirdPartyTextUnitId(gitBlameWithUsages);
         }
 
         return gitBlameWithUsages;
@@ -156,6 +163,19 @@ public class GitBlameService {
             screenshots = MoreObjects.firstNonNull(screenshots, Collections.emptySet());
             gitBlameWithUsage.setScreenshots(screenshots);
         });
+    }
+
+    void enrichTextUnitsWithThirdPartyTextUnitId(List<GitBlameWithUsage> gitBlameWithUsages) {
+
+        Map<Long, GitBlameWithUsage> paramListByTmTextUnitId = gitBlameWithUsages.stream().collect(
+                Collectors.toMap(GitBlameWithUsage::getTmTextUnitId, Functions.identity()));
+        List<ThirdPartyTextUnit> thirdPartyTextUnitList = thirdPartyTextUnitRepository.findByTmTextUnitIdIn(
+                new ArrayList<>(paramListByTmTextUnitId.keySet()));
+
+        for (ThirdPartyTextUnit thirdPartyTextUnit : thirdPartyTextUnitList) {
+            GitBlameWithUsage gitBlameWithUsage = paramListByTmTextUnitId.get(thirdPartyTextUnit.getId());
+            gitBlameWithUsage.setThirdPartyTextUnitId(thirdPartyTextUnit.getThirdPartyId());
+        }
     }
 
     /**

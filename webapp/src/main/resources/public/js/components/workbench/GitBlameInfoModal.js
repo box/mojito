@@ -124,6 +124,7 @@ class GitBlameInfoModal extends React.Component {
                     {this.displayInfo("TmTextUnitVariantId", this.props.textUnit.getTmTextUnitVariantId())}
                     {this.displayInfo("TmTextUnitCurrentVariantId", this.props.textUnit.getTmTextUnitCurrentVariantId())}
                     {this.displayInfo("AssetTextUnitId", this.props.textUnit.getAssetTextUnitId())}
+                    {this.displayInfo("ThirdPartyTMSId", this.getThirdPartyTextUnitId())}
                     {this.displayInfo("AssetId", this.props.textUnit.getAssetId())}
                     {this.displayInfo("LastSuccessfulAsset\nExtractionId", this.props.textUnit.getLastSuccessfulAssetExtractionId())}
                     {this.displayInfo("AssetExtractionId", this.props.textUnit.getAssetExtractionId())}
@@ -197,11 +198,21 @@ class GitBlameInfoModal extends React.Component {
         }
     };
 
+    getThirdPartyTextUnitId = () => {
+        try {
+            return this.props.gitBlameWithUsage.thirdPartyTextUnitId;
+        } catch (e) {
+            return " - ";
+        }
+    };
+
     getParamsForLinks = () => {
         return {
             textUnitName: this.props.textUnit.getName(),
             textUnitNameInSource: this.getTextUnitNameInSource(),
-            assetPath: this.props.textUnit.getAssetPath()
+            assetPath: this.props.textUnit.getAssetPath(),
+            projectid: "projectid????",
+            thirdPartyTextUnitId: this.getThirdPartyTextUnitId()
         };
     };
 
