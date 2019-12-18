@@ -24,12 +24,15 @@ import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author jaurambault
@@ -167,14 +170,23 @@ public class GitBlameService {
 
     void enrichTextUnitsWithThirdPartyTextUnitId(List<GitBlameWithUsage> gitBlameWithUsages) {
 
-        Map<Long, GitBlameWithUsage> paramListByTmTextUnitId = gitBlameWithUsages.stream().collect(
-                Collectors.toMap(GitBlameWithUsage::getTmTextUnitId, Functions.identity()));
+        // TODO temporary, have to fix it (один из вариантов, зависит от структуры БД)
+//        Map<Long, GitBlameWithUsage> paramListByTmTextUnitId = gitBlameWithUsages.stream().collect(
+//                Collectors.toMap(GitBlameWithUsage::getTmTextUnitId, Functions.identity()));
+        Map<Long, List<GitBlameWithUsage>> paramListByTmTextUnitId = gitBlameWithUsages.stream().collect(
+                Collectors.toMap(GitBlameWithUsage::getTmTextUnitId, Collections::singletonList, (v1, v2) -> Stream.of(v1, v2).flatMap(Collection::stream).collect(Collectors.toList()), HashMap::new));
+
         List<ThirdPartyTextUnit> thirdPartyTextUnitList = thirdPartyTextUnitRepository.findByTmTextUnitIdIn(
                 new ArrayList<>(paramListByTmTextUnitId.keySet()));
 
+//        for (ThirdPartyTextUnit thirdPartyTextUnit : thirdPartyTextUnitList) {
+//            GitBlameWithUsage gitBlameWithUsage = paramListByTmTextUnitId.get(thirdPartyTextUnit.getTmTextUnit().getId());
+//            gitBlameWithUsage.setThirdPartyTextUnitId(thirdPartyTextUnit.getThirdPartyId());
+//        }
         for (ThirdPartyTextUnit thirdPartyTextUnit : thirdPartyTextUnitList) {
-            GitBlameWithUsage gitBlameWithUsage = paramListByTmTextUnitId.get(thirdPartyTextUnit.getId());
-            gitBlameWithUsage.setThirdPartyTextUnitId(thirdPartyTextUnit.getThirdPartyId());
+            for (GitBlameWithUsage gitBlameWithUsage : paramListByTmTextUnitId.get(thirdPartyTextUnit.getTmTextUnit().getId())) {
+                gitBlameWithUsage.setThirdPartyTextUnitId(thirdPartyTextUnit.getThirdPartyId());
+            }
         }
     }
 
