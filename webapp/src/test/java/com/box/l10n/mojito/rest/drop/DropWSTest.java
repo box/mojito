@@ -128,8 +128,6 @@ public class DropWSTest extends WSTestBase {
 
         String importedXliff = dropClient.importXiff(xliffWithTranslationForNonExistingTextUnit, repository.getId(), false, null);
 
-        logger.info(importedXliff);
-
         String expectedXliff = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<xliff version=\"1.2\" xmlns=\"urn:oasis:names:tc:xliff:document:1.2\" xmlns:okp=\"okapi-framework:xliff-extensions\">\n"
                 + "<file original=\"en.properties\" source-language=\"en\" target-language=\"fr-FR\" datatype=\"x-undefined\" okp:inputEncoding=\"UTF-8\">\n"
