@@ -13,7 +13,6 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import com.google.common.base.Throwables;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -174,7 +173,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
             PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), xliff, assetPath, branch, null, null, null);
             pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
         } catch (Exception e) {
-            Throwables.propagate(e);
+            throw new RuntimeException(e);
         }
     }
 
