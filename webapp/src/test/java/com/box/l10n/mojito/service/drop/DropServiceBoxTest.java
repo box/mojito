@@ -21,13 +21,14 @@ import java.util.List;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * @author jaurambault
  */
 @Ignore("won't work without @DirtiesContext which makes the build to slow")
-@WebIntegrationTest(randomPort = true, value = {"l10n.dropexporter.type=BOX"})
+@SpringBootTest(properties = {"l10n.dropexporter.type=BOX"},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class DropServiceBoxTest extends DropServiceTest {
 
     static Logger logger = LoggerFactory.getLogger(DropServiceBoxTest.class);

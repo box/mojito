@@ -14,8 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,8 +38,9 @@ import java.util.function.Supplier;
  * @author jaurambault
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@WebIntegrationTest(randomPort = true, value = {"l10n.fileSystemDropExporter.path=target/test-output/fileSystemDropExporter"})
+@SpringBootTest(properties = {"l10n.fileSystemDropExporter.path=target/test-output/fileSystemDropExporter"},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        classes = Application.class)
 @TestExecutionListeners(
         listeners = {
                 DependencyInjectionTestExecutionListener.class,

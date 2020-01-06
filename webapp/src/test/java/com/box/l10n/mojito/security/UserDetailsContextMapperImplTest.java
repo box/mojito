@@ -45,7 +45,7 @@ public class UserDetailsContextMapperImplTest {
 
         UserDetails userDetails = userDetailsContextMapper.mapUserFromContext(dirContextOperations, "testUsername", null);
 
-        Assert.notNull(userDetails);
+        Assert.notNull(userDetails, "User details can not be null");
         verify(dirContextOperations, times(3)).getStringAttribute(anyString());
     }
 
@@ -56,7 +56,7 @@ public class UserDetailsContextMapperImplTest {
         DirContextOperations dirContextOperations = mock(DirContextOperations.class);
         UserDetails userDetails = userDetailsContextMapper.mapUserFromContext(dirContextOperations, "testUsername", null);
 
-        Assert.notNull(userDetails);
+        Assert.notNull(userDetails, "User details can not be null");
         verify(dirContextOperations, never()).getStringAttribute(anyString());
         verify(userService, never()).createOrUpdateBasicUser(anyObject(), anyString(),
                         anyString(), anyString(), anyString());

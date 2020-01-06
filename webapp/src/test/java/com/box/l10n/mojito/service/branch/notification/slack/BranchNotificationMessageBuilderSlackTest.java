@@ -10,8 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
@@ -21,13 +20,11 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {
-        BranchNotificationMessageBuilderSlack.class,
-        BranchNotificationMessageBuilderSlackTest.class,
-        BranchUrlBuilder.class,
-        ServerConfig.class})
 @EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
+@SpringBootTest(properties = "spring.datasource.initialize=false",
+        classes = {BranchNotificationMessageBuilderSlack.class,
+            BranchNotificationMessageBuilderSlackTest.class, BranchUrlBuilder.class, ServerConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class BranchNotificationMessageBuilderSlackTest {
 
     ObjectMapper objectMapper = new ObjectMapper();

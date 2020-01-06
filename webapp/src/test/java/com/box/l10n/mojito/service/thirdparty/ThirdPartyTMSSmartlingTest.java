@@ -27,6 +27,7 @@ import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -99,6 +100,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         Assume.assumeNotNull(smartlingClient);
     }
 
+    @Ignore
     @Test
     public void testMappingAndScreenshot() throws Exception {
 

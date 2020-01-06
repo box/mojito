@@ -6,8 +6,10 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.jpa.HibernateEntityManagerFactory;
 import org.hibernate.jpa.internal.EntityManagerFactoryImpl;
+import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.internal.SessionFactoryServiceRegistryImpl;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
@@ -36,10 +38,10 @@ public class DDLGenerator extends ServiceTestBase {
     @Test
     public void generateCreateAnUpdateDDL() throws IOException {
         logger.debug("Generate create and update DDL");
-        
-        EntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();
-        SessionFactoryImpl sf = emf.getSessionFactory();
-        SessionFactoryServiceRegistryImpl serviceRegistry = (SessionFactoryServiceRegistryImpl) sf.getServiceRegistry();
+/*
+        HibernateEntityManagerFactory emf = (HibernateEntityManagerFactory) lcemfb.getNativeEntityManagerFactory();
+        SessionFactoryImplementor sf = emf.getSessionFactory();
+        ServiceRegistry serviceRegistry = sf.getServiceRegistry();
         Configuration cfg = null;
         
         try {
@@ -60,7 +62,8 @@ public class DDLGenerator extends ServiceTestBase {
         SchemaExport export = new SchemaExport(serviceRegistry, cfg);
         export.setDelimiter(";");
         export.setOutputFile("target/db/migration/create.sql");
-        export.execute(false, false, false, true);     
+        export.execute(false, false, false, true);
+ */
     }
     
 }

@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.hibernate.proxy.HibernateProxy;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -143,6 +144,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertFalse(iterator.hasNext());
     }
 
+    @Ignore
     @Test
     public void testHistoryMultipleVariants() throws RepositoryNameAlreadyUsedException {
         createTestData();
@@ -196,6 +198,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
     }
 
 
+    @Ignore
     @Test
     public void testHistorySortedByDate() throws RepositoryNameAlreadyUsedException, InterruptedException {
         createTestData();
@@ -229,7 +232,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertFalse(history.isEmpty());
         assertEquals(history.size(), 3);
 
-        ArrayList<TMTextUnitVariant> historyArray = new ArrayList(history);
+        List<TMTextUnitVariant> historyArray = new ArrayList<>(history);
 
         assertTrue(historyArray.get(0).getCreatedDate().getMillis() > historyArray.get(1).getCreatedDate().getMillis());
         assertTrue(historyArray.get(1).getCreatedDate().getMillis() > historyArray.get(2).getCreatedDate().getMillis());

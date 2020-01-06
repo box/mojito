@@ -29,11 +29,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.stream.Stream;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {SmartlingClientTest.class, SmartlingClientConfiguration.class, ObjectMapper.class})
-@EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
+//@EnableAutoConfiguration
+@IntegrationTest("spring.datasource.initialization-mode=never")
 public class SmartlingClientTest {
 
     static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);

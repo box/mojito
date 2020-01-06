@@ -34,7 +34,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +46,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @Configuration
 @ComponentScan(basePackageClasses = {BoxSDKServiceTest.class, BoxSDKServiceConfigEntityService.class})
-@SpringApplicationConfiguration(classes = {BoxSDKServiceTest.class, PropertyPlaceholderAutoConfiguration.class})
+@SpringBootTest(classes = {BoxSDKServiceTest.class, PropertyPlaceholderAutoConfiguration.class},
+        webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @EnableConfigurationProperties
 public class BoxSDKServiceTest {
 

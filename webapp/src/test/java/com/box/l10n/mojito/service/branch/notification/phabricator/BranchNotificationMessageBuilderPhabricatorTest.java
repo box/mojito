@@ -6,8 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.Arrays;
@@ -15,13 +14,11 @@ import java.util.Arrays;
 import static org.junit.Assert.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {
-        BranchNotificationMessageBuilderPhabricator.class,
-        BranchNotificationMessageBuilderPhabricatorTest.class,
-        BranchUrlBuilder.class,
-        ServerConfig.class})
 @EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
+@SpringBootTest(properties = "spring.datasource.initialize=false",
+        classes = {BranchNotificationMessageBuilderPhabricator.class,
+            BranchNotificationMessageBuilderPhabricatorTest.class, BranchUrlBuilder.class, ServerConfig.class},
+        webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class BranchNotificationMessageBuilderPhabricatorTest {
 
     @Autowired

@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.eventlistener;
 
 import javax.annotation.PostConstruct;
+
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -26,8 +28,8 @@ public class HibernateEventListenerConfig {
     @PostConstruct
     public void registerListeners() {
         EntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();
-        SessionFactoryImpl sf = emf.getSessionFactory();
-        EventListenerRegistry registry = (EventListenerRegistry)sf.getServiceRegistry().getService(EventListenerRegistry.class);
+        SessionFactoryImplementor sf = emf.getSessionFactory();
+        EventListenerRegistry registry = sf.getServiceRegistry().getService(EventListenerRegistry.class);
         registry.getEventListenerGroup(EventType.POST_COMMIT_INSERT).appendListener(entityCrudEventListener);
         registry.getEventListenerGroup(EventType.POST_COMMIT_UPDATE).appendListener(entityCrudEventListener);
         registry.getEventListenerGroup(EventType.POST_COMMIT_DELETE).appendListener(entityCrudEventListener);

@@ -13,8 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -22,9 +21,10 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {SlackClientTest.class, SlackClientConfiguration.class})
 @EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
+@SpringBootTest(properties = "spring.datasource.initialize=false",
+        classes = {SlackClientTest.class, SlackClientConfiguration.class},
+      webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class SlackClientTest {
 
     @Autowired(required = false)
