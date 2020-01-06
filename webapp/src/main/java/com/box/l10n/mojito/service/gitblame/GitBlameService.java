@@ -15,7 +15,6 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,13 +166,12 @@ public class GitBlameService {
 
     void enrichTextUnitsWithThirdPartyTextUnitId(List<GitBlameWithUsage> gitBlameWithUsages) {
 
-        Map<Long, GitBlameWithUsage> paramListByTmTextUnitId = gitBlameWithUsages.stream().collect(
-                Collectors.toMap(GitBlameWithUsage::getTmTextUnitId, Functions.identity()));
+        HashMap<Long, GitBlameWithUsage> gitBlameWithUsagesByTmTextUnitId = getGitBlameWithUsagesByTmTextUnitId(gitBlameWithUsages);
         List<ThirdPartyTextUnit> thirdPartyTextUnitList = thirdPartyTextUnitRepository.findByTmTextUnitIdIn(
-                new ArrayList<>(paramListByTmTextUnitId.keySet()));
+                gitBlameWithUsagesByTmTextUnitId.keySet());
 
         for (ThirdPartyTextUnit thirdPartyTextUnit : thirdPartyTextUnitList) {
-            GitBlameWithUsage gitBlameWithUsage = paramListByTmTextUnitId.get(thirdPartyTextUnit.getId());
+            GitBlameWithUsage gitBlameWithUsage = gitBlameWithUsagesByTmTextUnitId.get(thirdPartyTextUnit.getTmTextUnit().getId());
             gitBlameWithUsage.setThirdPartyTextUnitId(thirdPartyTextUnit.getThirdPartyId());
         }
     }

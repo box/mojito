@@ -211,7 +211,6 @@ class GitBlameInfoModal extends React.Component {
             textUnitName: this.props.textUnit.getName(),
             textUnitNameInSource: this.getTextUnitNameInSource(),
             assetPath: this.props.textUnit.getAssetPath(),
-            projectid: "projectid????",
             thirdPartyTextUnitId: this.getThirdPartyTextUnitId()
         };
     };
