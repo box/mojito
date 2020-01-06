@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli;
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -28,7 +29,7 @@ public class App implements CommandLineRunner {
      */
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(App.class);
-        app.setShowBanner(false);
+        app.setBannerMode(Banner.Mode.OFF);
         app.setWebEnvironment(false);
         app.run(args);
     }
