@@ -157,7 +157,7 @@ public class BoxSDKService {
                 logger.debug("Uploaded new file, id: " + uploadFile.getID() + ", name: " + filename);
             } else {
                 logger.debug("Upload a new version of file named: {} to folder: {}", filename, folderId);
-                uploadFile.uploadVersion(IOUtils.toInputStream(filecontent, Charset.defaultCharset()));
+                uploadFile.uploadVersion(IOUtils.toInputStream(filecontent, StandardCharsets.UTF_8));
 
                 logger.debug("Uploaded new version of file, id: " + uploadFile.getID() + ", name: " + filename);
             }
