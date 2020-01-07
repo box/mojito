@@ -16,7 +16,7 @@
 
     <properties>
         <start-class>com.box.l10n.mojito.Application</start-class>
-        <frontend.maven.plugin.version>1.0</frontend.maven.plugin.version>
+        <frontend.maven.plugin.version>1.8.0</frontend.maven.plugin.version>
         <node.version>v8.8.1</node.version>
         <npm.version>6.11.3</npm.version>
     </properties>
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
-            <version>2.0.17.RELEASE</version>
+            <version>2.0.18.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.retry</groupId>
