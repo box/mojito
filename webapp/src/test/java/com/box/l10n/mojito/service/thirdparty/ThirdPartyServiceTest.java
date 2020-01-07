@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
@@ -96,6 +97,9 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
 
     @Mock
     ThirdPartyTMS thirdPartyTMSMock;
+
+    @Captor
+    ArgumentCaptor<List<ThirdPartyImageToTextUnit>> thirdPartyImageToTextUnitsArgumentCaptor;
 
     @Before
     public void before() {
@@ -178,7 +182,6 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals("3rd-plural_things", thirdPartyTextUnits.get(7).getThirdPartyId());
 
         logger.debug("Verify behavior");
-        ArgumentCaptor<List<ThirdPartyImageToTextUnit>> thirdPartyImageToTextUnitsArgumentCaptor = new ArgumentCaptor<>();
         verify(thirdPartyTMSMock, times(3)).createImageToTextUnitMappings(
                 eq(projectId),
                 thirdPartyImageToTextUnitsArgumentCaptor.capture()
