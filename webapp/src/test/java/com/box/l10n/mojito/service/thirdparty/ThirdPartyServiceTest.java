@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -150,7 +150,6 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                             t.getTmTextUnit().getName(), t.getThirdPartyId());
                 });
 
-
         List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
                 .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
                 .collect(toList());
@@ -206,6 +205,57 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(0).getTextUnitId());
         assertEquals("img-image3a.png", thirdPartyImageToTextUnits.get(1).getImageId());
         assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(1).getTextUnitId());
+    }
+
+    @Test
+    public void dupplicatedNamesSubSequentMapping() throws ExecutionException, InterruptedException {
+        ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
+        Repository repository = thirdPartyServiceTestData.repository;
+        Asset asset = thirdPartyServiceTestData.asset;
+        String projectId = "someProjectIdForTest";
+
+        logger.debug("Create mocks and data for tests");
+        doAnswer(invocation -> Arrays.asList(
+                createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello")
+        )).doAnswer(invocation -> Arrays.asList(
+                createThirdPartyTextUnit(asset.getPath(), "3rd-hello-dupplicate", "hello")
+        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
+
+        doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
+
+        logger.debug("Invoke function to test");
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT), new ArrayList<>()).get();
+
+        logger.debug("Verify states");
+        thirdPartyTextUnitRepository.findAll().stream()
+                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .forEach(t -> {
+                    logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
+                            t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
+                            t.getTmTextUnit().getName(), t.getThirdPartyId());
+                });
+
+        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
+                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .collect(toList());
+        assertEquals(1, thirdPartyTextUnits.size());
+        thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
+
+        assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
+        assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
+
+        logger.debug("Invoke function to test - dupplicate name");
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT), new ArrayList<>()).get();
+
+        logger.debug("Verify states - dupplicate name");
+        thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
+                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .collect(toList());
+        assertEquals(1, thirdPartyTextUnits.size());
+        thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
+
+        assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
+        assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
     }
 
     @Test
