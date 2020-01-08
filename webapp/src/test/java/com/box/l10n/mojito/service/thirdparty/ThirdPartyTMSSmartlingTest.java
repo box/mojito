@@ -109,6 +109,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 "<resources>\n" +
                 "    <!--comment 1-->\n" +
                 "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"946852\">Hello</string>\n" +
+                "    <!-- twice the same name in the 3rd party tms shouldn't break the mapping -->\n" +
+                "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"8464561\">Hello-samename</string>\n" +
                 "    <!--comment 2-->\n" +
                 "    <string name=\"src/main/res/values/strings.xml#@#bye\" tmTextUnitId=\"946853\">Bye</string>\n" +
                 "    <plurals name=\"src/main/res/values/strings.xml#@#plural_things\">\n" +

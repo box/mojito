@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.ThirdPartyTextUnit;
@@ -21,6 +22,10 @@ public interface ThirdPartyTextUnitRepository extends JpaRepository<ThirdPartyTe
     @Query("select tptu.thirdPartyId from #{#entityName} tptu inner join tptu.asset a where a.repository = ?1")
     HashSet<String> findThirdPartyIdsByRepository(Repository repository);
 
+    @Query("select tptu.tmTextUnit.id from #{#entityName} tptu where tptu.asset = ?1")
+    HashSet<Long> findTmTextUnitIdsByAsset(Asset a);
+
     ThirdPartyTextUnit findByTmTextUnit(TMTextUnit tmTextUnit);
+
     List<ThirdPartyTextUnit> findByTmTextUnitIdIn(Collection<Long> TmTextUnitIdList);
 }
