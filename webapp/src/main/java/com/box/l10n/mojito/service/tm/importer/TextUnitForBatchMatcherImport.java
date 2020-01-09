@@ -22,7 +22,8 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
     Long tmTextUnitId;
     TextUnitDTO currentTextUnit;
     boolean includedInLocalizedFile;
-    private TMTextUnitVariant.Status status;
+    TMTextUnitVariant.Status status;
+    boolean namePluralPrefix;
 
     public Repository getRepository() {
         return repository;
@@ -103,5 +104,10 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
 
     public void setStatus(TMTextUnitVariant.Status status) {
         this.status = status;
+    }
+
+    @Override
+    public boolean isNamePluralPrefix() {
+        return false;
     }
 }

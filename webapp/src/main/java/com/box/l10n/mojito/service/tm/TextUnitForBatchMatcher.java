@@ -8,4 +8,6 @@ public interface TextUnitForBatchMatcher {
 
     Long getTmTextUnitId();
 
+    boolean isNamePluralPrefix();
+
 }
