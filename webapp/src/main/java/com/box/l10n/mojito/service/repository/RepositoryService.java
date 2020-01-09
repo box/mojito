@@ -91,7 +91,7 @@ public class RepositoryService {
      * Gets all the repositories that are not deleted, ordered by name
      * <p>
      * Could do something similar with criteria and more complex entity graph. When using more complex entity graph
-     * with spring it returns dupplicates that can be removed using "distinct" but that can't be provided with
+     * with spring it returns duplicates that can be removed using "distinct" but that can't be provided with
      * the basic spring repository. To do the equivalent with criteria:
      * <p>
      * Specifications<Repository> spec = where(deletedEquals(false)).and(ifParamNotNull(nameEquals(repositoryName)));

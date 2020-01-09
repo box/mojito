@@ -133,7 +133,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doAnswer(invocation -> Arrays.asList(
                 createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
                 createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
-                createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things")
+                createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things", true)
         )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
 
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
@@ -208,7 +208,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void dupplicatedNamesSubSequentMapping() throws ExecutionException, InterruptedException {
+    public void duplicatedNamesSubSequentMapping() throws ExecutionException, InterruptedException {
         ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
         Repository repository = thirdPartyServiceTestData.repository;
         Asset asset = thirdPartyServiceTestData.asset;
@@ -218,7 +218,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doAnswer(invocation -> Arrays.asList(
                 createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello")
         )).doAnswer(invocation -> Arrays.asList(
-                createThirdPartyTextUnit(asset.getPath(), "3rd-hello-dupplicate", "hello")
+                createThirdPartyTextUnit(asset.getPath(), "3rd-hello-duplicate", "hello")
         )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
 
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
@@ -244,10 +244,10 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
         assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
 
-        logger.debug("Invoke function to test - dupplicate name");
+        logger.debug("Invoke function to test - duplicate name");
         thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT), new ArrayList<>()).get();
 
-        logger.debug("Verify states - dupplicate name");
+        logger.debug("Verify states - duplicate name");
         thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
                 .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
                 .collect(toList());
@@ -304,10 +304,15 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     }
 
     ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {
+        return createThirdPartyTextUnit(assetPath, id, name, false);
+    }
+
+    ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name, boolean isNamePluralPrefix) {
         ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
         thirdPartyTextUnit.setAssetPath(assetPath);
         thirdPartyTextUnit.setId(id);
         thirdPartyTextUnit.setName(name);
+        thirdPartyTextUnit.setNamePluralPrefix(isNamePluralPrefix);
         return thirdPartyTextUnit;
     }
 
