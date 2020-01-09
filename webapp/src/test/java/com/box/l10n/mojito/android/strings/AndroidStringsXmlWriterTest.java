@@ -6,8 +6,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.box.l10n.mojito.android.strings.AndroidStringsXmlHelper.*;
@@ -17,38 +17,37 @@ public class AndroidStringsXmlWriterTest {
 
     @Test
     public void addStringTest() throws TransformerException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlDocument()
-                .addSingle("comment", "name", "content");
+        List<AndroidStringsTextUnit> androidStringsTextUnitList = Collections.singletonList(
+                createSingular("name", "content", "comment"));
         
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
                         "<!--comment-->\n" +
                         "<string name=\"name\">content</string>\n" +
                         "</resources>\n",
-                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
+                AndroidStringsXmlWriter.toText(androidStringsTextUnitList));
     }
 
     @Test
     public void addQuotesTest() throws TransformerException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlDocument()
-                .addSingle("comment", "name\"", "content\"");
+        List<AndroidStringsTextUnit> androidStringsTextUnitList = Collections.singletonList(
+                createSingular("name\"", "content\"", "comment"));
 
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
                         "<!--comment-->\n" +
                         "<string name=\"name&quot;\">content\\\"</string>\n" +
                         "</resources>\n",
-                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
+                AndroidStringsXmlWriter.toText(androidStringsTextUnitList));
     }
     
     @Test
     public void addPluralStringTest() throws TransformerException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlDocument()
-                .addPlural("comment", "name")
-                .addItem(PluralName.one, "singular")
-                .addItem(PluralName.other, "plural")
-                .getDocument();
-        
+
+        List<AndroidStringsTextUnit> androidStringsTextUnitList = Arrays.asList(
+                createPlural("name", PluralItem.one, "singular", "comment"),
+                createPlural("name", PluralItem.other, "plural", "comment"));
+
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
                         "<!--comment-->\n" +
@@ -57,22 +56,19 @@ public class AndroidStringsXmlWriterTest {
                         "<item quantity=\"other\">plural</item>\n" +
                         "</plurals>\n" +
                         "</resources>\n",
-                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
+                AndroidStringsXmlWriter.toText(androidStringsTextUnitList));
     }
     
     @Test
     public void addMultipleStringTest() throws TransformerException, ParserConfigurationException {
-        XmlDocument xmlDocument = new XmlDocument()
-                .addSingle("comment0", "name0", "content0")
-                .addPlural("comment1", "name1")
-                .addItem(PluralName.one, "singular1")
-                .addItem(PluralName.other, "plural1")
-                .getDocument()
-                .addSingle("comment2","name2", "content2")
-                .addPlural("comment3", "name3")
-                .addItem(PluralName.one, "singular3")
-                .addItem(PluralName.other, "plural3")
-                .getDocument();
+
+        List<AndroidStringsTextUnit> androidStringsTextUnitList = Arrays.asList(
+                createSingular("name0", "content0", "comment0"),
+                createPlural("name1", PluralItem.one, "singular1", "comment1"),
+                createPlural("name1", PluralItem.other, "plural1", "comment1"),
+                createPlural("name3", PluralItem.one, "singular3", "comment3"),
+                createSingular("name2", "content2", "comment2"),
+                createPlural("name3", PluralItem.other, "plural3", "comment3"));
 
         assertEquals(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
@@ -91,23 +87,22 @@ public class AndroidStringsXmlWriterTest {
                         "<item quantity=\"other\">plural3</item>\n" +
                         "</plurals>\n" +
                         "</resources>\n",
-                new AndroidStringsXmlWriter().toText(xmlDocument.getItems()));
+                AndroidStringsXmlWriter.toText(androidStringsTextUnitList));
     }
 
     @Test
     public void listIsEmptyTest() throws TransformerException, ParserConfigurationException {
         assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources/>\n",
-                new AndroidStringsXmlWriter().toText(new ArrayList<>()));
+                AndroidStringsXmlWriter.toText(Collections.emptyList()));
     }
 
     @Test
     public void listTest() throws TransformerException, ParserConfigurationException {
-        List<Item> itemList = Arrays.asList(
-                createItem("comment0", "name0", "content0"),
-                createItem("comment1", "name1 _other", "content1_plural", null, "other", "name1 _other", " _"),
-                createItem("comment1", "name1 _one", "content1_singular", null, "one", "name1 _other", " _"),
-                createItem("comment2", "name2", "content2")
-        );
+        List<AndroidStringsTextUnit> androidStringsTextUnitList = Arrays.asList(
+                createSingular("name0", "content0", "comment0"),
+                createPlural("name1", PluralItem.other, "content1_plural", "comment1"),
+                createPlural("name1", PluralItem.one, "content1_singular", "comment1"),
+                createSingular("name2", "content2", "comment2"));
 
         assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
                         "<!--comment0-->\n" +
@@ -120,17 +115,16 @@ public class AndroidStringsXmlWriterTest {
                         "<!--comment2-->\n" +
                         "<string name=\"name2\">content2</string>\n" +
                         "</resources>\n",
-                new AndroidStringsXmlWriter().toText(itemList));
+                AndroidStringsXmlWriter.toText(androidStringsTextUnitList));
     }
 
     @Test
     public void listWithIdTest() throws TransformerException, ParserConfigurationException {
-        List<Item> itemList = Arrays.asList(
-                createItem("comment0", "name0", "content0", "123"),
-                createItem("comment1", "name1 _other", "content1_plural", "124", "other", "name1 _other", " _"),
-                createItem("comment1", "name1 _one", "content1_singular", "125", "one", "name1 _other", " _"),
-                createItem("comment2", "name2", "content2", "126")
-        );
+        List<AndroidStringsTextUnit> androidStringsTextUnitList = Arrays.asList(
+                createSingular("name0", "content0", "comment0","123"),
+                createPlural("name1", PluralItem.other, "content1_plural", "comment1","124", DEFAULT_PLURAL_SEPARATOR),
+                createPlural("name1", PluralItem.one, "content1_singular", "comment1","125", DEFAULT_PLURAL_SEPARATOR),
+                createSingular("name2", "content2", "comment2","126"));
 
         assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
                         "<!--comment0-->\n" +
@@ -143,14 +137,13 @@ public class AndroidStringsXmlWriterTest {
                         "<!--comment2-->\n" +
                         "<string name=\"name2\" tmTextUnitId=\"126\">content2</string>\n" +
                         "</resources>\n",
-                new AndroidStringsXmlWriter().toText(itemList));
+                AndroidStringsXmlWriter.toText(androidStringsTextUnitList));
     }
 
     @Test
     public void listOtherTest() throws TransformerException, ParserConfigurationException, IOException {
-        List<Item> itemList = Arrays.asList(
-                createItem("comment1", "name1 _other", "content1", null, "other", "name1 _other", " _")
-        );
+        List<AndroidStringsTextUnit> androidStringsTextUnitList = Collections.singletonList(
+                createPlural("name1", PluralItem.other, "content1", "comment1"));
 
         assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
                         "<!--comment1-->\n" +
@@ -158,7 +151,7 @@ public class AndroidStringsXmlWriterTest {
                         "<item quantity=\"other\">content1</item>\n" +
                         "</plurals>\n" +
                         "</resources>\n",
-                new AndroidStringsXmlWriter().toText(itemList));
+                AndroidStringsXmlWriter.toText(androidStringsTextUnitList));
     }
 
 }
