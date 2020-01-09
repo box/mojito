@@ -92,20 +92,20 @@ public class ThirdPartyService {
     @Autowired
     ThirdPartyTMS thirdPartyTMS;
 
-    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localMapping, List<String> options) {
+    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
         ThirdPartySyncJobInput thirdPartySyncJobInput = new ThirdPartySyncJobInput();
 
         thirdPartySyncJobInput.setRepositoryId(repositoryId);
         thirdPartySyncJobInput.setThirdPartyProjectId(thirdPartyProjectId);
         thirdPartySyncJobInput.setActions(actions);
         thirdPartySyncJobInput.setPluralSeparator(pluralSeparator);
-        thirdPartySyncJobInput.setLocalMapping(localMapping);
+        thirdPartySyncJobInput.setLocaleMapping(localeMapping);
         thirdPartySyncJobInput.setOptions(options);
 
         return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
     }
 
-    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localMapping, List<String> options) {
+    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
 
         Repository repository = repositoryRepository.findOne(repositoryId);
