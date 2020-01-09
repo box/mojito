@@ -15,8 +15,7 @@ public class AndroidStringsXmlReaderTest {
 
     @Test
     public void fromFileTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard.xml").getPath());
-        List<Item> itemList = xmlDocument.getItems();
+        List<Item> itemList = AndroidStringsXmlReader.fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard.xml").getPath());
 
         int index = 0;
         assertEquals("pinterest", itemList.get(index).getName());
@@ -41,8 +40,7 @@ public class AndroidStringsXmlReaderTest {
 
     @Test
     public void fromFilePluralSeparatorTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_plural_separator.xml").getPath(), "_");
-        List<Item> itemList = xmlDocument.getItems();
+        List<Item> itemList = AndroidStringsXmlReader.fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_plural_separator.xml").getPath(), "_");
 
         int index = 0;
         assertEquals("pinterest", itemList.get(index).getName());
@@ -63,8 +61,7 @@ public class AndroidStringsXmlReaderTest {
 
     @Test
     public void fromFileKoreanTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_ko-KR.xml").getPath());
-        List<Item> itemList = xmlDocument.getItems();
+        List<Item> itemList = AndroidStringsXmlReader.fromFile(Resources.getResource("com/box/l10n/mojito/android/strings/copytune_pinboard_ko-KR.xml").getPath());
 
         int index = 0;
         assertEquals("pinterest", itemList.get(index).getName());
@@ -79,7 +76,7 @@ public class AndroidStringsXmlReaderTest {
 
     @Test
     public void fromStringTest() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromText(
+        List<Item> itemList = AndroidStringsXmlReader.fromText(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" 
                 + "<resources>\n"
                 + "<!--testing regular-->\n"
@@ -92,7 +89,6 @@ public class AndroidStringsXmlReaderTest {
                 + "<item quantity=\"other\">{num_pins} Pins</item>\n"
                 + "</plurals>\n"
                 + "</resources>");
-        List<Item> itemList = xmlDocument.getItems();
 
         int index = 0;
             assertEquals("pinterest", itemList.get(index).getName());
@@ -115,8 +111,9 @@ public class AndroidStringsXmlReaderTest {
             assertEquals("pins _other", itemList.get(index).getPluralFormOther());
     }
     
-    public void fromStringWithId() throws IOException, SAXException, ParserConfigurationException {
-        XmlDocument xmlDocument = new AndroidStringsXmlReader().fromText(
+    @Test
+    public void fromStringWithIdTest() throws IOException, SAXException, ParserConfigurationException {
+        List<Item> itemList = AndroidStringsXmlReader.fromText(
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<resources>\n"
                         + "<!--testing regular-->\n"
@@ -127,25 +124,24 @@ public class AndroidStringsXmlReaderTest {
                         + "<item quantity=\"other\" tmTextUnitId=\"236\">{num_pins} Pins</item>\n"
                         + "</plurals>\n"
                         + "</resources>");
-        List<Item> itemList = xmlDocument.getItems();
 
         int index = 0;
         assertEquals("pinterest", itemList.get(index).getName());
         assertEquals("Pinterest", itemList.get(index).getContent());
-        assertEquals(234, itemList.get(index).getId());
+        assertEquals("234", itemList.get(index).getId());
 
         index++;
         assertEquals("pins _one", itemList.get(index).getName());
         assertEquals("1 Pin", itemList.get(index).getContent());
         assertEquals("one", itemList.get(index).getPluralForm());
         assertEquals("pins _other", itemList.get(index).getPluralFormOther());
-        assertEquals(235, itemList.get(index).getId());
+        assertEquals("235", itemList.get(index).getId());
 
         index++;
         assertEquals("pins _other", itemList.get(index).getName());
         assertEquals("{num_pins} Pins", itemList.get(index).getContent());
         assertEquals("other", itemList.get(index).getPluralForm());
         assertEquals("pins _other", itemList.get(index).getPluralFormOther());
-        assertEquals(236, itemList.get(index).getId());
+        assertEquals("236", itemList.get(index).getId());
     }
 }

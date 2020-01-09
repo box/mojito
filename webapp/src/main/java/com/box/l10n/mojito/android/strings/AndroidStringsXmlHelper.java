@@ -1,21 +1,20 @@
 package com.box.l10n.mojito.android.strings;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Comparator;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class AndroidStringsXmlHelper {
 
-    public static final String OTHER_ITEM_NAME = PluralName.other.toString();
+    public static final String DEFAULT_PLURAL_SEPARATOR = " _";
 
     public static final String ROOT_ELEMENT_NAME = "resources";
     public static final String SINGULAR_ELEMENT_NAME = "string";
@@ -32,11 +31,27 @@ public class AndroidStringsXmlHelper {
         String getId();
         String getPluralForm();
         String getPluralFormOther();
-
-        String getNameSeparator();
     }
 
-    private static class SimpleItem implements Item {
+    public enum PluralItem {
+        zero,
+        one,
+        two,
+        few,
+        many,
+        other;
+
+        private static final Map<String, Integer> ordinalMap = Arrays.stream(PluralItem.values()).collect(
+                Collectors.toMap(PluralItem::name, PluralItem::ordinal));
+
+        public static int compare(Item o1, Item o2) {
+            return Integer.compare(
+                    ordinalMap.getOrDefault(o1.getPluralForm(), Integer.MAX_VALUE),
+                    ordinalMap.getOrDefault(o2.getPluralForm(), Integer.MAX_VALUE));
+        }
+    }
+
+    private static class PlainItem implements Item {
 
         private String comment;
         private String name;
@@ -45,7 +60,14 @@ public class AndroidStringsXmlHelper {
         private String pluralForm;
         private String pluralFormOther;
 
-        private String nameSeparator;
+        public PlainItem(String comment, String name, String content, String id, String pluralForm, String pluralFormOther) {
+            this.comment = comment;
+            this.name = name;
+            this.content = content;
+            this.id = id;
+            this.pluralForm = pluralForm;
+            this.pluralFormOther = pluralFormOther;
+        }
 
         @Override
         public String getComment() {
@@ -76,217 +98,63 @@ public class AndroidStringsXmlHelper {
         public String getPluralFormOther() {
             return pluralFormOther;
         }
-
-        @Override
-        public String getNameSeparator() {
-            return nameSeparator;
-        }
     }
 
-    public static Item createItem(String comment, String name, String content, String id, String pluralForm, String pluralFormOther, String nameSeparator) {
-        SimpleItem result = new SimpleItem();
+    public static Item createItem(String comment, String name, String content, String id, String pluralForm, String pluralFormOther) {
+        return new PlainItem(comment, name, content, id, pluralForm, pluralFormOther);
+    }
 
-        result.comment = comment;
-        result.name = name;
-        result.content = content;
-        result.id = id;
-        result.pluralForm = pluralForm;
-        result.pluralFormOther = pluralFormOther;
-        result.nameSeparator = nameSeparator;
+    public static Item createSingular(String comment, String name, String content, String id) {
+        return createItem(comment, name, content, id, null, null);
+    }
+
+    public static Item createSingular(String comment, String name, String content) {
+        return createItem(comment, name, content, null, null, null);
+    }
+
+    public static Item createPlural(String comment, String pluralName, PluralItem pluralItem, String content, String id, String pluralNameSeparator) {
+        return createItem(comment, pluralName + pluralNameSeparator + pluralItem.name(), content, id, pluralItem.name(), pluralName + pluralNameSeparator + PluralItem.other.name());
+    }
+
+    public static Item createPlural(String comment, String pluralName, PluralItem pluralItem, String content) {
+        return createPlural(comment, pluralName, pluralItem, content, null, DEFAULT_PLURAL_SEPARATOR);
+    }
+
+    static Element createChild(Document document, Node node, String name) {
+        Element result = document.createElement(name);
+        node.appendChild(result);
 
         return result;
     }
 
-    public static Item createItem(String comment, String name, String content, String id) {
-        return createItem(comment, name, content, id, null, null, null);
+    static void addText(Element element, String text) {
+        if (text != null) element.setTextContent(text);
     }
 
-    public static Item createItem(String comment, String name, String content) {
-        return createItem(comment, name, content, null, null, null, null);
+    static void addComment(Document document, Node node, String comment) {
+        if (comment != null) node.appendChild(document.createComment(comment));
     }
 
-    private static abstract class XmlItem {
+    static void addAttribute(Element element, String name, String value) {
+        if (value != null) element.setAttribute(name, value);
+    }
 
-        private XmlDocument xmlDocument;
-        private XmlItem parent;
-
-        private String comment;
-        private String name;
-
-        public XmlItem(XmlDocument xmlDocument, XmlItem parent, String comment, String name) {
-            this.xmlDocument = xmlDocument;
-            this.parent = parent;
-            this.comment = comment;
-            this.name = name;
-        }
-
-        protected XmlDocument getDocument() {
-            return xmlDocument;
-        }
-
-        protected XmlItem getParent() {
-            return parent;
-        }
-
-        public String getComment() {
-            if (getParent() == null) {
-                return comment;
-            } else {
-                return getParent().getComment();
+    static String getAttribute(Node node, String attributeName) {
+        if (node != null) {
+            NamedNodeMap map = node.getAttributes();
+            if (map != null) {
+                return getContent(map.getNamedItem(attributeName));
             }
         }
 
-        public String getName() {
-            if (getParent() == null) {
-                return name;
-            } else {
-                return xmlDocument.getPluralName(getParent().getName(), name);
-            }
-        }
-
-        public String getPluralForm() {
-            if (getParent() == null) {
-                return null;
-            } else {
-                return name;
-            }
-        }
-
-        public String getPluralFormOther() {
-            if (getParent() == null) {
-                return null;
-            } else {
-                return xmlDocument.getPluralName(getParent().getName(), OTHER_ITEM_NAME);
-            }
-        }
-
-        public String getNameSeparator() {
-            return getDocument().getNameSeparator();
-        }
+        return null;
     }
 
-    static class SingleXmlItem extends XmlItem implements Item {
-
-        private String content;
-        private String id;
-
-        public SingleXmlItem(XmlDocument xmlDocument, XmlItem parent, String comment, String name, String content, String id) {
-            super(xmlDocument, parent, comment, name);
-            this.content = content;
-            this.id = id;
-        }
-
-        @Override
-        public String getContent() {
-            return content;
-        }
-
-        @Override
-        public String getId() {
-            return id;
-        }
-    }
-
-    public enum PluralName {
-        zero,
-        one,
-        two,
-        few,
-        many,
-        other;
-
-        private static Map<String, Integer> map = IntStream
-                .range(0, PluralName.values().length).boxed()
-                .collect(Collectors.toMap(i -> PluralName.values()[i].toString(), Function.identity()));
-
-        private static int getIndex(String name) {
-            Integer index = map.get(name);
-            if (index == null) {
-                return Integer.MAX_VALUE;
-            } else {
-                return index;
-            }
-        }
-
-        public static void sortList(List<Item> itemList) {
-            itemList.sort(Comparator.comparingInt(i -> PluralName.getIndex(i.getPluralForm())));
-        }
-    }
-
-    public static class PluralXmlItem extends XmlItem {
-
-        private Map<PluralName, Item> itemMap = new HashMap<>();
-
-        private PluralXmlItem(XmlDocument xmlDocument, String comment, String name) {
-            super(xmlDocument,null, comment, name);
-        }
-
-        public PluralXmlItem addItem(PluralName name, String content, String id) {
-            itemMap.put(name, new SingleXmlItem(getDocument(), this, null, name.toString(), content, id));
-            return this;
-        }
-
-        public PluralXmlItem addItem(PluralName name, String content) {
-            return addItem(name, content, null);
-        }
-
-        public List<Item> getItems() {
-            List<Item> result = new ArrayList<>(itemMap.values());
-            PluralName.sortList(result);
-            return result;
-        }
-
-        @Override
-        public XmlDocument getDocument() {
-            return super.getDocument();
-        }
-    }
-
-    public static class XmlDocument {
-
-        private List<XmlItem> xmlItemList = new ArrayList<>();
-        private String nameSeparator = " _";
-
-        private String getPluralName(String parentName, String itemName) {
-            return parentName + nameSeparator + itemName;
-        }
-
-        public XmlDocument() {}
-
-        public XmlDocument(String nameSeparator) {
-            this.nameSeparator = nameSeparator;
-        }
-
-        public String getNameSeparator() {
-            return nameSeparator;
-        }
-
-        public XmlDocument addSingle(String comment, String name, String content, String id) {
-            xmlItemList.add(new SingleXmlItem(this, null, comment, name, content, id));
-            return this;
-        }
-
-        public XmlDocument addSingle(String comment, String name, String content) {
-            addSingle(comment, name, content, null);
-            return this;
-        }
-
-        public PluralXmlItem addPlural(String comment, String name) {
-            PluralXmlItem result = new PluralXmlItem(this, comment, name);
-            xmlItemList.add(result);
-            return result;
-        }
-
-        public List<Item> getItems() {
-            return xmlItemList.stream().flatMap(xmlItem -> {
-                if (xmlItem instanceof PluralXmlItem) {
-                    return ((PluralXmlItem) xmlItem).getItems().stream();
-                } else if (xmlItem instanceof SingleXmlItem) {
-                    return Stream.of((Item) xmlItem);
-                } else {
-                    return null;
-                }
-            }).collect(Collectors.toList());
+    static String getContent(Node node) {
+        if (node == null) {
+            return null;
+        } else {
+            return node.getTextContent();
         }
     }
 
