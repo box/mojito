@@ -39,9 +39,9 @@ public class AndroidStringsXmlReader {
                 switch (currentNode.getNodeName()) {
                     case SINGULAR_ELEMENT_NAME:
                         resultList.add(createSingular(
-                                getContent(lastCommentNode),
                                 getAttribute(currentNode, NAME_ATTRIBUTE_NAME),
                                 removeEscape(currentNode.getTextContent()),
+                                getContent(lastCommentNode),
                                 getAttribute(currentNode, ID_ATTRIBUTE_NAME)));
                         break;
 
@@ -53,8 +53,8 @@ public class AndroidStringsXmlReader {
                             Node itemNode = currentNode.getChildNodes().item(j);
                             String quantity = getAttribute(itemNode, QUANTITY_ATTRIBUTE_NAME);
                             if (quantity != null) {
-                                resultList.add(createPlural(comment, name, PluralItem.valueOf(quantity),
-                                        removeEscape(itemNode.getTextContent()),
+                                resultList.add(createPlural(name, PluralItem.valueOf(quantity),
+                                        removeEscape(itemNode.getTextContent()), comment,
                                         getAttribute(itemNode, ID_ATTRIBUTE_NAME), pluralNameSeparator));
                             }
                         }

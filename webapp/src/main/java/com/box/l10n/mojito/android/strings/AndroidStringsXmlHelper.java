@@ -24,15 +24,6 @@ public class AndroidStringsXmlHelper {
     public static final String QUANTITY_ATTRIBUTE_NAME = "quantity";
     public static final String ID_ATTRIBUTE_NAME = "tmTextUnitId";
 
-    public interface Item {
-        String getComment();
-        String getName();
-        String getContent();
-        String getId();
-        String getPluralForm();
-        String getPluralFormOther();
-    }
-
     public enum PluralItem {
         zero,
         one,
@@ -51,7 +42,7 @@ public class AndroidStringsXmlHelper {
         }
     }
 
-    private static class PlainItem implements Item {
+    public static class Item {
 
         private String comment;
         private String name;
@@ -60,7 +51,7 @@ public class AndroidStringsXmlHelper {
         private String pluralForm;
         private String pluralFormOther;
 
-        public PlainItem(String comment, String name, String content, String id, String pluralForm, String pluralFormOther) {
+        public Item(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
             this.comment = comment;
             this.name = name;
             this.content = content;
@@ -69,55 +60,49 @@ public class AndroidStringsXmlHelper {
             this.pluralFormOther = pluralFormOther;
         }
 
-        @Override
         public String getComment() {
             return comment;
         }
 
-        @Override
         public String getName() {
             return name;
         }
 
-        @Override
         public String getContent() {
             return content;
         }
 
-        @Override
         public String getId() {
             return id;
         }
 
-        @Override
         public String getPluralForm() {
             return pluralForm;
         }
 
-        @Override
         public String getPluralFormOther() {
             return pluralFormOther;
         }
     }
 
-    public static Item createItem(String comment, String name, String content, String id, String pluralForm, String pluralFormOther) {
-        return new PlainItem(comment, name, content, id, pluralForm, pluralFormOther);
+    public static Item createItem(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
+        return new Item(name, content, comment, id, pluralForm, pluralFormOther);
     }
 
-    public static Item createSingular(String comment, String name, String content, String id) {
-        return createItem(comment, name, content, id, null, null);
+    public static Item createSingular(String name, String content, String comment, String id) {
+        return createItem(name, content, comment, id, null, null);
     }
 
-    public static Item createSingular(String comment, String name, String content) {
-        return createItem(comment, name, content, null, null, null);
+    public static Item createSingular(String name, String content, String comment) {
+        return createSingular(name, content, comment, null);
     }
 
-    public static Item createPlural(String comment, String pluralName, PluralItem pluralItem, String content, String id, String pluralNameSeparator) {
-        return createItem(comment, pluralName + pluralNameSeparator + pluralItem.name(), content, id, pluralItem.name(), pluralName + pluralNameSeparator + PluralItem.other.name());
+    public static Item createPlural(String pluralName, PluralItem pluralItem, String content, String comment, String id, String pluralNameSeparator) {
+        return createItem(pluralName + pluralNameSeparator + pluralItem.name(), content, comment, id, pluralItem.name(), pluralName + pluralNameSeparator + PluralItem.other.name());
     }
 
-    public static Item createPlural(String comment, String pluralName, PluralItem pluralItem, String content) {
-        return createPlural(comment, pluralName, pluralItem, content, null, DEFAULT_PLURAL_SEPARATOR);
+    public static Item createPlural(String pluralName, PluralItem pluralItem, String content, String comment) {
+        return createPlural(pluralName, pluralItem, content, comment, null, DEFAULT_PLURAL_SEPARATOR);
     }
 
     static Element createChild(Document document, Node node, String name) {

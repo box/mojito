@@ -144,4 +144,74 @@ public class AndroidStringsXmlReaderTest {
         assertEquals("pins _other", itemList.get(index).getPluralFormOther());
         assertEquals("236", itemList.get(index).getId());
     }
+
+    @Test
+    public void fromStringWithSinglePluralFormTest() throws IOException, SAXException, ParserConfigurationException {
+        List<Item> itemList = AndroidStringsXmlReader.fromText(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<resources>\n"
+                        + "<!--testing plural-->\n"
+                        + "<plurals name=\"pins\">\n"
+                        + "<item quantity=\"other\">{num_pins} Pins</item>\n"
+                        + "</plurals>\n"
+                        + "</resources>");
+
+        assertEquals("pins _other", itemList.get(0).getName());
+        assertEquals("{num_pins} Pins", itemList.get(0).getContent());
+        assertEquals("other", itemList.get(0).getPluralForm());
+        assertEquals("pins _other", itemList.get(0).getPluralFormOther());
+    }
+
+    @Test
+    public void fromStringWithAllPluralFormsTest() throws IOException, SAXException, ParserConfigurationException {
+        List<Item> itemList = AndroidStringsXmlReader.fromText(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<resources>\n"
+                        + "<!--testing plural-->\n"
+                        + "<plurals name=\"pins\">\n"
+                        + "<item quantity=\"zero\">0 Pin</item>\n"
+                        + "<item quantity=\"one\">1 Pin</item>\n"
+                        + "<item quantity=\"two\">2 Pins</item>\n"
+                        + "<item quantity=\"few\">3 Pins</item>\n"
+                        + "<item quantity=\"many\">4 Pins</item>\n"
+                        + "<item quantity=\"other\">{num_pins} Pins</item>\n"
+                        + "</plurals>\n"
+                        + "</resources>");
+
+        int index = 0;
+        assertEquals("pins _zero", itemList.get(index).getName());
+        assertEquals("0 Pin", itemList.get(index).getContent());
+        assertEquals("zero", itemList.get(index).getPluralForm());
+        assertEquals("pins _other", itemList.get(index).getPluralFormOther());
+
+        index++;
+        assertEquals("pins _one", itemList.get(index).getName());
+        assertEquals("1 Pin", itemList.get(index).getContent());
+        assertEquals("one", itemList.get(index).getPluralForm());
+        assertEquals("pins _other", itemList.get(index).getPluralFormOther());
+
+        index++;
+        assertEquals("pins _two", itemList.get(index).getName());
+        assertEquals("2 Pins", itemList.get(index).getContent());
+        assertEquals("two", itemList.get(index).getPluralForm());
+        assertEquals("pins _other", itemList.get(index).getPluralFormOther());
+
+        index++;
+        assertEquals("pins _few", itemList.get(index).getName());
+        assertEquals("3 Pins", itemList.get(index).getContent());
+        assertEquals("few", itemList.get(index).getPluralForm());
+        assertEquals("pins _other", itemList.get(index).getPluralFormOther());
+
+        index++;
+        assertEquals("pins _many", itemList.get(index).getName());
+        assertEquals("4 Pins", itemList.get(index).getContent());
+        assertEquals("many", itemList.get(index).getPluralForm());
+        assertEquals("pins _other", itemList.get(index).getPluralFormOther());
+
+        index++;
+        assertEquals("pins _other", itemList.get(index).getName());
+        assertEquals("{num_pins} Pins", itemList.get(index).getContent());
+        assertEquals("other", itemList.get(index).getPluralForm());
+        assertEquals("pins _other", itemList.get(index).getPluralFormOther());
+    }
 }
