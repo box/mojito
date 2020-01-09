@@ -26,9 +26,9 @@ public class AndroidStringsXmlReader {
         return str.replaceAll("\\\\'", "'").replaceAll("\\\\\"", "\"").replace("\\\\\n", "\n").replaceAll("\\\\@", "@");
     }
 
-    private static List<Item> fromDocument(Document document, String pluralNameSeparator) {
+    private static List<AndroidStringsTextUnit> fromDocument(Document document, String pluralNameSeparator) {
 
-        List<Item> resultList = new ArrayList<>();
+        List<AndroidStringsTextUnit> resultList = new ArrayList<>();
 
         Node lastCommentNode = null;
         for (int i = 0; i < document.getDocumentElement().getChildNodes().getLength(); i++) {
@@ -66,19 +66,19 @@ public class AndroidStringsXmlReader {
         return resultList;
     }
 
-    public static List<Item> fromFile(String fileName, String pluralNameSeparator) throws ParserConfigurationException, IOException, SAXException {
+    public static List<AndroidStringsTextUnit> fromFile(String fileName, String pluralNameSeparator) throws ParserConfigurationException, IOException, SAXException {
         return fromDocument(getDocumentBuilder().parse(new File(fileName)), pluralNameSeparator);
     }
 
-    public static List<Item> fromFile(String fileName) throws ParserConfigurationException, IOException, SAXException {
+    public static List<AndroidStringsTextUnit> fromFile(String fileName) throws ParserConfigurationException, IOException, SAXException {
         return fromDocument(getDocumentBuilder().parse(new File(fileName)), DEFAULT_PLURAL_SEPARATOR);
     }
 
-    public static List<Item> fromText(String text, String pluralNameSeparator) throws ParserConfigurationException, IOException, SAXException {
+    public static List<AndroidStringsTextUnit> fromText(String text, String pluralNameSeparator) throws ParserConfigurationException, IOException, SAXException {
         return fromDocument(getDocumentBuilder().parse(new InputSource(new StringReader(text))), pluralNameSeparator);
     }
 
-    public static List<Item> fromText(String text) throws ParserConfigurationException, IOException, SAXException {
+    public static List<AndroidStringsTextUnit> fromText(String text) throws ParserConfigurationException, IOException, SAXException {
         return fromDocument(getDocumentBuilder().parse(new InputSource(new StringReader(text))), DEFAULT_PLURAL_SEPARATOR);
     }
 }

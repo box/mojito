@@ -35,58 +35,58 @@ public class AndroidStringsXmlWriter {
         return str.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\\n");
     }
 
-    private static String getPluralName(Item item) {
-        if (item.getPluralForm() != null) {
-            return item.getName().substring(0, item.getName().length() - item.getPluralForm().length());
+    private static String getPluralName(AndroidStringsTextUnit androidStringsTextUnit) {
+        if (androidStringsTextUnit.getPluralForm() != null) {
+            return androidStringsTextUnit.getName().substring(0, androidStringsTextUnit.getName().length() - androidStringsTextUnit.getPluralForm().length());
         }
         return null;
     }
 
-    private static void addSingularString(Document document, Node node, Item item) {
-        addComment(document, node, item.getComment());
+    private static void addSingularString(Document document, Node node, AndroidStringsTextUnit androidStringsTextUnit) {
+        addComment(document, node, androidStringsTextUnit.getComment());
         Element child = createChild(document, node, SINGULAR_ELEMENT_NAME);
-        addText(child, addEscape(item.getContent()));
-        addAttribute(child, NAME_ATTRIBUTE_NAME, item.getName());
-        addAttribute(child, ID_ATTRIBUTE_NAME, item.getId());
+        addText(child, addEscape(androidStringsTextUnit.getContent()));
+        addAttribute(child, NAME_ATTRIBUTE_NAME, androidStringsTextUnit.getName());
+        addAttribute(child, ID_ATTRIBUTE_NAME, androidStringsTextUnit.getId());
     }
 
-    private static Node addPluralString(Document document, Node node, Item item, String pluralNameSeparator) {
-        addComment(document, node, item.getComment());
+    private static Node addPluralString(Document document, Node node, AndroidStringsTextUnit androidStringsTextUnit, String pluralNameSeparator) {
+        addComment(document, node, androidStringsTextUnit.getComment());
         Element child = createChild(document, node, PLURAL_ELEMENT_NAME);
         addAttribute(child, NAME_ATTRIBUTE_NAME,
-                item.getName().substring(0,
-                        item.getName().length() - pluralNameSeparator.length() - item.getPluralForm().length()));
+                androidStringsTextUnit.getName().substring(0,
+                        androidStringsTextUnit.getName().length() - pluralNameSeparator.length() - androidStringsTextUnit.getPluralForm().length()));
 
         return child;
     }
 
-    private static void addPluralList(Document document, Node node, List<Item> itemList) {
-        for (Item item : itemList) {
+    private static void addPluralList(Document document, Node node, List<AndroidStringsTextUnit> androidStringsTextUnitList) {
+        for (AndroidStringsTextUnit androidStringsTextUnit : androidStringsTextUnitList) {
             Element child = createChild(document, node, PLURAL_ITEM_ELEMENT_NAME);
-            addText(child, addEscape(item.getContent()));
-            addAttribute(child, QUANTITY_ATTRIBUTE_NAME, item.getPluralForm());
-            addAttribute(child, ID_ATTRIBUTE_NAME, item.getId());
+            addText(child, addEscape(androidStringsTextUnit.getContent()));
+            addAttribute(child, QUANTITY_ATTRIBUTE_NAME, androidStringsTextUnit.getPluralForm());
+            addAttribute(child, ID_ATTRIBUTE_NAME, androidStringsTextUnit.getId());
         }
     }
 
-    private static Document toDocument(List<Item> itemList, String pluralNameSeparator) throws ParserConfigurationException {
+    private static Document toDocument(List<AndroidStringsTextUnit> androidStringsTextUnitList, String pluralNameSeparator) throws ParserConfigurationException {
         Document document = getDocumentBuilder().newDocument();
         document.setXmlStandalone(true);
         Node node = document.createElement(ROOT_ELEMENT_NAME);
         document.appendChild(node);
 
-        List<Item> sortedItemList = itemList.stream().sorted(Comparator.comparing(Item::getName)).collect(Collectors.toList());
-        for (int i = 0; i < sortedItemList.size(); i++) {
-            if (sortedItemList.get(i).getPluralForm() == null) {
-                addSingularString(document, node, sortedItemList.get(i));
+        List<AndroidStringsTextUnit> sortedAndroidStringsTextUnitList = androidStringsTextUnitList.stream().sorted(Comparator.comparing(AndroidStringsTextUnit::getName)).collect(Collectors.toList());
+        for (int i = 0; i < sortedAndroidStringsTextUnitList.size(); i++) {
+            if (sortedAndroidStringsTextUnitList.get(i).getPluralForm() == null) {
+                addSingularString(document, node, sortedAndroidStringsTextUnitList.get(i));
             } else {
-                String pluralName = getPluralName(sortedItemList.get(i));
-                node = addPluralString(document, node, sortedItemList.get(i), pluralNameSeparator);
-                List<Item> pluralList = new ArrayList<>();
-                for (; i < sortedItemList.size() && Objects.equals(pluralName, getPluralName(sortedItemList.get(i))); i++) {
-                    pluralList.add(sortedItemList.get(i));
+                String pluralName = getPluralName(sortedAndroidStringsTextUnitList.get(i));
+                node = addPluralString(document, node, sortedAndroidStringsTextUnitList.get(i), pluralNameSeparator);
+                List<AndroidStringsTextUnit> pluralList = new ArrayList<>();
+                for (; i < sortedAndroidStringsTextUnitList.size() && Objects.equals(pluralName, getPluralName(sortedAndroidStringsTextUnitList.get(i))); i++) {
+                    pluralList.add(sortedAndroidStringsTextUnitList.get(i));
                 }
-                pluralList.sort(PluralItem::compare);
+                pluralList.sort(Comparator.comparingInt(item -> PluralItem.valueOf(item.getPluralForm()).ordinal()));
                 addPluralList(document, node, pluralList);
 
                 i -= 1;
@@ -108,21 +108,21 @@ public class AndroidStringsXmlWriter {
         return writer;
     }
 
-    public static void toFile(List<Item> list, String fileName, String pluralNameSeparator) throws IOException, TransformerException, ParserConfigurationException {
+    public static void toFile(List<AndroidStringsTextUnit> list, String fileName, String pluralNameSeparator) throws IOException, TransformerException, ParserConfigurationException {
         String text = toText(list, pluralNameSeparator);
         new FileWriter(new File(fileName)).write(text);
     }
 
-    public static void toFile(List<Item> list, String fileName) throws IOException, TransformerException, ParserConfigurationException {
+    public static void toFile(List<AndroidStringsTextUnit> list, String fileName) throws IOException, TransformerException, ParserConfigurationException {
         String text = toText(list, DEFAULT_PLURAL_SEPARATOR);
         new FileWriter(new File(fileName)).write(text);
     }
 
-    public static String toText(List<Item> list, String pluralNameSeparator) throws TransformerException, ParserConfigurationException {
+    public static String toText(List<AndroidStringsTextUnit> list, String pluralNameSeparator) throws TransformerException, ParserConfigurationException {
         return toWriter(toDocument(list, pluralNameSeparator), new StringWriter()).toString();
     }
 
-    public static String toText(List<Item> list) throws TransformerException, ParserConfigurationException {
+    public static String toText(List<AndroidStringsTextUnit> list) throws TransformerException, ParserConfigurationException {
         return toWriter(toDocument(list, DEFAULT_PLURAL_SEPARATOR), new StringWriter()).toString();
     }
 }

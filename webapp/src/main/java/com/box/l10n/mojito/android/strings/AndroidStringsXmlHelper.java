@@ -30,78 +30,26 @@ public class AndroidStringsXmlHelper {
         two,
         few,
         many,
-        other;
-
-        private static final Map<String, Integer> ordinalMap = Arrays.stream(PluralItem.values()).collect(
-                Collectors.toMap(PluralItem::name, PluralItem::ordinal));
-
-        public static int compare(Item o1, Item o2) {
-            return Integer.compare(
-                    ordinalMap.getOrDefault(o1.getPluralForm(), Integer.MAX_VALUE),
-                    ordinalMap.getOrDefault(o2.getPluralForm(), Integer.MAX_VALUE));
-        }
+        other
     }
 
-    public static class Item {
-
-        private String comment;
-        private String name;
-        private String content;
-        private String id;
-        private String pluralForm;
-        private String pluralFormOther;
-
-        public Item(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
-            this.comment = comment;
-            this.name = name;
-            this.content = content;
-            this.id = id;
-            this.pluralForm = pluralForm;
-            this.pluralFormOther = pluralFormOther;
-        }
-
-        public String getComment() {
-            return comment;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public String getId() {
-            return id;
-        }
-
-        public String getPluralForm() {
-            return pluralForm;
-        }
-
-        public String getPluralFormOther() {
-            return pluralFormOther;
-        }
+    public static AndroidStringsTextUnit createItem(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
+        return new AndroidStringsTextUnit(name, content, comment, id, pluralForm, pluralFormOther);
     }
 
-    public static Item createItem(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
-        return new Item(name, content, comment, id, pluralForm, pluralFormOther);
-    }
-
-    public static Item createSingular(String name, String content, String comment, String id) {
+    public static AndroidStringsTextUnit createSingular(String name, String content, String comment, String id) {
         return createItem(name, content, comment, id, null, null);
     }
 
-    public static Item createSingular(String name, String content, String comment) {
+    public static AndroidStringsTextUnit createSingular(String name, String content, String comment) {
         return createSingular(name, content, comment, null);
     }
 
-    public static Item createPlural(String pluralName, PluralItem pluralItem, String content, String comment, String id, String pluralNameSeparator) {
+    public static AndroidStringsTextUnit createPlural(String pluralName, PluralItem pluralItem, String content, String comment, String id, String pluralNameSeparator) {
         return createItem(pluralName + pluralNameSeparator + pluralItem.name(), content, comment, id, pluralItem.name(), pluralName + pluralNameSeparator + PluralItem.other.name());
     }
 
-    public static Item createPlural(String pluralName, PluralItem pluralItem, String content, String comment) {
+    public static AndroidStringsTextUnit createPlural(String pluralName, PluralItem pluralItem, String content, String comment) {
         return createPlural(pluralName, pluralItem, content, comment, null, DEFAULT_PLURAL_SEPARATOR);
     }
 
