@@ -23,7 +23,7 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
     public void execute() throws Exception {
         String repoName = testIdWatcher.getEntityName("thirdpartysync_execute");
         Repository repository = repositoryService.createRepository(repoName, repoName + " description", null, false);
-        getL10nJCommander().run("thirdparty-sync", "-r", repository.getName(), "-p", "does-not-matter-yet");
+        getL10nJCommander().run("thirdparty-sync", "-r", repository.getName(), "-p", "does-not-matter-yet", "-ps", "\" _\"");
 
         String outputString = outputCapture.toString();
         assertTrue(outputString.contains(Arrays.asList(ThirdPartySync.Action.MAP_TEXTUNIT, ThirdPartySync.Action.PUSH_SCREENSHOT).toString()));
