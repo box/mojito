@@ -24,6 +24,11 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
      */
     String content;
 
+    /**
+     * If the name is a plural prefix (instead of the full text unit name) and so the entry map to a plural string in Mojito
+     */
+    boolean namePluralPrefix;
+
     public String getId() {
         return id;
     }
@@ -60,5 +65,14 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
     @Override
     public Long getTmTextUnitId() {
         return null;
+    }
+
+    @Override
+    public boolean isNamePluralPrefix() {
+        return namePluralPrefix;
+    }
+
+    public void setNamePluralPrefix(boolean namePluralPrefix) {
+        this.namePluralPrefix = namePluralPrefix;
     }
 }

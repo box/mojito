@@ -47,6 +47,12 @@ public class ThirdPartySyncCommand extends Command {
     @Parameter(names = {"--actions", "-a"}, variableArity = true, required = false, description = "Actions to synchronize", converter = ThirdPartySyncActionsConverter.class)
     List<ThirdPartySync.Action> actions = Arrays.asList(ThirdPartySync.Action.MAP_TEXTUNIT, ThirdPartySync.Action.PUSH_SCREENSHOT);
 
+    @Parameter(names = {"--plural-separator", "-ps"}, arity = 1, required = false, description = "Plural separator for name")
+    String pluralSeparator;
+
+    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Local mapping")
+    String localMapping;
+
     @Parameter(names = {"--options", "-o"}, variableArity = true, required = false, description = "Options to synchronize")
     List<String> options;
 
@@ -62,11 +68,13 @@ public class ThirdPartySyncCommand extends Command {
         consoleWriter.newLine().a("Third party TMS synchronization for repository: ").fg(CYAN).a(repositoryParam).reset()
                 .a(" project id: ").fg(CYAN).a(thirdPartyProjectId).reset()
                 .a(" actions: ").fg(CYAN).a(Objects.toString(actions)).reset()
+                .a(" plural-separator: ").fg(CYAN).a(Objects.toString(pluralSeparator)).reset()
+                .a(" local-mapping: ").fg(CYAN).a(Objects.toString(localMapping)).reset()
                 .a(" options: ").fg(CYAN).a(Objects.toString(options)).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        PollableTask pollableTask = thirdPartyClient.sync(repository.getId(), thirdPartyProjectId, actions, options);
+        PollableTask pollableTask = thirdPartyClient.sync(repository.getId(), thirdPartyProjectId, pluralSeparator, localMapping, actions, options);
 
         commandHelper.waitForPollableTask(pollableTask.getId());
 

@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -156,7 +157,7 @@ public class BoxSDKService {
                 logger.debug("Uploaded new file, id: " + uploadFile.getID() + ", name: " + filename);
             } else {
                 logger.debug("Upload a new version of file named: {} to folder: {}", filename, folderId);
-                uploadFile.uploadVersion(IOUtils.toInputStream(filecontent));
+                uploadFile.uploadVersion(IOUtils.toInputStream(filecontent, StandardCharsets.UTF_8));
 
                 logger.debug("Uploaded new version of file, id: " + uploadFile.getID() + ", name: " + filename);
             }
