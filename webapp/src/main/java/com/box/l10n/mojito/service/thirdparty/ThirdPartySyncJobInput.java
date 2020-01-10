@@ -11,7 +11,7 @@ public class ThirdPartySyncJobInput {
     String thirdPartyProjectId;
     List<ThirdPartyService.Action> actions;
     String pluralSeparator;
-    String localMapping;
+    String localeMapping;
     List<String> options;
 
     public Long getRepositoryId() {
@@ -46,12 +46,12 @@ public class ThirdPartySyncJobInput {
         this.pluralSeparator = pluralSeparator;
     }
 
-    public String getLocalMapping() {
-        return localMapping;
+    public String getLocaleMapping() {
+        return localeMapping;
     }
 
-    public void setLocalMapping(String localMapping) {
-        this.localMapping = localMapping;
+    public void setLocaleMapping(String localeMapping) {
+        this.localeMapping = localeMapping;
     }
 
     public List<String> getOptions() {
