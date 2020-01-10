@@ -28,18 +28,21 @@ import static com.box.l10n.mojito.android.strings.AndroidStringsXmlHelper.*;
 public class AndroidStringsXmlWriter {
 
     private static String addEscape(String str) {
-        if (str == null) {
-            return null;
+        String result = null;
+        if (str != null) {
+            result = str.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\\n");
         }
 
-        return str.replaceAll("\"", "\\\\\"").replaceAll("\n", "\\\\\n");
+        return result;
     }
 
     private static String getPluralName(AndroidStringsTextUnit androidStringsTextUnit) {
+        String result = null;
         if (androidStringsTextUnit.getPluralForm() != null) {
-            return androidStringsTextUnit.getName().substring(0, androidStringsTextUnit.getName().length() - androidStringsTextUnit.getPluralForm().length());
+            result = androidStringsTextUnit.getName().substring(0, androidStringsTextUnit.getName().length() - androidStringsTextUnit.getPluralForm().length());
         }
-        return null;
+
+        return result;
     }
 
     private static void addSingularString(Document document, Node node, AndroidStringsTextUnit androidStringsTextUnit) {

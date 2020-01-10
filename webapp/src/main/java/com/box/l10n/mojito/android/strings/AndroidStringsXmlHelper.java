@@ -2,15 +2,11 @@ package com.box.l10n.mojito.android.strings;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class AndroidStringsXmlHelper {
 
@@ -33,12 +29,16 @@ public class AndroidStringsXmlHelper {
         other
     }
 
-    public static AndroidStringsTextUnit createItem(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
+    public static AndroidStringsTextUnit createTextUnit(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
         return new AndroidStringsTextUnit(name, content, comment, id, pluralForm, pluralFormOther);
     }
 
+    public static AndroidStringsTextUnit createTextUnit(String name, String content, String comment, Long id, String pluralForm, String pluralFormOther) {
+        return createTextUnit(name, content, comment, id == null ? null : id.toString(), pluralForm, pluralFormOther);
+    }
+
     public static AndroidStringsTextUnit createSingular(String name, String content, String comment, String id) {
-        return createItem(name, content, comment, id, null, null);
+        return createTextUnit(name, content, comment, id, null, null);
     }
 
     public static AndroidStringsTextUnit createSingular(String name, String content, String comment) {
@@ -46,7 +46,7 @@ public class AndroidStringsXmlHelper {
     }
 
     public static AndroidStringsTextUnit createPlural(String pluralName, PluralItem pluralItem, String content, String comment, String id, String pluralNameSeparator) {
-        return createItem(pluralName + pluralNameSeparator + pluralItem.name(), content, comment, id, pluralItem.name(), pluralName + pluralNameSeparator + PluralItem.other.name());
+        return createTextUnit(pluralName + pluralNameSeparator + pluralItem.name(), content, comment, id, pluralItem.name(), pluralName + pluralNameSeparator + PluralItem.other.name());
     }
 
     public static AndroidStringsTextUnit createPlural(String pluralName, PluralItem pluralItem, String content, String comment) {
@@ -61,34 +61,39 @@ public class AndroidStringsXmlHelper {
     }
 
     static void addText(Element element, String text) {
-        if (text != null) element.setTextContent(text);
+        if (text != null) {
+            element.setTextContent(text);
+        }
     }
 
     static void addComment(Document document, Node node, String comment) {
-        if (comment != null) node.appendChild(document.createComment(comment));
+        if (comment != null) {
+            node.appendChild(document.createComment(comment));
+        }
     }
 
     static void addAttribute(Element element, String name, String value) {
-        if (value != null) element.setAttribute(name, value);
+        if (value != null) {
+            element.setAttribute(name, value);
+        }
     }
 
-    static String getAttribute(Node node, String attributeName) {
-        if (node != null) {
-            NamedNodeMap map = node.getAttributes();
-            if (map != null) {
-                return getContent(map.getNamedItem(attributeName));
-            }
+    static String getAttribute(Element element, String attributeName) {
+        String result = null;
+        if (element.hasAttribute(attributeName)) {
+            result = element.getAttribute(attributeName);
         }
 
-        return null;
+        return result;
     }
 
     static String getContent(Node node) {
-        if (node == null) {
-            return null;
-        } else {
-            return node.getTextContent();
+        String result = null;
+        if (node != null) {
+            result = node.getTextContent();
         }
+
+        return result;
     }
 
     static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {

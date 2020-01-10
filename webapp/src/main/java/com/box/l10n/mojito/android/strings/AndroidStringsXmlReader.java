@@ -1,8 +1,11 @@
 package com.box.l10n.mojito.android.strings;
 
+import com.google.common.base.Strings;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -19,11 +22,12 @@ import static com.box.l10n.mojito.android.strings.AndroidStringsXmlHelper.*;
 public class AndroidStringsXmlReader {
 
     private static String removeEscape(String str) {
-        if (str == null) {
-            return null;
+        String result = null;
+        if (str != null) {
+            result = str.replaceAll("\\\\'", "'").replaceAll("\\\\\"", "\"").replace("\\\\\n", "\n").replaceAll("\\\\@", "@");
         }
 
-        return str.replaceAll("\\\\'", "'").replaceAll("\\\\\"", "\"").replace("\\\\\n", "\n").replaceAll("\\\\@", "@");
+        return result;
     }
 
     private static List<AndroidStringsTextUnit> fromDocument(Document document, String pluralNameSeparator) {
@@ -35,27 +39,29 @@ public class AndroidStringsXmlReader {
             Node currentNode = document.getDocumentElement().getChildNodes().item(i);
             if (Node.COMMENT_NODE == currentNode.getNodeType()) {
                 lastCommentNode = currentNode;
-            } else {
-                switch (currentNode.getNodeName()) {
+            } else if (Node.ELEMENT_NODE == currentNode.getNodeType()) {
+                Element currentElement = (Element) currentNode;
+
+                switch (currentElement.getTagName()) {
                     case SINGULAR_ELEMENT_NAME:
                         resultList.add(createSingular(
-                                getAttribute(currentNode, NAME_ATTRIBUTE_NAME),
-                                removeEscape(currentNode.getTextContent()),
+                                getAttribute(currentElement, NAME_ATTRIBUTE_NAME),
+                                removeEscape(currentElement.getTextContent()),
                                 getContent(lastCommentNode),
-                                getAttribute(currentNode, ID_ATTRIBUTE_NAME)));
+                                getAttribute(currentElement, ID_ATTRIBUTE_NAME)));
                         break;
 
                     case PLURAL_ELEMENT_NAME:
                         String comment = getContent(lastCommentNode);
-                        String name = getAttribute(currentNode, NAME_ATTRIBUTE_NAME);
+                        String name = getAttribute(currentElement, NAME_ATTRIBUTE_NAME);
 
-                        for (int j = 0; j < currentNode.getChildNodes().getLength(); j++) {
-                            Node itemNode = currentNode.getChildNodes().item(j);
-                            String quantity = getAttribute(itemNode, QUANTITY_ATTRIBUTE_NAME);
-                            if (quantity != null) {
-                                resultList.add(createPlural(name, PluralItem.valueOf(quantity),
-                                        removeEscape(itemNode.getTextContent()), comment,
-                                        getAttribute(itemNode, ID_ATTRIBUTE_NAME), pluralNameSeparator));
+                        NodeList nodeList = currentElement.getElementsByTagName(PLURAL_ITEM_ELEMENT_NAME);
+                        for (int j = 0; j < nodeList.getLength(); j++) {
+                            if (Node.ELEMENT_NODE == nodeList.item(j).getNodeType()) {
+                                Element itemElement = (Element) nodeList.item(j);
+                                resultList.add(createPlural(name, PluralItem.valueOf(getAttribute(itemElement, QUANTITY_ATTRIBUTE_NAME)),
+                                        removeEscape(itemElement.getTextContent()), comment,
+                                        getAttribute(itemElement, ID_ATTRIBUTE_NAME), pluralNameSeparator));
                             }
                         }
                         break;
