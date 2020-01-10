@@ -4,7 +4,7 @@
    <string name="pinterest">Pinterest</string>
    <!--testing plural-->
    <plurals name="pins">
-      <xmlItem quantity="one">1 Pin</xmlItem>
-      <xmlItem quantity="other">{num_pins} Pins</xmlItem>
+      <item quantity="one">1 Pin</item>
+      <item quantity="other">{num_pins} Pins</item>
    </plurals>
 </resources>

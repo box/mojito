@@ -168,6 +168,7 @@ public class AndroidStringsXmlReaderTest {
                         + "<resources>\n"
                         + "<!--testing plural-->\n"
                         + "<plurals name=\"pins\">\n"
+                        + "<!--testing plural-->\n"
                         + "<item quantity=\"zero\">0 Pin</item>\n"
                         + "<item quantity=\"one\">1 Pin</item>\n"
                         + "<item quantity=\"two\">2 Pins</item>\n"

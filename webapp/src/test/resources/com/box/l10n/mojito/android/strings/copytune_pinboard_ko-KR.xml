@@ -4,6 +4,6 @@
    <string name="pinterest">P~íñté~rést</string>
    <!--testing plural-->
    <plurals name="pins">
-        <xmlItem quantity="other">[Plural form OTHER]: {num_pins} Pins</xmlItem>
+        <item quantity="other">[Plural form OTHER]: {num_pins} Pins</item>
     </plurals>
 </resources>
