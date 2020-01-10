@@ -139,7 +139,9 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
         logger.debug("Invoke function to test");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT, ThirdPartyService.Action.PUSH_SCREENSHOT), new ArrayList<>()).get();
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
+                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT, ThirdPartyService.Action.PUSH_SCREENSHOT),
+                " _", null, new ArrayList<>()).get();
 
         logger.debug("Verify states");
         thirdPartyTextUnitRepository.findAll().stream()
@@ -224,7 +226,9 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
         logger.debug("Invoke function to test");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT), new ArrayList<>()).get();
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
+                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT),
+                " _", null, new ArrayList<>()).get();
 
         logger.debug("Verify states");
         thirdPartyTextUnitRepository.findAll().stream()
@@ -245,7 +249,9 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
 
         logger.debug("Invoke function to test - duplicate name");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT), new ArrayList<>()).get();
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
+                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT),
+                " _", null, new ArrayList<>()).get();
 
         logger.debug("Verify states - duplicate name");
         thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()

@@ -15,6 +15,8 @@ public class ThirdPartySync {
     Long repositoryId;
     String projectId;
     List<Action> actions;
+    String pluralSeparator;
+    String localeMapping;
     List<String> options;
 
     public Long getRepositoryId() {
@@ -39,6 +41,22 @@ public class ThirdPartySync {
 
     public void setActions(List<Action> actions) {
         this.actions = actions;
+    }
+
+    public String getPluralSeparator() {
+        return pluralSeparator;
+    }
+
+    public void setPluralSeparator(String pluralSeparator) {
+        this.pluralSeparator = pluralSeparator;
+    }
+
+    public String getLocaleMapping() {
+        return localeMapping;
+    }
+
+    public void setLocaleMapping(String localeMapping) {
+        this.localeMapping = localeMapping;
     }
 
     public List<String> getOptions() {
