@@ -49,7 +49,7 @@ public class ThirdPartySyncCommand extends Command {
     @Parameter(names = {"--plural-separator", "-ps"}, arity = 1, required = false, description = "Plural separator for name")
     String pluralSeparator;
 
-    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Local mapping")
+    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Locale mapping")
     String localeMapping;
 
     @Parameter(names = {"--options", "-o"}, variableArity = true, required = false, description = "Options to synchronize")
