@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
    <!--testing regular-->
-   <string name="pinterest">P~íñté~rést</string>
+   <string name="pinterest">pinterest_ko</string>
    <!--testing plural-->
    <plurals name="pins">
         <item quantity="other">[Plural form OTHER]: {num_pins} Pins</item>

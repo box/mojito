@@ -64,7 +64,7 @@ public class AndroidStringsXmlReaderTest {
 
         int index = 0;
         assertEquals("pinterest", androidStringsTextUnitList.get(index).getName());
-        assertEquals("P~íñté~rést", androidStringsTextUnitList.get(index).getContent());
+        assertEquals("pinterest_ko", androidStringsTextUnitList.get(index).getContent());
 
         index++;
         assertEquals("pins _other", androidStringsTextUnitList.get(index).getName());
