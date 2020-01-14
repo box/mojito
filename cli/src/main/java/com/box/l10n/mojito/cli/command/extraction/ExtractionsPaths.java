@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command.extraction;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.io.Files;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,19 +17,22 @@ import java.util.stream.Collectors;
 public class ExtractionsPaths {
 
     public static final String DEFAULT_OUTPUT_DIRECTORY = ".mojito/extractions";
+    public static final String DEFAULT_DIFF_FILENAME = "diff.json";
     static final String JSON_FILE_EXTENSION = ".json";
-    static final String DIFF_OUTPUT = "diff.json";
 
     String inputDirectory;
     String outputDirectory;
+    String diffFileName;
 
     public ExtractionsPaths(String outputDirectory) {
-        this(outputDirectory, null);
+        this(outputDirectory, null, null);
     }
 
-    public ExtractionsPaths(String outputDirectory, String inputDirectory) {
+    public ExtractionsPaths(String outputDirectory, String inputDirectory, String diffFileName) {
+        Preconditions.checkNotNull(outputDirectory);
         this.outputDirectory = outputDirectory;
         this.inputDirectory = MoreObjects.firstNonNull(inputDirectory, outputDirectory);
+        this.diffFileName = MoreObjects.firstNonNull(diffFileName, DEFAULT_DIFF_FILENAME);
     }
 
     public Path inputDirectory() {
@@ -40,7 +44,7 @@ public class ExtractionsPaths {
     }
 
     public Path diffPath() {
-        return Paths.get(outputDirectory, DIFF_OUTPUT);
+        return Paths.get(outputDirectory, diffFileName);
     }
 
     Path extractionPath(String extractionName) {
