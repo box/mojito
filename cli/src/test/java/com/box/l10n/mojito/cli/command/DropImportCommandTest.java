@@ -90,6 +90,8 @@ public class DropImportCommandTest extends CLITestBase {
         importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
         importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
+        // wait for stats to be updated before exporting a drop
+        Thread.sleep(1000);
         getL10nJCommander().run("drop-export", "-r", repository.getName());
 
         final Long dropId = getLastDropIdFromOutput(outputCapture);
@@ -143,6 +145,8 @@ public class DropImportCommandTest extends CLITestBase {
         importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
         importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
+        // wait for stats to be updated before exporting a drop
+        Thread.sleep(1000);
         getL10nJCommander().run("drop-export", "-r", repository.getName());
 
         final Long dropId = getLastDropIdFromOutput(outputCapture);
