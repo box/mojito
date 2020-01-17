@@ -35,13 +35,7 @@ public class DropExportCommandTest extends CLITestBase {
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
-        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
-        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
-        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
-
-        Asset asset2 = assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
-        importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
-        importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
+        waitForRepositoryToHaveStringsForTranslations(repository.getId());
 
         Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
 
@@ -50,6 +44,29 @@ public class DropExportCommandTest extends CLITestBase {
         Page<Drop> findAllAfter = dropClient.getDrops(repository.getId(), null, null, null);
 
         assertEquals("A Drop must have been added", findAllBefore.getTotalElements() + 1, findAllAfter.getTotalElements());
+    }
+
+    @Test
+    public void exportFullyTranslated() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+
+        Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
+
+        getL10nJCommander().run("drop-export", "-r", repository.getName());
+
+        Page<Drop> findAllAfter = dropClient.getDrops(repository.getId(), null, null, null);
+
+        assertEquals("A Drop should not have been added", findAllBefore.getTotalElements(), findAllAfter.getTotalElements());
     }
 
     @Test
