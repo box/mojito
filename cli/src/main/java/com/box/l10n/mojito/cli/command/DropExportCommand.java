@@ -11,8 +11,8 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.fusesource.jansi.Ansi.Color;
@@ -162,26 +162,17 @@ public class DropExportCommand extends Command {
     
     private boolean shouldCreateDrop(Repository repository) {
         boolean createDrop = false;
-        Set<String> localesforTranslation = getLocalesForTranslation(repository);
+        Set<String> Bcp47TagsForTranslation = Sets.newHashSet(getBcp47TagsForExportFromRepository(repository));
         RepositoryStatistic repoStat = repository.getRepositoryStatistic();
         if (repoStat != null) {
             for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
-                if (localesforTranslation.contains(repoLocaleStat.getLocale().getBcp47Tag()) && repoLocaleStat.getForTranslationCount() > 0L) {
-                    return true;
+                if (Bcp47TagsForTranslation.contains(repoLocaleStat.getLocale().getBcp47Tag()) && repoLocaleStat.getForTranslationCount() > 0L) {
+                    createDrop = true;
+                    break;
                 }
             }
         }
         return createDrop;
-    }
-    
-    private Set<String> getLocalesForTranslation(Repository repository) {
-        Set<String> localesForTranslation = new HashSet<>();
-        for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
-            if (repositoryLocale.isToBeFullyTranslated()) {
-                localesForTranslation.add(repositoryLocale.getLocale().getBcp47Tag());
-            }
-        }
-        return localesForTranslation;
     }
     
 }

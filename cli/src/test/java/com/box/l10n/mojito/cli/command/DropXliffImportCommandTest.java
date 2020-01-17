@@ -84,8 +84,8 @@ public class DropXliffImportCommandTest extends CLITestBase {
         importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
         importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
-        // wait for stats to be updated before exporting a drop
-        Thread.sleep(1000);
+        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+
         getL10nJCommander().run("drop-export", "-r", repository.getName());
 
         final Long dropId = DropImportCommandTest.getLastDropIdFromOutput(outputCapture);

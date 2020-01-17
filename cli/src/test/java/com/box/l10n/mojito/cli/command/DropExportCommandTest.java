@@ -35,8 +35,7 @@ public class DropExportCommandTest extends CLITestBase {
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
-        // wait for stats to be updated
-        Thread.sleep(1000);
+        waitForRepositoryToHaveStringsForTranslations(repository.getId());
 
         Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
 
@@ -59,8 +58,7 @@ public class DropExportCommandTest extends CLITestBase {
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
         importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-        // wait for stats to be updated
-        Thread.sleep(1000);
+        waitForRepositoryToHaveStringsForTranslations(repository.getId());
 
         Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
 
