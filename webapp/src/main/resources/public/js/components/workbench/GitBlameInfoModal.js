@@ -3,8 +3,9 @@ import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
 import {Button, Modal} from "react-bootstrap";
 import {withAppConfig} from "../../utils/AppConfig";
-import LinkHelper from "../../utils/LinkHelper";
+import TemplateHelper from "../../utils/TemplateHelper";
 import {Link} from "react-router";
+import md5 from "md5";
 
 class GitBlameInfoModal extends React.Component {
     static propTypes() {
@@ -95,6 +96,7 @@ class GitBlameInfoModal extends React.Component {
                     {this.displayInfoWithId("textUnit.gitBlameModal.targetComment", this.props.textUnit.getTargetComment())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.location", this.getLocationLinks())}
                     {this.shouldShowThirdPartyTMS() && this.displayInfoWithId("textUnit.gitBlameModal.thirdPartyTMS", this.getThirdPartyLink())}
+                    {this.shouldShowCustomMd5() && this.displayInfoWithId("textUnit.gitBlameModal.customMd5", this.getCustomMd5Link())}
                 </div>
             );
     };
@@ -206,13 +208,45 @@ class GitBlameInfoModal extends React.Component {
         }
     };
 
-    getParamsForLinks = () => {
+    /**
+     * Base params are just a subset of text unit properties that can be used inside templates.
+     *
+     * See getCompoundParams() for params that are computed using the base params and templates coming from the config.
+     */
+    getBaseParams = () => {
         return {
             textUnitName: this.props.textUnit.getName(),
             textUnitNameInSource: this.getTextUnitNameInSource(),
             assetPath: this.props.textUnit.getAssetPath(),
-            thirdPartyTextUnitId: this.getThirdPartyTextUnitId()
+            thirdPartyTextUnitId: this.getThirdPartyTextUnitId(),
+            targetLocale: this.props.textUnit.getTargetLocale(),
         };
+    };
+
+    /**
+     * Compound params are built using templates coming from the config and the base params
+     */
+    getCompoundParams = (baseParams) => {
+        return {
+            customMd5: this.getCustomMd5(baseParams)
+        };
+    };
+
+    /**
+     * For links, use base and compound params plus an "encoded" version of each param to be used in the url components.
+     */
+    getParamsForLinks = () => {
+        const baseParams = this.getBaseParams();
+        const compoundParams = this.getCompoundParams(baseParams);
+        const encodedParams = Object.fromEntries(
+            Object.entries(baseParams, compoundParams).map(
+                ([key, value]) => {
+                    return ["encoded" + _.upperFirst(key), encodeURIComponent(value)];
+                })
+        )
+
+        const paramsForLinks = Object.assign({}, baseParams, compoundParams, encodedParams);
+        return paramsForLinks;
     };
 
     getTextUnitNameInSource() {
@@ -227,18 +261,39 @@ class GitBlameInfoModal extends React.Component {
             : this.getTextUnitNameToTextUnitNameInSourcePlural();
     }
 
-    renderLink = (urlTemplate, urlComponentTemplate, labelTemplate, params) => {
-        let url = LinkHelper.renderUrl(urlTemplate, urlComponentTemplate, params);
-        let label = LinkHelper.renderTemplate(labelTemplate, params);
-        return <a href={url}>{label}</a>;
+    renderLinkOrLabel = (urlTemplate, labelTemplate, params) => {
+        let linkOrLabel;
+
+        let label = TemplateHelper.renderTemplate(labelTemplate, params);
+        let url = TemplateHelper.renderTemplate(urlTemplate, params);
+
+        if (url) {
+            linkOrLabel = <a href={url}>{label}</a>;
+        } else {
+            linkOrLabel = label;
+        }
+
+        return linkOrLabel;
     };
 
     getThirdPartyLink = () => {
-        return this.renderLink(
+        return this.renderLinkOrLabel(
             this.getThirdPartyUrlTemplate(),
             this.getThirdPartyUrlComponentTemplate(),
             this.getThirdPartyLabelTemplate(),
             this.getParamsForLinks());
+    };
+
+    getCustomMd5Link = () => {
+        return this.renderLinkOrLabel(
+            this.getCustomMd5UrlTemplate(),
+            this.getCustomMd5LabelTemplate(),
+            this.getParamsForLinks());
+    };
+
+    getCustomMd5 = (baseParams) => {
+        let renderedTemplate = TemplateHelper.renderTemplate(this.getCustomMd5Template(), baseParams);
+        return md5(renderedTemplate);
     };
 
     /**
@@ -263,9 +318,8 @@ class GitBlameInfoModal extends React.Component {
      * @returns {*} Creates a link to a single location
      */
     getLocationLink = () => {
-        return this.renderLink(
+        return this.renderLinkOrLabel(
             this.getLocationUrlTemplate(),
-            this.getLocationUrlComponentTemplate(),
             this.getLocationLabelTemplate(),
             this.getParamsForLinks());
     };
@@ -294,7 +348,7 @@ class GitBlameInfoModal extends React.Component {
                     assetPath: this.props.textUnit.getAssetPath(),
                     usage: usage
                 };
-                let link = this.renderLink(this.getLocationUrlTemplate(), this.getLocationUrlComponentTemplate(), this.getLocationLabelTemplate(), params);
+                let link = this.renderLinkOrLabel(this.getLocationUrlTemplate(), this.getLocationUrlComponentTemplate(), this.getLocationLabelTemplate(), params);
                 links.push(<div>{link}</div>);
             }
         }
@@ -396,8 +450,50 @@ class GitBlameInfoModal extends React.Component {
         }
     };
 
+    shouldShowCustomMd5 = () => {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].customMd5 !== null;
+        } catch (e) {
+            return false;
+        }
+    };
+
+    getCustomMd5Template = () => {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].customMd5.template;
+        } catch (e) {
+            return;
+        }
+    };
+
+    getCustomMd5UrlTemplate = () => {
+        try {
+            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].customMd5.url;
+        } catch (e) {
+            return;
+        }
+    };
+
+    getCustomMd5LabelTemplate = () => {
+        let label;
+
+        try {
+            label = this.props.appConfig.link[this.props.textUnit.getRepositoryName()].customMd5.label;
+        } catch (e) {
+        }
+
+        if (!label) {
+            label = "${customMd5}";
+        }
+
+        return label;
+    };
+
     /**
      * @returns {*} Template for thirdParty url, if in configuration, an empty string otherwise.
+     *
+     * TODO this is not true, it returns undefined if thirdParty is present but not url, this comment applies to all
+     * other similar functions too
      */
     getThirdPartyUrlTemplate = () => {
         try {
@@ -463,7 +559,7 @@ class GitBlameInfoModal extends React.Component {
 
         if (commit !== null && urlTemplate !== "") {
             let params = {commit: commit};
-            link = this.renderLink(urlTemplate, this.getCommitUrlComponentTemplate(), this.getCommitLabelTemplate(), params);
+            link = this.renderLinkOrLabel(urlTemplate, this.getCommitUrlComponentTemplate(), this.getCommitLabelTemplate(), params);
         }
 
         return link;
