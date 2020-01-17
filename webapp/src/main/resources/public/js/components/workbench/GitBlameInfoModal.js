@@ -279,7 +279,6 @@ class GitBlameInfoModal extends React.Component {
     getThirdPartyLink = () => {
         return this.renderLinkOrLabel(
             this.getThirdPartyUrlTemplate(),
-            this.getThirdPartyUrlComponentTemplate(),
             this.getThirdPartyLabelTemplate(),
             this.getParamsForLinks());
     };
