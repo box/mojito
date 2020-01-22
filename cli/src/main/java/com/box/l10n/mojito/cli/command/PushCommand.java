@@ -6,22 +6,14 @@ import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.*;
+import com.box.l10n.mojito.rest.entity.Branch;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.google.common.collect.Sets;
-
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -32,6 +24,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author jaurambault
@@ -117,14 +117,7 @@ public class PushCommand extends Command {
 
             String sourcePath = sourceFileMatch.getSourcePath();
 
-            String assetContent = commandHelper.getFileContent(sourceFileMatch.getPath());
-
-            // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
-            // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
-            // See Xcode bug http://www.openradar.me/23410569
-            if (XcodeXliffFileType.class == sourceFileMatch.getFileType().getClass()) {
-                assetContent = commandHelper.setPreserveSpaceInXliff(assetContent);
-            }
+            String assetContent = commandHelper.getFileContentWithXcodePatch(sourceFileMatch);
 
             SourceAsset sourceAsset = new SourceAsset();
             sourceAsset.setBranch(branchName);

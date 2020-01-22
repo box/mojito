@@ -63,7 +63,7 @@ public class QuartzPollableTaskScheduler {
                 .startNow()
                 .forJob(jobDetail)
                 .usingJobData(QuartzPollableJob.POLLABLE_TASK_ID, pollableTask.getId().toString())
-                .usingJobData(QuartzPollableJob.INPUT, objectMapper.writeValueAsStringUnsafe(input))
+                .usingJobData(QuartzPollableJob.INPUT, objectMapper.writeValueAsStringUnchecked(input))
                 .withIdentity(keyName, DYNAMIC_GROUP_NAME).build();
 
         try {

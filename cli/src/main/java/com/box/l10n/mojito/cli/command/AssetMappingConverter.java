@@ -2,14 +2,11 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
-import com.box.l10n.mojito.rest.entity.CopyTmConfig;
 import com.google.common.base.Splitter;
 
-import java.util.Arrays;
 import java.util.Map;
 
 /**
- *
  * @author jaurambault
  */
 public class AssetMappingConverter implements IStringConverter<Map<String, String>> {

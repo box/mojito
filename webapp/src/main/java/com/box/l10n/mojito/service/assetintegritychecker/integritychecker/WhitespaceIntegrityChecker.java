@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import com.google.common.base.Objects;
 import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,7 @@ public class WhitespaceIntegrityChecker extends AbstractTextUnitIntegrityChecker
         logger.debug("Target leading whitespaces: {}", targetWhiteSpaces);
 
         logger.debug("Make sure the target has the same leading whitespaces as the source");
-        if (!StringUtils.equals(sourceWhiteSpaces, targetWhiteSpaces)) {
+        if (!Objects.equal(sourceWhiteSpaces, targetWhiteSpaces)) {
             throw new WhitespaceIntegrityCheckerException("Leading whitespaces around source and target are different");
         }
     }
@@ -51,7 +52,7 @@ public class WhitespaceIntegrityChecker extends AbstractTextUnitIntegrityChecker
         logger.debug("Target trailing whitespaces: {}", targetWhiteSpaces);
 
         logger.debug("Make sure the target has the same trailing whitespaces as the source");
-        if (!StringUtils.equals(sourceWhiteSpaces, targetWhiteSpaces)) {
+        if (!Objects.equal(sourceWhiteSpaces, targetWhiteSpaces)) {
             throw new WhitespaceIntegrityCheckerException("Trailing shitespaces around source and target are different");
         }
     }

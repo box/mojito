@@ -6,18 +6,17 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.okapi.filters.FilterOptions;
+import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotation;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TMTextUnitVariantCommentAnnotations;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.security.user.UserRepository;
+import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
-
-import java.util.HashSet;
-import java.util.Set;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
@@ -34,9 +33,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Base class that contains the logic to import XLIFFs.
- *
+ * <p>
  * Extending class will define the logic to perform the lookup of the
  * TMTextUnits in which translations will be inserted.
  *
@@ -71,6 +73,9 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     @Autowired
     AuditorAwareImpl auditorAwareImpl;
 
+    @Autowired
+    TMService tmService;
+
     net.sf.okapi.common.resource.RawDocument rawDocument;
 
     LocaleId targetLocale;
@@ -85,7 +90,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     /**
      * Keep track of Text units that are in the XLIFF but not in the database
      * (file corruption).
-     *
+     * <p>
      * Use String and not Long because the XLIFF
      */
     Set<String> notFoundTextUnitIds;
@@ -194,14 +199,14 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     /**
      * Indicates if the translation should be imported or not and with what
      * status.
-     *
+     * <p>
      * If null is returned then the import should be skipped.
-     *
+     * <p>
      * This is allow to define import strategies when the source and target are
      * the same, etc.
      *
      * @param tmTextUnit in which the target might be added
-     * @param target to potentially be imported
+     * @param target     to potentially be imported
      * @return the status to be used for the import or null to skip
      */
     protected TMTextUnitVariant.Status getStatusForImport(TMTextUnit tmTextUnit, TextContainer target) {
@@ -269,14 +274,13 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      * Sets the note property on the {@link ITextUnit}.
      *
      * @param textUnit will contain the note
-     * @param note the note to be added
+     * @param note     the note to be added
      */
     void setTargetNoteProperty(ITextUnit textUnit, String note) {
         textUnit.setProperty(new Property(com.box.l10n.mojito.okapi.Property.TARGET_NOTE, note));
     }
 
     /**
-     *
      * @param target
      * @param xliffState
      */
@@ -292,7 +296,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      * and {@link TMTextUnitVariant#getStatus() }.
      *
      * @param tmTextUnitVariant contains information to decide if the target
-     * should be reviewed or not return the xliff "state"
+     *                          should be reviewed or not return the xliff "state"
      */
     XliffState getXliffState(TMTextUnitVariant tmTextUnitVariant) {
 
@@ -314,7 +318,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
      * {@link TMTextUnitVariant}.
      *
      * @param tmTextUnitVariant contains messages that need to be appended to
-     * the {@link ImportNoteBuilder} and set the review status.
+     *                          the {@link ImportNoteBuilder} and set the review status.
      * @return the {@link ImportNoteBuilder} containing message from the
      * {@link TMTextUnitVariant}
      */
@@ -353,7 +357,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
     /**
      * Gets the status to be used for adding a translation given a target and
      * its state.
-     *
+     * <p>
      * If no supported state is present then default to "review needed"
      *
      * @param target target that might contain a state property

@@ -123,4 +123,16 @@ public class Param {
     public static final String CHECK_SLA_SHORT = "-cs";
     public static final String CHECK_SLA_DESCRIPTION = "whether check sla or not for repository";
 
+    public static final String EXTRACTION_NAME_LONG = "--name";
+    public static final String EXTRACTION_NAME_SHORT = "-n";
+    public static final String EXTRACTION_NAME_DESCRIPTION = "The name of the extraction";
+
+    public static final String EXTRACTION_OUTPUT_LONG = "--output-directory";
+    public static final String EXTRACTION_OUTPUT_SHORT = "-o";
+    public static final String EXTRACTION_OUTPUT_DESCRIPTION = "The output directory of the extractions commands (default .mojito/extractions)";
+
+    public static final String EXTRACTION_INPUT_LONG = "--input-directory";
+    public static final String EXTRACTION_INPUT_SHORT = "-i";
+    public static final String EXTRACTION_INPUT_DESCRIPTION = "The input directory of the extractions commands (if not specified, uses the output directory)";
+
 }

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.rest.asset;
 
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
 

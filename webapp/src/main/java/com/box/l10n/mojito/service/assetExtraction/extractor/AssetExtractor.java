@@ -5,16 +5,16 @@ import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.okapi.AssetExtractionStep;
-import com.box.l10n.mojito.okapi.CheckForDoNotTranslateStep;
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.RawDocument;
-import com.box.l10n.mojito.okapi.filters.*;
-import com.box.l10n.mojito.rest.asset.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
+import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.filters.FilterOptions;
+import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import net.sf.okapi.common.LocaleId;
-import net.sf.okapi.common.filters.DefaultFilters;
-import net.sf.okapi.common.filters.FilterConfigurationMapper;
-import net.sf.okapi.common.filters.IFilterConfigurationMapper;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
 import net.sf.okapi.steps.common.RawDocumentToFilterEventsStep;
@@ -42,6 +42,9 @@ public class AssetExtractor {
 
     @Autowired
     AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
+
+    @Autowired
+    FilterConfigurationMappers filterConfigurationMappers;
 
     /**
      * Processes the {@link Asset} given the associated {@link AssetExtraction}.
@@ -72,58 +75,34 @@ public class AssetExtractor {
 
         //TODO(P1) Is this actually used as we have our own logic to set the filter to be used, see following todo
         logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(getConfiguredFilterConfigurationMapper());
+        driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
 
         AssetContent assetContent = assetExtraction.getAssetContent();
         Asset asset = assetExtraction.getAsset();
 
         RawDocument rawDocument = new RawDocument(assetExtraction.getAssetContent().getContent(), LocaleId.ENGLISH);
-        
+
         //TODO(P1) I think Okapi already implement this logic
         String filterConfigId;
-        
+
         if (filterConfigIdOverride != null) {
             filterConfigId = filterConfigIdOverride.getOkapiFilterId();
         } else {
             filterConfigId = getFilterConfigIdForAsset(asset);
         }
-        
+
         rawDocument.setFilterConfigId(filterConfigId);
         logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
 
         logger.debug("Filter options: {}", filterOptions);
         rawDocument.setAnnotation(new FilterOptions(filterOptions));
-        
+
         driver.addBatchItem(rawDocument);
 
         logger.debug("Start processing batch");
         driver.processBatch();
     }
 
-    /**
-     * @return A {@link FilterConfigurationMapper}, which has been configured with the default mappings
-     */
-    public IFilterConfigurationMapper getConfiguredFilterConfigurationMapper() {
-
-        IFilterConfigurationMapper mapper = new FilterConfigurationMapper();
-
-        // Adding default filter mappings
-        DefaultFilters.setMappings(mapper, false, true);
-
-        // Adding custom filters mappings
-        mapper.addConfigurations(CSVFilter.class.getName());
-        mapper.addConfigurations(AndroidFilter.class.getName());
-        mapper.addConfigurations(POFilter.class.getName());
-        mapper.addConfigurations(XMLFilter.class.getName());
-        mapper.addConfigurations(MacStringsFilter.class.getName());
-        mapper.addConfigurations(MacStringsdictFilter.class.getName());
-        mapper.addConfigurations(MacStringsdictFilterKey.class.getName());
-        mapper.addConfigurations(JSFilter.class.getName());
-        mapper.addConfigurations(JSONFilter.class.getName());
-        mapper.addConfigurations(XcodeXliffFilter.class.getName());
-
-        return mapper;
-    }
 
     /**
      * @param asset The asset to be extracted

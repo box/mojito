@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.ImportExportTextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
@@ -71,6 +72,9 @@ public class TMExportFilter implements IFilter {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    ImportExportTextUnitUtils importExportTextUnitUtils;
 
     @Autowired
     TextUnitUtils textUnitUtils;
@@ -211,7 +215,7 @@ public class TMExportFilter implements IFilter {
         importExportNote.setPluralForm(textUnitDTO.getPluralForm());
         importExportNote.setPluralFormOther(textUnitDTO.getPluralFormOther());
         
-        textUnitUtils.setImportExportNote(textUnit, importExportNote);
+        importExportTextUnitUtils.setImportExportNote(textUnit, importExportNote);
         textUnit.setPreserveWhitespaces(true);
         return textUnit;
     }

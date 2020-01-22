@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.XliffState;
 import com.box.l10n.mojito.okapi.filters.AndroidXMLEncoder;
 import com.box.l10n.mojito.okapi.filters.SimpleEncoder;
@@ -11,7 +12,7 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
@@ -106,6 +107,9 @@ public class TMServiceTest extends ServiceTestBase {
     @Autowired
     TMXliffRepository tmXliffRepository;
 
+    @Autowired
+    TextUnitUtils textUnitUtils;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -147,7 +151,7 @@ public class TMServiceTest extends ServiceTestBase {
 
 
         logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
-        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        String md5 = textUnitUtils.computeTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
         logger.debug("tmtextunit: {}", tmTextUnit);
 
@@ -175,7 +179,7 @@ public class TMServiceTest extends ServiceTestBase {
         Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
 
         logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
-        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        String md5 = textUnitUtils.computeTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
         logger.debug("tmtextunit: {}", tmTextUnit);
 
@@ -262,13 +266,13 @@ public class TMServiceTest extends ServiceTestBase {
 
     @Test
     public void testComputeTMTextUnitMD5() throws IOException {
-        String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        String computeTMTextUnitMD5 = textUnitUtils.computeTextUnitMD5("name", "this is the content", "some comment");
         assertEquals("3063c39d3cf8ab69bcabbbc5d7187dc9", computeTMTextUnitMD5);
     }
 
     @Test
     public void testComputeTMTextUnitMD5Null() throws IOException {
-        String computeTMTextUnitMD5 = tmService.computeTMTextUnitMD5(null, "this is the content", null);
+        String computeTMTextUnitMD5 = textUnitUtils.computeTextUnitMD5(null, "this is the content", null);
         assertEquals("ad549ec93687843d638c9a712dff0238", computeTMTextUnitMD5);
     }
 
