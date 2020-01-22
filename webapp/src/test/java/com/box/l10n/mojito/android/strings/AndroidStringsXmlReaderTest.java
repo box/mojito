@@ -127,21 +127,21 @@ public class AndroidStringsXmlReaderTest {
         int index = 0;
         assertEquals("pinterest", androidStringsTextUnitList.get(index).getName());
         assertEquals("Pinterest", androidStringsTextUnitList.get(index).getContent());
-        assertEquals("234", androidStringsTextUnitList.get(index).getId());
+        assertEquals(Long.valueOf(234), androidStringsTextUnitList.get(index).getId());
 
         index++;
         assertEquals("pins _one", androidStringsTextUnitList.get(index).getName());
         assertEquals("1 Pin", androidStringsTextUnitList.get(index).getContent());
         assertEquals("one", androidStringsTextUnitList.get(index).getPluralForm());
         assertEquals("pins _other", androidStringsTextUnitList.get(index).getPluralFormOther());
-        assertEquals("235", androidStringsTextUnitList.get(index).getId());
+        assertEquals(Long.valueOf(235), androidStringsTextUnitList.get(index).getId());
 
         index++;
         assertEquals("pins _other", androidStringsTextUnitList.get(index).getName());
         assertEquals("{num_pins} Pins", androidStringsTextUnitList.get(index).getContent());
         assertEquals("other", androidStringsTextUnitList.get(index).getPluralForm());
         assertEquals("pins _other", androidStringsTextUnitList.get(index).getPluralFormOther());
-        assertEquals("236", androidStringsTextUnitList.get(index).getId());
+        assertEquals(Long.valueOf(236), androidStringsTextUnitList.get(index).getId());
     }
 
     @Test
