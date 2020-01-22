@@ -347,7 +347,7 @@ class GitBlameInfoModal extends React.Component {
                     assetPath: this.props.textUnit.getAssetPath(),
                     usage: usage
                 };
-                let link = this.renderLinkOrLabel(this.getLocationUrlTemplate(), this.getLocationUrlComponentTemplate(), this.getLocationLabelTemplate(), params);
+                let link = this.renderLinkOrLabel(this.getLocationUrlTemplate(), this.getLocationLabelTemplate(), params);
                 links.push(<div>{link}</div>);
             }
         }
@@ -388,17 +388,6 @@ class GitBlameInfoModal extends React.Component {
     getLocationUrlTemplate = () => {
         try {
             return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.url;
-        } catch (e) {
-            return "";
-        }
-    };
-
-    /**
-     * @returns {*} Template for location url cmoponent, if in configuration, an empty string otherwise.
-     */
-    getLocationUrlComponentTemplate = () => {
-        try {
-            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].location.urlComponent;
         } catch (e) {
             return "";
         }
@@ -503,17 +492,6 @@ class GitBlameInfoModal extends React.Component {
     };
 
     /**
-     * @returns {*} Template for thirdParty url to be component encoded, if in configuration, an empty string otherwise.
-     */
-    getThirdPartyUrlComponentTemplate = () => {
-        try {
-            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].thirdParty.urlComponent;
-        } catch (e) {
-            return "";
-        }
-    };
-
-    /**
      * @returns {*} Template for thirdParty label, if in configuration, or the string set in getThirdPartyDefaultLabel otherwise
      */
     getThirdPartyLabelTemplate = () => {
@@ -558,7 +536,7 @@ class GitBlameInfoModal extends React.Component {
 
         if (commit !== null && urlTemplate !== "") {
             let params = {commit: commit};
-            link = this.renderLinkOrLabel(urlTemplate, this.getCommitUrlComponentTemplate(), this.getCommitLabelTemplate(), params);
+            link = this.renderLinkOrLabel(urlTemplate, this.getCommitLabelTemplate(), params);
         }
 
         return link;
@@ -570,17 +548,6 @@ class GitBlameInfoModal extends React.Component {
     getCommitUrlTemplate = () => {
         try {
             return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].commit.url;
-        } catch (e) {
-            return ""
-        }
-    };
-
-    /**
-     * @returns {*} Template for commit url component, if in configuration, an empty string otherwise.
-     */
-    getCommitUrlComponentTemplate = () => {
-        try {
-            return this.props.appConfig.link[this.props.textUnit.getRepositoryName()].commit.urlComponent;
         } catch (e) {
             return ""
         }
