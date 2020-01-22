@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.thirdparty;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Image;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
@@ -15,6 +16,7 @@ import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TextUnitBatchMatcher;
 import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
+import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -27,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,34 +95,32 @@ public class ThirdPartyService {
     @Autowired
     ThirdPartyTMS thirdPartyTMS;
 
-    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
+    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, Map<String, String> localeMappings, List<String> options) {
         ThirdPartySyncJobInput thirdPartySyncJobInput = new ThirdPartySyncJobInput();
 
         thirdPartySyncJobInput.setRepositoryId(repositoryId);
         thirdPartySyncJobInput.setThirdPartyProjectId(thirdPartyProjectId);
         thirdPartySyncJobInput.setActions(actions);
         thirdPartySyncJobInput.setPluralSeparator(pluralSeparator);
-        thirdPartySyncJobInput.setLocaleMapping(localeMapping);
+        thirdPartySyncJobInput.setLocaleMappings(localeMappings);
         thirdPartySyncJobInput.setOptions(options);
 
         return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
     }
 
-    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
+    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, Map<String, String> localeMappings, List<String> options) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
 
         Repository repository = repositoryRepository.findOne(repositoryId);
-        Map<String, String> optionMap = Optional.ofNullable(options).orElse(Collections.emptyList()).stream().collect(
-                Collectors.toMap(str -> str.split("=")[0], str -> str.split("=")[1], (a, b) -> a, HashMap::new));
 
         if (actions.contains(Action.PUSH)) {
-            throw new UnsupportedOperationException();
+            push(repository, thirdPartyProjectId, pluralSeparator, options);
         }
         if (actions.contains(Action.PUSH_TRANSLATION)) {
-            throw new UnsupportedOperationException();
+            pushTranslation(repository, thirdPartyProjectId, pluralSeparator, options, localeMappings);
         }
         if (actions.contains(Action.PULL)) {
-            throw new UnsupportedOperationException();
+            thirdPartyTMS.syncTranslations(repository, thirdPartyProjectId, pluralSeparator, options, localeMappings);
         }
         if (actions.contains(Action.MAP_TEXTUNIT)) {
             mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
@@ -127,6 +128,123 @@ public class ThirdPartyService {
         if (actions.contains(Action.PUSH_SCREENSHOT)) {
             uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
         }
+    }
+
+    static final int BATCH_SIZE = 5004;
+
+    void push(Repository repository, String thirdPartyProjectId, String pluralSeparator, List<String> options) {
+
+        List<TextUnitDTO> textUnitDTOList;
+        List<TextUnitDTO> batchTextUnitDTOList = new ArrayList<>(BATCH_SIZE);
+
+        logger.info("Synchronize Mojito repository: {} with project: {}", repository.getName(), thirdPartyProjectId);
+
+        int batchNumber = 0;
+        textUnitDTOList = getSingularTextUnitList(repository, "en");
+        for (TextUnitDTO textUnitDTO : textUnitDTOList) {
+            batchTextUnitDTOList.add(textUnitDTO);
+
+            if (batchTextUnitDTOList.size() % BATCH_SIZE == 0) {
+                thirdPartyTMS.syncSources(repository, thirdPartyProjectId,
+                        batchTextUnitDTOList, pluralSeparator, options, batchNumber++, true);
+                batchTextUnitDTOList.clear();
+            }
+        }
+        thirdPartyTMS.syncSources(repository, thirdPartyProjectId,
+                batchTextUnitDTOList, pluralSeparator, options, batchNumber, true);
+        batchTextUnitDTOList.clear();
+
+        batchNumber = 0;
+        textUnitDTOList = getPluralTextUnitList(repository, "en");
+        for (TextUnitDTO textUnitDTO : textUnitDTOList) {
+            batchTextUnitDTOList.add(textUnitDTO);
+
+            if (batchTextUnitDTOList.size() % BATCH_SIZE == 0) {
+                thirdPartyTMS.syncSources(repository, thirdPartyProjectId,
+                        batchTextUnitDTOList, pluralSeparator, options, batchNumber++, false);
+                batchTextUnitDTOList.clear();
+            }
+        }
+        thirdPartyTMS.syncSources(repository, thirdPartyProjectId,
+                batchTextUnitDTOList, pluralSeparator, options, batchNumber, false);
+    }
+
+    void pushTranslation(Repository repository, String thirdPartyProjectId, String pluralSeparator, List<String> options, Map<String, String> localeMappings) {
+
+        List<TextUnitDTO> textUnitDTOList;
+        List<TextUnitDTO> batchTextUnitDTOList = new ArrayList<>(BATCH_SIZE);
+
+        for (RepositoryLocale repositoryLocale : repository.getRepositoryLocales()) {
+            String locale = repositoryLocale.getLocale().getBcp47Tag();
+
+            int batchNumber = 0;
+            textUnitDTOList = getSingularTextUnitList(repository, locale);
+            for (TextUnitDTO textUnitDTO : textUnitDTOList) {
+                batchTextUnitDTOList.add(textUnitDTO);
+
+                if (batchTextUnitDTOList.size() % BATCH_SIZE == 0) {
+                    thirdPartyTMS.uploadLocalizedFiles(repository, thirdPartyProjectId, locale,
+                            batchTextUnitDTOList, pluralSeparator, options, localeMappings, batchNumber++, true);
+                    batchTextUnitDTOList.clear();
+                }
+            }
+            thirdPartyTMS.syncSources(repository, thirdPartyProjectId,
+                    batchTextUnitDTOList, pluralSeparator, options, batchNumber, true);
+            batchTextUnitDTOList.clear();
+
+            batchNumber = 0;
+            textUnitDTOList = getPluralTextUnitList(repository, locale);
+            for (TextUnitDTO textUnitDTO : textUnitDTOList) {
+                batchTextUnitDTOList.add(textUnitDTO);
+
+                if (batchTextUnitDTOList.size() % BATCH_SIZE == 0) {
+                    TextUnitSearcherParameters pluralTextUnitSearcherParameters = new TextUnitSearcherParameters()
+                            .setRepositoryNames(Collections.singletonList(repository.getName()))
+                            .setLocaleTags(Collections.singletonList(locale))
+                            .setDoNotTranslateFilter(false)
+                            .setSearchType(SearchType.EXACT)
+                            .setPluralFormOther(textUnitDTOList.get(textUnitDTOList.size() - 1).getPluralFormOther());
+
+                    Set<String> pluralFormSet = textUnitSearcher.search(pluralTextUnitSearcherParameters).stream()
+                            .map(TextUnitDTO::getPluralForm)
+                            .collect(Collectors.toSet());
+
+                    textUnitDTOList = textUnitDTOList.stream()
+                            .filter(item -> pluralFormSet.contains(item.getPluralForm()))
+                            .collect(Collectors.toList());
+
+                    thirdPartyTMS.uploadLocalizedFiles(repository, thirdPartyProjectId, locale,
+                            batchTextUnitDTOList, pluralSeparator, options, localeMappings, batchNumber++,false);
+                    batchTextUnitDTOList.clear();
+                }
+            }
+            thirdPartyTMS.uploadLocalizedFiles(repository, thirdPartyProjectId, locale,
+                    batchTextUnitDTOList, pluralSeparator, options, localeMappings, batchNumber,false);
+        }
+    }
+
+    List<TextUnitDTO> getSingularTextUnitList(Repository repository, String locale) {
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters()
+                .setRepositoryNames(Collections.singletonList(repository.getName()))
+                .setLocaleTags(Collections.singletonList(locale))
+                .setDoNotTranslateFilter(false)
+                .setPluralFormsExcluded(true)
+                .setSearchType(SearchType.ILIKE);
+
+        return textUnitSearcher.search(textUnitSearcherParameters);
+    }
+
+    List<TextUnitDTO> getPluralTextUnitList(Repository repository, String locale) {
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters()
+                .setRepositoryNames(Collections.singletonList(repository.getName()))
+                .setLocaleTags(Collections.singletonList(locale))
+                .setDoNotTranslateFilter(false)
+                .setPluralFormsFiltered(false)
+                .setPluralFormsExcluded(false)
+                .setPluralFormOther("%")
+                .setSearchType(SearchType.ILIKE);
+
+        return textUnitSearcher.search(textUnitSearcherParameters);
     }
 
     void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId) {

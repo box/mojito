@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Client to upload to trigger tasks related to third party synchronization.
@@ -26,7 +27,7 @@ public class ThirdPartyClient extends BaseClient {
         return "thirdparty";
     }
 
-    public PollableTask sync(Long repositoryId, String projectId, String pluralSeparator, String localeMapping,
+    public PollableTask sync(Long repositoryId, String projectId, String pluralSeparator, Map<String, String> localeMappings,
         List<ThirdPartySync.Action> actions, List<String> options)
     {
 
@@ -36,7 +37,7 @@ public class ThirdPartyClient extends BaseClient {
         thirdPartySync.setProjectId(projectId);
         thirdPartySync.setActions(actions);
         thirdPartySync.setPluralSeparator(pluralSeparator);
-        thirdPartySync.setLocaleMapping(localeMapping);
+        thirdPartySync.setLocaleMappings(localeMappings);
         thirdPartySync.setOptions(options);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath(getBasePathForEntity()).pathSegment("sync");

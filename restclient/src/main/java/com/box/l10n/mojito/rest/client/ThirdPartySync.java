@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.client;
 
 import java.util.List;
+import java.util.Map;
 
 public class ThirdPartySync {
 
@@ -16,7 +17,7 @@ public class ThirdPartySync {
     String projectId;
     List<Action> actions;
     String pluralSeparator;
-    String localeMapping;
+    Map<String, String> localeMappings;
     List<String> options;
 
     public Long getRepositoryId() {
@@ -51,12 +52,12 @@ public class ThirdPartySync {
         this.pluralSeparator = pluralSeparator;
     }
 
-    public String getLocaleMapping() {
-        return localeMapping;
+    public Map<String, String> getLocaleMappings() {
+        return localeMappings;
     }
 
-    public void setLocaleMapping(String localeMapping) {
-        this.localeMapping = localeMapping;
+    public void setLocaleMappings(Map<String, String> localeMappings) {
+        this.localeMappings = localeMappings;
     }
 
     public List<String> getOptions() {
