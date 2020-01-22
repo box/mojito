@@ -5,11 +5,11 @@ public class AndroidStringsTextUnit {
     private String comment;
     private String name;
     private String content;
-    private String id;
+    private Long id;
     private String pluralForm;
     private String pluralFormOther;
 
-    public AndroidStringsTextUnit(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
+    public AndroidStringsTextUnit(String name, String content, String comment, Long id, String pluralForm, String pluralFormOther) {
         this.comment = comment;
         this.name = name;
         this.content = content;
@@ -30,7 +30,7 @@ public class AndroidStringsTextUnit {
         return content;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
