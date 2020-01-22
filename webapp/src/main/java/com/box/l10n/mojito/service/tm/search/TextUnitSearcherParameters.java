@@ -50,235 +50,266 @@ public class TextUnitSearcherParameters {
         return name;
     }
 
-    public void setName(String name) {
+    public TextUnitSearcherParameters setName(String name) {
         this.name = name;
+        return this;
     }
 
     public String getSource() {
         return source;
     }
 
-    public void setSource(String source) {
+    public TextUnitSearcherParameters setSource(String source) {
         this.source = NormalizationUtils.normalize(source);
+        return this;
     }
 
     public SearchType getSearchType() {
         return searchType;
     }
 
-    public void setSearchType(SearchType searchType) {
+    public TextUnitSearcherParameters setSearchType(SearchType searchType) {
         this.searchType = searchType;
+        return this;
     }
 
     public String getTarget() {
         return target;
     }
 
-    public void setTarget(String target) {
+    public TextUnitSearcherParameters setTarget(String target) {
         this.target = NormalizationUtils.normalize(target);
+        return this;
     }
 
     public String getAssetPath() {
         return assetPath;
     }
 
-    public void setAssetPath(String assetPath) {
+    public TextUnitSearcherParameters setAssetPath(String assetPath) {
         this.assetPath = assetPath;
+        return this;
     }
 
     public List<Long> getRepositoryIds() {
         return repositoryIds;
     }
 
-    public void setRepositoryIds(Long repositoryId) {
+    public TextUnitSearcherParameters setRepositoryIds(Long repositoryId) {
         this.repositoryIds = Arrays.asList(repositoryId);
+        return this;
     }
 
-    public void setRepositoryIds(List<Long> repositoryIds) {
+    public TextUnitSearcherParameters setRepositoryIds(List<Long> repositoryIds) {
         this.repositoryIds = repositoryIds;
+        return this;
     }
 
     public List<String> getLocaleTags() {
         return localeTags;
     }
 
-    public void setLocaleTags(List<String> localeTags) {
+    public TextUnitSearcherParameters setLocaleTags(List<String> localeTags) {
         this.localeTags = localeTags;
+        return this;
     }
 
     public Long getLocaleId() {
         return localeId;
     }
 
-    public void setLocaleId(Long localeId) {
+    public TextUnitSearcherParameters setLocaleId(Long localeId) {
         this.localeId = localeId;
+        return this;
     }
 
     public UsedFilter getUsedFilter() {
         return usedFilter;
     }
 
-    public void setUsedFilter(UsedFilter usedFilter) {
+    public TextUnitSearcherParameters setUsedFilter(UsedFilter usedFilter) {
         this.usedFilter = usedFilter;
+        return this;
     }
 
     public Integer getLimit() {
         return limit;
     }
 
-    public void setLimit(Integer limit) {
+    public TextUnitSearcherParameters setLimit(Integer limit) {
         this.limit = limit;
+        return this;
     }
 
     public Integer getOffset() {
         return offset;
     }
 
-    public void setOffset(Integer offset) {
+    public TextUnitSearcherParameters setOffset(Integer offset) {
         this.offset = offset;
+        return this;
     }
 
     public Long getAssetId() {
         return assetId;
     }
 
-    public void setAssetId(Long assetId) {
+    public TextUnitSearcherParameters setAssetId(Long assetId) {
         this.assetId = assetId;
+        return this;
     }
 
     public Long getTmId() {
         return tmId;
     }
 
-    public void setTmId(Long tmId) {
+    public TextUnitSearcherParameters setTmId(Long tmId) {
         this.tmId = tmId;
+        return this;
     }
 
     public String getMd5() {
         return md5;
     }
 
-    public void setMd5(String md5) {
+    public TextUnitSearcherParameters setMd5(String md5) {
         this.md5 = md5;
+        return this;
     }
 
     public boolean isRootLocaleExcluded() {
         return rootLocaleExcluded;
     }
 
-    public void setRootLocaleExcluded(boolean rootLocaleExcluded) {
+    public TextUnitSearcherParameters setRootLocaleExcluded(boolean rootLocaleExcluded) {
         this.rootLocaleExcluded = rootLocaleExcluded;
+        return this;
     }
 
     public boolean isForRootLocale() {
         return forRootLocale;
     }
 
-    public void setForRootLocale(boolean forRootLocale) {
+    public TextUnitSearcherParameters setForRootLocale(boolean forRootLocale) {
         this.forRootLocale = forRootLocale;
+        return this;
     }
 
     public Boolean getToBeFullyTranslatedFilter() {
         return toBeFullyTranslatedFilter;
     }
 
-    public void setToBeFullyTranslatedFilter(Boolean toBeFullyTranslatedFilter) {
+    public TextUnitSearcherParameters setToBeFullyTranslatedFilter(Boolean toBeFullyTranslatedFilter) {
         this.toBeFullyTranslatedFilter = toBeFullyTranslatedFilter;
+        return this;
     }
 
     public StatusFilter getStatusFilter() {
         return statusFilter;
     }
 
-    public void setStatusFilter(StatusFilter statusFilter) {
+    public TextUnitSearcherParameters setStatusFilter(StatusFilter statusFilter) {
         this.statusFilter = statusFilter;
+        return this;
     }
 
     public String getPluralFormOther() {
         return pluralFormOther;
     }
 
-    public void setPluralFormOther(String pluralFormOther) {
+    public TextUnitSearcherParameters setPluralFormOther(String pluralFormOther) {
         this.pluralFormOther = pluralFormOther;
+        return this;
     }
 
     public List<String> getRepositoryNames() {
         return repositoryNames;
     }
 
-    public void setRepositoryNames(List<String> repositoryNames) {
+    public TextUnitSearcherParameters setRepositoryNames(List<String> repositoryNames) {
         this.repositoryNames = repositoryNames;
+        return this;
     }
 
     public boolean isPluralFormsFiltered() {
         return pluralFormsFiltered;
     }
 
-    public void setPluralFormsFiltered(boolean pluralFormsFiltered) {
+    public TextUnitSearcherParameters setPluralFormsFiltered(boolean pluralFormsFiltered) {
         this.pluralFormsFiltered = pluralFormsFiltered;
+        return this;
     }
 
     public Long getPluralFormId() {
         return pluralFormId;
     }
 
-    public void setPluralFormId(Long pluralFormId) {
+    public TextUnitSearcherParameters setPluralFormId(Long pluralFormId) {
         this.pluralFormId = pluralFormId;
+        return this;
     }
 
     public boolean isPluralFormsExcluded() {
         return pluralFormsExcluded;
     }
 
-    public void setPluralFormsExcluded(boolean pluralFormsExcluded) {
+    public TextUnitSearcherParameters setPluralFormsExcluded(boolean pluralFormsExcluded) {
         this.pluralFormsExcluded = pluralFormsExcluded;
+        return this;
     }
 
     public Boolean getDoNotTranslateFilter() {
         return doNotTranslateFilter;
     }
 
-    public void setDoNotTranslateFilter(Boolean doNotTranslateFilter) {
+    public TextUnitSearcherParameters setDoNotTranslateFilter(Boolean doNotTranslateFilter) {
         this.doNotTranslateFilter = doNotTranslateFilter;
+        return this;
     }
 
     public DateTime getTmTextUnitCreatedBefore() {
         return tmTextUnitCreatedBefore;
     }
 
-    public void setTmTextUnitCreatedBefore(DateTime tmTextUnitCreatedBefore) {
+    public TextUnitSearcherParameters setTmTextUnitCreatedBefore(DateTime tmTextUnitCreatedBefore) {
         this.tmTextUnitCreatedBefore = tmTextUnitCreatedBefore;
+        return this;
     }
 
     public DateTime getTmTextUnitCreatedAfter() {
         return tmTextUnitCreatedAfter;
     }
 
-    public void setTmTextUnitCreatedAfter(DateTime tmTextUnitCreatedAfter) {
+    public TextUnitSearcherParameters setTmTextUnitCreatedAfter(DateTime tmTextUnitCreatedAfter) {
         this.tmTextUnitCreatedAfter = tmTextUnitCreatedAfter;
+        return this;
     }
 
     public Long getBranchId() {
         return branchId;
     }
 
-    public void setBranchId(Long branchId) {
+    public TextUnitSearcherParameters setBranchId(Long branchId) {
         this.branchId = branchId;
+        return this;
     }
 
     public List<Long> getTmTextUnitIds() {
         return tmTextUnitIds;
     }
 
-    public void setTmTextUnitIds(List<Long> tmTextUnitIds) {
+    public TextUnitSearcherParameters setTmTextUnitIds(List<Long> tmTextUnitIds) {
         this.tmTextUnitIds = tmTextUnitIds;
+        return this;
     }
 
-    public void setTmTextUnitIds(Long... tmTextUnitIds) {
+    public TextUnitSearcherParameters setTmTextUnitIds(Long... tmTextUnitIds) {
         List<Long> filtered = Arrays.stream(tmTextUnitIds).filter(Objects::nonNull).collect(Collectors.toList());
 
         if (!filtered.isEmpty()) {
             this.tmTextUnitIds = filtered;
         }
+
+        return this;
     }
 }

@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface to be implemented for a third party TMS in order to be able to map its textunit with Mojito's, upload
@@ -36,4 +38,10 @@ interface ThirdPartyTMS {
      * @param thirdPartyImageToTextUnits the list of mappings
      */
     void createImageToTextUnitMappings(String projectId, List<ThirdPartyImageToTextUnit> thirdPartyImageToTextUnits);
+
+    void syncSources(Repository repository, String projectId, List<TextUnitDTO> textUnitDTOList, String pluralSeparator, List<String> options, int batchNumber, boolean isSingular);
+
+    void syncTranslations(Repository repository, String projectId, String pluralSeparator, List<String> options, Map<String, String> localeMappings);
+
+    void uploadLocalizedFiles(Repository repository, String projectId, String locale, List<TextUnitDTO> textUnitDTOList, String pluralSeparator, List<String> options, Map<String, String> localeMappings, int batchNumber, boolean isSingular);
 }
