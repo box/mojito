@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -62,5 +64,20 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
         for (ThirdPartyImageToTextUnit thirdPartyImageToTextUnit : thirdPartyImageToTextUnits) {
             forProject.put(thirdPartyImageToTextUnit.getImageId(), thirdPartyImageToTextUnit.getTextUnitId());
         }
+    }
+
+    @Override
+    public void syncSources(Repository repository, String projectId, List<TextUnitDTO> textUnitDTOList, String pluralSeparator, List<String> options, int batchNumber, boolean isSingular) {
+
+    }
+
+    @Override
+    public void syncTranslations(Repository repository, String projectId, String pluralSeparator, List<String> options, Map<String, String> localeMappings) {
+
+    }
+
+    @Override
+    public void uploadLocalizedFiles(Repository repository, String projectId, String locale, List<TextUnitDTO> textUnitDTOList, String pluralSeparator, List<String> options, Map<String, String> localeMappings, int batchNumber, boolean isSingular) {
+
     }
 }
