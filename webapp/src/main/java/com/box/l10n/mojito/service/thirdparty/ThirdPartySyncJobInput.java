@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author jaurambault
@@ -11,7 +12,7 @@ public class ThirdPartySyncJobInput {
     String thirdPartyProjectId;
     List<ThirdPartyService.Action> actions;
     String pluralSeparator;
-    String localeMapping;
+    Map<String, String> localeMappings;
     List<String> options;
 
     public Long getRepositoryId() {
@@ -46,12 +47,12 @@ public class ThirdPartySyncJobInput {
         this.pluralSeparator = pluralSeparator;
     }
 
-    public String getLocaleMapping() {
-        return localeMapping;
+    public Map<String, String> getLocaleMappings() {
+        return localeMappings;
     }
 
-    public void setLocaleMapping(String localeMapping) {
-        this.localeMapping = localeMapping;
+    public void setLocaleMappings(Map<String, String> localeMappings) {
+        this.localeMappings = localeMappings;
     }
 
     public List<String> getOptions() {

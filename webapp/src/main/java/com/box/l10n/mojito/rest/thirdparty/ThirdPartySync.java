@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.thirdparty;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartyService;
 
 import java.util.List;
+import java.util.Map;
 
 public class ThirdPartySync {
 
@@ -10,7 +11,7 @@ public class ThirdPartySync {
     String projectId;
     List<ThirdPartyService.Action> actions;
     String pluralSeparator;
-    String localMapping;
+    Map<String, String> localMappings;
     List<String> options;
 
     public Long getRepositoryId() {
@@ -45,12 +46,12 @@ public class ThirdPartySync {
         this.pluralSeparator = pluralSeparator;
     }
 
-    public String getLocalMapping() {
-        return localMapping;
+    public Map<String, String> getLocalMappings() {
+        return localMappings;
     }
 
-    public void setLocalMapping(String localMapping) {
-        this.localMapping = localMapping;
+    public void setLocalMappings(Map<String, String> localMappings) {
+        this.localMappings = localMappings;
     }
 
     public List<String> getOptions() {
