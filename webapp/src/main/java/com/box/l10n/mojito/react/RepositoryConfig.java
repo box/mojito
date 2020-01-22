@@ -7,6 +7,7 @@ public class RepositoryConfig {
     ThirdParty thirdParty;
     PullRequest pullRequest;
     TextUnitNameToTextUnitNameInSource textUnitNameToTextUnitNameInSource;
+    CustomMd5 customMd5;
 
     public Location getLocation() {
         return location;
@@ -46,5 +47,13 @@ public class RepositoryConfig {
 
     public void setTextUnitNameToTextUnitNameInSource(TextUnitNameToTextUnitNameInSource textUnitNameToTextUnitNameInSource) {
         this.textUnitNameToTextUnitNameInSource = textUnitNameToTextUnitNameInSource;
+    }
+
+    public CustomMd5 getCustomMd5() {
+        return customMd5;
+    }
+
+    public void setCustomMd5(CustomMd5 customMd5) {
+        this.customMd5 = customMd5;
     }
 }

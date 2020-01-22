@@ -1,15 +1,10 @@
 package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.pseudoloc.PseudoLocalization;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
@@ -21,6 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *

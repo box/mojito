@@ -1,16 +1,11 @@
 package com.box.l10n.mojito.service.tm;
 
-import com.box.l10n.mojito.service.tm.TextUnitBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -74,10 +69,10 @@ public class TextUnitBatchMatcherTest {
                 createTextUnitDTO("name-0"),
                 createTextUnitDTO("name-1"));
 
-        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefix(existingTextUnitDTOs);
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUsed(existingTextUnitDTOs);
 
-        List<TextUnitDTO> result = matchByPluralPrefix.apply(createTextUnitForBatchMatcher("name-0"));
-        assertEquals(0, result.size());
+        Optional<List<TextUnitDTO>> result = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-0"));
+        assertFalse(result.isPresent());
     }
 
     @Test
@@ -95,14 +90,14 @@ public class TextUnitBatchMatcherTest {
                 createPluralTextUnitDTO("name-3", "other")
         );
 
-        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefix(existingTextUnitDTOs);
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUsed(existingTextUnitDTOs);
 
-        List<TextUnitDTO> name2 = matchByPluralPrefix.apply(createTextUnitForBatchMatcher("name-2"));
+        List<TextUnitDTO> name2 = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-2")).get();
         assertEquals(2, name2.size());
         assertEquals("name-2_other", name2.get(0).getName());
         assertEquals("name-2_one", name2.get(1).getName());
 
-        List<TextUnitDTO> name3 = matchByPluralPrefix.apply(createTextUnitForBatchMatcher("name-3"));
+        List<TextUnitDTO> name3 = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-3")).get();
         assertEquals(6, name3.size());
         assertEquals("name-3_zero", name3.get(0).getName());
         assertEquals("name-3_one", name3.get(1).getName());
@@ -111,8 +106,49 @@ public class TextUnitBatchMatcherTest {
         assertEquals("name-3_many", name3.get(4).getName());
         assertEquals("name-3_other", name3.get(5).getName());
 
-        List<TextUnitDTO> name3SecondTime = matchByPluralPrefix.apply(createTextUnitForBatchMatcher("name-3"));
-        assertEquals(0, name3SecondTime.size());
+        Optional<List<TextUnitDTO>> name3SecondTime = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-3"));
+        assertFalse(name3SecondTime.isPresent());
+    }
+
+    @Test
+    public void testMatchByPluralPrefixUnused() {
+        List<TextUnitDTO> existingTextUnitDTOs = Arrays.asList(
+                createTextUnitDTO("name-0"),
+                createTextUnitDTO("name-1"),
+                createUnusedPluralTextUnitDTO("name-2", "other"),
+                createUnusedPluralTextUnitDTO("name-2", "one"),
+                createUnusedPluralTextUnitDTO("name-3", "zero"),
+                createUnusedPluralTextUnitDTO("name-3", "one"),
+                createUnusedPluralTextUnitDTO("name-3", "two"),
+                createUnusedPluralTextUnitDTO("name-3", "few"),
+                createUnusedPluralTextUnitDTO("name-3", "many"),
+                createUnusedPluralTextUnitDTO("name-3", "other")
+        );
+
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUnused(existingTextUnitDTOs);
+
+        List<TextUnitDTO> name2 = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-2")).get();
+        assertEquals(2, name2.size());
+        assertEquals("name-2_other", name2.get(0).getName());
+        assertEquals("name-2_one", name2.get(1).getName());
+
+        List<TextUnitDTO> name3 = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-3")).get();
+        assertEquals(6, name3.size());
+        assertEquals("name-3_zero", name3.get(0).getName());
+        assertEquals("name-3_one", name3.get(1).getName());
+        assertEquals("name-3_two", name3.get(2).getName());
+        assertEquals("name-3_few", name3.get(3).getName());
+        assertEquals("name-3_many", name3.get(4).getName());
+        assertEquals("name-3_other", name3.get(5).getName());
+
+        Optional<List<TextUnitDTO>> name3SecondTime = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-3"));
+        assertFalse(name3SecondTime.isPresent());
+    }
+
+    @Test
+    public void testMatchByNameAndPluralPrefix() {
+        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> textUnitForBatchMatcherListFunction = textUnitBatchMatcher.matchByNameAndPluralPrefix(Collections.emptyList());
+        textUnitForBatchMatcherListFunction.apply(createTextUnitForBatchMatcher("test"));
     }
 
 
@@ -121,6 +157,10 @@ public class TextUnitBatchMatcherTest {
     }
 
     TextUnitForBatchMatcher createTextUnitForBatchMatcher(String name, Long id) {
+        return createTextUnitForBatchMatcher(name, id, false);
+    }
+
+    TextUnitForBatchMatcher createTextUnitForBatchMatcher(String name, Long id, boolean isNamePluralPrefix) {
         TextUnitForBatchMatcher textUnitForBatchMatcher = new TextUnitForBatchMatcher() {
             @Override
             public String getName() {
@@ -131,9 +171,18 @@ public class TextUnitBatchMatcherTest {
             public Long getTmTextUnitId() {
                 return id;
             }
+
+            @Override
+            public boolean isNamePluralPrefix() {
+                return isNamePluralPrefix;
+            }
         };
 
         return textUnitForBatchMatcher;
+    }
+
+    TextUnitForBatchMatcher createPluralTextUnitForBatchMatcher(String name) {
+        return createTextUnitForBatchMatcher(name,  UUID.randomUUID().getMostSignificantBits(), true);
     }
 
     TextUnitDTO createTextUnitDTO(String name) {
@@ -166,6 +215,13 @@ public class TextUnitBatchMatcherTest {
 
     TextUnitDTO createPluralTextUnitDTO(String prefix, String form) {
         TextUnitDTO textUnitDTO = createTextUnitDTO(prefix + "_" + form);
+        textUnitDTO.setPluralForm(form);
+        textUnitDTO.setPluralFormOther(prefix + "_other");
+        return textUnitDTO;
+    }
+
+    TextUnitDTO createUnusedPluralTextUnitDTO(String prefix, String form) {
+        TextUnitDTO textUnitDTO = createUnusedTextUnitDTO(prefix + "_" + form);
         textUnitDTO.setPluralForm(form);
         textUnitDTO.setPluralFormOther(prefix + "_other");
         return textUnitDTO;

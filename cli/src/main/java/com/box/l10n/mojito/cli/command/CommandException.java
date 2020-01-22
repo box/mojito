@@ -6,7 +6,7 @@ package com.box.l10n.mojito.cli.command;
  *
  * <p>
  * The message will be displayed to the end user so it should be simple and
- * doesn't contain to technical information. More information will be added in
+ * doesn't contain too technical information. More information will be added in
  * the logs.
  *
  * @author jaurambault

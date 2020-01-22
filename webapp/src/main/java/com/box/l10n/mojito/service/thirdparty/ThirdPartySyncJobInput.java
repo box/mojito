@@ -10,6 +10,8 @@ public class ThirdPartySyncJobInput {
     Long repositoryId;
     String thirdPartyProjectId;
     List<ThirdPartyService.Action> actions;
+    String pluralSeparator;
+    String localeMapping;
     List<String> options;
 
     public Long getRepositoryId() {
@@ -34,6 +36,22 @@ public class ThirdPartySyncJobInput {
 
     public void setActions(List<ThirdPartyService.Action> actions) {
         this.actions = actions;
+    }
+
+    public String getPluralSeparator() {
+        return pluralSeparator;
+    }
+
+    public void setPluralSeparator(String pluralSeparator) {
+        this.pluralSeparator = pluralSeparator;
+    }
+
+    public String getLocaleMapping() {
+        return localeMapping;
+    }
+
+    public void setLocaleMapping(String localeMapping) {
+        this.localeMapping = localeMapping;
     }
 
     public List<String> getOptions() {

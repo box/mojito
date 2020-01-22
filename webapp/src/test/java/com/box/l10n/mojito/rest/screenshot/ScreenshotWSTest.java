@@ -19,8 +19,8 @@ import com.box.l10n.mojito.service.branch.BranchTestData;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
-import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRunType;
+import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.category.IntegrationTest;
 import org.junit.Assert;
@@ -144,7 +144,7 @@ public class ScreenshotWSTest extends WSTestBase {
         screenshot.getScreenshotTextUnits().add(screenshotTextUnit2);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        logger.debug(objectMapper.writeValueAsStringUnsafe(screenshotRun));
+        logger.debug(objectMapper.writeValueAsStringUnchecked(screenshotRun));
 
         screenshotClient.uploadScreenshots(screenshotRun);
 
@@ -157,5 +157,5 @@ public class ScreenshotWSTest extends WSTestBase {
         repositoryClient.getRepositoryByName(branchTestData.getRepository().getName());
         repositoryClient.getBranches(branchTestData.getRepository().getId(), branch1.getName(), null, null, null, false, null);
     }
-    
+
 }

@@ -9,7 +9,7 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.assetExtraction.extractor.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.image.ImageService;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -133,13 +133,15 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doAnswer(invocation -> Arrays.asList(
                 createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
                 createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
-                createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things")
+                createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things", true)
         )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
 
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
         logger.debug("Invoke function to test");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId, Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT, ThirdPartyService.Action.PUSH_SCREENSHOT), new ArrayList<>()).get();
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
+                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT, ThirdPartyService.Action.PUSH_SCREENSHOT),
+                " _", null, new ArrayList<>()).get();
 
         logger.debug("Verify states");
         thirdPartyTextUnitRepository.findAll().stream()
@@ -149,7 +151,6 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                             t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
                             t.getTmTextUnit().getName(), t.getThirdPartyId());
                 });
-
 
         List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
                 .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
@@ -209,6 +210,61 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void duplicatedNamesSubSequentMapping() throws ExecutionException, InterruptedException {
+        ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
+        Repository repository = thirdPartyServiceTestData.repository;
+        Asset asset = thirdPartyServiceTestData.asset;
+        String projectId = "someProjectIdForTest";
+
+        logger.debug("Create mocks and data for tests");
+        doAnswer(invocation -> Arrays.asList(
+                createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello")
+        )).doAnswer(invocation -> Arrays.asList(
+                createThirdPartyTextUnit(asset.getPath(), "3rd-hello-duplicate", "hello")
+        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
+
+        doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
+
+        logger.debug("Invoke function to test");
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
+                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT),
+                " _", null, new ArrayList<>()).get();
+
+        logger.debug("Verify states");
+        thirdPartyTextUnitRepository.findAll().stream()
+                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .forEach(t -> {
+                    logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
+                            t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
+                            t.getTmTextUnit().getName(), t.getThirdPartyId());
+                });
+
+        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
+                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .collect(toList());
+        assertEquals(1, thirdPartyTextUnits.size());
+        thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
+
+        assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
+        assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
+
+        logger.debug("Invoke function to test - duplicate name");
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
+                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT),
+                " _", null, new ArrayList<>()).get();
+
+        logger.debug("Verify states - duplicate name");
+        thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
+                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .collect(toList());
+        assertEquals(1, thirdPartyTextUnits.size());
+        thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
+
+        assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
+        assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
+    }
+
+    @Test
     public void findUnmappedScreenshots() throws RepositoryNameAlreadyUsedException, IOException {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
@@ -254,10 +310,15 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     }
 
     ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {
+        return createThirdPartyTextUnit(assetPath, id, name, false);
+    }
+
+    ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name, boolean isNamePluralPrefix) {
         ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
         thirdPartyTextUnit.setAssetPath(assetPath);
         thirdPartyTextUnit.setId(id);
         thirdPartyTextUnit.setName(name);
+        thirdPartyTextUnit.setNamePluralPrefix(isNamePluralPrefix);
         return thirdPartyTextUnit;
     }
 

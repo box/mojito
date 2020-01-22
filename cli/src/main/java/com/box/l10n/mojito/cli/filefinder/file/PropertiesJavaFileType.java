@@ -2,8 +2,7 @@ package com.box.l10n.mojito.cli.filefinder.file;
 
 import com.box.l10n.mojito.cli.filefinder.locale.LocaleType;
 import com.box.l10n.mojito.cli.filefinder.locale.PropertiesJavaLocaleType;
-import com.box.l10n.mojito.rest.entity.FilterConfigIdOverride;
-import com.box.l10n.mojito.rest.entity.SourceAsset;
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 
 /**
  * @author jaurambault

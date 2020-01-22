@@ -84,11 +84,6 @@ public class SmartlingClient {
         return StreamSupport.stream(stringInfoPageFetcherSplitIterator, false);
     }
 
-    public Stream<StringInfo> getStringInfosFromFiles(String projectId, List<File> files) {
-        Stream<StringInfo> stringInfoStream = files.stream().flatMap(file -> getStringInfos(projectId, file.getFileUri()));
-        return stringInfoStream;
-    }
-
     public Items<File> getFiles(String projectId) {
         FilesResponse filesResponse = oAuth2RestTemplate.getForObject(API_FILES_LIST, FilesResponse.class, projectId);
         throwExceptionOnError(filesResponse, "Can't get files");

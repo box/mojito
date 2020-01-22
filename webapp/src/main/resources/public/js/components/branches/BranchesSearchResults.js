@@ -5,7 +5,7 @@ import {Button, Col, Collapse, Glyphicon, Grid, Label, OverlayTrigger, Row, Tool
 import {Link, withRouter} from "react-router";
 import ClassNames from "classnames";
 import {withAppConfig} from "../../utils/AppConfig";
-import LinkHelper from "../../utils/LinkHelper";
+import LinkHelper from "../../utils/TemplateHelper";
 
 
 class BranchesSearchResults extends React.Component {

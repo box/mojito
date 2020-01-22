@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
@@ -56,6 +57,9 @@ public class VirtualTextUnitBatchUpdaterService {
     TMTextUnitRepository tmTextUnitRepository;
 
     @Autowired
+    TextUnitUtils textUnitUtils;
+
+    @Autowired
     TMService tmService;
 
     @Autowired
@@ -90,7 +94,7 @@ public class VirtualTextUnitBatchUpdaterService {
         HashMap<String, TextUnitDTO> contentToTextUnitDTOs = new HashMap<>();
 
         for (TextUnitDTO textUnitDTO : allAssetTextUnitDTOs) {
-            String md5 = tmService.computeTMTextUnitMD5(textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getComment());
+            String md5 = textUnitUtils.computeTextUnitMD5(textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getComment());
             md5ToTextUnitDTOs.put(md5, textUnitDTO);
             contentToTextUnitDTOs.put(textUnitDTO.getSource(), textUnitDTO);
 
@@ -102,7 +106,7 @@ public class VirtualTextUnitBatchUpdaterService {
         logger.debug("Build map by md5 for text units to import");
         HashMap<String, VirtualAssetTextUnit> md5ToVirtualTextUnits = new HashMap<>();
         for (VirtualAssetTextUnit virtualAssetTextUnit : virtualAssetTextUnits) {
-            String md5 = tmService.computeTMTextUnitMD5(virtualAssetTextUnit.getName(), virtualAssetTextUnit.getContent(), virtualAssetTextUnit.getComment());
+            String md5 = textUnitUtils.computeTextUnitMD5(virtualAssetTextUnit.getName(), virtualAssetTextUnit.getContent(), virtualAssetTextUnit.getComment());
             md5ToVirtualTextUnits.put(md5, virtualAssetTextUnit);
         }
 

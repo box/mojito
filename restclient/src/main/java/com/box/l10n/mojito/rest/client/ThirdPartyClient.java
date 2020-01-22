@@ -26,12 +26,17 @@ public class ThirdPartyClient extends BaseClient {
         return "thirdparty";
     }
 
-    public PollableTask sync(Long repositoryId, String projectId, List<ThirdPartySync.Action> actions, List<String> options) {
+    public PollableTask sync(Long repositoryId, String projectId, String pluralSeparator, String localeMapping,
+        List<ThirdPartySync.Action> actions, List<String> options)
+    {
+
         ThirdPartySync thirdPartySync = new ThirdPartySync();
 
         thirdPartySync.setRepositoryId(repositoryId);
         thirdPartySync.setProjectId(projectId);
         thirdPartySync.setActions(actions);
+        thirdPartySync.setPluralSeparator(pluralSeparator);
+        thirdPartySync.setLocaleMapping(localeMapping);
         thirdPartySync.setOptions(options);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath(getBasePathForEntity()).pathSegment("sync");

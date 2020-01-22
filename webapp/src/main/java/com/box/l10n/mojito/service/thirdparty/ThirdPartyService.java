@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,20 +92,25 @@ public class ThirdPartyService {
     @Autowired
     ThirdPartyTMS thirdPartyTMS;
 
-    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, List<String> options) {
+    public PollableFuture asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
         ThirdPartySyncJobInput thirdPartySyncJobInput = new ThirdPartySyncJobInput();
 
         thirdPartySyncJobInput.setRepositoryId(repositoryId);
         thirdPartySyncJobInput.setThirdPartyProjectId(thirdPartyProjectId);
         thirdPartySyncJobInput.setActions(actions);
+        thirdPartySyncJobInput.setPluralSeparator(pluralSeparator);
+        thirdPartySyncJobInput.setLocaleMapping(localeMapping);
         thirdPartySyncJobInput.setOptions(options);
 
         return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
     }
 
-    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, List<String> options) {
+    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
+
         Repository repository = repositoryRepository.findOne(repositoryId);
+        Map<String, String> optionMap = Optional.ofNullable(options).orElse(Collections.emptyList()).stream().collect(
+                Collectors.toMap(str -> str.split("=")[0], str -> str.split("=")[1], (a, b) -> a, HashMap::new));
 
         if (actions.contains(Action.PUSH)) {
             throw new UnsupportedOperationException();
@@ -130,12 +138,12 @@ public class ThirdPartyService {
         Set<String> thirdPartyTextUnitIdsAlreadyMapped = thirdPartyTextUnitRepository.findThirdPartyIdsByRepository(repository);
 
         logger.debug("Batch by asset to optimize the import and exclude already mapped");
-        Map<Asset, List<ThirdPartyTextUnit>> groupedByAsset = thirdPartyTextUnits.stream().
+        Map<Asset, List<ThirdPartyTextUnit>> notMappedGroupedByAsset = thirdPartyTextUnits.stream().
                 filter(t -> !thirdPartyTextUnitIdsAlreadyMapped.contains(t.getId())).
                 collect(groupingBy(o -> assetCache.getUnchecked(o.getAssetPath()).orElse(null), LinkedHashMap::new, toList()));
 
         logger.debug("Perform mapping by asset (exclude null assset, that could appear if asset path didn't match)");
-        groupedByAsset.entrySet().stream()
+        notMappedGroupedByAsset.entrySet().stream()
                 .filter(e -> e.getKey() != null)
                 .forEach(e -> mapThirdPartyTextUnitsToTextUnitDTOs(e.getKey(), e.getValue()));
     }
@@ -149,9 +157,9 @@ public class ThirdPartyService {
      */
     void mapThirdPartyTextUnitsToTextUnitDTOs(Asset asset, List<ThirdPartyTextUnit> thirdPartyTextUnitsToMap) {
         logger.debug("Map third party text units to text unit DTOs for asset: {}", asset.getId());
-        List<TextUnitDTO> textUnitTDOsForAsset = getTextUnitTDOsForAsset(asset);
+        List<TextUnitDTO> notMappedTextUnitTDOsForAsset = getNotMappedTextUnitTDOsForAsset(asset);
 
-        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> matchByNameAndPluralPrefix = textUnitBatchMatcher.matchByNameAndPluralPrefix(textUnitTDOsForAsset);
+        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> matchByNameAndPluralPrefix = textUnitBatchMatcher.matchByNameAndPluralPrefix(notMappedTextUnitTDOsForAsset);
 
         Map<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap = thirdPartyTextUnitsToMap.stream()
                 .collect(Collectors.toMap(
@@ -287,13 +295,27 @@ public class ThirdPartyService {
         return image;
     }
 
-    List<TextUnitDTO> getTextUnitTDOsForAsset(Asset asset) {
+    /**
+     * Get TextUnitDTOs of the asset that are not mapped yet and are candidate for mapping.
+     *
+     * Already mapped entires can't be remapped since it would cause a containst issue in
+     * {@link com.box.l10n.mojito.entity.ThirdPartyTextUnit#getTmTextUnit()}
+     *
+     * @param asset
+     * @return
+     */
+    List<TextUnitDTO> getNotMappedTextUnitTDOsForAsset(Asset asset) {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(asset.getRepository().getId());
         textUnitSearcherParameters.setAssetId(asset.getId());
         textUnitSearcherParameters.setForRootLocale(true);
         textUnitSearcherParameters.setPluralFormsFiltered(false);
-        return textUnitSearcher.search(textUnitSearcherParameters);
+        List<TextUnitDTO> all = textUnitSearcher.search(textUnitSearcherParameters);
+
+        HashSet<Long> alreadyMapped = thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
+        List<TextUnitDTO> notMapped = all.stream().filter(t -> !alreadyMapped.contains(t.getTmTextUnitId())).collect(toList());
+
+        return notMapped;
     }
 
     LoadingCache<String, Optional<Asset>> getAssetCache(Repository repository) {

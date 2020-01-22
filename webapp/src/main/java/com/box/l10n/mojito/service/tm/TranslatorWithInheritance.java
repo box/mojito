@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.okapi.InheritanceMode;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
@@ -42,7 +43,7 @@ public class TranslatorWithInheritance {
     TextUnitSearcher textUnitSearcher;
 
     @Autowired
-    TMService tmService;
+    TextUnitUtils textUnitUtils;
 
     Asset asset;
 
@@ -205,7 +206,7 @@ public class TranslatorWithInheritance {
 
         logger.debug("Transform TextUnitDTOs list (size={}) into map keyed by MD5", textUnitDTOs.size());
         for (TextUnitDTO textUnitDTO : textUnitDTOs) {
-            String md5 = tmService.computeTMTextUnitMD5(textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getComment());
+            String md5 = textUnitUtils.computeTextUnitMD5(textUnitDTO.getName(), textUnitDTO.getSource(), textUnitDTO.getComment());
             res.put(md5, textUnitDTO);
         }
 

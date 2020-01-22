@@ -77,7 +77,7 @@ public class PollableTaskServiceTest extends ServiceTestBase {
         assertEquals(createSubTask1.getId(), iterator.next().getId());
         assertEquals(createSubTask2.getId(), iterator.next().getId());
 
-        logger.debug(objectMapper.writeValueAsStringUnsafe(pollableTask));
+        logger.debug(objectMapper.writeValueAsStringUnchecked(pollableTask));
     }
 
     @Test

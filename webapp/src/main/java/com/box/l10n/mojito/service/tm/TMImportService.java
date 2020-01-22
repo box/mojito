@@ -4,7 +4,7 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.RawDocument;
-import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.ImportExportTextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -49,7 +49,7 @@ public class TMImportService {
     ObjectMapper objectMapper;
 
     @Autowired
-    TextUnitUtils textUnitUtils;
+    ImportExportTextUnitUtils importExportTextUnitUtils;
 
     /**
      * Import the exported XLIFF using Okapi driver into repository.

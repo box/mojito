@@ -7,16 +7,17 @@ import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.ContextUpload;
 import com.box.l10n.mojito.smartling.response.File;
+import com.box.l10n.mojito.smartling.response.StringInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ConditionalOnProperty(value = "l10n.ThirdPartyTMS.impl", havingValue = "ThirdPartyTMSSmartling")
 @Component
@@ -50,23 +51,28 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                 .filter(file -> filePattern.matcher(file.getFileUri()).matches())
                 .collect(Collectors.toList());
 
-        return smartlingClient.getStringInfosFromFiles(projectId, files).
-                map(stringInfo -> {
-                    logger.debug("hashcode: {}\nvariant: {}\nparsed string: {}",
-                            stringInfo.getHashcode(),
-                            stringInfo.getStringVariant(),
-                            stringInfo.getParsedStringText());
+        List<ThirdPartyTextUnit> thirdPartyTextUnits = files.stream().flatMap(file -> {
+            Stream<StringInfo> stringInfos = smartlingClient.getStringInfos(projectId, file.getFileUri());
+            return stringInfos.map(stringInfo -> {
+                logger.debug("hashcode: {}\nvariant: {}\nparsed string: {}",
+                        stringInfo.getHashcode(),
+                        stringInfo.getStringVariant(),
+                        stringInfo.getParsedStringText());
 
-                    AssetPathAndTextUnitNameKeys.Key key = assetPathAndTextUnitNameKeys.parse(stringInfo.getStringVariant());
+                AssetPathAndTextUnitNameKeys.Key key = assetPathAndTextUnitNameKeys.parse(stringInfo.getStringVariant());
 
-                    ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
-                    thirdPartyTextUnit.setId(stringInfo.getHashcode());
-                    thirdPartyTextUnit.setAssetPath(key.getAssetPath());
-                    thirdPartyTextUnit.setName(key.getTextUnitName());
-                    thirdPartyTextUnit.setContent(stringInfo.getStringVariant());
-                    return thirdPartyTextUnit;
-                })
-                .collect(Collectors.toList());
+                ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
+                thirdPartyTextUnit.setId(stringInfo.getHashcode());
+                thirdPartyTextUnit.setAssetPath(key.getAssetPath());
+                thirdPartyTextUnit.setName(key.getTextUnitName());
+                thirdPartyTextUnit.setContent(stringInfo.getStringVariant());
+                thirdPartyTextUnit.setNamePluralPrefix(isPluralFile(file.getFileUri()));
+
+                return thirdPartyTextUnit;
+            });
+        }).collect(Collectors.toList());
+
+        return thirdPartyTextUnits;
     }
 
     @Override
@@ -87,5 +93,9 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
     Pattern getFilePattern(String repositoryName) {
         return Pattern.compile(repositoryName + "/(\\d+)_(singular|plural)_source.xml");
+    }
+
+    Boolean isPluralFile(String fileUri) {
+        return fileUri.endsWith("plural_source.xml");
     }
 }

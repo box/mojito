@@ -14,8 +14,8 @@ import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,11 +149,11 @@ public class SmartlingClientTest {
     }
 
     @Test
-    public void testGetStringInfosFromFiles() {
+    public void testGetStringInfosFromFile() {
         Assume.assumeNotNull(projectId);
         Items<File> files = smartlingClient.getFiles(projectId);
-        Stream<StringInfo> stringInfosFromFiles = smartlingClient.getStringInfosFromFiles(projectId, files.getItems());
-
+        Stream<StringInfo> stringInfosFromFiles = files.getItems().stream().flatMap(
+                file -> smartlingClient.getStringInfos(projectId, file.getFileUri()));
         stringInfosFromFiles.forEach(
                 stringInfo -> logger.debug(stringInfo.getHashcode())
         );

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Iterator;
 import java.util.List;
 
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import org.hibernate.proxy.HibernateProxy;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -61,6 +62,9 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
 
     @Autowired
     AssetService assetService;
+
+    @Autowired
+    TextUnitUtils textUnitUtils;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -120,7 +124,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
 
         logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
-        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        String md5 = textUnitUtils.computeTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
         logger.debug("tmtextunit: {}", tmTextUnit);
 
@@ -158,7 +162,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         Long frLocaleId = frFRLocale.getId();
 
         logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
-        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        String md5 = textUnitUtils.computeTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
         logger.debug("tmtextunit: {}", tmTextUnit);
 
@@ -212,7 +216,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         Long frLocaleId = frFRLocale.getId();
 
         logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
-        String md5 = tmService.computeTMTextUnitMD5("name", "this is the content", "some comment");
+        String md5 = textUnitUtils.computeTextUnitMD5("name", "this is the content", "some comment");
         TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
         logger.debug("tmtextunit: {}", tmTextUnit);
 

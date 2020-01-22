@@ -5,6 +5,7 @@ import com.box.l10n.mojito.cli.filefinder.FileFinder;
 import com.box.l10n.mojito.cli.filefinder.FileFinderException;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.cli.filefinder.file.XcodeXliffFileType;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
@@ -18,19 +19,6 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBiMap;
 import com.google.common.io.Files;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -42,6 +30,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author wyau
@@ -161,7 +162,7 @@ public class CommandHelper {
      * @return
      * @throws CommandException
      */
-    public String getFileContent(Path path) throws CommandException {
+    public String getFileContent(Path path) {
         try {
             File file = path.toFile();
             BOMInputStream inputStream = new BOMInputStream(FileUtils.openInputStream(file), false, boms);
@@ -173,7 +174,7 @@ public class CommandHelper {
             }
             return fileContent;
         } catch (IOException e) {
-            throw new CommandException("Cannot get file content for path: " + path.toString(), e);
+            throw new UncheckedIOException("Cannot get file content for path: " + path.toString(), e);
         }
     }
 
@@ -231,17 +232,6 @@ public class CommandHelper {
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }
-    }
-
-    /**
-     * Adds attribute xml:space="preserve" in the trans-unit element in the
-     * xliff
-     *
-     * @param assetContent
-     * @return
-     */
-    String setPreserveSpaceInXliff(String assetContent) {
-        return assetContent.replaceAll("<trans-unit id=\"(.*?)\">", "<trans-unit id=\"$1\" xml:space=\"preserve\">");
     }
 
     /**
@@ -341,4 +331,26 @@ public class CommandHelper {
         }
         return dateTime;
     }
+
+    /**
+     * Get content from {@link java.nio.file.Path} using UTF8 and if it is an XLIFF from XCode patch the content
+     * (Adds attribute xml:space="preserve" in the trans-unit element in the xliff)
+     *
+     * @param sourceFileMatch
+     * @return
+     * @throws CommandException
+     */
+    public String getFileContentWithXcodePatch(FileMatch sourceFileMatch) {
+        String assetContent = getFileContent(sourceFileMatch.getPath());
+
+        // TODO(P1) This is to inject xml:space="preserve" in the trans-unit element
+        // in the xcode-generated xliff until xcode fixes the bug of not adding this attribute
+        // See Xcode bug http://www.openradar.me/23410569
+        if (XcodeXliffFileType.class == sourceFileMatch.getFileType().getClass()) {
+            assetContent = assetContent.replaceAll("<trans-unit id=\"(.*?)\">", "<trans-unit id=\"$1\" xml:space=\"preserve\">");
+        }
+
+        return assetContent;
+    }
+
 }
