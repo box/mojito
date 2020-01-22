@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.android.strings;
 
+import com.google.common.base.Strings;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -30,11 +31,11 @@ public class AndroidStringsXmlHelper {
     }
 
     public static AndroidStringsTextUnit createTextUnit(String name, String content, String comment, String id, String pluralForm, String pluralFormOther) {
-        return new AndroidStringsTextUnit(name, content, comment, id, pluralForm, pluralFormOther);
+        return createTextUnit(name, content, comment, Strings.isNullOrEmpty(id) ? null : Long.parseLong(id), pluralForm, pluralFormOther);
     }
 
     public static AndroidStringsTextUnit createTextUnit(String name, String content, String comment, Long id, String pluralForm, String pluralFormOther) {
-        return createTextUnit(name, content, comment, id == null ? null : id.toString(), pluralForm, pluralFormOther);
+        return new AndroidStringsTextUnit(name, content, comment, id, pluralForm, pluralFormOther);
     }
 
     public static AndroidStringsTextUnit createSingular(String name, String content, String comment, String id) {
@@ -72,9 +73,9 @@ public class AndroidStringsXmlHelper {
         }
     }
 
-    static void addAttribute(Element element, String name, String value) {
+    static void addAttribute(Element element, String name, Object value) {
         if (value != null) {
-            element.setAttribute(name, value);
+            element.setAttribute(name, value.toString());
         }
     }
 
