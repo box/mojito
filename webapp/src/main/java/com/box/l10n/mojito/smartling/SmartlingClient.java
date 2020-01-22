@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClientException;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -55,6 +56,7 @@ public class SmartlingClient {
     static final String API_SOURCE_STRINGS = "strings-api/v2/projects/{projectId}/source-strings?fileUri={fileUri}&offset={offset}&offset={limit}";
     static final String API_FILES_LIST = "files-api/v2/projects/{projectId}/files/list";
     static final String API_FILES_UPLOAD = "files-api/v2/projects/{projectId}/file";
+    static final String API_LOCALIZED_FILES_UPLOAD = "files-api/v2/projects/{project_id}/locales/{locale_id}/file/import";
     static final String API_FILES_DOWNLOAD = "files-api/v2/projects/{projectId}/locales/{locale_id}/file?fileUri={fileUri}&includeOriginalStrings={includeOriginalStrings}&retrievalType={retrievalType}";
     static final String API_FILES_DELETE = "files-api/v2/projects/{projectId}/file/delete";
     static final String API_CONTEXTS = "context-api/v2/projects/{projectId}/contexts";
@@ -126,7 +128,35 @@ public class SmartlingClient {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        FileUploadResponse response = oAuth2RestTemplate.postForObject(API_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId);
+        FileUploadResponse response = null;
+        try {
+            response = oAuth2RestTemplate.postForObject(API_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId);
+            throwExceptionOnError(response, "Can't upload file");
+        } catch (RestClientException e) {
+            throw new SmartlingClientException(e.getMessage());
+        }
+
+        return response;
+    }
+
+    public FileUploadResponse uploadLocalizedFile(String projectId, String fileUri, String fileType, String fileContent, String locale, String placeholderFormat, String placeholderFormatCustom) {
+
+        NamedByteArrayResource fileContentAsResource = new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("fileUri", fileUri);
+        body.add("fileType", fileType);
+        body.add("translationState", "PUBLISHED");
+        body.add("smartling.placeholder_format", placeholderFormat);
+        body.add("smartling.placeholder_format_custom", placeholderFormatCustom);
+        body.add("overwrite", Boolean.TRUE);
+        body.add("file", fileContentAsResource);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        FileUploadResponse response = oAuth2RestTemplate.postForObject(API_LOCALIZED_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId, locale);
         throwExceptionOnError(response, "Can't upload file");
         return response;
     }

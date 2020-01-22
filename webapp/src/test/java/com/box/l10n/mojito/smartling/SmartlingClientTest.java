@@ -94,27 +94,46 @@ public class SmartlingClientTest {
     @Test
     public void testUploadFile() {
         Assume.assumeNotNull(projectId);
-        uploadFile(projectId, "strings.xml");
-    }
-
-    private void uploadFile(String projectId, String fileName) {
         smartlingClient.uploadFile(projectId,
-                fileName,
+                "strings.xml",
                 "android",
-                "<resources>\n" +
-                        "    <string name=\"hello\">Hello</string>\n" +
-                        "    <string name=\"bye\">Bye</string>\n" +
-                        "</resources>\n",
+                UPLOAD_FILE,
                 null,
                 null);
     }
+
+    private static final String UPLOAD_FILE =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"hello\">Hello</string>\n" +
+        "    <string name=\"bye\">Bye</string>\n" +
+        "</resources>";
+
+    private static final String UPLOAD_LOCALIZED_FILE =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"hello\">bonjour</string>\n" +
+        "    <string name=\"bye\">au revoir</string>\n" +
+        "</resources>";
 
     @Test
     public void testUploadDownloadAndDeleteFile() {
         Assume.assumeNotNull(projectId);
         String fileName = testIdWatcher.getEntityName("") + "-string.xml";
 
-        uploadFile(projectId, fileName);
+        smartlingClient.uploadFile(projectId,
+                fileName,
+                "android",
+                UPLOAD_FILE,
+                null,
+                null);
+        smartlingClient.uploadLocalizedFile(projectId,
+                fileName,
+                "android",
+                UPLOAD_LOCALIZED_FILE,
+                "fr-FR",
+                null,
+                null);
         try {
             String result = smartlingClient.downloadFile(projectId,
                     "fr-FR",
@@ -122,11 +141,7 @@ public class SmartlingClientTest {
                     false,
                     SmartlingClient.RetrievalType.PUBLISHED);
 
-            Assert.assertEquals(
-                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                            "<resources>\n" +
-                            "    \n" +
-                            "</resources>", result);
+            Assert.assertEquals(UPLOAD_LOCALIZED_FILE, result);
         } finally {
             smartlingClient.deleteFile(projectId, fileName);
         }
