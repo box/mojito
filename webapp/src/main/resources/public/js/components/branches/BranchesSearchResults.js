@@ -5,7 +5,7 @@ import {Button, Col, Collapse, Glyphicon, Grid, Label, OverlayTrigger, Row, Tool
 import {Link, withRouter} from "react-router";
 import ClassNames from "classnames";
 import {withAppConfig} from "../../utils/AppConfig";
-import LinkHelper from "../../utils/TemplateHelper";
+import LinkHelper from "../../utils/LinkHelper";
 
 
 class BranchesSearchResults extends React.Component {
@@ -88,14 +88,6 @@ class BranchesSearchResults extends React.Component {
         }
     };
 
-    getPullRequestUrlComponentTemplate = (branch) => {
-        try {
-            return this.props.appConfig.branches[branch.repository.name].pullRequest.urlComponent;
-        } catch (e) {
-            return null;
-        }
-    };
-
     hasScreenshot(branchStatistic) {
         return this.props.textUnitsWithScreenshotsByBranchStatisticId[branchStatistic.id].size > 0;
     }
@@ -104,18 +96,9 @@ class BranchesSearchResults extends React.Component {
         let renderedBranchName;
 
         let pullRequestUrlTemplate = this.getPullRequestUrlTemplate(branch);
-
-        if (pullRequestUrlTemplate !== null) {
-            let pullRequestUrlComponentTemplate = this.getPullRequestUrlComponentTemplate(branch);
-
-            const url = LinkHelper.renderUrl(pullRequestUrlTemplate, pullRequestUrlComponentTemplate, {
-                branchName: branch.name
-            })
-
-            renderedBranchName = <a href={url}>{branch.name}</a>;
-        } else {
-            renderedBranchName = branch.name;
-        }
+        renderedBranchName = LinkHelper.renderLinkOrLabel(pullRequestUrlTemplate, branch.name, {
+            branchName: branch.name
+        });
 
         return renderedBranchName;
     }
