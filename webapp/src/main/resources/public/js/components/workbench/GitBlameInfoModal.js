@@ -6,6 +6,7 @@ import {withAppConfig} from "../../utils/AppConfig";
 import TemplateHelper from "../../utils/TemplateHelper";
 import {Link} from "react-router";
 import md5 from "md5";
+import LinkHelper from "../../utils/LinkHelper";
 
 class GitBlameInfoModal extends React.Component {
     static propTypes() {
@@ -238,14 +239,7 @@ class GitBlameInfoModal extends React.Component {
     getParamsForLinks = () => {
         const baseParams = this.getBaseParams();
         const compoundParams = this.getCompoundParams(baseParams);
-        const encodedParams = Object.fromEntries(
-            Object.entries(baseParams, compoundParams).map(
-                ([key, value]) => {
-                    return ["encoded" + _.upperFirst(key), encodeURIComponent(value)];
-                })
-        )
-
-        const paramsForLinks = Object.assign({}, baseParams, compoundParams, encodedParams);
+        const paramsForLinks = Object.assign({}, baseParams, compoundParams);
         return paramsForLinks;
     };
 
@@ -261,30 +255,15 @@ class GitBlameInfoModal extends React.Component {
             : this.getTextUnitNameToTextUnitNameInSourcePlural();
     }
 
-    renderLinkOrLabel = (urlTemplate, labelTemplate, params) => {
-        let linkOrLabel;
-
-        let label = TemplateHelper.renderTemplate(labelTemplate, params);
-        let url = TemplateHelper.renderTemplate(urlTemplate, params);
-
-        if (url) {
-            linkOrLabel = <a href={url}>{label}</a>;
-        } else {
-            linkOrLabel = label;
-        }
-
-        return linkOrLabel;
-    };
-
     getThirdPartyLink = () => {
-        return this.renderLinkOrLabel(
+        return LinkHelper.renderLinkOrLabel(
             this.getThirdPartyUrlTemplate(),
             this.getThirdPartyLabelTemplate(),
             this.getParamsForLinks());
     };
 
     getCustomMd5Link = () => {
-        return this.renderLinkOrLabel(
+        return LinkHelper.renderLinkOrLabel(
             this.getCustomMd5UrlTemplate(),
             this.getCustomMd5LabelTemplate(),
             this.getParamsForLinks());
@@ -317,7 +296,7 @@ class GitBlameInfoModal extends React.Component {
      * @returns {*} Creates a link to a single location
      */
     getLocationLink = () => {
-        return this.renderLinkOrLabel(
+        return LinkHelper.renderLinkOrLabel(
             this.getLocationUrlTemplate(),
             this.getLocationLabelTemplate(),
             this.getParamsForLinks());
@@ -347,7 +326,7 @@ class GitBlameInfoModal extends React.Component {
                     assetPath: this.props.textUnit.getAssetPath(),
                     usage: usage
                 };
-                let link = this.renderLinkOrLabel(this.getLocationUrlTemplate(), this.getLocationLabelTemplate(), params);
+                let link = LinkHelper.renderLinkOrLabel(this.getLocationUrlTemplate(), this.getLocationLabelTemplate(), params);
                 links.push(<div>{link}</div>);
             }
         }
@@ -536,7 +515,7 @@ class GitBlameInfoModal extends React.Component {
 
         if (commit !== null && urlTemplate !== "") {
             let params = {commit: commit};
-            link = this.renderLinkOrLabel(urlTemplate, this.getCommitLabelTemplate(), params);
+            link = LinkHelper.renderLinkOrLabel(urlTemplate, this.getCommitLabelTemplate(), params);
         }
 
         return link;
