@@ -45,6 +45,14 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         }
     }
 
+    public <T> T readValueUnchecked(String content, Class<T> valueType) {
+        try {
+            return super.readValue(content, valueType);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void writeValueUnchecked(File file, Object content) {
         try {
             super.writeValue(file, content);
