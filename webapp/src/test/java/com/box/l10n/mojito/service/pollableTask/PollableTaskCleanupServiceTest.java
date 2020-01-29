@@ -39,7 +39,6 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
         pollableTaskRepository.save(pollableTasks);
     }
 
-    @Ignore
     @Test
     public void testMarkZombieTasksAsFinishedWithErrorWithZombies() throws Exception {
 

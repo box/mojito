@@ -21,18 +21,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.stream.Stream;
+
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {SmartlingClientTest.class, SmartlingClientConfiguration.class, ObjectMapper.class})
-//@EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialization-mode=never")
+@SpringBootTest(properties = "spring.datasource.initialize=false",
+        classes = {SmartlingClientTest.class, SmartlingClientConfiguration.class, ObjectMapper.class},
+        webEnvironment = SpringBootTest.WebEnvironment.NONE)
 public class SmartlingClientTest {
 
     static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);
@@ -43,10 +42,10 @@ public class SmartlingClientTest {
     @Autowired(required = false)
     SmartlingClient smartlingClient;
 
-    @Value("${test.l10n.smartling.projectId:#{null}}")
+    @Value("${test.l10n.smartling.project-id:#{null}}")
     String projectId = null;
 
-    @Value("${test.l10n.smartling.fileUri:#{null}}")
+    @Value("${test.l10n.smartling.file-uri:#{null}}")
     String fileUri = null;
 
     @Before
@@ -121,11 +120,10 @@ public class SmartlingClientTest {
                     false,
                     SmartlingClient.RetrievalType.PUBLISHED);
 
-            Assert.assertEquals(
+            String expected =
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                            "<resources>\n" +
-                            "    \n" +
-                            "</resources>", result);
+                    "<resources>\n";
+            Assert.assertEquals(expected, result.substring(0, expected.length()));
         } finally {
             smartlingClient.deleteFile(projectId, fileName);
         }

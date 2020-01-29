@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@ConditionalOnProperty(value = "l10n.ThirdPartyTMS.impl", havingValue = "ThirdPartyTMSSmartling")
+@ConditionalOnProperty(value = "l10n.third-party-tms.impl", havingValue = "ThirdPartyTMSSmartling")
 @Component
 public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 

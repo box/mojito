@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@ConditionalOnProperty(value = "l10n.ThirdPartyTMS.impl", havingValue = "ThirdPartyTMSInMemory", matchIfMissing = true)
+@ConditionalOnProperty(value = "l10n.third-party-tms.impl", havingValue = "ThirdPartyTMSInMemory", matchIfMissing = true)
 @Component
 public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
 

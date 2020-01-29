@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -56,16 +57,20 @@ public class BoxSDKServiceTest {
      */
     static Logger logger = getLogger(BoxSDKServiceTest.class);
 
+    @TestConfiguration
+    static class TestConfig {
+
+        @Bean
+        public BoxSDKServiceConfigEntityRepository getBoxSDKServiceConfigEntityRepository() {
+            return null;
+        }
+    }
+
     @Autowired
     BoxSDKServiceConfigFromProperties boxSDKServiceConfigFromProperties;
 
     @Autowired
     BoxSDKService boxSDKService;
-
-    @Bean
-    public BoxSDKServiceConfigEntityRepository getBoxSDKServiceConfigEntityRepository() {
-        return null;
-    }
 
     static BoxFolder testFolder = null;
 

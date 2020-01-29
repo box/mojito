@@ -89,10 +89,10 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     @Autowired
     ImageService imageService;
 
-    @Value("${test.l10n.smartling.projectId:#{null}}")
+    @Value("${test.l10n.smartling.project-id:#{null}}")
     String projectId = null;
 
-    @Value("${test.l10n.smartling.fileUri:#{null}}")
+    @Value("${test.l10n.smartling.file-uri:#{null}}")
     String fileUri = null;
 
     @Before
@@ -100,7 +100,6 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         Assume.assumeNotNull(smartlingClient);
     }
 
-    @Ignore
     @Test
     public void testMappingAndScreenshot() throws Exception {
 

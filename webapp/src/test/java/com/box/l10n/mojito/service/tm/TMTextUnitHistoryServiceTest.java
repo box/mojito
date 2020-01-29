@@ -148,7 +148,6 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertFalse(iterator.hasNext());
     }
 
-    @Ignore
     @Test
     public void testHistoryMultipleVariants() throws RepositoryNameAlreadyUsedException {
         createTestData();
@@ -201,8 +200,6 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertFalse(iterator.hasNext());
     }
 
-
-    @Ignore
     @Test
     public void testHistorySortedByDate() throws RepositoryNameAlreadyUsedException, InterruptedException {
         createTestData();

@@ -13,10 +13,8 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
+import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.TestExecutionListeners;
@@ -25,6 +23,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,17 +70,14 @@ public class WSTestBase {
     @Autowired
     ResttemplateConfig resttemplateConfig;
 
-    @Bean
-    public ApplicationListener<EmbeddedServletContainerInitializedEvent> getApplicationListenerEmbeddedServletContainerInitializedEvent() {
-        return new ApplicationListener<EmbeddedServletContainerInitializedEvent>() {
+    @Autowired
+    EmbeddedWebApplicationContext server;
 
-            @Override
-            public void onApplicationEvent(EmbeddedServletContainerInitializedEvent event) {
-                int serverPort = event.getEmbeddedServletContainer().getPort();
-                logger.debug("Saving port number = {}", serverPort);
-                resttemplateConfig.setPort(serverPort);
-            }
-        };
+    @PostConstruct
+    private void initPort() {
+        int serverPort = server.getEmbeddedServletContainer().getPort();
+        logger.debug("Saving port number = {}", serverPort);
+        resttemplateConfig.setPort(serverPort);
     }
 
     /**

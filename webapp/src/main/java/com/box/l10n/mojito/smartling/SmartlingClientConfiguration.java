@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
@@ -28,10 +27,10 @@ public class SmartlingClientConfiguration {
     String accessTokenUri = "https://api.smartling.com/auth-api/v2/authenticate";
     String refreshTokenUri = "https://api.smartling.com/auth-api/v2/authenticate/refresh";
 
-    String clientID;
+    String clientId;
     String clientSecret;
 
-    @ConditionalOnProperty("l10n.smartling.clientID")
+    @ConditionalOnProperty("l10n.smartling.client-id")
     @Bean
     public SmartlingClient getSmartlingClient() {
         return new SmartlingClient(smartlingRestTemplate());
@@ -42,7 +41,7 @@ public class SmartlingClientConfiguration {
         SmartlingOAuth2ProtectedResourceDetails details = new SmartlingOAuth2ProtectedResourceDetails();
         details.setId("Smartling");
         details.setGrantType("smartling");
-        details.setClientId(clientID);
+        details.setClientId(clientId);
         details.setClientSecret(clientSecret);
         details.setAccessTokenUri(accessTokenUri);
         details.setRefreshUri(refreshTokenUri);
@@ -83,12 +82,12 @@ public class SmartlingClientConfiguration {
         this.refreshTokenUri = refreshTokenUri;
     }
 
-    public String getClientID() {
-        return clientID;
+    public String getClientId() {
+        return clientId;
     }
 
-    public void setClientID(String clientID) {
-        this.clientID = clientID;
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
     public String getClientSecret() {
