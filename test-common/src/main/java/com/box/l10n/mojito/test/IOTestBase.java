@@ -1,19 +1,7 @@
 package com.box.l10n.mojito.test;
 
-import java.nio.charset.StandardCharsets;
-
 import com.google.common.base.Function;
-import com.google.common.base.MoreObjects;
 import com.google.common.io.Files;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,8 +9,16 @@ import org.junit.Rule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.stream.Collectors.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class IOTestBase {
 
@@ -102,12 +98,26 @@ public class IOTestBase {
      * Options to override expected test files.
      *
      * Test can be run that way: mvn test -DoverrideExpectedTestFiles=true
+     * or System.setProperty("DoverrideExpectedTestFiles", "true");
      *
      * @return
      */
     protected boolean shouldOverrideExpectedTestFiles() {
         String overrideExpectedTestFiles = System.getProperty("overrideExpectedTestFiles");
         return overrideExpectedTestFiles == null ? false : Boolean.valueOf(overrideExpectedTestFiles);
+    }
+
+    /**
+     * Options to create input files.
+     * <p>
+     * Test can be run that way: mvn test -DcreateInputTestFiles=true
+     * or temporarilly: System.setProperty("createInputTestFiles", "true");
+     *
+     * @return
+     */
+    protected boolean shouldCreateInputTestFiles() {
+        String createInputTestFiles = System.getProperty("createInputTestFiles");
+        return createInputTestFiles == null ? false : Boolean.valueOf(createInputTestFiles);
     }
 
     /**
@@ -276,6 +286,32 @@ public class IOTestBase {
     }
 
     /**
+     * Read a test input resource.
+     *
+     * @param path resource path in {@link #getInputResourcesTestDir()}
+     * @return the resource content, content must be utf-8
+     */
+    public String readInputResource(String path) {
+
+        try {
+            File inputFile = getInputResourcesTestDir().toPath().resolve(path).toFile();
+
+            if (!inputFile.exists()) {
+                logger.info("Missing test input file. mvn test -DcreateInputTestFiles=true " +
+                        "or temporarilly: System.setProperty(\"createInputTestFiles\", \"true\");");
+                if (shouldCreateInputTestFiles()) {
+                    inputFile.getParentFile().mkdirs();
+                    Files.write("<replace with test data>", inputFile, StandardCharsets.UTF_8);
+                }
+            }
+
+            return Files.toString(inputFile, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
      * Returns the path of the given file, within the target test directory
      *
      * @param fileName
@@ -296,5 +332,4 @@ public class IOTestBase {
             super(message, cause);
         }
     }
-
 }
