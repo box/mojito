@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import org.hibernate.proxy.HibernateProxy;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
