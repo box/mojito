@@ -1,0 +1,38 @@
+{
+  "error": null,
+  "errorMessage": null,
+  "response": {
+    "data": [
+      {
+        "id": 17,
+        "type": "HMBB",
+        "phid": "PHID-HMBB-sometest",
+        "fields": {
+          "objectPHID": "PHID-DIFF-sometest",
+          "containerPHID": "PHID-DREV-sometest",
+          "buildableStatus": {
+            "value": "passed"
+          },
+          "isManual": false,
+          "dateCreated": 1579913887,
+          "dateModified": 1579914685,
+          "policy": {
+            "view": "users",
+            "edit": "users"
+          }
+        },
+        "attachments": []
+      }
+    ],
+    "maps": [],
+    "query": {
+      "queryKey": null
+    },
+    "cursor": {
+      "limit": 100,
+      "after": null,
+      "before": null,
+      "order": null
+    }
+  }
+}

@@ -16,6 +16,13 @@
     <dependencies>
 
         <dependency>
+            <groupId>com.box.l10n.mojito</groupId>
+            <artifactId>mojito-test-common</artifactId>
+            <version>0.109-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-joda</artifactId>
         </dependency>

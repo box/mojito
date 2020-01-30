@@ -1,0 +1,41 @@
+{
+  "error": null,
+  "errorMessage": null,
+  "response": {
+    "data": [
+      {
+        "id": 58,
+        "type": "HMBT",
+        "phid": "PHID-HMBT-sometest",
+        "fields": {
+          "name": "Build with Buildkite",
+          "buildPHID": "PHID-HMBD-sometest",
+          "buildStepPHID": "PHID-HMCS-sometest",
+          "status": {
+            "value": "target\/passed",
+            "name": "Passed"
+          },
+          "epochStarted": 1579913892,
+          "epochCompleted": 1579914685,
+          "buildGeneration": 1,
+          "dateCreated": 1579913892,
+          "dateModified": 1579914685,
+          "policy": {
+            "view": "users"
+          }
+        },
+        "attachments": []
+      }
+    ],
+    "maps": [],
+    "query": {
+      "queryKey": null
+    },
+    "cursor": {
+      "limit": 100,
+      "after": null,
+      "before": null,
+      "order": null
+    }
+  }
+}
