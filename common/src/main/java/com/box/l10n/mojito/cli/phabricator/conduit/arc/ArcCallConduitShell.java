@@ -9,7 +9,7 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-class ArcCallConduitShell {
+public class ArcCallConduitShell {
 
     Shell shell;
     ObjectMapper objectMapper;
