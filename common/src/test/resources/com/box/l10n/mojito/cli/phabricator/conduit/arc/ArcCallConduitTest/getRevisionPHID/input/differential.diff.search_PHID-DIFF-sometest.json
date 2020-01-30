@@ -1,0 +1,44 @@
+{
+  "error": null,
+  "errorMessage": null,
+  "response": {
+    "data": [
+      {
+        "id": 18,
+        "type": "DIFF",
+        "phid": "PHID-DIFF-sometest",
+        "fields": {
+          "revisionPHID": "PHID-DREV-sometest",
+          "authorPHID": "PHID-USER-sometest",
+          "repositoryPHID": "PHID-REPO-sometest",
+          "refs": [
+            {
+              "type": "branch",
+              "name": "checktrans"
+            },
+            {
+              "type": "base",
+              "identifier": "9e03a7e09d"
+            }
+          ],
+          "dateCreated": 1579913877,
+          "dateModified": 1579913888,
+          "policy": {
+            "view": "users"
+          }
+        },
+        "attachments": []
+      }
+    ],
+    "maps": [],
+    "query": {
+      "queryKey": null
+    },
+    "cursor": {
+      "limit": 100,
+      "after": null,
+      "before": null,
+      "order": null
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "error": null,
+  "errorMessage": null,
+  "response": {
+    "data": [
+      {
+        "id": 49,
+        "type": "DREV",
+        "phid": "PHID-DREV-sometest",
+        "fields": {
+          "title": "Quick test to check for new string",
+          "authorPHID": "PHID-USER-sometest",
+          "status": {
+            "value": "accepted",
+            "name": "Accepted",
+            "closed": false,
+            "color.ansi": "green"
+          },
+          "repositoryPHID": "PHID-REPO-sometest",
+          "diffPHID": "PHID-DIFF-sometest",
+          "summary": "",
+          "testPlan": "",
+          "isDraft": false,
+          "holdAsDraft": false,
+          "dateCreated": 1579052480,
+          "dateModified": 1579914685,
+          "policy": {
+            "view": "users",
+            "edit": "users"
+          },
+          "pinterestJira": "",
+          "pinterestService": ""
+        },
+        "attachments": []
+      }
+    ],
+    "maps": [],
+    "query": {
+      "queryKey": null
+    },
+    "cursor": {
+      "limit": 100,
+      "after": null,
+      "before": null,
+      "order": null
+    }
+  }
+}
