@@ -1,15 +1,14 @@
 package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.cli.command.L10nJCommander;
-import com.box.l10n.mojito.cli.phabricator.conduit.arc.ArcCallConduit;
-import com.box.l10n.mojito.cli.phabricator.conduit.arc.ArcCallConduitShell;
-import com.box.l10n.mojito.cli.shell.Shell;
+import com.box.l10n.mojito.phabricator.conduit.arc.ArcCallConduit;
+import com.box.l10n.mojito.phabricator.conduit.arc.ArcCallConduitShell;
+import com.box.l10n.mojito.shell.Shell;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.Banner;
 import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
