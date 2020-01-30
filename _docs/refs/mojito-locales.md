@@ -120,6 +120,7 @@ permalink: /docs/refs/mojito-locales/
 | nl-NL	        | Dutch (Netherlands) |
 | nn-NO	        | Norwegian (Nynorsk) (Norway) |
 | ns-ZA	        | Northern Sotho (South Africa) |
+| ny-MW	        | Nyanja; Chewa; Chichewa (Malawi) |
 | pa-IN	        | Punjabi (India) |
 | pl-PL	        | Polish (Poland) |
 | ps-AR	        | Pashto (Afghanistan) |
@@ -128,6 +129,7 @@ permalink: /docs/refs/mojito-locales/
 | qu-BO	        | Quechua (Bolivia) |
 | qu-EC	        | Quechua (Ecuador) |
 | qu-PE	        | Quechua (Peru) |
+| rm-CH	        | Romansh (Switzerland) |
 | ro-RO	        | Romanian (Romania) |
 | ru-RU	        | Russian (Russia) |
 | sa-IN	        | Sanskrit (India) |
