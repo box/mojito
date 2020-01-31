@@ -1,0 +1,15 @@
+{
+  "result": {
+    "data": [
+      {
+        "id": 18,
+        "type": "DIFF",
+        "fields": {
+          "revisionPHID": "PHID-DREV-sometest"
+        }
+      }
+    ]
+  },
+  "error_code": null,
+  "error_info": null
+}

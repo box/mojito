@@ -1,0 +1,15 @@
+{
+  "result": {
+    "data": [
+      {
+        "id": 45,
+        "type": "HMBD",
+        "fields": {
+          "buildablePHID": "PHID-HMBB-sometest"
+        }
+      }
+    ]
+  },
+  "error_code": null,
+  "error_info": null
+}

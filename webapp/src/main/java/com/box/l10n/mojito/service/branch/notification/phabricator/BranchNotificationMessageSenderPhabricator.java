@@ -1,11 +1,9 @@
 package com.box.l10n.mojito.service.branch.notification.phabricator;
 
-import com.box.l10n.mojito.phabricator.PhabricatorClient;
-import com.box.l10n.mojito.phabricator.PhabricatorClientException;
-import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
+import com.box.l10n.mojito.phabricator.DifferentialRevision;
+import com.box.l10n.mojito.phabricator.PhabricatorException;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
-import com.box.l10n.mojito.utils.ServerConfig;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -27,7 +24,7 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
     static Logger logger = getLogger(BranchNotificationMessageSenderPhabricator.class);
 
     @Autowired
-    PhabricatorClient phabricatorClient;
+    DifferentialRevision differentialRevision;
 
     /**
      * This should be a phid
@@ -46,10 +43,10 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
         logger.debug("sendNewMessage to: {}", username);
 
         try {
-            phabricatorClient.addComment(branchName, branchNotificationMessageBuilderPhabricator.getNewMessage(branchName, sourceStrings));
-            phabricatorClient.addReviewer(branchName, reviewer, blockingReview);
+            differentialRevision.addComment(branchName, branchNotificationMessageBuilderPhabricator.getNewMessage(branchName, sourceStrings));
+            differentialRevision.addReviewer(branchName, reviewer, blockingReview);
             return null;
-        } catch (PhabricatorClientException e) {
+        } catch (PhabricatorException e) {
             throw new BranchNotificationMessageSenderException(e);
         }
     }
@@ -59,10 +56,10 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
         logger.debug("sendUpdatedMessage to: {}", username);
 
         try {
-            phabricatorClient.addComment(branchName, branchNotificationMessageBuilderPhabricator.getUpdatedMessage(branchName, sourceStrings));
-            phabricatorClient.addReviewer(branchName, reviewer, blockingReview);
+            differentialRevision.addComment(branchName, branchNotificationMessageBuilderPhabricator.getUpdatedMessage(branchName, sourceStrings));
+            differentialRevision.addReviewer(branchName, reviewer, blockingReview);
             return null;
-        } catch (PhabricatorClientException e) {
+        } catch (PhabricatorException e) {
             throw new BranchNotificationMessageSenderException(e);
         }
     }
@@ -72,9 +69,9 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
         logger.debug("sendTranslatedMessage to: {}", username);
 
         try {
-            phabricatorClient.addComment(branchName, branchNotificationMessageBuilderPhabricator.getTranslatedMessage());
-            phabricatorClient.removeReviewer(branchName, reviewer, blockingReview);
-        } catch (PhabricatorClientException e) {
+            differentialRevision.addComment(branchName, branchNotificationMessageBuilderPhabricator.getTranslatedMessage());
+            differentialRevision.removeReviewer(branchName, reviewer, blockingReview);
+        } catch (PhabricatorException e) {
             throw new BranchNotificationMessageSenderException(e);
         }
     }
@@ -84,8 +81,8 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
         logger.debug("sendScreenshotMissingMessage to: {}", username);
 
         try {
-            phabricatorClient.addComment(branchName, branchNotificationMessageBuilderPhabricator.getScreenshotMissingMessage());
-        } catch (PhabricatorClientException e) {
+            differentialRevision.addComment(branchName, branchNotificationMessageBuilderPhabricator.getScreenshotMissingMessage());
+        } catch (PhabricatorException e) {
             throw new BranchNotificationMessageSenderException(e);
         }
     }
