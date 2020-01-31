@@ -1,0 +1,15 @@
+{
+  "result": {
+    "data": [
+      {
+        "id": 17,
+        "type": "HMBB",
+        "fields": {
+          "objectPHID": "PHID-DIFF-sometest"
+        }
+      }
+    ]
+  },
+  "error_code": null,
+  "error_info": null
+}

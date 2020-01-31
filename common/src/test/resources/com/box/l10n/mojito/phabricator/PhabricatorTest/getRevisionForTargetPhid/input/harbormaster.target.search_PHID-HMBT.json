@@ -1,0 +1,15 @@
+{
+  "result": {
+    "data": [
+      {
+        "id": 58,
+        "type": "HMBT",
+        "fields": {
+          "buildPHID": "PHID-HMBD-sometest"
+        }
+      }
+    ]
+  },
+  "error_code": null,
+  "error_info": null
+}

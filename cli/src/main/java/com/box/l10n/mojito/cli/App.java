@@ -1,9 +1,6 @@
 package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.cli.command.L10nJCommander;
-import com.box.l10n.mojito.phabricator.conduit.arc.ArcCallConduit;
-import com.box.l10n.mojito.phabricator.conduit.arc.ArcCallConduitShell;
-import com.box.l10n.mojito.shell.Shell;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
@@ -54,8 +51,4 @@ public class App implements CommandLineRunner {
         return objectMapper;
     }
 
-    @Bean
-    public ArcCallConduit getArcCallConduit() {
-        return new ArcCallConduit(new ArcCallConduitShell(new Shell()));
-    }
 }
