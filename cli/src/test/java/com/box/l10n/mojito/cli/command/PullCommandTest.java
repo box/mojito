@@ -6,13 +6,15 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Asset;
+import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Batch rename when adding a test: find . -name "*properties" -exec rename "s/properties/json/" {} \;
@@ -763,8 +765,21 @@ public class PullCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir("target").getAbsolutePath());
 
-        // allow time for repo stats to be updated
-        Thread.sleep(1000);
+        waitForCondition("repo stats must be updated - wait for jp to be fully translated and others to be untranslated", () -> {
+            com.box.l10n.mojito.rest.entity.Repository repo = repositoryClient.getRepositoryById(repository.getId());
+            RepositoryStatistic repositoryStatistic = repo.getRepositoryStatistic();
+
+            boolean statsReady = repositoryStatistic.getRepositoryLocaleStatistics().stream()
+                    .allMatch(repositoryLocaleStatistic -> {
+                        if ("ja-JP".equals(repositoryLocaleStatistic.getLocale().getBcp47Tag())) {
+                            return repositoryLocaleStatistic.getForTranslationCount() == 0;
+                        } else {
+                            return repositoryLocaleStatistic.getForTranslationCount() > 0;
+                        }
+                    });
+
+            return !repositoryStatistic.getRepositoryLocaleStatistics().isEmpty() && statsReady;
+        });
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
