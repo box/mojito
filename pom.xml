@@ -50,6 +50,12 @@
             <artifactId>jsr305</artifactId>
             <version>3.0.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <!-- SCM setup to push changes to the Github repo on release -->
