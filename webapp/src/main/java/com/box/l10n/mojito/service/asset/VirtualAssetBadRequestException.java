@@ -4,13 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
- *
  * @author jeanaurambault
  */
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class VirtualAssetRequiredException extends VirtualAssetBadRequestException {
+public class VirtualAssetBadRequestException extends Exception {
 
-    public VirtualAssetRequiredException(String message) {
+    public VirtualAssetBadRequestException(String message) {
         super(message);
     }
 }

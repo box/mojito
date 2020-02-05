@@ -4,15 +4,12 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.NormalizationUtils;
-
-import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
-import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.assetExtractionIdEquals;
-import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.doNotTranslateEquals;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
@@ -22,6 +19,7 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
@@ -31,19 +29,24 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import com.google.common.base.Strings;
 import com.ibm.icu.text.MessageFormat;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.slf4j.Logger;
+
+import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
+import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.assetExtractionIdEquals;
+import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.doNotTranslateEquals;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import static org.springframework.data.jpa.domain.Specifications.where;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service to manage virtual assets.
@@ -96,6 +99,9 @@ public class VirtualAssetService {
     
     @Autowired
     VirtualTextUnitBatchUpdaterService virtualTextUnitBatchUpdaterService;
+
+    @Autowired
+    RepositoryService repositoryService;
     
     @Autowired
     LocaleService localeService;
@@ -104,7 +110,11 @@ public class VirtualAssetService {
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     @Transactional
-    public VirtualAsset createOrUpdateVirtualAsset(VirtualAsset virtualAsset) throws VirtualAssetRequiredException {
+    public VirtualAsset createOrUpdateVirtualAsset(VirtualAsset virtualAsset) throws VirtualAssetBadRequestException {
+
+        if (virtualAsset.getRepositoryId() == null) {
+            throw new VirtualAssetBadRequestException("A repository id must be provided");
+        }
 
         logger.debug("Create or update virtual asset with path: {}", virtualAsset.getPath());
         Asset asset = assetRepository.findByPathAndRepositoryId(virtualAsset.getPath(), virtualAsset.getRepositoryId());
@@ -113,12 +123,22 @@ public class VirtualAssetService {
             throw new VirtualAssetRequiredException("Standard asset can't be modify");
         } else if (asset != null) {
             logger.debug("Virtual asset exists, update it");
+            if (virtualAsset.getDeleted() == null) {
+                throw new VirtualAssetRequiredException("Missing deleted attribute for update");
+            }
             asset.setDeleted(virtualAsset.getDeleted());
             asset = assetRepository.save(asset);
         } else {
             logger.debug("No existing virtual asset, create one");
+
+            Repository repository = repositoryRepository.findOne(virtualAsset.getRepositoryId());
+
+            if (repository == null) {
+                throw new VirtualAssetBadRequestException("A valid repository must be provided when creating an asset");
+            }
+
             asset = new Asset();
-            asset.setRepository(repositoryRepository.getOne(virtualAsset.getRepositoryId()));
+            asset.setRepository(repository);
             asset.setPath(virtualAsset.getPath());
             asset.setVirtual(Boolean.TRUE);
 
