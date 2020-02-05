@@ -5,12 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +14,26 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.InterceptingClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Wrapper around {@link RestTemplate} to implement authentication and to
@@ -71,12 +76,27 @@ public class AuthenticatedRestTemplate {
         logger.debug("Create the RestTemplate instance that will be wrapped");
 
         makeRestTemplateWithCustomObjectMapper(restTemplate);
+        setErrorHandlerWithLogging(restTemplate);
 
         logger.debug("Set interceptor for authentication");
         List<ClientHttpRequestInterceptor> interceptors = Collections
                 .<ClientHttpRequestInterceptor>singletonList(formLoginAuthenticationCsrfTokenInterceptor);
 
         restTemplate.setRequestFactory(new InterceptingClientHttpRequestFactory(restTemplate.getRequestFactory(), interceptors));
+    }
+
+    void setErrorHandlerWithLogging(RestTemplate restTemplate) {
+        this.restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+            @Override
+            public void handleError(ClientHttpResponse response) throws IOException {
+                try {
+                    super.handleError(response);
+                } catch (HttpClientErrorException e) {
+                    logger.debug(e.getResponseBodyAsString());
+                    throw e;
+                }
+            }
+        });
     }
 
     /**
