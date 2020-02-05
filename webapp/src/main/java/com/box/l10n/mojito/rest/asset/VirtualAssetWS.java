@@ -1,14 +1,14 @@
 package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.service.asset.VirtualAsset;
+import com.box.l10n.mojito.service.asset.VirtualAssetBadRequestException;
 import com.box.l10n.mojito.service.asset.VirtualAssetRequiredException;
 import com.box.l10n.mojito.service.asset.VirtualAssetService;
+import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.service.asset.VirutalAssetMissingTextUnitException;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @author jaurambault
@@ -34,7 +36,7 @@ public class VirtualAssetWS {
     VirtualAssetService virtualAssetService;
 
     @RequestMapping(value = "/api/virtualAssets", method = RequestMethod.POST)
-    public VirtualAsset createOrUpdateVirtualAsset(@RequestBody VirtualAsset virtualAsset) throws VirtualAssetRequiredException {
+    public VirtualAsset createOrUpdateVirtualAsset(@RequestBody VirtualAsset virtualAsset) throws VirtualAssetBadRequestException {
         return virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
     }
 
