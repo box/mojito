@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.smartling;
 
+import com.box.l10n.mojito.iterators.PageFetcherOffsetAndLimitSplitIterator;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.ContextUpload;
 import com.box.l10n.mojito.smartling.response.ContextUploadResponse;
@@ -10,21 +11,19 @@ import com.box.l10n.mojito.smartling.response.Items;
 import com.box.l10n.mojito.smartling.response.Response;
 import com.box.l10n.mojito.smartling.response.SourceStringsResponse;
 import com.box.l10n.mojito.smartling.response.StringInfo;
-import com.box.l10n.mojito.utils.PageFetcherSplitIterator;
 import com.google.common.base.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -71,17 +70,18 @@ public class SmartlingClient {
     }
 
     public Stream<StringInfo> getStringInfos(String projectId, String fileUri) {
-        PageFetcherSplitIterator<StringInfo> stringInfoPageFetcherSplitIterator = new PageFetcherSplitIterator<StringInfo>((offset, limit) -> {
-            Items<StringInfo> stringInfoItems = getSourceStrings(
-                    projectId,
-                    fileUri,
-                    offset,
-                    limit);
+        PageFetcherOffsetAndLimitSplitIterator<StringInfo> iterator = new PageFetcherOffsetAndLimitSplitIterator<StringInfo>(
+                (offset, limit) -> {
+                    Items<StringInfo> stringInfoItems = getSourceStrings(
+                            projectId,
+                            fileUri,
+                            offset,
+                            limit);
 
-            return stringInfoItems.getItems();
-        }, LIMIT);
+                    return stringInfoItems.getItems();
+                }, LIMIT);
 
-        return StreamSupport.stream(stringInfoPageFetcherSplitIterator, false);
+        return StreamSupport.stream(iterator, false);
     }
 
     public Items<File> getFiles(String projectId) {
