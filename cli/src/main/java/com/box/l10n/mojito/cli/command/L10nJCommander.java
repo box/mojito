@@ -4,11 +4,6 @@ import com.beust.jcommander.JCommander;
 import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.base.Strings;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -17,7 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
+
+import javax.annotation.PostConstruct;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Wrapper around {@link JCommander} to provide CLI parsing, {@link Command}
@@ -149,6 +151,13 @@ public class L10nJCommander {
                 String msg = "Is a server running on: " + authenticatedRestTemplate.getURIForResource("") + "?";
                 printErrorMessage(msg);
                 logger.error(msg, rae);
+                exitWithError();
+            } catch (HttpClientErrorException | HttpServerErrorException e) {
+                String msg = "Unexpected error: " + e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e) + "\n" +
+                        e.getResponseBodyAsString();
+                printErrorMessage(msg);
+                logger.error("Unexpected error", e);
+                logger.error(e.getResponseBodyAsString());
                 exitWithError();
             } catch (Throwable t) {
                 String msg = "Unexpected error: " + t.getMessage() + "\n" + ExceptionUtils.getStackTrace(t);
