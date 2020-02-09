@@ -36,6 +36,16 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
     Pattern noteKeyPattern = null;
     Pattern usagesKeyPattern = null;
+    /**
+     * To keep the usage until a new one is found. When false it will reset the usages when the text unit/object end is
+     * reached.
+     */
+    boolean usagesKeepOrReplace = false;
+    /**
+     * To keep the note until a new one is found. When false it will reset the usages when the text unit/object end is
+     * reached.
+     */
+    boolean noteKeepOrReplace = false;
     XLIFFNoteAnnotation xliffNoteAnnotation;
     UsagesAnnotation usagesAnnotation;
     String currentKeyName;
@@ -81,6 +91,8 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
             // mojito options
             filterOptions.getString("noteKeyPattern", s -> noteKeyPattern = Pattern.compile(s));
             filterOptions.getString("usagesKeyPattern", s -> usagesKeyPattern = Pattern.compile(s));
+            filterOptions.getBoolean("noteKeepOrReplace", b -> noteKeepOrReplace = b);
+            filterOptions.getBoolean("usagesKeepOrReplace", b -> usagesKeepOrReplace = b);
         }
     }
 
@@ -111,7 +123,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
             if (m.matches()) {
                 logger.debug("key matches usagesKeyPattern, add the value as usage");
 
-                if (usagesAnnotation == null) {
+                if (usagesAnnotation == null || usagesKeepOrReplace) {
                     usagesAnnotation = new UsagesAnnotation(new HashSet<>());
                 }
 
@@ -125,7 +137,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
         xliffNote.setFrom(currentKeyName);
         xliffNote.setAnnotates(XLIFFNote.Annotates.SOURCE);
 
-        if (xliffNoteAnnotation == null) {
+        if (xliffNoteAnnotation == null || noteKeepOrReplace) {
             logger.debug("create the xliff note annotation");
             xliffNoteAnnotation = new XLIFFNoteAnnotation();
         }
@@ -179,9 +191,14 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
             }
         }
 
-        logger.debug("Reset the xliffNoteAnnotation and Usage Annotation");
-        xliffNoteAnnotation = null;
-        usagesAnnotation = null;
+        logger.debug("Reset the xliffNoteAnnotation and Usage Annotation if not using keepOrReplace option");
+        if (!noteKeepOrReplace) {
+            xliffNoteAnnotation = null;
+        }
+
+        if (!usagesKeepOrReplace) {
+            usagesAnnotation = null;
+        }
 
         super.handleObjectEnd();
     }
