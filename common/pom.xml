@@ -38,6 +38,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.9</version>
@@ -330,6 +335,16 @@
                     </aspectLibraries>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Sets the VM argument line used when unit tests are run. -->
+                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/common/
+                        -Dspring.profiles.active=${user.name},test -Duser.timezone=UTC
+                    </argLine>
                 </configuration>
             </plugin>
         </plugins>
