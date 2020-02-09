@@ -75,7 +75,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
+                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/restclient/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m
                     </argLine>
                 </configuration>
