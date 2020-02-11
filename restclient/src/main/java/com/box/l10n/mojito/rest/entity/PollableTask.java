@@ -2,9 +2,10 @@ package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.joda.time.DateTime;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.joda.time.DateTime;
 
 /**
  *
@@ -17,6 +18,8 @@ public class PollableTask {
     private String name;
 
     private DateTime finishedDate;
+
+    private DateTime createdDate;
 
     private String message;
 
@@ -93,4 +96,11 @@ public class PollableTask {
         this.message = message;
     }
 
+    public DateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(DateTime createdDate) {
+        this.createdDate = createdDate;
+    }
 }
