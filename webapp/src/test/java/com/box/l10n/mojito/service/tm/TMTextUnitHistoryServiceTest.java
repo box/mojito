@@ -1,26 +1,11 @@
 package com.box.l10n.mojito.service.tm;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Iterator;
-import java.util.List;
-
-import com.box.l10n.mojito.okapi.TextUnitUtils;
-import org.hibernate.proxy.HibernateProxy;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -29,7 +14,21 @@ import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import java.util.ArrayList;
+import org.hibernate.proxy.HibernateProxy;
+import org.joda.time.DateTime;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author jaurambault
@@ -165,9 +164,9 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         logger.debug("tmtextunit: {}", tmTextUnit);
 
         addCurrentTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "FR[this is the content]", "0a30a359b20fd4095fc17fb586e8db4d");
-
-        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci est le content", "comment 1", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
-        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci, c'est le content", "comment 2", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
+        DateTime now = DateTime.now();
+        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci est le content", "comment 1", TMTextUnitVariant.Status.REVIEW_NEEDED, true, now.minusHours(1));
+        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci, c'est le content", "comment 2", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true, now.minusHours(2));
 
         // then get the history of it without adding any variants
         List<TMTextUnitVariant> history = tmHistoryService.findHistory(addTextUnitAndCheck1, frFRLocale.getId());
@@ -179,9 +178,9 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertTrue(iterator.hasNext());
 
         TMTextUnitVariant variant = iterator.next();
-        assertEquals(variant.getContent(), "Ceci, c'est le content");
+        assertEquals(variant.getContent(), "FR[this is the content]");
         assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
-        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.TRANSLATION_NEEDED);
+        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.APPROVED);
         assertNotNull(variant.getCreatedByUser());
 
         variant = iterator.next();
@@ -191,52 +190,12 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
         assertNotNull(variant.getCreatedByUser());
 
         variant = iterator.next();
-        assertEquals(variant.getContent(), "FR[this is the content]");
+        assertEquals(variant.getContent(), "Ceci, c'est le content");
         assertEquals(variant.getLocale().getBcp47Tag(), "fr-FR");
-        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.APPROVED);
+        assertEquals(variant.getStatus(), TMTextUnitVariant.Status.TRANSLATION_NEEDED);
         assertNotNull(variant.getCreatedByUser());
 
         assertFalse(iterator.hasNext());
-    }
-
-
-    @Test
-    public void testHistorySortedByDate() throws RepositoryNameAlreadyUsedException, InterruptedException {
-        createTestData();
-
-        logger.debug("Done creating data for test, start testing");
-
-        Long addTextUnitAndCheck1 = addTextUnitAndCheck(tmId, assetId, "name", "this is the content", "some comment", "3063c39d3cf8ab69bcabbbc5d7187dc9", "cf8ea6b6848f23345648038bc3abf324");
-
-        logger.debug("Add a current translation for french");
-        Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
-        Long frLocaleId = frFRLocale.getId();
-
-        logger.debug("TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, assetId, tmId);");
-        String md5 = textUnitUtils.computeTextUnitMD5("name", "this is the content", "some comment");
-        TMTextUnit tmTextUnit = tmTextUnitRepository.findByMd5AndTmIdAndAssetId(md5, tmId, assetId);
-        logger.debug("tmtextunit: {}", tmTextUnit);
-
-        addCurrentTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "FR[this is the content]", "0a30a359b20fd4095fc17fb586e8db4d");
-
-        Thread.sleep(20);
-
-        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci est le content", "comment 1", TMTextUnitVariant.Status.REVIEW_NEEDED, true);
-
-        Thread.sleep(20);
-
-        tmService.addTMTextUnitVariant(tmTextUnit.getId(), frLocaleId, "Ceci, c'est le content", "comment 2", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
-
-        // then get the history of it without adding any variants
-        List<TMTextUnitVariant> history = tmHistoryService.findHistory(addTextUnitAndCheck1, frFRLocale.getId());
-        assertNotNull(history);
-        assertFalse(history.isEmpty());
-        assertEquals(history.size(), 3);
-
-        ArrayList<TMTextUnitVariant> historyArray = new ArrayList(history);
-
-        assertTrue(historyArray.get(0).getCreatedDate().getMillis() > historyArray.get(1).getCreatedDate().getMillis());
-        assertTrue(historyArray.get(1).getCreatedDate().getMillis() > historyArray.get(2).getCreatedDate().getMillis());
     }
 
     private Long addTextUnitAndCheck(Long tmId, Long assetId, String name, String content, String comment, String md5Check, String contentMd5Check) {
