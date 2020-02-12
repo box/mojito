@@ -2,8 +2,11 @@ package com.box.l10n.mojito.service.asset;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
+import com.box.l10n.mojito.entity.AssetExtraction_;
 import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.AssetTextUnit_;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PluralForm_;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
@@ -13,9 +16,11 @@ import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
+import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitDTO;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
@@ -33,20 +38,25 @@ import com.google.common.base.Strings;
 import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
-import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.assetExtractionIdEquals;
-import static com.box.l10n.mojito.service.asset.AssetTextUnitSpecification.doNotTranslateEquals;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.data.jpa.domain.Specifications.where;
 
 /**
  * Service to manage virtual assets.
@@ -96,18 +106,24 @@ public class VirtualAssetService {
 
     @Autowired
     TextUnitBatchImporterService textUnitBatchImporterService;
-    
+
     @Autowired
     VirtualTextUnitBatchUpdaterService virtualTextUnitBatchUpdaterService;
 
     @Autowired
     RepositoryService repositoryService;
-    
+
     @Autowired
     LocaleService localeService;
 
     @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
+    @Autowired
+    EntityManager em;
+
+    @Autowired
+    PluralFormService pluralFormService;
 
     @Transactional
     public VirtualAsset createOrUpdateVirtualAsset(VirtualAsset virtualAsset) throws VirtualAssetBadRequestException {
@@ -153,30 +169,64 @@ public class VirtualAssetService {
         return virtualAsset;
     }
 
-    @Transactional
     public List<VirtualAssetTextUnit> getTextUnits(long assetId, Boolean doNotTranslateFilter) throws VirtualAssetRequiredException {
 
         logger.debug("Get textunit for virtual asset: {}", assetId);
-
-        List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
-
         Asset asset = getVirtualAsset(assetId);
         Long lastSuccessfulAssetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
-        List<AssetTextUnit> findByAssetExtractionAssetId = findByAssetExtractionAssetIdAndDoNotTranslateFilter(lastSuccessfulAssetExtractionId, doNotTranslateFilter);
 
-        for (AssetTextUnit assetTextUnit : findByAssetExtractionAssetId) {
-            VirtualAssetTextUnit textUnitForVirtualAsset = convertAssetTextUnitToVirtualAssetTextUnit(assetTextUnit);
-            virtualAssetTextUnits.add(textUnitForVirtualAsset);
-        }
+        List<AssetTextUnitDTO> findByAssetExtractionAssetId = findByAssetExtractionIdAndDoNotTranslateFilter(lastSuccessfulAssetExtractionId, doNotTranslateFilter);
+
+        List<VirtualAssetTextUnit> virtualAssetTextUnits = findByAssetExtractionAssetId.stream()
+                .map(this::convertAssetTextUnitDTOToVirtualAssetTextUnit)
+                .collect(Collectors.toList());
 
         return virtualAssetTextUnits;
     }
 
-    List<AssetTextUnit> findByAssetExtractionAssetIdAndDoNotTranslateFilter(Long assetExtractionId, Boolean doNotTranslateFilter) {
-        return assetTextUnitRepository.findAll(
-                where(assetExtractionIdEquals(assetExtractionId)).and(ifParamNotNull(doNotTranslateEquals(doNotTranslateFilter))),
-                new Sort(Sort.Direction.ASC, "name")
-        );
+    @Transactional
+    List<AssetTextUnitDTO> findByAssetExtractionIdAndDoNotTranslateFilter(Long assetExtractionId, Boolean doNotTranslateFilter) {
+
+        Map<ParameterExpression, Object> parameters = new LinkedHashMap<>();
+
+        CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+        CriteriaQuery<AssetTextUnitDTO> query = criteriaBuilder.createQuery(AssetTextUnitDTO.class);
+
+        Root<AssetTextUnit> assetTextUnitRoot = query.from(AssetTextUnit.class);
+
+        Predicate conjunction = criteriaBuilder.conjunction();
+
+        ParameterExpression<Long> assetExtractionIdParameter = criteriaBuilder.parameter(Long.class);
+        parameters.put(assetExtractionIdParameter, assetExtractionId);
+        conjunction.getExpressions().add(criteriaBuilder.equal(assetTextUnitRoot.get(AssetTextUnit_.assetExtraction).get(AssetExtraction_.id), assetExtractionIdParameter));
+
+        if (doNotTranslateFilter != null) {
+            ParameterExpression<String> doNotTranslateFilterParameter = criteriaBuilder.parameter(String.class);
+            parameters.put(doNotTranslateFilterParameter, doNotTranslateFilter);
+            conjunction.getExpressions().add(criteriaBuilder.equal(assetTextUnitRoot.get(AssetTextUnit_.doNotTranslate), doNotTranslateFilterParameter));
+        }
+
+        query.select(criteriaBuilder.construct(AssetTextUnitDTO.class,
+                assetTextUnitRoot.get(AssetTextUnit_.name),
+                assetTextUnitRoot.get(AssetTextUnit_.content),
+                assetTextUnitRoot.get(AssetTextUnit_.comment),
+                assetTextUnitRoot.get(AssetTextUnit_.pluralForm).get(PluralForm_.id),
+                assetTextUnitRoot.get(AssetTextUnit_.pluralFormOther),
+                assetTextUnitRoot.get(AssetTextUnit_.md5),
+                assetTextUnitRoot.get(AssetTextUnit_.doNotTranslate)
+        ));
+
+        query.where(conjunction);
+        query.orderBy(criteriaBuilder.asc(assetTextUnitRoot.get(AssetTextUnit_.name)));
+
+        TypedQuery<AssetTextUnitDTO> typedQuery = em.createQuery(query);
+
+        parameters.forEach((parameterExpression, o) -> {
+            typedQuery.setParameter(parameterExpression, o);
+        });
+
+        List<AssetTextUnitDTO> resultList = typedQuery.getResultList();
+        return resultList;
     }
 
     @Transactional
@@ -195,26 +245,23 @@ public class VirtualAssetService {
             logger.debug("Getting text units for the root locale");
             virtualAssetTextUnits = getTextUnits(assetId, null);
         } else {
-            virtualAssetTextUnits = getLoalizedTextUnitsForTargetLocale(asset, repositoryLocale, inheritanceMode);
+            virtualAssetTextUnits = getLocalizedTextUnitsForTargetLocale(asset, repositoryLocale, inheritanceMode);
         }
 
         return virtualAssetTextUnits;
     }
 
-    List<VirtualAssetTextUnit> getLoalizedTextUnitsForTargetLocale(
-            Asset asset,
-            RepositoryLocale repositoryLocale,
-            InheritanceMode inheritanceMode) throws VirtualAssetRequiredException {
-
+    List<VirtualAssetTextUnit> getLocalizedTextUnitsForTargetLocale(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode) {
         logger.debug("Get localized virtual asset for target locale");
         List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
 
         Long lastSuccessfulAssetExtractionId = asset.getLastSuccessfulAssetExtraction().getId();
-        List<AssetTextUnit> findByAssetExtractionAssetId = assetTextUnitRepository.findByAssetExtractionIdOrderByNameAsc(lastSuccessfulAssetExtractionId);
+
+        List<AssetTextUnitDTO> findByAssetExtractionAssetId = findByAssetExtractionIdAndDoNotTranslateFilter(lastSuccessfulAssetExtractionId, null);
 
         TranslatorWithInheritance translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode);
 
-        for (AssetTextUnit assetTextUnit : findByAssetExtractionAssetId) {
+        for (AssetTextUnitDTO assetTextUnit : findByAssetExtractionAssetId) {
 
             String translation = translatorWithInheritance.getTranslation(
                     assetTextUnit.getContent(),
@@ -226,12 +273,8 @@ public class VirtualAssetService {
             } else {
                 logger.debug("Set translation for text unit with name: {}, translation: {}", assetTextUnit.getName(), translation);
 
-                VirtualAssetTextUnit virtualAssetTextUnit = convertAssetTextUnitToVirtualAssetTextUnit(assetTextUnit);
+                VirtualAssetTextUnit virtualAssetTextUnit = convertAssetTextUnitDTOToVirtualAssetTextUnit(assetTextUnit);
                 virtualAssetTextUnit.setContent(translation);
-                if (assetTextUnit.getPluralForm() != null) {
-                    virtualAssetTextUnit.setPluralForm(assetTextUnit.getPluralForm().getName());
-                }
-                virtualAssetTextUnit.setPluralFormOther(assetTextUnit.getPluralFormOther());
                 virtualAssetTextUnits.add(virtualAssetTextUnit);
             }
         }
@@ -298,7 +341,7 @@ public class VirtualAssetService {
             logger.debug("Try deleting text units with name: {} from asset: {}", name, asset.getPath());
 
             List<AssetTextUnit> assetTextUnits = assetTextUnitRepository.findByAssetExtractionIdAndName(assetExtractionId, name);
-            
+
             for (AssetTextUnit assetTextUnit : assetTextUnits) {
                 logger.debug("Asset text unit found for name: {} and asset: {}, perform delete", name, asset.getPath());
                 assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
@@ -336,11 +379,11 @@ public class VirtualAssetService {
         virtualAssetTextUnit.setComment(comment);
         virtualAssetTextUnit.setPluralForm(pluralForm);
         virtualAssetTextUnit.setPluralFormOther(pluralFormOther);
-        virtualAssetTextUnit.setDoNotTranslate(doNotTranslate);        
-        
+        virtualAssetTextUnit.setDoNotTranslate(doNotTranslate);
+
         List<VirtualAssetTextUnit> virtualAssetTextUnits = new ArrayList<>();
         virtualAssetTextUnits.add(virtualAssetTextUnit);
-        
+
         virtualTextUnitBatchUpdaterService.updateTextUnits(asset, virtualAssetTextUnits, false);
     }
 
@@ -371,18 +414,18 @@ public class VirtualAssetService {
         return tmService.addCurrentTMTextUnitVariant(textUnitDTOs.get(0).getTmTextUnitId(), localeId, content);
     }
 
-    VirtualAssetTextUnit convertAssetTextUnitToVirtualAssetTextUnit(AssetTextUnit assetTextUnit) {
+    VirtualAssetTextUnit convertAssetTextUnitDTOToVirtualAssetTextUnit(AssetTextUnitDTO assetTextUnitDTO) {
 
         VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
 
-        virtualAssetTextUnit.setName(assetTextUnit.getName());
-        virtualAssetTextUnit.setContent(assetTextUnit.getContent());
-        virtualAssetTextUnit.setComment(assetTextUnit.getComment());
-        if (assetTextUnit.getPluralForm() != null) {
-            virtualAssetTextUnit.setPluralForm(assetTextUnit.getPluralForm().getName());
+        virtualAssetTextUnit.setName(assetTextUnitDTO.getName());
+        virtualAssetTextUnit.setContent(assetTextUnitDTO.getContent());
+        virtualAssetTextUnit.setComment(assetTextUnitDTO.getComment());
+        if (assetTextUnitDTO.getPluralFormId() != null) {
+            virtualAssetTextUnit.setPluralForm(pluralFormService.findById(assetTextUnitDTO.getPluralFormId()).getName());
         }
-        virtualAssetTextUnit.setPluralFormOther(assetTextUnit.getPluralFormOther());
-        virtualAssetTextUnit.setDoNotTranslate(assetTextUnit.isDoNotTranslate());
+        virtualAssetTextUnit.setPluralFormOther(assetTextUnitDTO.getPluralFormOther());
+        virtualAssetTextUnit.setDoNotTranslate(assetTextUnitDTO.isDoNotTranslate());
 
         return virtualAssetTextUnit;
     }
@@ -402,5 +445,4 @@ public class VirtualAssetService {
 
         return asset;
     }
-
 }
