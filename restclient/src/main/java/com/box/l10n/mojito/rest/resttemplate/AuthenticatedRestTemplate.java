@@ -272,6 +272,21 @@ public class AuthenticatedRestTemplate {
     }
 
     /**
+     * Similar to {@link #postForObject(String, Object, Class)}
+     *
+     * @param resourcePath
+     * @param request
+     * @param responseType
+     * @param <T>
+     * @return
+     * @throws RestClientException
+     */
+    public <T> T putForObject(String resourcePath, Object request, Class<T> responseType) throws RestClientException {
+        ResponseEntity<T> exchange = restTemplate.exchange(getURIForResource(resourcePath), HttpMethod.PUT, new HttpEntity<>(request), responseType);
+        return exchange.getBody();
+    }
+
+    /**
      * Delegate, see {@link RestTemplate#postForEntity(String, Object, Class, Object...)}
      *
      * @param resourcePath resource path transformed into final URI by this instance
