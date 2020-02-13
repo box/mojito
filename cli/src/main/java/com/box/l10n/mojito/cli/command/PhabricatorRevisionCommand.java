@@ -10,6 +10,7 @@ import com.box.l10n.mojito.phabricator.payload.RevisionSearchFields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -22,8 +23,9 @@ public class PhabricatorRevisionCommand extends Command {
      */
     static Logger logger = LoggerFactory.getLogger(PhabricatorRevisionCommand.class);
 
+    @Qualifier("ansiCodeEnabledFalse")
     @Autowired
-    ConsoleWriter consoleWriter;
+    ConsoleWriter consoleWriterAnsiCodeEnabledFalse;
 
     @Autowired(required = false)
     Phabricator phabricator;
@@ -36,8 +38,9 @@ public class PhabricatorRevisionCommand extends Command {
         if (phabricator == null) {
             throw new CommandException("Phabricator must be configured with properties: l10n.phabricator.url and l10n.phabricator.token");
         }
-        Data<RevisionSearchFields> revisionForTargetPhid = phabricator.getRevisionForTargetPhid(targetPhid);
 
-        consoleWriter.a(revisionForTargetPhid.getId()).println();
+        Data<RevisionSearchFields> revisionForTargetPhid = phabricator.getRevisionForTargetPhid(targetPhid);
+        consoleWriterAnsiCodeEnabledFalse.a(revisionForTargetPhid.getId()).println();
     }
+
 }
