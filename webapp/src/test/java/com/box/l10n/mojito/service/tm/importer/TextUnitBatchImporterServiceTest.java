@@ -8,7 +8,7 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.asset.VirtualAsset;
-import com.box.l10n.mojito.service.asset.VirtualAssetRequiredException;
+import com.box.l10n.mojito.service.asset.VirtualAssetBadRequestException;
 import com.box.l10n.mojito.service.asset.VirtualAssetService;
 import com.box.l10n.mojito.service.asset.VirtualAssetTextUnit;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
@@ -40,7 +40,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author jaurambault
@@ -302,7 +305,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void testUnused() throws InterruptedException, RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, VirtualAssetRequiredException, ExecutionException {
+    public void testUnused() throws InterruptedException, RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, VirtualAssetBadRequestException, ExecutionException {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testUnused"));
         RepositoryLocale repositoryLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
 
