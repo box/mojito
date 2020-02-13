@@ -1,13 +1,16 @@
-package com.box.l10n.mojito.cli;
+package com.box.l10n.mojito.cli.console;
 
-import java.io.IOException;
 import org.fusesource.jansi.Ansi;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Rule;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.OutputCapture;
+
+import java.io.IOException;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -25,9 +28,7 @@ public class ConsoleWriterTest {
 
     @Test
     public void ansiCode() throws IOException {
-        ConsoleWriter consoleWriter = new ConsoleWriter();
-        consoleWriter.consoleWriterConfig = new ConsoleWriterConfig();
-        consoleWriter.consoleWriterConfig.setAnsiCodeEnabled(true);
+        ConsoleWriter consoleWriter = new ConsoleWriter(true, ConsoleWriter.OutputType.ANSI_CONSOLE_AND_LOGGER);
 
         consoleWriter.newLine(2).fg(Ansi.Color.CYAN).a("ansiCode: ").a(1L).println(3);
 
@@ -38,9 +39,7 @@ public class ConsoleWriterTest {
 
     @Test
     public void disableAnsiCode() {
-        ConsoleWriter consoleWriter = new ConsoleWriter();
-        consoleWriter.consoleWriterConfig = new ConsoleWriterConfig();
-        consoleWriter.consoleWriterConfig.setAnsiCodeEnabled(false);
+        ConsoleWriter consoleWriter = new ConsoleWriter(false, ConsoleWriter.OutputType.ANSI_CONSOLE_AND_LOGGER);
 
         consoleWriter.newLine(2).fg(Ansi.Color.CYAN).a("disableAnsiCode: ").a(1L).println(3);
 

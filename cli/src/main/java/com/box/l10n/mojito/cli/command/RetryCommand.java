@@ -2,10 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.ConsoleWriter;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +11,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.backoff.BackOffExecution;
 import org.springframework.util.backoff.ExponentialBackOff;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Command to execute shell command with retry and exponential back off. Can

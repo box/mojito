@@ -2,8 +2,8 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.ThirdPartyClient;
 import com.box.l10n.mojito.rest.client.ThirdPartySync;
 import com.box.l10n.mojito.rest.entity.PollableTask;

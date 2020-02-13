@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.box.l10n.mojito.cli.ConsoleWriter;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.WaitForPollableTaskListener;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.google.common.base.Strings;
@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
-import org.springframework.stereotype.Component;
 
 /**
  * Listener that displays the status of {@link PollableTask}.

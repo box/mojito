@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
-import com.box.l10n.mojito.cli.ConsoleWriter;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileFinder;
 import com.box.l10n.mojito.cli.filefinder.FileFinderException;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;

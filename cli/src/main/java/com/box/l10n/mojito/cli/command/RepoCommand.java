@@ -1,15 +1,16 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.ParameterException;
-import com.box.l10n.mojito.cli.ConsoleWriter;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.IntegrityChecker;
 import com.box.l10n.mojito.rest.entity.IntegrityCheckerType;
-import java.util.HashSet;
-import java.util.Set;
 import org.fusesource.jansi.Ansi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  *

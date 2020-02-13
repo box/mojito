@@ -2,10 +2,10 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionsPaths;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import org.fusesource.jansi.Ansi;

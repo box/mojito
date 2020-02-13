@@ -2,8 +2,8 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.ImageClient;
 import com.box.l10n.mojito.rest.client.ScreenshotClient;
 import com.box.l10n.mojito.rest.entity.Locale;
@@ -11,22 +11,22 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.Screenshot;
 import com.box.l10n.mojito.rest.entity.ScreenshotRun;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.apache.commons.io.FilenameUtils;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Uploads screenshots to Mojito
