@@ -1,34 +1,27 @@
-package com.box.l10n.mojito.cli;
+package com.box.l10n.mojito.cli.console;
 
-import com.box.l10n.mojito.cli.ConsoleWriterConfig.OutputType;
 import com.google.common.base.CharMatcher;
 import org.fusesource.jansi.Ansi;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Builds and prints messages with ANSI escape codes to standard output and
  * logger.
- *
+ * <p>
  * Printing of ANSI escape codes can be disabled for standard output (Logger
  * messages never contain escape codes).
  *
  * @author jaurambault
  */
-@Component
 public class ConsoleWriter {
 
     /**
      * logger
      */
     static Logger logger = LoggerFactory.getLogger("com.box.l10n.mojito.cli.application");
-   
-    @Autowired
-    ConsoleWriterConfig consoleWriterConfig;
-    
+
     /**
      * Contains the message without ANSI escape codes.
      */
@@ -45,11 +38,23 @@ public class ConsoleWriter {
     int numberOfNewLinesInLastPrintedString = 0;
 
     /**
+     * To enable or disable ainsi codes in the ainsi output
+     */
+    boolean isAnsiCodeEnabled;
+
+    /**
+     * To choose the output type
+     */
+    OutputType outputType;
+
+    /**
      * Keep track of the number of new lines in current string to be printed.
      */
     int numberOfNewLinesInCurrentString = 0;
 
-    public ConsoleWriter() {
+    public ConsoleWriter(boolean isAnsiCodeEnabled, OutputType outputType) {
+        this.isAnsiCodeEnabled = isAnsiCodeEnabled;
+        this.outputType = outputType;
         resetOutputBuilders();
     }
 
@@ -60,7 +65,7 @@ public class ConsoleWriter {
      * @return this instance
      */
     public ConsoleWriter fg(Ansi.Color color) {
-        if (consoleWriterConfig.isAnsiCodeEnabled()) {
+        if (isAnsiCodeEnabled) {
             ansi.fg(color);
         }
         return this;
@@ -72,7 +77,7 @@ public class ConsoleWriter {
      * @return this instance
      */
     public ConsoleWriter reset() {
-        if (consoleWriterConfig.isAnsiCodeEnabled()) {
+        if (isAnsiCodeEnabled) {
             ansi.reset();
         }
         return this;
@@ -113,7 +118,7 @@ public class ConsoleWriter {
         ansi.a(value);
         return this;
     }
-    
+
     /**
      * See {@link Ansi#a() }
      *
@@ -212,7 +217,7 @@ public class ConsoleWriter {
      * the standard output and to logger.
      *
      * @param numberOfNewLines number of new lines to append at then end of the
-     * message.
+     *                         message.
      * @return this instance
      */
     public ConsoleWriter println(int numberOfNewLines) {
@@ -223,10 +228,10 @@ public class ConsoleWriter {
         numberOfNewLinesInLastPrintedString = numberOfNewLinesInCurrentString;
         numberOfNewLinesInCurrentString = 0;
 
-        if (OutputType.ANSI_CONSOLE_AND_LOGGER.equals(consoleWriterConfig.getOutputType())) {
+        if (OutputType.ANSI_CONSOLE_AND_LOGGER.equals(outputType)) {
             System.out.print(ansi.toString());
             logger.info(trimReturnLine(stringBuilder.toString()));
-        } else if (OutputType.ANSI_LOGGER.equals(consoleWriterConfig.getOutputType())) {
+        } else if (OutputType.ANSI_LOGGER.equals(outputType)) {
             logger.info(trimReturnLine(ansi.toString()));
         }
 
@@ -259,7 +264,7 @@ public class ConsoleWriter {
      */
     public ConsoleWriter erasePreviouslyPrintedLines() {
 
-        if (consoleWriterConfig.isAnsiCodeEnabled()) {
+        if (isAnsiCodeEnabled) {
             for (int i = 0; i < numberOfNewLinesInLastPrintedString; i++) {
                 ansi.cursorUp(1);
                 ansi.eraseLine();
@@ -269,4 +274,18 @@ public class ConsoleWriter {
         return this;
     }
 
+    /**
+     * Types of output for the ConsoleWritter
+     */
+    public enum OutputType {
+
+        /**
+         * Output in ANSI mode only to the logger (console is skipped).
+         */
+        ANSI_LOGGER,
+        /**
+         * Ouput in ANSI mode to the console and in plain mode to the logger.
+         */
+        ANSI_CONSOLE_AND_LOGGER
+    }
 }

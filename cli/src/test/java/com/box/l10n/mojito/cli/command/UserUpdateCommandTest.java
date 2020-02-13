@@ -1,23 +1,24 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.cli.Console;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.console.Console;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.security.Role;
 import com.box.l10n.mojito.service.security.user.UserRepository;
 import com.box.l10n.mojito.service.security.user.UserService;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  *

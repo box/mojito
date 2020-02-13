@@ -1,9 +1,10 @@
-package com.box.l10n.mojito.cli;
+package com.box.l10n.mojito.cli.console;
 
 import com.box.l10n.mojito.cli.command.CommandException;
+import org.springframework.stereotype.Component;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import org.springframework.stereotype.Component;
 
 /**
  * Wrapper around {@link java.io.Console} (helpful for for mocking) and provides

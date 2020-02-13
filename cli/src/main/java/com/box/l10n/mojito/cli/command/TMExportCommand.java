@@ -2,8 +2,8 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.ConsoleWriter;
 import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.entity.Asset;
@@ -11,16 +11,17 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.XliffExportBody;
 import com.google.common.base.MoreObjects;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Set;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Command to exportAssetAsXLIFF a repository.
