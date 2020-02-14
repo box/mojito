@@ -14,10 +14,6 @@ import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.google.common.collect.Sets;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * @author jaurambault
@@ -74,12 +67,6 @@ public class PushCommand extends Command {
     @Parameter(names = {"--branch-createdby", "-bc"}, arity = 1, required = false, description = "username of text unit author")
     String branchCreatedBy;
 
-    @Parameter(names = {"--git-diff", "-gd"}, arity = 1, required = false, description = "only processing git diff files")
-    Boolean gitDiff = false;
-
-    @Parameter(names = {"--git-diff-ignore", "-gdi"}, arity = 1, required = false, description = "ignore diff changes if regex matches")
-    String gitDIffIgnoreRegex;
-
     @Autowired
     AssetClient assetClient;
 
@@ -102,15 +89,6 @@ public class PushCommand extends Command {
         List<PollableTask> pollableTasks = new ArrayList<>();
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
-
-        if (gitDiff) {
-            try {
-                sourceFileMatches = getGitChangeFiles(sourceFileMatches);
-            } catch (GitAPIException e) {
-                throw new CommandException(e.getMessage());
-            }
-        }
-
         Set<Long> usedAssetIds = new HashSet<>();
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
@@ -165,48 +143,5 @@ public class PushCommand extends Command {
         }
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
-    }
-
-    /**
-     * Get fileMatch list contains git changes against git tree HEAD
-     *
-     * @param sourceFileMatches
-     * @return
-     * @throws CommandException
-     */
-    private ArrayList<FileMatch> getGitChangeFiles(ArrayList<FileMatch> sourceFileMatches) throws CommandException, GitAPIException {
-        logger.debug("filter out source files which do not contain diff changes.");
-        GitRepository gitRepository = new GitRepository();
-        gitRepository.init(commandDirectories.getSourceDirectoryPath().toString());
-        Git git = new Git(gitRepository.jgitRepository);
-        String gitPath = gitRepository.getDirectory().getPath().replace(".git", "");
-        Set<String> gitDiffFiles = new HashSet<>();
-
-        Pattern pattern = gitDIffIgnoreRegex == null ? null : Pattern.compile(gitDIffIgnoreRegex);
-        for (FileMatch fileMatch : sourceFileMatches) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            List<DiffEntry> diff = git.
-                    diff().
-                    setCached(true).
-                    setOutputStream(byteArrayOutputStream).
-                    setPathFilter(PathFilter.create(fileMatch.getPath().toString().substring(gitPath.length()))).
-                    call();
-            boolean containsDiffChange = false;
-            for (String line : byteArrayOutputStream.toString().split("\n")) {
-                if (line.startsWith("+") && !line.startsWith("+++") && line.length() > 1) {
-                    if (pattern == null || !pattern.matcher(line).find()) {
-                        containsDiffChange = true;
-                        break;
-                    }
-                }
-            }
-            if (containsDiffChange) {
-                gitDiffFiles.add(gitPath + diff.get(0).getNewPath());
-            }
-        }
-        return sourceFileMatches.
-                stream().
-                filter(fileMatch -> gitDiffFiles.contains(fileMatch.getPath().toString())).
-                collect(Collectors.toCollection(ArrayList::new));
     }
 }
