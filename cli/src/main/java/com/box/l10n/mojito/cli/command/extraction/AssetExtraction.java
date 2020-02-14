@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.cli.command.extraction;
 
+import com.box.l10n.mojito.okapi.extractor.TextUnit;
+
 import java.util.List;
 
 public class AssetExtraction {
