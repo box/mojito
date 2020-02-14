@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.cli.command.extraction;
+package com.box.l10n.mojito.okapi.extractor;
 
 public class TextUnit {
     String name;

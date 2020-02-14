@@ -5,21 +5,19 @@ import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.okapi.filters.PluralFormAnnotation;
 import com.box.l10n.mojito.okapi.filters.UsagesAnnotation;
 import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
-import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.common.base.MoreObjects;
 import net.sf.okapi.common.Event;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author aloison
@@ -40,9 +38,6 @@ public class AssetExtractionStep extends AbstractMd5ComputationStep {
 
     @Autowired
     AssetExtractionService assetExtractionService;
-
-    @Autowired
-    AssetExtractionRepository assetExtractionRepository;
 
     @Autowired
     PluralFormService pluralFormService;

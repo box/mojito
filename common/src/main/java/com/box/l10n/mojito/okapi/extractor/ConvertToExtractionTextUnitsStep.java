@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.cli.command.extraction;
+package com.box.l10n.mojito.okapi.extractor;
 
 import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
 import net.sf.okapi.common.Event;
