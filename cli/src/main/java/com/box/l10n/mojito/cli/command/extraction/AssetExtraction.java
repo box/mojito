@@ -1,12 +1,12 @@
 package com.box.l10n.mojito.cli.command.extraction;
 
-import com.box.l10n.mojito.okapi.extractor.TextUnit;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 
 import java.util.List;
 
 public class AssetExtraction {
 
-    List<TextUnit> textUnits;
+    List<AssetExtractorTextUnit> textUnits;
 
     List<String> filterOptions;
 
@@ -14,11 +14,11 @@ public class AssetExtraction {
 
     String name;
 
-    public List<TextUnit> getTextUnits() {
+    public List<AssetExtractorTextUnit> getTextUnits() {
         return textUnits;
     }
 
-    public void setTextUnits(List<TextUnit> textUnits) {
+    public void setTextUnits(List<AssetExtractorTextUnit> textUnits) {
         this.textUnits = textUnits;
     }
 

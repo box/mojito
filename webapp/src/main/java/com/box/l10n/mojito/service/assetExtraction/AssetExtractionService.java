@@ -8,15 +8,19 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractor;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.FilterOptionsMd5Builder;
-import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchRepository;
+import com.box.l10n.mojito.service.pluralform.PluralFormService;
+import com.box.l10n.mojito.service.pollableTask.ParentTask;
+import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.google.common.base.Function;
@@ -53,16 +57,11 @@ import java.util.stream.Collectors;
 @Service
 public class AssetExtractionService {
 
+    public static final String PRIMARY_BRANCH = "master";
     /**
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(AssetExtractionService.class);
-
-    public static final String PRIMARY_BRANCH = "master";
-
-    @Autowired
-    AssetExtractor assetExtractor;
-
     @Autowired
     AssetMappingService assetMappingService;
 
@@ -93,6 +92,12 @@ public class AssetExtractionService {
     @Autowired
     FilterOptionsMd5Builder filterOptionsMd5Builder;
 
+    @Autowired
+    AssetExtractor assetExtractor;
+
+    @Autowired
+    PluralFormService pluralFormService;
+
     /**
      * If the asset type is supported, starts the text units extraction for the given asset.
      *
@@ -119,7 +124,8 @@ public class AssetExtractionService {
         AssetExtraction assetExtraction = createAssetExtraction(assetContent, currentTask, filterOptions);
 
         List<String> md5sToSkip = getMd5sToSkip(assetContent, asset);
-        assetExtractor.performAssetExtraction(assetExtraction, filterConfigIdOverride, filterOptions, md5sToSkip, currentTask);
+
+        performAssetExtraction(assetExtraction, filterConfigIdOverride, filterOptions, md5sToSkip, currentTask);
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(
                 assetExtraction.getId(),
@@ -142,6 +148,35 @@ public class AssetExtractionService {
         logger.info("Done processing asset content id: {}", assetContentId);
 
         return new PollableFutureTaskResult<>(asset);
+    }
+
+    @Transactional
+    @Pollable(message = "Extracting text units from asset")
+    public void performAssetExtraction(
+            AssetExtraction assetExtraction,
+            FilterConfigIdOverride filterConfigIdOverride,
+            List<String> filterOptions,
+            List<String> md5sToSkip,
+            @ParentTask PollableTask parentTask) throws UnsupportedAssetFilterTypeException {
+
+        AssetContent assetContent = assetExtraction.getAssetContent();
+        Asset asset = assetExtraction.getAsset();
+
+        List<AssetExtractorTextUnit> assetExtractorTextUnits = assetExtractor.getAssetExtractorTextUnitsForAsset(asset.getPath(),
+                assetContent.getContent(), filterConfigIdOverride, filterOptions, md5sToSkip);
+
+        assetExtractorTextUnits.forEach(textUnit -> {
+            createAssetTextUnit(
+                    assetExtraction.getId(),
+                    textUnit.getName(),
+                    textUnit.getSource(),
+                    textUnit.getComments(),
+                    pluralFormService.findByPluralFormString(textUnit.getPluralForm()),
+                    textUnit.getPluralFormOther(),
+                    false,
+                    textUnit.getUsages(),
+                    assetExtraction.getAssetContent().getBranch());
+        });
     }
 
     List<String> getMd5sToSkip(AssetContent assetContent, Asset asset) {

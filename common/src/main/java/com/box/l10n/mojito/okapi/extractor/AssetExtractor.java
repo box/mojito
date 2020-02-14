@@ -29,19 +29,19 @@ public class AssetExtractor {
     @Autowired
     FilterConfigurationMappers filterConfigurationMappers;
 
-    public List<TextUnit> getExtractionTextUnitsForAsset(String assetPath,
-                                                         String assetContent,
-                                                         FilterConfigIdOverride filterConfigIdOverride,
-                                                         List<String> filterOptions) throws UnsupportedAssetFilterTypeException {
+    public List<AssetExtractorTextUnit> getAssetExtractorTextUnitsForAsset(String assetPath,
+                                                                           String assetContent,
+                                                                           FilterConfigIdOverride filterConfigIdOverride,
+                                                                           List<String> filterOptions,
+                                                                           List<String> md5sToSkip) throws UnsupportedAssetFilterTypeException {
 
         logger.debug("Configuring pipeline");
-
         IPipelineDriver driver = new PipelineDriver();
 
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        ConvertToExtractionTextUnitsStep convertToExtractionTextUnitsStep = new ConvertToExtractionTextUnitsStep();
-        driver.addStep(convertToExtractionTextUnitsStep);
+        AssetExtractionStep assetExtractionStep = new AssetExtractionStep(md5sToSkip);
+        driver.addStep(assetExtractionStep);
 
         logger.debug("Adding all supported filters to the pipeline driver");
         driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
@@ -67,7 +67,7 @@ public class AssetExtractor {
         logger.debug("Start processing batch");
         driver.processBatch();
 
-        return convertToExtractionTextUnitsStep.getTextUnits();
+        return assetExtractionStep.getAssetExtractorTextUnits();
     }
 
 }

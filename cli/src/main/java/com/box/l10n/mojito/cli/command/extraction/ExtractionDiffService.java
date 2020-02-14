@@ -74,10 +74,10 @@ public class ExtractionDiffService {
 
         logger.debug("Same file names, check the file content");
 
-        Set<TextUnitWithAssetPath> extraction1TextUnits = getTextUnitsFromFile(assetExtraction1Paths, extractionName1, extractionsPaths);
-        Set<TextUnitWithAssetPath> extraction2TextUnits = getTextUnitsFromFile(assetExtraction2Paths, extractionName2, extractionsPaths);
-        Sets.SetView<TextUnitWithAssetPath> addedTextUnitWithFile = Sets.difference(extraction1TextUnits, extraction2TextUnits);
-        Sets.SetView<TextUnitWithAssetPath> removedTextUnitWithFile = Sets.difference(extraction2TextUnits, extraction1TextUnits);
+        Set<AssetExtractorTextUnitWithAssetPath> extraction1TextUnits = getTextUnitsFromFile(assetExtraction1Paths, extractionName1, extractionsPaths);
+        Set<AssetExtractorTextUnitWithAssetPath> extraction2TextUnits = getTextUnitsFromFile(assetExtraction2Paths, extractionName2, extractionsPaths);
+        Sets.SetView<AssetExtractorTextUnitWithAssetPath> addedTextUnitWithFile = Sets.difference(extraction1TextUnits, extraction2TextUnits);
+        Sets.SetView<AssetExtractorTextUnitWithAssetPath> removedTextUnitWithFile = Sets.difference(extraction2TextUnits, extraction1TextUnits);
 
         Diff diff = new Diff();
         diff.setAddedFiles(addedFilenames);
@@ -97,11 +97,11 @@ public class ExtractionDiffService {
         }
     }
 
-    Set<TextUnitWithAssetPath> getTextUnitsFromFile(List<Path> assetExtractionPaths, String extractionName, ExtractionsPaths extractionsPaths) {
+    Set<AssetExtractorTextUnitWithAssetPath> getTextUnitsFromFile(List<Path> assetExtractionPaths, String extractionName, ExtractionsPaths extractionsPaths) {
         return assetExtractionPaths.stream().map(assetExtractionPath -> {
             AssetExtraction assetExtraction = objectMapper.readValueUnchecked(assetExtractionPath.toFile(), AssetExtraction.class);
             return assetExtraction.getTextUnits().stream().map(t -> {
-                TextUnitWithAssetPath textUnitWithFile = new TextUnitWithAssetPath();
+                AssetExtractorTextUnitWithAssetPath textUnitWithFile = new AssetExtractorTextUnitWithAssetPath();
                 textUnitWithFile.setName(t.getName());
                 textUnitWithFile.setSource(t.getSource());
                 textUnitWithFile.setComments(t.getComments());

@@ -1,8 +1,8 @@
 package com.box.l10n.mojito.cli.command.extraction;
 
-import com.box.l10n.mojito.okapi.extractor.TextUnit;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 
-public class TextUnitWithAssetPath extends TextUnit {
+public class AssetExtractorTextUnitWithAssetPath extends AssetExtractorTextUnit {
     String assetPath;
 
     public String getAssetPath() {

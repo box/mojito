@@ -5,8 +5,8 @@ import java.util.Set;
 class Diff {
     Set<String> addedFiles;
     Set<String> removedFiles;
-    Set<TextUnitWithAssetPath> addedTextUnits;
-    Set<TextUnitWithAssetPath> removedTextUnits;
+    Set<AssetExtractorTextUnitWithAssetPath> addedTextUnits;
+    Set<AssetExtractorTextUnitWithAssetPath> removedTextUnits;
 
     public Set<String> getAddedFiles() {
         return addedFiles;
@@ -24,19 +24,19 @@ class Diff {
         this.removedFiles = removedFiles;
     }
 
-    public Set<TextUnitWithAssetPath> getAddedTextUnits() {
+    public Set<AssetExtractorTextUnitWithAssetPath> getAddedTextUnits() {
         return addedTextUnits;
     }
 
-    public void setAddedTextUnits(Set<TextUnitWithAssetPath> addedTextUnits) {
+    public void setAddedTextUnits(Set<AssetExtractorTextUnitWithAssetPath> addedTextUnits) {
         this.addedTextUnits = addedTextUnits;
     }
 
-    public Set<TextUnitWithAssetPath> getRemovedTextUnits() {
+    public Set<AssetExtractorTextUnitWithAssetPath> getRemovedTextUnits() {
         return removedTextUnits;
     }
 
-    public void setRemovedTextUnits(Set<TextUnitWithAssetPath> removedTextUnits) {
+    public void setRemovedTextUnits(Set<AssetExtractorTextUnitWithAssetPath> removedTextUnits) {
         this.removedTextUnits = removedTextUnits;
     }
 }

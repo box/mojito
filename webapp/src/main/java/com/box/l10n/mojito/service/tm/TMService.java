@@ -28,8 +28,10 @@ import com.box.l10n.mojito.okapi.Status;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.TranslateStep;
 import com.box.l10n.mojito.okapi.XLIFFWriter;
+import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
 import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractor;
 import com.box.l10n.mojito.okapi.filters.CopyFormsOnImport;
 import com.box.l10n.mojito.okapi.filters.FilterOptions;
 import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
@@ -40,7 +42,6 @@ import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
-import com.box.l10n.mojito.service.assetExtraction.extractor.AssetExtractor;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
@@ -142,6 +143,9 @@ public class TMService {
 
     @Autowired
     FilterConfigurationMappers filterConfigurationMappers;
+
+    @Autowired
+    AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -250,7 +254,7 @@ public class TMService {
         tmTextUnit.setCreatedDate(createdDate);
         tmTextUnit.setPluralForm(pluralForm);
         tmTextUnit.setPluralFormOther(pluralFormOther);
-        tmTextUnit.setCreatedByUser(createdByUser !=null ? createdByUser :auditorAwareImpl.getCurrentAuditor());
+        tmTextUnit.setCreatedByUser(createdByUser != null ? createdByUser : auditorAwareImpl.getCurrentAuditor());
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
 
@@ -1010,7 +1014,7 @@ public class TMService {
         if (filterConfigIdOverride != null) {
             filterConfigId = filterConfigIdOverride.getOkapiFilterId();
         } else {
-            filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
+            filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath(asset.getPath());
         }
 
         rawDocument.setFilterConfigId(filterConfigId);
@@ -1031,12 +1035,12 @@ public class TMService {
 
     /**
      * Imports a localized version of an asset.
-     *
+     * <p>
      * The target strings are checked against the source strings and if they are
      * equals the status of the imported translation is defined by
      * statusForEqualTarget. When SKIPED is specified the import is actually
      * skipped.
-     *
+     * <p>
      * For not fully translated locales, targets are imported only if they are
      * different from target of the parent locale.
      *
@@ -1107,7 +1111,7 @@ public class TMService {
         if (filterConfigIdOverride != null) {
             filterConfigId = filterConfigIdOverride.getOkapiFilterId();
         } else {
-            filterConfigId = assetExtractor.getFilterConfigIdForAsset(asset);
+            filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath(asset.getPath());
         }
 
         rawDocument.setFilterConfigId(filterConfigId);
