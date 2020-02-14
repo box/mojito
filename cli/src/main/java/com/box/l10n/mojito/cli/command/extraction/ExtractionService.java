@@ -88,8 +88,8 @@ public class ExtractionService {
 
         driver.addStep(new RawDocumentToFilterEventsStep());
         driver.addStep(new CheckForDoNotTranslateStep());
-        ConverToEtractionTextUnitsStep converToEtractionTextUnitsStep = new ConverToEtractionTextUnitsStep();
-        driver.addStep(converToEtractionTextUnitsStep);
+        ConvertToExtractionTextUnitsStep convertToExtractionTextUnitsStep = new ConvertToExtractionTextUnitsStep();
+        driver.addStep(convertToExtractionTextUnitsStep);
 
         logger.debug("Adding all supported filters to the pipeline driver");
         driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
@@ -115,7 +115,7 @@ public class ExtractionService {
         logger.debug("Start processing batch");
         driver.processBatch();
 
-        return converToEtractionTextUnitsStep.getTextUnits();
+        return convertToExtractionTextUnitsStep.getTextUnits();
     }
 
     public void deleteExtractionDirectoryIfExists(ExtractionsPaths extractionsPaths, String extractionName) {

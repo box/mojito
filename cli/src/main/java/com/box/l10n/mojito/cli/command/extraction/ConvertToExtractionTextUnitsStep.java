@@ -6,7 +6,7 @@ import net.sf.okapi.common.Event;
 import java.util.ArrayList;
 import java.util.List;
 
-class ConverToEtractionTextUnitsStep extends AbstractMd5ComputationStep {
+class ConvertToExtractionTextUnitsStep extends AbstractMd5ComputationStep {
 
     List<TextUnit> textUnits;
 
