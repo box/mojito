@@ -38,6 +38,21 @@ public class AndroidXMLEncoderTest {
     public void testEscapeDoubleQuotes() {
         assertEquals("a\\\"b" , androidXMLEncoder.escapeDoubleQuotes("a\"b"));
     }
+
+    @Test
+    public void testEscapeSingleQuote() {
+        assertEquals("a\\'b" , androidXMLEncoder.escapeSingleQuotes("a'b"));
+    }
+
+    @Test
+    public void testEscape2SingleQuote() {
+        assertEquals("a\\'\\'b" , androidXMLEncoder.escapeSingleQuotes("a''b"));
+    }
+
+    @Test
+    public void testEscapeStartSingleQuote() {
+        assertEquals("\\'b" , androidXMLEncoder.escapeSingleQuotes("'b"));
+    }
 }
 
 

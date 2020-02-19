@@ -36,10 +36,6 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
     // trying to match variables between html tags, for example, <b>%d</b>, <i>%1$s</i>, <u>%2$s</u>
     private static final Pattern ANDROID_VARIABLE_WITHIN_HTML = Pattern.compile("(&lt;(?:b|i|u|annotation.*?)&gt;)((.*?)%(([-0+ #]?)[-0+ #]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn](.*?))+(&lt;/(?:b|i|u|annotation.*?)&gt;)");
     private static final Pattern ANDROID_HTML = Pattern.compile("(&lt;)(/?)(b|i|u|annotation.*?)(&gt;)");
-    private static final Pattern UNESCAPED_DOUBLE_QUOTE = Pattern.compile("([^\\\\])(\")");
-    private static final Pattern START_WITH_DOUBLE_QUOTE = Pattern.compile("(^\")");
-    private static final Pattern UNESCAPED_SINGLE_QUOTE = Pattern.compile("([^\\\\])(')");
-    private static final Pattern START_WITH_SINGLE_QUOTE = Pattern.compile("(^')");
     private static final Pattern LINE_FEED = Pattern.compile("\n");
     private static final Pattern CARIAGE_RETURN = Pattern.compile("\r");
 
@@ -131,14 +127,27 @@ public class AndroidXMLEncoder extends net.sf.okapi.common.encoder.XMLEncoder {
     }
 
     String escapeDoubleQuotes(String text) {
-        String escaped = UNESCAPED_DOUBLE_QUOTE.matcher(text).replaceAll("$1\\\\$2");
-        escaped = START_WITH_DOUBLE_QUOTE.matcher(escaped).replaceFirst("\\\\$1");
-        return escaped;
+        return escapeCharacter(text, '"');
     }
 
-    private String escapeSingleQuotes(String text) {
-        String escaped = UNESCAPED_SINGLE_QUOTE.matcher(text).replaceAll("$1\\\\$2");
-        escaped = START_WITH_SINGLE_QUOTE.matcher(escaped).replaceFirst("\\\\$1");
-        return escaped;
+    String escapeSingleQuotes(String text) {
+        return escapeCharacter(text, '\'');
+    }
+
+    String escapeCharacter(String text, char toBeEscaped) {
+        StringBuilder escaped = new StringBuilder();
+
+        boolean escapeNext = true;
+
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == toBeEscaped && escapeNext) {
+                escaped.append('\\');
+            }
+            escaped.append(c);
+            escapeNext = c != '\\';
+        }
+
+        return escaped.toString();
     }
 }
