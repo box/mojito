@@ -8,7 +8,9 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractor;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
@@ -23,6 +25,7 @@ import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 import com.ibm.icu.text.MessageFormat;
@@ -98,6 +101,12 @@ public class AssetExtractionService {
     @Autowired
     PluralFormService pluralFormService;
 
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    TextUnitUtils textUnitUtils;
+
     /**
      * If the asset type is supported, starts the text units extraction for the given asset.
      *
@@ -162,8 +171,23 @@ public class AssetExtractionService {
         AssetContent assetContent = assetExtraction.getAssetContent();
         Asset asset = assetExtraction.getAsset();
 
-        List<AssetExtractorTextUnit> assetExtractorTextUnits = assetExtractor.getAssetExtractorTextUnitsForAsset(asset.getPath(),
-                assetContent.getContent(), filterConfigIdOverride, filterOptions, md5sToSkip);
+        List<AssetExtractorTextUnit> assetExtractorTextUnits;
+
+        if (assetContent.isExtractedContent()) {
+            assetExtractorTextUnits = objectMapper.readValueUnchecked(assetContent.getContent(), new TypeReference<List<AssetExtractorTextUnit>>() {
+            });
+            assetExtractorTextUnits = assetExtractorTextUnits.stream().filter(assetExtractorTextUnit -> {
+                String md5 = textUnitUtils.computeTextUnitMD5(
+                        assetExtractorTextUnit.getName(),
+                        assetExtractorTextUnit.getSource(),
+                        assetExtractorTextUnit.getComments());
+                return !md5sToSkip.contains(md5);
+            }).collect(Collectors.toList());
+
+        } else {
+            assetExtractorTextUnits = assetExtractor.getAssetExtractorTextUnitsForAsset(asset.getPath(),
+                    assetContent.getContent(), filterConfigIdOverride, filterOptions, md5sToSkip);
+        }
 
         assetExtractorTextUnits.forEach(textUnit -> {
             createAssetTextUnit(
@@ -491,7 +515,7 @@ public class AssetExtractionService {
         assetTextUnit.setName(name);
         assetTextUnit.setContent(content);
         assetTextUnit.setComment(comment);
-        assetTextUnit.setMd5(DigestUtils.md5Hex(name + content + comment));
+        assetTextUnit.setMd5(textUnitUtils.computeTextUnitMD5(name, content, comment));
         assetTextUnit.setContentMd5(DigestUtils.md5Hex(content));
         assetTextUnit.setPluralForm(pluralForm);
         assetTextUnit.setPluralFormOther(pluralFormOther);

@@ -17,7 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class AssetContentServiceTest extends ServiceTestBase {
@@ -81,7 +82,7 @@ public class AssetContentServiceTest extends ServiceTestBase {
         assertEquals("fortest2-content1", assetContents.get(3).getContent());
 
         Branch branch1 = branchService.getUndeletedOrCreateBranch(fortest1.getRepository(), "branch1", null);
-        AssetContent forTest2Content1Branch1 = assetContentService.createAssetContent(fortest1, "fortest2-content1-branch1", branch1);
+        AssetContent forTest2Content1Branch1 = assetContentService.createAssetContent(fortest1, "fortest2-content1-branch1", false, branch1);
         assetContents = assetContentRepository.findByAssetRepositoryIdAndBranchName(repository.getId(), null);
         assertEquals(4L, assetContents.size());
         assetContents = assetContentRepository.findByAssetRepositoryIdAndBranchName(repository.getId(), "branch1");

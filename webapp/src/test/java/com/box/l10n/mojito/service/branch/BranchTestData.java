@@ -6,9 +6,9 @@ import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleCreationException;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
@@ -115,7 +115,7 @@ public class BranchTestData {
                 + "string2=content2\n";
 
         master = branchService.createBranch(asset.getRepository(), "master", null);
-        AssetContent assetContentMaster = assetContentService.createAssetContent(asset, masterContent, master);
+        AssetContent assetContentMaster = assetContentService.createAssetContent(asset, masterContent, false, master);
         assetExtractionService.processAssetAsync(assetContentMaster.getId(), null, null, null).get();
 
         String branch1Content = "# string1 description\n"
@@ -123,7 +123,7 @@ public class BranchTestData {
                 + "string3=content3\n";
 
         branch1 = branchService.createBranch(asset.getRepository(), "branch1", null);
-        AssetContent assetContentBranch1 = assetContentService.createAssetContent(asset, branch1Content, branch1);
+        AssetContent assetContentBranch1 = assetContentService.createAssetContent(asset, branch1Content, false, branch1);
         assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null, null).get();
 
         String branch2Content = "# string1 description\n"
@@ -133,7 +133,7 @@ public class BranchTestData {
                 + "string5=content5\n";
 
         branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
-        AssetContent assetContentBranch2 = assetContentService.createAssetContent(asset, branch2Content, branch2);
+        AssetContent assetContentBranch2 = assetContentService.createAssetContent(asset, branch2Content, false, branch2);
         assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null).get();
 
         string1Branch1 = tmTextUnitRepository.findFirstByAssetAndName(assetContentBranch1.getAsset(), "string1");

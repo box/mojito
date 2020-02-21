@@ -25,6 +25,7 @@ public class SourceAsset {
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
     private List<String> filterOptions;
+    private boolean extractedContent;
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -88,6 +89,14 @@ public class SourceAsset {
 
     public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
+    }
+
+    public boolean isExtractedContent() {
+        return extractedContent;
+    }
+
+    public void setExtractedContent(boolean extractedContent) {
+        this.extractedContent = extractedContent;
     }
 
     @JsonProperty

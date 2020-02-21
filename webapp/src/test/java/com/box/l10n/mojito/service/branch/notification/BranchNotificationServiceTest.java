@@ -9,9 +9,6 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationService;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
@@ -20,7 +17,6 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +68,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
                 + "string5=content5\n"
                 + "string6=content6\n";
 
-        AssetContent assetContentBranch2 = assetContentService.createAssetContent(branchTestData.getAsset(), branch2ContentUpdated, branchTestData.getBranch2());
+        AssetContent assetContentBranch2 = assetContentService.createAssetContent(branchTestData.getAsset(), branch2ContentUpdated, false, branchTestData.getBranch2());
         assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null).get();
 
         translateBranch(branchTestData.getBranch2());
