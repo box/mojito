@@ -7,10 +7,13 @@ import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import net.sf.okapi.common.Event;
+import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
+import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.TextContainer;
+import net.sf.okapi.common.skeleton.GenericSkeleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,28 +27,25 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
     static Logger logger = LoggerFactory.getLogger(TranslateStep.class);
 
+    static final String ANDROID_FIRST_TEXT_UNIT_REGEX = "(?s)(^.*<resources>).*";
+
     @Autowired
     TextUnitSearcher textUnitSearcher;
-
-    private LocaleId targetLocale;
-
-    private Status status;
-
-    private InheritanceMode inheritanceMode;
-
     Asset asset;
-
     RepositoryLocale repositoryLocale;
-
     TranslatorWithInheritance translatorWithInheritance;
+    private LocaleId targetLocale;
+    private Status status;
+    private InheritanceMode inheritanceMode;
 
     /**
      * Creates the {@link TranslateStep} for a given asset.
-     * @param asset {@link Asset} that will be used to lookup translations
+     *
+     * @param asset            {@link Asset} that will be used to lookup translations
      * @param repositoryLocale used to fetch translations. It can be different
-     * from the locale used in the Okapi pipeline ({@link #targetLocale}) in
-     * case the file needs to be generated for a tag that is different from the
-     * locale used for translation.
+     *                         from the locale used in the Okapi pipeline ({@link #targetLocale}) in
+     *                         case the file needs to be generated for a tag that is different from the
+     *                         locale used for translation.
      * @param inheritanceMode
      * @param status
      */
@@ -104,13 +104,28 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
             if (translation == null && InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
                 logger.debug("Remove untranslated text unit");
-                event = Event.NOOP_EVENT;
+
+                event = getEventForAndroidFirstTextUnit(textUnit);
+
+                if (event == null) {
+                    event = Event.NOOP_EVENT;
+                }
             } else {
                 logger.debug("Set translation for text unit with name: {}, translation: {}", name, translation);
                 textUnit.setTarget(targetLocale, new TextContainer(translation));
             }
         }
 
+        return event;
+    }
+
+    Event getEventForAndroidFirstTextUnit(ITextUnit textUnit) {
+        Event event = null;
+        String skeleton = textUnit.getSkeleton().toString();
+        if (skeleton.matches(ANDROID_FIRST_TEXT_UNIT_REGEX)) {
+            textUnit.setSkeleton(new GenericSkeleton(skeleton.replaceAll(ANDROID_FIRST_TEXT_UNIT_REGEX, "$1")));
+            event = new Event(EventType.TEXT_UNIT, textUnit);
+        }
         return event;
     }
 }
