@@ -21,9 +21,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author aloison
@@ -170,7 +172,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
                     xliffDataFactory.createTextUnit(1L, "2_factor_challenge_buttom", "Submit" + assetVersion, null)
             ));
 
-            PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), xliff, assetPath, branch, null, null, null);
+            PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetPath, xliff, false, branch, null, null, null);
             pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
         } catch (Exception e) {
             throw new RuntimeException(e);

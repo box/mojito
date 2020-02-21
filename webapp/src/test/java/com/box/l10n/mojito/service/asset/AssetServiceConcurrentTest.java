@@ -6,9 +6,9 @@ import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetcontent.AssetContentRepository;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -96,7 +98,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
             assetContents.add(assetContent);
 
             logger.debug("addOrUpdateAssetAndProcessIfNeeded: {}, source: {}", i, source);
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent, assetPath, null, null, null, null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetPath, assetContent, false, null, null, null, null);
             assetResults.add(assetResult);
         }
 
@@ -154,7 +156,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         for (int i = 0; i < numThreads; i++) {
             String assetPath = "test_" + i + "/en.properties";
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null, null, null, null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetPath, assetContent.toString(), false, null, null, null, null);
             assetResults.add(assetResult);
         }
 
@@ -208,7 +210,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         for (int i = 0; i < numThreads; i++) {
             String assetPath = "en.properties";
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetContent.toString(), assetPath, null, null, null, null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetPath, assetContent.toString(), false, null, null, null, null);
             assetResults.add(assetResult);
         }
 

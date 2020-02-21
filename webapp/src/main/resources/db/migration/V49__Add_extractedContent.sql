@@ -1,0 +1,1 @@
+alter table asset_content add column extracted_content bit not null default false;

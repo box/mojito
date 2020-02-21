@@ -1234,7 +1234,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Branch branch1 = branchService.createBranch(asset.getRepository(), "branch1", null);
         Branch branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
 
-        AssetContent assetContent = assetContentService.createAssetContent(asset, masterContent, master);
+        AssetContent assetContent = assetContentService.createAssetContent(asset, masterContent, false, master);
         assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null).get();
 
         List<AssetTextUnit> masterAssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
@@ -1247,7 +1247,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         String branch1Content = "# string1 description\n"
                 + "string1=content1\n";
 
-        AssetContent branch1AssetContent = assetContentService.createAssetContent(asset, branch1Content, branch1);
+        AssetContent branch1AssetContent = assetContentService.createAssetContent(asset, branch1Content, false, branch1);
         assetExtractionService.processAssetAsync(branch1AssetContent.getId(), null, null, null).get();
 
         List<AssetTextUnit> branch1AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));
@@ -1261,7 +1261,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         String branch2Content = "# string3 description\n"
                 + "string3=content3\n";
 
-        AssetContent branch2AssetContent = assetContentService.createAssetContent(asset, branch2Content, branch2);
+        AssetContent branch2AssetContent = assetContentService.createAssetContent(asset, branch2Content, false, branch2);
         assetExtractionService.processAssetAsync(branch2AssetContent.getId(), null, null, null).get();
 
         List<AssetTextUnit> branch2AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findOne(asset.getId()));

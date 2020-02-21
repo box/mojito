@@ -6,12 +6,12 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMXliff;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
@@ -106,8 +106,9 @@ public class AssetWS {
         String normalizedContent = NormalizationUtils.normalize(sourceAsset.getContent());
         PollableFuture<Asset> assetFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(
                 sourceAsset.getRepositoryId(),
-                normalizedContent,
                 sourceAsset.getPath(),
+                normalizedContent,
+                sourceAsset.isExtractedContent(),
                 sourceAsset.getBranch(),
                 sourceAsset.getBranchCreatedByUsername(),
                 sourceAsset.getFilterConfigIdOverride(),

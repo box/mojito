@@ -265,7 +265,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getForTranslationCount());
         assertFalse(itBranch1.hasNext());
 
-        AssetContent assetContentBranch1 = assetContentService.createAssetContent(branchTestData.getAsset(), "", branch1);
+        AssetContent assetContentBranch1 = assetContentService.createAssetContent(branchTestData.getAsset(), "", false, branch1);
         assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null, null).get();
         branchStatisticService.computeAndSaveBranchStatistics(branch1);
 

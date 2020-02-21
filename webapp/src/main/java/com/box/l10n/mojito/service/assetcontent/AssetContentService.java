@@ -46,7 +46,7 @@ public class AssetContentService {
      */
     public AssetContent createAssetContent(Asset asset, String content) {
         Branch branch = branchService.getUndeletedOrCreateBranch(asset.getRepository(), null, null);
-        return createAssetContent(asset, content, branch);
+        return createAssetContent(asset, content, false, branch);
     }
 
     /**
@@ -54,10 +54,11 @@ public class AssetContentService {
      *
      * @param asset
      * @param content
+     * @param extractedContent
      * @param branch
      * @return
      */
-    public AssetContent createAssetContent(Asset asset, String content, Branch branch) {
+    public AssetContent createAssetContent(Asset asset, String content, boolean extractedContent, Branch branch) {
         logger.debug("Create asset content for asset id: {} and branch id: {}", asset.getId(), branch.getId());
         AssetContent assetContent = new AssetContent();
 
@@ -65,6 +66,7 @@ public class AssetContentService {
         assetContent.setContent(content);
         assetContent.setContentMd5(DigestUtils.md5Hex(content));
         assetContent.setBranch(branch);
+        assetContent.setExtractedContent(extractedContent);
 
         assetContent = assetContentRepository.save(assetContent);
 

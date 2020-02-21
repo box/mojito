@@ -9,12 +9,12 @@ import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.security.user.User;
-import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchService;
@@ -109,8 +109,9 @@ public class AssetService {
      *
      * @param repositoryId           {@link Repository#id} of the repository that will
      *                               contain the asset
-     * @param assetContent           Content of the asset
      * @param assetPath              Remote path of the asset
+     * @param assetContent           Content of the asset
+     * @param extractedContent
      * @param branch
      * @param filterConfigIdOverride Optional, can be null. Allows to specify a
      *                               specific Okapi filter to use to process the asset
@@ -120,13 +121,14 @@ public class AssetService {
      */
     public PollableFuture<Asset> addOrUpdateAssetAndProcessIfNeeded(
             Long repositoryId,
-            String assetContent,
             String assetPath,
+            String assetContent,
+            boolean extractedContent,
             String branch,
             String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
-        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetContent, assetPath, branch,
+        return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetPath, assetContent, extractedContent, branch,
                 branchCreatedByUsername, filterConfigIdOverride, filterOptions,
                 PollableTask.INJECT_CURRENT_TASK);
     }
@@ -135,12 +137,13 @@ public class AssetService {
      * See
      * {@link AssetService#addOrUpdateAssetAndProcessIfNeeded(Long, String, String)}
      *
-     * @param repositoryId {@link Repository#id} of the repository that will
-     *                     contain the asset
-     * @param assetContent Content of the asset
-     * @param assetPath    Remote path of the asset
      * @param branch
-     * @param currentTask  The current task, injected
+     * @param repositoryId       {@link Repository#id} of the repository that will
+     *                           contain the asset
+     * @param assetPath          Remote path of the asset
+     * @param assetContent       Content of the asset
+     * @param extractedContent
+     * @param currentTask        The current task, injected
      * @return The created asset
      * @throws ExecutionException
      * @throws InterruptedException
@@ -148,8 +151,9 @@ public class AssetService {
     @Pollable(expectedSubTaskNumber = 2)
     private PollableFuture<Asset> addOrUpdateAssetAndProcessIfNeeded(
             Long repositoryId,
-            String assetContent,
             String assetPath,
+            String assetContent,
+            boolean extractedContent,
             String branchName,
             String branchCreatedByUsername,
             FilterConfigIdOverride filterConfigIdOverride,
@@ -182,7 +186,7 @@ public class AssetService {
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 
         if (isAssetProcessingNeeded(assetExtractionByBranch, assetContent, filterOptions)) {
-            AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, branch);
+            AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, extractedContent, branch);
             assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, filterOptions, currentTask.getId());
         } else {
             logger.debug("Asset ({}) processing not needed. Reset number of expected sub task to 0", assetPath);

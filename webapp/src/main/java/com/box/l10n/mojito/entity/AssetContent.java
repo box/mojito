@@ -10,7 +10,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -40,6 +39,9 @@ public class AssetContent extends AuditableEntity {
     @Column(name = "content_md5", length = 32)
     private String contentMd5;
 
+    @Column(name = "extracted_content")
+    private boolean extractedContent = false;
+
     @JsonManagedReference("assetContent")
     @OneToMany(mappedBy = "assetContent")
     private Set<AssetExtraction> assetExtractions;
@@ -66,6 +68,14 @@ public class AssetContent extends AuditableEntity {
 
     public void setContentMd5(String contentMd5) {
         this.contentMd5 = contentMd5;
+    }
+
+    public boolean isExtractedContent() {
+        return extractedContent;
+    }
+
+    public void setExtractedContent(boolean extractedContent) {
+        this.extractedContent = extractedContent;
     }
 
     public Branch getBranch() {
