@@ -1,18 +1,27 @@
 package com.box.l10n.mojito.service.tm;
 
-import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.okapi.ImportTranslationsFromLocalizedAssetStep.StatusForEqualTarget;
 import com.box.l10n.mojito.okapi.InheritanceMode;
 import com.box.l10n.mojito.okapi.Status;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.XliffState;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.filters.AndroidXMLEncoder;
 import com.box.l10n.mojito.okapi.filters.SimpleEncoder;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.asset.AssetUpdateException;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
@@ -50,7 +59,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author jaurambault
@@ -1222,6 +1236,52 @@ public class TMServiceTest extends ServiceTestBase {
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(forImport, localizedAsset);
+    }
+
+    /**
+     * This test is to test AndroidStrings with REMOVE_UNTRANSLATED inheritance mode with a single item
+     * We need a special case in {@link com.box.l10n.mojito.okapi.TranslateStep} to keep the part of the skeleton that
+     * contains the begining of the document when skipping the text unit.
+     * @throws Exception
+     */
+    @Test
+    public void testLocalizeAndroidStringsRemoveUntranslatedSingleItem() throws Exception {
+
+        Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocale;
+        try {
+            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+        } catch (RepositoryLocaleCreationException e) {
+            throw new RuntimeException(e);
+        }
+
+        String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!-- comment after prolog -->\n\n"
+                + "<resources>\n"
+                + "    <string name=\"test\">This is test</string>\n"
+                + "</resources>";
+        asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
+        asset = assetRepository.findOne(asset.getId());
+        assetId = asset.getId();
+        tmId = repo.getTm().getId();
+
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), assetContent, asset.getPath(), null, null, null, null);
+        try {
+            pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+        } catch (PollableTaskException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        assetResult.get();
+
+        String expectedLocalized
+                = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                + "<!-- comment after prolog -->"
+                + "<resources>\n"
+                + "</resources>";
+
+        String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "en-GB", null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
+        logger.debug("localized=\n{}", localizedAsset);
+        assertEquals(localizedAsset, localizedAsset);
     }
 
     /**
