@@ -79,5 +79,5 @@
     "usages" : [ "file.js:20" ]
   } ],
   "filterConfigIdOverride" : null,
-  "filterOptions" : [ "testoption=something" ]
+  "filterOptions" : [ "sometestoption=value1" ]
 }

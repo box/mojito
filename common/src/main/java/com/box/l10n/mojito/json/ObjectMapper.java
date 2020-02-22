@@ -2,6 +2,7 @@ package com.box.l10n.mojito.json;
 
 import com.box.l10n.mojito.io.Files;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
@@ -54,6 +55,14 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         }
     }
 
+    public <T> T readValueUnchecked(String content, TypeReference valueTypeRef) {
+        try {
+            return super.readValue(content, valueTypeRef);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void writeValueUnchecked(File file, Object content) {
         try {
             super.writeValue(file, content);
@@ -74,5 +83,4 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         Files.createDirectories(path.getParent());
         writeValueUnchecked(path.toFile(), content);
     }
-
 }

@@ -1,5 +1,5 @@
 {
-  "name" : "source1",
+  "name" : "source3",
   "textunits" : [ {
     "name" : "100 character description: --- 100_character_description_",
     "source" : "100 character description:",
@@ -15,8 +15,8 @@
     "pluralFormOther" : null,
     "usages" : [ "file.js:4" ]
   }, {
-    "name" : "1 day --- 1_day_duration",
-    "source" : "1 day",
+    "name" : "1 day update --- 1_day_duration",
+    "source" : "1 day update",
     "comments" : "File lock dialog duration",
     "pluralForm" : null,
     "pluralFormOther" : null,
@@ -79,5 +79,5 @@
     "usages" : [ "file.js:20" ]
   } ],
   "filterConfigIdOverride" : null,
-  "filterOptions" : [ "testoption=something" ]
+  "filterOptions" : [ "sometestoption=value1" ]
 }

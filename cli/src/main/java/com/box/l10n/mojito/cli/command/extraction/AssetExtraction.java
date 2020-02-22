@@ -1,25 +1,42 @@
 package com.box.l10n.mojito.cli.command.extraction;
 
+import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 
 import java.util.List;
 
 public class AssetExtraction {
 
-    List<AssetExtractorTextUnit> textUnits;
+    String name;
+
+    List<AssetExtractorTextUnit> textunits;
+
+    FilterConfigIdOverride filterConfigIdOverride;
 
     List<String> filterOptions;
 
-    String fileType;
-
-    String name;
-
-    public List<AssetExtractorTextUnit> getTextUnits() {
-        return textUnits;
+    public String getName() {
+        return name;
     }
 
-    public void setTextUnits(List<AssetExtractorTextUnit> textUnits) {
-        this.textUnits = textUnits;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<AssetExtractorTextUnit> getTextunits() {
+        return textunits;
+    }
+
+    public void setTextunits(List<AssetExtractorTextUnit> textunits) {
+        this.textunits = textunits;
+    }
+
+    public FilterConfigIdOverride getFilterConfigIdOverride() {
+        return filterConfigIdOverride;
+    }
+
+    public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
+        this.filterConfigIdOverride = filterConfigIdOverride;
     }
 
     public List<String> getFilterOptions() {
@@ -28,21 +45,5 @@ public class AssetExtraction {
 
     public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
-    }
-
-    public String getFileType() {
-        return fileType;
-    }
-
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }
