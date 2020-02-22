@@ -6,14 +6,9 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
-import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
-import com.box.l10n.mojito.rest.entity.Branch;
-import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
-import com.google.common.collect.Sets;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +17,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author jaurambault
@@ -68,13 +62,13 @@ public class PushCommand extends Command {
     String branchCreatedBy;
 
     @Autowired
-    AssetClient assetClient;
-
-    @Autowired
     RepositoryClient repositoryClient;
 
     @Autowired
     CommandHelper commandHelper;
+
+    @Autowired
+    PushService pushService;
 
     CommandDirectories commandDirectories;
 
@@ -86,13 +80,10 @@ public class PushCommand extends Command {
         consoleWriter.newLine().a("Push assets to repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
-        List<PollableTask> pollableTasks = new ArrayList<>();
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
-        Set<Long> usedAssetIds = new HashSet<>();
 
-        for (FileMatch sourceFileMatch : sourceFileMatches) {
-
+        Stream<SourceAsset> sourceAssetStream = sourceFileMatches.stream().map(sourceFileMatch -> {
             String sourcePath = sourceFileMatch.getSourcePath();
 
             String assetContent = commandHelper.getFileContentWithXcodePatch(sourceFileMatch);
@@ -102,45 +93,15 @@ public class PushCommand extends Command {
             sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
             sourceAsset.setPath(sourcePath);
             sourceAsset.setContent(assetContent);
+            sourceAsset.setExtractedContent(false);
             sourceAsset.setRepositoryId(repository.getId());
             sourceAsset.setFilterConfigIdOverride(sourceFileMatch.getFileType().getFilterConfigIdOverride());
             sourceAsset.setFilterOptions(commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam));
 
-            consoleWriter.a(" - Uploading: ").fg(Ansi.Color.CYAN).a(sourcePath).println();
+            return sourceAsset;
+        });
 
-            SourceAsset assetAfterSend = assetClient.sendSourceAsset(sourceAsset);
-            pollableTasks.add(assetAfterSend.getPollableTask());
-
-            consoleWriter.a(" --> asset id: ").fg(Ansi.Color.MAGENTA).a(assetAfterSend.getAddedAssetId()).reset().
-                    a(", task: ").fg(Ansi.Color.MAGENTA).a(assetAfterSend.getPollableTask().getId()).println();
-            usedAssetIds.add(assetAfterSend.getAddedAssetId());
-        }
-
-        try {
-            logger.debug("Wait for all \"push\" tasks to be finished");
-            for (PollableTask pollableTask : pollableTasks) {
-                commandHelper.waitForPollableTask(pollableTask.getId());
-            }
-        } catch (PollableTaskException e) {
-            throw new CommandException(e.getMessage(), e.getCause());
-        }
-
-        Branch branch = repositoryClient.getBranch(repository.getId(), branchName);
-
-        if (branch == null) {
-            logger.debug("No branch in the repository, no asset must have been pushed yet, no need to delete");
-        } else {
-            logger.debug("process deleted assets here");
-            Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false, branch.getId()));
-
-            assetIds.removeAll(usedAssetIds);
-            if (!assetIds.isEmpty()) {
-                consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println();
-                PollableTask pollableTask = assetClient.deleteAssetsInBranch(assetIds, branch.getId());
-                consoleWriter.a(" --> task id: ").fg(Ansi.Color.MAGENTA).a(pollableTask.getId()).println();
-                commandHelper.waitForPollableTask(pollableTask.getId());
-            }
-        }
+        pushService.push(repository, sourceAssetStream, branchName);
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }

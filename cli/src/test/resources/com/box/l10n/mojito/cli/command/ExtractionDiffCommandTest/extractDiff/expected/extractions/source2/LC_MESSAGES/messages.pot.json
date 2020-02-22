@@ -1,5 +1,5 @@
 {
-  "name" : "source1",
+  "name" : "source2",
   "textunits" : [ {
     "name" : "100 character description: --- 100_character_description_",
     "source" : "100 character description:",
@@ -79,5 +79,5 @@
     "usages" : [ "file.js:20" ]
   } ],
   "filterConfigIdOverride" : null,
-  "filterOptions" : [ "testoption=something" ]
+  "filterOptions" : [ "sometestoption=value1" ]
 }

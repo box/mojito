@@ -72,13 +72,14 @@ public class ExtractionCommand extends Command {
         consoleWriter.newLine().a("Perform local extraction, name: ").fg(Ansi.Color.CYAN).a(extractionName).println();
 
         ExtractionsPaths extractionsPaths = new ExtractionsPaths(outputDirectoryParam);
-        extractionService.deleteExtractionDirectoryIfExists(extractionsPaths, extractionName);
+        extractionService.recreateExtractionDirectory(extractionsPaths, extractionName);
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
             List<String> filterOptions = commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam);
-            extractionService.fileMatchToAssetExtractionAndSaveToJsonFile(sourceFileMatch, filterOptions, extractionName, extractionsPaths);
+            extractionService.fileMatchToAssetExtractionAndSaveToJsonFile(extractionName, extractionsPaths,
+                    filterOptions, sourceFileMatch.getFileType().getFilterConfigIdOverride(), sourceFileMatch);
         }
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);

@@ -37,21 +37,23 @@ public class ExtractionService {
     AssetExtractor assetExtractor;
 
 
-    public void fileMatchToAssetExtractionAndSaveToJsonFile(FileMatch sourceFileMatch, List<String> filterOptions,
-                                                            String extractionName, ExtractionsPaths extractionsPaths) throws CommandException {
-        AssetExtraction assetExtraction = fileMatchToAssetExtraction(sourceFileMatch, filterOptions, extractionName);
-        Path assetExtractionPath = extractionsPaths.assetExtractionPath(sourceFileMatch, extractionName);
+    public void fileMatchToAssetExtractionAndSaveToJsonFile(
+            String extractionName, ExtractionsPaths extractionsPaths, List<String> filterOptions,
+            FilterConfigIdOverride filterConfigIdOverride, FileMatch sourceFileMatch) throws CommandException {
+
+        AssetExtraction assetExtraction = fileMatchToAssetExtraction(extractionName, sourceFileMatch, filterOptions, filterConfigIdOverride);
+        Path assetExtractionPath = extractionsPaths.assetExtractionPath(sourceFileMatch.getSourcePath(), extractionName);
         objectMapper.createDirectoriesAndWrite(assetExtractionPath, assetExtraction);
     }
 
-    AssetExtraction fileMatchToAssetExtraction(FileMatch sourceFileMatch, List<String> filterOptions, String extractionName) throws CommandException {
+    AssetExtraction fileMatchToAssetExtraction(String extractionName, FileMatch sourceFileMatch, List<String> filterOptions, FilterConfigIdOverride filterConfigIdOverride) throws CommandException {
         List<AssetExtractorTextUnit> assetExtractorTextUnits = getExtractionTextUnitsForSourceFileMatch(sourceFileMatch, filterOptions);
 
         AssetExtraction assetExtraction = new AssetExtraction();
-        assetExtraction.setTextUnits(assetExtractorTextUnits);
+        assetExtraction.setTextunits(assetExtractorTextUnits);
         assetExtraction.setName(extractionName);
         assetExtraction.setFilterOptions(filterOptions);
-        assetExtraction.setFileType(sourceFileMatch.getFileType().getClass().getSimpleName());
+        assetExtraction.setFilterConfigIdOverride(filterConfigIdOverride);
 
         return assetExtraction;
     }
@@ -68,9 +70,11 @@ public class ExtractionService {
         }
     }
 
-    public void deleteExtractionDirectoryIfExists(ExtractionsPaths extractionsPaths, String extractionName) {
+    public void recreateExtractionDirectory(ExtractionsPaths extractionsPaths, String extractionName) {
         logger.debug("Delete the extraction directory for name: {}", extractionName);
-        Files.deleteRecursivelyIfExists(extractionsPaths.extractionPath(extractionName));
+        Path path = extractionsPaths.extractionPath(extractionName);
+        Files.deleteRecursivelyIfExists(path);
+        Files.createDirectories(path);
     }
 
 }
