@@ -1,4 +1,5 @@
-#!/usr/bin/env bash -xeu
+#!/usr/bin/env bash
+set -xeu
 
 # Script to install the latest CLI with a bash wrapper
 #
@@ -32,7 +33,7 @@ EOF
 chmod +x ${PWD}/.mojito/mojito
 
 # Export the PATH to have access to the bash wrapper once installation is done
-export PATH=${PATH}:${PWD}/.mojito
+export PATH=${PWD}/.mojito:${PATH}
 
 # Download/Upgrade the jar file if needed to match server version
 #
