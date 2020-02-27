@@ -797,13 +797,38 @@ label.current-pageNumber {
     padding-bottom: 8px;
 }
 
-.branches-branchstatistic-summary:hover .branches-branchstatistic-screenshotpreview {
+.branches-branchstatistic-toolbar {
+    position: absolute;
+    right: 5px;
+    pointer-events: all;
+    background-color: white;
+    z-index: 1;
+    display: none;
+}
+
+.branches-branchstatistic-summary:hover .branches-branchstatistic-toolbar {
     display: inline;
 }
 
-.branches-branchstatistic-screenshotpreview {
-    display: none;
-    color: $brand-primary
+// tooltip not supported with disabled button - use a wrapper and cascading some of the btn-group css
+.btn-tooltip-wrapper {
+    display: inline-block;
+}
+.btn-group > .btn-tooltip-wrapper:first-child:not(:last-child):not(.dropdown-toggle) .btn {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.btn-group > .btn-tooltip-wrapper:last-child:not(:first-child):not(.dropdown-toggle) .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.btn-group > .btn-tooltip-wrapper:first-child .btn {
+     margin-left: 0;
+}
+
+.btn-group > .btn-tooltip-wrapper .btn {
+    margin-left: -1px;
 }
 
 .branches-branchstatistic-textunit {
@@ -930,3 +955,4 @@ label.current-pageNumber {
 .branches-screenshotviewer-modal-gotonext.enabled:hover {
     color: $gray-light;
 }
+

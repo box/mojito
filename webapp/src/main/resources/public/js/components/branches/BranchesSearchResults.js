@@ -1,7 +1,19 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import {FormattedDate, FormattedMessage, FormattedNumber, injectIntl} from "react-intl";
-import {Button, Col, Collapse, Glyphicon, Grid, Label, OverlayTrigger, Row, Tooltip} from "react-bootstrap";
+import {
+    Button,
+    ButtonGroup,
+    ButtonToolbar,
+    Col,
+    Collapse,
+    Glyphicon,
+    Grid,
+    Label,
+    OverlayTrigger,
+    Row,
+    Tooltip
+} from "react-bootstrap";
 import {Link, withRouter} from "react-router";
 import ClassNames from "classnames";
 import {withAppConfig} from "../../utils/AppConfig";
@@ -18,6 +30,7 @@ class BranchesSearchResults extends React.Component {
         "onChangeOpenBranchStatistic": PropTypes.func.isRequired,
         "onChangeSelectedBranchTextUnits": PropTypes.func.isRequired,
         "onShowBranchScreenshotsClick": PropTypes.func.isRequired,
+        "onShowBranchPauseTranslationClick": PropTypes.func.isRequired,
         "onNeedTranslationClick": PropTypes.func.isRequired,
         "onTextUnitNameClick": PropTypes.func.isRequired,
     };
@@ -109,7 +122,7 @@ class BranchesSearchResults extends React.Component {
 
         // we use this construct instead of putting the button in the overlay because tooltips don't work on disabled buttons
         let button = (
-            <div style={{display: "inline-block"}}>
+            <div className="btn-tooltip-wrapper">
                 <Button bsStyle="default"
                         style={disabled ? {pointerEvents: "none"} : {}}
                         bsSize="small" disabled={disabled}
@@ -128,8 +141,35 @@ class BranchesSearchResults extends React.Component {
                 {button}
             </OverlayTrigger>);
 
+        return button;
+    }
 
-        return <div className="branches-branchstatistic-screenshotpreview">{button}</div>;
+    renderOpenModalPauseTranslationButton(branchStatistic) {
+        let beingTranslated = true;
+
+        // we use this construct instead of putting the button in the overlay because tooltips don't work on disabled buttons
+        let button = (
+            <div className="btn-tooltip-wrapper">
+                <Button bsStyle="default"
+                        style={beingTranslated ? {pointerEvents: "none"} : {}}
+                        bsSize="small"
+                        onClick={() => this.props.onShowBranchPauseTranslationClick(branchStatistic.id)}>
+                    <Glyphicon className="branches-branchstatistic-col1-draft"
+                               glyph={beingTranslated ? "pause" : "play"}/>
+                </Button>
+            </div>
+        );
+
+        button = (
+            <OverlayTrigger placement="bottom"
+                            overlay={<Tooltip id="BranchesSearchResults.tooltip.screenshot">
+                                <FormattedMessage
+                                    id={beingTranslated ? "branches.searchResults.tooltip.pause" : "branches.searchResults.tooltip.resume"}/>
+                            </Tooltip>}>
+                {button}
+            </OverlayTrigger>);
+
+        return button;
     }
 
     renderBranchStatisticSummary(branchStatistic) {
@@ -139,8 +179,16 @@ class BranchesSearchResults extends React.Component {
         return (
             <Row key={"branchStatistic-" + branchStatistic.id} className="branches-branchstatistic-summary">
                 <Col md={4} className="branches-branchstatistic-col1">
+
+                    <ButtonToolbar className="branches-branchstatistic-toolbar">
+                        <ButtonGroup>
+                            {this.renderOpenModalScreenshotButton(branchStatistic)}
+                            {this.renderOpenModalPauseTranslationButton(branchStatistic)}
+                        </ButtonGroup>
+                    </ButtonToolbar>
+
                     <Row className="branches-branchstatistic-col1-row">
-                        <Col md={4}>
+                        <Col md={5}>
                             <Button bsSize="xsmall"
                                     onClick={() =>
                                         this.props.onChangeOpenBranchStatistic(isBranchStatisticOpen ? null : branchStatistic.id)
@@ -153,9 +201,10 @@ class BranchesSearchResults extends React.Component {
                             </span>
                         </Col>
                         <Col md={4}>
-                            <span className="mls color-gray-light2"><small>{branchStatistic.branch.repository.name}</small></span>
+                            <span
+                                className="mls color-gray-light2"><small>{branchStatistic.branch.repository.name}</small></span>
                         </Col>
-                        <Col md={2}>
+                        <Col md={3}>
                             {branchStatistic.branch.deleted ?
                                 <Label bsStyle="light">
                                     <FormattedMessage id="branches.deleted"/>
@@ -164,11 +213,7 @@ class BranchesSearchResults extends React.Component {
                                 ""
                             }
                         </Col>
-                        <Col md={2}>
-                            {this.renderOpenModalScreenshotButton(branchStatistic)}
-                        </Col>
                     </Row>
-
                 </Col>
                 <Col md={2}>
                     <Link className="clickable"
