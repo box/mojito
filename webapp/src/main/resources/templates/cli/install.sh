@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-set -xeu
+#!/usr/bin/env bash -xeu
 
 # Script to install the latest CLI with a bash wrapper
 #
