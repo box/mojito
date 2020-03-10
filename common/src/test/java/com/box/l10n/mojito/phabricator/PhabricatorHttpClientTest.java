@@ -4,7 +4,6 @@ import com.box.l10n.mojito.phabricator.payload.ResultWithError;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -12,13 +11,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-
 import static com.box.l10n.mojito.phabricator.PhabricatorHttpClient.API_TOKEN;
 import static com.box.l10n.mojito.phabricator.PhabricatorHttpClient.CONSTRAINTS_PHIDS_0;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyVararg;
 import static org.mockito.Matchers.eq;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -38,7 +34,7 @@ public class PhabricatorHttpClientTest {
     @Test
     public void postEntityAndCheckResponse() {
 
-        ResultWithError<Object> objectResultWithError = new ResultWithError<>();
+        ResultWithError objectResultWithError = new ResultWithError();
         Mockito.doReturn(objectResultWithError).when(mockRestTemplate).postForObject(
                 eq("https://secure.phabricator.com/api/differential.revision.search"),
                 any(),
@@ -55,7 +51,7 @@ public class PhabricatorHttpClientTest {
     @Test(expected = PhabricatorException.class)
     public void postEntityAndCheckResponseError() {
 
-        ResultWithError<Object> objectResultWithError = new ResultWithError<>();
+        ResultWithError objectResultWithError = new ResultWithError();
         objectResultWithError.setErrorCode("ERROR");
         Mockito.doReturn(objectResultWithError).when(mockRestTemplate).postForObject(
                 eq("https://secure.phabricator.com/api/differential.revision.search"),
@@ -92,7 +88,7 @@ public class PhabricatorHttpClientTest {
 
     @Test(expected = PhabricatorException.class)
     public void checkNoError() {
-        ResultWithError<Object> objectResultWithError = new ResultWithError<>();
+        ResultWithError objectResultWithError = new ResultWithError();
         objectResultWithError.setErrorCode("ERR_CODE");
         phabricatorHttpClient.checkNoError(objectResultWithError);
     }

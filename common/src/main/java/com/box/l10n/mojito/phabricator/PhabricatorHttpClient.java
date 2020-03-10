@@ -15,6 +15,7 @@ class PhabricatorHttpClient {
 
     static final String API_TOKEN = "api.token";
     static final String CONSTRAINTS_PHIDS_0 = "constraints[phids][0]";
+    static final String IDS_0 = "ids[0]";
 
     /**
      * logger
@@ -38,6 +39,7 @@ class PhabricatorHttpClient {
             Class<T> clazz) throws PhabricatorException {
 
         String url = getUrl(method.getMethod());
+
         T responseWithError = restTemplate.postForObject(
                 url,
                 httpEntity,
@@ -58,6 +60,12 @@ class PhabricatorHttpClient {
     public HttpEntity<MultiValueMap<String, Object>> getConstraintsForPHID(String phid) {
         HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityFormUrlEncoded();
         httpEntity.getBody().add(CONSTRAINTS_PHIDS_0, phid);
+        return httpEntity;
+    }
+
+    public HttpEntity<MultiValueMap<String, Object>> withId(String id) {
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityFormUrlEncoded();
+        httpEntity.getBody().add(IDS_0, id);
         return httpEntity;
     }
 

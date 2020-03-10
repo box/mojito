@@ -2,15 +2,13 @@ package com.box.l10n.mojito.phabricator.payload;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ResultWithError<FiledsT> {
+public class ResultWithError {
 
     @JsonProperty("error_code")
     String errorCode;
 
     @JsonProperty("error_info")
     String errorInfo;
-
-    Result<FiledsT> result;
 
     public String getErrorCode() {
         return errorCode;
@@ -26,13 +24,5 @@ public class ResultWithError<FiledsT> {
 
     public void setErrorInfo(String errorInfo) {
         this.errorInfo = errorInfo;
-    }
-
-    public Result<FiledsT> getResult() {
-        return result;
-    }
-
-    public void setResult(Result<FiledsT> result) {
-        this.result = result;
     }
 }
