@@ -14,5 +14,5 @@ RUN echo "#!/bin/bash \n\
 java -Dl10n.resttemplate.host=localhost \\\\\n \
      -Dl10n.resttemplate.scheme=http \\\\\n \
      -Dl10n.resttemplate.port=8080 \\\\\n \
-     -jar $MOJITO_BIN/mojito-cli-${MOJITO_VERSION}.jar \$@" \
+     -jar $MOJITO_BIN/mojito-cli-${MOJITO_VERSION}.jar \"\${@}\"" \
     >> /usr/local/mojito/bin/mojito && chmod +x $MOJITO_BIN/mojito
