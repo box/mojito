@@ -50,7 +50,11 @@ import java.util.stream.Stream;
  * Get username from git log, eg:
  * BRANCH_CREATEDBY=$(git log --format='%ae' HEAD^\!)
  * BRANCH_CREATEDBY=${BRANCH_CREATOR%%"@somemail.com"}
- *
+ * <p>
+ * Get diff info from phabricator diff, {@see com.box.l10n.mojito.cli.command.PhabricatorDiffInfoCommand}
+ * source <(mojito phab-diff-to-env-variables --diff-id 12345)
+ * echo ${MOJITO_PHAB_BASE_COMMIT}
+ * ...
  * @author jaurambault
  */
 @Component

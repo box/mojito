@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.phabricator;
 
 import com.box.l10n.mojito.phabricator.payload.DiffSearchResult;
+import com.box.l10n.mojito.phabricator.payload.QueryDiffsFields;
+import com.box.l10n.mojito.phabricator.payload.QueryDiffsResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,20 @@ public class DifferentialDiff {
             return revisionPHID;
         } catch (Exception e) {
             throw new PhabricatorException("Can't find revision PHID", e);
+        }
+    }
+
+    public QueryDiffsFields queryDiff(String diffId) {
+        try {
+            QueryDiffsResult queryDiffsResult = phabricatorHttpClient.postEntityAndCheckResponse(
+                    Method.DIFFERENTIAL_QUERYDIFFS,
+                    phabricatorHttpClient.withId(diffId),
+                    QueryDiffsResult.class);
+
+            QueryDiffsFields queryDiffsFields = queryDiffsResult.getResult().get(diffId);
+            return queryDiffsFields;
+        } catch (Exception e) {
+            throw new PhabricatorException("Can't get diff", e);
         }
     }
 }

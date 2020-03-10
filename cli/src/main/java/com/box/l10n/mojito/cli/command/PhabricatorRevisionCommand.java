@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"phabricator-get-revision-id"}, commandDescription = "Get the revision id for a target phid")
+@Parameters(commandNames = {"phab-targetphid-to-revisionid"}, commandDescription = "Get the revision id for a target phid")
 public class PhabricatorRevisionCommand extends Command {
     /**
      * logger

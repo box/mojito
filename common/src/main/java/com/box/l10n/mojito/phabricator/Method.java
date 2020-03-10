@@ -7,6 +7,7 @@ public enum Method {
     HARBORMASTER_BUILDABLE_SEARCH("harbormaster.buildable.search"),
 
     DIFFERENTIAL_DIFF_SEARCH("differential.diff.search"),
+    DIFFERENTIAL_QUERYDIFFS("differential.querydiffs"),
     DIFFERENTIAL_REVISION_SEARCH("differential.revision.search"),
     DIFFERENTIAL_REVISION_EDIT("differential.revision.edit");
 

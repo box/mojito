@@ -22,10 +22,10 @@ public class DifferentialRevisionTest extends IOTestBase {
     @Autowired(required = false)
     DifferentialRevision differentialRevision;
 
-    @Value("${test.l10n.phabricator.differentielrevision.to:}")
+    @Value("${test.l10n.phabricator.differentialrevision.to:}")
     String objectIdentifier;
 
-    @Value("${test.l10n.phabricator.differentielrevision.reviewer:}")
+    @Value("${test.l10n.phabricator.differentialrevision.reviewer:}")
     String reviewer;
 
     @Test
