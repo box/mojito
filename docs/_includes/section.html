@@ -1,0 +1,23 @@
+<div class="page-content">
+  <div class="section {{ include.sectionClass }} vertical-align-middle">    
+    <div class="wrapper">
+      {% if include.flipped %}        
+        <div class="screenshot pull-left mrl">
+          {{ include.screenshotContent }}
+        </div>   
+        <div class="description pull-right mll">        
+          <h2>{{ include.sectionTitle }}</h2>
+          {{ include.sectionDescription }}
+        </div>      
+      {% else %}
+        <div class="description pull-left mrl">
+          <h2>{{ include.sectionTitle }}</h2>
+          {{ include.sectionDescription }}
+        </div>
+        <div class="screenshot pull-right mll">
+          {{ include.screenshotContent }}
+        </div>         
+      {% endif %}      
+    </div>
+  </div>
+</div>
