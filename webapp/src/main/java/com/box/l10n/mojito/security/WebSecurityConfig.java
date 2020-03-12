@@ -13,12 +13,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -26,6 +28,8 @@ import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticat
 import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
 import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
+import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -61,6 +65,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${l10n.security.oauth2.enabled:false}")
     boolean oauth2Enabled = false;
+
+    @Value("${l10n.security.header-auth.enabled:false}")
+    boolean headerAuth = false;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -120,6 +127,33 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .ldif(ldapConfig.getLdif());
     }
 
+    @Autowired
+    void configureHeaderAuth(AuthenticationManagerBuilder auth) throws Exception {
+        if (headerAuth) {
+            logger.debug("Configuring in pre authentication");
+            auth.authenticationProvider(preAuthenticatedAuthenticationProvider());
+        }
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "l10n.security.header-auth.enabled", havingValue = "true")
+    RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() throws Exception {
+        RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter = new RequestHeaderAuthenticationFilter();
+        requestHeaderAuthenticationFilter.setPrincipalRequestHeader("x-forwarded-user");
+        requestHeaderAuthenticationFilter.setExceptionIfHeaderMissing(false);
+        requestHeaderAuthenticationFilter.setAuthenticationManager(authenticationManager());
+        return requestHeaderAuthenticationFilter;
+    }
+
+    @Bean
+    @ConditionalOnProperty(value = "l10n.security.header-auth.enabled", havingValue = "true")
+    PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider() {
+        PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider = new PreAuthenticatedAuthenticationProvider();
+        UserDetailsByNameServiceWrapper userDetailsByNameServiceWrapper = new UserDetailsByNameServiceWrapper(getUserDetailsServiceCreatePartial());
+        preAuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(userDetailsByNameServiceWrapper);
+        return preAuthenticatedAuthenticationProvider;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Configuring web security");
@@ -138,6 +172,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(new ShowPageAuthenticationSuccessHandler())
                 .and()
                 .logout().logoutSuccessUrl("/login?logout").permitAll();
+
+        if (headerAuth) {
+            http.addFilterBefore(requestHeaderAuthenticationFilter(), BasicAuthenticationFilter.class);
+        }
 
         if (oauth2Enabled) {
             http.addFilterBefore(oauthFilter(), BasicAuthenticationFilter.class);
@@ -189,9 +227,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return registration;
     }
 
+    @Primary
     @Bean
     protected UserDetailsServiceImpl getUserDetailsService() {
         return new UserDetailsServiceImpl();
     }
 
+    @Bean
+    protected UserDetailsServiceCreatePartialImpl getUserDetailsServiceCreatePartial() {
+        return new UserDetailsServiceCreatePartialImpl();
+    }
 }

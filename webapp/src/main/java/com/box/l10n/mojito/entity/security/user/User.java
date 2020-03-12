@@ -8,10 +8,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.springframework.data.annotation.CreatedBy;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -22,7 +20,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import org.springframework.data.annotation.CreatedBy;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -59,8 +59,8 @@ public class User extends AuditableEntity implements Serializable {
 
     /**
      * Sets this flag if the user is created by a process that don't have all the information. Eg. pushing an asset
-     * for a branch with an owner. If the owner is not in the system yet, the user will be created but the information
-     * will be minimal.
+     * for a branch with an owner or header base authentication. If the owner is not in the system yet,
+     * the user will be created but the information will be minimal.
      *
      * Usually user are created the first time the user connect to the system via LDAP or OAuth and have more information
      * Partially created user can be updated later when the first login happens.
