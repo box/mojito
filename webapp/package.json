@@ -54,11 +54,11 @@
   },
   "scripts": {
     "start-dev": "npm run start-server & npm run watch",
-    "start-server": "mvn spring-boot:run -P '!springbootconfigprocessor' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC",
-    "start-server-nofe": "mvn spring-boot:run -P '!springbootconfigprocessor,!frontend' -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC",
-    "start-server-debug": "mvn spring-boot:run -P '!springbootconfigprocessor' -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
-    "start-server-nofe-debug": "mvn spring-boot:run -P '!springbootconfigprocessor,!frontend' -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
-    "start-server-nofe-debugn": "mvn spring-boot:run -P '!springbootconfigprocessor,!frontend' -Drun.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -Dspring.config.location=file:///$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
+    "start-server": "mvn spring-boot:run -Dspring-boot.run.jvmArguments=\"-Dspring.config.additional-location=file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
+    "start-server-nofe": "mvn spring-boot:run -P '!frontend' -Dspring-boot.run.jvmArguments=\"-Dspring.config.additional-location=file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
+    "start-server-debug": "mvn spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.additional-location=file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
+    "start-server-nofe-debug": "mvn spring-boot:run -P '!frontend' -Dspring-boot.run.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005 -Dspring.config.additional-location=file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
+    "start-server-nofe-debugn": "mvn spring-boot:run -P '!frontend' -Dspring-boot.run.jvmArguments=\"-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 -Dspring.config.additional-location=file://$HOME/.l10n/config/webapp/ -Dspring.profiles.active=$USER,npm -Duser.timezone=UTC\"",
     "watch": "webpack --config webpack.config.js --progress --colors --watch --env.inlineSourceMap",
     "watch-ict": "webpack --config webpack.config_ict.js --progress --colors --watch --env.inlineSourceMap",
     "build": "webpack --config webpack.config.js --progress --env.production",
@@ -69,7 +69,7 @@
     "mojito-pull": "cd src/main/resources/properties/; java -jar ../../../../../cli/target/mojito-cli-*.jar pull -r Mojito -lm \"fr:fr-FR,be:be-BY,ko:ko-KR,ru:ru-RU\" -ft PROPERTIES_NOBASENAME",
     "mojito-drop-export": "java -jar ../cli/target/mojito-cli-*.jar drop-export -r Mojito",
     "mojito-drop-import": "java -jar ../cli/target/mojito-cli-*.jar drop-import -r Mojito",
-    "create-demo-data": "java -jar ../cli/target/mojito-cli-*.jar demo-create -n Demo",
+    "create-demo-data": "java -jar ../cli/target/mojito-cli-*-exec.jar demo-create -n Demo",
     "preinstall": "npx npm-force-resolutions"
   },
   "resolutions": {

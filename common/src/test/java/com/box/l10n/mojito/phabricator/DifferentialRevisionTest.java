@@ -7,13 +7,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {
         TestWithEnableAutoConfiguration.class,
         PhabricatorConfiguration.class,
         PhabricatorConfigurationProperties.class})
@@ -22,10 +22,10 @@ public class DifferentialRevisionTest extends IOTestBase {
     @Autowired(required = false)
     DifferentialRevision differentialRevision;
 
-    @Value("${test.l10n.phabricator.differentialrevision.to:}")
+    @Value("${test.l10n.phabricator.differentialrevision.to:#{null}}")
     String objectIdentifier;
 
-    @Value("${test.l10n.phabricator.differentialrevision.reviewer:}")
+    @Value("${test.l10n.phabricator.differentialrevision.reviewer:#{null}}")
     String reviewer;
 
     @Test

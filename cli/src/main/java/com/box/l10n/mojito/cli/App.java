@@ -7,17 +7,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 
-@Configuration
-@EnableAutoConfiguration
 @EnableSpringConfigured
 @ComponentScan(basePackages = "com.box.l10n.mojito")
+@SpringBootApplication
 public class App implements CommandLineRunner {
 
     /**
@@ -31,10 +30,10 @@ public class App implements CommandLineRunner {
      * @param args
      */
     public static void main(String[] args) {
-        SpringApplication app = new SpringApplication(App.class);
-        app.setBannerMode(Banner.Mode.OFF);
-        app.setWebEnvironment(false);
-        app.run(args);
+        new SpringApplicationBuilder(App.class)
+                .web(WebApplicationType.NONE)
+                .bannerMode(Banner.Mode.OFF)
+                .run(args);
     }
 
     @Override

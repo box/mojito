@@ -67,7 +67,7 @@ public class BranchNotificationService {
      */
     public void sendNotificationsForBranch(Long branchId) {
         logger.debug("sendNotificationsForBranch, id: {}", branchId);
-        Branch branch = branchRepository.findOne(branchId);
+        Branch branch = branchRepository.findById(branchId).orElse(null);
         sendNotificationsForBranch(branch);
     }
 
@@ -92,7 +92,7 @@ public class BranchNotificationService {
 
     void sendMissingScreenshotNotificationForBranchWithSender(BranchNotificationMessageSender branchNotificationMessageSender, Long branchId) {
         logger.debug("sendMissingScreenshotNotificationForBranch, id: {}", branchId);
-        Branch branch = branchRepository.findOne(branchId);
+        Branch branch = branchRepository.findById(branchId).orElse(null);
         sendMissingScreenshotNotificationsForBranch(branchNotificationMessageSender, branch);
     }
 

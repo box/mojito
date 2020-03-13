@@ -27,6 +27,7 @@ public class QuartzPollableTaskScheduler {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(QuartzPollableTaskScheduler.class);
+
     @Autowired
     Scheduler scheduler;
 

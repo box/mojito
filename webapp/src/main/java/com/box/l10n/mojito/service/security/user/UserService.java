@@ -170,7 +170,7 @@ public class UserService {
             authority.setCreatedByUser(systemUser);
         }
 
-        authorityRepository.save(authorities);
+        authorityRepository.saveAll(authorities);
         userRepository.save(userToUpdate);
     }
 
@@ -233,6 +233,17 @@ public class UserService {
 
         if (user == null) {
             return createBasicUser(username, null, null, null, true);
+        }
+
+        return user;
+    }
+
+    public User getOrCreateOrUpdateBasicUser(String username, String givenName, String surname, String commonName) {
+
+        User user = userRepository.findByUsername(username);
+
+        if (user == null || user.getPartiallyCreated()) {
+            user = createOrUpdateBasicUser(user, username, givenName, surname, commonName);
         }
 
         return user;

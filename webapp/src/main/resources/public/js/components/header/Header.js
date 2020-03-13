@@ -14,8 +14,8 @@ import ScreenshotsRepositoryActions from "../../actions/screenshots/ScreenshotsR
 import SearchConstants from "../../utils/SearchConstants";
 
 import {FormControl, Glyphicon, MenuItem, Nav, Navbar, NavDropdown, NavItem} from 'react-bootstrap';
-import UserHelper from "../../utils/UserHelper";
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
+import {withAppConfig} from "../../utils/AppConfig";
 
 class Header extends React.Component {
     state = {
@@ -55,6 +55,19 @@ class Header extends React.Component {
         });
     };
 
+    getUsernameDisplay() {
+        const user = this.props.appConfig.user;
+        let usernameDisplay = user.username;
+
+        if (user.givenName != null) {
+            usernameDisplay = user.givenName;
+        } else if (user.commonName != null) {
+            usernameDisplay = user.commonName;
+        }
+
+        return usernameDisplay;
+    }
+
     render() {
         return (
             <Navbar fluid={true}>
@@ -93,7 +106,7 @@ class Header extends React.Component {
                     }}><NavItem><FormattedMessage id="header.screenshots"/></NavItem></LinkContainer>
                 </Nav>
                 <Nav pullRight={true}>
-                    <NavDropdown title={UserHelper.getUsername()} id="user-menu">
+                    <NavDropdown title={this.getUsernameDisplay()} id="user-menu">
                         <MenuItem onSelect={this.openLocaleSelectorModal}>
                             <Glyphicon glyph="globe"/> {Locales.getCurrentLocaleDisplayName()}
                         </MenuItem>
@@ -105,7 +118,7 @@ class Header extends React.Component {
                         <MenuItem divider/>
                         <MenuItem onSelect={this.logoutSelected}>
                             <form action={UrlHelper.getUrlWithContextPath("/logout")} method="post" ref="logoutForm">
-                                <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
+                                <FormControl type="hidden" name="_csrf" value={this.props.appConfig.csrfToken}/>
                                 <FormattedMessage id="header.loggedInUser.logout"/>
                             </form>
                         </MenuItem>
@@ -118,4 +131,4 @@ class Header extends React.Component {
     }
 }
 
-export default withRouter(Header);
+export default withAppConfig(withRouter(Header));

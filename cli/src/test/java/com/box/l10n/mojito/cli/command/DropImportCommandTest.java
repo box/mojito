@@ -25,7 +25,7 @@ import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.OutputCapture;
+import org.springframework.boot.test.system.OutputCaptureRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -117,7 +117,7 @@ public class DropImportCommandTest extends CLITestBase {
 
         int numberOfFrenchTranslationsBefore = getNumberOfFrenchTranslations(repository);
 
-        localizeDropFiles(dropRepository.findOne(dropId));
+        localizeDropFiles(dropRepository.findById(dropId).orElse(null));
 
         l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "--number-drop-fetched", "1000"});
 
@@ -167,7 +167,7 @@ public class DropImportCommandTest extends CLITestBase {
 
         int numberOfFrenchTranslationsBefore = getNumberOfFrenchTranslations(repository);
 
-        localizeDropFiles(dropRepository.findOne(dropId));
+        localizeDropFiles(dropRepository.findById(dropId).orElse(null));
 
         l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "--import-fetched"});
 
@@ -187,7 +187,7 @@ public class DropImportCommandTest extends CLITestBase {
         return textUnitCurrentVariantRepository.findByTmTextUnit_Tm_IdAndLocale_Id(repository.getTm().getId(), localeService.findByBcp47Tag("fr-FR").getId()).size();
     }
 
-    public static Long getLastDropIdFromOutput(OutputCapture outputCapture) {
+    public static Long getLastDropIdFromOutput(OutputCaptureRule outputCapture) {
         Pattern compile = Pattern.compile("Drop id: ([\\d]+)");
         Matcher matcher = compile.matcher(outputCapture.toString());
         String dropId = null;

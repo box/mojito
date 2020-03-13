@@ -149,7 +149,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
 
         createdDate = new DateTime();
         if (dropImporterUsernameOverride == null) {
-            createdBy = auditorAwareImpl.getCurrentAuditor();
+            createdBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
         } else {
             createdBy = userRepository.findByUsername(dropImporterUsernameOverride);
         }

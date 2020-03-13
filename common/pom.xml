@@ -303,11 +303,6 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjrt</artifactId>
-                        <version>${aspectj.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
                         <artifactId>aspectjtools</artifactId>
                         <version>${aspectj.version}</version>
                     </dependency>
@@ -324,6 +319,7 @@
                     <showWeaveInfo>false</showWeaveInfo>
                     <deprecation>true</deprecation>
                     <complianceLevel>${java.version}</complianceLevel>
+                    <proc>none</proc>
                     <weaveDependencies>
 
                     </weaveDependencies>
@@ -342,7 +338,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
-                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/common/
+                    <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/common/
                         -Dspring.profiles.active=${user.name},test -Duser.timezone=UTC
                     </argLine>
                 </configuration>

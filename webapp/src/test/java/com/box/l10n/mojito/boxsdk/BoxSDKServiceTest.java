@@ -1,13 +1,21 @@
 package com.box.l10n.mojito.boxsdk;
 
-import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityRepository;
-import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityService;
+import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.test.category.BoxSDKTest;
 import com.box.sdk.BoxComment;
 import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
 import com.box.sdk.BoxSharedLink;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -17,38 +25,21 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.junit.Assert;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author jaurambault
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@Configuration
-@ComponentScan(basePackageClasses = {BoxSDKServiceTest.class, BoxSDKServiceConfigEntityService.class})
-@SpringApplicationConfiguration(classes = {BoxSDKServiceTest.class, PropertyPlaceholderAutoConfiguration.class})
-@EnableConfigurationProperties
-public class BoxSDKServiceTest {
+//TODO(spring2)(later) Instruction to create the Box app has changed and I couldn't get it to run quickly.
+// Since this is not blocker for most needs moving on, keep the note here for the record. still it should be tested and
+// re-documented
+public class BoxSDKServiceTest extends WSTestBase {
 
     /**
      * logger
@@ -60,11 +51,6 @@ public class BoxSDKServiceTest {
 
     @Autowired
     BoxSDKService boxSDKService;
-
-    @Bean
-    public BoxSDKServiceConfigEntityRepository getBoxSDKServiceConfigEntityRepository() {
-        return null;
-    }
 
     static BoxFolder testFolder = null;
 

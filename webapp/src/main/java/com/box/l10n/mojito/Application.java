@@ -3,15 +3,13 @@ package com.box.l10n.mojito;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.system.ApplicationPidFileWriter;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.orm.jpa.EntityScan;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -28,9 +26,12 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.io.IOException;
 
-@Configuration
-@ComponentScan(basePackageClasses = Application.class)
-@EnableAutoConfiguration
+@SpringBootApplication(
+        scanBasePackageClasses = Application.class,
+        exclude = {
+                QuartzAutoConfiguration.class, // We integrated with Quartz before spring supported it
+        }
+)
 @EnableSpringConfigured
 @EnableJpaAuditing
 @EnableJpaRepositories
@@ -40,7 +41,9 @@ import java.io.IOException;
 @EntityScan(basePackageClasses = BaseEntity.class)
 public class Application {
 
-    @Value("${org.springframework.http.converter.json.indent_output}")
+
+    // TODO(spring2), find replacement - this was commented in previous attempt
+    //    @Value("${org.springframework.http.converter.json.indent_output}")
     boolean shouldIndentJacksonOutput;
 
     public static void main(String[] args) throws IOException {
@@ -52,7 +55,7 @@ public class Application {
 
     /**
      * Fix Spring scanning issue.
-     *
+     * <p>
      * without this the ObjectMapper instance is not created/available in the
      * container.
      *
@@ -64,7 +67,7 @@ public class Application {
         return new ObjectMapper();
     }
 
-    @Bean(name="fail_on_unknown_properties_false")
+    @Bean(name = "fail_on_unknown_properties_false")
     public ObjectMapper getObjectMapperFailOnUnknownPropertiesFalse() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

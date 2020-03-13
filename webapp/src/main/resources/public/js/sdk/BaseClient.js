@@ -2,7 +2,7 @@ import UrlHelper from '../utils/UrlHelper';
 
 class BaseClient {
     constructor() {
-        this.baseUrl = location.origin + CONTEXT_PATH +  '/api/';
+        this.baseUrl = location.origin + APP_CONFIG.contextPath +  '/api/';
     }
 
     /**
@@ -71,7 +71,7 @@ class BaseClient {
      * TODO for now just copy the token from the global variable but we'll some better logic later
      */
     getCSRF() {
-        return CSRF_TOKEN;
+        return APP_CONFIG.csrfToken;
     }
 
     getHeaders() {

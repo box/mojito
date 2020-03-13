@@ -37,7 +37,7 @@ import static com.box.l10n.mojito.rest.repository.BranchSpecification.nameEquals
 import static com.box.l10n.mojito.rest.repository.BranchSpecification.repositoryEquals;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  * @author wyau
@@ -72,7 +72,7 @@ public class RepositoryWS {
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.GET)
     public Repository getRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
         ResponseEntity<Repository> result;
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         if (repository == null) {
             throw new RepositoryWithIdNotFoundException(repositoryId);
@@ -181,7 +181,7 @@ public class RepositoryWS {
     @RequestMapping(value = "/api/repositories/{repositoryId}", method = RequestMethod.DELETE)
     public void deleteRepositoryById(@PathVariable Long repositoryId) throws RepositoryWithIdNotFoundException {
         logger.info("Deleting repository [{}]", repositoryId);
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         if (repository == null) {
             throw new RepositoryWithIdNotFoundException(repositoryId);
@@ -202,7 +202,7 @@ public class RepositoryWS {
                                            @RequestBody Repository repository) throws RepositoryWithIdNotFoundException {
         logger.info("Updating repository [{}]", repositoryId);
         ResponseEntity result;
-        Repository repoToUpdate = repositoryRepository.findOne(repositoryId);
+        Repository repoToUpdate = repositoryRepository.findById(repositoryId).orElse(null);
 
         if (repoToUpdate == null) {
             throw new RepositoryWithIdNotFoundException(repositoryId);
@@ -238,7 +238,7 @@ public class RepositoryWS {
                                                 @RequestParam(value = "translated", required = false) Boolean translated,
                                                 @RequestParam(value = "createdBefore", required = false) DateTime createdBefore) throws RepositoryWithIdNotFoundException {
         ResponseEntity<Repository> result;
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         if (repository == null) {
             throw new RepositoryWithIdNotFoundException(repositoryId);

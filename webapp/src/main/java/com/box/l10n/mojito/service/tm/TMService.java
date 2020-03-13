@@ -161,8 +161,8 @@ public class TMService {
      *                                         invalid
      */
     public TMTextUnit addTMTextUnit(Long tmId, Long assetId, String name, String content, String comment) {
-        TM tm = tmRepository.findOne(tmId);
-        Asset asset = assetRepository.findOne(assetId);
+        TM tm = tmRepository.findById(tmId).orElse(null);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         return addTMTextUnit(tm, asset, name, content, comment, null, null, null);
     }
 
@@ -254,7 +254,7 @@ public class TMService {
         tmTextUnit.setCreatedDate(createdDate);
         tmTextUnit.setPluralForm(pluralForm);
         tmTextUnit.setPluralFormOther(pluralFormOther);
-        tmTextUnit.setCreatedByUser(createdByUser != null ? createdByUser : auditorAwareImpl.getCurrentAuditor());
+        tmTextUnit.setCreatedByUser(createdByUser != null ? createdByUser : auditorAwareImpl.getCurrentAuditor().orElse(null));
 
         tmTextUnit = tmTextUnitRepository.save(tmTextUnit);
 
@@ -477,7 +477,7 @@ public class TMService {
         logger.debug("Check if there is a current TMTextUnitVariant");
         TMTextUnitCurrentVariant currentTmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(localeId, tmTextUnitId);
 
-        TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
 
         if (tmTextUnit == null) {
             String msg = MessageFormat.format("Unable to find the TMTextUnit with ID: {0}. The TMTextUnitVariant and "
@@ -485,7 +485,7 @@ public class TMService {
             throw new RuntimeException(msg);
         }
 
-        User createdBy = auditorAwareImpl.getCurrentAuditor();
+        User createdBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
         return addTMTextUnitCurrentVariantWithResult(currentTmTextUnitCurrentVariant,
                 tmTextUnit.getTm().getId(),
                 tmTextUnitId,
@@ -645,7 +645,7 @@ public class TMService {
             TMTextUnitVariant.Status status,
             boolean includedInLocalizedFile,
             DateTime createdDate) {
-        User createdBy = auditorAwareImpl.getCurrentAuditor();
+        User createdBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
         return addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate, createdBy);
     }
 
@@ -1082,7 +1082,7 @@ public class TMService {
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions) throws UnsupportedAssetFilterTypeException {
 
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
 
         String bcp47Tag = repositoryLocale.getLocale().getBcp47Tag();
@@ -1148,8 +1148,8 @@ public class TMService {
 
         String xliff = exportAssetAsXLIFF(assetId, bcp47Tag);
 
-        TMXliff tmXliff = tmXliffRepository.findOne(tmXliffId);
-        tmXliff.setAsset(assetRepository.findOne(assetId));
+        TMXliff tmXliff = tmXliffRepository.findById(tmXliffId).orElse(null);
+        tmXliff.setAsset(assetRepository.findById(assetId).orElse(null));
         tmXliff.setLocale(localeService.findByBcp47Tag(bcp47Tag));
         tmXliff.setContent(xliff);
         tmXliff.setPollableTask(currentTask);
@@ -1161,7 +1161,7 @@ public class TMService {
 
     public TMXliff createTMXliff(Long assetId, String bcp47Tag, String content, PollableTask pollableTask) {
         TMXliff tmXliff = new TMXliff();
-        tmXliff.setAsset(assetRepository.findOne(assetId));
+        tmXliff.setAsset(assetRepository.findById(assetId).orElse(null));
         tmXliff.setLocale(localeService.findByBcp47Tag(bcp47Tag));
         tmXliff.setContent(content);
         tmXliff.setPollableTask(pollableTask);

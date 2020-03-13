@@ -16,7 +16,6 @@ import com.box.l10n.mojito.smartling.SmartlingTestConfig;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -61,6 +60,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
+
     @Autowired
     ScreenshotRepository screenshotRepository;
 
@@ -73,13 +73,10 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     @Autowired
     SmartlingTestConfig testConfig;
 
-    @Before
-    public void init() {
-        Assume.assumeNotNull(smartlingClient);
-    }
-
     @Test
     public void testMappingAndScreenshot() throws Exception {
+        Assume.assumeNotNull(smartlingClient);
+        Assume.assumeNotNull(testConfig.projectId);
 
         ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
         Repository repository = thirdPartyServiceTestData.repository;
