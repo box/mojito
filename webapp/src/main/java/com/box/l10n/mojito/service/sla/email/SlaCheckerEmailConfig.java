@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
  * @author jeanaurambault
  */
 @Configuration
-@ConfigurationProperties(prefix = "l10n.slaChecker.email")
+@ConfigurationProperties(prefix = "l10n.sla-checker.email")
 public class SlaCheckerEmailConfig {
 
     String from;

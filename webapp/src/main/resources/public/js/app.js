@@ -44,24 +44,24 @@ import pt from 'react-intl/locale-data/pt';
 import zh from 'react-intl/locale-data/zh';
 import BranchesPageActions from "./actions/branches/BranchesPageActions";
 import BranchesHistoryStore from "./stores/branches/BranchesHistoryStore";
+import enMessages from '../../properties/en.properties';
+import GoogleAnalytics from "./utils/GoogleAnalytics";
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
-__webpack_public_path__ = CONTEXT_PATH + "/";
+__webpack_public_path__ = APP_CONFIG.contextPath + "/";
 
-const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
+const browserHistory = useRouterHistory(createHistory)({basename: APP_CONFIG.contextPath});
 
-import enMessages  from'../../properties/en.properties';
-import GoogleAnalytics from "./utils/GoogleAnalytics";
 import(
     /* webpackChunkName: "[request]", webpackMode: "lazy" */
-    `../../properties/${LOCALE}.properties`).then(messages => {
+    `../../properties/${APP_CONFIG.locale}.properties`).then(messages => {
     startApp(getMergedMessages(messages));
 });
 
 
 if (APP_CONFIG.googleAnalytics.enabled) {
-    let gaUserId = USERNAME;
+    let gaUserId = APP_CONFIG.user.username;
     if (APP_CONFIG.googleAnalytics.hashedUserId) {
         gaUserId = GoogleAnalytics.hash(gaUserId);
     }
@@ -91,13 +91,13 @@ function instrumentMessagesForIct(messages, locale) {
 
 function startApp(messages) {
 
-    if (ICT) {
-        instrumentMessagesForIct(messages, LOCALE);
+    if (APP_CONFIG.ict) {
+        instrumentMessagesForIct(messages, APP_CONFIG.locale);
     }
 
     ReactDOM.render(
             <AppConfig appConfig={APP_CONFIG}>
-                <IntlProvider locale={LOCALE} messages={messages}>
+                <IntlProvider locale={APP_CONFIG.locale} messages={messages}>
                     <Router history={browserHistory}>
                         <Route component={Main}>
                             <Route path="/" component={App}
@@ -137,18 +137,22 @@ function startApp(messages) {
         document.body.appendChild(container);
 
         function okOnClick() {
-            let pathNameStrippedLeadingSlash = location.pathname.substr(1 + CONTEXT_PATH.length, location.pathname.length);
+            let pathNameStrippedLeadingSlash = location.pathname.substr(1 + APP_CONFIG.contextPath.length, location.pathname.length);
             let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
 
-            if (APP_CONFIG.login.oauth2.enabled) {
+            if (APP_CONFIG.security.unauthRedirectTo) {
+                // if we don't log through login page we just reload the current location
+                // that needs to be improved eg. when navigating within the workbench if an api calls fails it will
+                // re-authenticate and the load the API response instead of showing the frontend
                 window.location.href = UrlHelper.getUrlWithContextPath(currentLocation);
             } else {
+                // if log through the login page use showPage to redirect to the requested page before auth failed
                 window.location.href = UrlHelper.getUrlWithContextPath("/login?") + UrlHelper.toQueryString({"showPage": currentLocation});
             }
         }
 
         ReactDOM.render(
-                <IntlProvider locale={LOCALE} messages={messages}>
+                <IntlProvider locale={APP_CONFIG.locale} messages={messages}>
                     <Modal show={true}>
                         <Modal.Header closeButton={true}>
                             <Modal.Title>

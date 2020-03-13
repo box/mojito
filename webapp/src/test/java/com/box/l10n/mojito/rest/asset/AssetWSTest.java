@@ -29,7 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author aloison
@@ -78,7 +81,7 @@ public class AssetWSTest extends WSTestBase {
 
         pollableTaskClient.waitForPollableTask(sourceAssetAfterPost.getPollableTask().getId(), 5000L);
 
-        Asset addedAsset = assetRepository.findOne(sourceAssetAfterPost.getAddedAssetId());
+        Asset addedAsset = assetRepository.findById(sourceAssetAfterPost.getAddedAssetId()).orElse(null);
         assertNotNull("The asset should have been created", addedAsset);
 
         assertEquals(sourceAsset.getRepositoryId(), addedAsset.getRepository().getId());
@@ -103,7 +106,7 @@ public class AssetWSTest extends WSTestBase {
         com.box.l10n.mojito.rest.entity.SourceAsset sourceAssetAfterPost = assetClient.sendSourceAsset(sourceAsset);
         pollableTaskClient.waitForPollableTask(sourceAssetAfterPost.getPollableTask().getId(), 5000L);
 
-        Asset asset = assetRepository.findOne(sourceAssetAfterPost.getAddedAssetId());
+        Asset asset = assetRepository.findById(sourceAssetAfterPost.getAddedAssetId()).orElse(null);
         Long assetId = asset.getId();
         assertNotNull("The asset should have been created", asset);
         assertFalse("The asset should have not been deleted yet", asset.getDeleted());
@@ -115,7 +118,7 @@ public class AssetWSTest extends WSTestBase {
         assertEquals("There should be no deleted asset for this repository", 0, assets.size());
 
         assetClient.deleteAssetById(assetId);
-        asset = assetRepository.findOne(sourceAssetAfterPost.getAddedAssetId());
+        asset = assetRepository.findById(sourceAssetAfterPost.getAddedAssetId()).orElse(null);
         assertEquals("The asset id should have not changed", assetId, asset.getId());
         assertTrue("The asset should be deleted", asset.getDeleted());
         assets = assetClient.getAssetsByRepositoryId(repository.getId());

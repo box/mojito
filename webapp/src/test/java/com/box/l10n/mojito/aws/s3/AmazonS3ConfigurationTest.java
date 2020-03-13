@@ -10,11 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {AmazonS3ConfigurationTest.class, AmazonS3ConfigurationProperties.class, AmazonS3Configuration.class})
+@SpringBootTest(classes = {AmazonS3ConfigurationTest.class, AmazonS3ConfigurationProperties.class, AmazonS3Configuration.class})
 @EnableConfigurationProperties
 public class AmazonS3ConfigurationTest {
 

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -53,7 +52,7 @@ public class AssetExtractionCleanupService {
         do {
             // Fetching 5 by 5 to avoid locking too many rows.
             // It is also useful to distribute the load across multiple instances.
-            PageRequest pageable = new PageRequest(0, 5);
+            PageRequest pageable = PageRequest.of(0, 5);
             assetExtractionIdsToDelete = assetExtractionRepository.findFinishedAndOldAssetExtractions(pageable);
 
             for (Long assetExtractionIdToDelete : assetExtractionIdsToDelete) {
@@ -73,7 +72,7 @@ public class AssetExtractionCleanupService {
         int numberMappingsDeleted = assetTextUnitToTMTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
         int numberAssetTextUnitsDeleted = assetTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
         int numberAssetContentDeleted = assetContentRepository.deleteByAssetExtractionsIdIsNull();
-        assetExtractionRepository.delete(assetExtractionIdToDelete);
+        assetExtractionRepository.deleteById(assetExtractionIdToDelete);
         logger.debug("For assetExtractionId: {}, deleted {} mappings, {} asset text units, asset content: {}",
                 assetExtractionIdToDelete, numberMappingsDeleted, numberAssetTextUnitsDeleted, numberAssetContentDeleted);
     }

@@ -5,11 +5,12 @@ import com.box.l10n.mojito.entity.security.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
+/**`
  * @author wyau
  */
 public class UserDetailsImpl implements UserDetails {

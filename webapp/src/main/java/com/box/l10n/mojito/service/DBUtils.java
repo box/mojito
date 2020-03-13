@@ -6,11 +6,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DBUtils {
 
-    @Value("${spring.jpa.database}")
-    String driver;
+    @Value("${spring.datasource.url}")
+    String url;
 
-    public boolean isHSQL() {
-        return "HSQL".equals(driver);
+    public boolean isMysql() {
+        return url.contains("mysql");
     }
 
 }

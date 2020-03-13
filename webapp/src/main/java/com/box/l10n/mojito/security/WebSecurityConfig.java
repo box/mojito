@@ -1,32 +1,26 @@
 package com.box.l10n.mojito.security;
 
+import com.box.l10n.mojito.ActuatorHealthLegacyConfig;
+import com.box.l10n.mojito.service.security.user.UserService;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.Http401AuthenticationEntryPoint;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices;
-import org.springframework.boot.context.embedded.FilterRegistrationBean;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsByNameServiceWrapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.client.OAuth2ClientContext;
-import org.springframework.security.oauth2.client.OAuth2RestTemplate;
-import org.springframework.security.oauth2.client.filter.OAuth2ClientAuthenticationProcessingFilter;
-import org.springframework.security.oauth2.client.filter.OAuth2ClientContextFilter;
-import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
@@ -34,15 +28,19 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.Filter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author wyau
  */
-@Configuration
 @EnableWebSecurity
+//TOOD(spring2) we don't use method level security, do we? remove?
 @EnableGlobalMethodSecurity(securedEnabled = true, mode = AdviceMode.ASPECTJ)
+@Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    static final String LOGIN_PAGE = "/login";
     /**
      * logger
      */
@@ -58,20 +56,26 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     ActiveDirectoryConfig activeDirectoryConfig;
 
     @Autowired
-    UserDetailsContextMapperImpl userDetailsContextMapperImpl;
+    ActuatorHealthLegacyConfig actuatorHealthLegacyConfig;
 
     @Autowired
-    OAuth2ClientContext oauth2ClientContext;
+    UserDetailsContextMapperImpl userDetailsContextMapperImpl;
 
-    @Value("${l10n.security.oauth2.enabled:false}")
-    boolean oauth2Enabled = false;
+    @Autowired(required = false)
+    @Qualifier("oauth2Filter")
+    Filter oauth2Filter;
 
-    @Value("${l10n.security.header-auth.enabled:false}")
-    boolean headerAuth = false;
+    @Autowired(required = false)
+    RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter;
+
+    @Autowired(required = false)
+    PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider;
+
+    @Autowired
+    UserService userService;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-
         for (SecurityConfig.AuthenticationType authenticationType : securityConfig.getAuthenticationType()) {
             switch (authenticationType) {
                 case DATABASE:
@@ -82,6 +86,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     break;
                 case AD:
                     configureActiveDirectory(auth);
+                    break;
+                case HEADER:
+                    configureHeaderAuth(auth);
                     break;
             }
         }
@@ -127,104 +134,88 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .ldif(ldapConfig.getLdif());
     }
 
-    @Autowired
-    void configureHeaderAuth(AuthenticationManagerBuilder auth) throws Exception {
-        if (headerAuth) {
-            logger.debug("Configuring in pre authentication");
-            auth.authenticationProvider(preAuthenticatedAuthenticationProvider());
-        }
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "l10n.security.header-auth.enabled", havingValue = "true")
-    RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter() throws Exception {
-        RequestHeaderAuthenticationFilter requestHeaderAuthenticationFilter = new RequestHeaderAuthenticationFilter();
-        requestHeaderAuthenticationFilter.setPrincipalRequestHeader("x-forwarded-user");
-        requestHeaderAuthenticationFilter.setExceptionIfHeaderMissing(false);
-        requestHeaderAuthenticationFilter.setAuthenticationManager(authenticationManager());
-        return requestHeaderAuthenticationFilter;
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "l10n.security.header-auth.enabled", havingValue = "true")
-    PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider() {
-        PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider = new PreAuthenticatedAuthenticationProvider();
-        UserDetailsByNameServiceWrapper userDetailsByNameServiceWrapper = new UserDetailsByNameServiceWrapper(getUserDetailsServiceCreatePartial());
-        preAuthenticatedAuthenticationProvider.setPreAuthenticatedUserDetailsService(userDetailsByNameServiceWrapper);
-        return preAuthenticatedAuthenticationProvider;
+    void configureHeaderAuth(AuthenticationManagerBuilder auth) {
+        Preconditions.checkNotNull(preAuthenticatedAuthenticationProvider, "The preAuthenticatedAuthenticationProvider must be configured");
+        logger.debug("Configuring in pre authentication");
+        auth.authenticationProvider(preAuthenticatedAuthenticationProvider);
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Configuring web security");
 
+        // TODO should we just enable caching of static assets, this disabling cache control for everything
+        // https://docs.spring.io/spring-security/site/docs/current/reference/html5/#headers-cache-control
         http.headers().cacheControl().disable();
 
-        http.csrf().ignoringAntMatchers("/shutdown", "/api/rotation");
+        // no csrf on rotation end point - they are accessible only locally
+        http.csrf().ignoringAntMatchers("/actuator/shutdown", "/api/rotation");
 
-        http.authorizeRequests()
-                .antMatchers("/intl/*", "/img/*", "/fonts/*", "/login/**", "/webjars/**", "/cli/**", "/health").permitAll()
-                .antMatchers("/shutdown", "/api/rotation").hasIpAddress("127.0.0.1").anyRequest().permitAll()
-                .anyRequest().fullyAuthenticated()
-                .and()
-                .formLogin()
-                .loginPage("/login")
-                .successHandler(new ShowPageAuthenticationSuccessHandler())
-                .and()
-                .logout().logoutSuccessUrl("/login?logout").permitAll();
+        // matcher order matters - "everything else" mapping must be last
+        http.authorizeRequests(authorizeRequests -> authorizeRequests.
+                antMatchers("/intl/*", "/img/*", "/login/**", "/favicon.ico",
+                        "/fonts/*", "/cli/**", "/js/**", "/css/**").permitAll(). // always accessible to serve the frontend
+                antMatchers(getHeathcheckPatterns()).permitAll(). // allow health entry points
+                antMatchers("/actuator/shutdown", "/api/rotation").hasIpAddress("127.0.0.1"). // local access only for rotation management
+                antMatchers("/**").authenticated() // everything else must be authenticated
+        );
 
-        if (headerAuth) {
-            http.addFilterBefore(requestHeaderAuthenticationFilter(), BasicAuthenticationFilter.class);
+        logger.debug("For APIs, we don't redirect to login page. Instead we return a 401");
+        http.exceptionHandling().defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), new AntPathRequestMatcher("/api/*"));
+
+        if (securityConfig.getUnauthRedirectTo() != null) {
+            logger.debug("Redirect to: {} instead of login page on authorization exceptions", securityConfig.getUnauthRedirectTo());
+            http.exceptionHandling().defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(securityConfig.getUnauthRedirectTo()), new AntPathRequestMatcher("/*"));
         }
 
-        if (oauth2Enabled) {
-            http.addFilterBefore(oauthFilter(), BasicAuthenticationFilter.class);
+        for (SecurityConfig.AuthenticationType authenticationType : securityConfig.getAuthenticationType()) {
+            switch (authenticationType) {
+                case HEADER:
+                    Preconditions.checkNotNull(requestHeaderAuthenticationFilter, "The requestHeaderAuthenticationFilter must be configured");
+                    logger.debug("Add request header Auth filter");
+                    requestHeaderAuthenticationFilter.setAuthenticationManager(authenticationManager());
+                    http.addFilterBefore(requestHeaderAuthenticationFilter, BasicAuthenticationFilter.class);
+                    break;
+                case OAUTH2:
+                    logger.debug("Configure OAuth2");
+                    http.oauth2Login(oauth2Login -> {
+                        oauth2Login.loginPage(LOGIN_PAGE);
+
+                        oauth2Login.authorizationEndpoint(authorizationEndpointConfig -> authorizationEndpointConfig.
+                                baseUri(LOGIN_PAGE + OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI));
+
+                        oauth2Login.userInfoEndpoint(userInfoEndpoint -> {
+                            userInfoEndpoint.userService(new UserDetailImplOAuth2UserService(securityConfig, userService));
+                        });
+                    });
+                    break;
+                case AD:
+                case LDAP:
+                case DATABASE:
+                    logger.debug("Configure form login for DATABASE, AD or LDAP");
+                    http.formLogin(formLogin -> formLogin.
+                            loginPage(LOGIN_PAGE).
+                            successHandler(new ShowPageAuthenticationSuccessHandler())
+                    );
+                    break;
+            }
         }
-
-        http.exceptionHandling().defaultAuthenticationEntryPointFor(new Http401AuthenticationEntryPoint("API_UNAUTHORIZED"), new AntPathRequestMatcher("/api/*"));
-        http.exceptionHandling().defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(oauth2Enabled ? "/login/oauth" : "/login"), new AntPathRequestMatcher("/*"));
     }
 
-    private Filter oauthFilter() {
-        logger.debug("Setup SSO filter for oauth");
-        OAuth2ClientAuthenticationProcessingFilter oauth2Filter = new OAuth2ClientAuthenticationProcessingFilter(
-                "/login/oauth");
-        OAuth2RestTemplate auth2RestTemplate = new OAuth2RestTemplate(oauth2(), oauth2ClientContext);
-
-        oauth2Filter.setRestTemplate(auth2RestTemplate);
-        UserInfoTokenServices tokenServices = new UserInfoTokenServices(
-                oauth2Resource().getUserInfoUri(),
-                oauth2().getClientId());
-        tokenServices.setRestTemplate(auth2RestTemplate);
-
-        oauth2Filter.setTokenServices(new MyUserInfoTokenServices(
-                oauth2Resource().getUserInfoUri(),
-                oauth2().getClientId()));
-
-        return oauth2Filter;
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "l10n.security.oauth2.enabled", havingValue = "true")
-    @ConfigurationProperties("l10n.security.oauth2.client")
-    public AuthorizationCodeResourceDetails oauth2() {
-        return new AuthorizationCodeResourceDetails();
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "l10n.security.oauth2.enabled", havingValue = "true")
-    @ConfigurationProperties("l10n.security.oauth2.resource")
-    public ResourceServerProperties oauth2Resource() {
-        return new ResourceServerProperties();
-    }
-
-    @Bean
-    @ConditionalOnProperty(value = "l10n.security.oauth2.enabled", havingValue = "true")
-    public FilterRegistrationBean oauth2ClientFilterRegistration(OAuth2ClientContextFilter filter) {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
-        registration.setFilter(filter);
-        registration.setOrder(-100);
-        return registration;
+    /**
+     * Returns health entry points.
+     *
+     * By default it is only the actuator but potentially include the legacy entry point.
+     * {@link com.box.l10n.mojito.rest.rotation.ActuatorHealthLegacyWS}
+     * @return
+     */
+    String[] getHeathcheckPatterns() {
+        List<String> patterns = new ArrayList<>();
+        patterns.add("/actuator/health");
+        if(actuatorHealthLegacyConfig.isForwarding()) {
+            patterns.add("/health");
+        }
+        return patterns.toArray(new String[patterns.size()]);
     }
 
     @Primary
@@ -233,8 +224,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new UserDetailsServiceImpl();
     }
 
-    @Bean
-    protected UserDetailsServiceCreatePartialImpl getUserDetailsServiceCreatePartial() {
-        return new UserDetailsServiceCreatePartialImpl();
-    }
 }

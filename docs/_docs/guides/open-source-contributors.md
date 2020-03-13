@@ -107,6 +107,10 @@ character-set-server = utf8mb4
     
 [mysqld]
 max_allowed_packet = 256M
+
+[mysqld]
+default-time-zone = '+00:00'
+```
 ```
 
 The server needs to be started/restarted. 
@@ -154,15 +158,10 @@ Then create the first file: `.l10n/config/webapp/application.properties` with fo
 ```properties
 flyway.enabled=true
 l10n.flyway.clean=true
-spring.jpa.database=MYSQL
-spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-spring.jpa.hibernate.ddl-auto=none
 spring.datasource.url=jdbc:mysql://localhost:3306/mojito?characterEncoding=UTF-8&useUnicode=true
 spring.datasource.username=mojito
 spring.datasource.password=mojito
 spring.datasource.driverClassName=com.mysql.jdbc.Driver
-spring.datasource.testOnBorrow=true
-spring.datasource.validationQuery=SELECT 1
 
 l10n.org.quartz.jobStore.useProperties=true
 l10n.org.quartz.scheduler.instanceId=AUTO

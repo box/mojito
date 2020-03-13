@@ -6,13 +6,15 @@ import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.Integr
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
 import com.google.common.collect.Sets;
-import java.util.HashSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.HashSet;
+import java.util.Optional;
 
 /**
  * @author wyau
@@ -35,7 +37,7 @@ public class TMTextUnitIntegrityCheckServiceTest {
         TMTextUnit tmTextUnit = Mockito.mock(TMTextUnit.class);
 
         Mockito.when(tmTextUnit.getAsset()).thenReturn(asset);
-        Mockito.when(tmTextUnitRepository.findOne(Mockito.anyLong())).thenReturn(tmTextUnit);
+        Mockito.when(tmTextUnitRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(tmTextUnit));
         Mockito.when(integrityCheckerFactory.getTextUnitCheckers(asset)).thenReturn(new HashSet<TextUnitIntegrityChecker>());
 
         integrityCheckService.checkTMTextUnitIntegrity(1L, "string to check");
@@ -47,10 +49,11 @@ public class TMTextUnitIntegrityCheckServiceTest {
     public void testCheckTMTextUnitIntegrityWillRunThroughAndCheck() {
         Asset asset = Mockito.mock(Asset.class);
         TMTextUnit tmTextUnit = Mockito.mock(TMTextUnit.class);
+        Mockito.when(tmTextUnit.getContent()).thenReturn("some content");
         TextUnitIntegrityChecker checker = Mockito.mock(TextUnitIntegrityChecker.class);
 
         Mockito.when(tmTextUnit.getAsset()).thenReturn(asset);
-        Mockito.when(tmTextUnitRepository.findOne(Mockito.anyLong())).thenReturn(tmTextUnit);
+        Mockito.when(tmTextUnitRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(tmTextUnit));
         Mockito.when(integrityCheckerFactory.getTextUnitCheckers(asset)).thenReturn(Sets.newHashSet(checker));
 
         integrityCheckService.checkTMTextUnitIntegrity(1L, "string to check");
@@ -62,10 +65,11 @@ public class TMTextUnitIntegrityCheckServiceTest {
     public void testCheckTMTextUnitIntegrityWillThrowWhenCheckFails() {
         Asset asset = Mockito.mock(Asset.class);
         TMTextUnit tmTextUnit = Mockito.mock(TMTextUnit.class);
+        Mockito.when(tmTextUnit.getContent()).thenReturn("some content");
         TextUnitIntegrityChecker checker = Mockito.mock(TextUnitIntegrityChecker.class);
 
         Mockito.when(tmTextUnit.getAsset()).thenReturn(asset);
-        Mockito.when(tmTextUnitRepository.findOne(Mockito.anyLong())).thenReturn(tmTextUnit);
+        Mockito.when(tmTextUnitRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(tmTextUnit));
         Mockito.when(integrityCheckerFactory.getTextUnitCheckers(asset)).thenReturn(Sets.newHashSet(checker));
         Mockito.doThrow(new IntegrityCheckException("bad")).when(checker).check(Mockito.anyString(), Mockito.anyString());
 

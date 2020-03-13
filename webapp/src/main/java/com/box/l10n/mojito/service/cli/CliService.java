@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -29,9 +27,8 @@ import java.util.Optional;
 @Component
 public class CliService {
 
-    static Logger logger = LoggerFactory.getLogger(CliService.class);
-
     static final String INSTALL_CLI_TEMPLATE = "cli/install.sh";
+    static Logger logger = LoggerFactory.getLogger(CliService.class);
 
     @Value("${info.build.version}")
     String version;
@@ -40,11 +37,8 @@ public class CliService {
     @Qualifier("GitInfoWebapp")
     GitInfo gitInfo;
 
-    @Value("${cli.url}")
-    String cliUrl;
-
-    @Value("${cli.file}")
-    String cliFile;
+    @Autowired
+    CliConfig cliConfig;
 
     @Autowired
     MustacheTemplateEngine mustacheTemplateEngine;
@@ -55,7 +49,7 @@ public class CliService {
     public Optional<FileSystemResource> getLocalCliFile() {
         Optional<FileSystemResource> fileSystemResource = Optional.empty();
 
-        Path cliPath = Paths.get(cliFile);
+        Path cliPath = Paths.get(cliConfig.getFile());
 
         if (Files.exists(cliPath)) {
             fileSystemResource = Optional.of(new FileSystemResource(cliPath.toFile()));
@@ -78,7 +72,7 @@ public class CliService {
         arguments.put("gitCommit", gitInfo.getCommit().getId());
         arguments.put("gitShortCommit", gitInfo.getCommit().getId().substring(0, 7));
 
-        String format = MessageFormat.format(cliUrl, arguments);
+        String format = MessageFormat.format(cliConfig.getUrl(), arguments);
         return format;
     }
 

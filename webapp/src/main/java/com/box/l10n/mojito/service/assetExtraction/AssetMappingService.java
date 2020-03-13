@@ -135,8 +135,8 @@ public class AssetMappingService {
         logger.debug("Create TMTextUnit for unmapped AssetTextUnits, assetExtractionId: {} tmId: {}", assetExtractionId, tmId);
         List<TMTextUnit> newlyCreatedTMTextUnits = new ArrayList<>();
 
-        Asset asset = assetRepository.findOne(assetId);
-        TM tm = tmRepository.findOne(tmId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
+        TM tm = tmRepository.findById(tmId).orElse(null);
 
         for (AssetTextUnit unmappedAssetTextUnit : assetTextUnitRepository.getUnmappedAssetTextUnits(assetExtractionId)) {
             TMTextUnit addTMTextUnit = tmService.addTMTextUnit(
@@ -216,7 +216,7 @@ public class AssetMappingService {
             assetTextUnitToTMTextUnit.setTmTextUnit(tmTextUnitRepository.getOne(exactMatch.getTmTextUnitId()));
             assetTextUnitToTMTextUnits.add(assetTextUnitToTMTextUnit);
         }
-        assetTextUnitToTMTextUnits = assetTextUnitToTMTextUnitRepository.save(assetTextUnitToTMTextUnits);
+        assetTextUnitToTMTextUnits = assetTextUnitToTMTextUnitRepository.saveAll(assetTextUnitToTMTextUnits);
         return assetTextUnitToTMTextUnits.size();
     }
 

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -52,6 +53,25 @@ public class Files {
             java.nio.file.Files.write(path, content.getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+    public static Stream<String> lines(Path path) {
+        try {
+            return java.nio.file.Files.lines(path, StandardCharsets.UTF_8);
+        } catch (IOException ioe) {
+            throw new UncheckedIOException(ioe);
+        }
+    }
+
+    public static void write(Path path, Stream<String> lines) {
+        write(path, (Iterable<String>) lines::iterator);
+    }
+
+    public static void write(Path path, Iterable<? extends CharSequence> lines, OpenOption... options) {
+        try {
+            java.nio.file.Files.write(path, lines, StandardCharsets.UTF_8, options);
+        } catch (IOException ioe) {
+            throw new UncheckedIOException(ioe);
         }
     }
 }

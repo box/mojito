@@ -147,7 +147,7 @@ public class VirtualAssetService {
         } else {
             logger.debug("No existing virtual asset, create one");
 
-            Repository repository = repositoryRepository.findOne(virtualAsset.getRepositoryId());
+            Repository repository = repositoryRepository.findById(virtualAsset.getRepositoryId()).orElse(null);
 
             if (repository == null) {
                 throw new VirtualAssetBadRequestException("A valid repository must be provided when creating an asset");
@@ -308,7 +308,7 @@ public class VirtualAssetService {
 
         List<TextUnitDTO> textUnitDTOs = new ArrayList<>();
 
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         Locale locale = localeService.findById(localeId);
 
         for (VirtualAssetTextUnit textUnitForVirtualAsset : textUnitForVirtualAssets) {
@@ -329,7 +329,7 @@ public class VirtualAssetService {
 
     @Transactional
     public void deleteTextUnit(Long assetId, String name) {
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         deleteTextUnits(asset, Arrays.asList(name));
     }
 
@@ -437,7 +437,7 @@ public class VirtualAssetService {
     }
 
     Asset getVirtualAsset(long assetId) throws VirtualAssetRequiredException {
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
 
         if (asset == null || asset.getVirtual() == null || !asset.getVirtual()) {
             throw new VirtualAssetRequiredException("Operation requires a Virtual asset");

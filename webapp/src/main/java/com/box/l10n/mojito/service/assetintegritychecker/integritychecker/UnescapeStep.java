@@ -2,9 +2,9 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.okapi.filters.AndroidFilter;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
@@ -65,7 +65,7 @@ public class UnescapeStep extends BasePipelineStep {
 
             try {
                 Long tmTextUnitId = Long.valueOf(textUnit.getId());
-                tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+                tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
             } catch (NumberFormatException nfe) {
                 logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
             }

@@ -10,12 +10,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {SlackClientTest.class, SlackClientConfiguration.class, SlackClientTest.TestConfig.class})
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {SlackClientTest.class, SlackClientConfiguration.class, SlackClientTest.TestConfig.class})
 @EnableConfigurationProperties
 public class SlackClientTest {
 
@@ -41,7 +41,7 @@ public class SlackClientTest {
 
         Message reply = new Message();
         reply.setChannel(instantMessageChannel.getId());
-        reply.setText("response");
+        reply.setText("テスト");
         reply.setThreadTs(chatPostMessageResponse.getTs());
 
         slackClient.sendInstantMessage(reply);

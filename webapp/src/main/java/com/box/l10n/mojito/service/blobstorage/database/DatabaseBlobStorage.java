@@ -67,7 +67,7 @@ public class DatabaseBlobStorage implements BlobStorage {
     public void deleteExpired() {
         int deletedCount;
         do {
-            PageRequest pageable = new PageRequest(0, 500);
+            PageRequest pageable = PageRequest.of(0, 500);
             List<Long> expired = mBlobRepository.findExpiredBlobIds(pageable);
             if (!expired.isEmpty()) {
                 deletedCount = mBlobRepository.deleteByIds(expired);
