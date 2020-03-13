@@ -1,7 +1,7 @@
 class UrlHelper {
 
     constructor() {
-        this.contextPath = CONTEXT_PATH;
+        this.contextPath = APP_CONFIG.contextPath;
     }
 
     getUrlWithContextPath(url) {

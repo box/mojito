@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
@@ -32,9 +31,6 @@ import java.util.List;
 public class RepositoryManualScreenshotRunJob implements Job {
 
     static Logger logger = LoggerFactory.getLogger(RepositoryManualScreenshotRunJob.class);
-
-    @Autowired
-    TaskScheduler taskScheduler;
 
     @Autowired
     RepositoryRepository repositoryRepository;

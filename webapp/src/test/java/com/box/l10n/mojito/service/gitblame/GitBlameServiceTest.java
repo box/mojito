@@ -2,7 +2,6 @@ package com.box.l10n.mojito.service.gitblame;
 
 import com.box.l10n.mojito.entity.GitBlame;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.TestIdWatcher;

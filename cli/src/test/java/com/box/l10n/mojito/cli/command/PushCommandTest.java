@@ -58,7 +58,7 @@ public class PushCommandTest extends CLITestBase {
         String outputString = outputCapture.toString();
         assertTrue(outputString.contains("--> asset id"));
 
-        Matcher matcher = Pattern.compile("- Uploading:\\s*(.*?)\\s").matcher(outputString);
+        Matcher matcher = Pattern.compile("- Uploading:\\s*([\\w].*?)\\s").matcher(outputString);
         matcher.find();
         String sourcePath = matcher.group(1);
         logger.debug("Source path is [{}]", sourcePath);

@@ -23,17 +23,6 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.google.common.base.Objects;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeMap;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
@@ -44,6 +33,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.TreeMap;
 
 /**
  * Service to generate {@link TranslationKit}s
@@ -152,7 +153,7 @@ public class TranslationKitService {
      */
     public List<TextUnitDTO> getTextUnitDTOsForTranslationKit(Long translationKitId, TranslationKit.Type type) {
 
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitId);
+        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
         return getTextUnitDTOsForTranslationKit(translationKit.getDrop().getRepository().getId(),
                 translationKit.getLocale().getId(),
                 TranslationKit.Type.TRANSLATION.equals(type) ? StatusFilter.FOR_TRANSLATION : StatusFilter.REVIEW_NEEDED);
@@ -202,7 +203,7 @@ public class TranslationKitService {
 
         logger.debug("Update translation kit: {} with list of tmTextUnitIds", translationKitId);
 
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitId);
+        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
         translationKit.setNumTranslationKitUnits(translationKitTextUnits.size());
         translationKit.setWordCount(wordCount);
 
@@ -271,7 +272,7 @@ public class TranslationKitService {
     @Transactional
     public void updateStatistics(Long translationKitId, Set<String> notFoundTextUnitIds) {
 
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitId);
+        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
 
         translationKit.setNumTranslatedTranslationKitUnits(translationKitTextUnitRepository.countByTranslationKitAndImportedTmTextUnitVariantIsNotNull(translationKit));
         translationKit.setNumSourceEqualsTarget(translationKitTextUnitRepository.countByTranslationKitAndSourceEqualsTargetTrue(translationKit));
@@ -288,7 +289,7 @@ public class TranslationKitService {
 
     @Transactional
     public void checkForPartiallyImported(Long dropId) {
-        Drop drop = dropRepository.findOne(dropId);
+        Drop drop = dropRepository.findById(dropId).orElse(null);
         List<TranslationKit> translationKits = translationKitRepository.findByDropId(drop.getId());
         boolean partiallyImported = false;
         for (TranslationKit translationKit : translationKits) {
@@ -338,7 +339,7 @@ public class TranslationKitService {
      */
     public List<TextUnitDTO> getTextUnitDTOsForTranslationKitWithInheritance(Long translationKitId) {
 
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitId);
+        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
         Long repositoryId = translationKit.getDrop().getRepository().getId();
         Long localeId = translationKit.getLocale().getId();
         Stack<Long> localeIds = getLocaleInheritanceStack(repositoryId, localeId);

@@ -1,6 +1,16 @@
 package com.box.l10n.mojito.service.screenshot;
 
-import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.Locale_;
+import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.Repository_;
+import com.box.l10n.mojito.entity.Screenshot;
+import com.box.l10n.mojito.entity.ScreenshotRun;
+import com.box.l10n.mojito.entity.ScreenshotRun_;
+import com.box.l10n.mojito.entity.ScreenshotTextUnit;
+import com.box.l10n.mojito.entity.ScreenshotTextUnit_;
+import com.box.l10n.mojito.entity.Screenshot_;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.SearchType;
@@ -79,7 +89,7 @@ public class ScreenshotService {
         ScreenshotRun currentScreenshotRun;
 
         if (screenshotRun.getId() != null) {
-            currentScreenshotRun = screenshotRunRepository.findOne(screenshotRun.getId());
+            currentScreenshotRun = screenshotRunRepository.findById(screenshotRun.getId()).orElse(null);
         } else {
             currentScreenshotRun = screenshotRunRepository.findByName(screenshotRun.getName());
         }
@@ -177,7 +187,7 @@ public class ScreenshotService {
 
         if (screenshotTextUnit.getTmTextUnit() != null) {
 
-            TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(screenshotTextUnit.getTmTextUnit().getId());
+            TMTextUnit tmTextUnit = tmTextUnitRepository.findById(screenshotTextUnit.getTmTextUnit().getId()).orElse(null);
             if (tmTextUnit != null) {
                 screenshotTextUnit.setName(tmTextUnit.getName());
                 screenshotTextUnit.setNumberOfMatch(1);

@@ -1,11 +1,11 @@
 package db.migration;
 
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import javax.sql.DataSource;
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+
+import javax.sql.DataSource;
 
 /**
  *
@@ -23,9 +23,8 @@ public class V9__Compute_Word_CountTest extends ServiceTestBase {
     @Test
     public void testMigrate() throws Exception {
         System.out.println("migrate");
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
         V9__Compute_Word_Count instance = new V9__Compute_Word_Count();
-        instance.migrate(jdbcTemplate);       
+        instance.migrate(dataSource);
     }
     
 }

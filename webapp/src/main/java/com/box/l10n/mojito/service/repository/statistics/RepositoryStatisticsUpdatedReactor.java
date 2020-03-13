@@ -1,21 +1,14 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
-import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.google.common.collect.Sets;
-import org.reactivestreams.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import reactor.Environment;
-import reactor.core.processor.RingBufferProcessor;
-import reactor.fn.Consumer;
-import reactor.rx.Stream;
-import reactor.rx.Streams;
+import reactor.core.publisher.ReplayProcessor;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 /**
  * This class aggregates events that requires repository statistics re-computation
@@ -31,25 +24,25 @@ public class RepositoryStatisticsUpdatedReactor {
      */
     static Logger logger = LoggerFactory.getLogger(RepositoryStatisticsUpdatedReactor.class);
 
-    @Autowired
-    Environment streamEnvironment;
-
-    @Autowired
     RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler;
 
+    ReplayProcessor<Long> replayProcessor;
 
-    private Processor<Long, Long> processor;
+    @Autowired
+    public RepositoryStatisticsUpdatedReactor(RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler) {
+        this(repositoryStatisticsJobScheduler, Duration.ofSeconds(1));
+    }
 
-    @PostConstruct
-    private void createProcessor() {
-        processor = RingBufferProcessor.create();
-        Stream stream = Streams.wrap(processor);
-        stream.buffer(1, TimeUnit.SECONDS).consume(new Consumer<List<Long>>() {
-            @Override
-            public void accept(List<Long> repositoryIds) {
-                for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
-                    repositoryStatisticsJobScheduler.schedule(repositoryId);
-                }
+    RepositoryStatisticsUpdatedReactor(RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler, Duration duration) {
+        this.repositoryStatisticsJobScheduler = repositoryStatisticsJobScheduler;
+        createProcessor(duration);
+    }
+
+    void createProcessor(Duration duration) {
+        replayProcessor = ReplayProcessor.create();
+        replayProcessor.buffer(duration).subscribe(repositoryIds -> {
+            for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
+                repositoryStatisticsJobScheduler.schedule(repositoryId);
             }
         });
     }
@@ -60,6 +53,6 @@ public class RepositoryStatisticsUpdatedReactor {
      * @param repositoryId
      */
     public void generateEvent(Long repositoryId) {
-        processor.onNext(repositoryId);
+        replayProcessor.onNext(repositoryId);
     }
 }

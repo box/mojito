@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli;
 
+import com.box.l10n.mojito.Application;
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
@@ -25,19 +26,12 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.OutputCapture;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.OutputCaptureRule;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,14 +46,9 @@ import java.util.function.Supplier;
  *
  * @author jaurambault
  */
-@EnableAutoConfiguration
-@EnableSpringConfigured
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {CLITestBase.class})
-@ComponentScan("com.box.l10n.mojito")
-@WebAppConfiguration
-@IntegrationTest({"server.port=0", "l10n.consoleWriter.ansiCodeEnabled=false"})
-@Configuration
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {Application.class},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CLITestBase extends IOTestBase {
 
     /**
@@ -95,20 +84,15 @@ public class CLITestBase extends IOTestBase {
     TextUnitSearcher textUnitSearcher;
 
     @Rule
-    public OutputCapture outputCapture = new OutputCapture();
+    public OutputCaptureRule outputCapture = new OutputCaptureRule();
 
-    @Bean
-    public ApplicationListener<EmbeddedServletContainerInitializedEvent> getApplicationListenerEmbeddedServletContainerInitializedEvent() {
+    @LocalServerPort
+    int port;
 
-        return new ApplicationListener<EmbeddedServletContainerInitializedEvent>() {
-
-            @Override
-            public void onApplicationEvent(EmbeddedServletContainerInitializedEvent event) {
-                int serverPort = event.getEmbeddedServletContainer().getPort();
-                logger.debug("Saving port number = {}", serverPort);
-                resttemplateConfig.setPort(serverPort);
-            }
-        };
+    @PostConstruct
+    public void setPort() {
+        logger.debug("Saving port number = {}", port);
+        resttemplateConfig.setPort(port);
     }
 
     public L10nJCommander getL10nJCommander() {

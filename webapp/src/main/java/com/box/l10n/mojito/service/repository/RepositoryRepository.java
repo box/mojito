@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.repository;
 
 import com.box.l10n.mojito.entity.Repository;
-import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -10,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
+import java.util.List;
 
 /**
  * @author wyau

@@ -6,6 +6,7 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +14,14 @@ import java.util.List;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author aloison
  */
 public class PollableTaskCleanupServiceTest extends ServiceTestBase {
+
+    static Logger logger = getLogger(PollableTaskCleanupServiceTest.class);
 
     @Autowired
     PollableTaskService pollableTaskService;
@@ -37,7 +41,7 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
         for (PollableTask pollableTask : pollableTasks) {
             pollableTask.setFinishedDate(new DateTime());
         }
-        pollableTaskRepository.save(pollableTasks);
+        pollableTaskRepository.saveAll(pollableTasks);
     }
 
     @Test
@@ -50,7 +54,12 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
         pollableTaskCleanupService.finishZombieTasksWithError();
 
         PollableTask pollableTaskAfterCleanup = pollableTaskService.getPollableTask(pollableTaskInPast.getId());
-        assertTrue(isMarkedAsZombie(pollableTaskAfterCleanup));
+        try {
+            assertTrue(isMarkedAsZombie(pollableTaskAfterCleanup));
+        } catch(AssertionError ae) {
+            logger.error("Make sure the server is configure in UTC");
+            throw ae;
+        }
     }
 
     @Transactional
@@ -59,7 +68,7 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
         pollableTask.setCreatedDate(pastCreatedDate);
         pollableTaskRepository.save(pollableTask);
 
-        return pollableTaskRepository.findOne(pollableTask.getId());
+        return pollableTaskRepository.findById(pollableTask.getId()).orElse(null);
     }
 
     private boolean isMarkedAsZombie(PollableTask pollableTask) {
@@ -67,7 +76,6 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
                 pollableTask.getErrorMessage() != null &&
                 pollableTask.getErrorStack().contains("Zombie task detected");
     }
-
 
     @Test
     public void testMarkZombieTasksAsFinishedWithErrorWithoutZombies() throws Exception {

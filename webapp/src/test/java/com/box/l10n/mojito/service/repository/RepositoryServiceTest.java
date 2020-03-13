@@ -2,26 +2,28 @@ package com.box.l10n.mojito.service.repository;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
-import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
-import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import java.util.HashSet;
 import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.data.jpa.domain.Specifications.where;
-import org.springframework.transaction.annotation.Transactional;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  * @author aloison
@@ -134,7 +136,7 @@ public class RepositoryServiceTest extends ServiceTestBase {
         );
         assertEquals(numberOfRepositories - 1, repositoryRepository.findByDeletedFalseOrderByNameAsc().size());
         assertNull("Found the deleted repository", repositoryRepository.findByName(repositoryName));
-        Repository deletedRepository = repositoryRepository.findOne(repositoryId);
+        Repository deletedRepository = repositoryRepository.findById(repositoryId).orElse(null);
         assertTrue("The repository is not deleted", deletedRepository.getDeleted());
         assertTrue("The deleted repository is not renamed properly", deletedRepository.getName().startsWith("deleted__"));
         

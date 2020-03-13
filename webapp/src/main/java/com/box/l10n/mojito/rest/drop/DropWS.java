@@ -5,9 +5,6 @@ import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
-import static com.box.l10n.mojito.rest.drop.DropSpecification.isCanceled;
-import static com.box.l10n.mojito.rest.drop.DropSpecification.isImported;
-import static com.box.l10n.mojito.rest.drop.DropSpecification.repositoryIdEquals;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.drop.DropRepository;
 import com.box.l10n.mojito.service.drop.DropService;
@@ -17,16 +14,13 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.UpdateTMWithXLIFFResult;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import com.fasterxml.jackson.annotation.JsonView;
-import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import static org.springframework.data.jpa.domain.Specifications.where;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,6 +28,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.concurrent.ExecutionException;
+
+import static com.box.l10n.mojito.rest.drop.DropSpecification.isCanceled;
+import static com.box.l10n.mojito.rest.drop.DropSpecification.isImported;
+import static com.box.l10n.mojito.rest.drop.DropSpecification.repositoryIdEquals;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  * @author aloison
@@ -170,7 +172,7 @@ public class DropWS {
      */
     @RequestMapping(value = "/api/drops/complete/{dropId}", method = RequestMethod.POST)
     public void completeDropById(@PathVariable Long dropId) throws DropWithIdNotFoundException {
-        Drop drop = dropRepository.findOne(dropId);
+        Drop drop = dropRepository.findById(dropId).orElse(null);
 
         if (drop == null) {
             throw new DropWithIdNotFoundException(dropId);
@@ -202,7 +204,7 @@ public class DropWS {
     @RequestMapping(method = RequestMethod.POST, value = "/api/drops/importXliff")
     public ImportXliffBody importXliff(@RequestBody ImportXliffBody importXliffBody) throws Exception {
 
-        Repository repository = repositoryRepository.findOne(importXliffBody.getRepositoryId());
+        Repository repository = repositoryRepository.findById(importXliffBody.getRepositoryId()).orElse(null);
 
         String normalizedContent = NormalizationUtils.normalize(importXliffBody.getXliffContent());
         

@@ -1,17 +1,18 @@
 package com.box.l10n.mojito.service.sla;
 
-import java.util.Arrays;
-import java.util.List;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalTime;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @author jeanaurambault
  */
 @Configuration
-@ConfigurationProperties(prefix = "l10n.dropSchedule")
+@ConfigurationProperties(prefix = "l10n.drop-schedule")
 public class DropScheduleConfig {
 
     DateTimeZone timezone = DateTimeZone.forID("PST8PDT");

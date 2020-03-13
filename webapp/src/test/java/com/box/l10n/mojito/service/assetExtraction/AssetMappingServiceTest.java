@@ -28,17 +28,19 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import java.util.Iterator;
-import java.util.List;
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author jaurambault
@@ -295,7 +297,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         checkMapping(next, assetExtraction, tm);
         assertFalse("There shouldn't be any other mapping reccords", iterator.hasNext());
 
-        Asset updatedAsset = assetRepository.findOne(asset.getId());
+        Asset updatedAsset = assetRepository.findById(asset.getId()).orElse(null);
         assertEquals("Last successfulAssetExtraction should be set", asset.getId(), updatedAsset.getId());
 
         logger.debug("Perform mapping on a second asset extraction that has more AssetTextUnit with same TM (what will happen when we keep updating documents)");

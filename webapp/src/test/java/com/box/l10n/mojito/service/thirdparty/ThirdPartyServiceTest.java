@@ -5,11 +5,11 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.image.ImageService;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
@@ -113,7 +113,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         logger.debug("When uploading an image in the ThirdPartyTMS just return an ThirdPartyTMSImage with random id");
         doAnswer((invocation) -> {
             ThirdPartyTMSImage thirdPartyTMSImage = new ThirdPartyTMSImage();
-            thirdPartyTMSImage.setId("img-" + invocation.getArgumentAt(1, String.class));
+            thirdPartyTMSImage.setId("img-" + invocation.getArgument(1));
             return thirdPartyTMSImage;
         }).when(thirdPartyTMSMock).uploadImage(any(), any(), any());
 

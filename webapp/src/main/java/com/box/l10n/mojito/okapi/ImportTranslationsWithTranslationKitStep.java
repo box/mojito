@@ -6,9 +6,6 @@ import com.box.l10n.mojito.entity.TranslationKit;
 import com.box.l10n.mojito.service.translationkit.TranslationKitExportedImportedAndCurrentTUV;
 import com.box.l10n.mojito.service.translationkit.TranslationKitRepository;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
-
-import java.util.Map;
-import java.util.Objects;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.resource.StartSubDocument;
 import net.sf.okapi.common.resource.TextContainer;
@@ -18,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author jaurambault
@@ -70,7 +70,7 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
 
         try {
             Long translationKitId = Long.valueOf(startSubDocument.getName());
-            translationKit = translationKitRepository.findOne(translationKitId);
+            translationKit = translationKitRepository.findById(translationKitId).orElse(null);
 
             if (translationKit == null) {
                 logger.debug("Cannot find TranslationKit entity for id: {}", translationKitId);
@@ -95,7 +95,7 @@ public class ImportTranslationsWithTranslationKitStep extends ImportTranslations
 
         try {
             Long tmTextUnitId = Long.valueOf(textUnit.getId());
-            tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+            tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
         } catch (NumberFormatException nfe) {
             logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
         }
