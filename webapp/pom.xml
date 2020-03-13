@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -22,16 +23,16 @@
     </properties>
 
     <dependencies>
+
         <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-jdbc</artifactId>
-            <version>1.3.3.RELEASE</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session</artifactId>
-            <version>1.3.3.RELEASE</version>
+            <artifactId>spring-session-jdbc</artifactId>
         </dependency>
 
         <dependency>
@@ -75,6 +76,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-quartz</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
         </dependency>
@@ -86,6 +92,7 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-rest-webmvc</artifactId>
@@ -102,11 +109,18 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-aspects</artifactId>
         </dependency>
+
         <dependency>
-            <groupId>org.springframework.security.oauth</groupId>
-            <artifactId>spring-security-oauth2</artifactId>
-            <version>2.0.18.RELEASE</version>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-client</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security.oauth.boot</groupId>
+            <artifactId>spring-security-oauth2-autoconfigure</artifactId>
+            <version>2.2.6.RELEASE</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
@@ -116,10 +130,12 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-stream</artifactId>
+            <artifactId>reactor-core</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-server-jndi</artifactId>
@@ -149,6 +165,7 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -173,9 +190,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.quartz-scheduler</groupId>
-            <artifactId>quartz</artifactId>
-            <version>2.2.3</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-properties-migrator</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -227,6 +244,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.0.3</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- Joda Time -->
         <dependency>
             <groupId>joda-time</groupId>
@@ -238,6 +262,18 @@
             <artifactId>usertype.core</artifactId>
             <version>${usertype.core.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-joda</artifactId>
+        </dependency>
+
         <!-- Joda Time -->
 
         <!-- TODO(P1) to be removed? -->
@@ -246,22 +282,7 @@
             <artifactId>commons-csv</artifactId>
             <version>1.4</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-        </dependency>
         <!-- TODO(P1) to be removed? -->
-
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-joda</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -277,12 +298,27 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>repackage</id>
                         <goals>
                             <goal>repackage</goal>
                         </goals>
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <version>${maven.compiler.version}</version>-->
+<!--                <configuration>-->
+<!--                    &lt;!&ndash; <proc>none</proc> &ndash;&gt;-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+
 
             <plugin>
                 <groupId>org.bsc.maven</groupId>
@@ -318,11 +354,6 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjrt</artifactId>
-                        <version>${aspectj.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
                         <artifactId>aspectjtools</artifactId>
                         <version>${aspectj.version}</version>
                     </dependency>
@@ -339,6 +370,7 @@
                     <showWeaveInfo>false</showWeaveInfo>
                     <deprecation>true</deprecation>
                     <complianceLevel>${java.version}</complianceLevel>
+                    <proc>none</proc>
                     <weaveDependencies>
 
                     </weaveDependencies>
@@ -397,7 +429,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
-                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
+                    <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
 
@@ -418,6 +450,7 @@
                 <artifactId>git-commit-id-plugin</artifactId>
                 <configuration>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <offline>true</offline>
                 </configuration>
             </plugin>
 
@@ -486,38 +519,6 @@
                                 </configuration>
                             </execution>
                         </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <!-- Work around for compilation issue with aspectj. See:
-        https://github.com/spring-projects/spring-boot/issues/4847 
-        http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
-        Need the profile to disable this logic while running springboot:run, see 
-        npm run start-dev
-        -->
-        <profile>
-            <id>springbootconfigprocessor</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-configuration-processor</artifactId>
-                    <optional>true</optional>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>${maven.compiler.version}</version>
-                        <configuration>
-                            <proc>none</proc>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>

@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties("l10n.consoleWriter")
+@ConfigurationProperties("l10n.console-writer")
 public class ConsoleWriterConfigurationProperties {
     /**
      * To enable or disable printing of ANSI escape codes in the ainsi output.

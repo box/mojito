@@ -12,22 +12,23 @@ import com.box.l10n.mojito.test.XliffUtils;
 import com.box.l10n.mojito.test.category.BoxSDKTest;
 import com.box.l10n.mojito.test.category.SlowTest;
 import com.box.sdk.BoxFile;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
 import java.util.List;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.springframework.boot.test.WebIntegrationTest;
 
 /**
  * @author jaurambault
  */
 @Ignore("won't work without @DirtiesContext which makes the build to slow")
-@WebIntegrationTest(randomPort = true, value = {"l10n.dropexporter.type=BOX"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"l10n.dropexporter.type=BOX"})
 public class DropServiceBoxTest extends DropServiceTest {
 
     static Logger logger = LoggerFactory.getLogger(DropServiceBoxTest.class);

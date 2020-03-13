@@ -80,6 +80,6 @@ public class AssetContentService {
      * @return the asset content
      */
     public AssetContent findOne(Long id) {
-        return assetContentRepository.findOne(id);
+        return assetContentRepository.findById(id).orElse(null);
     }
 }

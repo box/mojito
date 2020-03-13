@@ -32,7 +32,7 @@ import com.google.common.base.Joiner;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.domain.Specifications;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -179,7 +179,7 @@ public class AssetService {
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(1);
         }
 
-        User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor();
+        User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor().orElse(null);
         logger.debug("Branch created by username: {}", branchCreatedByUser.getUsername());
 
         Branch branch = branchService.getUndeletedOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
@@ -205,7 +205,7 @@ public class AssetService {
 
         Asset asset = new Asset();
 
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         asset.setRepository(repository);
         asset.setVirtual(virtualContent);
@@ -322,7 +322,7 @@ public class AssetService {
         logger.debug("Delete assets {}", assetIds.toString());
 
         for (Long assetId : assetIds) {
-            Asset asset = assetRepository.findOne(assetId);
+            Asset asset = assetRepository.findById(assetId).orElse(null);
             if (asset != null) {
                 deleteAsset(asset);
             }
@@ -355,9 +355,9 @@ public class AssetService {
 
     public void deleteAssetOfBranch(Long assetId, Long branchId) {
         logger.debug("deleteAssetOfBranch: asset id: {}, branch id: {}", assetId, branchId);
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         if (asset != null) {
-            Branch branch = branchRepository.findOne(branchId);
+            Branch branch = branchRepository.findById(branchId).orElse(null);
             AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 
             if (assetExtractionByBranch == null) {
@@ -394,7 +394,7 @@ public class AssetService {
         logger.debug("Find all assets for repositoryId: {}, path: {}, deleted: {}, virtual: {}, branchId: {}",
                 repositoryId, path, deleted, virtual, branchId);
 
-        Specifications<Asset> assetSpecifications = distinct(ifParamNotNull(repositoryIdEquals(repositoryId)))
+        Specification<Asset> assetSpecifications = distinct(ifParamNotNull(repositoryIdEquals(repositoryId)))
                 .and(ifParamNotNull(pathEquals(path)))
                 .and(ifParamNotNull(deletedEquals(deleted)))
                 .and(ifParamNotNull(virtualEquals(virtual)))

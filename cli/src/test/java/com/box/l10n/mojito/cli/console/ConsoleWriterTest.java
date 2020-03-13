@@ -5,7 +5,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.OutputCapture;
+import org.springframework.boot.test.system.OutputCaptureRule;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ public class ConsoleWriterTest {
     static Logger logger = LoggerFactory.getLogger(ConsoleWriterTest.class);
 
     @Rule
-    public OutputCapture outputCapture = new OutputCapture();
+    public OutputCaptureRule outputCapture = new OutputCaptureRule();
 
     @Test
     public void ansiCode() throws IOException {

@@ -24,7 +24,7 @@ cat > {{installDirectory}}/mojito << EOF
 java -Dl10n.resttemplate.host={{host}} \\
      -Dl10n.resttemplate.scheme={{scheme}} \\
      -Dl10n.resttemplate.port={{port}} \\
-     -Dlogging.path={{installDirectory}} \\
+     -Dlogging.file.path={{installDirectory}} \\
      -jar {{installDirectory}}/mojito-cli.jar "\$@" ;
 EOF
 

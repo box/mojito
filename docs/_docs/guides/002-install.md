@@ -47,7 +47,7 @@ java -jar mojito-cli-*.jar
 
 As {{ site.mojito_green }} is based on Spring Boot, it can be [configured](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-external-config) in many ways.
 
-One simple solution is to add an `application.properties` next to the `jar`. To use a different location use `--spring.config.location=/path/to/your/application.properties`.
+One simple solution is to add an `application.properties` next to the `jar`. To use a different location use `--spring.config.additional-location=/path/to/your/application.properties`.
 
 ### CLI install script
 
@@ -77,7 +77,7 @@ If the server is running behind a load balancer, use the following setting to ma
 use the load balancer URL:
 
 ```properties
-server.use-forward-headers=true
+server.forward-headers-strategy=native
 ```
 
 ## Setup
@@ -121,9 +121,6 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
 ```properties
 flyway.enabled=true
 l10n.flyway.clean=false
-spring.jpa.database=MYSQL
-spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-spring.jpa.hibernate.ddl-auto=none
 spring.datasource.url=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
 spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
@@ -167,6 +164,13 @@ max_allowed_packet = 256M
 If using a older version of MySQL, there is a [known issue](https://github.com/box/mojito/issues/120) when creating the schema. One workaround is to use `utf8`
 instead `utf8mb4` but it has its limitation in term of character support.
 
+We recommand to run both MySQL and the Java service using `UTC` timezone (or a least make sure they both the same timezone). To set
+`UTC` as default use the following:
+
+```properties
+[mysqld]
+default-time-zone = '+00:00'
+```
 
 ### CLI
 

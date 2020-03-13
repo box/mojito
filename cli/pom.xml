@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -21,6 +22,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -66,7 +73,7 @@
             <version>2.5</version>
             <type>jar</type>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
@@ -86,45 +93,38 @@
 
     <build>
         <plugins>
-        
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <!-- Work around for compilation issue with aspectj. See:
-                    https://github.com/spring-projects/spring-boot/issues/4847 
-                    http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
-                    -->
-                    <proc>none</proc>
-                </configuration>                
-            </plugin>
 
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/cli/
+                    <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/cli/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m
                     </argLine>
                 </configuration>
             </plugin>
-        
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
                 <version>${aspectj-maven-plugin.version}</version>
                 <dependencies>
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjrt</artifactId>
-                        <version>${aspectj.version}</version>
-                    </dependency>
                     <dependency>
                         <groupId>org.aspectj</groupId>
                         <artifactId>aspectjtools</artifactId>
@@ -140,9 +140,10 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <showWeaveInfo>false</showWeaveInfo>
+                    <showWeaveInfo>true</showWeaveInfo>
                     <deprecation>true</deprecation>
                     <complianceLevel>${java.version}</complianceLevel>
+                    <proc>none</proc>
                     <weaveDependencies>
 
                     </weaveDependencies>
@@ -161,45 +162,11 @@
                 <artifactId>git-commit-id-plugin</artifactId>
                 <configuration>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <offline>true</offline>
                 </configuration>
             </plugin>
         </plugins>
-        
+
     </build>
-    
-    
-    <profiles>
-         <!-- Work around for compilation issue with aspectj. See:
-        https://github.com/spring-projects/spring-boot/issues/4847 
-        http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
-        Need the profile to disable this logic while running springboot:run, see 
-        npm run start-dev
-        -->
-        <profile>
-            <id>springbootconfigprocessor</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-configuration-processor</artifactId>
-                    <optional>true</optional>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>${maven.compiler.version}</version>
-                        <configuration>
-                            <proc>none</proc>
-                        </configuration>                
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 </project>

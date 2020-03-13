@@ -1,8 +1,9 @@
 package com.box.l10n.mojito.test;
 
-import java.util.UUID;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
+
+import java.util.UUID;
 
 public class TestIdWatcher extends TestWatcher {
 
@@ -12,6 +13,8 @@ public class TestIdWatcher extends TestWatcher {
      */
     protected String testId;
     protected UUID uuid;
+    protected String slashClassName;
+    protected String methodName;
 
     public String getTestId() {
         return this.testId;
@@ -19,8 +22,9 @@ public class TestIdWatcher extends TestWatcher {
 
     @Override
     protected void starting(Description description) {
-        String clazz = description.getClassName().replaceAll("\\.", "/");
-        testId = clazz + "/" + description.getMethodName();
+        this.slashClassName = description.getClassName().replaceAll("\\.", "/");
+        this.methodName = description.getMethodName();
+        testId = slashClassName + "/" + description.getMethodName();
         uuid = UUID.randomUUID();
     }
 
@@ -32,5 +36,13 @@ public class TestIdWatcher extends TestWatcher {
      */
     public String getEntityName(String baseName) {
         return getTestId() + "/" + baseName + '/' + uuid;
+    }
+
+    public String getSlashClassName() {
+        return slashClassName;
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 }

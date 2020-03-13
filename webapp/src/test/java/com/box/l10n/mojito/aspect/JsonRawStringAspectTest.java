@@ -8,22 +8,23 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.test.context.junit4.SpringRunner;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import org.springframework.context.annotation.FilterType;
 
 /**
  * @author jaurambault
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @Configuration
 @ComponentScan(basePackageClasses = {JsonRawStringAspectTest.class, JsonValidator.class}, 
         excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {RunAsAspectConfig.class}))
-@SpringApplicationConfiguration(classes = {JsonRawStringAspectTest.class})
+@SpringBootTest(classes = {JsonRawStringAspectTest.class})
 public class JsonRawStringAspectTest {
 
     @Test

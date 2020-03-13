@@ -5,18 +5,13 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Branch;
 import com.box.l10n.mojito.service.branch.BranchRepository;
-import com.google.common.collect.Sets;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

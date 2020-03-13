@@ -1,12 +1,14 @@
 package com.box.l10n.mojito.service.pollableTask;
 
 import com.box.l10n.mojito.entity.PollableTask;
-import java.util.List;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author aloison
@@ -38,7 +40,7 @@ public class PollableTaskCleanupService {
 
             // Fetching 5 by 5 to avoid locking too many rows.
             // It is also useful to distribute the load across multiple instances.
-            PageRequest pageable = new PageRequest(0, 5);
+            PageRequest pageable = PageRequest.of(0, 5);
             zombiePollableTasks = pollableTaskRepository.findZombiePollableTasks(pageable);
 
             for (PollableTask zombiePollableTask : zombiePollableTasks) {

@@ -7,19 +7,18 @@ import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.SimpleTrigger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * This is to update all text units with missing plural form since the
@@ -36,7 +35,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration
 @Component
 @DisallowConcurrentExecution
-@ConditionalOnProperty(value="l10n.PluralFormUpdater", havingValue = "true")
+@ConditionalOnProperty(value="l10n.plural-form-updater", havingValue = "true")
 public class PluralFormUpdaterJob implements Job {
 
     /**
@@ -53,11 +52,8 @@ public class PluralFormUpdaterJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
-        if (dbUtils.isHSQL()) {
-            logger.debug("Don't update (DB is HSQL)");
-        } else {
-
-            logger.debug("Update old text unit with plural form that are now avaible with new plural support");
+        if (dbUtils.isMysql()) {
+            logger.debug("For Mysql only, update old text unit with plural form that are now avaible with new plural support");
 
             try {
                 int updateCount = jdbcTemplate.update(""
@@ -76,6 +72,8 @@ public class PluralFormUpdaterJob implements Job {
             } catch (Exception e) {
                 logger.error("Couldn't update plural forms, ignore", e);
             }
+        } else {
+            logger.debug("Don't support PluralForm updates if not MySQL");
         }
     }
 

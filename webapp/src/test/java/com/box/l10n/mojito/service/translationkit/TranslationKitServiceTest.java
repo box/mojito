@@ -11,21 +11,23 @@ import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.box.l10n.mojito.test.XliffUtils;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  *
@@ -88,7 +90,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 + "</xliff>\n", xliffWithoutIds);
 
         logger.debug("Check the translation kit entities");
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
         List<TranslationKitTextUnit> findByTranslationKitId = translationKitTextUnitRepository.findByTranslationKit(translationKit);
 
         assertEquals("The translation kit must be of type translation", TranslationKit.Type.TRANSLATION, translationKit.getType());
@@ -148,7 +150,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 + "", xliffWithoutIds);
 
         logger.debug("Check the translation kit entities");
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
         List<TranslationKitTextUnit> findByTranslationKitId = translationKitTextUnitRepository.findByTranslationKit(translationKit);
 
         assertEquals("The translation kit must be of type review", TranslationKit.Type.TRANSLATION, translationKit.getType());
@@ -206,7 +208,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 + "", xliffWithoutIds);
 
         logger.debug("Check the translation kit entities");
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
         List<TranslationKitTextUnit> findByTranslationKitId = translationKitTextUnitRepository.findByTranslationKit(translationKit);
 
         assertEquals("The translation kit must be of type review", TranslationKit.Type.REVIEW, translationKit.getType());
@@ -239,7 +241,7 @@ public class TranslationKitServiceTest extends ServiceTestBase {
                 tmTestData.frFR.getId(),
                 TranslationKit.Type.TRANSLATION);
 
-        TranslationKit translationKit = translationKitRepository.findOne(translationKitAsXLIFF.getTranslationKitId());
+        TranslationKit translationKit = translationKitRepository.findById(translationKitAsXLIFF.getTranslationKitId()).orElse(null);
 
         logger.debug("Check the translation kit entities");
         List<TranslationKitTextUnit> findByTranslationKitTextUnits = translationKitTextUnitRepository.findByTranslationKit(translationKit);

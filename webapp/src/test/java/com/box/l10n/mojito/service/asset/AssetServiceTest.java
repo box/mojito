@@ -147,7 +147,7 @@ public class AssetServiceTest extends ServiceTestBase {
 
         Asset asset = addAssetAndWaitUntilDoneProcessing(repository.getId(), newContent, path, null);
 
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
 
         assertEquals("Content of existing asset should be updated if changed", newContent, asset.getLastSuccessfulAssetExtraction().getAssetContent().getContent());
 
@@ -186,18 +186,18 @@ public class AssetServiceTest extends ServiceTestBase {
 
         assetService.deleteAsset(asset);
 
-        asset = assetRepository.findOne(assetId);
+        asset = assetRepository.findById(assetId).orElse(null);
         assertTrue("The asset should have been deleted", asset.getDeleted());
 
         asset = addAssetAndWaitUntilDoneProcessing(repository.getId(), newContent, path, null);
-        asset = assetRepository.findOne(assetId);
+        asset = assetRepository.findById(assetId).orElse(null);
 
         assertEquals("Content of existing asset should be updated if changed", newContent, asset.getLastSuccessfulAssetExtraction().getAssetContent().getContent());
         assertEquals("Asset id should have remained the same", assetId, asset.getId());
 
         assetExtractions = assetExtractionRepository.findByAsset(asset);
         assertEquals("There should be one more assetExtraction created when the adding an asset with changed content", 2, assetExtractions.size());
-        assertFalse("The asset extraction process should un-delete the deleted asset", assetRepository.findOne(assetId).getDeleted());
+        assertFalse("The asset extraction process should un-delete the deleted asset", assetRepository.findById(assetId).orElse(null).getDeleted());
     }
 
     @Test
@@ -215,13 +215,13 @@ public class AssetServiceTest extends ServiceTestBase {
         Long assetId = asset.getId();
 
         assetService.deleteAsset(asset);
-        assertTrue("The asset should have been deleted", assetRepository.findOne(assetId).getDeleted());
+        assertTrue("The asset should have been deleted", assetRepository.findById(assetId).orElse(null).getDeleted());
 
         addAssetAndWaitUntilDoneProcessing(repository.getId(), content, path, null);
 
         assetExtractions = assetExtractionRepository.findByAsset(asset);
         assertEquals("When re-adding an asset (same content as previously deleted), it will get processed as normal", 2, assetExtractions.size());
-        assertFalse("The asset extraction process should un-delete the deleted asset", assetRepository.findOne(assetId).getDeleted());
+        assertFalse("The asset extraction process should un-delete the deleted asset", assetRepository.findById(assetId).orElse(null).getDeleted());
     }
 
     @Test

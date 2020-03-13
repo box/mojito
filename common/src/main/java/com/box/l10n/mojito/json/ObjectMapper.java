@@ -21,7 +21,23 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
 
     public ObjectMapper() {
         JodaModule jodaModule = new JodaModule();
+        registerJodaModule();
+    }
+
+    public ObjectMapper(ObjectMapper objectMapper) {
+        super(objectMapper);
+        registerJodaModule();
+    }
+
+    private final void registerJodaModule() {
+        JodaModule jodaModule = new JodaModule();
         registerModule(jodaModule);
+    }
+
+    @Override
+    public com.fasterxml.jackson.databind.ObjectMapper copy() {
+        ObjectMapper objectMapper = new ObjectMapper(this);
+        return objectMapper;
     }
 
     /**
@@ -55,7 +71,7 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         }
     }
 
-    public <T> T readValueUnchecked(String content, TypeReference valueTypeRef) {
+    public <T> T readValueUnchecked(String content, TypeReference<T> valueTypeRef) {
         try {
             return super.readValue(content, valueTypeRef);
         } catch (IOException e) {

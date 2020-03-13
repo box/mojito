@@ -1,54 +1,72 @@
 package com.box.l10n.mojito.react;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ReactAppConfig {
 
     @JsonUnwrapped
-    @Autowired
-    LinkConfig link;
+    ReactStaticAppConfig reactStaticAppConfig;
 
-    @Autowired
-    LoginConfig login;
+    ReactUser user;
 
-    @Autowired
-    RepositoryStatisticsConfig repositoryStatistics;
+    String locale;
 
-    @Autowired
-    GoogleAnalyticsConfig googleAnalytics;
+    boolean ict;
 
-    public LinkConfig getLink() {
-        return link;
+    String csrfToken;
+
+    String contextPath;
+
+    public ReactAppConfig(ReactStaticAppConfig reactStaticAppConfig, ReactUser reactUser) {
+        this.reactStaticAppConfig = reactStaticAppConfig;
+        this.user = reactUser;
     }
 
-    public void setLink(LinkConfig link) {
-        this.link = link;
+    public ReactStaticAppConfig getReactStaticAppConfig() {
+        return reactStaticAppConfig;
     }
 
-    public LoginConfig getLogin() {
-        return login;
+    public ReactUser getUser() {
+        return user;
     }
 
-    public void setLogin(LoginConfig login) {
-        this.login = login;
+    public void setReactStaticAppConfig(ReactStaticAppConfig reactStaticAppConfig) {
+        this.reactStaticAppConfig = reactStaticAppConfig;
     }
 
-    public RepositoryStatisticsConfig getRepositoryStatistics() {
-        return repositoryStatistics;
+    public void setUser(ReactUser user) {
+        this.user = user;
     }
 
-    public void setRepositoryStatistics(RepositoryStatisticsConfig repositoryStatistics) {
-        this.repositoryStatistics = repositoryStatistics;
+    public String getLocale() {
+        return locale;
     }
 
-    public GoogleAnalyticsConfig getGoogleAnalytics() {
-        return googleAnalytics;
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 
-    public void setGoogleAnalytics(GoogleAnalyticsConfig googleAnalytics) {
-        this.googleAnalytics = googleAnalytics;
+    public boolean isIct() {
+        return ict;
+    }
+
+    public void setIct(boolean ict) {
+        this.ict = ict;
+    }
+
+    public String getCsrfToken() {
+        return csrfToken;
+    }
+
+    public void setCsrfToken(String csrfToken) {
+        this.csrfToken = csrfToken;
+    }
+
+    public String getContextPath() {
+        return contextPath;
+    }
+
+    public void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
     }
 }
