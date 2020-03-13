@@ -11,7 +11,6 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.FILE_EXTENSION;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.LOCALE;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.PARENT_PATH;
 import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
-import static org.junit.Assert.*;
 
 public class ChromeExtensionJSONFileTypeTest {
 

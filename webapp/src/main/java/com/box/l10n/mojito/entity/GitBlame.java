@@ -1,13 +1,10 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.rest.View;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
