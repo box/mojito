@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
 import java.util.List;
 
 /**
@@ -24,3 +25,8 @@ public interface PollableTaskRepository extends JpaRepository<PollableTask, Long
     )
     List<PollableTask> findZombiePollableTasks(Pageable pageable);
 }
+
+
+
+// 19:50 --> 14:50
+// 5h
