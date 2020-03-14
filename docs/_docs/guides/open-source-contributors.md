@@ -107,6 +107,10 @@ character-set-server = utf8mb4
     
 [mysqld]
 max_allowed_packet = 256M
+
+[mysqld]
+default-time-zone = '+00:00'
+```
 ```
 
 The server needs to be started/restarted. 
