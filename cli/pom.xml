@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -66,7 +67,7 @@
             <version>2.5</version>
             <type>jar</type>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
@@ -86,7 +87,7 @@
 
     <build>
         <plugins>
-        
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -97,14 +98,24 @@
                     http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
                     -->
                     <proc>none</proc>
-                </configuration>                
+                </configuration>
             </plugin>
 
-<!--            <plugin>-->
-<!--                <groupId>org.springframework.boot</groupId>-->
-<!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
-<!--                -->
-<!--            </plugin>-->
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -115,7 +126,7 @@
                     </argLine>
                 </configuration>
             </plugin>
-        
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
@@ -165,17 +176,17 @@
                 </configuration>
             </plugin>
         </plugins>
-        
+
     </build>
-    
-    
+
+
     <profiles>
-         <!-- Work around for compilation issue with aspectj. See:
-        https://github.com/spring-projects/spring-boot/issues/4847 
-        http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
-        Need the profile to disable this logic while running springboot:run, see 
-        npm run start-dev
-        -->
+        <!-- Work around for compilation issue with aspectj. See:
+       https://github.com/spring-projects/spring-boot/issues/4847
+       http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
+       Need the profile to disable this logic while running springboot:run, see
+       npm run start-dev
+       -->
         <profile>
             <id>springbootconfigprocessor</id>
             <activation>
@@ -196,7 +207,7 @@
                         <version>${maven.compiler.version}</version>
                         <configuration>
                             <proc>none</proc>
-                        </configuration>                
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
