@@ -29,6 +29,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.rule.OutputCapture;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -97,19 +98,27 @@ public class CLITestBase extends IOTestBase {
     @Rule
     public OutputCapture outputCapture = new OutputCapture();
 
-    @Bean
-    public ApplicationListener<EmbeddedServletContainerInitializedEvent> getApplicationListenerEmbeddedServletContainerInitializedEvent() {
 
-        return new ApplicationListener<EmbeddedServletContainerInitializedEvent>() {
+    @TestConfiguration
+    class TestConfig {
 
-            @Override
-            public void onApplicationEvent(EmbeddedServletContainerInitializedEvent event) {
-                int serverPort = event.getEmbeddedServletContainer().getPort();
-                logger.debug("Saving port number = {}", serverPort);
-                resttemplateConfig.setPort(serverPort);
-            }
-        };
+        @Bean
+        public ApplicationListener<EmbeddedServletContainerInitializedEvent> getApplicationListenerEmbeddedServletContainerInitializedEvent() {
+
+            return new ApplicationListener<EmbeddedServletContainerInitializedEvent>() {
+
+                @Override
+                public void onApplicationEvent(EmbeddedServletContainerInitializedEvent event) {
+                    int serverPort = event.getEmbeddedServletContainer().getPort();
+                    logger.debug("Saving port number = {}", serverPort);
+                    resttemplateConfig.setPort(serverPort);
+                }
+            };
+        }
     }
+
+
+
 
     public L10nJCommander getL10nJCommander() {
         L10nJCommander l10nJCommander = new L10nJCommander();
