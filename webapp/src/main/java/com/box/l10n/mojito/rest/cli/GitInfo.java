@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.cli;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -9,7 +10,8 @@ import org.springframework.stereotype.Component;
  * @author jaurambault
  */
 @Component("GitInfoWebapp")
-@ConfigurationProperties(prefix = "git", locations = "classpath:git.properties")
+@PropertySource("classpath:git.properties")
+@ConfigurationProperties(prefix = "git")
 public class GitInfo {
 
     private String branch;
