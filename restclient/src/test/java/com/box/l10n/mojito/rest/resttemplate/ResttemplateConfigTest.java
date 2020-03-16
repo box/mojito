@@ -1,21 +1,22 @@
 package com.box.l10n.mojito.rest.resttemplate;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
  * @author jaurambault
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @ComponentScan(basePackageClasses = {ResttemplateConfig.class, })
-@SpringApplicationConfiguration(classes = {ResttemplateConfigTest.class})
+@SpringBootTest(classes = {ResttemplateConfigTest.class})
 @EnableConfigurationProperties
 public class ResttemplateConfigTest {
 
