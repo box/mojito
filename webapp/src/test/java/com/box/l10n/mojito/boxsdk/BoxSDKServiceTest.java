@@ -19,12 +19,12 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,10 +46,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * @author jaurambault
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(SpringRunner.class)
 @Configuration
 @ComponentScan(basePackageClasses = {BoxSDKServiceTest.class, BoxSDKServiceConfigEntityService.class})
-@SpringApplicationConfiguration(classes = {BoxSDKServiceTest.class, PropertyPlaceholderAutoConfiguration.class})
+@SpringBootTest(classes = {BoxSDKServiceTest.class, PropertyPlaceholderAutoConfiguration.class})
 @EnableConfigurationProperties
 public class BoxSDKServiceTest {
 

@@ -61,6 +61,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
+
     @Autowired
     ScreenshotRepository screenshotRepository;
 
@@ -74,13 +75,12 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     SmartlingTestConfig testConfig;
 
     @Before
-    public void init() {
+    public void assumeClient() {
         Assume.assumeNotNull(smartlingClient);
     }
 
     @Test
     public void testMappingAndScreenshot() throws Exception {
-
         ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
         Repository repository = thirdPartyServiceTestData.repository;
 
