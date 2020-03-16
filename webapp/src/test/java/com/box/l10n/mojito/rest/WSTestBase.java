@@ -13,19 +13,17 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.embedded.EmbeddedWebApplicationContext;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.test.context.support.WithSecurityContextTestExecutionListener;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,9 +36,10 @@ import java.util.function.Supplier;
  *
  * @author jaurambault
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = Application.class)
-@WebIntegrationTest(randomPort = true, value = {"l10n.fileSystemDropExporter.path=target/test-output/fileSystemDropExporter"})
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"l10n.fileSystemDropExporter.path=target/test-output/fileSystemDropExporter"})
 @TestExecutionListeners(
         listeners = {
                 DependencyInjectionTestExecutionListener.class,
@@ -71,17 +70,14 @@ public class WSTestBase {
     @Autowired
     ResttemplateConfig resttemplateConfig;
 
-    @Bean
-    public ApplicationListener<EmbeddedServletContainerInitializedEvent> getApplicationListenerEmbeddedServletContainerInitializedEvent() {
-        return new ApplicationListener<EmbeddedServletContainerInitializedEvent>() {
+    @Autowired
+    EmbeddedWebApplicationContext embeddedWebApplicationContext;
 
-            @Override
-            public void onApplicationEvent(EmbeddedServletContainerInitializedEvent event) {
-                int serverPort = event.getEmbeddedServletContainer().getPort();
-                logger.debug("Saving port number = {}", serverPort);
-                resttemplateConfig.setPort(serverPort);
-            }
-        };
+    @PostConstruct
+    public void setServerPortOnResttemplate() {
+        int port = embeddedWebApplicationContext.getEmbeddedServletContainer().getPort();
+        logger.debug("Saving port number = {}", port);
+        resttemplateConfig.setPort(port);
     }
 
     /**
