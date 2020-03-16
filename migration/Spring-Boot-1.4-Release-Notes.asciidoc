@@ -593,7 +593,7 @@ Spring Boot 1.4 includes a major overhaul of testing support. Test classes and u
 
 ==== @SpringBootTest
 With Spring Boot 1.3 there were multiple ways of writing a Spring Boot test.
-You could use `@SpringApplicationConfiguration`, `@ContextConfiguration` with the `SpringApplicationContextLoader`, `@IntegrationTest` or `@WebIntegrationTest`.
+You could use `@SpringBootTest`, `@ContextConfiguration` with the `SpringApplicationContextLoader`, `@IntegrationTest` or `@WebIntegrationTest`.
 With Spring Boot 1.4, a single `@SpringBootTest` annotation replaces all of those.
 
 Use `@SpringBootTest` in combination with `@RunWith(SpringRunner.class)` and set the `webEnvironment` attribute depending on the type of test you want to write.
