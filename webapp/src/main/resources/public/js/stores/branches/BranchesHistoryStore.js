@@ -112,7 +112,7 @@ class BranchesHistoryStore {
             searchText = "";
         }
 
-        BranchesSearchParamsActions.changeCurrentPageNumber(currentPageNumber);
+        BranchesPaginatorActions.changeCurrentPageNumber(currentPageNumber);
         BranchesSearchParamsActions.changeSearchText(searchText);
         BranchesSearchParamsActions.changeDeleted(deleted === "true");
         BranchesSearchParamsActions.changeUndeleted(undeleted === "true");
