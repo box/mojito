@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -146,22 +147,27 @@ public class ExtractionDiffCommand extends Command {
         Stream<SourceAsset> sourceAssetStream = allAssetExtractionDiffPaths.map(path -> {
 
             AssetExtractionDiff assetExtractionDiff = objectMapper.readValueUnchecked(path.toFile(), AssetExtractionDiff.class);
-            String assetContent = objectMapper.writeValueAsStringUnchecked(assetExtractionDiff.getAddedTextunits());
 
-            String sourceFileMatchPath = extractionDiffsPaths.sourceFileMatchPath(path, extractionDiffName);
+            SourceAsset sourceAsset = null;
 
-            SourceAsset sourceAsset = new SourceAsset();
-            sourceAsset.setBranch(pushToBranchName);
-            sourceAsset.setBranchCreatedByUsername(pushToBranchCreatedBy);
-            sourceAsset.setPath(extractionDiffsPaths.sourceFileMatchPath(path, extractionDiffName));
-            sourceAsset.setContent(assetContent);
-            sourceAsset.setExtractedContent(true);
-            sourceAsset.setRepositoryId(repository.getId());
-            sourceAsset.setFilterConfigIdOverride(assetExtractionDiff.getCurrentFilterConfigIdOverride());
-            sourceAsset.setFilterOptions(assetExtractionDiff.getCurrentFilterOptions());
+            if (!assetExtractionDiff.getAddedTextunits().isEmpty()) {
+                String assetContent = objectMapper.writeValueAsStringUnchecked(assetExtractionDiff.getAddedTextunits());
+
+                String sourceFileMatchPath = extractionDiffsPaths.sourceFileMatchPath(path, extractionDiffName);
+
+                sourceAsset = new SourceAsset();
+                sourceAsset.setBranch(pushToBranchName);
+                sourceAsset.setBranchCreatedByUsername(pushToBranchCreatedBy);
+                sourceAsset.setPath(extractionDiffsPaths.sourceFileMatchPath(path, extractionDiffName));
+                sourceAsset.setContent(assetContent);
+                sourceAsset.setExtractedContent(true);
+                sourceAsset.setRepositoryId(repository.getId());
+                sourceAsset.setFilterConfigIdOverride(assetExtractionDiff.getCurrentFilterConfigIdOverride());
+                sourceAsset.setFilterOptions(assetExtractionDiff.getCurrentFilterOptions());
+            }
 
             return sourceAsset;
-        });
+        }).filter(Objects::nonNull);
 
         pushService.push(repository, sourceAssetStream, pushToBranchName);
     }
