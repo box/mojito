@@ -5,9 +5,8 @@ import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.IntegrationTest;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -25,7 +24,6 @@ public class PollableTaskWSTest extends WSTestBase {
     PollableTaskClient pollableTaskClient;
 
     @Test
-    @Category(IntegrationTest.class)
     public void testGetPollableTask() throws Exception {
 
         String pollableTaskName = "testGetPollableTask";

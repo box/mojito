@@ -5,9 +5,6 @@ import com.box.l10n.mojito.utils.ServerConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -20,8 +17,7 @@ import static org.junit.Assert.assertEquals;
         BranchNotificationMessageBuilderPhabricator.class,
         BranchNotificationMessageBuilderPhabricatorTest.class,
         BranchUrlBuilder.class,
-        ServerConfig.class},
-        properties = "spring.datasource.initialize=false") //TODO do we still need that property
+        ServerConfig.class})
 public class BranchNotificationMessageBuilderPhabricatorTest {
 
     @Autowired
