@@ -8,15 +8,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {SlackClientTest.class, SlackClientConfiguration.class, SlackClientTest.TestConfig.class},
-        properties = "spring.datasource.initialize=false")
+@SpringBootTest(classes = {SlackClientTest.class, SlackClientConfiguration.class, SlackClientTest.TestConfig.class})
+@EnableConfigurationProperties
 public class SlackClientTest {
 
     @Autowired(required = false)
