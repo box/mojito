@@ -3,10 +3,15 @@ package com.box.l10n.mojito;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import org.apache.catalina.connector.Connector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.system.ApplicationPidFileWriter;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
@@ -52,7 +57,7 @@ public class Application {
 
     /**
      * Fix Spring scanning issue.
-     *
+     * <p>
      * without this the ObjectMapper instance is not created/available in the
      * container.
      *
@@ -114,5 +119,30 @@ public class Application {
 
         return template;
     }
+
+
+    // TODO Looks like this is not supported by 1.5, but 2.x has a properties, this can probably removed then
+    // With new version of tomcat, uri with [] can't be processed anymore
+    @Bean
+    public EmbeddedServletContainerCustomizer cookieProcessorCustomizer() {
+        return new EmbeddedServletContainerCustomizer() {
+
+            @Override
+            public void customize(ConfigurableEmbeddedServletContainer container) {
+                if (container instanceof TomcatEmbeddedServletContainerFactory) {
+                    ((TomcatEmbeddedServletContainerFactory) container)
+                            .addConnectorCustomizers(new TomcatConnectorCustomizer() {
+                                @Override
+                                public void customize(Connector connector) {
+                                    connector.setAttribute("relaxedQueryChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
+                                    connector.setAttribute("relaxedPathChars", "[]|");
+                                }
+                            });
+                }
+            }
+
+        };
+    }
+
 
 }
