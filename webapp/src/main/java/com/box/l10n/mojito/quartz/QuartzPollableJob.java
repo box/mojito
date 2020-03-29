@@ -5,7 +5,6 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.pollableTask.ExceptionHolder;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskExceptionUtils;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
-import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.common.reflect.TypeToken;
 import org.quartz.Job;
@@ -31,9 +30,6 @@ public abstract class QuartzPollableJob<I, O> implements Job {
     static Logger logger = LoggerFactory.getLogger(QuartzPollableJob.class);
 
     final TypeToken<I> typeTokenInput = new TypeToken<I>(getClass()) {};
-
-    @Autowired
-    TextUnitBatchImporterService textUnitBatchImporterService;
 
     @Autowired
     PollableTaskService pollableTaskService;
