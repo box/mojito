@@ -268,7 +268,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
                 Arrays.asList(repository.getId()), null, null, null,
                 null, null, null, null, ScreenshotRunType.LAST_SUCCESSFUL_RUN, 1, 1);
 
-        logger.error("DD repository: {}", repository.getId());
+        logger.debug("repository: {}", repository.getId());
         assertEquals("screen3", searchScreenshots.get(0).getName());
         assertEquals(1, searchScreenshots.size());
     }
