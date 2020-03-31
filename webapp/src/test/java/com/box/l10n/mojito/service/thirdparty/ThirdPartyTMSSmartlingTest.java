@@ -1,29 +1,19 @@
 package com.box.l10n.mojito.service.thirdparty;
 
-import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.ScreenshotRun;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit;
-import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.image.ImageService;
-import com.box.l10n.mojito.service.pollableTask.PollableFuture;
-import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
-import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
+import com.box.l10n.mojito.smartling.SmartlingTestConfig;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -32,16 +22,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.regex.Pattern;
-
-import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Integration test that needs Smartling account and verfication on the screenshot upload done manually in Smartling
@@ -88,11 +70,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     @Autowired
     ImageService imageService;
 
-    @Value("${test.l10n.smartling.projectId:#{null}}")
-    String projectId = null;
-
-    @Value("${test.l10n.smartling.fileUri:#{null}}")
-    String fileUri = null;
+    @Autowired
+    SmartlingTestConfig testConfig;
 
     @Before
     public void init() {
@@ -120,15 +99,15 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 "</resources>";
 
         String smartlingFileUri = repository.getName() + "/0000_singular_source.xml";
-        smartlingClient.uploadFile(projectId, smartlingFileUri, "android", smartlingContent, null, null);
+        smartlingClient.uploadFile(testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null);
 
         logger.debug("First mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, projectId);
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId);
 
         logger.debug("Second mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, projectId);
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId);
 
-        thirdPartyService.uploadScreenshotsAndCreateMappings(repository, projectId);
+        thirdPartyService.uploadScreenshotsAndCreateMappings(repository, testConfig.projectId);
     }
 
     @Test
@@ -140,5 +119,4 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         Assert.assertFalse(webappmigration.matcher("someotherrepo/0000_plural_source.xml").matches());
         Assert.assertFalse(webappmigration.matcher("something").matches());
     }
-
 }

@@ -1,37 +1,29 @@
 package com.box.l10n.mojito.slack;
 
-import com.box.l10n.mojito.mustache.MustacheTemplateEngine;
 import com.box.l10n.mojito.slack.request.Channel;
 import com.box.l10n.mojito.slack.request.Message;
 import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {SlackClientTest.class, SlackClientConfiguration.class})
-@EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
+@SpringApplicationConfiguration(classes = {SlackClientTest.class, SlackClientConfiguration.class, SlackClientTest.TestConfig.class})
+@EnableConfigurationProperties
 public class SlackClientTest {
 
     @Autowired(required = false)
     SlackClient slackClient;
 
-    @Value("${test.l10n.slack.email.destination:someemail@test.com}")
-    String email;
+    @Autowired
+    TestConfig testConfig;
 
     @Before
     public void assumeClient() {
@@ -40,7 +32,7 @@ public class SlackClientTest {
 
     @Test
     public void testClient() throws SlackClientException {
-        Channel instantMessageChannel = slackClient.getInstantMessageChannel(email);
+        Channel instantMessageChannel = slackClient.getInstantMessageChannel(testConfig.emailDestination);
 
         Message message = new Message();
         message.setText("test");
@@ -53,5 +45,20 @@ public class SlackClientTest {
         reply.setThreadTs(chatPostMessageResponse.getTs());
 
         slackClient.sendInstantMessage(reply);
+    }
+
+    @Configuration
+    @ConfigurationProperties("test.l10n.slack")
+    static class TestConfig {
+        
+        String emailDestination = "someemail@test.com";
+
+        public String getEmailDestination() {
+            return emailDestination;
+        }
+
+        public void setEmailDestination(String emailDestination) {
+            this.emailDestination = emailDestination;
+        }
     }
 }

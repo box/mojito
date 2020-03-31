@@ -20,9 +20,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.test.IntegrationTest;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -31,9 +29,8 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {SmartlingClientTest.class, SmartlingClientConfiguration.class, ObjectMapper.class})
-@EnableAutoConfiguration
-@IntegrationTest("spring.datasource.initialize=false")
+@SpringApplicationConfiguration(classes = {SmartlingClientTest.class, SmartlingClientConfiguration.class, ObjectMapper.class, SmartlingTestConfig.class})
+@EnableConfigurationProperties
 public class SmartlingClientTest {
 
     static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);
@@ -44,11 +41,8 @@ public class SmartlingClientTest {
     @Autowired(required = false)
     SmartlingClient smartlingClient;
 
-    @Value("${test.l10n.smartling.projectId:#{null}}")
-    String projectId = null;
-
-    @Value("${test.l10n.smartling.fileUri:#{null}}")
-    String fileUri = null;
+    @Autowired
+    SmartlingTestConfig smartlingTestConfig;
 
     @Before
     public void init() {
@@ -57,13 +51,13 @@ public class SmartlingClientTest {
 
     @Test
     public void testGetSourceStrings() throws SmartlingClientException {
-        Assume.assumeNotNull(projectId);
-        Assume.assumeNotNull(fileUri);
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+        Assume.assumeNotNull(smartlingTestConfig.fileUri);
 
         logger.debug("Test getSourceStrings");
         Items<StringInfo> sourceStrings = smartlingClient.getSourceStrings(
-                projectId,
-                fileUri,
+                smartlingTestConfig.  projectId,
+                smartlingTestConfig.  fileUri,
                 0,
                 500);
 
@@ -73,10 +67,10 @@ public class SmartlingClientTest {
 
     @Test
     public void testGetSourceStringsStream() {
-        Assume.assumeNotNull(projectId);
-        Assume.assumeNotNull(fileUri);
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+        Assume.assumeNotNull(smartlingTestConfig.fileUri);
 
-        smartlingClient.getStringInfos(projectId, fileUri).forEach(stringInfo -> {
+        smartlingClient.getStringInfos(smartlingTestConfig.projectId, smartlingTestConfig.fileUri).forEach(stringInfo -> {
             if (stringInfo.getKeys().size() == 1) {
                 logger.debug("hashcode: {}\nvariant: {}\nparsed string: {}\n stringtext: {}\nkeys:",
                         stringInfo.getHashcode(),
@@ -93,8 +87,8 @@ public class SmartlingClientTest {
 
     @Test
     public void testUploadFile() {
-        Assume.assumeNotNull(projectId);
-        uploadFile(projectId, "strings.xml");
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+        uploadFile(smartlingTestConfig.projectId, "strings.xml");
     }
 
     private void uploadFile(String projectId, String fileName) {
@@ -111,12 +105,12 @@ public class SmartlingClientTest {
 
     @Test
     public void testUploadDownloadAndDeleteFile() {
-        Assume.assumeNotNull(projectId);
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
         String fileName = testIdWatcher.getEntityName("") + "-string.xml";
 
-        uploadFile(projectId, fileName);
+        uploadFile(smartlingTestConfig.projectId, fileName);
         try {
-            String result = smartlingClient.downloadFile(projectId,
+            String result = smartlingClient.downloadFile(smartlingTestConfig.projectId,
                     "fr-FR",
                     fileName,
                     false,
@@ -128,22 +122,22 @@ public class SmartlingClientTest {
                             "    \n" +
                             "</resources>", result);
         } finally {
-            smartlingClient.deleteFile(projectId, fileName);
+            smartlingClient.deleteFile(smartlingTestConfig.projectId, fileName);
         }
     }
 
     @Test
     public void testUploadContext() throws IOException {
-        Assume.assumeNotNull(projectId);
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
         ClassPathResource classPathResource = new ClassPathResource("/com/box/l10n/mojito/img/1.png");
         byte[] content = ByteStreams.toByteArray(classPathResource.getInputStream());
-        smartlingClient.uploadContext(projectId, "image1.png", content);
+        smartlingClient.uploadContext(smartlingTestConfig.projectId, "image1.png", content);
     }
 
     @Test
     public void testGetFiles() {
-        Assume.assumeNotNull(projectId);
-        Items<File> files = smartlingClient.getFiles(projectId);
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+        Items<File> files = smartlingClient.getFiles(smartlingTestConfig.projectId);
         files.getItems().stream().forEach(
                 f -> logger.debug(f.getFileUri())
         );
@@ -151,10 +145,10 @@ public class SmartlingClientTest {
 
     @Test
     public void testGetStringInfosFromFile() {
-        Assume.assumeNotNull(projectId);
-        Items<File> files = smartlingClient.getFiles(projectId);
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+        Items<File> files = smartlingClient.getFiles(smartlingTestConfig.projectId);
         Stream<StringInfo> stringInfosFromFiles = files.getItems().stream().flatMap(
-                file -> smartlingClient.getStringInfos(projectId, file.getFileUri()));
+                file -> smartlingClient.getStringInfos(smartlingTestConfig.projectId, file.getFileUri()));
         stringInfosFromFiles.forEach(
                 stringInfo -> logger.debug(stringInfo.getHashcode())
         );
@@ -199,4 +193,5 @@ public class SmartlingClientTest {
         String str = objectMapper.writeValueAsString(bindings);
         Assert.assertEquals("{\"bindings\":[{\"contextUid\":\"c1\",\"stringHashcode\":\"h1\"},{\"contextUid\":\"c1\",\"stringHashcode\":\"h1\"}]}", str);
     }
+
 }
