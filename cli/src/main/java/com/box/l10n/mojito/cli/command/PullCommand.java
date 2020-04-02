@@ -271,16 +271,28 @@ public class PullCommand extends Command {
 
         String assetContent = commandHelper.getFileContentWithXcodePatch(sourceFileMatch);
 
-        LocalizedAssetBody localizedAsset = assetClient.getLocalizedAssetForContent(
-                assetByPathAndRepositoryId.getId(),
-                repositoryLocale.getLocale().getId(),
-                assetContent,
-                outputBcp47tag,
-                sourceFileMatch.getFileType().getFilterConfigIdOverride(),
-                filterOptions,
-                status,
-                inheritanceMode
-        );
+        LocalizedAssetBody localizedAsset = null;
+
+        //TODO remove this is temporary, we'll make the service async
+        int count = 0;
+        int maxCount = 5;
+        while (localizedAsset == null && count < maxCount) {
+            try {
+                localizedAsset = assetClient.getLocalizedAssetForContent(
+                        assetByPathAndRepositoryId.getId(),
+                        repositoryLocale.getLocale().getId(),
+                        assetContent,
+                        outputBcp47tag,
+                        sourceFileMatch.getFileType().getFilterConfigIdOverride(),
+                        filterOptions,
+                        status,
+                        inheritanceMode
+                );
+            } catch (Exception e) {
+                count++;
+                consoleWriter.fg(Color.RED).a("Attempt ").a(count).a("/").a(maxCount).a(" for locale: ").a(repositoryLocale.getLocale().getBcp47Tag()).a(" failed. Retrying...").println();
+            }
+        }
 
         logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 
