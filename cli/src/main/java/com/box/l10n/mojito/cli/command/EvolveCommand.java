@@ -6,13 +6,16 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.evolve.Course;
 import com.box.l10n.mojito.evolve.Evolve;
+import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
+import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
+import com.google.common.base.Preconditions;
 import com.ibm.icu.util.ULocale;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -21,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -49,6 +54,9 @@ public class EvolveCommand extends Command {
 
     @Parameter(names = {"--state", "-s"}, arity = 1, required = false, description = "Course status to be synced")
     String state = "inTranslation";
+
+    @Parameter(names = {"--write-json-to"}, arity = 1, required = false, description = "Directory to write localized json courses before they are sent. If not provided, don't write")
+    String writeJsonTo = null;
 
     @Autowired(required = false)
     Evolve evolve;
@@ -94,8 +102,21 @@ public class EvolveCommand extends Command {
             consoleWriter.a("Get localized course: ").fg(Ansi.Color.CYAN).a(locale.getBcp47Tag()).println();
             String localizedCourse = getLocalizedCourse(sourceAsset.getAddedAssetId(), locale.getId(), translationsByCourseId);
             localizedCourse = removeBOMIfExists(localizedCourse);
+
+            if (writeJsonTo != null) {
+                writeJsonToFile(repository, course, locale, localizedCourse);
+            }
+
             evolve.createCourseTranslationsById(course.getId(), localizedCourse, locale.getBcp47Tag(), isRightToLeft(locale.getBcp47Tag()));
         });
+    }
+
+    void writeJsonToFile(Repository repository, Course course, Locale locale, String localizedCourse) {
+        Preconditions.checkNotNull(writeJsonTo);
+        Path path = Paths.get(writeJsonTo, repository.getName(), course.getId(), locale.getBcp47Tag() + ".json");
+        Files.deleteRecursivelyIfExists(path.getParent());
+        Files.createDirectories(path.getParent());
+        Files.write(path, localizedCourse);
     }
 
     SourceAsset sendSource(Repository repository, String courseId, String translationsByCourseId) {

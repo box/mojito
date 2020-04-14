@@ -5,6 +5,7 @@ import com.google.common.io.RecursiveDeleteOption;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -46,4 +47,11 @@ public class Files {
         }
     }
 
+    public static void write(Path path, String content) {
+        try {
+            java.nio.file.Files.write(path, content.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 }
