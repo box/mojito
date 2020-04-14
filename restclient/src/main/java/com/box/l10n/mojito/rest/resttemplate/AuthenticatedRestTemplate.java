@@ -130,6 +130,7 @@ public class AuthenticatedRestTemplate {
 
             // The default encoding is set to ISO-8559-1 for String type, which is why we have to override it here
             // For more info: https://jira.spring.io/browse/SPR-9099
+            //TODO investigate but this should probalby replaced with setting the right header: headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
             if (httpMessageConverter instanceof StringHttpMessageConverter) {
                 StringHttpMessageConverter stringHttpMessageConverter = (StringHttpMessageConverter) httpMessageConverter;
                 stringHttpMessageConverter.setSupportedMediaTypes(Arrays.asList(
