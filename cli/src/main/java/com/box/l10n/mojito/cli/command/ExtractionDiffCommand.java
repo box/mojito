@@ -11,6 +11,8 @@ import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
+import com.box.l10n.mojito.shell.Shell;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +58,7 @@ import java.util.stream.Stream;
  * source <(mojito phab-diff-to-env-variables --diff-id 12345)
  * echo ${MOJITO_PHAB_BASE_COMMIT}
  * ...
+ *
  * @author jaurambault
  */
 @Component
@@ -95,6 +98,18 @@ public class ExtractionDiffCommand extends Command {
     @Parameter(names = {"--push-to-branch-createdby", "-pbc"}, arity = 1, required = false, description = "Optional username who owns the branch when pusing to a repository")
     String pushToBranchCreatedBy;
 
+    @Parameter(names = "--push-type", arity = 1, required = false, description = "To choose the push type. Don't change unless you know exactly what it does")
+    PushService.PushType pushType = PushService.PushType.NORMAL;
+
+    @Parameter(names = "--fail-safe", arity = 1, required = false, description = "To fail safe, the command will exit succesfuly even if the processing failed")
+    boolean failSafe = false;
+
+    @Parameter(names = "--fail-safe-email", arity = 1, required = false, description = "Attempt to notify this email if the command fails")
+    String failSafeEmail = null;
+
+    @Parameter(names = "--fail-safe-message", arity = 1, required = false, description = "Message for the fail safe email")
+    String failSafeMessage = null;
+
     @Autowired
     ExtractionDiffService extractionDiffService;
 
@@ -109,7 +124,18 @@ public class ExtractionDiffCommand extends Command {
 
     @Override
     public void execute() throws CommandException {
+        try {
+            executeUnsafe();
+        } catch (Throwable t) {
+            if (failSafe) {
+                failSafe(t);
+            } else {
+                throw t;
+            }
+        }
+    }
 
+    void executeUnsafe() throws CommandException {
         consoleWriter.newLine().a("Generate diff between extractions: ").fg(Ansi.Color.CYAN).a(currentExtractionName).reset()
                 .a(" and: ").fg(Ansi.Color.CYAN).a(baseExtractionName).println(2);
 
@@ -169,7 +195,7 @@ public class ExtractionDiffCommand extends Command {
             return sourceAsset;
         }).filter(Objects::nonNull);
 
-        pushService.push(repository, sourceAssetStream, pushToBranchName);
+        pushService.push(repository, sourceAssetStream, pushToBranchName, pushType);
     }
 
     String getDiffExtractionNameOrDefault() {
@@ -179,4 +205,30 @@ public class ExtractionDiffCommand extends Command {
         return extractionDiffName;
     }
 
+    void failSafe(Throwable t) {
+        String msg = "Unexpected error: " + t.getMessage() + "\n" + ExceptionUtils.getStackTrace(t);
+        consoleWriter.newLine().fg(Ansi.Color.YELLOW).a(msg).println(2);
+        logger.error("Unexpected error", t);
+        consoleWriter.fg(Ansi.Color.GREEN).a("Failing safe...").println();
+        tryToSendFailSafeNotification();
+
+    }
+
+    void tryToSendFailSafeNotification() {
+        try {
+            if (failSafeEmail != null) {
+                consoleWriter.a("Send email notification to: ").fg(Ansi.Color.CYAN).a(failSafeEmail).println();
+                Shell shell = new Shell();
+                shell.exec(buildFailSafeMailCommand());
+            }
+        } catch (Throwable t) {
+            String cantSendEmailMsg = "Can't send fail safe email: " + t.getMessage() + "\n" + ExceptionUtils.getStackTrace(t);
+            consoleWriter.newLine().fg(Ansi.Color.RED).a(cantSendEmailMsg).println(2);
+            logger.error("Unexpected error", t);
+        }
+    }
+
+    String buildFailSafeMailCommand() {
+        return "echo '" + failSafeMessage + "' | mail -s 'Extraction diff command failed for branch: " + pushToBranchName + "' " + failSafeEmail;
+    }
 }

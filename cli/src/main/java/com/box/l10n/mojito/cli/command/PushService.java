@@ -44,7 +44,7 @@ public class PushService {
     @Autowired
     CommandHelper commandHelper;
 
-    public void push(Repository repository, Stream<SourceAsset> sourceAssetStream, String branchName) throws CommandException {
+    public void push(Repository repository, Stream<SourceAsset> sourceAssetStream, String branchName, PushType pushType) throws CommandException {
 
         List<PollableTask> pollableTasks = new ArrayList<>();
         Set<Long> usedAssetIds = new HashSet<>();
@@ -59,6 +59,13 @@ public class PushService {
                     a(", task: ").fg(Ansi.Color.MAGENTA).a(assetAfterSend.getPollableTask().getId()).println();
             usedAssetIds.add(assetAfterSend.getAddedAssetId());
         });
+
+        if (PushType.SEND_ASSET_NO_WAIT_NO_DELETE.equals(pushType)) {
+            consoleWriter.fg(Ansi.Color.YELLOW).a("Warning you are using push type: SEND_ASSET_NO_WAIT_NO_DELETE. The" +
+                    "command won't wait for the asset processing to finish (ie. if any error " +
+                    "happens it will silently fail) and it will skip the asset delete.");
+            return;
+        }
 
         try {
             logger.debug("Wait for all \"push\" tasks to be finished");
@@ -85,5 +92,25 @@ public class PushService {
                 commandHelper.waitForPollableTask(pollableTask.getId());
             }
         }
+    }
+
+    enum PushType {
+        /**
+         * Normal processing: send asset, wait for them to be process and remove unused assets.
+         */
+        NORMAL,
+        /**
+         * Just send the assets to the server. Don't wait for them to be processed. Don't delete the assets.
+         * <p>
+         * This is can be used to speed up the asset submission. The compromise is that there is no
+         * visibility on the success or failure during processing. It also won't run the logic to remove assets
+         * that are not used anymore.
+         * <p>
+         * Usage example is to speed up CI jobs but it is a stop gap until Mojito backend performance are improved and/or
+         * more evolved async system is implemented.
+         * <p>
+         * Don't use unless you know what you're doing.
+         */
+        SEND_ASSET_NO_WAIT_NO_DELETE
     }
 }

@@ -101,7 +101,7 @@ public class PushCommand extends Command {
             return sourceAsset;
         });
 
-        pushService.push(repository, sourceAssetStream, branchName);
+        pushService.push(repository, sourceAssetStream, branchName, PushService.PushType.NORMAL);
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }
