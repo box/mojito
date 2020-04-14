@@ -60,7 +60,7 @@ public class Evolve {
     public void createCourseTranslationsById(String courseId, String translatedCourse, String locale, boolean isRTL) {
         translatedCourse = addVersionAndRtlAttributeToTranslations(translatedCourse, locale, isRTL);
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         HttpEntity<String> httpEntity = new HttpEntity<>(translatedCourse, headers);
         String response = restTemplate.postForObject("translate/{courseId}", httpEntity, String.class, courseId);
         logger.debug("course created: {}", response);

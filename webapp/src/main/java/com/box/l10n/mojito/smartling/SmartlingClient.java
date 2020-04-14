@@ -162,7 +162,7 @@ public class SmartlingClient {
 
     public void createBindings(Bindings bindings, String projectId) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         HttpEntity<Bindings> requestEntity = new HttpEntity<>(bindings, headers);
         String s = oAuth2RestTemplate.postForObject(API_BINDINGS, requestEntity, String.class, projectId);
         logger.debug("create binding: {}", s);

@@ -120,7 +120,7 @@ public class SlackClient {
 
     HttpHeaders getHttpHeadersForJson() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         headers.set("Authorization", "Bearer " + authToken);
         return headers;
     }
