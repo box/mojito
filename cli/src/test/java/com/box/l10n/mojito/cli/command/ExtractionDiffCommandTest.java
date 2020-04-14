@@ -162,6 +162,21 @@ public class ExtractionDiffCommandTest extends CLITestBase {
         Assert.assertEquals("edf", diffExtractionNameOrDefault);
     }
 
+    @Test
+    public void buildFailSafeMailCommand() {
+        ExtractionDiffCommand extractionDiffCommand = new ExtractionDiffCommand();
+        extractionDiffCommand.failSafeEmail = "username@test.com";
+        extractionDiffCommand.failSafeMessage = "https://mybuildurl.org/1234";
+        extractionDiffCommand.pushToBranchName = "BRANCH";
+        assertEquals("echo 'https://mybuildurl.org/1234' | mail -s 'Extraction diff command failed for branch: BRANCH' username@test.com", extractionDiffCommand.buildFailSafeMailCommand());
+    }
+
+    @Test
+    public void buildFailSafeMailCommandAllNull() {
+        ExtractionDiffCommand extractionDiffCommand = new ExtractionDiffCommand();
+        assertEquals("echo 'null' | mail -s 'Extraction diff command failed for branch: null' null", extractionDiffCommand.buildFailSafeMailCommand());
+    }
+
     List<TextUnitDTO> getTextUnitDTOS(Repository repository) {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
