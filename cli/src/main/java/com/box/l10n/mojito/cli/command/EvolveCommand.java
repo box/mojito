@@ -114,7 +114,6 @@ public class EvolveCommand extends Command {
     void writeJsonToFile(Repository repository, Course course, Locale locale, String localizedCourse) {
         Preconditions.checkNotNull(writeJsonTo);
         Path path = Paths.get(writeJsonTo, repository.getName(), course.getId(), locale.getBcp47Tag() + ".json");
-        Files.deleteRecursivelyIfExists(path.getParent());
         Files.createDirectories(path.getParent());
         Files.write(path, localizedCourse);
     }
