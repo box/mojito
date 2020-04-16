@@ -5,7 +5,9 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.ImportTextUnitJob;
@@ -44,8 +46,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
-import com.box.l10n.mojito.entity.security.user.User;
-import com.box.l10n.mojito.security.AuditorAwareImpl;
 import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
 
 
@@ -108,7 +108,7 @@ public class TextUnitBatchImporterService {
      * @param textUnitDTOs text units to import
      * @return
      */
-    public PollableFuture asyncImportTextUnits(List<TextUnitDTO> textUnitDTOs,
+    public PollableFuture<Void> asyncImportTextUnits(List<TextUnitDTO> textUnitDTOs,
                                                boolean integrityCheckSkipped,
                                                boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 

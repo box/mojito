@@ -282,7 +282,7 @@ public class VirtualAssetService {
         return virtualAssetTextUnits;
     }
 
-    public PollableFuture addTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
+    public PollableFuture<Void> addTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
         VirtualTextUnitBatchUpdateJobInput importVirtualAssetJobInput = new VirtualTextUnitBatchUpdateJobInput();
         importVirtualAssetJobInput.setAssetId(assetId);
         importVirtualAssetJobInput.setVirtualAssetTextUnits(virtualAssetTextUnits);
@@ -290,7 +290,7 @@ public class VirtualAssetService {
         return quartzPollableTaskScheduler.scheduleJob(VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput);
     }
 
-    public PollableFuture replaceTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
+    public PollableFuture<Void> replaceTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
         VirtualTextUnitBatchUpdateJobInput importVirtualAssetJobInput = new VirtualTextUnitBatchUpdateJobInput();
         importVirtualAssetJobInput.setAssetId(assetId);
         importVirtualAssetJobInput.setVirtualAssetTextUnits(virtualAssetTextUnits);
@@ -298,7 +298,7 @@ public class VirtualAssetService {
         return quartzPollableTaskScheduler.scheduleJob(VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput);
     }
 
-    public PollableFuture importLocalizedTextUnits(
+    public PollableFuture<Void> importLocalizedTextUnits(
             long assetId,
             long localeId,
             List<VirtualAssetTextUnit> textUnitForVirtualAssets)

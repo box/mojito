@@ -4,11 +4,13 @@ import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit;
+import com.box.l10n.mojito.quartz.QuartzJobInfo;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
+import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
@@ -16,7 +18,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -55,6 +56,9 @@ public class BranchNotificationService {
 
     @Autowired
     DateTimeUtils dateTimeUtils;
+
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     /**
      * When the state of branch changes, notifications must be send (new, updated, translated). This method sends
@@ -134,7 +138,12 @@ public class BranchNotificationService {
      */
     void scheduleMissingScreenshotNotificationsForBranch(Branch branch, String senderType) {
         Date date = DateTime.now().plusMinutes(30).toDate();
-        branchNotificationMissingScreenshotsJob.schedule(branch.getId(), senderType, date);
+
+        BranchNotificationMissingScreenshotsJobInput branchNotificationMissingScreenshotsJobInput = new BranchNotificationMissingScreenshotsJobInput();
+        branchNotificationMissingScreenshotsJobInput.setBranchId(branch.getId());
+        branchNotificationMissingScreenshotsJobInput.setSenderType(senderType);
+        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(BranchNotificationMissingScreenshotsJob.class).withInput(branchNotificationMissingScreenshotsJobInput).withTriggerStartDate(date).build();
+        quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 
     void sendMissingScreenshotNotificationsForBranch(BranchNotificationMessageSender branchNotificationMessageSender, Branch branch) {

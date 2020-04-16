@@ -3,9 +3,9 @@ package com.box.l10n.mojito.quartz;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.pollableTask.ExceptionHolder;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskBlobStorage;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskExceptionUtils;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.common.reflect.TypeToken;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -13,8 +13,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author jaurambault
@@ -30,6 +29,7 @@ public abstract class QuartzPollableJob<I, O> implements Job {
     static Logger logger = LoggerFactory.getLogger(QuartzPollableJob.class);
 
     final TypeToken<I> typeTokenInput = new TypeToken<I>(getClass()) {};
+    final TypeToken<O> typeTokenOutput = new TypeToken<O>(getClass()) {};
 
     @Autowired
     PollableTaskService pollableTaskService;
@@ -37,21 +37,42 @@ public abstract class QuartzPollableJob<I, O> implements Job {
     @Autowired
     PollableTaskExceptionUtils pollableTaskExceptionUtils;
 
-    public abstract O call(I input) throws Exception;
+    @Autowired
+    PollableTaskBlobStorage pollableTaskBlobStorage;
+
+    @Autowired
+    @Qualifier("fail_on_unknown_properties_false")
+    ObjectMapper objectMapper;
 
     PollableTask currentPollableTask;
+
+    public abstract O call(I input) throws Exception;
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         Long pollableTaskId = context.getMergedJobDataMap().getLong(POLLABLE_TASK_ID);
         currentPollableTask = pollableTaskService.getPollableTask(pollableTaskId);
 
-        Object output = null;
         ExceptionHolder exceptionHolder = new ExceptionHolder(currentPollableTask);
 
         try {
-            I input = (I) jsonStringToObject(context.getMergedJobDataMap().getString(INPUT), typeTokenInput.getRawType());
-            output = call(input);
+            I callInput;
+
+            String inputStringFromJob = context.getMergedJobDataMap().getString(INPUT);
+
+            if (inputStringFromJob != null) {
+                logger.debug("Inlined data, read from job data");
+                callInput = (I) objectMapper.readValueUnchecked(inputStringFromJob, typeTokenInput.getRawType());
+            } else {
+                logger.debug("No inlined data, read from blob storage");
+                callInput = (I) pollableTaskBlobStorage.getInput(pollableTaskId, typeTokenInput.getRawType());
+            }
+
+            O callOutput = call(callInput);
+
+            if (!typeTokenOutput.getRawType().equals(Void.class) ) {
+                pollableTaskBlobStorage.saveOutput(pollableTaskId, callOutput);
+            }
         } catch (Throwable t) {
             pollableTaskExceptionUtils.processException(t, exceptionHolder);
         } finally {
@@ -63,19 +84,9 @@ public abstract class QuartzPollableJob<I, O> implements Job {
         }
     }
 
-    Object jsonStringToObject(String jsonString, Class clazz) throws JobExecutionException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        Object result = null;
-        try {
-            result = objectMapper.readValue(jsonString, clazz);
-        } catch (IOException e) {
-            throw new JobExecutionException("Can't convert json string to object", e);
-        }
-        return result;
+    public Class<? super O> getOutputType() {
+        return typeTokenOutput.getRawType();
     }
-
 
     protected PollableTask getCurrentPollableTask() {
         return currentPollableTask;

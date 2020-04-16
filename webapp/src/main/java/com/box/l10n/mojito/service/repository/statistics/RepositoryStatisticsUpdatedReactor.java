@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
-import com.box.l10n.mojito.entity.RepositoryStatistic;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.google.common.collect.Sets;
 import org.reactivestreams.Processor;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ public class RepositoryStatisticsUpdatedReactor {
     Environment streamEnvironment;
 
     @Autowired
-    RepositoryStatisticsJob repositoryStatisticsJob;
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     private Processor<Long, Long> processor;
 
@@ -47,7 +47,9 @@ public class RepositoryStatisticsUpdatedReactor {
             @Override
             public void accept(List<Long> repositoryIds) {
                 for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
-                    repositoryStatisticsJob.schedule(repositoryId);
+                    RepositoryStatisticsJobInput repositoryStatisticsJobInput = new RepositoryStatisticsJobInput();
+                    repositoryStatisticsJobInput.setRepositoryId(repositoryId);
+                    quartzPollableTaskScheduler.scheduleJob(RepositoryStatisticsJob.class, repositoryStatisticsJobInput);
                 }
             }
         });

@@ -50,7 +50,7 @@ public class SlackClientTest {
     @Configuration
     @ConfigurationProperties("test.l10n.slack")
     static class TestConfig {
-        
+
         String emailDestination = "someemail@test.com";
 
         public String getEmailDestination() {

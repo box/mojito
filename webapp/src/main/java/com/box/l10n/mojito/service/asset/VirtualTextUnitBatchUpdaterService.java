@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
@@ -13,8 +14,8 @@ import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob;
+import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobInput;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -72,7 +73,7 @@ public class VirtualTextUnitBatchUpdaterService {
     PluralFormService pluralFormService;
 
     @Autowired
-    RepositoryStatisticsJob repositoryStatisticsJob;
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     @Autowired
     EntityManager entityManager;
@@ -170,7 +171,9 @@ public class VirtualTextUnitBatchUpdaterService {
                         assetTextUnit.setDoNotTranslate(doNotTranslate);
                         assetTextUnitRepository.save(assetTextUnit);
 
-                        repositoryStatisticsJob.schedule(asset.getRepository().getId());
+                        RepositoryStatisticsJobInput repositoryStatisticsJobInput = new RepositoryStatisticsJobInput();
+                        repositoryStatisticsJobInput.setRepositoryId(asset.getRepository().getId());
+                        quartzPollableTaskScheduler.scheduleJob(RepositoryStatisticsJob.class, repositoryStatisticsJobInput);
                     }
                 } else {
                     logger.debug("Exact match not used, need to create an asset text unit and map it to the tm text unit");

@@ -14,6 +14,7 @@ import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractor;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.FilterOptionsMd5Builder;
@@ -404,7 +405,7 @@ public class AssetExtractionService {
         return copy;
     }
 
-    public PollableFuture processAssetAsync(
+    public PollableFuture<Void> processAssetAsync(
             Long assetContentId,
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
@@ -417,7 +418,14 @@ public class AssetExtractionService {
 
         String pollableMessage = MessageFormat.format("Process asset content, id: {0}", assetContentId.toString());
 
-        return quartzPollableTaskScheduler.scheduleJob(ProcessAssetJob.class, processAssetJobInput, parentTaskId, pollableMessage, 2);
+        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(ProcessAssetJob.class)
+                .withInput(processAssetJobInput)
+                .withMessage(pollableMessage)
+                .withParentId(parentTaskId)
+                .withExpectedSubTaskNumber(2)
+                .build();
+
+        return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 
     /**

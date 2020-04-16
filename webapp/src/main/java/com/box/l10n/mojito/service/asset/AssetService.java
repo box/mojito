@@ -11,6 +11,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
@@ -330,12 +331,14 @@ public class AssetService {
         logger.debug("Deleted assets {}", assetIds.toString());
     }
 
-    public PollableFuture asyncDeleteAssetsOfBranch(Set<Long> assetIds, Long branchId) {
+    public PollableFuture<Void> asyncDeleteAssetsOfBranch(Set<Long> assetIds, Long branchId) {
         DeleteAssetsOfBranchJobInput deleteAssetsOfBranchJobInput = new DeleteAssetsOfBranchJobInput();
         deleteAssetsOfBranchJobInput.setAssetIds(assetIds);
         deleteAssetsOfBranchJobInput.setBranchId(branchId);
         String pollableMessage = MessageFormat.format(" - Delete assetIds: {0} in branch: {1}", Joiner.on(",").join(assetIds), branchId);
-        return quartzPollableTaskScheduler.scheduleJob(DeleteAssetsOfBranchJob.class, deleteAssetsOfBranchJobInput, null, pollableMessage, 0);
+
+        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(DeleteAssetsOfBranchJob.class).withInput(deleteAssetsOfBranchJobInput).withMessage(pollableMessage).build();
+        return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 
     public void deleteAssetsOfBranch(Set<Long> assetIds, Long branchId) {

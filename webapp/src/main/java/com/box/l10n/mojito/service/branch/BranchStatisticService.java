@@ -3,8 +3,10 @@ package com.box.l10n.mojito.service.branch;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJob;
+import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJobInput;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -44,7 +46,7 @@ public class BranchStatisticService {
     BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
 
     @Autowired
-    BranchNotificationJob branchNotificationJob;
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     @Autowired
     TextUnitSearcher textUnitSearcher;
@@ -65,7 +67,9 @@ public class BranchStatisticService {
         List<Branch> branchesToCheck = getBranchesToProcess(repositoryId);
         for (Branch branch : branchesToCheck) {
             computeAndSaveBranchStatistics(branch);
-            branchNotificationJob.schedule(branch.getId());
+            BranchNotificationJobInput branchNotificationJobInput = new BranchNotificationJobInput();
+            branchNotificationJobInput.setBranchId(branch.getId());
+            quartzPollableTaskScheduler.scheduleJob(BranchNotificationJob.class, branchNotificationJobInput);
         }
     }
 

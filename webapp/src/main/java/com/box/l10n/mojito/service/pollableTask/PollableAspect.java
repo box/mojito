@@ -5,7 +5,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.DeclareError;
-import org.aspectj.lang.annotation.DeclarePrecedence;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
@@ -13,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.AsyncTaskExecutor;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -92,7 +92,7 @@ public class PollableAspect {
      * Functions that are executed synchronously can return any type. That
      * includes void and {@link PollableFuture}.
      *
-     * <p>
+     *
      * If the return type is {@link PollableFuture}, the result is simply
      * returned (no exception will be thrown even though the instrumented
      * function might have failed).

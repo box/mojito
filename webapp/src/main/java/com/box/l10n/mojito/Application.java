@@ -2,6 +2,7 @@ package com.box.l10n.mojito;
 
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.actuate.system.ApplicationPidFileWriter;
@@ -61,6 +62,13 @@ public class Application {
     @Primary
     public ObjectMapper getObjectMapper() {
         return new ObjectMapper();
+    }
+
+    @Bean(name="fail_on_unknown_properties_false")
+    public ObjectMapper getObjectMapperFailOnUnknownPropertiesFalse() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return objectMapper;
     }
 
     /**

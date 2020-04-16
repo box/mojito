@@ -1,9 +1,9 @@
 package com.box.l10n.mojito.service.branch;
 
 import com.box.l10n.mojito.entity.Branch;
-import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -75,12 +75,13 @@ public class BranchService {
         branchRepository.save(branch);
     }
 
-    public PollableFuture asyncDeleteBranch(Long repositoryId, Long branchId) {
+    public PollableFuture<Void> asyncDeleteBranch(Long repositoryId, Long branchId) {
         DeleteBranchJobInput deleteBranchJobInput = new DeleteBranchJobInput();
         deleteBranchJobInput.setRepositoryId(repositoryId);
         deleteBranchJobInput.setBranchId(branchId);
         String pollableMessage = MessageFormat.format(" - Delete branch: {0} from repository: {1}", branchId, repositoryId);
-        return quartzPollableTaskScheduler.scheduleJob(DeleteBranchJob.class, deleteBranchJobInput, null, pollableMessage, 0);
+        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(DeleteBranchJob.class).withInput(deleteBranchJobInput).withMessage(pollableMessage).build();
+        return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 
     @Transactional
