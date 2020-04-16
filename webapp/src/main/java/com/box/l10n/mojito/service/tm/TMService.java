@@ -1054,7 +1054,7 @@ public class TMService {
      * @param filterOptions
      * @return
      */
-    public PollableFuture importLocalizedAssetAsync(
+    public PollableFuture<Void> importLocalizedAssetAsync(
             Long assetId,
             String content,
             Long localeId,

@@ -37,6 +37,7 @@ public class PollableTaskService {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(PollableTaskService.class);
+
     @Autowired
     ObjectMapper objectMapper;
 

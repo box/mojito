@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
-import com.box.l10n.mojito.aspect.StopWatch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
@@ -10,7 +9,6 @@ import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
-import com.box.l10n.mojito.service.scheduler.SchedulableJob;
 import com.box.l10n.mojito.service.sla.DropScheduleService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
@@ -20,7 +18,6 @@ import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.ibm.icu.text.PluralRules;
 import com.ibm.icu.util.ULocale;
 import org.joda.time.DateTime;
-import org.quartz.JobDataMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

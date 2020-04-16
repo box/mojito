@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.branch.notification;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.textunit.ImportTextUnitsBatch;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
@@ -10,6 +11,7 @@ import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
+import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -21,7 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -49,7 +50,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     BranchNotificationRepository branchNotificationRepository;
 
     @Autowired
-    BranchNotificationMissingScreenshotsJob branchNotificationMissingScreenshotsJob;
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -97,7 +98,11 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
         BranchNotification branchNotification = branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType);
         branchNotification.setScreenshotMissingMsgSentAt(DateTime.now().minusMinutes(31));
 
-        branchNotificationMissingScreenshotsJob.schedule(branchTestData.getBranch1().getId(), senderType, new Date());
+
+        BranchNotificationMissingScreenshotsJobInput branchNotificationMissingScreenshotsJobInput = new BranchNotificationMissingScreenshotsJobInput();
+        branchNotificationMissingScreenshotsJobInput.setBranchId(branchTestData.getBranch1().getId());
+        branchNotificationMissingScreenshotsJobInput.setSenderType(senderType);
+        quartzPollableTaskScheduler.scheduleJob(BranchNotificationMissingScreenshotsJob.class, branchNotificationMissingScreenshotsJobInput);
 
         waitForCondition("Branch1 screenshot missing notification must be sent",
                 () -> {
