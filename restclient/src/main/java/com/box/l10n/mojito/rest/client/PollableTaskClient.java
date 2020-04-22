@@ -4,13 +4,14 @@ import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskExecutionException;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskTimeoutException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
-import org.springframework.stereotype.Component;
 
 /**
  * @author aloison
@@ -38,6 +39,11 @@ public class PollableTaskClient extends BaseClient {
      */
     public PollableTask getPollableTask(Long pollableTaskId) {
         return authenticatedRestTemplate.getForObject(getBasePathForResource(pollableTaskId), PollableTask.class);
+    }
+
+    public String getPollableTaskOutput(Long pollableTaskId) {
+        String output = authenticatedRestTemplate.getForObject(getBasePathForResource(pollableTaskId, "output"), String.class);
+        return output;
     }
 
     /**
@@ -75,6 +81,7 @@ public class PollableTaskClient extends BaseClient {
     public void waitForPollableTask(Long pollableId, long timeout, WaitForPollableTaskListener waitForPollableTaskListener) throws PollableTaskException {
 
         long timeoutTime = System.currentTimeMillis() + timeout;
+        long waitTime = 0;
 
         PollableTask pollableTask = null;
 
@@ -111,7 +118,8 @@ public class PollableTaskClient extends BaseClient {
                 }
 
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(waitTime);
+                    waitTime = getNextWaitTime(waitTime);
                 } catch (InterruptedException ie) {
                     throw new RuntimeException(ie);
                 }
@@ -119,6 +127,13 @@ public class PollableTaskClient extends BaseClient {
                 logger.debug("PollableTask: {} finished", pollableId);
             }
         }
+    }
+
+    long getNextWaitTime(long lastWaitTime) {
+        int maxTime = 500;
+        long nextWaitTime = lastWaitTime + 25;
+        nextWaitTime = Math.max(maxTime, nextWaitTime);
+        return nextWaitTime;
     }
 
     /**

@@ -10,16 +10,17 @@ import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.rest.entity.XliffExportBody;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author wyau
@@ -90,6 +91,8 @@ public class AssetClient extends BaseClient {
                 .fromPath(getBasePathForResource(assetId, "localized", localeId));
 
         LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
+        localizedAssetBody.setAssetId(assetId);
+        localizedAssetBody.setLocaleId(localeId);
         localizedAssetBody.setContent(content);
         localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
         localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
@@ -100,6 +103,38 @@ public class AssetClient extends BaseClient {
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 localizedAssetBody,
                 LocalizedAssetBody.class);
+    }
+
+    public PollableTask getLocalizedAssetForContentAsync(
+            Long assetId,
+            Long localeId,
+            String content,
+            String outputBcp47tag,
+            FilterConfigIdOverride filterConfigIdOverride,
+            List<String> filterOptions,
+            LocalizedAssetBody.Status status,
+            LocalizedAssetBody.InheritanceMode inheritanceMode) {
+        logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
+
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder
+                .fromPath(getBasePathForResource(assetId, "localized"));
+
+        LocalizedAssetBody localizedAssetBody = new LocalizedAssetBody();
+        localizedAssetBody.setAssetId(assetId);
+        localizedAssetBody.setLocaleId(localeId);
+        localizedAssetBody.setContent(content);
+        localizedAssetBody.setOutputBcp47tag(outputBcp47tag);
+        localizedAssetBody.setFilterConfigIdOverride(filterConfigIdOverride);
+        localizedAssetBody.setFilterOptions(filterOptions);
+        localizedAssetBody.setInheritanceMode(inheritanceMode);
+        localizedAssetBody.setStatus(status);
+
+        PollableTask pollableTask = authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
+                localizedAssetBody,
+                PollableTask.class);
+
+
+        return pollableTask;
     }
 
     /**

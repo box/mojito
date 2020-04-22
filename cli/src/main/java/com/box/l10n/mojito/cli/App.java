@@ -5,7 +5,6 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -43,9 +42,8 @@ public class App implements CommandLineRunner {
         new L10nJCommander().run(args);
     }
 
-    @Bean
-    @Qualifier("outputIndented")
-    public ObjectMapper getIndentitedObjectMapper() {
+    @Bean(name="outputIndented")
+    public ObjectMapper getOutputIndented() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         return objectMapper;
