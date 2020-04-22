@@ -21,7 +21,7 @@ public class StructuredBlobStorage {
     }
 
     public void put(Prefix prefix, String name, String content, Retention retention) {
-        blobStorage.put(getFullName(prefix, name), content);
+        blobStorage.put(getFullName(prefix, name), content, retention);
     }
 
     String getFullName(Prefix prefix, String name) {
