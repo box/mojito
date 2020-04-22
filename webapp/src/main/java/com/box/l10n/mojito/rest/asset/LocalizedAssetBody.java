@@ -12,6 +12,16 @@ import java.util.List;
 public class LocalizedAssetBody {
 
     /**
+     * Asset id
+     */
+    Long assetId;
+
+    /**
+     * Locale id
+     */
+    Long localeId;
+
+    /**
      * bcp47 tag of the locale content
      */
     String bcp47Tag;
@@ -52,6 +62,22 @@ public class LocalizedAssetBody {
     public LocalizedAssetBody(String bcp47Tag, String content) {
         this.bcp47Tag = bcp47Tag;
         this.content = content;
+    }
+
+    public Long getAssetId() {
+        return assetId;
+    }
+
+    public void setAssetId(Long assetId) {
+        this.assetId = assetId;
+    }
+
+    public Long getLocaleId() {
+        return localeId;
+    }
+
+    public void setLocaleId(Long localeId) {
+        this.localeId = localeId;
     }
 
     public String getBcp47Tag() {

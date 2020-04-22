@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
+import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
@@ -16,6 +17,7 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.tm.GenerateLocalizedAssetJob;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -66,6 +68,9 @@ public class AssetWS {
 
     @Autowired
     LocaleService localeService;
+
+    @Autowired
+    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     /**
      * Gets the list of {@link Asset} for a given {@link Repository} and other
@@ -175,6 +180,20 @@ public class AssetWS {
         return localizedAssetBody;
     }
 
+    @RequestMapping(value = "/api/assets/{assetId}/localized", method = RequestMethod.POST)
+    public PollableTask getLocalizedAssetForContentAsync(
+            @PathVariable("assetId") long assetId,
+            @RequestBody LocalizedAssetBody localizedAssetBody) throws UnsupportedAssetFilterTypeException {
+
+        if (localizedAssetBody.getAssetId() == null) {
+            localizedAssetBody.setAssetId(assetId);
+        }
+
+        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(GenerateLocalizedAssetJob.class).withInlineInput(false).withInput(localizedAssetBody).build();
+        PollableFuture<LocalizedAssetBody> localizedAssetBodyPollableFuture = quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+        return localizedAssetBodyPollableFuture.getPollableTask();
+    }
+
     /**
      * Pseudo localizes the payload content with translations of a given
      * {@link Asset}.
@@ -205,7 +224,7 @@ public class AssetWS {
     }
 
     //TODO(P1) It would be nice to put this to be POST on .../localized/{localeId}
-    // but it won't backward compatible so... The URL is taken by another POST 
+    // but it won't backward compatible so... The URL is taken by another POST
     // that is used as a GET because we needed to send the paylaod. Here would
     // be the logic URL usage
     @RequestMapping(value = "/api/assets/{assetId}/localized/{localeId}/import", method = RequestMethod.POST)
@@ -229,9 +248,6 @@ public class AssetWS {
 
         return importLocalizedAssetBody;
     }
-
-    @Autowired
-    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     /**
      * Exports all the translations (used and unused) of an {@link Asset} into

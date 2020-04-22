@@ -6,10 +6,12 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.exception.AssetNotFoundException;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.LocalizedAssetBody;
+import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
@@ -82,11 +84,17 @@ public class PullCommand extends Command {
     @Parameter(names = {"--fully-translated"}, required = false, description = "To pull localized assets only if all strings for the locale are fully translated")
     Boolean onlyIfFullyTranslated = false;
 
+    @Parameter(names = {"--async-ws"}, required = false, description = "Use async WS, use for processing big files (should become default eventually)")
+    Boolean asyncWS = false;
+
     @Autowired
     AssetClient assetClient;
 
     @Autowired
     CommandHelper commandHelper;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     Map<String, RepositoryLocale> repositoryLocalesWithoutRootLocale;
 
@@ -273,7 +281,19 @@ public class PullCommand extends Command {
 
         LocalizedAssetBody localizedAsset = null;
 
-        //TODO remove this is temporary, we'll make the service async
+        if (asyncWS) {
+            localizedAsset = getLocalizedAssetBodyAsync(sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions, assetByPathAndRepositoryId, assetContent);
+        } else {
+            localizedAsset = getLocalizedAssetBodySync(sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions, assetByPathAndRepositoryId, assetContent, localizedAsset);
+        }
+
+        logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
+
+        return localizedAsset;
+    }
+
+    LocalizedAssetBody getLocalizedAssetBodySync(FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, List<String> filterOptions, Asset assetByPathAndRepositoryId, String assetContent, LocalizedAssetBody localizedAsset) {
+        //TODO remove this is temporary, Async service is implemented but we don't use it yet by default
         int count = 0;
         int maxCount = 5;
         while (localizedAsset == null && count < maxCount) {
@@ -293,9 +313,23 @@ public class PullCommand extends Command {
                 consoleWriter.fg(Color.RED).a("Attempt ").a(count).a("/").a(maxCount).a(" for locale: ").a(repositoryLocale.getLocale().getBcp47Tag()).a(" failed. Retrying...").println();
             }
         }
+        return localizedAsset;
+    }
 
-        logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
-
+    LocalizedAssetBody getLocalizedAssetBodyAsync(FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, List<String> filterOptions, Asset assetByPathAndRepositoryId, String assetContent) throws CommandException {
+        LocalizedAssetBody localizedAsset;
+        PollableTask localizedAssetForContentAsync = assetClient.getLocalizedAssetForContentAsync(
+                assetByPathAndRepositoryId.getId(),
+                repositoryLocale.getLocale().getId(),
+                assetContent,
+                outputBcp47tag,
+                sourceFileMatch.getFileType().getFilterConfigIdOverride(),
+                filterOptions,
+                status,
+                inheritanceMode);
+        commandHelper.waitForPollableTask(localizedAssetForContentAsync.getId());
+        String jsonOutput = commandHelper.pollableTaskClient.getPollableTaskOutput(localizedAssetForContentAsync.getId());
+        localizedAsset = objectMapper.readValueUnchecked(jsonOutput, LocalizedAssetBody.class);
         return localizedAsset;
     }
 

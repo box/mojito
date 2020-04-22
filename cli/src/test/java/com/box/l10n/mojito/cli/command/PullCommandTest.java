@@ -63,6 +63,35 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void pullWithAsyncWS() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        Asset asset2 = assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
+        importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
+        importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "--async-ws");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "--async-ws");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void pullWithDuplicatedTextUnits() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
