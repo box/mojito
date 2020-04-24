@@ -2,7 +2,6 @@ package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
-import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -51,7 +50,7 @@ public class RepositoryStatisticsCronJob implements Job {
 
     @Lazy
     @Autowired
-    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+    RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler;
 
     @Value("${l10n.repositoryStatistics.scheduler.cron}")
     String cron;
@@ -61,9 +60,7 @@ public class RepositoryStatisticsCronJob implements Job {
         logger.debug("Sets repository stats as out of date");
         List<Repository> repositories = repositoryRepository.findByDeletedFalseOrderByNameAsc();
         for (Repository repository : repositories) {
-            RepositoryStatisticsJobInput repositoryStatisticsJobInput = new RepositoryStatisticsJobInput();
-            repositoryStatisticsJobInput.setRepositoryId(repository.getId());
-            quartzPollableTaskScheduler.scheduleJob(RepositoryStatisticsJob.class, repositoryStatisticsJobInput);
+            repositoryStatisticsJobScheduler.schedule(repository.getId());
         }
     }
 

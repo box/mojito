@@ -35,7 +35,8 @@ public class RepositoryStatisticsUpdatedReactor {
     Environment streamEnvironment;
 
     @Autowired
-    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+    RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler;
+
 
     private Processor<Long, Long> processor;
 
@@ -47,9 +48,7 @@ public class RepositoryStatisticsUpdatedReactor {
             @Override
             public void accept(List<Long> repositoryIds) {
                 for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
-                    RepositoryStatisticsJobInput repositoryStatisticsJobInput = new RepositoryStatisticsJobInput();
-                    repositoryStatisticsJobInput.setRepositoryId(repositoryId);
-                    quartzPollableTaskScheduler.scheduleJob(RepositoryStatisticsJob.class, repositoryStatisticsJobInput);
+                    repositoryStatisticsJobScheduler.schedule(repositoryId);
                 }
             }
         });

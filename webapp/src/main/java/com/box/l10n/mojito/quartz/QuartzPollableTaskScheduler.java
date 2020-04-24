@@ -72,7 +72,10 @@ public class QuartzPollableTaskScheduler {
                 quartzJobInfo.getExpectedSubTaskNumber(),
                 quartzJobInfo.getTimeout());
 
-        String keyName = getKeyName(quartzJobInfo.getClazz(), quartzJobInfo.getUniqueId() != null ? quartzJobInfo.getUniqueId() : pollableTask.getId().toString());
+        String uniqueId = quartzJobInfo.getUniqueId() != null ?
+                quartzJobInfo.getUniqueId() : pollableTask.getId().toString();
+
+        String keyName = getKeyName(quartzJobInfo.getClazz(), uniqueId);
 
         try {
             TriggerKey triggerKey = new TriggerKey(keyName, DYNAMIC_GROUP_NAME);
@@ -123,11 +126,11 @@ public class QuartzPollableTaskScheduler {
     }
 
     <I, O> Class<O> getJobOutputType(QuartzJobInfo<I, O> quartzJobInfo) {
-        QuartzPollableJob<I, O> quartzPollableJob = null ;
+        QuartzPollableJob<I, O> quartzPollableJob = null;
 
         try {
             quartzPollableJob = quartzJobInfo.getClazz().newInstance();
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Can't get the output type of the job", e);
         }
 

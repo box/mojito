@@ -46,9 +46,6 @@ public class BranchNotificationService {
     BranchStatisticService branchStatisticService;
 
     @Autowired
-    BranchNotificationMissingScreenshotsJob branchNotificationMissingScreenshotsJob;
-
-    @Autowired
     BranchStatisticRepository branchStatisticRepository;
 
     @Autowired(required = false)
@@ -142,7 +139,12 @@ public class BranchNotificationService {
         BranchNotificationMissingScreenshotsJobInput branchNotificationMissingScreenshotsJobInput = new BranchNotificationMissingScreenshotsJobInput();
         branchNotificationMissingScreenshotsJobInput.setBranchId(branch.getId());
         branchNotificationMissingScreenshotsJobInput.setSenderType(senderType);
-        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(BranchNotificationMissingScreenshotsJob.class).withInput(branchNotificationMissingScreenshotsJobInput).withTriggerStartDate(date).build();
+
+        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(BranchNotificationMissingScreenshotsJob.class)
+                .withInput(branchNotificationMissingScreenshotsJobInput)
+                .withTriggerStartDate(date)
+                .withUniqueId(senderType + "_" + branch.getId())
+                .build();
         quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 

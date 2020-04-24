@@ -97,12 +97,9 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
 
         BranchNotification branchNotification = branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType);
         branchNotification.setScreenshotMissingMsgSentAt(DateTime.now().minusMinutes(31));
+        branchNotificationRepository.save(branchNotification);
 
-
-        BranchNotificationMissingScreenshotsJobInput branchNotificationMissingScreenshotsJobInput = new BranchNotificationMissingScreenshotsJobInput();
-        branchNotificationMissingScreenshotsJobInput.setBranchId(branchTestData.getBranch1().getId());
-        branchNotificationMissingScreenshotsJobInput.setSenderType(senderType);
-        quartzPollableTaskScheduler.scheduleJob(BranchNotificationMissingScreenshotsJob.class, branchNotificationMissingScreenshotsJobInput);
+        branchNotificationService.scheduleMissingScreenshotNotificationsForBranch(branchTestData.getBranch1(), senderType);
 
         waitForCondition("Branch1 screenshot missing notification must be sent",
                 () -> {
