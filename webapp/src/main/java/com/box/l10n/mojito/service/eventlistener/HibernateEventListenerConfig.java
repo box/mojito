@@ -27,7 +27,7 @@ public class HibernateEventListenerConfig {
     @PostConstruct
     public void registerListeners() {
         EntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();
-        // TODO must test that
+        // TODO(spring2) must test that
         SessionFactoryImplementor sf = emf.getSessionFactory();
         EventListenerRegistry registry = (EventListenerRegistry)sf.getServiceRegistry().getService(EventListenerRegistry.class);
         registry.getEventListenerGroup(EventType.POST_COMMIT_INSERT).appendListener(entityCrudEventListener);
