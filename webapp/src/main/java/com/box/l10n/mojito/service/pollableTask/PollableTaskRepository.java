@@ -25,8 +25,3 @@ public interface PollableTaskRepository extends JpaRepository<PollableTask, Long
     )
     List<PollableTask> findZombiePollableTasks(Pageable pageable);
 }
-
-
-
-// 19:50 --> 14:50
-// 5h

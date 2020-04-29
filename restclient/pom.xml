@@ -68,7 +68,7 @@
             <artifactId>hibernate-validator</artifactId>
         </dependency>
 
-        <!--        TODO why is this need when moving to 1.4 with @SpringText ?? -->
+        <!--        TODO(spring2) why is this need when moving to 1.4 with @SpringText ?? -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
