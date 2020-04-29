@@ -121,7 +121,7 @@ public class Application {
     }
 
 
-    // TODO Looks like this is not supported by 1.5, but 2.x has a properties, this can probably removed then
+    // TODO(spring2) Looks like this is not supported by 1.5, but 2.x has a properties, this can probably removed then
     // With new version of tomcat, uri with [] can't be processed anymore
     @Bean
     public EmbeddedServletContainerCustomizer cookieProcessorCustomizer() {
