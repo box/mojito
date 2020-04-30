@@ -1,3 +1,4 @@
+# TODO(spring2) this is outdated with Spring 2 migration and
 version: '2'
 services:
   db:
