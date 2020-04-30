@@ -29,11 +29,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
@@ -101,11 +96,26 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-aspects</artifactId>
         </dependency>
+
+
+
+<!--        <dependency>-->
+<!--            -->
+<!--            <groupId>org.springframework.security.oauth</groupId>-->
+<!--            <artifactId>spring-security-oauth2</artifactId>-->
+<!--            <version>2.0.18.RELEASE</version>-->
+<!--        </dependency>-->
+
+<!-- TODO(spring2) review this version -->
         <dependency>
-            <groupId>org.springframework.security.oauth</groupId>
-            <artifactId>spring-security-oauth2</artifactId>
-            <version>2.0.18.RELEASE</version>
+            <groupId>org.springframework.security.oauth.boot</groupId>
+            <artifactId>spring-security-oauth2-autoconfigure</artifactId>
+            <version>2.2.6.RELEASE</version>
         </dependency>
+
+
+
+
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
@@ -115,10 +125,20 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-stream</artifactId>
+            <version>2.0.8.RELEASE</version>
         </dependency>
+
+        <!-- TODO(spring2) this  is needed now? what about the version, it is not in spring anymore? -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+            <version>2.0.8.RELEASE</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.directory.server</groupId>
             <artifactId>apacheds-server-jndi</artifactId>
@@ -399,11 +419,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
-                    <argLine>-Dspring.config.location=file://${user.home}/.l10n/config/webapp/
+                    <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
 
-                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
+<!-- TODO(spring2) re-enable? -->
+<!--                    <rerunFailingTestsCount>1</rerunFailingTestsCount>-->
 
                     <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
 
