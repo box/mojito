@@ -8,11 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-import org.springframework.boot.system.ApplicationPidFileWriter;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -45,6 +41,9 @@ import java.io.IOException;
 @EntityScan(basePackageClasses = BaseEntity.class)
 public class Application {
 
+
+    // TODO(spring2), find replacement - this was commented in previous attempt
+    //    @Value("${org.springframework.http.converter.json.indent_output}")
     @Value("${org.springframework.http.converter.json.indent_output}")
     boolean shouldIndentJacksonOutput;
 
@@ -123,26 +122,26 @@ public class Application {
 
     // TODO(spring2) Looks like this is not supported by 1.5, but 2.x has a properties, this can probably removed then
     // With new version of tomcat, uri with [] can't be processed anymore
-    @Bean
-    public EmbeddedServletContainerCustomizer cookieProcessorCustomizer() {
-        return new EmbeddedServletContainerCustomizer() {
-
-            @Override
-            public void customize(ConfigurableEmbeddedServletContainer container) {
-                if (container instanceof TomcatEmbeddedServletContainerFactory) {
-                    ((TomcatEmbeddedServletContainerFactory) container)
-                            .addConnectorCustomizers(new TomcatConnectorCustomizer() {
-                                @Override
-                                public void customize(Connector connector) {
-                                    connector.setAttribute("relaxedQueryChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
-                                    connector.setAttribute("relaxedPathChars", "[]|");
-                                }
-                            });
-                }
-            }
-
-        };
-    }
+//    @Bean
+//    public EmbeddedServletContainerCustomizer cookieProcessorCustomizer() {
+//        return new EmbeddedServletContainerCustomizer() {
+//
+//            @Override
+//            public void customize(ConfigurableEmbeddedServletContainer container) {
+//                if (container instanceof TomcatEmbeddedServletContainerFactory) {
+//                    ((TomcatEmbeddedServletContainerFactory) container)
+//                            .addConnectorCustomizers(new TomcatConnectorCustomizer() {
+//                                @Override
+//                                public void customize(Connector connector) {
+//                                    connector.setAttribute("relaxedQueryChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
+//                                    connector.setAttribute("relaxedPathChars", "[]|");
+//                                }
+//                            });
+//                }
+//            }
+//
+//        };
+//    }
 
 
 }
