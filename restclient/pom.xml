@@ -63,10 +63,6 @@
             <version>2.6</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
 
         <!--        TODO(spring2) why is this need when moving to 1.4 with @SpringText ?? -->
         <dependency>
