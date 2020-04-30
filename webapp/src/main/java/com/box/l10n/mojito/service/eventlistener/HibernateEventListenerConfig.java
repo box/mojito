@@ -3,12 +3,14 @@ package com.box.l10n.mojito.service.eventlistener;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
-import org.hibernate.jpa.internal.EntityManagerFactoryImpl;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 
 /**
  * Registers hibernate event listeners.
@@ -18,18 +20,18 @@ import javax.annotation.PostConstruct;
 @Component
 public class HibernateEventListenerConfig {
 
-    @Autowired
-    LocalContainerEntityManagerFactoryBean lcemfb;
+    @PersistenceUnit
+    EntityManagerFactory emf;
 
     @Autowired
     EntityCrudEventListener entityCrudEventListener;
 
     @PostConstruct
     public void registerListeners() {
-        EntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();
         // TODO(spring2) must test that
-        SessionFactoryImplementor sf = emf.getSessionFactory();
-        EventListenerRegistry registry = (EventListenerRegistry)sf.getServiceRegistry().getService(EventListenerRegistry.class);
+
+        SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
+        EventListenerRegistry registry = (EventListenerRegistry)sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
         registry.getEventListenerGroup(EventType.POST_COMMIT_INSERT).appendListener(entityCrudEventListener);
         registry.getEventListenerGroup(EventType.POST_COMMIT_UPDATE).appendListener(entityCrudEventListener);
         registry.getEventListenerGroup(EventType.POST_COMMIT_DELETE).appendListener(entityCrudEventListener);
