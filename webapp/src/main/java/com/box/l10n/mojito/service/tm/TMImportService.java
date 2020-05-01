@@ -68,7 +68,7 @@ public class TMImportService {
         importXLIFF(importExportedXliffStep, xliffContent);
     }
 
-    /**`
+    /**
      * Import the exported XLIFF using Okapi driver for a specific asset.
      *
      * @param assetId
