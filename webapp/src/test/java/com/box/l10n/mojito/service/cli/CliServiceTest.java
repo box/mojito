@@ -32,11 +32,14 @@ public class CliServiceTest extends ServiceTestBase {
     public void testGetCliUrl() {
         CliService cliService = new CliService();
         cliService.version = "0.1";
-                CliConfig cliConfig = new CliConfig();
+
+        CliConfig cliConfig = new CliConfig();
         cliConfig.url = "http://someserver.io/{version}/{gitCommit}|{gitShortCommit}";
         cliService.cliConfig = cliConfig;
+
         cliService.gitInfo = new GitInfo();
         cliService.gitInfo.getCommit().setId("141708fc7e80556d69261c2cf4cdc82acfa337bc");
+
         Assert.assertEquals("http://someserver.io/0.1/141708fc7e80556d69261c2cf4cdc82acfa337bc|141708f", cliService.getCliUrl());
     }
 

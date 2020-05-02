@@ -27,6 +27,9 @@
     - replace quartz with push/sub or sns/sqs like system
     - replace hibernate listener  with push/sub or sns/sqs like system
 - sementic versioning, release not and all
+- sla checker sliding windows
+    - sla check is not useful right now because no project are fully translated
+    - since each dev can track the status for the tranlsation for its branch, maybe that SLA checker is not that useful...
 
     
 # New site

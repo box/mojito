@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.boxsdk;
 
+import com.box.l10n.mojito.rest.WSTestBase;
+import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import com.box.l10n.mojito.service.boxsdk.BoxSDKAppUserService;
 import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityRepository;
 import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityService;
 import com.box.l10n.mojito.test.category.BoxSDKTest;
@@ -15,6 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
@@ -46,12 +51,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * @author jaurambault
  */
-@RunWith(SpringRunner.class)
-@Configuration
-@ComponentScan(basePackageClasses = {BoxSDKServiceTest.class, BoxSDKServiceConfigEntityService.class})
-@SpringBootTest(classes = {BoxSDKServiceTest.class, PropertyPlaceholderAutoConfiguration.class})
-@EnableConfigurationProperties
-public class BoxSDKServiceTest {
+//TODO(spring2) this has changed and is disable by default so it needs testing with a box instance
+public class BoxSDKServiceTest extends WSTestBase {
 
     /**
      * logger
@@ -63,15 +64,6 @@ public class BoxSDKServiceTest {
 
     @Autowired
     BoxSDKService boxSDKService;
-
-    @TestConfiguration
-    static class TestConfig {
-
-        @Bean
-        public BoxSDKServiceConfigEntityRepository getBoxSDKServiceConfigEntityRepository() {
-            return null;
-        }
-    }
 
     static BoxFolder testFolder = null;
 
