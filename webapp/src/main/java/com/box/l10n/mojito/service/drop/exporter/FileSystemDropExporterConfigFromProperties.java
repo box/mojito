@@ -1,9 +1,10 @@
 package com.box.l10n.mojito.service.drop.exporter;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Configuration for the {@link FileSystemDropExporter}.
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component;
  * @author jaurambault
  */
 @Component
-@ConfigurationProperties("l10n.fileSystemDropExporter")
+@ConfigurationProperties("l10n.file-system-drop-exporter")
 public class FileSystemDropExporterConfigFromProperties {
 
     /**

@@ -41,7 +41,7 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
         for (PollableTask pollableTask : pollableTasks) {
             pollableTask.setFinishedDate(new DateTime());
         }
-        pollableTaskRepository.save(pollableTasks);
+        pollableTaskRepository.saveAll(pollableTasks);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class PollableTaskCleanupServiceTest extends ServiceTestBase {
         pollableTask.setCreatedDate(pastCreatedDate);
         pollableTaskRepository.save(pollableTask);
 
-        return pollableTaskRepository.findOne(pollableTask.getId());
+        return pollableTaskRepository.findById(pollableTask.getId()).orElse(null);
     }
 
     private boolean isMarkedAsZombie(PollableTask pollableTask) {

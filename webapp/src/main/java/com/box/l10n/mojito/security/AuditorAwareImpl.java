@@ -1,12 +1,12 @@
 package com.box.l10n.mojito.security;
 
 import com.box.l10n.mojito.entity.security.user.User;
-import com.box.l10n.mojito.service.security.user.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * @author wyau
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class AuditorAwareImpl implements AuditorAware<User> {
 
     @Override
-    public User getCurrentAuditor() {
+    public Optional<User> getCurrentAuditor() {
 
         User currentAuditor = null;
 
@@ -25,8 +25,9 @@ public class AuditorAwareImpl implements AuditorAware<User> {
             currentAuditor = ((UserDetailsImpl) authentication.getPrincipal()).getUser();
         }
 
-        return currentAuditor;
+        return Optional.ofNullable(currentAuditor);
     }
+    
 }
 
 

@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.entity.TMTextUnit;
-import net.sf.okapi.common.resource.ITextUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -35,7 +34,7 @@ public class ImportTranslationsByIdStep extends AbstractImportTranslationsStep {
 
         try {
             Long tmTextUnitId = Long.valueOf(textUnit.getId());
-            tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+            tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
         } catch (NumberFormatException nfe) {
             logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
         }

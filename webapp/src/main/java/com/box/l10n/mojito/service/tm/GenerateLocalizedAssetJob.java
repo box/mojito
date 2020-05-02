@@ -40,7 +40,7 @@ public class GenerateLocalizedAssetJob extends QuartzPollableJob<LocalizedAssetB
         Long assetId = localizedAssetBody.getAssetId();
         logger.debug("Localizing content payload with asset id = {}, and locale = {}", assetId);
 
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localizedAssetBody.getLocaleId());
 
         String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());

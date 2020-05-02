@@ -14,8 +14,6 @@ import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeverag
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobScheduler;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob;
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobInput;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -167,7 +165,7 @@ public class VirtualTextUnitBatchUpdaterService {
                         logger.debug("Exact match is used and no change to doNotTranslate, nothing to do");
                     } else {
                         logger.debug("Exact match is used but doNotTranslate changed, update AssetTextUnit");
-                        AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(exactMatch.getAssetTextUnitId());
+                        AssetTextUnit assetTextUnit = assetTextUnitRepository.findById(exactMatch.getAssetTextUnitId()).orElse(null);
                         assetTextUnit.setDoNotTranslate(doNotTranslate);
                         assetTextUnitRepository.save(assetTextUnit);
 
@@ -209,7 +207,7 @@ public class VirtualTextUnitBatchUpdaterService {
         if (previousByName != null) {
             logger.debug("Asset text unit has changed, remove all previous entries");
             assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(previousByName.getAssetTextUnitId());
-            assetTextUnitRepository.delete(previousByName.getAssetTextUnitId());
+            assetTextUnitRepository.deleteById(previousByName.getAssetTextUnitId());
         }
     }
 

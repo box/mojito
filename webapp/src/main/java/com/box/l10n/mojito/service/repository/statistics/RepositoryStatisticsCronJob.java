@@ -34,7 +34,7 @@ import java.util.List;
  * @author jaurambault
  */
 @Profile("!disablescheduling")
-@ConditionalOnProperty(value = "l10n.repositoryStatistics.scheduler.cron")
+@ConditionalOnProperty(value = "l10n.repository-statistics.scheduler.cron")
 @Configuration
 @Component
 @DisallowConcurrentExecution
