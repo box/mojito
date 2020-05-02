@@ -1,19 +1,20 @@
 package com.box.l10n.mojito.service.sla;
 
-import com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService;
-import com.box.l10n.mojito.entity.SlaIncident;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.SlaIncident;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.utils.DateTimeUtils;
-import java.util.LinkedHashSet;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.LinkedHashSet;
+import java.util.List;
 
 /**
  * @author jeanaurambault
@@ -98,6 +99,6 @@ public class SlaCheckerService {
         for (SlaIncident ooSLAIncident : findByIsNullClosedDate) {
             ooSLAIncident.setClosedDate(closedDate);
         }
-        slaIncidentRepository.save(findByIsNullClosedDate);
+        slaIncidentRepository.saveAll(findByIsNullClosedDate);
     }
 }

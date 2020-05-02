@@ -14,15 +14,17 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  *
@@ -67,8 +69,8 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         logger.debug("First run: compute and save statistics");
         repositoryStatisticService.updateStatistics(tmTestData.repository.getId());
 
-        Repository repository = repositoryRepository.findOne(tmTestData.repository.getId());
-        RepositoryStatistic repositoryStatistic = repositoryStatisticRepository.findOne(repository.getRepositoryStatistic().getId());
+        Repository repository = repositoryRepository.findById(tmTestData.repository.getId()).orElse(null);
+        RepositoryStatistic repositoryStatistic = repositoryStatisticRepository.findById(repository.getRepositoryStatistic().getId()).orElse(null);
         Map<String, RepositoryLocaleStatistic> repositoryLocaleStatistics = new HashMap<>();
         for (RepositoryLocaleStatistic repositoryLocaleStatistic : repositoryLocaleStatisticRepository.findByRepositoryStatisticId(repositoryStatistic.getId())) {
             repositoryLocaleStatistics.put(repositoryLocaleStatistic.getLocale().getBcp47Tag(), repositoryLocaleStatistic);

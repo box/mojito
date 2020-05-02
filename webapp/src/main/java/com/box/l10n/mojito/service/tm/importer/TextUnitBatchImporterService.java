@@ -181,7 +181,7 @@ public class TextUnitBatchImporterService {
                         tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(currentTextUnit.getLocaleId(), currentTextUnit.getTmTextUnitId());
                     }
 
-                    User importedBy = auditorAwareImpl.getCurrentAuditor();
+                    User importedBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
                     tmService.addTMTextUnitCurrentVariantWithResult(
                             tmTextUnitCurrentVariant,
                             asset.getRepository().getTm().getId(),

@@ -108,7 +108,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
                 logger.debug("Get asset result: {} (i={})", assetResults.get(i).getPollableTask().getId(), i);
                 PollableFuture<Asset> assetResult = assetResults.get(i);
                 pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId(), 2000);
-                Asset asset = assetRepository.findOne(assetResult.get().getId());
+                Asset asset = assetRepository.findById(assetResult.get().getId()).orElse(null);
             } catch (PollableTaskException | InterruptedException e) {
                 exceptions.add(e);
             }
@@ -178,7 +178,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
                 logger.debug("Get asset result: {}", assetResults.get(i).getPollableTask().getId());
                 PollableFuture<Asset> assetResult = assetResults.get(i);
                 pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
-                Asset asset = assetRepository.findOne(assetResult.get().getId());
+                Asset asset = assetRepository.findById(assetResult.get().getId()).orElse(null);
 
                 assertEquals(assetContent.toString(), asset.getLastSuccessfulAssetExtraction().getAssetContent().getContent());
             } catch (PollableTaskException | InterruptedException e) {

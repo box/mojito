@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -73,7 +72,7 @@ public class AssetExtractionCleanupService {
         int numberMappingsDeleted = assetTextUnitToTMTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
         int numberAssetTextUnitsDeleted = assetTextUnitRepository.deleteByAssetExtractionId(assetExtractionIdToDelete);
         int numberAssetContentDeleted = assetContentRepository.deleteByAssetExtractionsIdIsNull();
-        assetExtractionRepository.delete(assetExtractionIdToDelete);
+        assetExtractionRepository.deleteById(assetExtractionIdToDelete);
         logger.debug("For assetExtractionId: {}, deleted {} mappings, {} asset text units, asset content: {}",
                 assetExtractionIdToDelete, numberMappingsDeleted, numberAssetTextUnitsDeleted, numberAssetContentDeleted);
     }
