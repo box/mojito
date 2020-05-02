@@ -5,6 +5,7 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.context.ApplicationPidFileWriter;
@@ -28,9 +29,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.io.IOException;
 
-@Configuration
-@ComponentScan(basePackageClasses = Application.class)
-@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
+@SpringBootApplication(
+        scanBasePackageClasses = Application.class,
+        exclude = QuartzAutoConfiguration.class
+
+)
+//@ComponentScan(basePackageClasses = Application.class)
+//@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
 @EnableSpringConfigured
 @EnableJpaAuditing
 @EnableJpaRepositories

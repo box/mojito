@@ -31,38 +31,6 @@ public class BoxAPIConnectionProviderTest {
     @Mock
     BoxSDKJWTProvider boxSDKJWTProvider;
 
-    public BoxSDKServiceConfig getTestConfig() {
-        BoxSDKServiceConfig config = Mockito.spy(BoxSDKServiceConfigFromProperties.class);
-        Mockito.when(config.getClientId()).thenReturn("1");
-        Mockito.when(config.getClientSecret()).thenReturn("2");
-        Mockito.when(config.getPublicKeyId()).thenReturn("3");
-        Mockito.when(config.getPrivateKey()).thenReturn("4");
-        Mockito.when(config.getPrivateKeyPassword()).thenReturn("4");
-        Mockito.when(config.getEnterpriseId()).thenReturn("5");
-        Mockito.when(config.getAppUserId()).thenReturn("6");
-        Mockito.when(config.getRootFolderId()).thenReturn("7");
-        Mockito.when(config.getDropsFolderId()).thenReturn("8");
-
-        return config;
-    }
-
-    public BoxSDKServiceConfig getTestConfig2() {
-        BoxSDKServiceConfig config = Mockito.spy(BoxSDKServiceConfigFromProperties.class);
-        Mockito.when(config.getClientId()).thenReturn("a");
-        Mockito.when(config.getClientSecret()).thenReturn("b");
-        Mockito.when(config.getPublicKeyId()).thenReturn("c");
-        Mockito.when(config.getPrivateKey()).thenReturn("d");
-        Mockito.when(config.getPrivateKeyPassword()).thenReturn("e");
-        Mockito.when(config.getEnterpriseId()).thenReturn("f");
-        Mockito.when(config.getAppUserId()).thenReturn("g");
-        Mockito.when(config.getRootFolderId()).thenReturn("h");
-        Mockito.when(config.getDropsFolderId()).thenReturn("i");
-
-        return config;
-    }
-
-
-
     public BoxAPIConnectionProvider getBoxAPIConnectionProviderMock() throws BoxSDKServiceException {
         BoxAPIConnection boxAPIConnection = Mockito.mock(BoxAPIConnection.class);
         BoxAPIConnection boxAPIConnection2 = Mockito.mock(BoxAPIConnection.class);
@@ -75,7 +43,7 @@ public class BoxAPIConnectionProviderTest {
 
     @Test
     public void testGetConnectionWillCreateBoxAPIConnection() throws Exception {
-        BoxSDKServiceConfig config = getTestConfig();
+        BoxSDKServiceConfig config = Mockito.mock(BoxSDKServiceConfigFromProperties.class);
         Mockito.when(boxSDKServiceConfigProvider.getConfig()).thenReturn(config);
 
         BoxAPIConnectionProvider providerSpy = getBoxAPIConnectionProviderMock();
@@ -87,7 +55,7 @@ public class BoxAPIConnectionProviderTest {
 
     @Test
     public void testGetConnectionWillReuseConnection() throws BoxSDKServiceException {
-        BoxSDKServiceConfig config = getTestConfig();
+        BoxSDKServiceConfig config = Mockito.mock(BoxSDKServiceConfigFromProperties.class);
         Mockito.when(boxSDKServiceConfigProvider.getConfig()).thenReturn(config);
 
         BoxAPIConnectionProvider providerSpy = getBoxAPIConnectionProviderMock();
@@ -108,11 +76,11 @@ public class BoxAPIConnectionProviderTest {
 
     @Test
     public void testGetConnectionWillCreateNewConnectionIfConfigChanges() throws BoxSDKServiceException {
-        BoxSDKServiceConfig config = getTestConfig();
+        BoxSDKServiceConfig config = Mockito.mock(BoxSDKServiceConfigFromProperties.class);
         Mockito.when(boxSDKServiceConfigProvider.getConfig())
                 .thenReturn(config)
                 .thenReturn(config)
-                .thenReturn(getTestConfig2());
+                .thenReturn(Mockito.mock(BoxSDKServiceConfigFromProperties.class));
 
         BoxAPIConnectionProvider providerSpy = getBoxAPIConnectionProviderMock();
 
