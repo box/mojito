@@ -121,7 +121,7 @@ public class SlaCheckerEmailServiceTest {
         long incidentId = 0L;
         String renderedContent = "rendered content";
 
-        doReturn(renderedContent).when(mustacheTemplateEngine).render(eq(CLOSE_INCIDENT_TEMPLATE), any(OpenIncidentContext.class));
+        doReturn(renderedContent).when(mustacheTemplateEngine).render(eq(CLOSE_INCIDENT_TEMPLATE), any(CloseIncidentContext.class));
         String result = slaCheckerEmailService.getCloseIncidentEmailContent(incidentId);
 
         ArgumentCaptor<CloseIncidentContext> acCloseIncidentEmailContext = ArgumentCaptor.forClass(CloseIncidentContext.class);

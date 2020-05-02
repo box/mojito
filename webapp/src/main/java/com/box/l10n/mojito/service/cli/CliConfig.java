@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties("l10n.cli")
+@ConfigurationProperties("cli")
 public class CliConfig {
     String url;
     String file;

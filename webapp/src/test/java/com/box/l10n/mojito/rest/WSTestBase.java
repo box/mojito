@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.rest;
 
+import com.amazonaws.services.opsworks.model.App;
 import com.box.l10n.mojito.Application;
 import com.box.l10n.mojito.factory.XliffDataFactory;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.rest.annotation.WithDefaultTestUser;
 import com.box.l10n.mojito.rest.client.LocaleClient;
 import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
@@ -14,6 +16,8 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
@@ -40,18 +44,14 @@ import java.util.function.Supplier;
 
 
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(
-
-        classes = Application.class,
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"l10n.file-system-drop-exporter.path=target/test-output/fileSystemDropExporter"}
 
 
-        )
+//        (
+//        classes = Application.class,
+//        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+//        properties = {"l10n.file-system-drop-exporter.path=target/test-output/fileSystemDropExporter"}
+//        )
 //@Configuration
-
-
 //@TestExecutionListeners(
 //        listeners = {
 //                DependencyInjectionTestExecutionListener.class,
@@ -63,9 +63,13 @@ import java.util.function.Supplier;
 //TODO(spring2) why is is not picked up from the main config
 //@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
 //
-
 //@SpringBootTest(classes = WSTestBase.TestConfig.class)
-//@WithDefaultTestUser
+
+@RunWith(SpringRunner.class)
+@SpringBootTest(
+        classes = Application.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@WithDefaultTestUser
 public class WSTestBase {
 
     /**
