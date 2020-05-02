@@ -3,11 +3,10 @@ package com.box.l10n.mojito;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.apache.catalina.connector.Connector;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +30,7 @@ import java.io.IOException;
 
 @Configuration
 @ComponentScan(basePackageClasses = Application.class)
-@EnableAutoConfiguration
+@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
 @EnableSpringConfigured
 @EnableJpaAuditing
 @EnableJpaRepositories
@@ -44,7 +43,6 @@ public class Application {
 
     // TODO(spring2), find replacement - this was commented in previous attempt
     //    @Value("${org.springframework.http.converter.json.indent_output}")
-    @Value("${org.springframework.http.converter.json.indent_output}")
     boolean shouldIndentJacksonOutput;
 
     public static void main(String[] args) throws IOException {

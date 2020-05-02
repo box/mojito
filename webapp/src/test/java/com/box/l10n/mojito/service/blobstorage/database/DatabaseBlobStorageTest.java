@@ -8,8 +8,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -86,8 +84,8 @@ public class DatabaseBlobStorageTest extends ServiceTestBase implements BlobStor
 
         databaseBlobStorage.deleteExpired();
 
-        assertNull(mBlobRepository.findOne(experied.getId()));
-        assertNotNull(mBlobRepository.findOne(notExperied.getId()));
+        assertNull(mBlobRepository.findById(experied.getId()).orElse(null));
+        assertNotNull(mBlobRepository.findById(notExperied.getId()).orElse(null));
     }
 
 }

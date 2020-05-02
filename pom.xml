@@ -24,7 +24,7 @@
         <okapi.version>0.36</okapi.version>
         <guava.version>23.0</guava.version>
         <hibernate.joda-time.version>1.4</hibernate.joda-time.version>
-        <usertype.core.version>5.0.0.GA</usertype.core.version>
+        <usertype.core.version>6.0.1.GA</usertype.core.version>
         <aspectj-maven-plugin.version>1.8</aspectj-maven-plugin.version>
     </properties>
 

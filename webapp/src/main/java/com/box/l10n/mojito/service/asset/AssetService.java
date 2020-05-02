@@ -179,7 +179,7 @@ public class AssetService {
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(1);
         }
 
-        User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor();
+        User branchCreatedByUser = branchCreatedByUsername != null ? userService.getOrCreatePartialBasicUser(branchCreatedByUsername) : auditorAware.getCurrentAuditor().orElse(null);
         logger.debug("Branch created by username: {}", branchCreatedByUser.getUsername());
 
         Branch branch = branchService.getUndeletedOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
@@ -205,7 +205,7 @@ public class AssetService {
 
         Asset asset = new Asset();
 
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         asset.setRepository(repository);
         asset.setVirtual(virtualContent);
@@ -322,7 +322,7 @@ public class AssetService {
         logger.debug("Delete assets {}", assetIds.toString());
 
         for (Long assetId : assetIds) {
-            Asset asset = assetRepository.findOne(assetId);
+            Asset asset = assetRepository.findById(assetId).orElse(null);
             if (asset != null) {
                 deleteAsset(asset);
             }
@@ -355,9 +355,9 @@ public class AssetService {
 
     public void deleteAssetOfBranch(Long assetId, Long branchId) {
         logger.debug("deleteAssetOfBranch: asset id: {}, branch id: {}", assetId, branchId);
-        Asset asset = assetRepository.findOne(assetId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
         if (asset != null) {
-            Branch branch = branchRepository.findOne(branchId);
+            Branch branch = branchRepository.findById(branchId).orElse(null);
             AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
 
             if (assetExtractionByBranch == null) {

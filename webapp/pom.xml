@@ -53,6 +53,7 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+<!-- TODO(spring2) do we use this? -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -80,6 +81,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
         </dependency>
+
+
+
+<!--TODO(spring2) can this be removed -->
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-rest-webmvc</artifactId>
@@ -97,8 +102,6 @@
             <artifactId>spring-security-aspects</artifactId>
         </dependency>
 
-
-
 <!--        <dependency>-->
 <!--            -->
 <!--            <groupId>org.springframework.security.oauth</groupId>-->
@@ -114,8 +117,6 @@
         </dependency>
 
 
-
-
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
@@ -126,13 +127,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TODO(spring2) this  is needed now? what about the version, it is not in spring anymore? -->
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-stream</artifactId>
             <version>2.0.8.RELEASE</version>
         </dependency>
 
-        <!-- TODO(spring2) this  is needed now? what about the version, it is not in spring anymore? -->
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-core</artifactId>
@@ -168,6 +169,7 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -185,10 +187,17 @@
             <artifactId>nativeCriteria-core</artifactId>
             <version>2.0</version>
         </dependency>
-
+<!--
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+        </dependency>-->
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-properties-migrator</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>

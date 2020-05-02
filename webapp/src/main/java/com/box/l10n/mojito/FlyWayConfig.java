@@ -1,11 +1,10 @@
 package com.box.l10n.mojito;
 
-import org.flywaydb.core.Flyway;
+//import org.flywaydb.core.Flyway;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -29,27 +28,28 @@ public class FlyWayConfig {
      */
     boolean clean = false;
 
-    @Bean
-    public FlywayMigrationStrategy cleanMigrateStrategy() {
-
-        FlywayMigrationStrategy strategy = new FlywayMigrationStrategy() {
-
-            @Override
-            public void migrate(Flyway flyway) {
-
-                if (clean) {
-                    logger.info("Clean DB with Flyway");
-                    flyway.clean();
-                } else {
-                    logger.info("Don't clean DB with Flyway");
-                }
-
-                flyway.migrate();
-            }
-        };
-
-        return strategy;
-    }
+    //TODO(spring2)
+//    @Bean
+//    public FlywayMigrationStrategy cleanMigrateStrategy() {
+//
+//        FlywayMigrationStrategy strategy = new FlywayMigrationStrategy() {
+//
+//            @Override
+//            public void migrate(Flyway flyway) {
+//
+//                if (clean) {
+//                    logger.info("Clean DB with Flyway");
+//                    flyway.clean();
+//                } else {
+//                    logger.info("Don't clean DB with Flyway");
+//                }
+//
+//                flyway.migrate();
+//            }
+//        };
+//
+//        return strategy;
+//    }
 
     public boolean isClean() {
         return clean;

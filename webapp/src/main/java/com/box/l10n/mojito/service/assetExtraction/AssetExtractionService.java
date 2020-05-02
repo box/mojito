@@ -328,7 +328,7 @@ public class AssetExtractionService {
             }
         }
 
-        assetTextUnitRepository.save(mergedAssetTextUnits.values());
+        assetTextUnitRepository.saveAll(mergedAssetTextUnits.values());
 
         Long mergedAssetExtractionId = mergedAssetExtraction.getId();
         Long tmId = asset.getRepository().getTm().getId();

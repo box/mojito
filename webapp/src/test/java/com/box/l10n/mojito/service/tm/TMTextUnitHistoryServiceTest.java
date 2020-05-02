@@ -87,7 +87,7 @@ public class TMTextUnitHistoryServiceTest extends ServiceTestBase {
             asset = assetService.createAssetWithContent(repository.getId(), "test-asset-path.xliff", "test asset content");
 
             //make sure asset and its relationships are loaded
-            asset = assetRepository.findOne(asset.getId());
+            asset = assetRepository.findById(asset.getId()).orElse(null);
 
             assetId = asset.getId();
             tmId = repository.getTm().getId();
