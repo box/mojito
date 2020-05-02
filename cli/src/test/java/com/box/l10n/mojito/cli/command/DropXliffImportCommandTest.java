@@ -9,7 +9,6 @@ import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.drop.DropRepository;
 import com.box.l10n.mojito.service.drop.DropService;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterException;
 import com.box.l10n.mojito.service.drop.exporter.DropExporterService;
 import com.box.l10n.mojito.service.drop.exporter.FileSystemDropExporter;
@@ -18,17 +17,20 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMImportService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.test.XliffUtils;
-import java.nio.charset.StandardCharsets;
 import com.google.common.io.Files;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.Collection;
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.util.Collection;
+
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
 
 /**
  *
@@ -90,7 +92,7 @@ public class DropXliffImportCommandTest extends CLITestBase {
 
         final Long dropId = DropImportCommandTest.getLastDropIdFromOutput(outputCapture);
 
-        localizeDropFilesAndCopyLocally(dropRepository.findOne(dropId));
+        localizeDropFilesAndCopyLocally(dropRepository.findById(dropId).orElse(null));
 
         getL10nJCommander().run("drop-xliff-import", "-r", repository.getName(),
                 "--import-by-md5",

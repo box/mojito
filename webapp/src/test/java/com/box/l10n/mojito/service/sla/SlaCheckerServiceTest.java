@@ -6,25 +6,27 @@ import com.box.l10n.mojito.entity.SlaIncident;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService;
 import com.box.l10n.mojito.utils.DateTimeUtils;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.joda.time.DateTime;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Spy;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
-import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  *
@@ -152,11 +154,11 @@ public class SlaCheckerServiceTest {
         doReturn(now).when(dateTimeUtils).now();
 
         doReturn(incidentIn).when(slaIncidentRepository).findByClosedDateIsNull();
-        doReturn(incidentOut).when(slaIncidentRepository).save(incidentIn);
+        doReturn(incidentOut).when(slaIncidentRepository).saveAll(incidentIn);
 
         slaCheckerService.closeIncidents();
 
-        verify(slaIncidentRepository).save(incidentIn);
+        verify(slaIncidentRepository).saveAll(incidentIn);
 
         for (SlaIncident slaIncident : incidentIn) {
             verify(slaIncident).setClosedDate(now);

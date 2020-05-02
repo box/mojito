@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.service.sla;
 
-import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsCronJob;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobDetail;
@@ -18,16 +17,13 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
-import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author jeanaurambault
  */
 @Profile("!disablescheduling")
-@ConditionalOnProperty(value = "l10n.slaChecker.incidentCheck.cron")
+@ConditionalOnProperty(value = "l10n.sla-checker.incident-check.cron")
 @Configuration
 @Component
 @DisallowConcurrentExecution

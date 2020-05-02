@@ -170,7 +170,7 @@ public class UserService {
             authority.setCreatedByUser(systemUser);
         }
 
-        authorityRepository.save(authorities);
+        authorityRepository.saveAll(authorities);
         userRepository.save(userToUpdate);
     }
 

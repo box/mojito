@@ -24,6 +24,20 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         registerModule(jodaModule);
     }
 
+    //    TODO(spring2) ???
+    public ObjectMapper(ObjectMapper objectMapper) {
+        //TODO(spring2) can't do better than that?
+        super(objectMapper);
+        JodaModule jodaModule = new JodaModule();
+        registerModule(jodaModule);
+    }
+
+    @Override
+    public com.fasterxml.jackson.databind.ObjectMapper copy() {
+        ObjectMapper objectMapper = new ObjectMapper(this);
+        return objectMapper;
+    }
+
     /**
      * Same as {@link #writeValueAsString(java.lang.Object) but throws
      * {@link RuntimeException} instead of {@link JsonProcessingException}

@@ -113,7 +113,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         logger.debug("When uploading an image in the ThirdPartyTMS just return an ThirdPartyTMSImage with random id");
         doAnswer((invocation) -> {
             ThirdPartyTMSImage thirdPartyTMSImage = new ThirdPartyTMSImage();
-            thirdPartyTMSImage.setId("img-" + invocation.getArgumentAt(1, String.class));
+            thirdPartyTMSImage.setId("img-" + invocation.getArgument(1));
             return thirdPartyTMSImage;
         }).when(thirdPartyTMSMock).uploadImage(any(), any(), any());
 

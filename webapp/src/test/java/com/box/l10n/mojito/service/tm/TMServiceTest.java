@@ -147,7 +147,7 @@ public class TMServiceTest extends ServiceTestBase {
             asset = assetService.createAssetWithContent(repository.getId(), "test-asset-path.xliff", "test asset content");
 
             //make sure asset and its relationships are loaded
-            asset = assetRepository.findOne(asset.getId());
+            asset = assetRepository.findById(asset.getId()).orElse(null);
 
             assetId = asset.getId();
             tmId = repository.getTm().getId();
@@ -849,7 +849,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"subheader_text2\">\"This'll also work\"</string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -905,7 +905,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"trim\">    \n a \n   </string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -980,7 +980,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"welcome_messages2\">Hello, %1$s! You have &lt;b>%2$d new messages&lt;/b>.</string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1066,7 +1066,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "  </plurals>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1121,7 +1121,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    </string-array>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1167,7 +1167,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"test\">This is test</string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1214,7 +1214,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"desc\">This is a description</string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1261,7 +1261,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "    <string name=\"test\">This is test</string>\n"
                 + "</resources>";
         asset = assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1308,7 +1308,7 @@ public class TMServiceTest extends ServiceTestBase {
         String assetContent = "\"100_character_description\" = \"\\\"100\\\" character description:\";\n"
                 + "\"two_lines\" = \"first\\nsecond\";";
         asset = assetService.createAssetWithContent(repo.getId(), "en.lproj/Localizable.strings", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1453,7 +1453,7 @@ public class TMServiceTest extends ServiceTestBase {
                 "</plist>";
         asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
 
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1536,7 +1536,7 @@ public class TMServiceTest extends ServiceTestBase {
                 "</plist>";
 
         asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1646,7 +1646,7 @@ public class TMServiceTest extends ServiceTestBase {
                 "</plist>";
 
         asset = assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1752,7 +1752,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[0] \"repins\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1849,7 +1849,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\"Content-Transfer-Encoding: 8bit\\n\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -1933,7 +1933,7 @@ public class TMServiceTest extends ServiceTestBase {
                 "msgstr \"repin \\\"{}\\\"\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2045,7 +2045,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[2] \"repins\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2150,7 +2150,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[2] \"repins\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2257,7 +2257,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr[5] \"repins \\\"{placeholder}\\\"\"\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2326,7 +2326,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         String assetContent = "NSUsageDescription = \"Usage description:\";\n";
         asset = assetService.createAssetWithContent(repo.getId(), "en.lproj/Localizable.strings", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2376,7 +2376,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "     <translation desc=\"Instructions for the Gonstead method.\" id=\"2\" key=\"MSG_GONSTEAD_STEP\" source=\"src/js/box/dicom/viewer/gonsteaddialog.js\">Select the &lt;strong&gt;left Iliac crest&lt;/strong&gt;</translation>\n"
                 + "</translationbundle>";
         asset = assetService.createAssetWithContent(repo.getId(), "xtb/messages-en-US.xtb", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2424,7 +2424,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "<translationbundle />\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "xtb/messages-en-US.xtb", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2474,7 +2474,7 @@ public class TMServiceTest extends ServiceTestBase {
         String expectedContent = "\uFEFF" + assetContent;
 
         asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2532,7 +2532,7 @@ public class TMServiceTest extends ServiceTestBase {
         String expectedContent = "\uFEFF" + assetContent;
 
         asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
@@ -2729,7 +2729,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         String assetContent = "hello=Hello\nbye=Bye\nsource=target";
         asset = assetService.createAssetWithContent(repository.getId(), "demo.properties", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
@@ -2791,7 +2791,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr \"\"\n"
                 + "";
         asset = assetService.createAssetWithContent(repository.getId(), "messages.pot", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
@@ -2855,7 +2855,7 @@ public class TMServiceTest extends ServiceTestBase {
                 "k1=v1b";
 
         asset = assetService.createAssetWithContent(repository.getId(), "demo.properties", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
@@ -2952,7 +2952,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "export default Translations;";
 
         asset = assetService.createAssetWithContent(repo.getId(), "translations.ts", assetContent);
-        asset = assetRepository.findOne(asset.getId());
+        asset = assetRepository.findById(asset.getId()).orElse(null);
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
