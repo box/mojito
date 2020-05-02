@@ -92,7 +92,7 @@ class translationHistoryModal extends React.Component {
     render() {
         const {textUnit, show, translationHistory} = this.props;
         const translationExists = translationHistory && translationHistory.length && textUnit.getTmTextUnitId();
-        const tranlsationIsNotLatest = translationExists && textUnit.getTmTextUnitVariantId() !== translationHistory[0].id;
+        const translationIsNotLatest = translationExists && textUnit.getTmTextUnitVariantId() !== translationHistory[0].id;
 
         return textUnit ? (
             <Modal className={"git-blame-modal"} show={show} onHide={this.closeModal}>
@@ -109,14 +109,8 @@ class translationHistoryModal extends React.Component {
                     </div>
                     <div className={"row plx"}>
                         {
-                            translationExists ?
-                                <FormattedMessage id={"textUnit.translationHistoryModal.currentUnitExplanation"}/> :
-                                ""
-                        }
-                        {' '}
-                        {
-                            tranlsationIsNotLatest ?
-                                <FormattedMessage id={"textUnit.translationHistoryModal.currentNotLatest"}/> :
+                            translationIsNotLatest ?
+                                <FormattedMessage id={"textUnit.translationHistoryModal.translationNotLatest"}/> :
                                 ""
                         }
                     </div>
