@@ -74,7 +74,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
 
         ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
 
-        ScreenshotRun createdFromDB = screenshotRunRepository.findOne(createScreenshotRun.getId());
+        ScreenshotRun createdFromDB = screenshotRunRepository.findById(createScreenshotRun.getId()).orElse(null);
         ArrayList<Screenshot> arrayList = new ArrayList<>(createdFromDB.getScreenshots());
         Assert.assertNotNull(arrayList.get(0).getId());
         Assert.assertNotNull(arrayList.get(1).getId());
@@ -147,7 +147,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
 
         ScreenshotRun updatedScreenshotRun = screenshotService.createOrUpdateScreenshotRun(forUpdate, true);
 
-        ScreenshotRun updatedFromDB = screenshotRunRepository.findOne(updatedScreenshotRun.getId());
+        ScreenshotRun updatedFromDB = screenshotRunRepository.findById(updatedScreenshotRun.getId()).orElse(null);
         ArrayList<Screenshot> arrayList = new ArrayList<>(updatedFromDB.getScreenshots());
         Assert.assertNotNull(arrayList.get(0).getId());
         Assert.assertNotNull(arrayList.get(1).getId());

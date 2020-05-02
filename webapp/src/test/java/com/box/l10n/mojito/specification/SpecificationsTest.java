@@ -1,26 +1,28 @@
 package com.box.l10n.mojito.specification;
 
 import com.box.l10n.mojito.entity.Repository;
-import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
-import static com.box.l10n.mojito.specification.Specifications.*;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import java.util.Arrays;
-import java.util.List;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.data.jpa.domain.Specifications.*;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+import static org.springframework.data.jpa.domain.Specifications.where;
 
 /**
  *
@@ -52,7 +54,7 @@ public class SpecificationsTest extends ServiceTestBase {
         Repository repository2 =  repositoryService.createRepository(testIdWatcher.getEntityName("repository2")); 
         repository2.setDeleted(true);
         List<Repository> repositories = Arrays.asList(repository1, repository2);
-        repositoryRepository.save(repositories);
+        repositoryRepository.saveAll(repositories);
 
         long expectedNumberOfRepositories = numberOfRepositories + repositories.size();
         long expectedNumberOfNotDeletedRepositories = numberOfRepositories - numberOfDeletedRepositories + 1;

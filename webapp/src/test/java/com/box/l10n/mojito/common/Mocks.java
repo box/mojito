@@ -1,17 +1,10 @@
 package com.box.l10n.mojito.common;
 
 import com.box.l10n.mojito.entity.BaseEntity;
-
-import static org.mockito.Matchers.argThat;
-import static org.mockito.Mockito.when;
-
-import org.hamcrest.Description;
-import org.mockito.ArgumentMatcher;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.function.Function;
-
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Utility class to create mocks.
@@ -46,30 +39,5 @@ public class Mocks {
         } catch (IllegalAccessException | InstantiationException e) {
             throw new RuntimeException("Can't create mock for repository", e);
         }
-    }
-
-    /**
-     * Like {@link org.mockito.Matchers.argThat} but with lambda support.
-     *
-     * Not needed with never Mockito (staying with spring version for now)
-     *
-     * @param fn
-     * @param <R>
-     * @return
-     */
-    public static <R> R argThatFn(Function<R, Boolean> fn) {
-        ArgumentMatcher<R> argumentMatcher = new ArgumentMatcher<R>() {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("argThatFn");
-            }
-
-            @Override
-            public boolean matches(Object item) {
-                return fn.apply((R)item);
-            }
-        };
-
-        return argThat(argumentMatcher);
     }
 }

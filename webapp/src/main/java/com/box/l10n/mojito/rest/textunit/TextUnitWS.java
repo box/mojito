@@ -346,13 +346,13 @@ public class TextUnitWS {
     public void deleteTMTextUnitCurrentVariant(@PathVariable Long textUnitId) {
         logger.debug("Delete TextUnit, id: {}", textUnitId);
 
-        TMTextUnitCurrentVariant tmtucv = tmTextUnitCurrentVariantRepository.findOne(textUnitId);
+        TMTextUnitCurrentVariant tmtucv = tmTextUnitCurrentVariantRepository.findById(textUnitId).orElse(null);
 
         if (tmtucv == null) {
             logger.debug("Already removed, do nothing");
         } else {
             logger.debug("Remove tmTextUnitCurrentVariantRepository: {}", tmtucv.getId());
-            tmTextUnitCurrentVariantRepository.delete(tmtucv.getId());
+            tmTextUnitCurrentVariantRepository.deleteById(tmtucv.getId());
         }
     }
 
@@ -375,7 +375,7 @@ public class TextUnitWS {
     @RequestMapping(method = RequestMethod.GET, value = "/api/assetTextUnits/{assetTextUnitId}/usages")
     public Set<String> getAssetTextUnitUsages(@PathVariable Long assetTextUnitId) throws AssetTextUnitWithIdNotFoundException {
         logger.debug("Get usages of asset text unit for id: {}", assetTextUnitId);
-        AssetTextUnit assetTextUnit = assetTextUnitRepository.findOne(assetTextUnitId);
+        AssetTextUnit assetTextUnit = assetTextUnitRepository.findById(assetTextUnitId).orElse(null);
 
         if (assetTextUnit == null) {
             throw new AssetTextUnitWithIdNotFoundException(assetTextUnitId);

@@ -135,9 +135,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.csrf().ignoringAntMatchers("/shutdown", "/api/rotation");
 
-
         http.authorizeRequests()
-                .antMatchers("/intl/*", "/img/*", "/fonts/*", "/login/**", "/webjars/**", "/cli/**", "/health", "/js/**", "/css/**").permitAll()
+                .antMatchers("/intl/*", "/img/*", "/fonts/*", "/login/**", "/cli/**", "/health", "/js/**", "/css/**").permitAll()
                 .antMatchers("/shutdown", "/api/rotation").hasIpAddress("127.0.0.1").anyRequest().permitAll()
                 .anyRequest().fullyAuthenticated()
                 .and()
@@ -146,7 +145,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .successHandler(new ShowPageAuthenticationSuccessHandler())
                 .and()
                 .logout().logoutSuccessUrl("/login?logout").permitAll();
-
 
         http.exceptionHandling().defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new AntPathRequestMatcher("/*"));
         http.exceptionHandling().defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), new AntPathRequestMatcher("/api/*"));

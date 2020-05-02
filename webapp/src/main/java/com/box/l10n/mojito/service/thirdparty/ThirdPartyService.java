@@ -108,7 +108,7 @@ public class ThirdPartyService {
     void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
 
-        Repository repository = repositoryRepository.findOne(repositoryId);
+        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
         Map<String, String> optionMap = Optional.ofNullable(options).orElse(Collections.emptyList()).stream().collect(
                 Collectors.toMap(str -> str.split("=")[0], str -> str.split("=")[1], (a, b) -> a, HashMap::new));
 
@@ -190,7 +190,7 @@ public class ThirdPartyService {
         }).collect(toList());
 
         logger.debug("Save {} entities", thirdPartyTextUnits.size());
-        thirdPartyTextUnitRepository.save(thirdPartyTextUnits);
+        thirdPartyTextUnitRepository.saveAll(thirdPartyTextUnits);
     }
 
     void uploadScreenshotsAndCreateMappings(Repository repository, String projectId) {

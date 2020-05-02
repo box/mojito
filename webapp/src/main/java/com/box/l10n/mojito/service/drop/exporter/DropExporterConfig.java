@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * @author jaurambault
  */
 @Component
-@ConfigurationProperties("l10n.dropExporter")
+@ConfigurationProperties("l10n.drop-exporter")
 public class DropExporterConfig {
 
     /**

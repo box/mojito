@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -132,7 +133,7 @@ public class CurrentVariantRollbackService {
 
         AuditQuery auditQuery = buildInsertAuditQuery(rollbackDateTime, tmId, extraParameters);
         List<TMTextUnitCurrentVariant> tmTextUnitCurrentVariantsToAdd = (List<TMTextUnitCurrentVariant>) auditQuery.getResultList();
-        tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariantsToAdd);
+        tmTextUnitCurrentVariantRepository.saveAll(tmTextUnitCurrentVariantsToAdd);
     }
 
     /**

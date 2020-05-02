@@ -6,11 +6,13 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckerFactory;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.TextUnitIntegrityChecker;
-import java.util.Set;
 import org.slf4j.Logger;
-import static org.slf4j.LoggerFactory.getLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * @author wyau
@@ -39,7 +41,7 @@ public class TMTextUnitIntegrityCheckService {
     public void checkTMTextUnitIntegrity(Long tmTextUnitId, String contentToCheck) throws IntegrityCheckException {
         logger.debug("Checking Integrity of the TMTextUnit");
 
-        TMTextUnit tmTextUnit = tmTextUnitRepository.findOne(tmTextUnitId);
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
         Asset asset = tmTextUnit.getAsset();
 
         Set<TextUnitIntegrityChecker> textUnitCheckers = integrityCheckerFactory.getTextUnitCheckers(asset);

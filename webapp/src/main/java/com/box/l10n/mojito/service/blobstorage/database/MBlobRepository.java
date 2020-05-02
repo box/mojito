@@ -19,6 +19,7 @@ public interface MBlobRepository extends JpaRepository<MBlob, Long>, JpaSpecific
 
     @Transactional
     @Modifying
-    @Query("delete from #{#entityName} mb where (unix_timestamp(mb.createdDate) + mb.expireAfterSeconds) < unix_timestamp() limit 100")
+//    TODO(spring2)
+    @Query("delete from #{#entityName} mb where (unix_timestamp(mb.createdDate) + mb.expireAfterSeconds) < unix_timestamp()")
     int deleteExpired();
 }
