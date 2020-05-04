@@ -16,9 +16,12 @@ class translationHistoryModal extends React.Component {
     }
 
     renderHistoryItem = (item) => {
+        const {textUnit} = this.props;
+        const rowClass = (textUnit.getTmTextUnitVariantId() === item.id) ? "history-current-variant" : "";
+
         return item ?
             (
-                <tr>
+                <tr className={rowClass}>
                     <td className="history-none">{item.createdByUser === null ?
                         <FormattedMessage id="textUnit.translationHistoryModal.NoUser"/> :
                         item.createdByUser.username}</td>
@@ -47,7 +50,7 @@ class translationHistoryModal extends React.Component {
                 </tr>
                 </thead>
                 <tbody>
-                {(translationHistory && translationHistory.length) ? translationHistory.map(this.renderHistoryItem) : ""}
+                {(translationHistory && translationHistory.length) ? translationHistory.map(this.renderHistoryItem.bind(this)) : ""}
                 {this.renderHistoryItem({
                     createdByUser: {
                         username: "mojito"
@@ -87,7 +90,9 @@ class translationHistoryModal extends React.Component {
     };
 
     render() {
-        const {textUnit, show} = this.props;
+        const {textUnit, show, translationHistory} = this.props;
+        const translationExists = translationHistory && translationHistory.length && textUnit.getTmTextUnitId();
+        const translationIsNotLatest = translationExists && textUnit.getTmTextUnitVariantId() !== translationHistory[0].id;
 
         return textUnit ? (
             <Modal className={"git-blame-modal"} show={show} onHide={this.closeModal}>
@@ -101,6 +106,13 @@ class translationHistoryModal extends React.Component {
                         <div className={"history-source"}>
                             {textUnit.getSource()}
                         </div>
+                    </div>
+                    <div className={"row plx"}>
+                        {
+                            translationIsNotLatest ?
+                                <FormattedMessage id={"textUnit.translationHistoryModal.translationNotLatest"}/> :
+                                ""
+                        }
                     </div>
                     <p/>
                     <div>
