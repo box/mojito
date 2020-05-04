@@ -279,11 +279,6 @@
             <artifactId>commons-csv</artifactId>
             <version>1.4</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-        </dependency>
         <!-- TODO(P1) to be removed? -->
 
         <dependency>
@@ -310,6 +305,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>repackage</id>
                         <goals>
                             <goal>repackage</goal>
                         </goals>

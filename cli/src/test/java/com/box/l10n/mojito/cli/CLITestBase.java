@@ -28,8 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.rule.OutputCapture;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
@@ -48,11 +46,8 @@ import java.util.function.Supplier;
  * @author jaurambault
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {CLITestBase.class},
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "l10n.consoleWriter.ansiCodeEnabled=false")
-@ComponentScan("com.box.l10n.mojito")
-@Configuration
+@SpringBootTest(classes = {App.class},
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CLITestBase extends IOTestBase {
 
     /**
