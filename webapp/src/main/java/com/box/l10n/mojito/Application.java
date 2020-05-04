@@ -4,15 +4,15 @@ import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.context.ApplicationPidFileWriter;
+import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -145,6 +145,20 @@ public class Application {
 //
 //        };
 //    }
+
+    // TODO(spring2) that's the upgraded version -- check props later
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory>  containerCustomizer(){
+        return new WebServerFactoryCustomizer<TomcatServletWebServerFactory>() {
+            @Override
+            public void customize(TomcatServletWebServerFactory factory) {
+                factory.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> {
+                    connector.setAttribute("relaxedPathChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
+                    connector.setAttribute("relaxedQueryChars", "[]|");
+                });
+            }
+        };
+    }
 
 
 }

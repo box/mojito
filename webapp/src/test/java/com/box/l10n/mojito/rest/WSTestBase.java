@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.rest;
 
-import com.amazonaws.services.opsworks.model.App;
 import com.box.l10n.mojito.Application;
 import com.box.l10n.mojito.factory.XliffDataFactory;
 import com.box.l10n.mojito.json.ObjectMapper;
@@ -16,8 +15,6 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
@@ -76,14 +73,19 @@ public class WSTestBase {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(WSTestBase.class);
+
     @Autowired
     protected AuthenticatedRestTemplate authenticatedRestTemplate;
+
     @Autowired
     protected XliffDataFactory xliffDataFactory;
+
     @Autowired
     protected LocaleClient localeClient;
+
     @Autowired
     ResttemplateConfig resttemplateConfig;
+
     @LocalServerPort
     int port;
 
