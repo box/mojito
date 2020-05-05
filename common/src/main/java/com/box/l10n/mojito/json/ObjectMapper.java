@@ -69,7 +69,7 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
         }
     }
 
-    public <T> T readValueUnchecked(String content, TypeReference valueTypeRef) {
+    public <T> T readValueUnchecked(String content, TypeReference<T> valueTypeRef) {
         try {
             return super.readValue(content, valueTypeRef);
         } catch (IOException e) {
