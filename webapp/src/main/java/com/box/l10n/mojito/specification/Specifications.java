@@ -1,12 +1,11 @@
 package com.box.l10n.mojito.specification;
 
+import org.springframework.data.jpa.domain.Specification;
+
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
-import com.box.l10n.mojito.entity.Asset;
-import org.springframework.data.jpa.domain.Specification;
 
 /**
  * Contains base {@link Specifications}.
@@ -92,8 +91,8 @@ public class Specifications {
      * @param <T>
      * @return
      */
-    public static <T> org.springframework.data.jpa.domain.Specifications<T> distinct(Specification<T> spec) {
-        return org.springframework.data.jpa.domain.Specifications.where(new Specification<T>() {
+    public static <T> Specification<T> distinct(Specification<T> spec) {
+        return Specification.where(new Specification<T>() {
             @Override
             public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
                 query.distinct(true);
