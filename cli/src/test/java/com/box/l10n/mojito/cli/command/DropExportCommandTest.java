@@ -7,13 +7,15 @@ import com.box.l10n.mojito.rest.client.DropClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.Page;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMImportService;
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static org.junit.Assert.assertEquals;
+
 /**
- *
  * @author jaurambault
  */
 public class DropExportCommandTest extends CLITestBase {
@@ -26,6 +28,8 @@ public class DropExportCommandTest extends CLITestBase {
 
     @Autowired
     DropClient dropClient;
+    @Autowired
+    RepositoryRepository repositoryRepository;
 
     @Test
     public void export() throws Exception {
@@ -58,7 +62,14 @@ public class DropExportCommandTest extends CLITestBase {
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
         importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+        waitForCondition("Must have text units that are fully translated", () -> {
+            return repositoryRepository.findById(repository.getId())
+                    .map(r -> r.getRepositoryStatistic().getUsedTextUnitCount() > 0
+                            && r.getRepositoryStatistic().getRepositoryLocaleStatistics().stream()
+                            .filter(rls -> Sets.newHashSet("fr-FR", "ja-JP").contains(rls.getLocale().getBcp47Tag()))
+                            .allMatch(rls -> rls.getForTranslationCount() == 0))
+                    .orElse(false);
+        });
 
         Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
 
