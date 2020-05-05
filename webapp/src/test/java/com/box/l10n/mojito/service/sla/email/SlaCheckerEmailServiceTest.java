@@ -1,41 +1,43 @@
 package com.box.l10n.mojito.service.sla.email;
 
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.mustache.MustacheTemplateEngine; 
-import static com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService.CLOSE_INCIDENT_TEMPLATE;
-import static com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService.OPEN_INCIDENT_TEMPLATE;
+import com.box.l10n.mojito.mustache.MustacheTemplateEngine;
 import com.box.l10n.mojito.utils.DateTimeUtils;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-
 import com.box.l10n.mojito.utils.ServerConfig;
 import org.joda.time.DateTime;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Matchers;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService.CLOSE_INCIDENT_TEMPLATE;
+import static com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService.OPEN_INCIDENT_TEMPLATE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  *
