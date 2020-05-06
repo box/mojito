@@ -450,6 +450,7 @@
                 <artifactId>git-commit-id-plugin</artifactId>
                 <configuration>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <offline>true</offline>
                 </configuration>
             </plugin>
 
