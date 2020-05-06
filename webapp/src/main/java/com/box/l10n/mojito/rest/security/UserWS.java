@@ -23,7 +23,7 @@ import static com.box.l10n.mojito.rest.security.UserSpecification.enabledEquals;
 import static com.box.l10n.mojito.rest.security.UserSpecification.usernameEquals;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  *
@@ -54,7 +54,7 @@ public class UserWS {
         List<User> users = userRepository.findAll(
                 where(ifParamNotNull(usernameEquals(username)))
                         .and(enabledEquals(true)),
-                new Sort(Sort.Direction.ASC, "username"));
+                Sort.by(Sort.Direction.ASC, "username"));
         return users;
     }
 

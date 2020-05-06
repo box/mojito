@@ -2,15 +2,14 @@ package com.box.l10n.mojito.service.asset;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
-import java.util.List;
-import java.util.Set;
-
-import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author aloison

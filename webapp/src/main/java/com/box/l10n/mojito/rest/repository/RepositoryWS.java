@@ -37,7 +37,7 @@ import static com.box.l10n.mojito.rest.repository.BranchSpecification.nameEquals
 import static com.box.l10n.mojito.rest.repository.BranchSpecification.repositoryEquals;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  * @author wyau
