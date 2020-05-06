@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.rest.repository;
 
-import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
@@ -19,12 +18,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
-import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.*;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.branchEquals;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.branchNameEquals;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.createdByUserNameEquals;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.deletedEquals;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.empty;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.search;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  * @author jeanaurambault

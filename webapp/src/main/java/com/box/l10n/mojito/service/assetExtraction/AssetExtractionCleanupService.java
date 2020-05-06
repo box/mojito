@@ -52,7 +52,7 @@ public class AssetExtractionCleanupService {
         do {
             // Fetching 5 by 5 to avoid locking too many rows.
             // It is also useful to distribute the load across multiple instances.
-            PageRequest pageable = new PageRequest(0, 5);
+            PageRequest pageable = PageRequest.of(0, 5);
             assetExtractionIdsToDelete = assetExtractionRepository.findFinishedAndOldAssetExtractions(pageable);
 
             for (Long assetExtractionIdToDelete : assetExtractionIdsToDelete) {

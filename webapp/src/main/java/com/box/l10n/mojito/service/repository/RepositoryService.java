@@ -32,7 +32,7 @@ import java.util.UUID;
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.RepositorySpecification.nameEquals;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  * Service to manage {@link Repository}
@@ -110,7 +110,7 @@ public class RepositoryService {
     public List<Repository> findRepositoriesIsNotDeletedOrderByName(String repositoryName) {
         return repositoryRepository.findAll(
                 where(deletedEquals(false)).and(ifParamNotNull(nameEquals(repositoryName))),
-                new Sort(Sort.Direction.ASC, "name")
+                Sort.by(Sort.Direction.ASC, "name")
         );
     }
 
