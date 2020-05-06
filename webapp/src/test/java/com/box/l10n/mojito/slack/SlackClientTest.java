@@ -41,7 +41,7 @@ public class SlackClientTest {
 
         Message reply = new Message();
         reply.setChannel(instantMessageChannel.getId());
-        reply.setText("response");
+        reply.setText("テスト");
         reply.setThreadTs(chatPostMessageResponse.getTs());
 
         slackClient.sendInstantMessage(reply);
