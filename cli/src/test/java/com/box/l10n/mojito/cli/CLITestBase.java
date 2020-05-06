@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli;
 
+import com.box.l10n.mojito.Application;
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
@@ -46,7 +47,7 @@ import java.util.function.Supplier;
  * @author jaurambault
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {App.class},
+@SpringBootTest(classes = {Application.class},
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CLITestBase extends IOTestBase {
 
