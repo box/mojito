@@ -35,7 +35,7 @@ import static com.box.l10n.mojito.rest.drop.DropSpecification.isCanceled;
 import static com.box.l10n.mojito.rest.drop.DropSpecification.isImported;
 import static com.box.l10n.mojito.rest.drop.DropSpecification.repositoryIdEquals;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
-import static org.springframework.data.jpa.domain.Specifications.where;
+import static org.springframework.data.jpa.domain.Specification.where;
 
 /**
  * @author aloison

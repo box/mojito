@@ -93,6 +93,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.version}</version>
                 <configuration>
+                    <!-- TODO(spring2) is this still needed -->
                     <!-- Work around for compilation issue with aspectj. See:
                     https://github.com/spring-projects/spring-boot/issues/4847 
                     http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html
