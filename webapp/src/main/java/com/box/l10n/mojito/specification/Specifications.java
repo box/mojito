@@ -84,7 +84,7 @@ public class Specifications {
     }
 
     /**
-     * Like {@link org.springframework.data.jpa.domain.Specifications.where} but with the query returning distinct
+     * Like {@link org.springframework.data.jpa.domain.Specification.where} but with the query returning distinct
      * results.
      *
      * @param spec

@@ -138,7 +138,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/intl/*", "/img/*", "/fonts/*", "/login/**", "/cli/**", "/health", "/js/**", "/css/**").permitAll()
                 .antMatchers("/shutdown", "/api/rotation").hasIpAddress("127.0.0.1").anyRequest().permitAll()
-                .anyRequest().fullyAuthenticated()
                 .and()
                 .formLogin()
                 .loginPage("/login")
