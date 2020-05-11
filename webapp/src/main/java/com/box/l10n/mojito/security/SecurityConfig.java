@@ -26,12 +26,11 @@ public class SecurityConfig {
 
     /**
      * URL to redirect to when missing authentication. If not specify, goes to the login page.
-     *
+     * <p>
      * This can be use to redirect to a principal OAuth provider and skip the Mojito's login page. The login page is
      * still accessible if accessed directly.
      */
     String unauthRedirectTo;
-
 
     Map<String, OAuth2> oAuth2;
 
@@ -72,7 +71,12 @@ public class SecurityConfig {
 
     public static class OAuth2 {
         String uiLabelText;
-        String customUserType;
+
+        String unwrapUserAttributes;
+
+        String givenNameAttribute = "first_name";
+        String surnameAttribute = "last_name";
+        String commonNameAttribute = "name";
 
         public String getUiLabelText() {
             return uiLabelText;
@@ -82,12 +86,36 @@ public class SecurityConfig {
             this.uiLabelText = uiLabelText;
         }
 
-        public String getCustomUserType() {
-            return customUserType;
+        public String getGivenNameAttribute() {
+            return givenNameAttribute;
         }
 
-        public void setCustomUserType(String customUserType) {
-            this.customUserType = customUserType;
+        public void setGivenNameAttribute(String givenNameAttribute) {
+            this.givenNameAttribute = givenNameAttribute;
+        }
+
+        public String getSurnameAttribute() {
+            return surnameAttribute;
+        }
+
+        public void setSurnameAttribute(String surnameAttribute) {
+            this.surnameAttribute = surnameAttribute;
+        }
+
+        public String getCommonNameAttribute() {
+            return commonNameAttribute;
+        }
+
+        public void setCommonNameAttribute(String commonNameAttribute) {
+            this.commonNameAttribute = commonNameAttribute;
+        }
+
+        public String getUnwrapUserAttributes() {
+            return unwrapUserAttributes;
+        }
+
+        public void setUnwrapUserAttributes(String unwrapUserAttributes) {
+            this.unwrapUserAttributes = unwrapUserAttributes;
         }
     }
 }
