@@ -31,11 +31,10 @@ import java.io.IOException;
 
 @SpringBootApplication(
         scanBasePackageClasses = Application.class,
-        exclude = QuartzAutoConfiguration.class
-
+        exclude = {
+                QuartzAutoConfiguration.class, // We integrated with Quartz before spring supported it
+        }
 )
-//@ComponentScan(basePackageClasses = Application.class)
-//@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
 @EnableSpringConfigured
 @EnableJpaAuditing
 @EnableJpaRepositories
@@ -71,7 +70,7 @@ public class Application {
         return new ObjectMapper();
     }
 
-    @Bean(name="fail_on_unknown_properties_false")
+    @Bean(name = "fail_on_unknown_properties_false")
     public ObjectMapper getObjectMapperFailOnUnknownPropertiesFalse() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -148,7 +147,7 @@ public class Application {
 
     // TODO(spring2) that's the upgraded version -- check props later
     @Bean
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory>  containerCustomizer(){
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> containerCustomizer() {
         return new WebServerFactoryCustomizer<TomcatServletWebServerFactory>() {
             @Override
             public void customize(TomcatServletWebServerFactory factory) {
