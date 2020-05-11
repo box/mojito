@@ -61,7 +61,7 @@ import(
 
 
 if (APP_CONFIG.googleAnalytics.enabled) {
-    let gaUserId = USERNAME;
+    let gaUserId = APP_CONFIG.user.username;
     if (APP_CONFIG.googleAnalytics.hashedUserId) {
         gaUserId = GoogleAnalytics.hash(gaUserId);
     }

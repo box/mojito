@@ -56,13 +56,6 @@
             <version>1.53</version>
             <scope>test</scope>
         </dependency>
-        <!--Remove commons-lang if we don't need to log PollableTask timeout -->
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-        </dependency>
-
 
         <!--        TODO(spring2) why is this need when moving to 1.4 with @SpringText ?? -->
         <dependency>
