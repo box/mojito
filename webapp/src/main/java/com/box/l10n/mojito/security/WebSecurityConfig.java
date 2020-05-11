@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider;
@@ -29,15 +30,18 @@ import javax.servlet.Filter;
 /**
  * @author wyau
  */
-@Configuration
 @EnableWebSecurity
+//TOOD(spring2) we don't use method level security, do we? remove?
 @EnableGlobalMethodSecurity(securedEnabled = true, mode = AdviceMode.ASPECTJ)
+@Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
+
+    static final String LOGIN_PAGE = "/login";
 
     @Autowired
     SecurityConfig securityConfig;
@@ -131,22 +135,27 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Configuring web security");
 
+        //TODO(spring2) is this "Enable caching for static asset in spring (spring security disabled it by default)" still a thing?
         http.headers().cacheControl().disable();
 
+        // no csrf on rotation end point - they are accessible only locally
         http.csrf().ignoringAntMatchers("/shutdown", "/api/rotation");
 
-        http.authorizeRequests()
-                .antMatchers("/intl/*", "/img/*", "/fonts/*", "/login/**", "/cli/**", "/health", "/js/**", "/css/**").permitAll()
-                .antMatchers("/shutdown", "/api/rotation").hasIpAddress("127.0.0.1").anyRequest().permitAll()
-                .and()
-                .formLogin()
-                .loginPage("/login")
-                .successHandler(new ShowPageAuthenticationSuccessHandler())
-                .and()
-                .logout().logoutSuccessUrl("/login?logout").permitAll();
+        // matcher order matters - "everything else" mapping must be last
+        http.authorizeRequests(authorizeRequests -> authorizeRequests.
+                antMatchers("/intl/*", "/img/*", "/login/**", "/favicon.ico",
+                        "/fonts/*", "/cli/**", "/health", "/js/**", "/css/**").permitAll(). // always accessible to serve the frontend
+                antMatchers("/shutdown", "/api/rotation").hasIpAddress("127.0.0.1"). // local access only for rotation management
+                antMatchers("/**").authenticated() // everything else must be authenticated
+        );
 
-        http.exceptionHandling().defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login"), new AntPathRequestMatcher("/*"));
+        logger.debug("For APIs, we don't redirect to login page. Instead we return a 401");
         http.exceptionHandling().defaultAuthenticationEntryPointFor(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), new AntPathRequestMatcher("/api/*"));
+
+        if (securityConfig.getUnauthRedirectTo() != null) {
+            logger.debug("Redirect to: {} instead of login page on authorization exceptions", securityConfig.getUnauthRedirectTo());
+            http.exceptionHandling().defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint(securityConfig.getUnauthRedirectTo()), new AntPathRequestMatcher("/*"));
+        }
 
         for (SecurityConfig.AuthenticationType authenticationType : securityConfig.getAuthenticationType()) {
             switch (authenticationType) {
@@ -157,10 +166,31 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     http.addFilterBefore(requestHeaderAuthenticationFilter, BasicAuthenticationFilter.class);
                     break;
                 case OAUTH2:
-                    Preconditions.checkNotNull(oauth2Filter, "The OAuth2 filter must be configured");
-                    logger.debug("Add OAuth2 filter");
-                    http.addFilterBefore(oauth2Filter, BasicAuthenticationFilter.class);
-                    http.exceptionHandling().defaultAuthenticationEntryPointFor(new LoginUrlAuthenticationEntryPoint("/login/oauth"), new AntPathRequestMatcher("/*"));
+                    logger.debug("Configure OAuth2");
+                    http.oauth2Login(oauth2Login -> {
+                        oauth2Login.loginPage(LOGIN_PAGE);
+
+                        oauth2Login.authorizationEndpoint(authorizationEndpointConfig -> authorizationEndpointConfig.
+                                baseUri(LOGIN_PAGE + OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI));
+
+                        oauth2Login.userInfoEndpoint(userInfoEndpoint -> {
+                            securityConfig.getoAuth2().forEach((clientRegistrationId, oAuth2) -> {
+                                if (oAuth2.getCustomUserType() != null) {
+                                    logger.debug("Apply custom user type: {} to clientRegistrationId: {}", oAuth2.getCustomUserType(), clientRegistrationId);
+                                    userInfoEndpoint.customUserType(UsernameInUserOAuth2User.class, clientRegistrationId);
+                                }
+                            });
+                        });
+                    });
+                    break;
+                case AD:
+                case LDAP:
+                case DATABASE:
+                    logger.debug("Configure form login for DATABASE, AD or LDAP");
+                    http.formLogin(formLogin -> formLogin.
+                            loginPage(LOGIN_PAGE).
+                            successHandler(new ShowPageAuthenticationSuccessHandler())
+                    );
                     break;
             }
         }

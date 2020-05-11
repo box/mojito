@@ -44,6 +44,8 @@ import pt from 'react-intl/locale-data/pt';
 import zh from 'react-intl/locale-data/zh';
 import BranchesPageActions from "./actions/branches/BranchesPageActions";
 import BranchesHistoryStore from "./stores/branches/BranchesHistoryStore";
+import enMessages from '../../properties/en.properties';
+import GoogleAnalytics from "./utils/GoogleAnalytics";
 
 addLocaleData([...en, ...fr, ...be, ...ko, ...ru, ...de, ...es, ...it, ...ja, ...pt, ...zh]);
 
@@ -51,8 +53,6 @@ __webpack_public_path__ = CONTEXT_PATH + "/";
 
 const browserHistory = useRouterHistory(createHistory)({basename: CONTEXT_PATH});
 
-import enMessages  from'../../properties/en.properties';
-import GoogleAnalytics from "./utils/GoogleAnalytics";
 import(
     /* webpackChunkName: "[request]", webpackMode: "lazy" */
     `../../properties/${LOCALE}.properties`).then(messages => {
@@ -140,9 +140,14 @@ function startApp(messages) {
             let pathNameStrippedLeadingSlash = location.pathname.substr(1 + CONTEXT_PATH.length, location.pathname.length);
             let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
 
-            if (APP_CONFIG.login.oauth2.enabled) {
+            //TODO(spring2) review
+            if (APP_CONFIG.security.unauthRedirectTo) {
+                // if we don't log through login page we just reload the current location
+                // that needs to be improved eg. when navigating within the workbench if an api calls fails it will
+                // re-authenticate and the load the API response instead of showing the frontend
                 window.location.href = UrlHelper.getUrlWithContextPath(currentLocation);
             } else {
+                // if log through the login page use showPage to redirect to the requested page before auth failed
                 window.location.href = UrlHelper.getUrlWithContextPath("/login?") + UrlHelper.toQueryString({"showPage": currentLocation});
             }
         }
