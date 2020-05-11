@@ -1,7 +1,8 @@
 import React from "react";
 import {FormattedMessage, injectIntl} from "react-intl";
-import {FormControl, Button} from "react-bootstrap";
+import {Button, FormControl} from "react-bootstrap";
 import UrlHelper from "../utils/UrlHelper";
+import {withAppConfig} from "../utils/AppConfig";
 
 class Login extends React.Component {
     getLogoutElement = () => {
@@ -50,6 +51,32 @@ class Login extends React.Component {
         return result;
     };
 
+    renderOAuth = () => {
+        const registrations = Object.entries(this.props.appConfig.security.oAuth2);
+        return <div>
+            {
+                registrations.length > 0 &&
+                <div className="mtxl mbl">
+                    <h4 className="text-center color-gray-light">
+                        <FormattedMessage id="login.form.oauth"/>
+                    </h4>
+                </div>
+            }
+            {registrations.map(([registrationId, registration]) => this.renderOAuthRegistration(registrationId, registration))}
+        </div>;
+    }
+
+    renderOAuthRegistration = (registrationId, registration) => {
+        return <div className="mts">
+            <Button bsClass="form-control btn-secondary btn-block"
+                    onClick={() => {
+                        window.location.href = `/login/oauth2/authorization/${registrationId}`
+                    }}>
+                {registration.uiLabelText}
+            </Button>
+        </div>;
+    }
+
     render() {
         let {logout, error, showPage} = this.props.location.query;
 
@@ -74,19 +101,22 @@ class Login extends React.Component {
                             </div>
                             <div className="form-group pbs pts">
                                 <FormControl className="form-control" type="text" name="username"
-                                             placeholder={this.props.intl.formatMessage({ id: "login.form.username" })}/>
+                                             placeholder={this.props.intl.formatMessage({id: "login.form.username"})}/>
                             </div>
                             <div className="form-group pbs pts">
                                 <FormControl className="form-control" type="password" name="password"
-                                             placeholder={this.props.intl.formatMessage({ id: "login.form.password" })}/>
+                                             placeholder={this.props.intl.formatMessage({id: "login.form.password"})}/>
                             </div>
-                            <div className="form-group pbs ptl">
-                                <Button type="submit" bsClass="form-control col-md-3 btn-primary btn-block">
+                            <div className="pbs ptl">
+                                <Button type="submit" bsClass="form-control btn-primary btn-block">
                                     <FormattedMessage id="login.form.login"/>
                                 </Button>
                             </div>
+
                             <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
                         </form>
+
+                        {this.renderOAuth()}
                     </div>
                 </div>
             </div>
@@ -94,4 +124,4 @@ class Login extends React.Component {
     }
 }
 
-export default injectIntl(Login);
+export default withAppConfig(injectIntl(Login));
