@@ -3,7 +3,6 @@ import BranchesPageActions from "./BranchesPageActions";
 import BranchStatisticSearcherParameters from "../../sdk/BranchStatisticSearcherParameters";
 import BranchesSearchParamStore from "../../stores/branches/BranchesSearchParamStore";
 import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore";
-import UserHelper from "../../utils/UserHelper";
 
 const BranchesDataSource = {
     performBranchesSearch: {
@@ -19,7 +18,8 @@ const BranchesDataSource = {
             }
 
             if (branchesSearchParamState.onlyMyBranches) {
-                branchStatisticSearcherParameters.createdByUserName(UserHelper.getUsername());
+                const username = APP_CONFIG.user.username;
+                branchStatisticSearcherParameters.createdByUserName(username);
             }
 
             if (!branchesSearchParamState.deleted && !branchesSearchParamState.undeleted) {
