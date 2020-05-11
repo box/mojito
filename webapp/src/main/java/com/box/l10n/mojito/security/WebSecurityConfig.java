@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.security;
 
+import com.box.l10n.mojito.service.security.user.UserService;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,13 +37,11 @@ import javax.servlet.Filter;
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
+    static final String LOGIN_PAGE = "/login";
     /**
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
-
-    static final String LOGIN_PAGE = "/login";
-
     @Autowired
     SecurityConfig securityConfig;
 
@@ -64,6 +63,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired(required = false)
     PreAuthenticatedAuthenticationProvider preAuthenticatedAuthenticationProvider;
+
+    @Autowired
+    UserService userService;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -174,12 +176,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                                 baseUri(LOGIN_PAGE + OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI));
 
                         oauth2Login.userInfoEndpoint(userInfoEndpoint -> {
-                            securityConfig.getoAuth2().forEach((clientRegistrationId, oAuth2) -> {
-                                if (oAuth2.getCustomUserType() != null) {
-                                    logger.debug("Apply custom user type: {} to clientRegistrationId: {}", oAuth2.getCustomUserType(), clientRegistrationId);
-                                    userInfoEndpoint.customUserType(UsernameInUserOAuth2User.class, clientRegistrationId);
-                                }
-                            });
+                            userInfoEndpoint.userService(new UserDetailImplOAuth2UserService(securityConfig, userService));
                         });
                     });
                     break;
@@ -195,6 +192,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             }
         }
     }
+
 
     @Primary
     @Bean

@@ -2,12 +2,11 @@ package com.box.l10n.mojito.react;
 
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.security.CsrfTokenController;
+import com.box.l10n.mojito.security.AuditorAwareImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,7 +55,10 @@ public class ReactAppController {
     ObjectMapper objectMapper;
 
     @Autowired
-    ReactAppConfig reactAppConfig;
+    ReactStaticAppConfig reactStaticAppConfig;
+
+    @Autowired
+    AuditorAwareImpl auditorAwareImpl;
 
     @Value("${server.contextPath:}")
     String contextPath = "";
@@ -79,14 +81,30 @@ public class ReactAppController {
 
         ModelAndView index = new ModelAndView("index");
 
+        ReactUser reactUser = getReactUser();
+
         index.addObject("locale", getValidLocaleFromCookie(localeCookieValue));
         index.addObject("ict", httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
         index.addObject("csrfToken", csrfTokenController.getCsrfToken(httpServletRequest));
-        index.addObject("username", getUsername());
+        index.addObject("username", reactUser.getUsername());
         index.addObject("contextPath", contextPath);
+
+        //TODO(spring2) this is just a POC - remove old config & update frontend next
+        ReactAppConfig reactAppConfig = new ReactAppConfig(reactStaticAppConfig, reactUser);
         index.addObject("appConfig", objectMapper.writeValueAsStringUnchecked(reactAppConfig));
 
         return index;
+    }
+
+    ReactUser getReactUser() {
+        return auditorAwareImpl.getCurrentAuditor().map(currentAuditor -> {
+            ReactUser reactUser = new ReactUser();
+            reactUser.setUsername(currentAuditor.getUsername());
+            reactUser.setGivenName(currentAuditor.getGivenName());
+            reactUser.setSurname(currentAuditor.getSurname());
+            reactUser.setCommonName(currentAuditor.getCommonName());
+            return reactUser;
+        }).orElse(new ReactUser());
     }
 
     /**
@@ -108,24 +126,6 @@ public class ReactAppController {
         }
 
         return validLocale;
-    }
-
-    /**
-     * Get the username from the security context if
-     *
-     * @return
-     */
-    String getUsername() {
-
-        String username = null;
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null) {
-            username = authentication.getName();
-        }
-
-        return username;
     }
 
 }

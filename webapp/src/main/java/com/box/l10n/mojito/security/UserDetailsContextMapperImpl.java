@@ -14,7 +14,6 @@ import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Map;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -53,18 +52,14 @@ public class UserDetailsContextMapperImpl implements UserDetailsContextMapper {
     }
 
     User getOrCreateUser(DirContextOperations dirContextOperations, String username) {
-        User user = userRepository.findByUsername(username);
 
-        if (user == null || user.getPartiallyCreated()) {
-            // THese are pretty standard LDAP attributes so we can expect them to be here
-            // https://tools.ietf.org/html/rfc4519
-            String givenName = dirContextOperations.getStringAttribute("givenname");
-            String surname = dirContextOperations.getStringAttribute("sn");
-            String commonName = dirContextOperations.getStringAttribute("cn");
+        // These are pretty standard LDAP attributes so we can expect them to be here
+        // https://tools.ietf.org/html/rfc4519
+        String givenName = dirContextOperations.getStringAttribute("givenname");
+        String surname = dirContextOperations.getStringAttribute("sn");
+        String commonName = dirContextOperations.getStringAttribute("cn");
 
-            user = userService.createOrUpdateBasicUser(user, username, givenName, surname, commonName);
-        }
-
+        User user = userService.getOrCreateOrUpdateBasicUser(username, givenName, surname, commonName);
         return user;
     }
 

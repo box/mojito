@@ -21,7 +21,8 @@ public class AuditorAwareImpl implements AuditorAware<User> {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication != null && authentication.isAuthenticated()) {
+        if (authentication != null && authentication.isAuthenticated()
+                && authentication.getPrincipal() instanceof UserDetailsImpl) {
             currentAuditor = ((UserDetailsImpl) authentication.getPrincipal()).getUser();
         }
 
