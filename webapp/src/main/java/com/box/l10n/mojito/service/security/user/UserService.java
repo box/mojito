@@ -237,4 +237,15 @@ public class UserService {
 
         return user;
     }
+
+    public User getOrCreateOrUpdateBasicUser(String username, String givenName, String surname, String commonName) {
+
+        User user = userRepository.findByUsername(username);
+
+        if (user == null || user.getPartiallyCreated()) {
+            user = createOrUpdateBasicUser(user, username, givenName, surname, commonName);
+        }
+
+        return user;
+    }
 }

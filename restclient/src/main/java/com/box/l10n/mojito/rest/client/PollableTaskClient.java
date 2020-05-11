@@ -4,7 +4,7 @@ import com.box.l10n.mojito.rest.client.exception.PollableTaskException;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskExecutionException;
 import com.box.l10n.mojito.rest.client.exception.PollableTaskTimeoutException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
