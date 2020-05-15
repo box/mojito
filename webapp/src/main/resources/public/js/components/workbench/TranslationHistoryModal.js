@@ -18,6 +18,7 @@ class translationHistoryModal extends React.Component {
     renderHistoryItem = (item) => {
         const {textUnit} = this.props;
         const rowClass = (textUnit.getTmTextUnitVariantId() === item.id) ? "history-current-variant" : "";
+        const status = (item.id && !item.includedInLocalizedFile) ? TextUnitSDK.STATUS.REJECTED : item.status;
 
         return item ?
             (
@@ -27,7 +28,7 @@ class translationHistoryModal extends React.Component {
                         item.createdByUser.username}</td>
                     <td>{item.content}</td>
                     <td>{this.convertDateTime(item.createdDate)}</td>
-                    <td><StatusGlyph status={item.status} onClick={() => ""}/></td>
+                    <td><StatusGlyph status={status} onClick={() => ""}/></td>
                 </tr>
             ) :
             "";
