@@ -122,6 +122,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
      * checked.
      */
     @Column(name = "included_in_localized_file")
+    @JsonView(View.TranslationHistorySummary.class)
     private boolean includedInLocalizedFile = true;
 
     @CreatedBy
