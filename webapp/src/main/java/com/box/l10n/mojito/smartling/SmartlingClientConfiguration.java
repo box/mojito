@@ -1,19 +1,25 @@
 package com.box.l10n.mojito.smartling;
 
+import com.box.l10n.mojito.evolve.EvolveConfiguration;
 import com.box.l10n.mojito.utils.RestTemplateUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.client.token.AccessTokenProviderChain;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
+import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.DefaultUriTemplateHandler;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -23,6 +29,8 @@ import java.util.Arrays;
 @EnableOAuth2Client
 @ConfigurationProperties("l10n.smartling")
 public class SmartlingClientConfiguration {
+
+    static Logger resttemplateLogger = LoggerFactory.getLogger(EvolveConfiguration.class.getPackage().getName() + ".Resttemplate");
 
     String baseUri = "https://api.smartling.com/";
     String accessTokenUri = "https://api.smartling.com/auth-api/v2/authenticate";
@@ -64,6 +72,19 @@ public class SmartlingClientConfiguration {
         defaultUriTemplateHandler.setBaseUrl(baseUri);
 
         oAuth2RestTemplate.setUriTemplateHandler(defaultUriTemplateHandler);
+
+        oAuth2RestTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+            @Override
+            public void handleError(ClientHttpResponse response) throws IOException {
+                try {
+                    super.handleError(response);
+                } catch (HttpClientErrorException e) {
+                    resttemplateLogger.debug(e.getResponseBodyAsString());
+                    throw e;
+                }
+            }
+        });
+
         return oAuth2RestTemplate;
     }
 

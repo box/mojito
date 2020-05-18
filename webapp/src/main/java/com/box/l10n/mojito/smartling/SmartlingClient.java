@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.smartling;
 
 import com.box.l10n.mojito.iterators.PageFetcherOffsetAndLimitSplitIterator;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.ContextUpload;
 import com.box.l10n.mojito.smartling.response.ContextUploadResponse;
@@ -28,6 +29,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class SmartlingClient {
+
+    final ObjectMapper objectMapper;
 
     public enum RetrievalType {
         PENDING("pending"),
@@ -67,6 +70,7 @@ public class SmartlingClient {
 
     public SmartlingClient(OAuth2RestTemplate oAuth2RestTemplate) {
         this.oAuth2RestTemplate = oAuth2RestTemplate;
+        this.objectMapper = new ObjectMapper();
     }
 
     public Stream<StringInfo> getStringInfos(String projectId, String fileUri) {
@@ -170,7 +174,8 @@ public class SmartlingClient {
 
     <T> void throwExceptionOnError(Response<T> response, String msg, Object... vars) {
         if (!API_SUCCESS_CODE.equals(response.getCode())) {
-            throw new SmartlingClientException(String.format(msg, vars) + "(code: " + response.getCode() + ")");
+            String errorsAsString = objectMapper.writeValueAsStringUnchecked(response.getErrors());
+            throw new SmartlingClientException(String.format(msg, vars) + "(code: " + response.getCode() + ", errors: " + errorsAsString +")");
         }
     }
 
