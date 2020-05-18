@@ -67,7 +67,15 @@ public class CommandWaitForPollableTaskListener implements WaitForPollableTaskLi
             consoleWriter.a(linePrefix).a(pollableTask.getMessage()).fg(Ansi.Color.MAGENTA).a(" (").a(pollableTask.getId()).a(") ");
 
             if (pollableTask.getErrorMessage() != null) {
-                consoleWriter.fg(Ansi.Color.RED).a("Failed").newLine().a(linePrefix).a(pollableTask.getErrorMessage().getMessage());
+                if (!pollableTask.getErrorMessage().isExpected()) {
+                    consoleWriter.fg(Ansi.Color.RED).a("Failed").newLine().a(linePrefix).a(pollableTask.getErrorMessage().getMessage());
+                } else {
+                    consoleWriter.fg(Ansi.Color.RED)
+                            .a("Failed").newLine()
+                            .a(linePrefix).a("An unexpected error happened, task=" + pollableTask.getId()).newLine()
+                            .a(linePrefix).a(pollableTask.getErrorMessage().getType()).newLine()
+                            .a(linePrefix).a(pollableTask.getErrorMessage().getMessage());
+                }
             } else if (pollableTask.getFinishedDate() != null) {
                 consoleWriter.fg(Ansi.Color.GREEN).a("Done");
             } else {
