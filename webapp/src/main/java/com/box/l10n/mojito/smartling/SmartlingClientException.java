@@ -8,4 +8,8 @@ public class SmartlingClientException extends RuntimeException {
     public SmartlingClientException(Throwable cause) {
         super(cause);
     }
+
+    public SmartlingClientException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 }
