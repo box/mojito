@@ -103,7 +103,7 @@ public class PollableTaskClient extends BaseClient {
                 // TODO(P1) we might want to show all errors
                 PollableTask lastTaskInError = pollableTaskWithErrors.get(pollableTaskWithErrors.size() - 1);
 
-                throw new PollableTaskExecutionException(lastTaskInError.getErrorMessage().getMessage());
+                throw new PollableTaskExecutionException(lastTaskInError.getErrorMessage());
             }
 
             if (waitForPollableTaskListener != null) {
