@@ -56,8 +56,8 @@ public class SmartlingClientTest {
 
         logger.debug("Test getSourceStrings");
         Items<StringInfo> sourceStrings = smartlingClient.getSourceStrings(
-                smartlingTestConfig.  projectId,
-                smartlingTestConfig.  fileUri,
+                smartlingTestConfig.projectId,
+                smartlingTestConfig.fileUri,
                 0,
                 500);
 

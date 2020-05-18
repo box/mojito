@@ -18,19 +18,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class SmartlingClient {
-
-    final ObjectMapper objectMapper;
 
     public enum RetrievalType {
         PENDING("pending"),
@@ -62,6 +59,16 @@ public class SmartlingClient {
     static final String API_CONTEXTS = "context-api/v2/projects/{projectId}/contexts";
     static final String API_BINDINGS = "context-api/v2/projects/{projectId}/bindings";
 
+    static final String ERROR_CANT_GET_FILES = "Can't get files";
+    static final String ERROR_CANT_GET_SOURCE_STRINGS = "Can't get source strings";
+    static final String ERROR_CANT_DOWNLOAD_FILE = "Can't download file: %s ";
+    static final String ERROR_CANT_UPLOAD_FILE = "Can't upload file";
+    static final String ERROR_CANT_DELETE_FILE = "Can't delete file: %s ";
+    static final String ERROR_CANT_UPLOAD_CONTEXT = "Can't upload context";
+    static final String ERROR_CANT_CREATE_BINDINGS_S = "Can't create bindings: %s";
+
+    final ObjectMapper objectMapper;
+
     static final String API_SUCCESS_CODE = "SUCCESS";
 
     static final int LIMIT = 500;
@@ -89,16 +96,23 @@ public class SmartlingClient {
     }
 
     public Items<File> getFiles(String projectId) {
-        FilesResponse filesResponse = oAuth2RestTemplate.getForObject(API_FILES_LIST, FilesResponse.class, projectId);
-        throwExceptionOnError(filesResponse, "Can't get files");
-        return filesResponse.getData();
+        try {
+            FilesResponse filesResponse = oAuth2RestTemplate.getForObject(API_FILES_LIST, FilesResponse.class, projectId);
+            throwExceptionOnError(filesResponse, ERROR_CANT_GET_FILES);
+            return filesResponse.getData();
+        } catch (HttpClientErrorException httpClientErrorException) {
+            throw wrapIntoSmartlingException(httpClientErrorException, ERROR_CANT_GET_FILES);
+        }
     }
 
     public String downloadFile(String projectId, String local, String fileUri, boolean includeOriginalStrings, RetrievalType retrievalType) {
-        ResponseEntity<String> response = oAuth2RestTemplate.getForEntity(
-                API_FILES_DOWNLOAD, String.class, projectId, local, fileUri, includeOriginalStrings, retrievalType.getValue());
-        throwExceptionOnError(response, "Can't download file: %s ", fileUri);
-        return response.getBody();
+        try {
+            String file = oAuth2RestTemplate.getForObject(
+                    API_FILES_DOWNLOAD, String.class, projectId, local, fileUri, includeOriginalStrings, retrievalType.getValue());
+            return file;
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_FILE, fileUri);
+        }
     }
 
     public void deleteFile(String projectId, String fileUri) {
@@ -110,8 +124,12 @@ public class SmartlingClient {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        Response response = oAuth2RestTemplate.postForObject(API_FILES_DELETE, requestEntity, Response.class, projectId);
-        throwExceptionOnError(response, "Can't delete file: %s ", fileUri);
+        try {
+            Response response = oAuth2RestTemplate.postForObject(API_FILES_DELETE, requestEntity, Response.class, projectId);
+            throwExceptionOnError(response, ERROR_CANT_DELETE_FILE, fileUri);
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_DELETE_FILE, fileUri);
+        }
     }
 
     public FileUploadResponse uploadFile(String projectId, String fileUri, String fileType, String fileContent, String placeholderFormat, String placeholderFormatCustom) {
@@ -130,21 +148,27 @@ public class SmartlingClient {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        FileUploadResponse response = oAuth2RestTemplate.postForObject(API_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId);
-        throwExceptionOnError(response, "Can't upload file");
-        return response;
+        try {
+            FileUploadResponse response = oAuth2RestTemplate.postForObject(API_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId);
+            throwExceptionOnError(response, ERROR_CANT_UPLOAD_FILE);
+            return response;
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE);
+        }
     }
 
     public Items<StringInfo> getSourceStrings(String projectId, String fileUri, Integer offset, Integer limit) throws SmartlingClientException {
-
-        SourceStringsResponse sourceStringsResponse = oAuth2RestTemplate.getForObject(
-                API_SOURCE_STRINGS,
-                SourceStringsResponse.class,
-                projectId, fileUri, offset, limit);
-        throwExceptionOnError(sourceStringsResponse, "Can't get source strings");
-        return sourceStringsResponse.getData();
+        try {
+            SourceStringsResponse sourceStringsResponse = oAuth2RestTemplate.getForObject(
+                    API_SOURCE_STRINGS,
+                    SourceStringsResponse.class,
+                    projectId, fileUri, offset, limit);
+            throwExceptionOnError(sourceStringsResponse, ERROR_CANT_GET_SOURCE_STRINGS);
+            return sourceStringsResponse.getData();
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_GET_SOURCE_STRINGS);
+        }
     }
-
 
     public ContextUpload uploadContext(String projectId, String name, byte[] content) {
 
@@ -158,20 +182,30 @@ public class SmartlingClient {
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
-        ContextUploadResponse contextUploadResponse = oAuth2RestTemplate.postForObject(API_CONTEXTS, requestEntity, ContextUploadResponse.class, projectId);
-        throwExceptionOnError(contextUploadResponse, "Can't upload context");
-
-        return contextUploadResponse.getData();
+        try {
+            ContextUploadResponse contextUploadResponse = oAuth2RestTemplate.postForObject(API_CONTEXTS, requestEntity, ContextUploadResponse.class, projectId);
+            throwExceptionOnError(contextUploadResponse, ERROR_CANT_UPLOAD_CONTEXT);
+            return contextUploadResponse.getData();
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE);
+        }
     }
 
     public void createBindings(Bindings bindings, String projectId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
         HttpEntity<Bindings> requestEntity = new HttpEntity<>(bindings, headers);
-        String s = oAuth2RestTemplate.postForObject(API_BINDINGS, requestEntity, String.class, projectId);
-        logger.debug("create binding: {}", s);
+        try {
+            String s = oAuth2RestTemplate.postForObject(API_BINDINGS, requestEntity, String.class, projectId);
+            logger.debug("create binding: {}", s);
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_CREATE_BINDINGS_S, objectMapper.writeValueAsStringUnchecked(bindings));
+        }
     }
 
+    /**
+     * To throw an exception when Smartling returns a 200 but still is not successful
+     */
     <T> void throwExceptionOnError(Response<T> response, String msg, Object... vars) {
         if (!API_SUCCESS_CODE.equals(response.getCode())) {
             String errorsAsString = objectMapper.writeValueAsStringUnchecked(response.getErrors());
@@ -179,10 +213,14 @@ public class SmartlingClient {
         }
     }
 
-    <T> void throwExceptionOnError(ResponseEntity<T> response, String msg, Object... vars) {
-        if (HttpStatus.OK != response.getStatusCode()) {
-            throw new SmartlingClientException(String.format(msg, vars) + "(code: " + response.getStatusCode().value() + ")");
-        }
+    /**
+     * For error raised through HTTP error.
+     *
+     * Note that 200 is not always success, {@see throwExceptionOnError}
+     */
+    SmartlingClientException wrapIntoSmartlingException(HttpClientErrorException httpClientErrorException, String messageSummary, Object... vars) throws SmartlingClientException {
+        String msg = String.format(messageSummary, vars) + "\nMessage: " + httpClientErrorException.getMessage() + "\nBody: " +  httpClientErrorException.getResponseBodyAsString();
+        return new SmartlingClientException(msg, httpClientErrorException);
     }
 
     static class NamedByteArrayResource extends ByteArrayResource {

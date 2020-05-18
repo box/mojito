@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.smartling;
 
-import com.box.l10n.mojito.evolve.EvolveConfiguration;
 import com.box.l10n.mojito.utils.RestTemplateUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.slf4j.Logger;
@@ -30,7 +29,7 @@ import java.util.Arrays;
 @ConfigurationProperties("l10n.smartling")
 public class SmartlingClientConfiguration {
 
-    static Logger resttemplateLogger = LoggerFactory.getLogger(EvolveConfiguration.class.getPackage().getName() + ".Resttemplate");
+    static Logger resttemplateLogger = LoggerFactory.getLogger(SmartlingClientConfiguration.class.getPackage().getName() + ".Resttemplate");
 
     String baseUri = "https://api.smartling.com/";
     String accessTokenUri = "https://api.smartling.com/auth-api/v2/authenticate";
@@ -79,7 +78,9 @@ public class SmartlingClientConfiguration {
                 try {
                     super.handleError(response);
                 } catch (HttpClientErrorException e) {
-                    resttemplateLogger.debug(e.getResponseBodyAsString());
+                    if (resttemplateLogger.isDebugEnabled()) {
+                        resttemplateLogger.debug(e.getResponseBodyAsString());
+                    }
                     throw e;
                 }
             }
