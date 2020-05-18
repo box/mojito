@@ -48,27 +48,11 @@ public class ExceptionHolder {
 
     @JsonProperty("type")
     public String getType() {
-        String type;
-
-        if (isExpected()) {
-            type = exception.getClass().getName();
-        } else {
-            type = "unexpected";
-        }
-
-        return type;
+        return exception != null ? exception.getClass().getName() : null;
     }
 
     @JsonProperty("message")
     public String getMessage() {
-        String type;
-
-        if (isExpected()) {
-            type = exception.getMessage();
-        } else {
-            type = "An unexpected error happened, task=" + pollableTask.getId();
-        }
-
-        return type;
+        return exception != null ? exception.getMessage() : null;
     }
 }
