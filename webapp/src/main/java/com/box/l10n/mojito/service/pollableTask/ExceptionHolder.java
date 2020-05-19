@@ -22,6 +22,7 @@ public class ExceptionHolder {
         this.pollableTask = pollableTask;
     }
 
+    @JsonProperty("expected")
     public boolean isExpected() {
         return expected;
     }
@@ -48,11 +49,27 @@ public class ExceptionHolder {
 
     @JsonProperty("type")
     public String getType() {
-        return exception != null ? exception.getClass().getName() : null;
+        String type;
+
+        if (isExpected()) {
+            type = exception.getClass().getName();
+        } else {
+            type = "unexpected";
+        }
+
+        return type;
     }
 
     @JsonProperty("message")
     public String getMessage() {
-        return exception != null ? exception.getMessage() : null;
+        String type;
+
+        if (isExpected()) {
+            type = exception.getMessage();
+        } else {
+            type = "An unexpected error happened, task=" + pollableTask.getId();
+        }
+
+        return type;
     }
 }

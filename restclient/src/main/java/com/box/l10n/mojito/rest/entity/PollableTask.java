@@ -25,6 +25,8 @@ public class PollableTask {
 
     private ErrorMessage errorMessage;
 
+    private String errorStack;
+
     private int expectedSubTaskNumber;
 
     @JsonDeserialize(as = LinkedHashSet.class)
@@ -62,6 +64,14 @@ public class PollableTask {
 
     public void setErrorMessage(ErrorMessage errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public String getErrorStack() {
+        return errorStack;
+    }
+
+    public void setErrorStack(String errorStack) {
+        this.errorStack = errorStack;
     }
 
     public int getExpectedSubTaskNumber() {
