@@ -62,10 +62,10 @@ public class SmartlingClient {
     static final String ERROR_CANT_GET_FILES = "Can't get files";
     static final String ERROR_CANT_GET_SOURCE_STRINGS = "Can't get source strings";
     static final String ERROR_CANT_DOWNLOAD_FILE = "Can't download file: %s ";
-    static final String ERROR_CANT_UPLOAD_FILE = "Can't upload file";
-    static final String ERROR_CANT_DELETE_FILE = "Can't delete file: %s ";
-    static final String ERROR_CANT_UPLOAD_CONTEXT = "Can't upload context";
-    static final String ERROR_CANT_CREATE_BINDINGS_S = "Can't create bindings: %s";
+    static final String ERROR_CANT_UPLOAD_FILE = "Can't upload file: %s";
+    static final String ERROR_CANT_DELETE_FILE = "Can't delete file: %s";
+    static final String ERROR_CANT_UPLOAD_CONTEXT = "Can't upload context: %s";
+    static final String ERROR_CANT_CREATE_BINDINGS = "Can't create bindings: %s";
 
     final ObjectMapper objectMapper;
 
@@ -150,10 +150,10 @@ public class SmartlingClient {
 
         try {
             FileUploadResponse response = oAuth2RestTemplate.postForObject(API_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId);
-            throwExceptionOnError(response, ERROR_CANT_UPLOAD_FILE);
+            throwExceptionOnError(response, ERROR_CANT_UPLOAD_FILE, fileUri);
             return response;
         } catch(HttpClientErrorException e) {
-            throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE);
+            throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE, fileUri);
         }
     }
 
@@ -184,10 +184,10 @@ public class SmartlingClient {
 
         try {
             ContextUploadResponse contextUploadResponse = oAuth2RestTemplate.postForObject(API_CONTEXTS, requestEntity, ContextUploadResponse.class, projectId);
-            throwExceptionOnError(contextUploadResponse, ERROR_CANT_UPLOAD_CONTEXT);
+            throwExceptionOnError(contextUploadResponse, ERROR_CANT_UPLOAD_CONTEXT, name);
             return contextUploadResponse.getData();
         } catch(HttpClientErrorException e) {
-            throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE);
+            throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_CONTEXT, name);
         }
     }
 
@@ -199,7 +199,7 @@ public class SmartlingClient {
             String s = oAuth2RestTemplate.postForObject(API_BINDINGS, requestEntity, String.class, projectId);
             logger.debug("create binding: {}", s);
         } catch(HttpClientErrorException e) {
-            throw wrapIntoSmartlingException(e, ERROR_CANT_CREATE_BINDINGS_S, objectMapper.writeValueAsStringUnchecked(bindings));
+            throw wrapIntoSmartlingException(e, ERROR_CANT_CREATE_BINDINGS, objectMapper.writeValueAsStringUnchecked(bindings));
         }
     }
 
