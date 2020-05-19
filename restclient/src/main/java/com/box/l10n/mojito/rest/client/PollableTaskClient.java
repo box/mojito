@@ -91,6 +91,10 @@ public class PollableTaskClient extends BaseClient {
 
             pollableTask = getPollableTask(pollableId);
 
+            if (waitForPollableTaskListener != null) {
+                waitForPollableTaskListener.afterPoll(pollableTask);
+            }
+
             List<PollableTask> pollableTaskWithErrors = getAllPollableTasksWithError(pollableTask);
 
             if (!pollableTaskWithErrors.isEmpty()) {
@@ -104,10 +108,6 @@ public class PollableTaskClient extends BaseClient {
                 PollableTask lastTaskInError = pollableTaskWithErrors.get(pollableTaskWithErrors.size() - 1);
 
                 throw new PollableTaskExecutionException(lastTaskInError.getErrorMessage().getMessage());
-            }
-
-            if (waitForPollableTaskListener != null) {
-                waitForPollableTaskListener.afterPoll(pollableTask);
             }
 
             if (!pollableTask.isAllFinished()) {
