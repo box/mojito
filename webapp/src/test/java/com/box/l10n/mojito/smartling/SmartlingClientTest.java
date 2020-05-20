@@ -135,6 +135,14 @@ public class SmartlingClientTest {
     }
 
     @Test
+    public void testUploadContextPNGUpperCase() throws IOException {
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+        ClassPathResource classPathResource = new ClassPathResource("/com/box/l10n/mojito/img/1.png");
+        byte[] content = ByteStreams.toByteArray(classPathResource.getInputStream());
+        smartlingClient.uploadContext(smartlingTestConfig.projectId, "caseissuewithpng.PNG", content);
+    }
+
+    @Test
     public void testGetFiles() {
         Assume.assumeNotNull(smartlingTestConfig.projectId);
         Items<File> files = smartlingClient.getFiles(smartlingTestConfig.projectId);

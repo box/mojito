@@ -228,7 +228,27 @@ public class SmartlingClient {
 
         public NamedByteArrayResource(byte[] content, String filename) {
             super(content);
-            this.filename = filename;
+            this.filename = getNameForMultipart(filename);
+        }
+
+        /**
+         * For some reason (not investigated) spring doesn't map "PNG" (uppercase) to proper type when doing multipart
+         *
+         * it uses:
+         * Content-Disposition: form-data; name="content"; filename="caseissuewithpng.PNG"
+         * Content-Type: application/octet-stream
+         *
+         * instead of:
+         * Content-Disposition: form-data; name="content"; filename="caseissuewithpng.png"
+         * Content-Type: image/x-png
+         *
+         * So make the filename lower case here to have proper content-type.
+         *
+         * This should not change the filename uploaded to Smartling - but need to keep an eye on it. Might be better
+         * to look more into doing that with properly in Spring
+         */
+        String getNameForMultipart(String name) {
+            return name.replaceAll("PNG$", "png");
         }
 
         @Override
