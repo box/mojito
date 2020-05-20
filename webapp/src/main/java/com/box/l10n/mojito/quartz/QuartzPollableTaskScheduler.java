@@ -40,7 +40,11 @@ public class QuartzPollableTaskScheduler {
     ObjectMapper objectMapper;
 
     public <I, O> PollableFuture<O> scheduleJob(Class<? extends QuartzPollableJob<I, O>> clazz, I input) {
-        QuartzJobInfo<I, O> quartzJobInfo = QuartzJobInfo.newBuilder(clazz).withInput(input).build();
+        QuartzJobInfo<I, O> quartzJobInfo = QuartzJobInfo.newBuilder(clazz).
+                withInput(input).
+                withMessage(clazz.getSimpleName()).
+                build();
+
         return scheduleJob(quartzJobInfo);
     }
 
