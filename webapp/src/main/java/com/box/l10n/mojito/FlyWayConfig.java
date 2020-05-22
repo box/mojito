@@ -1,5 +1,6 @@
 package com.box.l10n.mojito;
 
+import com.box.l10n.mojito.service.DBUtils;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
@@ -36,13 +37,22 @@ public class FlyWayConfig {
      */
     boolean clean = false;
 
-
     @Autowired
     DataSource dataSource;
+
+    @Autowired
+    DBUtils dbUtils;
 
     @Bean
     public FlywayMigrationStrategy cleanMigrateStrategy() {
         return flyway -> {
+
+            if (dbUtils.isHSQL()) {
+                logger.info("HSQL don't do flyway");
+                //TODO(spring2) i guess that's also disabling the initialization
+                // having flyway disable Spring logic to initialize datasource? can we do better?
+                return;
+            }
 
             if (clean) {
                 logger.info("Clean DB with Flyway");
