@@ -136,13 +136,8 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjrt</artifactId>
-                        <version>${aspectj.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
                         <artifactId>aspectjtools</artifactId>
-                        <version>${aspectj.version}</version>
+                        <version>${aspectj-maven-plugin.rt}</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -154,7 +149,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <showWeaveInfo>false</showWeaveInfo>
+                    <showWeaveInfo>true</showWeaveInfo>
                     <deprecation>true</deprecation>
                     <complianceLevel>${java.version}</complianceLevel>
                     <weaveDependencies>
