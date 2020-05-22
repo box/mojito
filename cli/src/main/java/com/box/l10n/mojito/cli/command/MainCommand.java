@@ -29,7 +29,8 @@ public class MainCommand extends Command {
     @Parameter(names = {"--check-server-version"}, description = "Check if this CLI matches the server's version")
     private boolean checkVersionServerParam;
 
-    @Value("${info.build.version}")
+    //TODO(spring2) fix that - right now pass empty value to keep moving
+    @Value("${info.build.version:}")
     String version;
 
     @Autowired
