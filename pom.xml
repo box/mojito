@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.1.RELEASE</version>
+        <version>2.2.7.RELEASE</version>
     </parent>
 
     <properties>
@@ -26,6 +26,9 @@
         <hibernate.joda-time.version>1.4</hibernate.joda-time.version>
         <usertype.core.version>6.0.1.GA</usertype.core.version>
         <aspectj-maven-plugin.version>1.8</aspectj-maven-plugin.version>
+        <!-- we need to fix the version because of following error on 1.9.5: "collides with a package" -->
+        <!-- <aspectj-maven-plugin.rt>${aspectj.version}</aspectj-maven-plugin.rt>-->
+         <aspectj-maven-plugin.rt>1.9.4</aspectj-maven-plugin.rt>
     </properties>
 
     <dependencies>
