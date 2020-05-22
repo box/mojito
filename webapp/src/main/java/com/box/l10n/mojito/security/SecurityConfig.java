@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +33,7 @@ public class SecurityConfig {
      */
     String unauthRedirectTo;
 
-    Map<String, OAuth2> oAuth2;
+    Map<String, OAuth2> oAuth2 = new HashMap<>();
 
     public List<AuthenticationType> getAuthenticationType() {
         return authenticationType;
