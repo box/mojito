@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.rule.OutputCapture;
+import org.springframework.boot.test.system.OutputCaptureRule;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -84,7 +84,7 @@ public class CLITestBase extends IOTestBase {
     TextUnitSearcher textUnitSearcher;
 
     @Rule
-    public OutputCapture outputCapture = new OutputCapture();
+    public OutputCaptureRule outputCapture = new OutputCaptureRule();
 
     @LocalServerPort
     int port;

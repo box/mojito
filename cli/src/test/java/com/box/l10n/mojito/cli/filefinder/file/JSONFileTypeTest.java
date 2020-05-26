@@ -1,18 +1,15 @@
 package com.box.l10n.mojito.cli.filefinder.file;
 
 import com.box.l10n.mojito.cli.filefinder.FilePattern;
-import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.service.NormalizationUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.validation.constraints.AssertTrue;
-import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 
-import static com.box.l10n.mojito.cli.filefinder.FilePattern.*;
+import static com.box.l10n.mojito.cli.filefinder.FilePattern.BASE_NAME;
+import static com.box.l10n.mojito.cli.filefinder.FilePattern.FILE_EXTENSION;
+import static com.box.l10n.mojito.cli.filefinder.FilePattern.LOCALE;
+import static com.box.l10n.mojito.cli.filefinder.FilePattern.PARENT_PATH;
 
 /**
  *
