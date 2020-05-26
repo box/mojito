@@ -263,6 +263,7 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- TODO(spring2) migrate joda time? complicated -->
         <!-- Joda Time -->
         <dependency>
             <groupId>joda-time</groupId>
@@ -274,6 +275,18 @@
             <artifactId>usertype.core</artifactId>
             <version>${usertype.core.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-joda</artifactId>
+        </dependency>
+
         <!-- Joda Time -->
 
         <!-- TODO(P1) to be removed? -->
@@ -283,16 +296,6 @@
             <version>1.4</version>
         </dependency>
         <!-- TODO(P1) to be removed? -->
-
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-joda</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
