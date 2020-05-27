@@ -2,21 +2,18 @@ package com.box.l10n.mojito.db;
 
 import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import org.hibernate.boot.spi.MetadataImplementor;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.service.internal.SessionFactoryServiceRegistryImpl;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.hibernate.tool.hbm2ddl.SchemaUpdate;
+import org.hibernate.tool.schema.TargetType;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,35 +31,23 @@ public class DDLGenerator extends ServiceTestBase {
      */
     static Logger logger = LoggerFactory.getLogger(DDLGenerator.class);
 
-    @Autowired
-    LocalContainerEntityManagerFactoryBean lcemfb;
+    @Test
+    public void generateCreateAnUpdateDDL() throws IOException {
+        logger.debug("Generate create and update DDL");
 
-    // TODO(spring2) schema generation to be re-done again
-//    @Test
-//    public void generateCreateAnUpdateDDL() throws IOException {
-//        logger.debug("Generate create and update DDL");
-//
-//        EntityManagerFactoryImpl emf = (EntityManagerFactoryImpl) lcemfb.getNativeEntityManagerFactory();
-//
-//        SessionFactoryImplementor sf = emf.getSessionFactory();
-//        SessionFactoryServiceRegistryImpl serviceRegistry = (SessionFactoryServiceRegistryImpl) sf.getServiceRegistry();
-//
-//        MetadataImplementor metadata = (MetadataImplementor) HibernateInfoHolder.getMetadata();
-//
-//        Files.createDirectories(Paths.get("target/db/migration/"));
-//
-//        SchemaUpdate update = new SchemaUpdate(serviceRegistry, metadata);
-//        update.setDelimiter(";");
-//        update.setOutputFile(TARGET_DB_MIGRATION_VX_YY_ZZ_SQL);
-//        update.execute(false, false);
+        Files.createDirectories(Paths.get("target/db/migration/"));
+
+        SchemaUpdate schemaUpdate = new SchemaUpdate();
+        schemaUpdate.setDelimiter(";");
+        schemaUpdate.setOutputFile(TARGET_DB_MIGRATION_VX_YY_ZZ_SQL);
+        schemaUpdate.execute(EnumSet.of(TargetType.SCRIPT), HibernateInfoHolder.getMetadata(), HibernateInfoHolder.getServiceRegistry());
 //        removeLinesWithOldEnversFKs(Paths.get(TARGET_DB_MIGRATION_VX_YY_ZZ_SQL));
-//
-//        SchemaExport export = new SchemaExport(serviceRegistry, metadata);
-//        export.setDelimiter(";");
-//        export.setOutputFile("target/db/migration/create.sql");
-//        export.execute(false, false, false, true);
-//    }
-//
+
+        SchemaExport schemaExport = new SchemaExport();
+        schemaExport.setDelimiter(";");
+        schemaExport.setOutputFile("target/db/migration/create.sql");
+        schemaExport.execute(EnumSet.of(TargetType.SCRIPT), SchemaExport.Action.CREATE, HibernateInfoHolder.getMetadata());
+    }
 
     /**
      * With Hibernate updates, the FKs generated for Envers have changed. Since I don't know about a way to define proper
