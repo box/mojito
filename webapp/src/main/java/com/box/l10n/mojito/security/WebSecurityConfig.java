@@ -141,13 +141,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().cacheControl().disable();
 
         // no csrf on rotation end point - they are accessible only locally
-        http.csrf().ignoringAntMatchers("/shutdown", "/api/rotation");
+        http.csrf().ignoringAntMatchers("/actuator/shutdown", "/api/rotation");
 
         // matcher order matters - "everything else" mapping must be last
         http.authorizeRequests(authorizeRequests -> authorizeRequests.
                 antMatchers("/intl/*", "/img/*", "/login/**", "/favicon.ico",
                         "/fonts/*", "/cli/**", "/health", "/js/**", "/css/**").permitAll(). // always accessible to serve the frontend
-                antMatchers("/shutdown", "/api/rotation").hasIpAddress("127.0.0.1"). // local access only for rotation management
+                antMatchers("/actuator/shutdown", "/api/rotation").hasIpAddress("127.0.0.1"). // local access only for rotation management
                 antMatchers("/**").authenticated() // everything else must be authenticated
         );
 
