@@ -5,6 +5,7 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.Banner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -33,6 +34,7 @@ public class App implements CommandLineRunner {
     public static void main(String[] args) {
         new SpringApplicationBuilder(App.class)
                 .web(WebApplicationType.NONE)
+                .bannerMode(Banner.Mode.OFF)
                 .run(args);
     }
 
