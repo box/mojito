@@ -52,11 +52,8 @@ public class PluralFormUpdaterJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
 
-        if (dbUtils.isHSQL()) {
-            logger.debug("Don't update (DB is HSQL)");
-        } else {
-
-            logger.debug("Update old text unit with plural form that are now avaible with new plural support");
+        if (dbUtils.isMysql()) {
+            logger.debug("For Mysql only, update old text unit with plural form that are now avaible with new plural support");
 
             try {
                 int updateCount = jdbcTemplate.update(""
@@ -75,6 +72,8 @@ public class PluralFormUpdaterJob implements Job {
             } catch (Exception e) {
                 logger.error("Couldn't update plural forms, ignore", e);
             }
+        } else {
+            logger.debug("Don't support PluralForm updates if not MySQL");
         }
     }
 
