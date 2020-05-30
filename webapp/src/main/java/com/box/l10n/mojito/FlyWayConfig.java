@@ -1,6 +1,5 @@
 package com.box.l10n.mojito;
 
-import com.box.l10n.mojito.service.DBUtils;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
@@ -9,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -40,40 +40,34 @@ public class FlyWayConfig {
     @Autowired
     DataSource dataSource;
 
-    @Autowired
-    DBUtils dbUtils;
-
     @Bean
     public FlywayMigrationStrategy cleanMigrateStrategy() {
         return flyway -> {
-
-            if (dbUtils.isHSQL()) {
-                logger.info("HSQL don't do flyway");
-                //TODO(spring2) i guess that's also disabling the initialization
-                // having flyway disable Spring logic to initialize datasource? can we do better?
+            if (EmbeddedDatabaseConnection.isEmbedded(dataSource)) {
+                logger.info("Embbeded database don't run flyway");
                 return;
-            }
-
-            if (clean) {
-                logger.info("Clean DB with Flyway");
-                flyway.clean();
             } else {
-                logger.info("Don't clean DB with Flyway");
-            }
+                if (clean) {
+                    logger.info("Clean DB with Flyway");
+                    flyway.clean();
+                } else {
+                    logger.info("Don't clean DB with Flyway");
+                }
 
-            try {
-                logger.info("Flyway migrate() start");
-                flyway.migrate();
-                logger.info("Flyway migrate() finished");
-            } catch (FlywayException fe) {
-                tryToMigrateIfSpringMigration(flyway, fe);
+                try {
+                    logger.info("Flyway migrate() start");
+                    flyway.migrate();
+                    logger.info("Flyway migrate() finished");
+                } catch (FlywayException fe) {
+                    tryToMigrateIfSpringMigration(flyway, fe);
+                }
             }
         };
     }
 
     void tryToMigrateIfSpringMigration(Flyway flyway, FlywayException fe) {
-        if (fe.getMessage().contains("without schema history")) {
-            logger.info("There is no schema history, we assume were migrating from Spring 1.x to 2.x");
+        if (fe.getMessage().contains("but no schema history table. Use baseline() or set baselineOnMigrate to true to initialize the schema history table")) {
+            logger.info("There is no schema history table, we assume were migrating from Spring 1.x to 2.x");
 
             String baselineVersion = getBaselineVersionFromOldFlywayTable();
             logger.info("version: {}", baselineVersion);
