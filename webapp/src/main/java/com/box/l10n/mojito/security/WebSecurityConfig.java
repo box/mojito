@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.security;
 
+import com.box.l10n.mojito.ActuatorHealthLegacyConfig;
 import com.box.l10n.mojito.service.security.user.UserService;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -27,6 +28,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.Filter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author wyau
@@ -42,6 +46,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      * logger
      */
     static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
+
     @Autowired
     SecurityConfig securityConfig;
 
@@ -50,6 +55,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     ActiveDirectoryConfig activeDirectoryConfig;
+
+    @Autowired
+    ActuatorHealthLegacyConfig actuatorHealthLegacyConfig;
 
     @Autowired
     UserDetailsContextMapperImpl userDetailsContextMapperImpl;
@@ -146,7 +154,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // matcher order matters - "everything else" mapping must be last
         http.authorizeRequests(authorizeRequests -> authorizeRequests.
                 antMatchers("/intl/*", "/img/*", "/login/**", "/favicon.ico",
-                        "/fonts/*", "/cli/**", "/health", "/js/**", "/css/**").permitAll(). // always accessible to serve the frontend
+                        "/fonts/*", "/cli/**", "/js/**", "/css/**").permitAll(). // always accessible to serve the frontend
+                antMatchers(getHeathcheckPatterns()).permitAll(). // allow health entry points
                 antMatchers("/actuator/shutdown", "/api/rotation").hasIpAddress("127.0.0.1"). // local access only for rotation management
                 antMatchers("/**").authenticated() // everything else must be authenticated
         );
@@ -193,6 +202,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
+    /**
+     * Returns health entry points.
+     *
+     * By default it is only the actuator but potentially include the legacy entry point.
+     * {@link com.box.l10n.mojito.rest.rotation.ActuatorHealthLegacyWS}
+     * @return
+     */
+    String[] getHeathcheckPatterns() {
+        List<String> patterns = new ArrayList<>();
+        patterns.add("/actuator/health");
+        if(actuatorHealthLegacyConfig.isForwarding()) {
+            patterns.add("/health");
+        }
+        return patterns.toArray(new String[patterns.size()]);
+    }
 
     @Primary
     @Bean
