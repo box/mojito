@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author jaurambault
  */
-//TODO(spring2) this is not working anymore
+//TODO(spring2) finish testing?
 @Component
 public class HealthRotation implements HealthIndicator {
 
