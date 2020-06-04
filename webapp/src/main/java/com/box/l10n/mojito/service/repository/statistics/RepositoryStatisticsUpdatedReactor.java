@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
 import com.google.common.collect.Sets;
-import org.reactivestreams.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,8 +9,6 @@ import reactor.core.publisher.ReplayProcessor;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class aggregates events that requires repository statistics re-computation
@@ -35,6 +32,7 @@ public class RepositoryStatisticsUpdatedReactor {
     @PostConstruct
     private void createProcessor() {
         //TODO(spring2) this was rewritten -- add tests
+        //TODO(spring2) also see StreamConfig
         replayProcessor = ReplayProcessor.create();
         replayProcessor.buffer(Duration.ofSeconds(1)).subscribe(repositoryIds -> {
             for (Long repositoryId : Sets.newHashSet(repositoryIds)) {

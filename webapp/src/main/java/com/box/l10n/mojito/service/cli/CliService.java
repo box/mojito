@@ -30,8 +30,6 @@ public class CliService {
     static final String INSTALL_CLI_TEMPLATE = "cli/install.sh";
     static Logger logger = LoggerFactory.getLogger(CliService.class);
 
-
-    //    TODO(spring2) missign version number now
     @Value("${info.build.version}")
     String version;
 
