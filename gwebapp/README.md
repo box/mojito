@@ -49,6 +49,18 @@ Add router element, no need for dependencies it is already all there
             <Home path="/" />
             <Login path="/login"/>
         </Router>
+```         
+
+1. Basic Material UI setup
+
+```json 
+    "@material-ui/core": "latest",
+    "@material-ui/styles": "latest",
+    "@material-ui/icons": "latest",
+```
+
+```jsx
+    <CssBaseline />
 ```
 
 
