@@ -21,4 +21,51 @@ use plugin with no option for now
   },],
 ```
 
-2.
+1. Add very basic client router logic
+
+update `gatsby-node.js`
+
+```javascript
+// Implement the Gatsby API “onCreatePage”. This is
+// called after every page is created.
+exports.onCreatePage = ({ page, actions }) => {
+    const { createPage } = actions
+    // Make the front page match everything client side.
+    // Normally your paths should be a bit more judicious.
+    if (page.path === `/`) {
+        page.matchPath = `/*`
+        createPage(page)
+    }
+}
+```
+
+Add router element, no need for dependencies it is already all there
+```jsx
+        <nav>
+            <Link to="/">Home</Link>
+            <Link to="login">Login</Link>
+        </nav>
+        <Router basepath="/">
+            <Home path="/" />
+            <Login path="/login"/>
+        </Router>
+```
+
+
+1. Brainstorm
+
+* techs
+   * local route on first load, in current implementation we're able to load /workbench
+   * deep linking
+   * authentication/re-authentication: going back to a window later on doing edits, save no failing
+   * avoid multiple request when backend is slow
+   * Search pattern with edits, pagination
+   * ids based iterator?
+* feature
+   * page to review source string a commnicate with devs
+   * page to add strings in the tool
+       
+
+
+
+

@@ -1,13 +1,18 @@
 import * as React from "react"
+import {Router} from "@reach/router"
+import {Link} from "gatsby"
+import Login from "../components/login"
+import Home from "../components/home";
 
-const somefunc = () => {
-    return <div>coucou this is great</div>
-}
-
-
-export default function Home() {
+export default function Index() {
     return <>
-        <div>Hello world!</div>
-        {somefunc()}
+        <nav>
+            <Link to="/">Home</Link>
+            <Link to="login">Login</Link>
+        </nav>
+        <Router basepath="/">
+            <Home path="/" />
+            <Login path="/login"/>
+        </Router>
     </>
 }
