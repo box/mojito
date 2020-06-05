@@ -64,9 +64,36 @@ public class PushService {
             consoleWriter.fg(Ansi.Color.YELLOW).a("Warning you are using push type: SEND_ASSET_NO_WAIT_NO_DELETE. The" +
                     "command won't wait for the asset processing to finish (ie. if any error " +
                     "happens it will silently fail) and it will skip the asset delete.");
-            return;
+        } else {
+            waitForPollableTasks(pollableTasks);
+            optinalDeleteUnusedAssets(repository, branchName, pushType, usedAssetIds);
         }
+    }
 
+    void optinalDeleteUnusedAssets(Repository repository, String branchName, PushType pushType, Set<Long> usedAssetIds) throws CommandException {
+        Branch branch = repositoryClient.getBranch(repository.getId(), branchName);
+
+        if (PushType.NO_DELETE.equals(pushType)) {
+            logger.debug("Don't delete unused asset");
+        } else {
+            if (branch == null) {
+                logger.debug("No branch in the repository, no asset must have been pushed yet, no need to delete");
+            } else {
+                logger.debug("process deleted assets here");
+                Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false, branch.getId()));
+
+                assetIds.removeAll(usedAssetIds);
+                if (!assetIds.isEmpty()) {
+                    consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println();
+                    PollableTask pollableTask = assetClient.deleteAssetsInBranch(assetIds, branch.getId());
+                    consoleWriter.a(" --> task id: ").fg(Ansi.Color.MAGENTA).a(pollableTask.getId()).println();
+                    commandHelper.waitForPollableTask(pollableTask.getId());
+                }
+            }
+        }
+    }
+
+    void waitForPollableTasks(List<PollableTask> pollableTasks) throws CommandException {
         try {
             logger.debug("Wait for all \"push\" tasks to be finished");
             for (PollableTask pollableTask : pollableTasks) {
@@ -74,23 +101,6 @@ public class PushService {
             }
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
-        }
-
-        Branch branch = repositoryClient.getBranch(repository.getId(), branchName);
-
-        if (branch == null) {
-            logger.debug("No branch in the repository, no asset must have been pushed yet, no need to delete");
-        } else {
-            logger.debug("process deleted assets here");
-            Set<Long> assetIds = Sets.newHashSet(assetClient.getAssetIds(repository.getId(), false, false, branch.getId()));
-
-            assetIds.removeAll(usedAssetIds);
-            if (!assetIds.isEmpty()) {
-                consoleWriter.newLine().a("Delete assets from repository, ids: ").fg(Ansi.Color.CYAN).a(assetIds.toString()).println();
-                PollableTask pollableTask = assetClient.deleteAssetsInBranch(assetIds, branch.getId());
-                consoleWriter.a(" --> task id: ").fg(Ansi.Color.MAGENTA).a(pollableTask.getId()).println();
-                commandHelper.waitForPollableTask(pollableTask.getId());
-            }
         }
     }
 
@@ -111,6 +121,18 @@ public class PushService {
          * <p>
          * Don't use unless you know what you're doing.
          */
-        SEND_ASSET_NO_WAIT_NO_DELETE
+        SEND_ASSET_NO_WAIT_NO_DELETE,
+        /**
+         * Send asset but don't remove unused assets.
+         *
+         * While it could be used to keep adding assets to a repository, that use case has never really showed up as it.
+         *
+         * The actual use case we have now is to be used as a workaround for the fact that we can't provide multiple
+         * source directories (this should eventually be supported in some ways but is not simple). With NO_DELETE
+         * option you can chain push command with different source directory without marking the asset as deleted.
+         *
+         * The first call of the chain can do a normal push which will end removing used asset in the end
+         */
+        NO_DELETE
     }
 }
