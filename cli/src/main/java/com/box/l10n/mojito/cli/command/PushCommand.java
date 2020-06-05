@@ -61,6 +61,9 @@ public class PushCommand extends Command {
     @Parameter(names = {"--branch-createdby", "-bc"}, arity = 1, required = false, description = "username of text unit author")
     String branchCreatedBy;
 
+    @Parameter(names = Param.PUSH_TYPE_LONG, arity = 1, required = false, description = Param.PUSH_TYPE_DESCRIPTION)
+    PushService.PushType pushType = PushService.PushType.NORMAL;
+
     @Autowired
     RepositoryClient repositoryClient;
 
@@ -101,7 +104,7 @@ public class PushCommand extends Command {
             return sourceAsset;
         });
 
-        pushService.push(repository, sourceAssetStream, branchName, PushService.PushType.NORMAL);
+        pushService.push(repository, sourceAssetStream, branchName, pushType);
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }

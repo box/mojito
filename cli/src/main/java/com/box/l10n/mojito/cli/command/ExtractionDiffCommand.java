@@ -7,6 +7,7 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffsPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionsPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
+import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.entity.Repository;
@@ -98,7 +99,7 @@ public class ExtractionDiffCommand extends Command {
     @Parameter(names = {"--push-to-branch-createdby", "-pbc"}, arity = 1, required = false, description = "Optional username who owns the branch when pusing to a repository")
     String pushToBranchCreatedBy;
 
-    @Parameter(names = "--push-type", arity = 1, required = false, description = "To choose the push type. Don't change unless you know exactly what it does")
+    @Parameter(names = Param.PUSH_TYPE_LONG, arity = 1, required = false, description = Param.PUSH_TYPE_DESCRIPTION)
     PushService.PushType pushType = PushService.PushType.NORMAL;
 
     @Parameter(names = "--fail-safe", arity = 1, required = false, description = "To fail safe, the command will exit succesfuly even if the processing failed")
