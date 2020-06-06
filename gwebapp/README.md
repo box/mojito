@@ -49,7 +49,9 @@ Add router element, no need for dependencies it is already all there
             <Home path="/" />
             <Login path="/login"/>
         </Router>
-```         
+```      
+
+Add types `npm install @types/reach__router --save-dev`   
 
 1. Basic Material UI setup
 
@@ -63,12 +65,16 @@ Add router element, no need for dependencies it is already all there
     <CssBaseline />
 ```
 
+1. Redux
+
+
+
 
 1. Brainstorm
 
 * techs
    * local route on first load, in current implementation we're able to load /workbench
-   * deep linking
+   * deep linking (server url --> server gives state, hydrate redux store, navigate to proper page)
    * authentication/re-authentication: going back to a window later on doing edits, save no failing
    * avoid multiple request when backend is slow
    * Search pattern with edits, pagination
