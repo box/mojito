@@ -67,6 +67,14 @@ Add types `npm install @types/reach__router --save-dev`
 
 1. Redux
 
+See commit.
+
+For deep linking, it seems relatively easy to replace part of the store.
+ 
+Need to see how to fetch data dependency if we ever rely on shared repositories
+
+1. Authentcation
+
 
 
 

@@ -4,6 +4,8 @@ import Repository from "./repository";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../state/rootReducer";
 import {addRepository, replaceRepositories} from "../state/repository/actions";
+import Layout from "./layout";
+import {fetchAndReplaceRepositories} from "../state/repository/thunks";
 
 const RepositoryList = ({repositories}) => (
     <ul>
@@ -27,8 +29,7 @@ export default function Search(_: RouteComponentProps) {
 
     const repositories = useSelector(selectRepositories)
 
-    return <div>
-        <ConnectRepositoryList/>
+    return <Layout>
         <button onClick={() => {
             const repositoryId = repositories.length + 1;
             dispatch(addRepository({
@@ -45,14 +46,22 @@ export default function Search(_: RouteComponentProps) {
             const repositoryId = repositories.length + 1;
             dispatch(replaceRepositories(
                 {
-                repositories: [{
-                    id: 1,
-                    name: "Repository-" + 1,
-                    timestamp: Date.now()
-                }]}))
+                    repositories: [{
+                        id: 1,
+                        name: "Repository-" + 1,
+                        timestamp: Date.now()
+                    }]
+                }))
         }}>
             Reset repositories
         </button>
 
-    </div>
+
+        <button onClick={() => {
+            dispatch(fetchAndReplaceRepositories())
+        }}>
+            Fetch repositories
+        </button>
+        <ConnectRepositoryList/>
+    </Layout>
 }

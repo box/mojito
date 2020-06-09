@@ -4,7 +4,6 @@ export interface SystemState {
     userName: string
 }
 
-
 export const UPDATE_SESSION = 'UPDATE_SESSION'
 
 interface UpdateSessionAction {
@@ -13,5 +12,3 @@ interface UpdateSessionAction {
 }
 
 export type SystemActionTypes = UpdateSessionAction
-
-

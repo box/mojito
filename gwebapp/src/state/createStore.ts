@@ -1,5 +1,6 @@
 import rootReducer from "./rootReducer"
-import {configureStore} from '@reduxjs/toolkit'
+import {configureStore, getDefaultMiddleware} from '@reduxjs/toolkit'
+import thunk from "redux-thunk";
 
 const initialState = {
     repository: {
@@ -12,7 +13,8 @@ const initialState = {
 
 const createStore = () => configureStore({
     reducer: rootReducer,
-    preloadedState: initialState
+    preloadedState: initialState,
+    middleware: [...getDefaultMiddleware(), thunk]
 })
 
 export default createStore

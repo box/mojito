@@ -1,7 +1,7 @@
 import {SystemActionTypes, SystemState, UPDATE_SESSION} from './types'
 
 const initialState: SystemState = {
-    loggedIn: false,
+    loggedIn: true,
     session: '',
     userName: ''
 }

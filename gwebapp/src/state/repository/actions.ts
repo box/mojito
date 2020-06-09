@@ -6,6 +6,7 @@ import {
     RepositoryActionTypes,
     RepositoryState
 } from './types'
+import {Action} from "redux";
 
 export function addRepository(newRepository: Repository): RepositoryActionTypes {
     return {
