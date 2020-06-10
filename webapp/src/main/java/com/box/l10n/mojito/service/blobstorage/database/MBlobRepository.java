@@ -19,7 +19,10 @@ public interface MBlobRepository extends JpaRepository<MBlob, Long>, JpaSpecific
 
     @Transactional
     @Modifying
-//    TODO(spring2)
+    // TODO(spring2)(alreadyreview but not clear) not sure why I've put a todo here, figure out that the cleanup job
+    // wasn't running but that not related to migration (fixed on master). I think I had an issue with @Transactional
+    // needing to be on repository too instead of the service.
+    // It seems it's been working ok from basic testing with the fix from master
     @Query("delete from #{#entityName} mb where (unix_timestamp(mb.createdDate) + mb.expireAfterSeconds) < unix_timestamp()")
     int deleteExpired();
 }
