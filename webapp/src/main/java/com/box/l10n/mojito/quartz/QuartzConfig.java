@@ -56,6 +56,8 @@ public class QuartzConfig {
         Set<JobKey> newJobKeys = new HashSet<>();
 
         for (JobDetail jobDetail : jobDetails) {
+            // maybe we don't have yet the job to clean up the db
+            logger.info("Processing job details: {}", jobDetail.getKey());
             newJobKeys.add(jobDetail.getKey());
         }
 
