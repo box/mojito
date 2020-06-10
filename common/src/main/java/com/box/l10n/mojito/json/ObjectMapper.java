@@ -21,13 +21,15 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
 
     public ObjectMapper() {
         JodaModule jodaModule = new JodaModule();
-        registerModule(jodaModule);
+        registerJodaModule();
     }
 
-    //    TODO(spring2) ???
     public ObjectMapper(ObjectMapper objectMapper) {
-        //TODO(spring2) can't do better than that?
         super(objectMapper);
+        registerJodaModule();
+    }
+
+    private final void registerJodaModule() {
         JodaModule jodaModule = new JodaModule();
         registerModule(jodaModule);
     }
