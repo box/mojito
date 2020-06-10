@@ -152,8 +152,8 @@ public class Application {
             @Override
             public void customize(TomcatServletWebServerFactory factory) {
                 factory.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> {
-                    connector.setAttribute("relaxedPathChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
-                    connector.setAttribute("relaxedQueryChars", "[]|");
+//                    connector.setAttribute("relaxedPathChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
+//                    connector.setAttribute("relaxedQueryChars", "[]|");
                 });
             }
         };
