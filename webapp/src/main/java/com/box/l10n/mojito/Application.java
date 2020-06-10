@@ -8,9 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.context.ApplicationPidFileWriter;
-import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -120,44 +117,5 @@ public class Application {
 
         return template;
     }
-
-
-    // TODO(spring2) Looks like this is not supported by 1.5, but 2.x has a properties, this can probably removed then
-    // With new version of tomcat, uri with [] can't be processed anymore
-//    @Bean
-//    public EmbeddedServletContainerCustomizer cookieProcessorCustomizer() {
-//        return new EmbeddedServletContainerCustomizer() {
-//
-//            @Override
-//            public void customize(ConfigurableEmbeddedServletContainer container) {
-//                if (container instanceof TomcatEmbeddedServletContainerFactory) {
-//                    ((TomcatEmbeddedServletContainerFactory) container)
-//                            .addConnectorCustomizers(new TomcatConnectorCustomizer() {
-//                                @Override
-//                                public void customize(Connector connector) {
-//                                    connector.setAttribute("relaxedQueryChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
-//                                    connector.setAttribute("relaxedPathChars", "[]|");
-//                                }
-//                            });
-//                }
-//            }
-//
-//        };
-//    }
-
-    // TODO(spring2) that's the upgraded version -- check props later
-    @Bean
-    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> containerCustomizer() {
-        return new WebServerFactoryCustomizer<TomcatServletWebServerFactory>() {
-            @Override
-            public void customize(TomcatServletWebServerFactory factory) {
-                factory.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> {
-                    connector.setAttribute("relaxedPathChars", "[]|{}^&#x5c;&#x60;&quot;&lt;&gt;");
-                    connector.setAttribute("relaxedQueryChars", "[]|");
-                });
-            }
-        };
-    }
-
 
 }
