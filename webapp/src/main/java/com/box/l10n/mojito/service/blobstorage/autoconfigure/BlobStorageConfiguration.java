@@ -9,11 +9,10 @@ import com.box.l10n.mojito.service.blobstorage.database.MBlobRepository;
 import com.box.l10n.mojito.service.blobstorage.s3.S3BlobStorage;
 import com.box.l10n.mojito.service.blobstorage.s3.S3BlobStorageConfigurationProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Configuration for {@link BlobStorage}
@@ -44,6 +43,7 @@ public class BlobStorageConfiguration {
     }
 
     @ConditionalOnProperty(value = "l10n.blob-storage.type", havingValue = "database", matchIfMissing = true)
+    @Import(DatabaseBlobStorageCleanupJob.class)
     static class DatabaseBlobStorageConfiguration {
 
         @Autowired
@@ -53,13 +53,8 @@ public class BlobStorageConfiguration {
         DatabaseBlobStorageConfigurationProperties databaseBlobStorageConfigurationProperties;
 
         @Bean
-        public BlobStorage databaseBlobStorage() {
+        public DatabaseBlobStorage databaseBlobStorage() {
             return new DatabaseBlobStorage(databaseBlobStorageConfigurationProperties, mBlobRepository);
-        }
-
-        @Bean
-        public DatabaseBlobStorageCleanupJob databaseBlobStorageCleanupJob() {
-            return new DatabaseBlobStorageCleanupJob();
         }
     }
 }

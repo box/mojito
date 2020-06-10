@@ -15,10 +15,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
-import org.springframework.stereotype.Component;
 
 @Profile("!disablescheduling")
 @DisallowConcurrentExecution
+@Configuration
 public class DatabaseBlobStorageCleanupJob implements Job {
 
     static Logger logger = LoggerFactory.getLogger(DatabaseBlobStorageCleanupJob.class);
