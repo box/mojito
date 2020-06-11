@@ -206,6 +206,7 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!--  TODO(spring2) this coming from spring2 now remove?  -->
         <!--        <dependency>-->
         <!--            <groupId>org.quartz-scheduler</groupId>-->
         <!--            <artifactId>quartz</artifactId>-->
