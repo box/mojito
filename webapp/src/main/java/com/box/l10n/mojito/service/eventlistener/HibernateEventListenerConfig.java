@@ -1,11 +1,9 @@
 package com.box.l10n.mojito.service.eventlistener;
 
-import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -28,8 +26,6 @@ public class HibernateEventListenerConfig {
 
     @PostConstruct
     public void registerListeners() {
-        // TODO(spring2) must test that
-
         SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
         EventListenerRegistry registry = (EventListenerRegistry)sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
         registry.getEventListenerGroup(EventType.POST_COMMIT_INSERT).appendListener(entityCrudEventListener);
