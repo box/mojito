@@ -81,17 +81,15 @@ public class ReactAppController {
 
         ModelAndView index = new ModelAndView("index");
 
-        ReactUser reactUser = getReactUser();
+        ReactAppConfig reactAppConfig = new ReactAppConfig(reactStaticAppConfig, getReactUser());
+        reactAppConfig.setLocale(getValidLocaleFromCookie(localeCookieValue));
+        reactAppConfig.setIct( httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
+        reactAppConfig.setCsrfToken( csrfTokenController.getCsrfToken(httpServletRequest));
+        reactAppConfig.setContextPath( contextPath);
 
-        index.addObject("locale", getValidLocaleFromCookie(localeCookieValue));
-        index.addObject("ict", httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
-        index.addObject("csrfToken", csrfTokenController.getCsrfToken(httpServletRequest));
-        index.addObject("username", reactUser.getUsername());
-        index.addObject("contextPath", contextPath);
-
-        //TODO(spring2) this is just a POC - remove old config & update frontend next
-        ReactAppConfig reactAppConfig = new ReactAppConfig(reactStaticAppConfig, reactUser);
         index.addObject("appConfig", objectMapper.writeValueAsStringUnchecked(reactAppConfig));
+        index.addObject("locale", reactAppConfig.locale);
+        index.addObject("contextPath", reactAppConfig.contextPath);
 
         return index;
     }

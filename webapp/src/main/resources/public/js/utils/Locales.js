@@ -44,7 +44,7 @@ class Locales {
 
     constructor() {
         //TODO don't use global var for LOCALE?
-        this.currentLocale = LOCALE;
+        this.currentLocale = APP_CONFIG.locale;
 
         this.cldr = new Cldr(this.currentLocale);
     }

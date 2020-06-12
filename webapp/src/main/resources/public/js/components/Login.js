@@ -113,7 +113,7 @@ class Login extends React.Component {
                                 </Button>
                             </div>
 
-                            <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
+                            <FormControl type="hidden" name="_csrf" value={this.appConfig.csrfToken}/>
                         </form>
 
                         {this.renderOAuth()}

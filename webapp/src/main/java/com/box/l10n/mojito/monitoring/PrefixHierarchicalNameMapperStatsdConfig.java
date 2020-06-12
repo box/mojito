@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.monitoring;
+ysqlpackage com.box.l10n.mojito.monitoring;
 
 
 import io.micrometer.core.instrument.Clock;
