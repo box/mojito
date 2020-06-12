@@ -118,7 +118,7 @@ class Header extends React.Component {
                         <MenuItem divider/>
                         <MenuItem onSelect={this.logoutSelected}>
                             <form action={UrlHelper.getUrlWithContextPath("/logout")} method="post" ref="logoutForm">
-                                <FormControl type="hidden" name="_csrf" value={CSRF_TOKEN}/>
+                                <FormControl type="hidden" name="_csrf" value={this.props.appConfig.csrfToken}/>
                                 <FormattedMessage id="header.loggedInUser.logout"/>
                             </form>
                         </MenuItem>
