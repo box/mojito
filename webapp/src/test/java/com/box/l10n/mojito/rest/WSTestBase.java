@@ -37,31 +37,6 @@ import java.util.function.Supplier;
  *
  * @author jaurambault
  */
-
-
-
-
-
-
-//        (
-//        classes = Application.class,
-//        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-//        properties = {"l10n.file-system-drop-exporter.path=target/test-output/fileSystemDropExporter"}
-//        )
-//@Configuration
-//@TestExecutionListeners(
-//        listeners = {
-//                DependencyInjectionTestExecutionListener.class,
-//                DirtiesContextTestExecutionListener.class,
-//                TransactionalTestExecutionListener.class,
-//                WithSecurityContextTestExecutionListener.class
-//        }
-//)
-//TODO(spring2) why is is not picked up from the main config
-//@EnableAutoConfiguration(exclude = QuartzAutoConfiguration.class)
-//
-//@SpringBootTest(classes = WSTestBase.TestConfig.class)
-
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = Application.class,
