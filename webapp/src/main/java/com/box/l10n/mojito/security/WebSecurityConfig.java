@@ -29,7 +29,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.Filter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -145,7 +144,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         logger.debug("Configuring web security");
 
-        //TODO(spring2) is this "Enable caching for static asset in spring (spring security disabled it by default)" still a thing?
+        // TODO should we just enable caching of static assets, this disabling cache control for everything
+        // https://docs.spring.io/spring-security/site/docs/current/reference/html5/#headers-cache-control
         http.headers().cacheControl().disable();
 
         // no csrf on rotation end point - they are accessible only locally
