@@ -1,10 +1,6 @@
 package com.box.l10n.mojito.boxsdk;
 
 import com.box.l10n.mojito.rest.WSTestBase;
-import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.boxsdk.BoxSDKAppUserService;
-import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityRepository;
-import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityService;
 import com.box.l10n.mojito.test.category.BoxSDKTest;
 import com.box.sdk.BoxComment;
 import com.box.sdk.BoxFile;
@@ -17,19 +13,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,7 +36,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * @author jaurambault
  */
-//TODO(spring2) this has changed and is disable by default so it needs testing with a box instance
+//TODO(spring2)(later) Instruction to create the Box app has changed and I couldn't get it to run quickly.
+// Since this is not blocker for most needs moving on, keep the note here for the record. still it should be tested and
+// re-documented
 public class BoxSDKServiceTest extends WSTestBase {
 
     /**
