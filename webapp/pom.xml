@@ -328,14 +328,14 @@
             </plugin>
 
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <proc>none</proc>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <version>${maven.compiler.version}</version>-->
+<!--                <configuration>-->
+<!--                    &lt;!&ndash; <proc>none</proc> &ndash;&gt;-->
+<!--                </configuration>-->
+<!--            </plugin>-->
 
 
             <plugin>
