@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.quartz;
 
+import com.box.l10n.mojito.monitoring.QuartzMetricsReportingJobListener;
+
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.slf4j.Logger;
@@ -38,6 +40,9 @@ public class QuartzSchedulerConfig {
     QuartzPropertiesConfig quartzPropertiesConfig;
 
     @Autowired(required = false)
+    QuartzMetricsReportingJobListener quartzMetricsReportingJobListener;
+
+    @Autowired(required = false)
     List<Trigger> triggers = new ArrayList<>();
 
 
@@ -69,6 +74,10 @@ public class QuartzSchedulerConfig {
         schedulerFactory.setOverwriteExistingJobs(true);
         schedulerFactory.setTriggers(triggers.toArray(new Trigger[]{}));
         schedulerFactory.setAutoStartup(false);
+
+        if (quartzMetricsReportingJobListener != null){
+            schedulerFactory.setGlobalJobListeners(quartzMetricsReportingJobListener);
+        }
 
         return schedulerFactory;
     }
