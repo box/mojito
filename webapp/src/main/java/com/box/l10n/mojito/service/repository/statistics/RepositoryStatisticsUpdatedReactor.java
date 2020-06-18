@@ -24,17 +24,23 @@ public class RepositoryStatisticsUpdatedReactor {
      */
     static Logger logger = LoggerFactory.getLogger(RepositoryStatisticsUpdatedReactor.class);
 
-    @Autowired
     RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler;
 
     ReplayProcessor<Long> replayProcessor;
 
-    @PostConstruct
-    private void createProcessor() {
-        //TODO(spring2) this was rewritten -- add tests
-        //TODO(spring2) also see StreamConfig
+    @Autowired
+    public RepositoryStatisticsUpdatedReactor(RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler) {
+        this(repositoryStatisticsJobScheduler, Duration.ofSeconds(1));
+    }
+
+    RepositoryStatisticsUpdatedReactor(RepositoryStatisticsJobScheduler repositoryStatisticsJobScheduler, Duration duration) {
+        this.repositoryStatisticsJobScheduler = repositoryStatisticsJobScheduler;
+        createProcessor(duration);
+    }
+
+    void createProcessor(Duration duration) {
         replayProcessor = ReplayProcessor.create();
-        replayProcessor.buffer(Duration.ofSeconds(1)).subscribe(repositoryIds -> {
+        replayProcessor.buffer(duration).subscribe(repositoryIds -> {
             for (Long repositoryId : Sets.newHashSet(repositoryIds)) {
                 repositoryStatisticsJobScheduler.schedule(repositoryId);
             }
