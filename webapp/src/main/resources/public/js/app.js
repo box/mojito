@@ -91,7 +91,7 @@ function instrumentMessagesForIct(messages, locale) {
 
 function startApp(messages) {
 
-    if (APP_CONFIG.csrfToken) {
+    if (APP_CONFIG.ict) {
         instrumentMessagesForIct(messages, APP_CONFIG.locale);
     }
 
