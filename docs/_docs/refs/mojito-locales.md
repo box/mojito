@@ -32,12 +32,12 @@ permalink: /docs/refs/mojito-locales/
 | bn-IN	        | Bengali (India) |
 | bs-BA	        | Bosnian (Bosnia and Herzegovina) |
 | ca-ES	        | Catalan (Spain) |
-| chr-021       | Cherokee (Northern America) |
-| cr-021        | Cree (Northern America) |
+| chr-021	        | Cherokee (Northern America) |
+| cr-021	        | Cree (Northern America) |
 | cs-CZ	        | Czech (Czech Republic) |
 | cy-GB	        | Welsh (United Kingdom) |
 | da-DK	        | Danish (Denmark) |
-| dak-021       | Dakota (Northern America) |
+| dak-021	        | Dakota (Northern America) |
 | de-AT	        | German (Austria) |
 | de-CH	        | German (Switzerland) |
 | de-DE	        | German (Germany) |
@@ -59,7 +59,7 @@ permalink: /docs/refs/mojito-locales/
 | en-US	        | English (United States) |
 | en-ZA	        | English (South Africa) |
 | en-ZW	        | English (Zimbabwe) |
-| es-419        | Spanish (Latin America) |
+| es-419	        | Spanish (Latin America) |
 | es-AR	        | Spanish (Argentina) |
 | es-BO	        | Spanish (Bolivia) |
 | es-CL	        | Spanish (Chile) |
@@ -102,7 +102,7 @@ permalink: /docs/refs/mojito-locales/
 | is-IS	        | Icelandic (Iceland) |
 | it-CH	        | Italian (Switzerland) |
 | it-IT	        | Italian (Italy) |
-| iu-021        | Inuktitut (Northern America) |
+| iu-021	        | Inuktitut (Northern America) |
 | ja-JP	        | Japanese (Japan) |
 | ka-GE	        | Georgian (Georgia) |
 | kk-KZ	        | Kazakh (Kazakhstan) |
@@ -119,15 +119,15 @@ permalink: /docs/refs/mojito-locales/
 | ms-BN	        | Malay (Brunei Darussalam) |
 | ms-MY	        | Malay (Malaysia) |
 | mt-MT	        | Maltese (Malta) |
-| mus-021       | Creek (Northern America) |
+| mus-021	        | Creek (Northern America) |
 | nb-NO	        | Norwegian (Norway) |
 | nl-BE	        | Dutch (Belgium) |
 | nl-NL	        | Dutch (Netherlands) |
 | nn-NO	        | Norwegian (Nynorsk) (Norway) |
 | ns-ZA	        | Northern Sotho (South Africa) |
-| nv-003        | Navajo (North America) |
+| nv-003	        | Navajo (North America) |
 | ny-MW	        | Nyanja; Chewa; Chichewa (Malawi) |
-| oj-021        | Ojibwa (Northern America) |
+| oj-021	        | Ojibwa (Northern America) |
 | pa-IN	        | Punjabi (India) |
 | pl-PL	        | Polish (Poland) |
 | ps-AR	        | Pashto (Afghanistan) |
@@ -164,12 +164,11 @@ permalink: /docs/refs/mojito-locales/
 | uz-UZ	        | Uzbek (Uzbekistan) |
 | vi-VN	        | Vietnamese (Viet Nam) |
 | xh-ZA	        | Xhosa (South Africa) |
-| ypk-021       | Yupik (Northern America) |
+| ypk-021	        | Yupik (Northern America) |
 | zh-CN	        | Chinese (Simplified) |
 | zh-HK	        | Chinese (Hong Kong) |
 | zh-MO	        | Chinese (Macau) |
 | zh-SG	        | Chinese (Singapore) |
 | zh-TW	        | Chinese (Traditional) |
 | zu-ZA	        | Zulu (South Africa) |
-
 
