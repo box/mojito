@@ -14,7 +14,7 @@ module.exports = function (env) {
             path: path.resolve(__dirname, './target/classes/public'),
             publicPath: '/',
             filename: 'js/[name]-[hash].js',
-            chunkFilename: 'js/[name]-[chunkhash]'
+            chunkFilename: 'js/[name]-[chunkhash].js'
         },
         module: {
             rules: [
@@ -67,7 +67,7 @@ module.exports = function (env) {
                         {
                             loader: path.resolve('src/main/webpackloader/properties.js')
                         }
-                    ]
+                    ],
                 },
                 {
                     // __webpack_public_path__ is not supported by ExtractTextPlugin
