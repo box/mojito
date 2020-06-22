@@ -83,7 +83,7 @@ public class ReactAppController {
 
         ReactAppConfig reactAppConfig = new ReactAppConfig(reactStaticAppConfig, getReactUser());
         reactAppConfig.setLocale(getValidLocaleFromCookie(localeCookieValue));
-        reactAppConfig.setIct( httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
+        reactAppConfig.setIct(httpServletRequest.getHeaders("X-Mojito-Ict").hasMoreElements());
         reactAppConfig.setCsrfToken( csrfTokenController.getCsrfToken(httpServletRequest));
         reactAppConfig.setContextPath( contextPath);
 
