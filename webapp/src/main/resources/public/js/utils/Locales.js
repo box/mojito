@@ -6,39 +6,51 @@ Cldr.load(require('cldr-data/supplemental/likelySubtags.json'));
 //TODO Load all locale data for now in the bundle... as number of locale grows we should only used locale data.
 Cldr.load(require('cldr-data/main/be/languages.json'));
 Cldr.load(require('cldr-data/main/be/territories.json'));
+Cldr.load(require('cldr-data/main/be/scripts.json'));
 
 Cldr.load(require('cldr-data/main/en/languages.json'));
 Cldr.load(require('cldr-data/main/en/territories.json'));
+Cldr.load(require('cldr-data/main/en/scripts.json'));
 
 Cldr.load(require('cldr-data/main/fr/languages.json'));
 Cldr.load(require('cldr-data/main/fr/territories.json'));
+Cldr.load(require('cldr-data/main/fr/scripts.json'));
 
 Cldr.load(require('cldr-data/main/ko/languages.json'));
 Cldr.load(require('cldr-data/main/ko/territories.json'));
+Cldr.load(require('cldr-data/main/ko/scripts.json'));
 
 Cldr.load(require('cldr-data/main/ru/languages.json'));
 Cldr.load(require('cldr-data/main/ru/territories.json'));
+Cldr.load(require('cldr-data/main/ru/scripts.json'));
 
 Cldr.load(require('cldr-data/main/de/languages.json'));
 Cldr.load(require('cldr-data/main/de/territories.json'));
+Cldr.load(require('cldr-data/main/de/scripts.json'));
 
 Cldr.load(require('cldr-data/main/es/languages.json'));
 Cldr.load(require('cldr-data/main/es/territories.json'));
+Cldr.load(require('cldr-data/main/es/scripts.json'));
 
 Cldr.load(require('cldr-data/main/it/languages.json'));
 Cldr.load(require('cldr-data/main/it/territories.json'));
+Cldr.load(require('cldr-data/main/it/scripts.json'));
 
 Cldr.load(require('cldr-data/main/ja/languages.json'));
 Cldr.load(require('cldr-data/main/ja/territories.json'));
+Cldr.load(require('cldr-data/main/ja/scripts.json'));
 
 Cldr.load(require('cldr-data/main/pt/languages.json'));
 Cldr.load(require('cldr-data/main/pt/territories.json'));
+Cldr.load(require('cldr-data/main/pt/scripts.json'));
 
 Cldr.load(require('cldr-data/main/zh-Hans/languages.json'));
 Cldr.load(require('cldr-data/main/zh-Hans/territories.json'));
+Cldr.load(require('cldr-data/main/zh-Hans/scripts.json'));
 
 Cldr.load(require('cldr-data/main/zh-Hant/languages.json'));
 Cldr.load(require('cldr-data/main/zh-Hant/territories.json'));
+Cldr.load(require('cldr-data/main/zh-Hant/scripts.json'));
 
 class Locales {
 
@@ -126,18 +138,29 @@ class Locales {
      * @returns {string} the locale display name
      */
     getDisplayName(bcp47Tag) {
+        const localeSubTags = this.getLocaleSubTags(bcp47Tag)
 
-        const is_language_only = bcp47Tag.indexOf("-") === -1;
+        const languageDisplay = this.cldr.main("localeDisplayNames/languages/" + localeSubTags.language);
+        const scriptDisplay = this.cldr.main("localeDisplayNames/scripts/" + localeSubTags.script);
+        const territoryDisplay = this.cldr.main("localeDisplayNames/territories/" + localeSubTags.territory);
 
-        const targetCldr = new Cldr(bcp47Tag);
+        let localeDisplayName;
 
-        const language = targetCldr.attributes.language;
-        const territory = targetCldr.attributes.territory;
+        if (languageDisplay === undefined) {
+            localeDisplayName = bcp47Tag;
+        } else {
+            localeDisplayName = languageDisplay;
 
-        const languageDisplay = this.cldr.main("localeDisplayNames/languages/" + language);
-        const regionDisplay = this.cldr.main("localeDisplayNames/territories/" + territory);
+            if (localeSubTags.script != null) {
+                localeDisplayName = `${localeDisplayName} - ${scriptDisplay}`;
+            }
 
-        return languageDisplay + (is_language_only ? '' : ' (' + regionDisplay + ')');
+            if (localeSubTags.territory != null) {
+                localeDisplayName = `${localeDisplayName} (${territoryDisplay})`;
+            }
+        }
+
+        return localeDisplayName;
     }
 
     /**
@@ -162,9 +185,7 @@ class Locales {
      * @returns {string} the direction (ltr or rtl)
      */
     getLanguageDirection(bcp47Tag) {
-
-        const targetCldr = new Cldr(bcp47Tag);
-        const language = targetCldr.attributes.language;
+        const language = this.getLocaleSubTags(bcp47Tag).language;
 
         let dir = "ltr";
 
@@ -190,6 +211,71 @@ class Locales {
                 return object;
             })
             .sort((a, b) => a.localeDisplayName.localeCompare(b.localeDisplayName));
+    }
+
+    getLocaleSubTags(locale) {
+        const subtags = this.cldrJsSubtags(locale);
+        return {
+            language: subtags[0],
+            script: subtags[1] === "Zzzz" ? null : subtags[1],
+            territory: subtags[2] === "ZZ" ? null : subtags[2],
+            variant: subtags[3],
+            unicodeLocaleExtensions: subtags[4]
+        }
+    }
+
+    /**
+     * This is coming from Cldr.js but it doesn't seem to be exposed so just copying over.
+     *
+     * subtags( locale )
+     *
+     * @locale [String]
+     */
+    cldrJsSubtags(locale) {
+        var aux,
+            unicodeLanguageId,
+            subtags = [];
+
+        locale = locale.replace(/_/, "-");
+
+        // Unicode locale extensions.
+        aux = locale.split("-u-");
+        if (aux[1]) {
+            aux[1] = aux[1].split("-t-");
+            locale = aux[0] + (aux[1][1] ? "-t-" + aux[1][1] : "");
+            subtags[4 /* unicodeLocaleExtensions */] = aux[1][0];
+        }
+
+        // TODO normalize transformed extensions. Currently, skipped.
+        // subtags[ x ] = locale.split( "-t-" )[ 1 ];
+        unicodeLanguageId = locale.split("-t-")[0];
+
+        // unicode_language_id = "root"
+        //   | unicode_language_subtag
+        //     (sep unicode_script_subtag)?
+        //     (sep unicode_region_subtag)?
+        //     (sep unicode_variant_subtag)* ;
+        //
+        // Although unicode_language_subtag = alpha{2,8}, I'm using alpha{2,3}. Because, there's no language on CLDR lengthier than 3.
+        aux = unicodeLanguageId.match(
+            /^(([a-z]{2,3})(-([A-Z][a-z]{3}))?(-([A-Z]{2}|[0-9]{3}))?)((-([a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3}))*)$|^(root)$/
+        );
+        if (aux === null) {
+            return ["und", "Zzzz", "ZZ"];
+        }
+        subtags[0 /* language */] = aux[10] /* root */ || aux[2] || "und";
+        subtags[1 /* script */] = aux[4] || "Zzzz";
+        subtags[2 /* territory */] = aux[6] || "ZZ";
+        if (aux[7] && aux[7].length) {
+            subtags[3 /* variant */] = aux[7].slice(1) /* remove leading "-" */;
+        }
+
+        // 0: language
+        // 1: script
+        // 2: territory (aka region)
+        // 3: variant
+        // 4: unicodeLocaleExtensions
+        return subtags;
     }
 
 }
