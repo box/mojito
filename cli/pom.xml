@@ -94,20 +94,6 @@
     <build>
         <plugins>
 
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-compiler-plugin</artifactId>-->
-<!--                <version>${maven.compiler.version}</version>-->
-<!--                <configuration>-->
-<!--                    &lt;!&ndash; TODO(spring2) is this still needed &ndash;&gt;-->
-<!--                    &lt;!&ndash; Work around for compilation issue with aspectj. See:-->
-<!--                    https://github.com/spring-projects/spring-boot/issues/4847-->
-<!--                    http://docs.spring.io/spring-boot/docs/current/reference/html/configuration-metadata.html-->
-<!--                    &ndash;&gt;-->
-<!--                    &lt;!&ndash; <proc>none</proc> &ndash;&gt;-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
