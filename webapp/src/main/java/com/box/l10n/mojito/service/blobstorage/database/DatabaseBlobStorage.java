@@ -6,8 +6,9 @@ import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.data.domain.PageRequest;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -66,8 +67,15 @@ public class DatabaseBlobStorage implements BlobStorage {
     public void deleteExpired() {
         int deletedCount;
         do {
-            deletedCount = mBlobRepository.deleteExpired();
-            logger.debug("Number of Mbob deleted: {}", deletedCount);
+            PageRequest pageable = new PageRequest(0, 500);
+            List<Long> expired = mBlobRepository.findExpiredBlobIds(pageable);
+            if (!expired.isEmpty()) {
+                deletedCount = mBlobRepository.deleteByIds(expired);
+                logger.debug("Number of Mbob deleted: {}", deletedCount);
+            } else {
+                logger.debug("Nothing to delete");
+                deletedCount = 0;
+            }
         } while (deletedCount > 0);
     }
 }

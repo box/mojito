@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 
+import java.time.Duration;
+
 /**
  * Configuration for {@link BlobStorage}
  *
@@ -81,7 +83,7 @@ public class BlobStorageConfiguration {
             logger.info("Configure jobDetailDatabaseBlobStorageCleanupJob");
             SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
             trigger.setJobDetail(job);
-            trigger.setRepeatInterval(300000);
+            trigger.setRepeatInterval(Duration.ofMinutes(5).toMillis());
             trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
             return trigger;
         }
