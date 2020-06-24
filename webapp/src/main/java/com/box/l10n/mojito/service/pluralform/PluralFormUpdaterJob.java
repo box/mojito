@@ -6,7 +6,6 @@ import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.SimpleTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +18,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
 
 /**
  * This is to update all text units with missing plural form since the
@@ -73,7 +74,7 @@ public class PluralFormUpdaterJob implements Job {
                 logger.error("Couldn't update plural forms, ignore", e);
             }
         } else {
-            logger.debug("Don't support PluralForm updates if not MySQL");
+            logger.trace("Don't support PluralForm updates if not MySQL");
         }
     }
 
@@ -90,8 +91,8 @@ public class PluralFormUpdaterJob implements Job {
     SimpleTriggerFactoryBean triggerPluralFormUpdater(@Qualifier("jobDetailPluralFromUpdater") JobDetail job) {
         SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
         trigger.setJobDetail(job);
-        trigger.setRepeatInterval(10000);
-        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+        trigger.setRepeatInterval(Duration.ofMinutes(10).toMillis());
+        trigger.setRepeatCount(2);
         return trigger;
     }
 
