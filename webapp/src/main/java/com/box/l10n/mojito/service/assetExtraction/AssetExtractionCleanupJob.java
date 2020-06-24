@@ -17,6 +17,8 @@ import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 /**
  * @author aloison
  */
@@ -54,7 +56,7 @@ public class AssetExtractionCleanupJob implements Job {
     public SimpleTriggerFactoryBean triggerAssetExtractionCleanup(@Qualifier("jobDetailAssetExtractionCleanup") JobDetail job) {
         SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
         trigger.setJobDetail(job);
-        trigger.setRepeatInterval(300000);
+        trigger.setRepeatInterval(Duration.ofMinutes(5).toMillis());
         trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
         return trigger;
     }
