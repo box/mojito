@@ -25,6 +25,7 @@ public class PrefixHierarchicalNameMapperStatsdConfig {
         PrefixHierarchicalNameMapper prefixHierarchicalNameMapper = new PrefixHierarchicalNameMapper(
                 phnmscp.getNamePrefix(),
                 phnmscp.getTagKeyPrefix(),
+                phnmscp.getStripCharacters(),
                 phnmscp.getNamingConventionOverride());
         return new StatsdMeterRegistry(config, prefixHierarchicalNameMapper, clock);
     }
