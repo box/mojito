@@ -12,6 +12,7 @@ public class PrefixHierarchicalNameMapperStatsdConfigurationProperties {
     String namePrefix = "";
     String tagKeyPrefix = "";
     NamingConvention namingConventionOverride = null;
+    String stripCharacters = null;
 
     public boolean isEnabled() {
         return enabled;
@@ -43,5 +44,13 @@ public class PrefixHierarchicalNameMapperStatsdConfigurationProperties {
 
     public void setNamingConventionOverride(NamingConvention namingConventionOverride) {
         this.namingConventionOverride = namingConventionOverride;
+    }
+
+    public String getStripCharacters() {
+        return stripCharacters;
+    }
+
+    public void setStripCharacters(String stripCharacters) {
+        this.stripCharacters = stripCharacters;
     }
 }
