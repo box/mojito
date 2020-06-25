@@ -53,10 +53,13 @@ public class IOTestBase {
         logger.debug("Initialize test directories");
         String testId = testIdWatcher.getTestId();
 
+        // append _IO avoid collision class name with package name - caused issue with AspectJ
+        String ioDir = testIdWatcher.getSlashClassName() + "_IO/" + testIdWatcher.getMethodName();
+
         File baseDir = getBaseDir();
         File resourcesDir = new File(baseDir, TEST_RESOURCES_DIR);
 
-        sourceTestDir = new File(resourcesDir, testId);
+        sourceTestDir = new File(resourcesDir, ioDir);
         targetTestDir = new File(baseDir, TEST_RESOURCES_TARGET_DIR + testId);
 
         logger.debug("Delete test target directory to remove data from previous run");
