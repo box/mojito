@@ -1,8 +1,8 @@
-# TODO(spring2) this is outdated with Spring 2 migration and
 version: '2'
 services:
   db:
     image: mysql:5.7
+    user: "1000:50" # needed on Mac
     volumes:
       - "./.data/db:/var/lib/mysql"
     restart: always
@@ -14,10 +14,11 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_bin
+      - --innodb_use_native_aio=0 # needed on Mac
   webapp:
     depends_on:
       - db
-    image: aurambaj/mojito-webapp
+    image: aurambaj/mojito-webapp-spring2
     links:
       - db
     ports:
@@ -25,15 +26,12 @@ services:
     restart: always
     environment:
       SPRING_APPLICATION_JSON: '{ 
-      "flyway.enabled": "true",
-      "l10n.flyway.clean" : "true", 
-      "spring.jpa.database" : "MYSQL",
+      "spring.flyway.enabled": "true",
+      "l10n.flyway.clean" : "false",
       "spring.jpa.database-platform" : "org.hibernate.dialect.MySQLDialect",
       "spring.jpa.hibernate.ddl-auto" : "none",
       "spring.datasource.url" : "jdbc:mysql://db:3306/mojito?characterEncoding=UTF-8&useUnicode=true",
       "spring.datasource.username" : "mojito",
       "spring.datasource.password" : "ChangeMe",
-      "spring.datasource.driverClassName" : "com.mysql.jdbc.Driver",
-      "spring.datasource.validation-query" : "SELECT 1"
+      "spring.datasource.driverClassName" : "com.mysql.cj.jdbc.Driver"
       }'     
-    
