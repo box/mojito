@@ -24,7 +24,7 @@ cat > ${PWD}/.mojito/mojito << EOF
 java -Dl10n.resttemplate.host=localhost \\
      -Dl10n.resttemplate.scheme=http \\
      -Dl10n.resttemplate.port=8080 \\
-     -Dlogging.file.path${PWD}/.mojito \\
+     -Dlogging.file.path=${PWD}/.mojito \\
      -jar ${PWD}/.mojito/mojito-cli.jar "\$@" ;
 EOF
 
