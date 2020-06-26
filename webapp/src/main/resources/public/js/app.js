@@ -140,7 +140,6 @@ function startApp(messages) {
             let pathNameStrippedLeadingSlash = location.pathname.substr(1 + APP_CONFIG.contextPath.length, location.pathname.length);
             let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
 
-            //TODO(spring2) review, see ReactAppConfig
             if (APP_CONFIG.security.unauthRedirectTo) {
                 // if we don't log through login page we just reload the current location
                 // that needs to be improved eg. when navigating within the workbench if an api calls fails it will

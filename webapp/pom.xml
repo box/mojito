@@ -93,8 +93,6 @@
             <artifactId>spring-tx</artifactId>
         </dependency>
 
-
-        <!--TODO(spring2) can this be removed -->
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-rest-webmvc</artifactId>
@@ -117,7 +115,6 @@
             <artifactId>spring-security-oauth2-client</artifactId>
         </dependency>
 
-        <!-- TODO(spring2) review this version -->
         <dependency>
             <groupId>org.springframework.security.oauth.boot</groupId>
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
@@ -204,13 +201,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!--  TODO(spring2) this coming from spring2 now remove?  -->
-        <!--        <dependency>-->
-        <!--            <groupId>org.quartz-scheduler</groupId>-->
-        <!--            <artifactId>quartz</artifactId>-->
-        <!--            <version>2.2.3</version>-->
-        <!--        </dependency>-->
-
         <dependency>
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache-core</artifactId>
@@ -267,7 +257,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- TODO(spring2) migrate joda time? complicated -->
         <!-- Joda Time -->
         <dependency>
             <groupId>joda-time</groupId>
@@ -450,8 +439,7 @@
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
 
-                    <!-- TODO(spring2) re-enable? -->
-                    <!--                    <rerunFailingTestsCount>1</rerunFailingTestsCount>-->
+                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
 
                     <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
 

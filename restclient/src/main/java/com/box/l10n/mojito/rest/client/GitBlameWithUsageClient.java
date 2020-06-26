@@ -32,7 +32,7 @@ public class GitBlameWithUsageClient extends BaseClient {
         Map<String, String> filterParams = new HashMap<>();
 
         // GitBlameWithUsageClient.getGitBlameWithUsages relies on [] not being encoded. keeps this for backward compatibility
-        // TODO(spring2) - relaxed-query-chars - show we encode here instead?
+        // TODO(spring2) - relaxed-query-chars - should we encode here instead?
         // I'm wondering why spring client doesn't encode those query param, it may be the way we call it that is not
         // good enough since it seems those should be encoded by default
         filterParams.put("repositoryIds[]", repositoryId.toString());
