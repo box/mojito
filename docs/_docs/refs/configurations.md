@@ -27,13 +27,11 @@ If you want to use different path to store the override configuration, you can s
 
 The default database configuration of {{ site.mojito_green }} is in-memory HSQL database.
 
-    flyway.enabled=false
-    spring.jpa.database=HSQL
-    spring.jpa.database-platform=org.hibernate.dialect.HSQLDialect
-    spring.jpa.hibernate.ddl-auto=update
-    spring.datasource.initialize=true
+    spring.flyway.eanbled=false
+    spring.datasource.url=jdbc:hsqldb:mem:testdb;DB_CLOSE_DELAY=-1
+    spring.datasource.initialization-mode=embedded
     spring.datasource.data=classpath:/db/hsql/data.sql
-
+    spring.datasource.hikari.maximum-pool-size=30
 
 You can override the database configuration with MySQL.
 
@@ -56,18 +54,14 @@ Create database `${DB_NAME}` and give `${DB_USERNAME}` full access to the databa
 
 Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be turned on.
 
-    flyway.enabled=true
     l10n.flyway.clean=false
-    spring.jpa.database=MYSQL
-    spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
-    spring.jpa.hibernate.ddl-auto=none
-    spring.datasource.url=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
+    spring.flyway.enabled=true
+    spring.datasource.url=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true&useSSL=false&serverTimezone=UTC
     spring.datasource.username=${DB_USERNAME}
     spring.datasource.password=${DB_PASSWORD}
-    spring.datasource.driverClassName=com.mysql.jdbc.Driver
-    spring.datasource.testOnBorrow=true
-    spring.datasource.validationQuery=SELECT 1
-    
+    # Specify the new driver to no have a warning:  Registered driver with driverClassName=com.mysql.jdbc.Driver was not found, trying direct instantiation.
+    spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
+     
     l10n.org.quartz.jobStore.useProperties=true
     l10n.org.quartz.scheduler.instanceId=AUTO
     l10n.org.quartz.jobStore.isClustered=true
