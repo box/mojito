@@ -19,20 +19,7 @@ chrome.storage.onChanged.addListener((changes) => {
 
 function addMojitoIctHeader(details) {
     if (backgroundConfig.enabled && backgroundConfig.headerName && backgroundConfig.headerName !== '') {
-       
-        var hasUpdatedHeader = false;
-
-        for (var i = 0; i < details.requestHeaders.length; ++i) {
-            if (details.requestHeaders[i].name === backgroundConfig.headerName) {
-                details.requestHeaders.value = details.requestHeaders.value + backgroundConfig.headerValue;
-                hasUpdatedHeader = true;
-                break;
-            }
-        }
-
-        if (!hasUpdatedHeader) {
-            details.requestHeaders.push({name: backgroundConfig.headerName, value: backgroundConfig.headerValue});
-        }
+        details.requestHeaders.push({name: backgroundConfig.headerName, value: backgroundConfig.headerValue});
     }
     return {requestHeaders: details.requestHeaders};
 }
