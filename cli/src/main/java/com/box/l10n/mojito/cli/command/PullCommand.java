@@ -287,7 +287,9 @@ public class PullCommand extends Command {
             localizedAsset = getLocalizedAssetBodySync(sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions, assetByPathAndRepositoryId, assetContent, localizedAsset);
         }
 
-        logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
+        if (localizedAsset != null) {
+            logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
+        }
 
         return localizedAsset;
     }
