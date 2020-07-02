@@ -287,14 +287,12 @@ public class PullCommand extends Command {
             localizedAsset = getLocalizedAssetBodySync(sourceFileMatch, repositoryLocale, outputBcp47tag, filterOptions, assetByPathAndRepositoryId, assetContent, localizedAsset);
         }
 
-        if (localizedAsset != null) {
-            logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
-        }
+        logger.trace("LocalizedAsset content = {}", localizedAsset.getContent());
 
         return localizedAsset;
     }
 
-    LocalizedAssetBody getLocalizedAssetBodySync(FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, List<String> filterOptions, Asset assetByPathAndRepositoryId, String assetContent, LocalizedAssetBody localizedAsset) {
+    LocalizedAssetBody getLocalizedAssetBodySync(FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, List<String> filterOptions, Asset assetByPathAndRepositoryId, String assetContent, LocalizedAssetBody localizedAsset) throws CommandException {
         //TODO remove this is temporary, Async service is implemented but we don't use it yet by default
         int count = 0;
         int maxCount = 5;
@@ -315,6 +313,11 @@ public class PullCommand extends Command {
                 consoleWriter.fg(Color.RED).a("Attempt ").a(count).a("/").a(maxCount).a(" for locale: ").a(repositoryLocale.getLocale().getBcp47Tag()).a(" failed. Retrying...").println();
             }
         }
+
+        if (count == maxCount) {
+            throw new CommandException("getLocalizedAssetBodySync failed even after retries. retry count: " + count);
+        }
+
         return localizedAsset;
     }
 
