@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default logback configuration for imports -->
+<included>
+    <logger name="NativeCriteriaPerformance" level="ERROR"/>
+    <logger name="com.box.l10n.mojito.service.repository.RepositoryStatisticsScheduler" level="INFO"/>
+    <logger name="com.box.l10n.mojito.service.repository.RepositoryStatisticService" level="INFO"/>
+</included>
