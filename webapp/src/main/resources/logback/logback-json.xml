@@ -6,7 +6,6 @@
 
     <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <timestampPattern>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampPattern>
             <timeZone>UTC</timeZone>
         </encoder>
         <file>/var/log/mojito/mojito-webapp.log</file>
