@@ -96,9 +96,11 @@ server.forward-headers-strategy=native
 ## Setup
 
 The default setup comes with `HSQL` in-memory database, database authentication and runs on port `8080`.
-For production, `MySQL` should be setup. It is also possible to use [LDAP](/docs/guides/ldap-authentication) for authentication.
+For production, `MySQL` should be setup. Different types of [authentication](/docs/guides/authentication/) are 
+available too.
 
-On the first Webapp startup, a user: `admin/ChangeMe` is created. This can be customized with configuration, see [Manage Users]({{ site.url }}/docs/guides/manage-users/#bootstraping).
+On the first Webapp startup, a user: `admin/ChangeMe` is created. This can be customized with configuration, 
+see [Manage Users]({{ site.url }}/docs/guides/manage-users/#bootstraping).
 
 ### Server port
 
@@ -129,17 +131,17 @@ mysql> GRANT ALL ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost' IDENTIFIED BY '
 mysql> FLUSH PRIVILEGES;
 ```
 
-Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be turned on.
+Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be turned on and it is strongly 
+recommended to explicitly disable the "database clean" features ([more info](#database-protection)). 
 
 ```properties
-flyway.enabled=true
+spring.flyway.enabled=true
+spring.flyway.clean-disabled=true 
 l10n.flyway.clean=false
 spring.datasource.url=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
 spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
-spring.datasource.driverClassName=com.mysql.jdbc.Driver
-spring.datasource.testOnBorrow=true
-spring.datasource.validationQuery=SELECT 1
+spring.datasource.driverClassName=com.mysql.cj.jdbc.Driver
 
 l10n.org.quartz.jobStore.useProperties=true
 l10n.org.quartz.scheduler.instanceId=AUTO
@@ -197,3 +199,30 @@ l10n.resttemplate.host=${HOSTNAME}
 l10n.resttemplate.port=${PORT}
 l10n.resttemplate.authentication.credentialProvider=CONSOLE
 ```
+
+### Database protection
+
+When Flyway is used for DB migration, the Mojito setting to clean the database and the Flyway built-in setting to prevent
+ database cleanup are useful features but it can turn out to be very dangerous if wrong values ever leak to production.
+
+It is strongly recommended to explicitly disable the Mojito cleanup feature (it is disabled by default but may prevent bad 
+configuration to propagate) and to configure Flyway to disable cleanup as well (this is not the default settings).
+
+In short, recommanded settings are:
+
+```properties
+spring.flyway.clean-disabled=true 
+l10n.flyway.clean=false
+```
+An additional protection which is not based on settings is also available. The clean operation can be prevented by
+adding a flag in the database using following commands:
+
+```sql
+CREATE TABLE flyway_clean_protection(enabled boolean default true);
+INSERT INTO flyway_clean_protection (enabled) VALUES (1);
+```
+
+Note that this check is optimistic and if for some reason the query fails it will consider that the database not 
+ protected. This is just an additional protection in case the settings are missued but you should not rely exclusively
+ on it.  
+
