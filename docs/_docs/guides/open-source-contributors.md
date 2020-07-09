@@ -156,7 +156,7 @@ First create the directory where the files will be stored: `mkdir -p ~/.l10n/con
 Then create the first file: `.l10n/config/webapp/application.properties` with following content
 
 ```properties
-flyway.enabled=true
+spring.flyway.enabled=true
 l10n.flyway.clean=true
 spring.jpa.database=MYSQL
 spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
@@ -241,19 +241,21 @@ mvn test
 ```
  
 ## DB migration
-DB migration is done with Flyway, and Default DB setup with MySql.  The default app configuration uses HSQL hence Flyway is disabled.
+DB migration is done with Flyway, and Default DB setup with MySql. The default app configuration uses HSQL hence Flyway is disabled.
 
-When using MySql Flyway must be turned on with `flyway.enabled=true` (for dev or in production).
+When using MySql Flyway must be turned on with `spring.flyway.enabled=true` (for dev or in production).
 
 ### Clean the DB
-Set the properties `l10n.flyway.clean=true` to have Flyway clean the schema first and then recreate it from the migration files. This will allow during development to do have a similar behavior as `spring.jpa.hibernate.ddl-auto=create`.
+Set the properties `l10n.flyway.clean=true` (and have `spring.flyway.clean-disabled=false`) to have Flyway clean the schema first 
+and then recreate it from the migration files. This will allow during development to do have a similar behavior as `spring.jpa.hibernate.ddl-auto=create`.
 
 ### When working on Jpa entities
 - Set `spring.jpa.hibernate.ddl-auto=update` so that Hibernate will update the DB schema as you keep doing changes
-- Flyway is be used to create or just update the schema depending if the flag was set to clean the DB (`l10n.flyway.clean`)
+- Flyway is be used to create or just update the schema depending if the flags were set to clean the DB 
+(`l10n.flyway.clean` and `spring.flyway.clean-disabled`)
 
 ### To Generate the final migration script before committing code
-- Set `l10n.flyway.clean=true`, Flyway will drop the database and recreate the previous version
+- Set `l10n.flyway.clean=true` (and `spring.flyway.clean-disabled=false`), Flyway will drop the database and recreate the previous version
 - Set `spring.jpa.hibernate.ddl-auto=none` so that Hibernate won't perform any change on the DB schema
 - Run DDLGenerator to generate the baseline schema to update the database.
 - The generated code in: `target/db/migration/Vx__yy_zz.sql` must be adapted (eg. if renaming a column, hibernate will add one, so the statements must be changed)

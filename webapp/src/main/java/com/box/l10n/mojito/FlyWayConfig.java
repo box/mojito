@@ -47,13 +47,7 @@ public class FlyWayConfig {
                 logger.info("Embbeded database don't run flyway");
                 return;
             } else {
-                if (clean) {
-                    logger.info("Clean DB with Flyway");
-                    flyway.clean();
-                } else {
-                    logger.info("Don't clean DB with Flyway");
-                }
-
+                optionalClean(flyway);
                 try {
                     logger.info("Flyway migrate() start");
                     flyway.migrate();
@@ -63,6 +57,23 @@ public class FlyWayConfig {
                 }
             }
         };
+    }
+
+    void optionalClean(Flyway flyway) {
+        if (clean) {
+            cleanIfNotProtected(flyway);
+        } else {
+            logger.info("Don't clean DB with Flyway");
+        }
+    }
+
+    void cleanIfNotProtected(Flyway flyway) {
+        if (isDBCleanProtectionEnabled()) {
+            throw new RuntimeException( "Attempting to perform Flyway clean on a protected schema, abort. Please, check your configuration");
+        } else {
+            logger.info("Clean DB with Flyway");
+            flyway.clean();
+        }
     }
 
     void tryToMigrateIfSpringMigration(Flyway flyway, FlywayException fe) {
@@ -107,6 +118,34 @@ public class FlyWayConfig {
             logger.info("Couldn't get the old version");
         }
         return baselineVersion;
+    }
+
+    /**
+     * Additional check to avoid cleaning a critical environment by mistake. This is a weak check since a failure to
+     * perform the query will show that the DB is not protected.
+     * <p>
+     * This is an extra check added to the settings: spring.flyway.clean-disabled=true (now default in Mojito) and
+     * l10n.flyway.clean=false (that is usally set manualy, but can be wrongly enabled) and shouldn't be soly relied
+     * upon.
+     * <p>
+     * For now this is enabled manually in the database with:
+     * CREATE TABLE flyway_clean_protection(enabled boolean default true);
+     * INSERT INTO flyway_clean_protection (enabled) VALUES (1)
+     *
+     * @return
+     */
+    boolean isDBCleanProtectionEnabled() {
+        boolean isDBCleanProtectionEnabled = false;
+
+        try {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+            Map<String, Object> stringObjectMap = jdbcTemplate.queryForMap("select enabled as enabled from flyway_clean_protection");
+            isDBCleanProtectionEnabled = (Boolean) stringObjectMap.get("enabled");
+        } catch (Exception e) {
+            logger.info("Can't check if the flyway clean protection is enabled, assume it is not protected");
+        }
+
+        return isDBCleanProtectionEnabled;
     }
 
     public boolean isClean() {
