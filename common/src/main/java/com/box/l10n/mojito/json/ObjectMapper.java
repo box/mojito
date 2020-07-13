@@ -4,6 +4,8 @@ import com.box.l10n.mojito.io.Files;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 import java.io.File;
@@ -22,16 +24,23 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
     public ObjectMapper() {
         JodaModule jodaModule = new JodaModule();
         registerJodaModule();
+        registerGuavaModule();
     }
 
     public ObjectMapper(ObjectMapper objectMapper) {
         super(objectMapper);
         registerJodaModule();
+        registerGuavaModule();
     }
 
     private final void registerJodaModule() {
         JodaModule jodaModule = new JodaModule();
         registerModule(jodaModule);
+    }
+
+    private final void registerGuavaModule() {
+        GuavaModule guavaModule = new GuavaModule();
+        registerModule(guavaModule);
     }
 
     @Override
@@ -98,5 +107,12 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
     public void createDirectoriesAndWrite(Path path, Object content) {
         Files.createDirectories(path.getParent());
         writeValueUnchecked(path.toFile(), content);
+    }
+
+    // TODO do we want this eventually?
+    public static ObjectMapper withIndentedOutput() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        return objectMapper;
     }
 }

@@ -5,10 +5,22 @@ import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetExtractionByBranch;
 import com.box.l10n.mojito.entity.AssetTextUnit;
+import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
+import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.ltm.merger.AssetExtractorTextUnitsToMultiBranchState;
+import com.box.l10n.mojito.ltm.merger.BranchData;
+import com.box.l10n.mojito.ltm.merger.BranchStateTextUnit;
+import com.box.l10n.mojito.ltm.merger.BranchStateTextUnitJson;
+import com.box.l10n.mojito.ltm.merger.Match;
+import com.box.l10n.mojito.ltm.merger.MultiBranchState;
+import com.box.l10n.mojito.ltm.merger.MultiBranchStateJson;
+import com.box.l10n.mojito.ltm.merger.MultiBranchStateMerger;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
@@ -20,15 +32,31 @@ import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.FilterOptionsMd5Builder;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
+import com.box.l10n.mojito.service.blobstorage.Retention;
+import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.branch.BranchRepository;
+import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.pollableTask.ParentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.tm.TMRepository;
+import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TextUnitIdMd5DTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
+import com.google.common.base.Stopwatch;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.ibm.icu.text.MessageFormat;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -43,15 +71,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.function.Function.identity;
 
 /**
  * Service to manage asset extraction. It processes assets to extract {@link AssetTextUnit}s.
@@ -108,6 +146,40 @@ public class AssetExtractionService {
     @Autowired
     TextUnitUtils textUnitUtils;
 
+    @Autowired
+    AssetExtractorTextUnitsToMultiBranchState assetExtractorTextUnitsToMultiBranchState;
+
+    @Autowired
+    MultiBranchStateMerger multiBranchStateMerger;
+
+    @Autowired
+    TMRepository tmRepository;
+
+    @Autowired
+    TMService tmService;
+
+    @Autowired
+    TMTextUnitRepository tmTextUnitRepository;
+
+
+    @Autowired
+    AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
+
+    // get content for branch to be processed
+    // build current MultiBranchState: CS-1 with branch content
+    // fetch the base MultiBranchState BS-1
+    // merge CS-1 into BS-1, this becomes the new current state: CS-2
+    // create text units based on CS-2
+    // CS-2 updated with ids of newly create text units gives new current state: CS-3
+    // in retry logic with optimistic locking:
+    // - check if BS-1 has changed, if so fetch BS-2 and compute new current state: CS-4 = BS2 + CS-3
+    // -
+    // create ATM from new state
+    @Autowired
+    StructuredBlobStorage structuredBlobStorage;
+
+    boolean useNewImplementation = true;
+
     /**
      * If the asset type is supported, starts the text units extraction for the given asset.
      *
@@ -126,6 +198,10 @@ public class AssetExtractionService {
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
             PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
+
+        if (useNewImplementation) {
+            return processAssetNew(assetContentId, filterConfigIdOverride, filterOptions, currentTask);
+        }
 
         logger.debug("Start processing asset content, id: {}", assetContentId);
         AssetContent assetContent = assetContentService.findOne(assetContentId);
@@ -160,7 +236,485 @@ public class AssetExtractionService {
         return new PollableFutureTaskResult<>(asset);
     }
 
+    public PollableFuture<Asset> processAssetNew(
+            Long assetContentId,
+            FilterConfigIdOverride filterConfigIdOverride,
+            List<String> filterOptions,
+            PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
+
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
+
+
+        logger.debug("Start processing asset content, id: {}", assetContentId);
+        AssetContent assetContent = assetContentService.findOne(assetContentId);
+        Asset asset = assetContent.getAsset();
+
+        logAndReset(stopwatch, "done getting asset");
+
+        // will use that for the mechanism that detect if extraction should be performed again but it won't have data
+        // we piggy back on current tables, which is not great because it might become confusing but it faster to do that way
+        AssetExtraction assetExtraction = createAssetExtraction(assetContent, currentTask, filterOptions);
+
+        logAndReset(stopwatch, "done creating asset extraction");
+
+
+        MultiBranchState toMergeState = performAssetExtractionNew(assetExtraction, filterConfigIdOverride, filterOptions, currentTask);
+        // TODO this is still need for the whole system to work but potentially we want to remove it
+        // if there is not asset extraction for branch - retrigger the asset processing regarless if the content hasn't changed
+
+        logAndReset(stopwatch, "done performAssetExtractionNew");
+
+        MultiBranchState base = readMultiBranchState(assetContent);
+
+        logAndReset(stopwatch, "done readMultiBranchState");
+
+
+        // TODO make branch configurable
+        MultiBranchState multiBranchState = mergeCurrentIntoBaseAndCreateTextUnits(base, toMergeState, ImmutableList.of("master"),
+                assetContent.getBranch().getCreatedByUser(), asset, assetContent.getBranch(), currentTask);
+
+        logAndReset(stopwatch, "done mergeCurrentIntoBaseAndCreateTextUnits");
+
+
+        // S3 write should be independant and we should rely on an unique ID in the storage, instead if should be save an entity and set in transaction
+        writeMultiBranchState(multiBranchState, assetContent);
+
+
+        logAndReset(stopwatch, "done writeMultiBranchState");
+
+        markAssetExtractionForBranch(assetExtraction); // for re-runs but no asset text unit in there
+        // we update now, no need
+//        markAssetExtractionAsLastSuccessful(asset, assetExtraction);
+        logger.info("Done processing asset content id: {}", assetContentId);
+
+        return new PollableFutureTaskResult<>(asset);
+    }
+
+
+    MultiBranchState readMultiBranchState(AssetContent assetContent) {
+        Optional<String> string = structuredBlobStorage.getString(StructuredBlobStorage.Prefix.MERGE_STATE, assetContent.getAsset().getId().toString());
+        MultiBranchStateJson multiBranchStateJson = string.map(s -> objectMapper.readValueUnchecked(s, MultiBranchStateJson.class)).orElse(new MultiBranchStateJson());
+
+        MultiBranchState multiBranchState = new MultiBranchState();
+        multiBranchState.setBranches(multiBranchStateJson.getBranches());
+
+        ImmutableMap<String, com.box.l10n.mojito.ltm.merger.Branch> branchNamesToBranches = multiBranchState.getBranches().stream()
+                .collect(ImmutableMap.toImmutableMap(com.box.l10n.mojito.ltm.merger.Branch::getName, identity()));
+
+        ImmutableMap<String, BranchStateTextUnit> branchStateTextUnits = multiBranchStateJson.getMd5ToBranchStateTextUnits().stream()
+                .map(t -> {
+                    BranchStateTextUnit branchStateTextUnit = new BranchStateTextUnit();
+                    branchStateTextUnit.setComments(t.getComments());
+                    branchStateTextUnit.setCreatedDate(t.getCreatedDate());
+                    branchStateTextUnit.setId(t.getId());
+                    branchStateTextUnit.setMd5(t.getMd5());
+                    branchStateTextUnit.setName(t.getName());
+                    branchStateTextUnit.setPluralForm(t.getPluralForm());
+                    branchStateTextUnit.setPluralFormOther(t.getPluralFormOther());
+                    branchStateTextUnit.setSource(t.getSource());
+
+                    ImmutableMap<com.box.l10n.mojito.ltm.merger.Branch, BranchData> branchBranchDataImmutableMap = t.getBranchNamesToBranchDatas().entrySet().stream()
+                            .collect(ImmutableMap.toImmutableMap(
+                                    e -> new com.box.l10n.mojito.ltm.merger.Branch(e.getKey(), branchNamesToBranches.get(e.getKey()).getCreatedAt()),
+                                    Map.Entry::getValue
+                            ));
+
+                    branchStateTextUnit.setBranchToBranchDatas(branchBranchDataImmutableMap);
+                    return branchStateTextUnit;
+                }).collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, identity()));
+
+        multiBranchState.setMd5ToBranchStateTextUnits(branchStateTextUnits);
+
+        return multiBranchState;
+    }
+
+    /**
+     * This should be moved in common eventually -- need to finalize the storage format... seems to be to complicate
+     * to have mimic the
+     */
+    void writeMultiBranchState(MultiBranchState multiBranchState, AssetContent assetContent) {
+        MultiBranchStateJson multiBranchStateJson = new MultiBranchStateJson();
+        multiBranchStateJson.setBranches(multiBranchState.getBranches());
+
+        ImmutableList<BranchStateTextUnitJson> branchStateTextUnitJsons = multiBranchState.getMd5ToBranchStateTextUnits().values().stream()
+                .map(t -> {
+                    BranchStateTextUnitJson branchStateTextUnitJson = new BranchStateTextUnitJson();
+                    branchStateTextUnitJson.setComments(t.getComments());
+                    branchStateTextUnitJson.setCreatedDate(t.getCreatedDate());
+                    branchStateTextUnitJson.setId(t.getId());
+                    branchStateTextUnitJson.setMd5(t.getMd5());
+                    branchStateTextUnitJson.setName(t.getName());
+                    branchStateTextUnitJson.setPluralForm(t.getPluralForm());
+                    branchStateTextUnitJson.setPluralFormOther(t.getPluralFormOther());
+                    branchStateTextUnitJson.setSource(t.getSource());
+
+                    ImmutableMap<String, BranchData> branchNamesToBranchDatas = t.getBranchToBranchDatas().entrySet().stream()
+                            .collect(ImmutableMap.toImmutableMap(e -> e.getKey().getName(), Map.Entry::getValue));
+
+                    branchStateTextUnitJson.setBranchNamesToBranchDatas(branchNamesToBranchDatas);
+                    return branchStateTextUnitJson;
+                })
+                .collect(ImmutableList.toImmutableList());
+
+        multiBranchStateJson.setMd5ToBranchStateTextUnits(branchStateTextUnitJsons);
+
+        structuredBlobStorage.put(
+                StructuredBlobStorage.Prefix.MERGE_STATE,
+                assetContent.getAsset().getId().toString(),
+                objectMapper.writeValueAsStringUnchecked(multiBranchStateJson),
+                Retention.PERMANENT);
+    }
+
+
+    @Pollable(message = "mergeCurrentIntoBaseAndCreateTextUnits")
+    //TODO this is just to make the pollable happy, to finish
+    public MultiBranchState mergeCurrentIntoBaseAndCreateTextUnits(
+            MultiBranchState base,
+            MultiBranchState current,
+            ImmutableList<String> priorityBranchName,
+            User createdByUser,
+            Asset asset,
+            Branch branch,
+            @ParentTask PollableTask parentTask) {
+
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
+        MultiBranchState merged = multiBranchStateMerger.merge(base, current, priorityBranchName);
+        logAndReset(stopwatch, "done merging base and current");
+
+        ImmutableMap<String, BranchStateTextUnit> textUnitsToCreate = getTextUnitsToCreate(merged);
+        logAndReset(stopwatch, "done get text units to create");
+
+        ImmutableList<Match> matchesForSourceLeveraging = getLeveragingMatches(textUnitsToCreate, base);
+        logAndReset(stopwatch, "done doing leveraging");
+
+        ImmutableMap<String, Long> createdTextUnits = createTextUnits(textUnitsToCreate, createdByUser, asset);
+        logAndReset(stopwatch, "done creating text units");
+
+        MultiBranchState mergedUpdated = getStateWithMergedIds(merged, createdTextUnits);
+        logAndReset(stopwatch, "done getStateWithMergedIds");
+
+        mergedUpdated.getMd5ToBranchStateTextUnits().values().stream().filter(t -> t.getId() == null).forEach(t -> logger.error("Missing id for md5: ", t.getMd5()));
+
+        // we write the json to blob storage at that point
+
+        performLeveraging(matchesForSourceLeveraging);
+
+        createAssetTextUnitAndMapping(asset, mergedUpdated, base);
+
+        return mergedUpdated;
+    }
+
     @Transactional
+    void createAssetTextUnitAndMapping(Asset asset, MultiBranchState mergedUpdated, MultiBranchState base) {
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
+        final AssetExtraction lastSuccessfulAssetExtraction;
+
+        logAndReset(stopwatch, "get or create last succesful extraction");
+        if (asset.getLastSuccessfulAssetExtraction() == null) {
+            lastSuccessfulAssetExtraction = createAssetExtraction(asset, null); // TODO pass pollabletask
+            markAssetExtractionAsLastSuccessful(asset, lastSuccessfulAssetExtraction);
+        } else {
+            lastSuccessfulAssetExtraction = asset.getLastSuccessfulAssetExtraction();
+        }
+
+        // add new entries: in mergedUpdate but not in base
+
+        ImmutableSet<String> unusedInBase = base.getMd5ToBranchStateTextUnits().entrySet().stream()
+                .filter(e -> e.getValue().getBranchToBranchDatas().isEmpty())
+                .map(Map.Entry::getKey)
+                .collect(ImmutableSet.toImmutableSet());
+
+        ImmutableSet<String> unusedInMerged = mergedUpdated.getMd5ToBranchStateTextUnits().entrySet().stream()
+                .filter(e -> e.getValue().getBranchToBranchDatas().isEmpty())
+                .map(Map.Entry::getKey)
+                .collect(ImmutableSet.toImmutableSet());
+
+        ImmutableSet<String> usedInBase = base.getMd5ToBranchStateTextUnits().entrySet().stream()
+                .filter(e -> !e.getValue().getBranchToBranchDatas().isEmpty())
+                .map(Map.Entry::getKey)
+                .collect(ImmutableSet.toImmutableSet());
+
+        ImmutableSet<String> usedInMerged = mergedUpdated.getMd5ToBranchStateTextUnits().entrySet().stream()
+                .filter(e -> !e.getValue().getBranchToBranchDatas().isEmpty())
+                .map(Map.Entry::getKey)
+                .collect(ImmutableSet.toImmutableSet());
+
+        logAndReset(stopwatch, "done preping the maps:");
+
+
+        Sets.SetView<String> removed = Sets.difference(unusedInMerged, unusedInBase);
+        Sets.SetView<String> added = Sets.difference(usedInMerged, usedInBase);
+
+        removed.stream().forEach(md5 -> {
+            logger.warn("Remove for md5: {}", md5);
+            assetTextUnitRepository.findByAssetExtractionIdAndMd5(lastSuccessfulAssetExtraction.getId(), md5)
+                    .ifPresent(assetTextUnit -> {
+                        logger.warn("removing atu: {}", assetTextUnit.getId());
+                        assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
+                        assetTextUnitRepository.deleteById(assetTextUnit.getId());
+                    });
+        });
+
+
+        logAndReset(stopwatch, "Removing unused 1 by 1 normal process:");
+
+        /// TODO this is recovery code shouldn't be run all the time
+        /// this is costly but help keeping things consistent!
+        List<TextUnitIdMd5DTO> byAssetExtraction = assetTextUnitRepository.findMd5ByAssetExtraction(lastSuccessfulAssetExtraction);
+
+        logAndReset(stopwatch, "Getting all text units to check:");
+
+        byAssetExtraction.stream()
+                .filter(t -> !usedInMerged.contains(t.getMd5())) // TODO or unused in merged ?? kind of the same
+                .forEach(assetTextUnit -> {
+                    logger.warn("removing extra text unit: {}", assetTextUnit.getId());
+                    assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
+                    assetTextUnitRepository.deleteById(assetTextUnit.getId());
+                });
+
+        logAndReset(stopwatch, "Removing ATU from check data:");
+
+        LoadingCache<String, Branch> branches = CacheBuilder.newBuilder().build(CacheLoader.from(name-> {
+            if("$$MOJITO_DEFAULT$$".equals(name)) {
+                name = null;
+            }
+
+           return branchRepository.findByNameAndRepository(name, asset.getRepository());
+        }));
+
+        mergedUpdated.getMd5ToBranchStateTextUnits().values().stream()
+                .filter(tu -> added.contains(tu.getMd5()))
+                .forEach(textUnit -> {
+//                    logger.warn("Add asset text unit: {}", objectMapper.writeValueAsStringUnchecked(textUnit));
+
+                    // TODO is the order OK?
+                    Map.Entry<com.box.l10n.mojito.ltm.merger.Branch, BranchData> branchData = textUnit.getBranchToBranchDatas().entrySet().stream()
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("there must be at least one branch because of previous filtering"));
+
+                    // TODO cache, avoid lookup if current branch, etc
+                    Branch byNameAndRepository = branches.getUnchecked(branchData.getKey().getName());
+
+                    // 2x writes: atu + mappingn - 10k string ... 20k row and also all the content of ATU is useless at that point
+                    AssetTextUnit assetTextUnit = createAssetTextUnit(
+                            lastSuccessfulAssetExtraction.getId(),
+                            textUnit.getName(),
+                            textUnit.getSource(),
+                            textUnit.getComments(),
+                            pluralFormService.findByPluralFormString(textUnit.getPluralForm()),
+                            textUnit.getPluralFormOther(),
+                            false,
+                            ImmutableSet.copyOf(branchData.getValue().getUsages()),
+                            byNameAndRepository);
+
+                    AssetTextUnitToTMTextUnit assetTextUnitToTMTextUnit = new AssetTextUnitToTMTextUnit();
+                    assetTextUnitToTMTextUnit.setAssetExtraction(lastSuccessfulAssetExtraction);
+                    assetTextUnitToTMTextUnit.setAssetTextUnit(assetTextUnit);
+                    assetTextUnitToTMTextUnit.setTmTextUnit(tmTextUnitRepository.getOne(textUnit.getId()));
+                    assetTextUnitToTMTextUnitRepository.save(assetTextUnitToTMTextUnit);
+
+                });
+
+        logAndReset(stopwatch, "Add ATU normal process:");
+    }
+
+    private void logAndReset(Stopwatch stopwatch, String s) {
+        logger.info(s + " {}", stopwatch.elapsed().toString());
+        stopwatch.reset().start();
+    }
+
+    void performLeveraging(ImmutableList<Match> matchesForSourceLeveraging) {
+        matchesForSourceLeveraging.stream()
+                .forEach(match -> {
+                    LeveragerByTmTextUnit leveragerByTmTextUnit = new LeveragerByTmTextUnit(match.getMatch().getId());
+                    TMTextUnit tmTextUnit = tmTextUnitRepository.findById(match.getSource().getId()).get();
+                    leveragerByTmTextUnit.performLeveragingFor(new ArrayList<>(Arrays.asList(tmTextUnit)), null, null);
+                });
+    }
+
+    MultiBranchState getStateWithMergedIds(MultiBranchState merged, ImmutableMap<String, Long> createdTextUnits) {
+        MultiBranchState mergedUpdated = new MultiBranchState();
+        mergedUpdated.setBranches(merged.getBranches());
+        mergedUpdated.setMd5ToBranchStateTextUnits(merged.getMd5ToBranchStateTextUnits().values().stream()
+                .map(tu -> {
+                    if (tu.getId() == null) {
+                        tu.setId(createdTextUnits.get(tu.getMd5()));
+                    }
+                    return tu;
+                }).collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, identity()))
+        );
+        return mergedUpdated;
+    }
+
+    ImmutableList<Match> getLeveragingMatches(ImmutableMap<String, BranchStateTextUnit> textUnitsToCreate, MultiBranchState base) {
+
+        ImmutableSet<String> namesToCreate = textUnitsToCreate.values().stream()
+                .map(BranchStateTextUnit::getName)
+//                .peek(n -> logger.info("nametocreate: " + n))
+                .collect(ImmutableSet.toImmutableSet());
+
+        ImmutableListMultimap<String, BranchStateTextUnit> candidateByNames = base.getMd5ToBranchStateTextUnits().values().stream()
+                .filter(tu -> namesToCreate.contains(tu.getName()))
+                .collect(ImmutableListMultimap.toImmutableListMultimap(BranchStateTextUnit::getName, identity()));
+
+        ImmutableSet<String> sourcesToCreate = textUnitsToCreate.values().stream()
+                .map(BranchStateTextUnit::getSource)
+                .collect(ImmutableSet.toImmutableSet());
+
+        ImmutableListMultimap<String, BranchStateTextUnit> candidateBySources = base.getMd5ToBranchStateTextUnits().values().stream()
+                .filter(tu -> sourcesToCreate.contains(tu.getSource()))
+                .collect(ImmutableListMultimap.toImmutableListMultimap(BranchStateTextUnit::getSource, identity()));
+
+        return textUnitsToCreate.values().stream()
+                .map(tu -> {
+                    // This mimimics the current source leveraging - the logic could be improved quite a bit:
+                    // real detection of refactoring in diff command (if diff command not used probably drop the match based name anyway)
+                    // coupled with sensible matching here
+                    BranchStateTextUnit match = null;
+                    boolean uniqueMatch = false;
+                    boolean translationNeededIfUniqueMatch = true;
+
+                    if (match == null) {
+                        ImmutableList<BranchStateTextUnit> byNameAndContentAndUsed = candidateByNames.get(tu.getMd5()).stream()
+                                .filter(m -> m.getSource().equals(tu.getSource()))
+                                .filter(usedBranchStateTextUnit())
+                                .collect(ImmutableList.toImmutableList());
+
+                        match = byNameAndContentAndUsed.stream().findFirst().orElse(null);
+                        uniqueMatch = byNameAndContentAndUsed.size() == 1;
+                        translationNeededIfUniqueMatch = false;
+                    }
+
+                    if (match == null) {
+                        ImmutableList<BranchStateTextUnit> byNameAndUsed = candidateByNames.get(tu.getName()).stream()
+                                .filter(usedBranchStateTextUnit())
+                                .collect(ImmutableList.toImmutableList());
+
+                        match = byNameAndUsed.stream().findFirst().orElse(null);
+                        uniqueMatch = byNameAndUsed.size() == 1;
+                        translationNeededIfUniqueMatch = true;
+                    }
+
+                    if (match == null) {
+                        ImmutableList<BranchStateTextUnit> byContent = candidateBySources.get(tu.getSource()).stream()
+                                .filter(usedBranchStateTextUnit())
+                                .collect(ImmutableList.toImmutableList());
+
+                        match = byContent.stream().findFirst().orElse(null);
+                        uniqueMatch = byContent.size() == 1;
+                        translationNeededIfUniqueMatch = true;
+                    }
+
+                    if (match == null) {
+                        ImmutableList<BranchStateTextUnit> byNameAndContentAndUnused = candidateByNames.get(tu.getMd5()).stream()
+                                .filter(m -> m.getSource().equals(tu.getSource()))
+                                .filter(unusedBranchStateTextUnit())
+                                .collect(ImmutableList.toImmutableList());
+
+                        match = byNameAndContentAndUnused.stream().findFirst().orElse(null);
+                        uniqueMatch = byNameAndContentAndUnused.size() == 1;
+                        translationNeededIfUniqueMatch = false;
+                    }
+
+                    if (match != null) {
+                        logger.warn("Match: " + ObjectMapper.withIndentedOutput().writeValueAsStringUnchecked(match));
+                    }
+
+                    return match == null ? null : new Match(tu, match, uniqueMatch, translationNeededIfUniqueMatch);
+                })
+                .filter(Objects::nonNull)
+                .collect(ImmutableList.toImmutableList());
+    }
+
+    Predicate<BranchStateTextUnit> usedBranchStateTextUnit() {
+        return m -> !m.getBranchToBranchDatas().isEmpty();
+    }
+
+    Predicate<BranchStateTextUnit> unusedBranchStateTextUnit() {
+        return m -> m.getBranchToBranchDatas().isEmpty();
+    }
+
+    private Comparator<String> equalFirstComparator() {
+        return (o1, o2) -> o1.equals(o2) ? -1 : 0;
+    }
+
+    /**
+     * Text units in current that don't have a matching entry by MD5 in the base state.
+     */
+    ImmutableMap<String, BranchStateTextUnit> getTextUnitsToCreate(MultiBranchState multiBranchState) {
+        return multiBranchState.getMd5ToBranchStateTextUnits().values().stream()
+                .filter(tu -> tu.getId() == null)
+                .collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, identity()));
+    }
+
+    /**
+     * @param toCreateTmTextUnits
+     * @return
+     */
+    ImmutableMap<String, Long> createTextUnits(final ImmutableMap<String, BranchStateTextUnit> textUnits, User createdByUser, Asset asset) {
+        return retryTemplate.execute(new RetryCallback<ImmutableMap<String, Long>, DataIntegrityViolationException>() {
+            @Override
+            public ImmutableMap<String, Long> doWithRetry(RetryContext context) throws DataIntegrityViolationException {
+
+                ImmutableMap<String, BranchStateTextUnit> attemptTextUnits = textUnits;
+                ImmutableMap<String, Long> recovered = ImmutableMap.of();
+
+                if (context.getRetryCount() > 0) {
+                    logger.warn("Assume concurrent modification happened, need to re-filter the list");
+
+                    // TODO More optimized way to filter existing one.... micrometer this?
+                    // TODO this doesn't recover the branch information!! re-read from base in that case? instead of using the DB?
+                    // this would be catch by the final merge?
+                    recovered = tmTextUnitRepository.getTextUnitIdMd5DTOByAssetId(asset.getId()).stream()
+                            .collect(ImmutableMap.toImmutableMap(TextUnitIdMd5DTO::getMd5, TextUnitIdMd5DTO::getId));
+
+                    final ImmutableMap<String, Long> finalRecovered = recovered;
+                    attemptTextUnits = textUnits.values().stream().filter(t -> !finalRecovered.containsKey(t.getMd5()))
+                            .collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, identity()));
+                }
+
+                ImmutableMap<String, Long> tmTextUnits = createTmTextUnits(attemptTextUnits, createdByUser, asset);
+
+                ImmutableMap<String, Long> result = Stream.concat(tmTextUnits.entrySet().stream(), recovered.entrySet().stream())
+                        .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+
+                return result;
+            }
+        });
+    }
+
+    @Transactional
+    protected ImmutableMap<String, Long> createTmTextUnits(ImmutableMap<String, BranchStateTextUnit> textUnits, User createdByUser, Asset asset) {
+        logger.debug("Create TMTextUnit, tmId: {}, assetId: {}", asset.getId());
+
+        ImmutableMap<String, Long> createdTmTextUnits = textUnits.values().stream()
+                .map(bstu -> {
+                    TMTextUnit addTMTextUnit = tmService.addTMTextUnit(
+                            asset.getRepository().getTm(),
+                            asset,
+                            bstu.getName(),
+                            bstu.getSource(),
+                            bstu.getComments(),
+                            createdByUser,
+                            null,
+                            pluralFormService.findByPluralFormString(bstu.getPluralForm()),
+                            bstu.getPluralFormOther());
+
+                    return addTMTextUnit;
+                })
+                .collect(ImmutableMap.toImmutableMap(TMTextUnit::getMd5, BaseEntity::getId));
+
+        return createdTmTextUnits;
+    }
+
+
+    @Transactional // TODO restrict to only db writting
     @Pollable(message = "Extracting text units from asset")
     public void performAssetExtraction(
             AssetExtraction assetExtraction,
@@ -168,6 +722,8 @@ public class AssetExtractionService {
             List<String> filterOptions,
             List<String> md5sToSkip,
             @ParentTask PollableTask parentTask) throws UnsupportedAssetFilterTypeException {
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
 
         AssetContent assetContent = assetExtraction.getAssetContent();
         Asset asset = assetExtraction.getAsset();
@@ -188,6 +744,8 @@ public class AssetExtractionService {
         } else {
             assetExtractorTextUnits = assetExtractor.getAssetExtractorTextUnitsForAsset(asset.getPath(),
                     assetContent.getContent(), filterConfigIdOverride, filterOptions, md5sToSkip);
+
+            logAndReset(stopwatch, "done getAssetExtractorTextUnitsForAsset:");
         }
 
         assetExtractorTextUnits.forEach(textUnit -> {
@@ -202,6 +760,37 @@ public class AssetExtractionService {
                     textUnit.getUsages(),
                     assetExtraction.getAssetContent().getBranch());
         });
+
+        logAndReset(stopwatch, "done createAssetTextUnits:");
+    }
+
+    @Pollable(message = "Extracting text units from asset")
+    public MultiBranchState performAssetExtractionNew(
+            AssetExtraction assetExtraction,
+            FilterConfigIdOverride filterConfigIdOverride,
+            List<String> filterOptions,
+            @ParentTask PollableTask parentTask) throws UnsupportedAssetFilterTypeException {
+
+        AssetContent assetContent = assetExtraction.getAssetContent();
+        Asset asset = assetExtraction.getAsset();
+
+        List<AssetExtractorTextUnit> assetExtractorTextUnits;
+
+        if (assetContent.isExtractedContent()) {
+            assetExtractorTextUnits = objectMapper.readValueUnchecked(assetContent.getContent(), new TypeReference<List<AssetExtractorTextUnit>>() {
+            });
+        } else {
+            assetExtractorTextUnits = assetExtractor.getAssetExtractorTextUnitsForAsset(asset.getPath(),
+                    assetContent.getContent(), filterConfigIdOverride, filterOptions, Collections.emptyList());
+        }
+
+        com.box.l10n.mojito.ltm.merger.Branch branch = new com.box.l10n.mojito.ltm.merger.Branch();
+        branch.setName(assetContent.getBranch().getName() == null ? "$$MOJITO_DEFAULT$$" : assetContent.getBranch().getName());
+        branch.setCreatedAt(assetContent.getBranch().getCreatedDate().toDate()); // TODO align names and format
+
+        MultiBranchState multiBranchState = assetExtractorTextUnitsToMultiBranchState.convert(assetExtractorTextUnits, branch);
+        multiBranchState.setBranches(ImmutableSet.of(branch));
+        return multiBranchState;
     }
 
     List<String> getMd5sToSkip(AssetContent assetContent, Asset asset) {

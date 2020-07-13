@@ -7,6 +7,7 @@ import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.filters.FilterOptions;
 import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
+import com.google.common.base.Stopwatch;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
@@ -35,6 +36,9 @@ public class AssetExtractor {
                                                                            List<String> filterOptions,
                                                                            List<String> md5sToSkip) throws UnsupportedAssetFilterTypeException {
 
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+
         logger.debug("Configuring pipeline");
         IPipelineDriver driver = new PipelineDriver();
 
@@ -46,6 +50,8 @@ public class AssetExtractor {
         logger.debug("Adding all supported filters to the pipeline driver");
         driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
 
+        logger.info("setFilterConfigurationMapper: {}", stopwatch.elapsed());stopwatch.reset().start();
+
         RawDocument rawDocument = new RawDocument(assetContent, LocaleId.ENGLISH);
 
         String filterConfigId = null;
@@ -54,6 +60,7 @@ public class AssetExtractor {
             filterConfigId = filterConfigIdOverride.getOkapiFilterId();
         } else {
             filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath(assetPath);
+            logger.info("getFilterConfigIdFromPath: {}", stopwatch.elapsed());stopwatch.reset().start();
         }
 
         rawDocument.setFilterConfigId(filterConfigId);
@@ -66,6 +73,8 @@ public class AssetExtractor {
 
         logger.debug("Start processing batch");
         driver.processBatch();
+
+        logger.info("done  driver.processBatch(): {}", stopwatch.elapsed());stopwatch.reset().start();
 
         return assetExtractionStep.getAssetExtractorTextUnits();
     }

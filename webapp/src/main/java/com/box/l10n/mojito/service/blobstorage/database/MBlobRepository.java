@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author jaurambault
@@ -18,7 +19,7 @@ import java.util.List;
 @Repository
 public interface MBlobRepository extends JpaRepository<MBlob, Long>, JpaSpecificationExecutor<MBlob> {
 
-    MBlob findByName(@Param("name") String name);
+    Optional<MBlob> findByName(@Param("name") String name);
 
     @Query(
             "select mb.id from #{#entityName} mb " +

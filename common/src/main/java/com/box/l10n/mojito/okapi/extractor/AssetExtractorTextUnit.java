@@ -10,6 +10,18 @@ public class AssetExtractorTextUnit {
     String pluralFormOther;
     Set<String> usages;
 
+    // TODO the best place to get refactoring information is when using the CLI diff command, since we can actually
+    // see a name change, or contentn change.
+    //
+    // Look amongst the removed text units for a match to newly added text units
+    // in other words, the previous text unit must be in "removed" list from a diff and match should be unique
+    // match first by content and comment --> change of id (adding cnotext in PO files)
+    // match by name --> changing the english, this is not refactoring though ... but we maybe to keep the previous string for
+    // match by content --> changed both the ID and added comments
+    // previous is only set if there is a unique match, else we can't get for a fact what happened and will just do
+    // some kind of leveraging..
+    String previousMd5;
+
     public String getName() {
         return name;
     }
