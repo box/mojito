@@ -18,12 +18,12 @@ import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.TestPropertySource;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -34,6 +34,7 @@ import io.micrometer.core.instrument.search.RequiredSearch;
 import static com.box.l10n.mojito.monitoring.QuartzPendingJobsReportingTask.extractClassName;
 import static com.box.l10n.mojito.quartz.QuartzConfig.DYNAMIC_GROUP_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.awaitility.Awaitility.await;
 import static org.quartz.JobBuilder.newJob;
 
@@ -74,7 +75,7 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
     @Before
     public void setUp() throws SchedulerException {
 
-
+        Assume.assumeTrue(dbUtils.isMysql() && monitoringEnabled);
         task = new QuartzPendingJobsReportingTask(dataSource, meterRegistry);
 
         scheduler.clear();
@@ -82,8 +83,6 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
 
     @Test
     public void testGaugesCountPendingJobsForNonDynamicGroup() throws Exception {
-
-        Assume.assumeTrue(dbUtils.isMysql() && monitoringEnabled);
 
         JobDetail job;
         TriggerBuilder<Trigger> builder;
@@ -117,10 +116,10 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
     @Test
     public void testGaugesCountPendingJobsForDynamicGroup() throws Exception {
 
-        Assume.assumeTrue(dbUtils.isMysql() && monitoringEnabled);
-
         JobDetail job;
         TriggerBuilder<Trigger> builder;
+
+        // First run: We have 5 jobs of each type
 
         for (int i = 1; i <= 5; i++) {
             job = newJob(Test1Job.class).withIdentity(testIdWatcher.getEntityName("Test1Job_" + i), DYNAMIC_GROUP_NAME)
@@ -150,17 +149,79 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
 
         await.untilAsserted(() -> assertThat(test1Gauges.gauges()).isNotEmpty());
         await.untilAsserted(() -> assertThat(test2Gauges.gauges()).isNotEmpty());
-        await.untilAsserted(() -> assertThat(test1Gauges.gauge().value()).isEqualTo(5));
-        await.untilAsserted(() -> assertThat(test2Gauges.gauge().value()).isEqualTo(5));
+        assertThat(test1Gauges.gauge().value()).isEqualTo(5);
+        assertThat(test2Gauges.gauge().value()).isEqualTo(5);
+
+        // Second run: We have 4 new jobs of each type
+
+        for (int i = 6; i <= 9; i++) {
+            job = newJob(Test1Job.class).withIdentity(testIdWatcher.getEntityName("Test1Job_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+
+            job = newJob(EmptyTestJob.class).withIdentity(testIdWatcher.getEntityName("EmptyJob_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+        }
+
+        task.reportPendingJobs();
+
+        assertThat(test1Gauges.gauge().value()).isEqualTo(9);
+        assertThat(test2Gauges.gauge().value()).isEqualTo(9);
+
+        // Third run: We add 11 new jobs of the Test1Job class
+
+        for (int i = 11; i <= 21; i++) {
+            job = newJob(Test1Job.class).withIdentity(testIdWatcher.getEntityName("Test1Job_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+        }
+
+        task.reportPendingJobs();
+
+        assertThat(test1Gauges.gauge().value()).isEqualTo(20);
+        assertThat(test2Gauges.gauge().value()).isEqualTo(9);
+
+        // Fourth run:
+        //  a) All jobs that were scheduled previously have completed (simulated through scheduler.clear())
+        //  b) We add 5 jobs of type EmptyJob
+
+        scheduler.clear();
+
+        for (int i = 1; i <= 5; i++) {
+            job = newJob(EmptyTestJob.class).withIdentity(testIdWatcher.getEntityName("EmptyJob_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+        }
+
+        task.reportPendingJobs();
+
+        assertThat(test1Gauges.gauge().value()).isEqualTo(0);
+        assertThat(test2Gauges.gauge().value()).isEqualTo(5);
     }
 
     @Test
     public void testFetchResults() throws Exception {
 
-        Assume.assumeTrue(dbUtils.isMysql() && monitoringEnabled);
-
         JobDetail job;
         TriggerBuilder<Trigger> builder;
+        QuartzPendingJobsReportingTask.PendingJob pendingJob1, pendingJob2;
+        String key1 = "QuartzPendingJobsReportingTaskTest$Test1Job-" + DYNAMIC_GROUP_NAME;
+        String key2 = "EmptyTestJob-" + DYNAMIC_GROUP_NAME;
+
+        // First run: We have 5 jobs of each type
 
         for (int i = 1; i <= 5; i++) {
             job = newJob(Test1Job.class).withIdentity(testIdWatcher.getEntityName("Test1Job_" + i), DYNAMIC_GROUP_NAME)
@@ -178,15 +239,105 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
             scheduler.scheduleJob(job, builder.build());
         }
 
-        List<QuartzPendingJobsReportingTask.PendingJob> pendingJobs = task.fetchResults();
+        Map<String, QuartzPendingJobsReportingTask.PendingJob> pendingJobs = task.fetchResults();
 
         assertThat(pendingJobs).hasSize(2);
-        assertThat(pendingJobs).extracting("jobClass")
-                               .containsExactlyInAnyOrder("QuartzPendingJobsReportingTaskTest$Test1Job", "EmptyTestJob");
-        assertThat(pendingJobs).extracting("jobGroup")
-                               .contains(DYNAMIC_GROUP_NAME);
-        assertThat(pendingJobs).extracting("count")
-                               .containsExactlyInAnyOrder((long) 5, (long) 5);
+        assertThat(pendingJobs).containsKey(key1);
+        assertThat(pendingJobs).containsKey(key2);
+
+        pendingJob1 = pendingJobs.get(key1);
+        pendingJob2 = pendingJobs.get(key2);
+
+        assertThat(pendingJob1.jobClass).isEqualTo("QuartzPendingJobsReportingTaskTest$Test1Job");
+        assertThat(pendingJob1.jobGroup).isEqualTo(DYNAMIC_GROUP_NAME);
+        assertThat(pendingJob1.count).isEqualTo(5L);
+        assertThat(pendingJob2.jobClass).isEqualTo("EmptyTestJob");
+        assertThat(pendingJob2.jobGroup).isEqualTo(DYNAMIC_GROUP_NAME);
+        assertThat(pendingJob2.count).isEqualTo(5L);
+
+        // Second run: We have 4 new jobs of each type
+
+        for (int i = 6; i <= 9; i++) {
+            job = newJob(Test1Job.class).withIdentity(testIdWatcher.getEntityName("Test1Job_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+
+            job = newJob(EmptyTestJob.class).withIdentity(testIdWatcher.getEntityName("EmptyJob_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+        }
+
+        pendingJobs = task.fetchResults();
+
+        assertThat(pendingJobs).hasSize(2);
+        assertThat(pendingJobs).containsKey(key1);
+        assertThat(pendingJobs).containsKey(key2);
+
+        pendingJob1 = pendingJobs.get(key1);
+        pendingJob2 = pendingJobs.get(key2);
+
+        assertThat(pendingJob1.jobClass).isEqualTo("QuartzPendingJobsReportingTaskTest$Test1Job");
+        assertThat(pendingJob1.jobGroup).isEqualTo(DYNAMIC_GROUP_NAME);
+        assertThat(pendingJob1.count).isEqualTo(9L);
+        assertThat(pendingJob2.jobClass).isEqualTo("EmptyTestJob");
+        assertThat(pendingJob2.jobGroup).isEqualTo(DYNAMIC_GROUP_NAME);
+        assertThat(pendingJob2.count).isEqualTo(9L);
+
+        // Third run: We add 11 new jobs of the Test1Job class
+
+        for (int i = 11; i <= 21; i++) {
+            job = newJob(Test1Job.class).withIdentity(testIdWatcher.getEntityName("Test1Job_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+        }
+
+        pendingJobs = task.fetchResults();
+
+        assertThat(pendingJobs).hasSize(2);
+        assertThat(pendingJobs).containsKey(key1);
+        assertThat(pendingJobs).containsKey(key2);
+
+        pendingJob1 = pendingJobs.get(key1);
+        pendingJob2 = pendingJobs.get(key2);
+
+        assertThat(pendingJob1.jobClass).isEqualTo("QuartzPendingJobsReportingTaskTest$Test1Job");
+        assertThat(pendingJob1.jobGroup).isEqualTo(DYNAMIC_GROUP_NAME);
+        assertThat(pendingJob1.count).isEqualTo(20L);
+        assertThat(pendingJob2.jobClass).isEqualTo("EmptyTestJob");
+        assertThat(pendingJob2.jobGroup).isEqualTo(DYNAMIC_GROUP_NAME);
+        assertThat(pendingJob2.count).isEqualTo(9L);
+
+        scheduler.clear();
+
+        for (int i = 1; i <= 5; i++) {
+            job = newJob(EmptyTestJob.class).withIdentity(testIdWatcher.getEntityName("EmptyJob_" + i), DYNAMIC_GROUP_NAME)
+                    .build();
+            builder = TriggerBuilder.newTrigger()
+                    .forJob(job)
+                    .startAt(Date.from(ZonedDateTime.now().plusHours(i).toInstant()));
+            scheduler.scheduleJob(job, builder.build());
+        }
+
+        pendingJobs = task.fetchResults();
+
+        assertThat(pendingJobs).hasSize(1);
+        assertThat(pendingJobs).doesNotContainKey(key1);
+        assertThat(pendingJobs).containsKey(key2);
+
+        pendingJob2 = pendingJobs.get(key2);
+
+        assertThat(pendingJob2.jobClass).isEqualTo("EmptyTestJob");
+        assertThat(pendingJob2.jobGroup).isEqualTo(DYNAMIC_GROUP_NAME);
+        assertThat(pendingJob2.count).isEqualTo(5L);
     }
 
     @Test
