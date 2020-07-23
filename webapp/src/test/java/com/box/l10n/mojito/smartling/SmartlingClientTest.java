@@ -4,6 +4,7 @@ import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
 import com.box.l10n.mojito.smartling.response.File;
+import com.box.l10n.mojito.smartling.response.FileUploadResponse;
 import com.box.l10n.mojito.smartling.response.Items;
 import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.box.l10n.mojito.test.TestIdWatcher;
@@ -27,6 +28,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.IOException;
 import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {SmartlingClientTest.class, SmartlingClientConfiguration.class, ObjectMapper.class, SmartlingTestConfig.class})
@@ -124,6 +127,42 @@ public class SmartlingClientTest {
         } finally {
             smartlingClient.deleteFile(smartlingTestConfig.projectId, fileName);
         }
+    }
+
+    @Test
+    public void testUploadDownloadAndDeleteLocalizedFile() {
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+
+        FileUploadResponse response;
+        String downloadFile;
+        String fileName = "strings.xml";
+
+        uploadFile(smartlingTestConfig.projectId, fileName);
+
+        String content = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<resources>\n" +
+                "    <string name=\"hello\">Hola</string>\n" +
+                "    <string name=\"bye\">Adios</string>\n" +
+                "</resources>";
+
+        response =  smartlingClient.uploadLocalizedFile(smartlingTestConfig.projectId,
+                fileName,
+                "android",
+                "es-MX",
+                content,
+                null,
+                null);
+
+        downloadFile = smartlingClient.downloadFile(smartlingTestConfig.projectId,
+                "es-MX",
+                fileName,
+                false,
+                SmartlingClient.RetrievalType.PENDING);
+
+        assertThat(response.getCode()).isEqualTo("SUCCESS");
+        assertThat(downloadFile).isEqualTo(content);
+
+        smartlingClient.deleteFile(smartlingTestConfig.projectId, fileName);
     }
 
     @Test
