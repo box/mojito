@@ -54,6 +54,7 @@ public class SmartlingClient {
     static final String API_SOURCE_STRINGS = "strings-api/v2/projects/{projectId}/source-strings?fileUri={fileUri}&offset={offset}&offset={limit}";
     static final String API_FILES_LIST = "files-api/v2/projects/{projectId}/files/list";
     static final String API_FILES_UPLOAD = "files-api/v2/projects/{projectId}/file";
+    static final String API_FILES_UPLOAD_LOCALIZED = "files-api/v2/projects/{projectId}/locales/{localeId}/file/import";
     static final String API_FILES_DOWNLOAD = "files-api/v2/projects/{projectId}/locales/{locale_id}/file?fileUri={fileUri}&includeOriginalStrings={includeOriginalStrings}&retrievalType={retrievalType}";
     static final String API_FILES_DELETE = "files-api/v2/projects/{projectId}/file/delete";
     static final String API_CONTEXTS = "context-api/v2/projects/{projectId}/contexts";
@@ -150,6 +151,39 @@ public class SmartlingClient {
 
         try {
             FileUploadResponse response = oAuth2RestTemplate.postForObject(API_FILES_UPLOAD, requestEntity, FileUploadResponse.class, projectId);
+            throwExceptionOnError(response, ERROR_CANT_UPLOAD_FILE, fileUri);
+            return response;
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_FILE, fileUri);
+        }
+    }
+
+    public FileUploadResponse uploadLocalizedFile(String projectId,
+                                                  String fileUri,
+                                                  String fileType,
+                                                  String localeId,
+                                                  String fileContent,
+                                                  String placeholderFormat,
+                                                  String placeholderFormatCustom) {
+
+        NamedByteArrayResource fileContentAsResource = new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("fileUri", fileUri);
+        body.add("fileType", fileType);
+        body.add("translationState", "PUBLISHED");
+        body.add("overwrite", true);
+        body.add("smartling.placeholder_format", placeholderFormat);
+        body.add("smartling.placeholder_format_custom", placeholderFormatCustom);
+        body.add("file", fileContentAsResource);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        try {
+            FileUploadResponse response = oAuth2RestTemplate.postForObject(API_FILES_UPLOAD_LOCALIZED,
+                    requestEntity, FileUploadResponse.class, projectId, localeId);
             throwExceptionOnError(response, ERROR_CANT_UPLOAD_FILE, fileUri);
             return response;
         } catch(HttpClientErrorException e) {
