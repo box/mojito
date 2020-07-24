@@ -1,17 +1,18 @@
 package com.box.l10n.mojito.rest.thirdparty;
 
-import com.box.l10n.mojito.service.thirdparty.ThirdPartyService;
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class ThirdPartySync {
 
     Long repositoryId;
     String projectId;
-    List<ThirdPartyService.Action> actions;
+    List<ThirdPartySyncAction> actions = new ArrayList<>();
     String pluralSeparator;
-    String localMapping;
-    List<String> options;
+    String localeMapping;
+    String skipTextUnitsWithPattern;
+    String skipAssetsWithPathPattern;
+    List<String> options = new ArrayList<>();
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -29,11 +30,11 @@ public class ThirdPartySync {
         this.projectId = projectId;
     }
 
-    public List<ThirdPartyService.Action> getActions() {
+    public List<ThirdPartySyncAction> getActions() {
         return actions;
     }
 
-    public void setActions(List<ThirdPartyService.Action> actions) {
+    public void setActions(List<ThirdPartySyncAction> actions) {
         this.actions = actions;
     }
 
@@ -45,12 +46,28 @@ public class ThirdPartySync {
         this.pluralSeparator = pluralSeparator;
     }
 
-    public String getLocalMapping() {
-        return localMapping;
+    public String getLocaleMapping() {
+        return localeMapping;
     }
 
-    public void setLocalMapping(String localMapping) {
-        this.localMapping = localMapping;
+    public void setLocaleMapping(String localeMapping) {
+        this.localeMapping = localeMapping;
+    }
+
+    public String getSkipTextUnitsWithPattern() {
+        return skipTextUnitsWithPattern;
+    }
+
+    public void setSkipTextUnitsWithPattern(String skipTextUnitsWithPattern) {
+        this.skipTextUnitsWithPattern = skipTextUnitsWithPattern;
+    }
+
+    public String getSkipAssetsWithPathPattern() {
+        return skipAssetsWithPathPattern;
+    }
+
+    public void setSkipAssetsWithPathPattern(String skipAssetsWithPathPattern) {
+        this.skipAssetsWithPathPattern = skipAssetsWithPathPattern;
     }
 
     public List<String> getOptions() {

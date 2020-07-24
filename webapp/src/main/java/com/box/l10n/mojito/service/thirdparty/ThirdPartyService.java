@@ -7,6 +7,8 @@ import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
+import com.box.l10n.mojito.rest.thirdparty.ThirdPartySync;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.image.ImageService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -27,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -48,14 +48,6 @@ import static java.util.stream.Collectors.toList;
  */
 @Component
 public class ThirdPartyService {
-
-    public enum Action {
-        PUSH,
-        PUSH_TRANSLATION,
-        PULL,
-        MAP_TEXTUNIT,
-        PUSH_SCREENSHOT
-    }
 
     static Logger logger = LoggerFactory.getLogger(ThirdPartyService.class);
 
@@ -92,39 +84,46 @@ public class ThirdPartyService {
     @Autowired
     ThirdPartyTMS thirdPartyTMS;
 
-    public PollableFuture<Void> asyncSyncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
+    public PollableFuture<Void> asyncSyncMojitoWithThirdPartyTMS(ThirdPartySync thirdPartySync) {
         ThirdPartySyncJobInput thirdPartySyncJobInput = new ThirdPartySyncJobInput();
 
-        thirdPartySyncJobInput.setRepositoryId(repositoryId);
-        thirdPartySyncJobInput.setThirdPartyProjectId(thirdPartyProjectId);
-        thirdPartySyncJobInput.setActions(actions);
-        thirdPartySyncJobInput.setPluralSeparator(pluralSeparator);
-        thirdPartySyncJobInput.setLocaleMapping(localeMapping);
-        thirdPartySyncJobInput.setOptions(options);
+        thirdPartySyncJobInput.setRepositoryId(thirdPartySync.getRepositoryId());
+        thirdPartySyncJobInput.setThirdPartyProjectId(thirdPartySync.getProjectId());
+        thirdPartySyncJobInput.setActions(thirdPartySync.getActions());
+        thirdPartySyncJobInput.setPluralSeparator(thirdPartySync.getPluralSeparator());
+        thirdPartySyncJobInput.setLocaleMapping(thirdPartySync.getLocaleMapping());
+        thirdPartySyncJobInput.setSkipTextUnitsWithPattern(thirdPartySync.getSkipTextUnitsWithPattern());
+        thirdPartySyncJobInput.setSkipAssetsWithPathPattern(thirdPartySync.getSkipAssetsWithPathPattern());
+        thirdPartySyncJobInput.setOptions(thirdPartySync.getOptions());
 
         return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
     }
 
-    void syncMojitoWithThirdPartyTMS(Long repositoryId, String thirdPartyProjectId, List<Action> actions, String pluralSeparator, String localeMapping, List<String> options) {
+    void syncMojitoWithThirdPartyTMS(Long repositoryId,
+                                     String thirdPartyProjectId,
+                                     List<ThirdPartySyncAction> actions,
+                                     String pluralSeparator,
+                                     String localeMapping,
+                                     String skipTextUnitsWithPattern,
+                                     String skipAssetsWithPathPattern,
+                                     List<String> options) {
         logger.debug("thirdparty TMS: {}", thirdPartyTMS);
 
         Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
-        Map<String, String> optionMap = Optional.ofNullable(options).orElse(Collections.emptyList()).stream().collect(
-                Collectors.toMap(str -> str.split("=")[0], str -> str.split("=")[1], (a, b) -> a, HashMap::new));
 
-        if (actions.contains(Action.PUSH)) {
+        if (actions.contains(ThirdPartySyncAction.PUSH)) {
             throw new UnsupportedOperationException();
         }
-        if (actions.contains(Action.PUSH_TRANSLATION)) {
+        if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
             throw new UnsupportedOperationException();
         }
-        if (actions.contains(Action.PULL)) {
+        if (actions.contains(ThirdPartySyncAction.PULL)) {
             throw new UnsupportedOperationException();
         }
-        if (actions.contains(Action.MAP_TEXTUNIT)) {
+        if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
             mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
         }
-        if (actions.contains(Action.PUSH_SCREENSHOT)) {
+        if (actions.contains(ThirdPartySyncAction.PUSH_SCREENSHOT)) {
             uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
         }
     }

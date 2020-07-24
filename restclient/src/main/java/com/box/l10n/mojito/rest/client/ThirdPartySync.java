@@ -1,23 +1,20 @@
 package com.box.l10n.mojito.rest.client;
 
+import com.box.l10n.mojito.rest.ThirdPartySyncAction;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class ThirdPartySync {
 
-    public enum Action {
-        PUSH,
-        PUSH_TRANSLATION,
-        PULL,
-        MAP_TEXTUNIT,
-        PUSH_SCREENSHOT
-    }
-
     Long repositoryId;
     String projectId;
-    List<Action> actions;
+    List<ThirdPartySyncAction> actions = new ArrayList<>();
     String pluralSeparator;
     String localeMapping;
-    List<String> options;
+    String skipTextUnitsWithPattern;
+    String skipAssetsWithPathPattern;
+    List<String> options = new ArrayList<>();
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -35,11 +32,11 @@ public class ThirdPartySync {
         this.projectId = projectId;
     }
 
-    public List<Action> getActions() {
+    public List<ThirdPartySyncAction> getActions() {
         return actions;
     }
 
-    public void setActions(List<Action> actions) {
+    public void setActions(List<ThirdPartySyncAction> actions) {
         this.actions = actions;
     }
 
@@ -57,6 +54,22 @@ public class ThirdPartySync {
 
     public void setLocaleMapping(String localeMapping) {
         this.localeMapping = localeMapping;
+    }
+
+    public String getSkipTextUnitsWithPattern() {
+        return skipTextUnitsWithPattern;
+    }
+
+    public void setSkipTextUnitsWithPattern(String skipTextUnitsWithPattern) {
+        this.skipTextUnitsWithPattern = skipTextUnitsWithPattern;
+    }
+
+    public String getSkipAssetsWithPathPattern() {
+        return skipAssetsWithPathPattern;
+    }
+
+    public void setSkipAssetsWithPathPattern(String skipAssetsWithPathPattern) {
+        this.skipAssetsWithPathPattern = skipAssetsWithPathPattern;
     }
 
     public List<String> getOptions() {

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
+import com.google.common.base.Strings;
 
 import java.util.Arrays;
 
@@ -15,7 +16,7 @@ public abstract class EnumConverter<T extends Enum<T>> implements IStringConvert
         T result = null;
         if (value != null) {
             try {
-                result = Enum.valueOf(getGenericClass(), value.toUpperCase());
+                result = Enum.valueOf(getGenericClass(), Strings.nullToEmpty(value).trim().toUpperCase());
             } catch (IllegalArgumentException iae) {
                 String msg = "Invalid type [" + value + "], should be one of: " + Arrays.toString(getGenericClass().getEnumConstants());
                 throw new ParameterException(msg);

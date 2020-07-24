@@ -64,8 +64,7 @@ public class ScreenshotCommand extends Command {
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
 
-    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
-            + "The keys contain BCP47 tags of the generated files and the values indicate which repository locales are used to fetch the translations.")
+    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = Param.REPOSITORY_LOCALES_MAPPING_DESCRIPTION)
     String localeMappingParam;
 
     @Parameter(names = {Param.SOURCE_DIRECTORY_LONG, Param.SOURCE_DIRECTORY_SHORT}, arity = 1, required = false, description = "Directory to scan for screenshot")
