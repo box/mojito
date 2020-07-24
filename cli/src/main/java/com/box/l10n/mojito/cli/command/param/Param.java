@@ -59,6 +59,8 @@ public class Param {
 
     public static final String REPOSITORY_LOCALES_MAPPING_LONG = "--locale-mapping";
     public static final String REPOSITORY_LOCALES_MAPPING_SHORT = "-lm";
+    public static final String REPOSITORY_LOCALES_MAPPING_DESCRIPTION = "Locale mapping, format: \"fr:fr-FR,ja:ja-JP\". "
+            + "The keys contain BCP47 tags of the generated files and the values indicate which repository locales are used to fetch the translations.";
 
     public static final String REPOSITORY_SOURCE_LOCALE_LONG = "--source-locale";
     public static final String REPOSITORY_SOURCE_LOCALE_SHORT = "-sl";
