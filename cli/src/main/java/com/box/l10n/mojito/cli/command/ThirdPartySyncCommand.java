@@ -4,8 +4,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.rest.ThirdPartySyncAction;
 import com.box.l10n.mojito.rest.client.ThirdPartyClient;
-import com.box.l10n.mojito.rest.client.ThirdPartySync;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import org.fusesource.jansi.Ansi;
@@ -44,13 +44,19 @@ public class ThirdPartySyncCommand extends Command {
     String thirdPartyProjectId;
 
     @Parameter(names = {"--actions", "-a"}, variableArity = true, required = false, description = "Actions to synchronize", converter = ThirdPartySyncActionsConverter.class)
-    List<ThirdPartySync.Action> actions = Arrays.asList(ThirdPartySync.Action.MAP_TEXTUNIT, ThirdPartySync.Action.PUSH_SCREENSHOT);
+    List<ThirdPartySyncAction> actions = Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT, ThirdPartySyncAction.PUSH_SCREENSHOT);
 
     @Parameter(names = {"--plural-separator", "-ps"}, arity = 1, required = false, description = "Plural separator for name")
     String pluralSeparator;
 
-    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = "Locale mapping")
+    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = Param.REPOSITORY_LOCALES_MAPPING_DESCRIPTION)
     String localeMapping;
+
+    @Parameter(names = {"--skip-text-units-with-pattern", "-st"}, arity = 1, required = false, description = "Do not process text units matching with the SQL LIKE expression")
+    String skipTextUnitsWithPattern;
+
+    @Parameter(names = {"--skip-assets-path-pattern", "-sa"}, arity = 1, required = false, description = "Do not process text units whose assets path match the SQL LIKE expression")
+    String skipAssetsWithPathPattern;
 
     @Parameter(names = {"--options", "-o"}, variableArity = true, required = false, description = "Options to synchronize")
     List<String> options;
@@ -69,11 +75,14 @@ public class ThirdPartySyncCommand extends Command {
                 .a(" actions: ").fg(CYAN).a(Objects.toString(actions)).reset()
                 .a(" plural-separator: ").fg(CYAN).a(Objects.toString(pluralSeparator)).reset()
                 .a(" locale-mapping: ").fg(CYAN).a(Objects.toString(localeMapping)).reset()
+                .a(" skip-text-units-with-pattern: ").fg(CYAN).a(Objects.toString(skipTextUnitsWithPattern)).reset()
+                .a(" skip-assets-path-pattern: ").fg(CYAN).a(Objects.toString(skipAssetsWithPathPattern)).reset()
                 .a(" options: ").fg(CYAN).a(Objects.toString(options)).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        PollableTask pollableTask = thirdPartyClient.sync(repository.getId(), thirdPartyProjectId, pluralSeparator, localeMapping, actions, options);
+        PollableTask pollableTask = thirdPartyClient.sync(repository.getId(), thirdPartyProjectId, pluralSeparator, localeMapping,
+                actions, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
 
         commandHelper.waitForPollableTask(pollableTask.getId());
 

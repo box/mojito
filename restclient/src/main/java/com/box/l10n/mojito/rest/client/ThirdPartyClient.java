@@ -1,8 +1,7 @@
 package com.box.l10n.mojito.rest.client;
 
+import com.box.l10n.mojito.rest.ThirdPartySyncAction;
 import com.box.l10n.mojito.rest.entity.PollableTask;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -16,19 +15,19 @@ import java.util.List;
 @Component
 public class ThirdPartyClient extends BaseClient {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ThirdPartyClient.class);
-
     @Override
     public String getEntityName() {
         return "thirdparty";
     }
 
-    public PollableTask sync(Long repositoryId, String projectId, String pluralSeparator, String localeMapping,
-        List<ThirdPartySync.Action> actions, List<String> options)
-    {
+    public PollableTask sync(Long repositoryId,
+                             String projectId,
+                             String pluralSeparator,
+                             String localeMapping,
+                             List<ThirdPartySyncAction> actions,
+                             String skipTextUnitsWithPattern,
+                             String skipAssetsWithPathPattern,
+                             List<String> options) {
 
         ThirdPartySync thirdPartySync = new ThirdPartySync();
 
@@ -37,6 +36,8 @@ public class ThirdPartyClient extends BaseClient {
         thirdPartySync.setActions(actions);
         thirdPartySync.setPluralSeparator(pluralSeparator);
         thirdPartySync.setLocaleMapping(localeMapping);
+        thirdPartySync.setSkipTextUnitsWithPattern(skipTextUnitsWithPattern);
+        thirdPartySync.setSkipAssetsWithPathPattern(skipAssetsWithPathPattern);
         thirdPartySync.setOptions(options);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath(getBasePathForEntity()).pathSegment("sync");

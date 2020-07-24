@@ -5,11 +5,12 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
+import com.box.l10n.mojito.rest.ThirdPartySyncAction;
+import com.box.l10n.mojito.rest.client.ThirdPartySync;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.image.ImageService;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
@@ -122,7 +123,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void mapMojitoAndThirdPartyTextUnits() throws RepositoryNameAlreadyUsedException, InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException, IOException {
+    public void mapMojitoAndThirdPartyTextUnits() throws InterruptedException, ExecutionException {
 
         ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
         Repository repository = thirdPartyServiceTestData.repository;
@@ -139,9 +140,15 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
         logger.debug("Invoke function to test");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
-                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT, ThirdPartyService.Action.PUSH_SCREENSHOT),
-                " _", null, new ArrayList<>()).get();
+
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId(projectId);
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT, ThirdPartySyncAction.PUSH_SCREENSHOT));
+        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setOptions(new ArrayList<>());
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
         logger.debug("Verify states");
         thirdPartyTextUnitRepository.findAll().stream()
@@ -226,9 +233,15 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
         logger.debug("Invoke function to test");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
-                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT),
-                " _", null, new ArrayList<>()).get();
+
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId(projectId);
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
+        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setOptions(new ArrayList<>());
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
         logger.debug("Verify states");
         thirdPartyTextUnitRepository.findAll().stream()
@@ -249,9 +262,12 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
 
         logger.debug("Invoke function to test - duplicate name");
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(repository.getId(), projectId,
-                Arrays.asList(ThirdPartyService.Action.MAP_TEXTUNIT),
-                " _", null, new ArrayList<>()).get();
+        thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId(projectId);
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
+        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setOptions(new ArrayList<>());
 
         logger.debug("Verify states - duplicate name");
         thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()

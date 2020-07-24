@@ -205,6 +205,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -217,7 +218,6 @@
             <groupId>com.box.l10n.mojito</groupId>
             <artifactId>mojito-restclient</artifactId>
             <version>0.111-SNAPSHOT</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
