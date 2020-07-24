@@ -25,7 +25,7 @@ public class ThirdPartySyncJob extends QuartzPollableJob<ThirdPartySyncJobInput,
     PollableTaskService pollableTaskService;
 
     @Override
-    public Void call(ThirdPartySyncJobInput input) throws Exception {
+    public Void call(ThirdPartySyncJobInput input) {
         logger.debug("Run ThirdPartyMapJob");
         thirdPartyService.syncMojitoWithThirdPartyTMS(
                 input.getRepositoryId(),
@@ -33,6 +33,8 @@ public class ThirdPartySyncJob extends QuartzPollableJob<ThirdPartySyncJobInput,
                 input.getActions(),
                 input.getPluralSeparator(),
                 input.getLocaleMapping(),
+                input.getSkipTextUnitsWithPattern(),
+                input.getSkipAssetsWithPathPattern(),
                 input.getOptions());
         return null;
     }
