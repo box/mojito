@@ -58,11 +58,7 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
         Repository repository = repositoryService.createRepository(repoName, repoName + " description", null, false);
         String projectId = testIdWatcher.getEntityName("projectId");
 
-        // TODO: For a plural separator like " _" this test will fail. The current version we have for
-        //  JCommander trims the argument values, even when quoted.
-        // https://github.com/cbeust/jcommander/issues/417
-        // https://github.com/cbeust/jcommander/commit/4aec38b4a0ea63a8dc6f41636fa81c2ebafddc18
-        String pluralSeparator = "_";
+        String pluralSeparator = " _";
         String skipTextUnitPattern = "%skip_text_pattern";
         String skipAssetPattern = "%skip_asset_pattern%";
         List<String> options = Arrays.asList(
