@@ -194,7 +194,7 @@ public class L10nJCommander {
      */
     public void usage(String commandName) {
         StringBuilder stringBuilder = new StringBuilder();
-        jCommander.usage(commandName, stringBuilder, "");
+        jCommander.getUsageFormatter().usage(commandName, stringBuilder, "");
         consoleWriter.a(stringBuilder).println();
     }
 
@@ -206,7 +206,8 @@ public class L10nJCommander {
         logger.debug("Create JCommander instance");
         jCommander = new JCommander();
 
-        jCommander.setAcceptUnknownOptions(true);
+        // TODO: Cant enable this until https://github.com/cbeust/jcommander/issues/377 is fixed
+        // jCommander.setAcceptUnknownOptions(true);
 
         logger.debug("Initialize the JCommander instance");
         jCommander.setProgramName(PROGRAM_NAME);

@@ -345,7 +345,6 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
                 "-ft", "XCODE_XLIFF");
 
         getL10nJCommander().run("import", "-r", repository.getName(),
