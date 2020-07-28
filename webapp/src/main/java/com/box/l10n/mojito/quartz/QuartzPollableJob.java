@@ -12,6 +12,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -55,7 +56,7 @@ public abstract class QuartzPollableJob<I, O> implements Job {
 
         ExceptionHolder exceptionHolder = new ExceptionHolder(currentPollableTask);
 
-        try {
+        try (MDC.MDCCloseable closeable = MDC.putCloseable(POLLABLE_TASK_ID, pollableTaskId.toString())) {
             I callInput;
 
             String inputStringFromJob = context.getMergedJobDataMap().getString(INPUT);

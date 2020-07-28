@@ -1,12 +1,15 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
-import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySync;
+import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
@@ -40,7 +43,11 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
+import static com.box.l10n.mojito.service.thirdparty.ThirdPartyService.REPOSITORY_ID;
+import static com.box.l10n.mojito.service.thirdparty.ThirdPartyService.THIRD_PARTY_PROJECT_ID;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -323,6 +330,36 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals(1L, unmappedScreenshotsAfterSave.size());
         Screenshot screenshot = screenshotRepository.findUnmappedScreenshots(repository).stream().findFirst().get();
         assertEquals("screen3", screenshot.getName());
+    }
+
+    @Test
+    public void testSyncAddsAllMDCKeys() {
+
+        // Intercept the ThirdPartyService logger to fetch events added to it
+        ch.qos.logback.classic.Logger jobLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(ThirdPartyService.class);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        jobLogger.addAppender(listAppender);
+        jobLogger.setLevel(Level.ALL);
+
+        List<ThirdPartySyncAction> actions = Arrays.asList(ThirdPartySyncAction.PUSH);
+
+        Long repositoryId = 123L;
+        String projectId = "someProjectIdForTest";
+
+        // We dont need
+        assertThatThrownBy(() -> thirdPartyService.syncMojitoWithThirdPartyTMS(repositoryId, projectId, actions, "",
+                "", "", "", Arrays.asList()))
+                .isInstanceOf(UnsupportedOperationException.class);
+
+        assertThat(listAppender.list).isNotEmpty();
+        assertThat(listAppender.list).allSatisfy(event -> {
+            assertThat(event.getMDCPropertyMap()).containsKeys(REPOSITORY_ID);
+            assertThat(event.getMDCPropertyMap()).containsKeys(THIRD_PARTY_PROJECT_ID);
+            assertThat(event.getMDCPropertyMap().get(REPOSITORY_ID)).isEqualTo(repositoryId.toString());
+            assertThat(event.getMDCPropertyMap().get(THIRD_PARTY_PROJECT_ID)).isEqualTo(projectId);
+        });
+
     }
 
     ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {

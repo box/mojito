@@ -26,6 +26,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,6 +50,8 @@ import static java.util.stream.Collectors.toList;
 @Component
 public class ThirdPartyService {
 
+    public static final String REPOSITORY_ID = "repositoryId";
+    public static final String THIRD_PARTY_PROJECT_ID = "thirdPartyProjectId";
     static Logger logger = LoggerFactory.getLogger(ThirdPartyService.class);
 
     @Autowired
@@ -107,24 +110,29 @@ public class ThirdPartyService {
                                      String skipTextUnitsWithPattern,
                                      String skipAssetsWithPathPattern,
                                      List<String> options) {
-        logger.debug("thirdparty TMS: {}", thirdPartyTMS);
 
-        Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
+        try (MDC.MDCCloseable repoCloseable = MDC.putCloseable(REPOSITORY_ID, repositoryId.toString());
+             MDC.MDCCloseable projectCloseable = MDC.putCloseable(THIRD_PARTY_PROJECT_ID, thirdPartyProjectId)) {
 
-        if (actions.contains(ThirdPartySyncAction.PUSH)) {
-            throw new UnsupportedOperationException();
-        }
-        if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
-            throw new UnsupportedOperationException();
-        }
-        if (actions.contains(ThirdPartySyncAction.PULL)) {
-            throw new UnsupportedOperationException();
-        }
-        if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
-            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
-        }
-        if (actions.contains(ThirdPartySyncAction.PUSH_SCREENSHOT)) {
-            uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
+            logger.debug("thirdparty TMS: {}", thirdPartyTMS);
+
+            Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
+
+            if (actions.contains(ThirdPartySyncAction.PUSH)) {
+                throw new UnsupportedOperationException();
+            }
+            if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
+                throw new UnsupportedOperationException();
+            }
+            if (actions.contains(ThirdPartySyncAction.PULL)) {
+                throw new UnsupportedOperationException();
+            }
+            if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
+                mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
+            }
+            if (actions.contains(ThirdPartySyncAction.PUSH_SCREENSHOT)) {
+                uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
+            }
         }
     }
 
