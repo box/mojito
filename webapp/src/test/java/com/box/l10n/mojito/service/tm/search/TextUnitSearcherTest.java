@@ -1,7 +1,10 @@
 package com.box.l10n.mojito.service.tm.search;
 
+import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -25,6 +28,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -57,6 +61,9 @@ public class TextUnitSearcherTest extends ServiceTestBase {
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
+
+    @Autowired
+    AssetService assetService;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -483,7 +490,102 @@ public class TextUnitSearcherTest extends ServiceTestBase {
         textUnitSearcherParameters.setTmTextUnitCreatedBefore(null);
         search = textUnitSearcher.search(textUnitSearcherParameters);
         assertEquals(0, search.size());
-        
+    }
+
+    @Test
+    public void testSkipAssetPathWithPattern() {
+        TMTestData testData = new TMTestData(testIdWatcher);
+
+        TextUnitSearcherParameters params = new TextUnitSearcherParameters();
+        params.setRepositoryIds(testData.repository.getId());
+        params.setSkipAssetPathWithPattern("%skip_me");
+
+        Asset asset = assetService.createAssetWithContent(testData.repository.getId(), "fake_skip_me", "fake for test other tm repo");
+
+        TMTextUnit tu1 = tmService.addTMTextUnit(testData.tm.getId(), asset.getId(), "fake1", "Content1", "Comment1");
+        TMTextUnit tu2 = tmService.addTMTextUnit(testData.tm.getId(), asset.getId(), "fake2", "Content2", "Comment2");
+        TMTextUnit tu3 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "fake3", "Content4", "Comment4");
+        TMTextUnit tu4 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "fake4", "Content4", "Comment4");
+
+        List<TextUnitDTO> textUnits = textUnitSearcher.search(params);
+
+        assertThat(textUnits).isNotEmpty();
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).doesNotContain(tu1.getId(), tu2.getId());
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).contains(tu3.getId(), tu4.getId());
+
+        params.setSkipAssetPathWithPattern("dont_use%");
+
+        asset = assetService.createAssetWithContent(testData.repository.getId(), "dont_use_me", "fake for test other tm repo");
+
+        tu1 = tmService.addTMTextUnit(testData.tm.getId(), asset.getId(), "dont_use_fake1", "Content1", "Comment1");
+        tu2 = tmService.addTMTextUnit(testData.tm.getId(), asset.getId(), "dont_use_fake2", "Content2", "Comment2");
+        tu3 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "use_fake3", "Content4", "Comment4");
+        tu4 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "use_fake4", "Content4", "Comment4");
+
+        textUnits = textUnitSearcher.search(params);
+
+        assertThat(textUnits).isNotEmpty();
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).doesNotContain(tu1.getId(), tu2.getId());
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).contains(tu3.getId(), tu4.getId());
+
+        params.setSkipAssetPathWithPattern("%ignore%");
+
+        asset = assetService.createAssetWithContent(testData.repository.getId(), "wil_be_ignored", "fake for test other tm repo");
+
+        tu1 = tmService.addTMTextUnit(testData.tm.getId(), asset.getId(), "ignore_fake1", "Content1", "Comment1");
+        tu2 = tmService.addTMTextUnit(testData.tm.getId(), asset.getId(), "ignore_use_fake2", "Content2", "Comment2");
+        tu3 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "no_fake3", "Content4", "Comment4");
+        tu4 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "no_fake4", "Content4", "Comment4");
+
+        textUnits = textUnitSearcher.search(params);
+
+        assertThat(textUnits).isNotEmpty();
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).doesNotContain(tu1.getId(), tu2.getId());
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).contains(tu3.getId(), tu4.getId());
+    }
+
+    @Test
+    public void testSkipTextUnitsWithPattern() {
+        TMTestData testData = new TMTestData(testIdWatcher);
+        TMTextUnit tu1, tu2, tu3;
+
+        TextUnitSearcherParameters params = new TextUnitSearcherParameters();
+        params.setRepositoryIds(testData.repository.getId());
+        params.setSkipTextUnitWithPattern("%skip_me");
+
+        tu1 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "text_unit_skip_me", "Content1", "Comment1");
+        tu2 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "text_unit2_skip_me", "Content2", "Comment2");
+        tu3 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "skip_me_not", "Content2", "Comment2");
+
+        List<TextUnitDTO> textUnits = textUnitSearcher.search(params);
+
+        assertThat(textUnits).isNotEmpty();
+        assertThat(textUnits).allSatisfy(textUnit -> assertThat(textUnit.getName()).doesNotEndWith("skip_me"));
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).contains(tu3.getId());
+
+        params.setSkipTextUnitWithPattern("not_this%");
+
+        tu1 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "not_this_text", "Content1", "Comment1");
+        tu2 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "not_this_text2", "Content2", "Comment2");
+        tu3 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "this_should_be_in_not_this_one", "Content2", "Comment2");
+
+        textUnits = textUnitSearcher.search(params);
+
+        assertThat(textUnits).isNotEmpty();
+        assertThat(textUnits).allSatisfy(textUnit -> assertThat(textUnit.getName()).doesNotStartWith("not_this"));
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).contains(tu3.getId());
+
+        params.setSkipTextUnitWithPattern("%ignore%");
+
+        tu1 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "unit_to_ignored", "Content1", "Comment1");
+        tu2 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "should_ignore_this_unit", "Content2", "Comment2");
+        tu3 = tmService.addTMTextUnit(testData.tm.getId(), testData.asset.getId(), "this_should_show_up", "Content2", "Comment2");
+
+        textUnits = textUnitSearcher.search(params);
+
+        assertThat(textUnits).isNotEmpty();
+        assertThat(textUnits).allSatisfy(textUnit -> assertThat(textUnit.getName()).doesNotContain("ignore"));
+        assertThat(textUnits).extracting(TextUnitDTO::getTmTextUnitId).contains(tu3.getId());
     }
 
     @Transactional
