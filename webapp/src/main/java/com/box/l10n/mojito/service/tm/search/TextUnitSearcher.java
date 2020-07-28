@@ -1,14 +1,15 @@
 package com.box.l10n.mojito.service.tm.search;
 
-import com.box.l10n.mojito.nativecriteria.NativeContainsExp;
-import com.box.l10n.mojito.nativecriteria.NativeILikeExp;
-import com.box.l10n.mojito.nativecriteria.NativeColumnEqExp;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.nativecriteria.JpaQueryProvider;
+import com.box.l10n.mojito.nativecriteria.NativeColumnEqExp;
+import com.box.l10n.mojito.nativecriteria.NativeContainsExp;
 import com.box.l10n.mojito.nativecriteria.NativeDateGteExp;
 import com.box.l10n.mojito.nativecriteria.NativeDateLteExp;
 import com.box.l10n.mojito.nativecriteria.NativeEqExpFix;
+import com.box.l10n.mojito.nativecriteria.NativeILikeExp;
 import com.box.l10n.mojito.nativecriteria.NativeInExpFix;
+import com.box.l10n.mojito.nativecriteria.NativeNotILikeExp;
 import com.github.pnowy.nc.core.CriteriaResult;
 import com.github.pnowy.nc.core.NativeCriteria;
 import com.github.pnowy.nc.core.NativeExps;
@@ -21,8 +22,6 @@ import com.github.pnowy.nc.core.expressions.NativeOrderExp;
 import com.github.pnowy.nc.core.expressions.NativeProjection;
 import com.github.pnowy.nc.core.mappers.CriteriaResultTransformer;
 import com.google.common.base.Preconditions;
-import java.util.Arrays;
-import java.util.List;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +30,9 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Text Unit searcher allows to search/build a list of translated and/or
@@ -282,6 +284,14 @@ public class TextUnitSearcher {
 
         if (searchParameters.getBranchId() != null) {
             conjunction.add(new NativeEqExpFix("atu.branch_id", searchParameters.getBranchId()));
+        }
+
+        if (searchParameters.getSkipTextUnitWithPattern() != null) {
+            conjunction.add(new NativeNotILikeExp("tu.name", searchParameters.getSkipTextUnitWithPattern()));
+        }
+
+        if (searchParameters.getSkipAssetPathWithPattern() != null) {
+            conjunction.add(new NativeNotILikeExp("a.path", searchParameters.getSkipAssetPathWithPattern()));
         }
 
         StatusFilter statusFilter = searchParameters.getStatusFilter();
