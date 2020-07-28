@@ -45,6 +45,8 @@ public class TextUnitSearcherParameters {
     DateTime tmTextUnitCreatedBefore;
     DateTime tmTextUnitCreatedAfter;
     Long branchId;
+    String skipTextUnitWithPattern;
+    String skipAssetPathWithPattern;
 
     public String getName() {
         return name;
@@ -280,5 +282,21 @@ public class TextUnitSearcherParameters {
         if (!filtered.isEmpty()) {
             this.tmTextUnitIds = filtered;
         }
+    }
+
+    public String getSkipTextUnitWithPattern() {
+        return skipTextUnitWithPattern;
+    }
+
+    public void setSkipTextUnitWithPattern(String skipTextUnitWithPattern) {
+        this.skipTextUnitWithPattern = skipTextUnitWithPattern;
+    }
+
+    public String getSkipAssetPathWithPattern() {
+        return skipAssetPathWithPattern;
+    }
+
+    public void setSkipAssetPathWithPattern(String skipAssetPathWithPattern) {
+        this.skipAssetPathWithPattern = skipAssetPathWithPattern;
     }
 }
