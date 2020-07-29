@@ -13,6 +13,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import org.eclipse.jgit.blame.BlameResult;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
+import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,8 +52,18 @@ public class GitBlameCommandTest extends CLITestBase {
      */
     boolean shallowClone = true;
 
+    /**
+     * GitActions has an even differnt type of checkout than Travis, just skip for now
+     */
+    boolean isGitActions() {
+        Boolean githubActions = Boolean.valueOf(System.getenv("GITHUB_ACTIONS"));
+        logger.info("Github actions: {}", githubActions);
+        return githubActions;
+    }
+
     @Test
     public void android() throws Exception {
+        Assume.assumeFalse(isGitActions());
 
         Repository repository = createTestRepoUsingRepoService();
         File sourceDirectory = getInputResourcesTestDir("source");
@@ -82,6 +93,8 @@ public class GitBlameCommandTest extends CLITestBase {
 
     @Test
     public void poFile() throws Exception {
+
+        Assume.assumeFalse(isGitActions());
 
         Repository repository = createTestRepoUsingRepoService();
         File sourceDirectory = getInputResourcesTestDir("source");
@@ -118,7 +131,7 @@ public class GitBlameCommandTest extends CLITestBase {
     public void textUnitNameToTextUnitNameInSourceDefault() {
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
 
-        FileType fileType = new POFileType() ;
+        FileType fileType = new POFileType();
 
         assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test", fileType, false));
         assertEquals("test", gitBlameCommand.textUnitNameToTextUnitNameInSource("test _zero", fileType, true));
@@ -158,8 +171,8 @@ public class GitBlameCommandTest extends CLITestBase {
 
         assertEquals("hello", gitBlameCommand.textUnitNameToTextUnitNameInSource("hello/message", fileType, false));
         assertEquals("hello/message_zero", gitBlameCommand.textUnitNameToTextUnitNameInSource("hello/message_zero", fileType, true));
-         try {
-             gitBlameCommand.textUnitNameToTextUnitNameInSource("hello_zero", fileType, false);
+        try {
+            gitBlameCommand.textUnitNameToTextUnitNameInSource("hello_zero", fileType, false);
             fail("should throw an exception if the regex doesn't match");
         } catch (IllegalArgumentException iae) {
             assertEquals("The pattern to extract the 'text unit name in source' must match. For text unit name: hello_zero", iae.getMessage());
@@ -224,10 +237,7 @@ public class GitBlameCommandTest extends CLITestBase {
     @Test
     public void getBlameResultForLines() throws Exception {
 
-        if (shallowClone) {
-            // that won't work on a shallow clone / on travis. Keep it for local testing
-            return;
-        }
+        Assume.assumeFalse(shallowClone);
 
         File sourceDirectory = getInputResourcesTestDir("source");
         String filepath = sourceDirectory.getAbsolutePath();
@@ -293,6 +303,7 @@ public class GitBlameCommandTest extends CLITestBase {
 
     @Test(expected = LineMissingException.class)
     public void updateGitBlameOutOfBousnd() throws CommandException, NoSuchFileException, LineMissingException {
+        Assume.assumeFalse(isGitActions());
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
         gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
         gitBlameCommand.initGitRepository();
@@ -315,6 +326,8 @@ public class GitBlameCommandTest extends CLITestBase {
 
     @Test(expected = ArrayIndexOutOfBoundsException.class)
     public void getSourceCommitsAccessOutOfBound() throws CommandException, NoSuchFileException {
+        Assume.assumeFalse(isGitActions());
+
         GitBlameCommand gitBlameCommand = new GitBlameCommand();
         gitBlameCommand.commandDirectories = new CommandDirectories(getBaseDir().getAbsolutePath());
         gitBlameCommand.initGitRepository();
