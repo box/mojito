@@ -112,7 +112,8 @@ public class ThirdPartyService {
         Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         if (actions.contains(ThirdPartySyncAction.PUSH)) {
-            throw new UnsupportedOperationException();
+            thirdPartyTMS.push(repository, thirdPartyProjectId, pluralSeparator,
+                    skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
             throw new UnsupportedOperationException();

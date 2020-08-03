@@ -36,4 +36,22 @@ interface ThirdPartyTMS {
      * @param thirdPartyImageToTextUnits the list of mappings
      */
     void createImageToTextUnitMappings(String projectId, List<ThirdPartyImageToTextUnit> thirdPartyImageToTextUnits);
+
+    /**
+     * Push source strings to the third party TMS
+     *
+     * @param repository                The Mojito repository
+     * @param projectId                 The third party project Id
+     * @param pluralSeparator           The plural separator to be used in file generation
+     * @param skipTextUnitsWithPattern  The pattern to skip when searching text units
+     * @param skipAssetsWithPathPattern The path pattern to skip when searching assets
+     * @param options                   The options being passed to the third party API
+     * @return The list of files generated in the operation
+     */
+    void push(Repository repository,
+              String projectId,
+              String pluralSeparator,
+              String skipTextUnitsWithPattern,
+              String skipAssetsWithPathPattern,
+              List<String> options);
 }

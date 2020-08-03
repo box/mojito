@@ -1,11 +1,8 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.smartling.request.Binding;
-import com.box.l10n.mojito.smartling.request.Bindings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @ConditionalOnProperty(value = "l10n.ThirdPartyTMS.impl", havingValue = "ThirdPartyTMSInMemory", matchIfMissing = true)
 @Component
@@ -62,5 +57,14 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
         for (ThirdPartyImageToTextUnit thirdPartyImageToTextUnit : thirdPartyImageToTextUnits) {
             forProject.put(thirdPartyImageToTextUnit.getImageId(), thirdPartyImageToTextUnit.getTextUnitId());
         }
+    }
+
+    @Override
+    public void push(Repository repository,
+                     String projectId,
+                     String pluralSeparator,
+                     String skipTextUnitsWithPattern,
+                     String skipAssetsWithPathPattern,
+                     List<String> options) {
     }
 }
