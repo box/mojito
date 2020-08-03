@@ -144,9 +144,9 @@ public class AndroidStringDocumentWriter {
         }
     }
 
-    private static String escapeQuotes(String str) {
+    static String escapeQuotes(String str) {
         return Strings.nullToEmpty(str)
                 .replaceAll("\"", "\\\\\"")
-                .replaceAll("\n", "\\\\\n");
+                .replaceAll("\n", "\\\\n");
     }
 }

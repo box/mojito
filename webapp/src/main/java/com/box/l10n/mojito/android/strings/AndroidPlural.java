@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AndroidPlural extends AbstractAndroidString {
 
@@ -26,9 +27,13 @@ public class AndroidPlural extends AbstractAndroidString {
     }
 
     public void forEachItemSorted(Consumer<AndroidPluralItem> itemConsumer){
-        items.values().stream()
-                .sorted(Comparator.comparingInt(item -> item.getQuantity().ordinal()))
-                .forEach(itemConsumer);
+        sortedStream().forEach(itemConsumer);
+    }
+
+    public Stream<AndroidPluralItem> sortedStream(){
+        return items.values()
+                .stream()
+                .sorted(Comparator.comparingInt(item -> item.getQuantity().ordinal()));
     }
 
     @Override
