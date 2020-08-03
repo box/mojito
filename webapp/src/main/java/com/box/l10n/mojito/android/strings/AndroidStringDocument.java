@@ -37,7 +37,7 @@ public class AndroidStringDocument {
         addSingular(new AndroidSingular(element.getIdAttribute(),
                 element.getNameAttribute(),
                 element.getUnescapedContent(),
-                comment.getTextContent()));
+                comment != null ? comment.getTextContent() : null));
     }
 
     public void addPlural(AndroidPlural plural) {
@@ -51,7 +51,9 @@ public class AndroidStringDocument {
 
         AndroidPlural.AndroidPluralBuilder builder = AndroidPlural.builder();
         builder.setName(element.getNameAttribute());
-        builder.setComment(comment.getTextContent());
+        if (comment != null) {
+            builder.setComment(comment.getTextContent());
+        }
 
         element.forEachPluralItem(builder::addItem);
 

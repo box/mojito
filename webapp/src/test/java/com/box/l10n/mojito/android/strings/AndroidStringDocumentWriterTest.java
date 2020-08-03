@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter.escapeQuotes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AndroidStringDocumentWriterTest {
@@ -212,6 +213,16 @@ public class AndroidStringDocumentWriterTest {
 
         writer.toFile(tmpFile.getPath());
         assertThat(getTempFileContent()).isEqualTo(result);
+    }
+
+    @Test
+    public void testEscapeQuotes() {
+        assertThat(escapeQuotes(null)).isEqualTo("");
+        assertThat(escapeQuotes("")).isEqualTo("");
+        assertThat(escapeQuotes("String")).isEqualTo("String");
+        assertThat(escapeQuotes("second\\\"String")).isEqualTo("second\\\\\"String");
+        assertThat(escapeQuotes("third\nString")).isEqualTo("third\\nString");
+        assertThat(escapeQuotes("fourth\ntest\\\"String\\\"")).isEqualTo("fourth\\ntest\\\\\"String\\\\\"");
     }
 
     private String getTempFileContent() throws IOException {

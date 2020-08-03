@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <!--Some string-->
+    <string name="Mojito/src/main/res/values/strings.xml#@#some_string">Dela...</string>
+    <!--Options-->
+    <string name="Mojito/src/main/res/values/strings.xml#@#show_options">Mer \\" dela</string>
+    <string name="Mojito/src/main/res/values/strings.xml#@#without_comment">ei \\' kommentteja</string>
+    <string name="Mojito/src/main/res/values/strings.xml#@#line_break">salto de \nlinea</string>
+    <!--Plural in hindi-->
+    <plurals name="Mojito/src/main/res/values/strings.xml#@#test_plural_hindi">
+        <item quantity="one">%1$d \@ बहुवचन</item>
+        <item quantity="other">%1$d \@ विलक्षण</item>
+    </plurals>
+    <!--Plural in russian-->
+    <plurals name="Mojito/src/main/res/values/strings.xml#@#plural_russian">
+        <item quantity="one">одно слово</item>
+        <item quantity="many">больше слов</item>
+    </plurals>
+</resources>
