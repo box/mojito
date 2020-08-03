@@ -18,12 +18,13 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
 
 /**
  *
@@ -72,6 +73,7 @@ public class TMTestData {
     public AssetTextUnit createAssetTextUnit1;
     public AssetTextUnit createAssetTextUnit2;
     public Asset asset;
+    public AssetExtraction assetExtraction;
     public TMTextUnitVariant addCurrentTMTextUnitVariant1KoKR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant1FrFR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant3FrFR;
@@ -135,7 +137,7 @@ public class TMTestData {
         addTMTextUnit2 = tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
         addTMTextUnit3 = tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
 
-        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction = new AssetExtraction();
         assetExtraction.setAsset(asset);
         assetExtraction = assetExtractionRepository.save(assetExtraction);
 

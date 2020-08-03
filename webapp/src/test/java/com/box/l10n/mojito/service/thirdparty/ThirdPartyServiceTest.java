@@ -5,8 +5,8 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
-import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySync;
+import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
@@ -42,8 +42,10 @@ import java.util.concurrent.ExecutionException;
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -323,6 +325,30 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals(1L, unmappedScreenshotsAfterSave.size());
         Screenshot screenshot = screenshotRepository.findUnmappedScreenshots(repository).stream().findFirst().get();
         assertEquals("screen3", screenshot.getName());
+    }
+
+    @Test
+    public void testPushArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId("projectId");
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH));
+        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+        verify(thirdPartyTMSMock, atMostOnce()).push(
+                eq(repository),
+                eq("projectId"),
+                eq(" _"),
+                eq("text_unit_pattern"),
+                eq("asset_path_pattern"),
+                refEq(Arrays.asList("option1=value1", "option2=value2")));
     }
 
     ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {
