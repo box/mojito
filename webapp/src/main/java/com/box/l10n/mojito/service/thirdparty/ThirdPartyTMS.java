@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.thirdparty;
 import com.box.l10n.mojito.entity.Repository;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface to be implemented for a third party TMS in order to be able to map its textunit with Mojito's, upload
@@ -54,4 +55,12 @@ interface ThirdPartyTMS {
               String skipTextUnitsWithPattern,
               String skipAssetsWithPathPattern,
               List<String> options);
+
+    void pull(Repository repository,
+              String projectId,
+              String pluralSeparator,
+              Map<String, String> localeMapping,
+              String skipTextUnitsWithPattern,
+              String skipAssetsWithPathPattern,
+              List<String> optionList);
 }

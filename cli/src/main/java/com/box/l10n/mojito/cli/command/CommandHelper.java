@@ -15,9 +15,7 @@ import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.HashBiMap;
 import com.google.common.io.Files;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.FileUtils;
@@ -232,40 +230,6 @@ public class CommandHelper {
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }
-    }
-
-    /**
-     * Gets the locale mapping given the locale mapping param
-     *
-     * @param localeMapppingParam locale mapping param coming from the CLI
-     * @return A map containing the locale mapping
-     */
-    public Map<String, String> getLocaleMapping(String localeMapppingParam) {
-
-        Map<String, String> localeMappings = null;
-        if (localeMapppingParam != null) {
-            localeMappings = Splitter.on(",").withKeyValueSeparator(":").split(localeMapppingParam);
-        }
-
-        return localeMappings;
-    }
-
-    /**
-     * Gets the inverse locale mapping given the locale mapping param
-     *
-     * @param localeMapppingParam locale mapping param coming from the CLI
-     * @return A map containing the inverse locale mapping
-     */
-    public Map<String, String> getInverseLocaleMapping(String localeMapppingParam) {
-
-        Map<String, String> inverseLocaleMapping = null;
-
-        if (localeMapppingParam != null) {
-            inverseLocaleMapping = HashBiMap.create(getLocaleMapping(localeMapppingParam)).inverse();
-
-        }
-
-        return inverseLocaleMapping;
     }
 
     /**

@@ -1,8 +1,11 @@
 package com.box.l10n.mojito.service.thirdparty.smartling;
 
-import java.util.Arrays;
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class SmartlingOptions {
@@ -12,12 +15,12 @@ public final class SmartlingOptions {
     public static final String PLACEHOLDER_FORMAT_CUSTOM = "smartling-placeholder-format-custom";
     public static final String DRY_RUN = "dry-run";
 
-    private final List<String> pluralFixForLocales;
+    private final Set<String> pluralFixForLocales;
     private final String placeholderFormat;
     private final String customPlaceholderFormat;
     private final boolean dryRun;
 
-    public SmartlingOptions(List<String> pluralFixForLocales,
+    public SmartlingOptions(Set<String> pluralFixForLocales,
                             String placeholderFormat,
                             String customPlaceholderFormat,
                             boolean dryRun) {
@@ -40,13 +43,13 @@ public final class SmartlingOptions {
         String customPlaceholderFormat = map.getOrDefault(PLACEHOLDER_FORMAT_CUSTOM, null);
 
         return new SmartlingOptions(
-                pluralFixStr.isEmpty() ? Arrays.asList() : Arrays.asList(pluralFixStr.split(",")),
+                pluralFixStr.isEmpty() ? Collections.emptySet() : ImmutableSet.copyOf(pluralFixStr.split(",")),
                 placeholderFormat,
                 customPlaceholderFormat,
                 "true".equalsIgnoreCase(dryRunStr));
     }
 
-    public List<String> getPluralFixForLocales() {
+    public Set<String> getPluralFixForLocales() {
         return pluralFixForLocales;
     }
 

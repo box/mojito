@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
@@ -95,6 +96,9 @@ public class PullCommand extends Command {
     @Autowired
     ObjectMapper objectMapper;
 
+    @Autowired
+    LocaleMappingHelper localeMappingHelper;
+
     Map<String, RepositoryLocale> repositoryLocalesWithoutRootLocale;
 
     RepositoryLocale rootRepositoryLocale;
@@ -129,7 +133,7 @@ public class PullCommand extends Command {
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
         initRepositoryLocalesMapAndRootRepositoryLocale(repository);
-        localeMappings = commandHelper.getLocaleMapping(localeMappingParam);
+        localeMappings = localeMappingHelper.getLocaleMapping(localeMappingParam);
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
 

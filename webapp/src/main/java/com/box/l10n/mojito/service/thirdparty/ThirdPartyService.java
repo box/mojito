@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Image;
 import com.box.l10n.mojito.entity.Repository;
@@ -7,8 +8,8 @@ import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
-import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySync;
+import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.image.ImageService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -79,6 +80,9 @@ public class ThirdPartyService {
     ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
 
     @Autowired
+    LocaleMappingHelper localeMappingHelper;
+
+    @Autowired
     ImageService imageService;
 
     @Autowired
@@ -119,7 +123,9 @@ public class ThirdPartyService {
             throw new UnsupportedOperationException();
         }
         if (actions.contains(ThirdPartySyncAction.PULL)) {
-            throw new UnsupportedOperationException();
+            thirdPartyTMS.pull(repository, thirdPartyProjectId, pluralSeparator,
+                    localeMappingHelper.getInverseLocaleMapping(localeMapping),
+                    skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
             mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);

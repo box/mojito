@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.ImageClient;
@@ -84,6 +85,9 @@ public class ScreenshotCommand extends Command {
     @Autowired
     ScreenshotClient screenshotClient;
 
+    @Autowired
+    LocaleMappingHelper localeMappingHelper;
+
     /**
      * Contains a map of locale for generating localized file a locales defined
      * in the repository.
@@ -99,7 +103,7 @@ public class ScreenshotCommand extends Command {
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam);
-        localeMappings = commandHelper.getLocaleMapping(localeMappingParam);
+        localeMappings = localeMappingHelper.getLocaleMapping(localeMappingParam);
         repositoryLocales = commandHelper.getSortedRepositoryLocales(repository);
 
         List<Path> listFilesWithExtensionInSourceDirectory = commandDirectories.listFilesWithExtensionInSourceDirectory("png", "jpg", "jpeg", "gif");

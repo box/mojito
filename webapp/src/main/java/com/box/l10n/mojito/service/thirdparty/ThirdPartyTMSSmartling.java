@@ -1,11 +1,15 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
+import com.box.l10n.mojito.android.strings.AndroidStringDocumentReader;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFile;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
+import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingPluralFix;
+import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -27,15 +31,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.getOutputSourceFile;
 import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.isPluralFile;
 
 @ConditionalOnProperty(value = "l10n.ThirdPartyTMS.impl", havingValue = "ThirdPartyTMSSmartling")
@@ -51,29 +60,35 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     file in smartling.
     */
     private static final int DEFAULT_BATCH_SIZE = 5004;
+    private static final List<String> EN_LOCALE = ImmutableList.of("en");
 
     private final SmartlingClient smartlingClient;
     private final AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys;
     private final TextUnitSearcher textUnitSearcher; // TODO - Add a cached version of textunitsearcher
+    private final TextUnitBatchImporterService textUnitBatchImporterService;
     private final Integer batchSize;
 
     private List<SmartlingFile> lastPushResult;
 
     @Autowired
     public ThirdPartyTMSSmartling(SmartlingClient smartlingClient,
+                                  TextUnitSearcher textUnitSearcher,
                                   AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys,
-                                  TextUnitSearcher textUnitSearcher) {
-        this(smartlingClient, assetPathAndTextUnitNameKeys, textUnitSearcher, DEFAULT_BATCH_SIZE);
+                                  TextUnitBatchImporterService textUnitBatchImporterService) {
+        this(smartlingClient, textUnitSearcher, assetPathAndTextUnitNameKeys,
+                textUnitBatchImporterService, DEFAULT_BATCH_SIZE);
     }
 
     public ThirdPartyTMSSmartling(SmartlingClient smartlingClient,
-                                  AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys,
                                   TextUnitSearcher textUnitSearcher,
+                                  AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys,
+                                  TextUnitBatchImporterService textUnitBatchImporterService,
                                   int batchSize) {
         this.smartlingClient = smartlingClient;
         this.assetPathAndTextUnitNameKeys = assetPathAndTextUnitNameKeys;
+        this.textUnitBatchImporterService = textUnitBatchImporterService;
         this.textUnitSearcher = textUnitSearcher;
-        this.batchSize = batchSize;
+        this.batchSize = batchSize < 1 ? DEFAULT_BATCH_SIZE : batchSize;
     }
 
     @Override
@@ -150,26 +165,27 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         Stream<SmartlingFile> singularFiles = Streams.mapWithIndex(
                 partitionSingulars(repository.getId(), localeTags, skipTextUnitsWithPattern, skipAssetsWithPathPattern),
-                (batch, index) -> processPushBatch(batch, index, mapper, repository, projectId, options, "singular"));
+                (batch, index) -> processPushBatch(batch, index, mapper, repository, projectId, options, true));
 
         Stream<SmartlingFile> pluralFiles = Streams.mapWithIndex(
                 partitionPlurals(repository.getId(), localeTags, skipTextUnitsWithPattern, skipAssetsWithPathPattern),
-                (batch, index) -> processPushBatch(batch, index, mapper, repository, projectId, options, "plural"));
+                (batch, index) -> processPushBatch(batch, index, mapper, repository, projectId, options, false));
 
         lastPushResult = Stream.concat(singularFiles, pluralFiles).collect(Collectors.toList());
     }
 
-    SmartlingFile processPushBatch(List<TextUnitDTO> result,
-                                   long batchNumber,
-                                   AndroidStringDocumentMapper mapper,
-                                   Repository repository,
-                                   String projectId,
-                                   SmartlingOptions options,
-                                   String filePrefix) {
+    private SmartlingFile processPushBatch(List<TextUnitDTO> result,
+                                           long batchNumber,
+                                           AndroidStringDocumentMapper mapper,
+                                           Repository repository,
+                                           String projectId,
+                                           SmartlingOptions options,
+                                           boolean singularsFile) {
 
         logger.debug("Convert text units to AndroidString for asset number: {}", batchNumber);
+        String filePrefix = singularsFile ? "singular" : "plural";
         SmartlingFile file = new SmartlingFile();
-        file.setFileName(SmartlingFileUtils.getOutputSourceFile(batchNumber, repository.getName(), filePrefix));
+        file.setFileName(getOutputSourceFile(batchNumber, repository.getName(), filePrefix));
 
         try {
 
@@ -190,6 +206,70 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         return file;
     }
 
+    @Override
+    public void pull(Repository repository,
+                     String projectId,
+                     String pluralSeparator,
+                     Map<String, String> localeMapping,
+                     String skipTextUnitsWithPattern,
+                     String skipAssetsWithPathPattern,
+                     List<String> optionList) {
+
+        SmartlingOptions options = SmartlingOptions.parseList(optionList);
+        AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
+
+        Long singulars = singularCount(repository.getId(), EN_LOCALE, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
+        LongStream.range(0, batchesFor(singulars))
+                  .forEach(num -> processPullBatch(num, mapper, repository, projectId, options, localeMapping, true));
+
+        Long plurals = pluralCount(repository.getId(), EN_LOCALE, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
+        LongStream.range(0, batchesFor(plurals))
+                  .forEach(num -> processPullBatch(num, mapper, repository, projectId, options, localeMapping, false));
+    }
+
+    private void processPullBatch(Long batchNumber,
+                                  AndroidStringDocumentMapper mapper,
+                                  Repository repository,
+                                  String projectId,
+                                  SmartlingOptions options,
+                                  Map<String, String> localeMapping,
+                                  boolean singularsFile) {
+
+        String filePrefix = singularsFile ? "singular" : "plural";
+
+        for (RepositoryLocale locale : repository.getRepositoryLocales()) {
+
+            if (!locale.isToBeFullyTranslated()){
+                continue;
+            }
+
+            String localeTag = locale.getLocale().getBcp47Tag();
+            String smartlingLocale = localeMapping.getOrDefault(localeTag, localeTag);
+            String fileName = getOutputSourceFile(batchNumber, repository.getName(), filePrefix);
+
+            logger.debug("Download localized file from Smartling for file: {}, Mojito locale: {} and Smartling locale: {}",
+                    fileName, localeTag, smartlingLocale);
+            String fileContent = smartlingClient.downloadPublishedFile(projectId, smartlingLocale, fileName, false);
+            List<TextUnitDTO> textUnits;
+
+            try {
+                textUnits = mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
+            } catch (ParserConfigurationException | IOException | SAXException e) {
+                logger.error("An error ocurred when processing a pull batch", e);
+                throw new RuntimeException(e);
+            }
+
+            if (!textUnits.isEmpty() && !singularsFile && options.getPluralFixForLocales().contains(localeTag)){
+                textUnits = SmartlingPluralFix.fixTextUnits(textUnits);
+            }
+
+            if (!options.isDryRun()) {
+                logger.debug("Importing text units for locale: {}", smartlingLocale);
+                textUnitBatchImporterService.importTextUnits(textUnits, false, true);
+            }
+        }
+    }
+
     private Stream<List<TextUnitDTO>> partitionSingulars(Long repositoryId,
                                                          List<String> localesTags,
                                                          String skipTextUnitsWithPattern,
@@ -204,6 +284,22 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                                        String skipAssetsWithPathPattern) {
         return StreamSupport.stream(Iterables.partition(textUnitSearcher.search(baseParams(repositoryId, localesTags, skipTextUnitsWithPattern,
                 skipAssetsWithPathPattern, false, false, "%")), batchSize).spliterator(), false);
+    }
+    
+    private Long singularCount(Long repositoryId,
+                               List<String> localesTags,
+                               String skipTextUnitsWithPattern,
+                               String skipAssetsWithPathPattern) {
+        return textUnitSearcher.countTextUnitAndWordCount(baseParams(repositoryId, localesTags, skipTextUnitsWithPattern,
+                skipAssetsWithPathPattern, true, true, null)).getTextUnitCount();
+    }
+
+    private Long pluralCount(Long repositoryId,
+                             List<String> localesTags,
+                             String skipTextUnitsWithPattern,
+                             String skipAssetsWithPathPattern) {
+        return textUnitSearcher.countTextUnitAndWordCount(baseParams(repositoryId, localesTags, skipTextUnitsWithPattern,
+                skipAssetsWithPathPattern, false, false, "%")).getTextUnitCount();
     }
 
     private TextUnitSearcherParameters baseParams(Long repositoryId,
@@ -230,6 +326,19 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         }
 
         return result;
+    }
+
+    /**
+     * Calculates the number of batches required to process totalUnits,
+     * considering the batchSize configured at the instance level. E.g: If
+     * our batch size is 10, and we have 123 units, this function returns 13,
+     * as we need 13 batches of 10 to process 123 units.
+     *
+     * @param totalUnits Total units to process
+     * @return The amount of batches required to process totalUnits
+     */
+    long batchesFor(long totalUnits) {
+        return totalUnits / batchSize + ((totalUnits % batchSize == 0) ? 0 : 1);
     }
 
     public List<SmartlingFile> getLastPushResult() {
