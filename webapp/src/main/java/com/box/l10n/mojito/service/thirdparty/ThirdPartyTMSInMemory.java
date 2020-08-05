@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ConditionalOnProperty(value = "l10n.ThirdPartyTMS.impl", havingValue = "ThirdPartyTMSInMemory", matchIfMissing = true)
@@ -66,5 +67,16 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
                      String skipTextUnitsWithPattern,
                      String skipAssetsWithPathPattern,
                      List<String> options) {
+    }
+
+    @Override
+    public void pull(Repository repository,
+                     String projectId,
+                     String pluralSeparator,
+                     Map<String, String> localeMapping,
+                     String skipTextUnitsWithPattern,
+                     String skipAssetsWithPathPattern,
+                     List<String> optionList) {
+
     }
 }

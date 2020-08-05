@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
@@ -87,6 +88,9 @@ public class ImportLocalizedAssetCommand extends Command {
     @Autowired
     CommandHelper commandHelper;
 
+    @Autowired
+    LocaleMappingHelper localeMappingHelper;
+
     Repository repository;
 
     CommandDirectories commandDirectories;
@@ -104,7 +108,7 @@ public class ImportLocalizedAssetCommand extends Command {
 
         repository = commandHelper.findRepositoryByName(repositoryParam);
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
-        inverseLocaleMapping = commandHelper.getInverseLocaleMapping(localeMappingParam);
+        inverseLocaleMapping = localeMappingHelper.getInverseLocaleMapping(localeMappingParam);
 
         for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
             for (Locale locale : getLocalesForImport()) {

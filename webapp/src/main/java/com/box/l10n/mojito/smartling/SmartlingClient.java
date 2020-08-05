@@ -106,14 +106,18 @@ public class SmartlingClient {
         }
     }
 
-    public String downloadFile(String projectId, String local, String fileUri, boolean includeOriginalStrings, RetrievalType retrievalType) {
+    public String downloadFile(String projectId, String locale, String fileUri, boolean includeOriginalStrings, RetrievalType retrievalType) {
         try {
             String file = oAuth2RestTemplate.getForObject(
-                    API_FILES_DOWNLOAD, String.class, projectId, local, fileUri, includeOriginalStrings, retrievalType.getValue());
+                    API_FILES_DOWNLOAD, String.class, projectId, locale, fileUri, includeOriginalStrings, retrievalType.getValue());
             return file;
         } catch(HttpClientErrorException e) {
             throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_FILE, fileUri);
         }
+    }
+
+    public String downloadPublishedFile(String projectId, String locale, String fileUri, boolean includeOriginalStrings) {
+        return downloadFile(projectId, locale, fileUri, includeOriginalStrings, RetrievalType.PUBLISHED);
     }
 
     public void deleteFile(String projectId, String fileUri) {

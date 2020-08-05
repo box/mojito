@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.android.strings;
 
+import com.google.common.base.Strings;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
@@ -21,7 +22,7 @@ public class AndroidStringDocumentReader {
     }
 
     public static AndroidStringDocument fromText(String text) throws ParserConfigurationException, IOException, SAXException {
-        return buildFromDocument(documentBuilder().parse(new InputSource(new StringReader(text))));
+        return buildFromDocument(documentBuilder().parse(new InputSource(new StringReader(Strings.nullToEmpty(text)))));
     }
 
     private static AndroidStringDocument buildFromDocument(Document source) {

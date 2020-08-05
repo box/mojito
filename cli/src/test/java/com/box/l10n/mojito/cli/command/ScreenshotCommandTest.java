@@ -1,16 +1,19 @@
 package com.box.l10n.mojito.cli.command;
 
+import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Locale;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.junit.Assert.assertEquals;
 
 public class ScreenshotCommandTest extends CLITestBase {
 
@@ -24,6 +27,9 @@ public class ScreenshotCommandTest extends CLITestBase {
 
     @Autowired
     CommandHelper commandHelper;
+
+    @Autowired
+    LocaleMappingHelper localeMappingHelper;
    
     @Test
     public void execute() throws Exception {
@@ -95,7 +101,7 @@ public class ScreenshotCommandTest extends CLITestBase {
         Repository repository = createTestRepoUsingRepoService();
         com.box.l10n.mojito.rest.entity.Repository repositoryByName = repositoryClient.getRepositoryByName(repository.getName());
         ScreenshotCommand screenshotCommand = new ScreenshotCommand();
-        screenshotCommand.localeMappings = commandHelper.getLocaleMapping("fr:fr-FR");
+        screenshotCommand.localeMappings = localeMappingHelper.getLocaleMapping("fr:fr-FR");
         screenshotCommand.repositoryLocales = commandHelper.getSortedRepositoryLocales(repositoryByName);
 
         Locale localeFromImagePath = screenshotCommand.getLocaleFromImagePath(Paths.get("fr/sub/file.png"));
