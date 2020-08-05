@@ -45,6 +45,10 @@ Run the CLI with:
 java -jar mojito-cli-*.jar
 ```
 
+As {{ site.mojito_green }} is based on Spring Boot, it can be [configured](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-external-config) in many ways.
+
+One simple solution is to add an `application.properties` next to the `jar`. To use a different location use `--spring.config.location=/path/to/your/application.properties`.
+
 ### Using New Executable Jars (post Spring boot 2 migration)
 
 Run the Webapp with:
