@@ -54,6 +54,7 @@ import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
+import net.sf.okapi.common.filters.IFilterConfigurationMapper;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
@@ -141,7 +142,7 @@ public class TMService {
     TextUnitUtils textUnitUtils;
 
     @Autowired
-    FilterConfigurationMappers filterConfigurationMappers;
+    IFilterConfigurationMapper filterConfigurationMapper;
 
     @Autowired
     AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
@@ -1004,7 +1005,7 @@ public class TMService {
 
         //TODO(P1) see assetExtractor comments
         logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
+        driver.setFilterConfigurationMapper(filterConfigurationMapper);
 
         FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
         driver.addStep(filterEventsToInMemoryRawDocumentStep);
@@ -1100,7 +1101,7 @@ public class TMService {
         driver.addStep(new ImportTranslationsFromLocalizedAssetStep(asset, repositoryLocale, statusForEqualtarget));
 
         logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
+        driver.setFilterConfigurationMapper(filterConfigurationMapper);
 
         FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
         driver.addStep(filterEventsToInMemoryRawDocumentStep);

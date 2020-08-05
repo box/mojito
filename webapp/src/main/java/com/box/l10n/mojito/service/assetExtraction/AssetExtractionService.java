@@ -62,6 +62,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
@@ -259,7 +260,6 @@ public class AssetExtractionService {
 
         logAndReset(stopwatch, "done creating asset extraction");
 
-
         MultiBranchState toMergeState = performAssetExtractionNew(assetExtraction, filterConfigIdOverride, filterOptions, currentTask);
         // TODO this is still need for the whole system to work but potentially we want to remove it
         // if there is not asset extraction for branch - retrigger the asset processing regarless if the content hasn't changed
@@ -408,6 +408,8 @@ public class AssetExtractionService {
         return mergedUpdated;
     }
 
+// TODO(perf) wrap in retry -- CannotAcquireLockException
+// not that simple    @Retryable(include = CannotAcquireLockException.class)
     @Transactional
     void createAssetTextUnitAndMapping(Asset asset, MultiBranchState mergedUpdated, MultiBranchState base) {
 
@@ -415,7 +417,9 @@ public class AssetExtractionService {
 
         final AssetExtraction lastSuccessfulAssetExtraction;
 
-        logAndReset(stopwatch, "get or create last succesful extraction");
+        logAndReset(stopwatch, "get or create last succesful extraction" +
+                "" +
+                "");
         if (asset.getLastSuccessfulAssetExtraction() == null) {
             lastSuccessfulAssetExtraction = createAssetExtraction(asset, null); // TODO pass pollabletask
             markAssetExtractionAsLastSuccessful(asset, lastSuccessfulAssetExtraction);
@@ -451,32 +455,11 @@ public class AssetExtractionService {
         Sets.SetView<String> removed = Sets.difference(unusedInMerged, unusedInBase);
         Sets.SetView<String> added = Sets.difference(usedInMerged, usedInBase);
 
-        removed.stream().forEach(md5 -> {
-            logger.warn("Remove for md5: {}", md5);
-            assetTextUnitRepository.findByAssetExtractionIdAndMd5(lastSuccessfulAssetExtraction.getId(), md5)
-                    .ifPresent(assetTextUnit -> {
-                        logger.warn("removing atu: {}", assetTextUnit.getId());
-                        assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
-                        assetTextUnitRepository.deleteById(assetTextUnit.getId());
-                    });
-        });
+        removeWithRetry(lastSuccessfulAssetExtraction, removed);
 
 
         logAndReset(stopwatch, "Removing unused 1 by 1 normal process:");
-
-        /// TODO this is recovery code shouldn't be run all the time
-        /// this is costly but help keeping things consistent!
-        List<TextUnitIdMd5DTO> byAssetExtraction = assetTextUnitRepository.findMd5ByAssetExtraction(lastSuccessfulAssetExtraction);
-
-        logAndReset(stopwatch, "Getting all text units to check:");
-
-        byAssetExtraction.stream()
-                .filter(t -> !usedInMerged.contains(t.getMd5())) // TODO or unused in merged ?? kind of the same
-                .forEach(assetTextUnit -> {
-                    logger.warn("removing extra text unit: {}", assetTextUnit.getId());
-                    assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
-                    assetTextUnitRepository.deleteById(assetTextUnit.getId());
-                });
+        cleanupwithretry(stopwatch, lastSuccessfulAssetExtraction, usedInMerged);
 
         logAndReset(stopwatch, "Removing ATU from check data:");
 
@@ -522,6 +505,36 @@ public class AssetExtractionService {
                 });
 
         logAndReset(stopwatch, "Add ATU normal process:");
+    }
+
+    @Retryable
+    private void cleanupwithretry(Stopwatch stopwatch, AssetExtraction lastSuccessfulAssetExtraction, ImmutableSet<String> usedInMerged) {
+        /// TODO this is recovery code shouldn't be run all the time
+        /// this is costly but help keeping things consistent!
+        List<TextUnitIdMd5DTO> byAssetExtraction = assetTextUnitRepository.findMd5ByAssetExtraction(lastSuccessfulAssetExtraction);
+
+        logAndReset(stopwatch, "Getting all text units to check:");
+
+        byAssetExtraction.stream()
+                .filter(t -> !usedInMerged.contains(t.getMd5())) // TODO or unused in merged ?? kind of the same
+                .forEach(assetTextUnit -> {
+                    logger.warn("removing extra text unit: {}", assetTextUnit.getId());
+                    assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
+                    assetTextUnitRepository.deleteById(assetTextUnit.getId());
+                });
+    }
+
+    @Retryable
+    private void removeWithRetry(AssetExtraction lastSuccessfulAssetExtraction, Sets.SetView<String> removed) {
+        removed.stream().forEach(md5 -> {
+            logger.warn("Remove for md5: {}", md5);
+            assetTextUnitRepository.findByAssetExtractionIdAndMd5(lastSuccessfulAssetExtraction.getId(), md5)
+                    .ifPresent(assetTextUnit -> {
+                        logger.warn("removing atu: {}", assetTextUnit.getId());
+                        assetTextUnitToTMTextUnitRepository.deleteByAssetTextUnitId(assetTextUnit.getId());
+                        assetTextUnitRepository.deleteById(assetTextUnit.getId());
+                    });
+        });
     }
 
     private void logAndReset(Stopwatch stopwatch, String s) {
@@ -891,6 +904,10 @@ public class AssetExtractionService {
      */
     public AssetExtraction createAssetExtractionForMultipleBranches(Asset asset, PollableTask pollableTask) {
 
+        if (useNewImplementation) {
+            return createAssetExtractionForMultipleBranchesNew(asset, pollableTask);
+        }
+
         logger.debug("Get branches to be merged");
         List<AssetExtractionByBranch> sortedAssetExtractionByBranches = getSordedAssetExtractionByBranches(asset);
 
@@ -926,6 +943,13 @@ public class AssetExtractionService {
 
         return mergedAssetExtraction;
     }
+
+
+    public AssetExtraction createAssetExtractionForMultipleBranchesNew(Asset asset, PollableTask pollableTask) {
+
+        return null;
+    }
+
 
     public List<AssetExtractionByBranch> getSordedAssetExtractionByBranches(Asset asset) {
         List<AssetExtractionByBranch> assetExtractionByBranches = assetExtractionByBranchRepository.findByAssetAndDeletedFalse(asset);

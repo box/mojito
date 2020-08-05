@@ -35,7 +35,7 @@ public class MultiBranchStateMerger {
                     updatedIntoStateTextUnit.setBranchToBranchDatas(getSortedNewBranchesAndDataForBaseTextUnit(intoStateTextUnit, toMergeState, priorityBranchNames));
                     return updatedIntoStateTextUnit;
                 })
-                .collect(Collectors.toMap(BranchStateTextUnit::getMd5, Function.identity()));
+                .collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, Function.identity()));
 
         List<BranchStateTextUnit> fromToMergeState = toMergeState.getMd5ToBranchStateTextUnits().values().stream()
                 .filter(tu -> !intoStateUpdated.keySet().contains(tu.getMd5()))
@@ -45,9 +45,10 @@ public class MultiBranchStateMerger {
                 })
                 .collect(Collectors.toList());
 
+        //TODO(perf) ordering breaks test and partially makes sense -- need review
         ImmutableMap<String, BranchStateTextUnit> all = Stream.concat(intoStateUpdated.values().stream(), fromToMergeState.stream())
-                .sorted(Comparator.comparing(BranchStateTextUnit::getCreatedDate, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(BranchStateTextUnit::getMd5, Comparator.nullsLast(Comparator.naturalOrder())))
+//                .sorted(Comparator.comparing(BranchStateTextUnit::getCreatedDate, Comparator.nullsLast(Comparator.naturalOrder()))
+//                        .thenComparing(BranchStateTextUnit::getMd5, Comparator.nullsLast(Comparator.naturalOrder())))
                 .collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, Function.identity()));
 
         newState.setMd5ToBranchStateTextUnits(all);

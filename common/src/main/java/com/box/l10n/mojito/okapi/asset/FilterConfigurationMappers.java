@@ -13,14 +13,21 @@ import com.box.l10n.mojito.okapi.filters.XcodeXliffFilter;
 import net.sf.okapi.common.filters.DefaultFilters;
 import net.sf.okapi.common.filters.FilterConfigurationMapper;
 import net.sf.okapi.common.filters.IFilterConfigurationMapper;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-@Component
+@Configuration
 public class FilterConfigurationMappers {
 
     /**
      * @return A {@link net.sf.okapi.common.filters.FilterConfigurationMapper}, which has been configured with the default mappings
      */
+    // TODO(perf) this is very slow ... moving it to a bean ... check impact on start up though ...
+    @Lazy
+    @Bean
     public IFilterConfigurationMapper getConfiguredFilterConfigurationMapper() {
 
         IFilterConfigurationMapper mapper = new net.sf.okapi.common.filters.FilterConfigurationMapper();
