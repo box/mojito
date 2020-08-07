@@ -92,7 +92,7 @@ public class ScreenshotWSTest extends WSTestBase {
         com.box.l10n.mojito.rest.entity.Repository r = new com.box.l10n.mojito.rest.entity.Repository();
         r.setName(repository.getName());
         r.setId(repository.getId());
-        screenshotRun.setName("screenshotrun");
+        screenshotRun.setName(testIdWatcher.getEntityName("screenshotrun"));
         screenshotRun.setRepository(r);
 
         com.box.l10n.mojito.rest.entity.Screenshot screenshot1 = new com.box.l10n.mojito.rest.entity.Screenshot();

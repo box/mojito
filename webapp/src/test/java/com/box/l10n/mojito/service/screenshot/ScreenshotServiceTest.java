@@ -63,6 +63,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
         ScreenshotRun screenshotRun = new ScreenshotRun();
+        screenshotRun.setName(UUID.randomUUID().toString());
         screenshotRun.setRepository(repository);
 
         Screenshot screenshot1 = new Screenshot();
