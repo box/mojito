@@ -63,4 +63,12 @@ interface ThirdPartyTMS {
               String skipTextUnitsWithPattern,
               String skipAssetsWithPathPattern,
               List<String> optionList);
+
+    void pushTranslations(Repository repository,
+                          String projectId,
+                          String pluralSeparator,
+                          Map<String, String> localeMapping,
+                          String skipTextUnitsWithPattern,
+                          String skipAssetsWithPathPattern,
+                          List<String> optionList);
 }

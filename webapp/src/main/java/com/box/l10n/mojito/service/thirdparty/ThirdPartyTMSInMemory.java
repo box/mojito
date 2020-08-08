@@ -79,4 +79,15 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
                      List<String> optionList) {
 
     }
+
+    @Override
+    public void pushTranslations(Repository repository,
+                                 String projectId,
+                                 String pluralSeparator,
+                                 Map<String, String> localeMapping,
+                                 String skipTextUnitsWithPattern,
+                                 String skipAssetsWithPathPattern,
+                                 List<String> optionList) {
+
+    }
 }
