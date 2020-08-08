@@ -120,7 +120,9 @@ public class ThirdPartyService {
                     skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
-            throw new UnsupportedOperationException();
+            thirdPartyTMS.pushTranslations(repository, thirdPartyProjectId, pluralSeparator,
+                    localeMappingHelper.getInverseLocaleMapping(localeMapping),
+                    skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.PULL)) {
             thirdPartyTMS.pull(repository, thirdPartyProjectId, pluralSeparator,

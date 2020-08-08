@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
@@ -37,18 +38,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -98,11 +101,20 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     @Autowired
     ImageService imageService;
 
+    @Autowired
+    LocaleMappingHelper localeMappingHelper;
+
     @Mock
     ThirdPartyTMS thirdPartyTMSMock;
 
     @Captor
     ArgumentCaptor<List<ThirdPartyImageToTextUnit>> thirdPartyImageToTextUnitsArgumentCaptor;
+
+    @Captor
+    ArgumentCaptor<List<String>> optionsArgumentCaptor;
+
+    @Captor
+    ArgumentCaptor<Map<String, String>> localeMappingArgumentCaptor;
 
     @Before
     public void before() {
@@ -339,16 +351,84 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
         thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
         thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
 
         thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
-        verify(thirdPartyTMSMock, atMostOnce()).push(
-                eq(repository),
+        verify(thirdPartyTMSMock, only()).push(
+                repoCaptor.capture(),
                 eq("projectId"),
                 eq(" _"),
                 eq("text_unit_pattern"),
                 eq("asset_path_pattern"),
-                refEq(Arrays.asList("option1=value1", "option2=value2")));
+                optionsArgumentCaptor.capture());
+
+        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    }
+
+    @Test
+    public void testPushTranslationArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String localeMapping = "ja:ja-JP";
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId("projectId");
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH_TRANSLATION));
+        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setLocaleMapping(localeMapping);
+        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+        verify(thirdPartyTMSMock, only()).pushTranslations(
+                repoCaptor.capture(),
+                eq("projectId"),
+                eq(" _"),
+                localeMappingArgumentCaptor.capture(),
+                eq("text_unit_pattern"),
+                eq("asset_path_pattern"),
+                optionsArgumentCaptor.capture());
+
+        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    }
+
+    @Test
+    public void testPullArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String localeMapping = "ja:ja-JP";
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId("projectId");
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PULL));
+        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setLocaleMapping(localeMapping);
+        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+        verify(thirdPartyTMSMock, only()).pull(
+                repoCaptor.capture(),
+                eq("projectId"),
+                eq(" _"),
+                localeMappingArgumentCaptor.capture(),
+                eq("text_unit_pattern"),
+                eq("asset_path_pattern"),
+                optionsArgumentCaptor.capture());
+
+        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
     }
 
     ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {
