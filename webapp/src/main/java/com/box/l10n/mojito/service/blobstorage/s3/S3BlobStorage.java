@@ -127,12 +127,16 @@ public class S3BlobStorage implements BlobStorage {
                 new ByteArrayInputStream(content),
                 objectMetadata);
 
-        List<Tag> tags = new ArrayList<Tag>();
+        List<Tag> tags = new ArrayList<>();
         tags.add(new Tag("retention", retention.toString()));
 
         putRequest.setTagging(new ObjectTagging(tags));
 
         amazonS3.putObject(putRequest);
+    }
+
+    public String getS3Url(String name) {
+        return String.format("s3://%s/%s", s3BlobStorageConfigurationProperties.getBucket(), getFullName(name));
     }
 
     String getFullName(String name) {

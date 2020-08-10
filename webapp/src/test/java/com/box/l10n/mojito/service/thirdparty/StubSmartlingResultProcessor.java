@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFile;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
+import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingResultProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,17 +13,20 @@ public class StubSmartlingResultProcessor extends SmartlingResultProcessor {
     List<SmartlingFile> pushTranslationFiles = new ArrayList<>();
     SmartlingOptions options;
 
-    @Override
-    public void processPush(List<SmartlingFile> files, SmartlingOptions options) {
-        this.pushFiles = files;
-        this.options = options;
-        super.processPush(files, options);
+    public StubSmartlingResultProcessor() {
     }
 
     @Override
-    public void processPushTranslations(List<SmartlingFile> files, SmartlingOptions options) {
+    public String processPush(List<SmartlingFile> files, SmartlingOptions options) {
+        this.pushFiles = files;
+        this.options = options;
+        return "";
+    }
+
+    @Override
+    public String processPushTranslations(List<SmartlingFile> files, SmartlingOptions options) {
         this.pushTranslationFiles = files;
         this.options = options;
-        super.processPushTranslations(files, options);
+        return "";
     }
 }
