@@ -9,6 +9,7 @@ import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFile;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingPluralFix;
+import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingResultProcessor;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
