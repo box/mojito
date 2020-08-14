@@ -13,6 +13,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskRepository;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
+    @Ignore("TODO(perf) This doesn't make sense anymore since we update asset extraction instead of re-creating them")
     @Test
     public void testCleanupOldAssetExtractionsWhenAllExtractionsHaveFinished() throws Exception {
 
@@ -95,6 +97,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
         }
     }
 
+    @Ignore("TODO(perf) This doesn't make sense anymore since we update asset extraction instead of re-creating them")
     @Test
     public void testCleanupOldAssetExtractionsMultipleBranch() throws Exception {
 
@@ -119,6 +122,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
         assertEquals("There should be 1 assets extraction per branch (3) and one merged asset extraction", 4, assetExtractionsAfterCleanup.size());
     }
 
+    @Ignore("TODO(perf) This doesn't make sense anymore since we update asset extraction instead of re-creating them")
     @Test
     public void testCleanupOldAssetExtractionsWhenNotAllExtractionsHaveFinished() throws Exception {
 

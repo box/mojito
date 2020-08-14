@@ -15,6 +15,7 @@ import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
+import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchRepository;
@@ -72,6 +73,9 @@ public class AssetService {
     AssetExtractionByBranchRepository assetExtractionByBranchRepository;
 
     @Autowired
+    AssetExtractionRepository assetExtractionRepository;
+
+    @Autowired
     AssetExtractionService assetExtractionService;
 
     @Autowired
@@ -100,6 +104,7 @@ public class AssetService {
 
     @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+    boolean useNewImplementation = true;
 
     /**
      * Adds an {@link Asset} to a {@link Repository}.
@@ -139,12 +144,12 @@ public class AssetService {
      * {@link AssetService#addOrUpdateAssetAndProcessIfNeeded(Long, String, String)}
      *
      * @param branch
-     * @param repositoryId       {@link Repository#id} of the repository that will
-     *                           contain the asset
-     * @param assetPath          Remote path of the asset
-     * @param assetContent       Content of the asset
+     * @param repositoryId     {@link Repository#id} of the repository that will
+     *                         contain the asset
+     * @param assetPath        Remote path of the asset
+     * @param assetContent     Content of the asset
      * @param extractedContent
-     * @param currentTask        The current task, injected
+     * @param currentTask      The current task, injected
      * @return The created asset
      * @throws ExecutionException
      * @throws InterruptedException
@@ -184,7 +189,7 @@ public class AssetService {
 
         Branch branch = branchService.getUndeletedOrCreateBranch(asset.getRepository(), branchName, branchCreatedByUser);
 
-        AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
+        AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch).orElse(null);
 
         if (isAssetProcessingNeeded(assetExtractionByBranch, assetContent, filterOptions)) {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, extractedContent, branch);
@@ -199,7 +204,7 @@ public class AssetService {
         return pollableFutureTaskResult;
     }
 
-
+    @Transactional
     public Asset createAsset(Long repositoryId, String assetPath, boolean virtualContent) {
         logger.debug("Create assest for repository id: {}, path: {}", repositoryId, assetPath);
 
@@ -212,9 +217,16 @@ public class AssetService {
         asset.setPath(assetPath);
 
         asset = assetRepository.save(asset);
+
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        asset.setLastSuccessfulAssetExtraction(assetExtraction);
+        asset = assetRepository.save(asset);
+
         return asset;
     }
-
 
     /**
      * Creates an {@link Asset}. Note that this function does not check if an
@@ -353,12 +365,49 @@ public class AssetService {
         logger.debug("Deleted assets {} for branch id: {}", assetIds.toString(), branchId);
     }
 
-    public void deleteAssetOfBranch(Long assetId, Long branchId) {
+    public void deleteAssetOfBranchNew(Long assetId, Long branchId) {
         logger.debug("deleteAssetOfBranch: asset id: {}, branch id: {}", assetId, branchId);
         Asset asset = assetRepository.findById(assetId).orElse(null);
         if (asset != null) {
             Branch branch = branchRepository.findById(branchId).orElse(null);
-            AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch);
+            AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch).orElse(null);
+
+            if (assetExtractionByBranch == null) {
+                logger.debug("Asset extraction for asset: {} and branch: {} doesn't exist", asset.getPath(), branchId);
+            } else {
+                if (assetExtractionByBranch.getDeleted()) {
+                    logger.debug("Asset extraction for asset: {} and branch: {} already deleted", asset.getPath(), branchId);
+                } else {
+                    logger.debug("Mark asset extraction for asset: {} and branch: {} as deleted", asset.getPath(), branchId);
+                    assetExtractionByBranch.setDeleted(true);
+                    assetExtractionByBranchRepository.save(assetExtractionByBranch);
+                    assetExtractionService.recreateMergedAssetExtraction(asset, branch) ;
+                }
+            }
+
+            logger.debug("Check if the asset must be deleted");
+            List<AssetExtractionByBranch> assetExtractionByBranches = assetExtractionByBranchRepository.findByAssetAndDeletedFalse(asset);
+
+            if (assetExtractionByBranches.isEmpty()) {
+                logger.debug("All branch are deleted or removed, delete asset");
+                deleteAsset(asset);
+            }
+        }
+    }
+
+
+    public void deleteAssetOfBranch(Long assetId, Long branchId) {
+
+        if (useNewImplementation) {
+            deleteAssetOfBranchNew(assetId, branchId);
+            return;
+        }
+
+        logger.debug("deleteAssetOfBranch: asset id: {}, branch id: {}", assetId, branchId);
+        Asset asset = assetRepository.findById(assetId).orElse(null);
+        if (asset != null) {
+            Branch branch = branchRepository.findById(branchId).orElse(null);
+            AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch).orElse(null);
 
             if (assetExtractionByBranch == null) {
                 logger.debug("Asset extraction for asset: {} and branch: {} doesn't exist", asset.getPath(), branchId);
@@ -371,10 +420,11 @@ public class AssetService {
                     assetExtractionByBranchRepository.save(assetExtractionByBranch);
 
                     List<AssetExtractionByBranch> assetExtractionByBranches = assetExtractionByBranchRepository.findByAssetAndDeletedFalse(asset);
+                    // TODO(perf) this must be changed - also for some reason this minimally tested only in CLI integration
                     if (!assetExtractionByBranches.isEmpty()) {
                         logger.debug("Some branch are still present for asset, create new assset extraction");
                         AssetExtraction assetExtraction = assetExtractionService.createAssetExtractionForMultipleBranches(asset, null);
-                        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
+                        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction);
                     }
                 }
             }

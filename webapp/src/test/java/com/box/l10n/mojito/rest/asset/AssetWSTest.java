@@ -32,6 +32,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -86,7 +87,10 @@ public class AssetWSTest extends WSTestBase {
 
         assertEquals(sourceAsset.getRepositoryId(), addedAsset.getRepository().getId());
         assertEquals(sourceAsset.getPath(), addedAsset.getPath());
-        assertEquals(DigestUtils.md5Hex(sourceAsset.getContent()), addedAsset.getLastSuccessfulAssetExtraction().getContentMd5());
+
+        //TODO(perf) that don't make sense any more - at least it wont' be the assest content. to review
+//        assertEquals(DigestUtils.md5Hex(sourceAsset.getContent()), addedAsset.getLastSuccessfulAssetExtraction().getContentMd5());
+        assertNull(addedAsset.getLastSuccessfulAssetExtraction().getContentMd5());
 
         assertNotNull("Extraction of the asset should have completed", addedAsset.getLastSuccessfulAssetExtraction());
 

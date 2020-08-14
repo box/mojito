@@ -94,14 +94,17 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
         logger.debug("In branch1");
         List<TextUnitDTO> textUnitDTOsForBranch1 = branchStatisticService.getTextUnitDTOsForBranch(branchTestData.getBranch1());
-        assertEquals("string3", textUnitDTOsForBranch1.get(0).getName());
-        assertEquals(1, textUnitDTOsForBranch1.size());
+        assertEquals("string1", textUnitDTOsForBranch1.get(0).getName());
+        assertEquals("string3", textUnitDTOsForBranch1.get(1).getName());
+        assertEquals(2, textUnitDTOsForBranch1.size());
 
         logger.debug("In branch2");
         List<TextUnitDTO> textUnitDTOsForBranch2 = branchStatisticService.getTextUnitDTOsForBranch(branchTestData.getBranch2());
-        assertEquals("string4", textUnitDTOsForBranch2.get(0).getName());
-        assertEquals("string5", textUnitDTOsForBranch2.get(1).getName());
-        assertEquals(2, textUnitDTOsForBranch2.size());
+        assertEquals("string1", textUnitDTOsForBranch2.get(0).getName());
+        assertEquals("string2", textUnitDTOsForBranch2.get(1).getName());
+        assertEquals("string4", textUnitDTOsForBranch2.get(2).getName());
+        assertEquals("string5", textUnitDTOsForBranch2.get(3).getName());
+        assertEquals(4, textUnitDTOsForBranch2.size());
     }
 
     @Test
@@ -144,11 +147,15 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         Iterator<BranchTextUnitStatistic> itBranch1 = branchStatisticForBranch1.getBranchTextUnitStatistics().iterator();
 
         BranchTextUnitStatistic branchTextUnitStatisticForBranch1 = itBranch1.next();
+        assertEquals("string1", branchTextUnitStatisticForBranch1.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getTotalCount());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch1 = itBranch1.next();
         assertEquals("string3", branchTextUnitStatisticForBranch1.getTmTextUnit().getName());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getTotalCount());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getForTranslationCount());
         assertFalse(itBranch1.hasNext());
-
 
         BranchStatistic branchStatisticForBranch2 = branchStatisticRepository.findByBranch(branch2);
         assertEquals("branch2", branchStatisticForBranch2.getBranch().getName());
@@ -158,6 +165,16 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         Iterator<BranchTextUnitStatistic> itBranch2 = branchTextUnitStatisticsForBranch2.iterator();
 
         BranchTextUnitStatistic branchTextUnitStatisticForBranch2 = itBranch2.next();
+        assertEquals("string1", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch2 = itBranch2.next();
+        assertEquals("string2", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch2 = itBranch2.next();
         assertEquals("string4", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
@@ -189,28 +206,42 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
 
         BranchStatistic branchStatisticForBranch1 = branchStatisticRepository.findByBranch(branch1);
         assertEquals("branch1", branchStatisticForBranch1.getBranch().getName());
-        assertEquals(2L, branchStatisticForBranch1.getTotalCount());
-        assertEquals(1L, branchStatisticForBranch1.getForTranslationCount());
+        assertEquals(4L, branchStatisticForBranch1.getTotalCount());
+        assertEquals(3L, branchStatisticForBranch1.getForTranslationCount());
 
         Iterator<BranchTextUnitStatistic> itBranch1 = branchStatisticForBranch1.getBranchTextUnitStatistics().iterator();
 
         BranchTextUnitStatistic branchTextUnitStatisticForBranch1 = itBranch1.next();
+        assertEquals("string1", branchTextUnitStatisticForBranch1.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getTotalCount());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch1 = itBranch1.next();
         assertEquals("string3", branchTextUnitStatisticForBranch1.getTmTextUnit().getName());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getTotalCount());
         assertEquals(1L, (long) branchTextUnitStatisticForBranch1.getForTranslationCount());
-        assertFalse(itBranch1.hasNext());
 
         logger.debug("Just make sure we have no side effect on other branches");
         BranchStatistic branchStatisticForBranch2 = branchStatisticRepository.findByBranch(branch2);
         assertEquals("branch2", branchStatisticForBranch2.getBranch().getName());
-        assertEquals(4L, branchStatisticForBranch2.getTotalCount());
-        assertEquals(4L, branchStatisticForBranch2.getForTranslationCount());
+        assertEquals(8L, branchStatisticForBranch2.getTotalCount());
+        assertEquals(8L, branchStatisticForBranch2.getForTranslationCount());
 
         Set<BranchTextUnitStatistic> branchTextUnitStatisticsForBranch2 = branchStatisticForBranch2.getBranchTextUnitStatistics();
 
         Iterator<BranchTextUnitStatistic> itBranch2 = branchTextUnitStatisticsForBranch2.iterator();
 
         BranchTextUnitStatistic branchTextUnitStatisticForBranch2 = itBranch2.next();
+        assertEquals("string1", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch2 = itBranch2.next();
+        assertEquals("string2", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch2 = itBranch2.next();
         assertEquals("string4", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
@@ -223,21 +254,33 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         assertFalse(itBranch2.hasNext());
 
         logger.debug("Import string on branch2, expect japense to be fully translated, french half translated");
-        tmService.importLocalizedAssetAsync(asset.getId(), "string4=content4_fr-FR", repositoryLocaleFrFr.getLocale().getId(), APPROVED, null, null).get();
-        tmService.importLocalizedAssetAsync(asset.getId(), "string4=content4_ja-JP\nstring5=content5_ja-JP", repositoryLocaleJaJp.getLocale().getId(), APPROVED, null, null).get();
+        tmService.importLocalizedAssetAsync(asset.getId(), "string1=content1_fr-FR\nstring2=content4_fr-FR", repositoryLocaleFrFr.getLocale().getId(), APPROVED, null, null).get();
+        tmService.importLocalizedAssetAsync(asset.getId(),
+                "string1=content1_ja-JP\nstring2=content2_ja-J\nstring4=content4_ja-JP\nstring5=content5_ja-JP",
+                repositoryLocaleJaJp.getLocale().getId(), APPROVED, null, null).get();
         branchStatisticService.computeAndSaveBranchStatistics(branch2);
 
         branchStatisticForBranch2 = branchStatisticRepository.findByBranch(branch2);
         branchTextUnitStatisticsForBranch2 = branchStatisticForBranch2.getBranchTextUnitStatistics();
-        assertEquals(4L, branchStatisticForBranch2.getTotalCount());
-        assertEquals(1L, branchStatisticForBranch2.getForTranslationCount());
+        assertEquals(8L, branchStatisticForBranch2.getTotalCount());
+        assertEquals(2L, branchStatisticForBranch2.getForTranslationCount());
 
         itBranch2 = branchTextUnitStatisticsForBranch2.iterator();
 
         branchTextUnitStatisticForBranch2 = itBranch2.next();
-        assertEquals("string4", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
+        assertEquals("string1", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
         assertEquals(0L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch2 = itBranch2.next();
+        assertEquals("string2", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
+        assertEquals(0L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch2 = itBranch2.next();
+        assertEquals("string4", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch2.getTotalCount());
+        assertEquals(1L, (long) branchTextUnitStatisticForBranch2.getForTranslationCount());
 
         branchTextUnitStatisticForBranch2 = itBranch2.next();
         assertEquals("string5", branchTextUnitStatisticForBranch2.getTmTextUnit().getName());
@@ -260,6 +303,11 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         Iterator<BranchTextUnitStatistic> itBranch1 = branchStatisticForBranch1.getBranchTextUnitStatistics().iterator();
 
         BranchTextUnitStatistic branchTextUnitStatisticForBranch1 = itBranch1.next();
+        assertEquals("string1", branchTextUnitStatisticForBranch1.getTmTextUnit().getName());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getTotalCount());
+        assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getForTranslationCount());
+
+        branchTextUnitStatisticForBranch1 = itBranch1.next();
         assertEquals("string3", branchTextUnitStatisticForBranch1.getTmTextUnit().getName());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getTotalCount());
         assertEquals(2L, (long) branchTextUnitStatisticForBranch1.getForTranslationCount());

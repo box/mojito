@@ -19,6 +19,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static com.box.l10n.mojito.quartz.QuartzConfig.DYNAMIC_GROUP_NAME;
 
 @Component
@@ -147,8 +151,31 @@ public class QuartzPollableTaskScheduler {
         return getPollableTaskName(clazz) + "_" + id;
     }
 
-    private String getPollableTaskName(Class clazz) {
-        return clazz.getCanonicalName();
+    String getPollableTaskName(Class clazz) {
+        return getShortClassName(clazz);
+    }
+
+    /**
+     * TODO(perf) this acutally not perf related but taking a not
+     * we need to consider limit the name lenght, since it sometimes doens't fit in the column, needs review
+     * rename test for now
+     */
+    String getShortClassName(Class clazz) {
+        String result = clazz.getCanonicalName();
+
+        if (result.length() > 170) {
+            String[] split = clazz.getCanonicalName().split("\\.");
+
+            if (split.length == 1) {
+                result = split[0];
+            } else {
+                String[] splitWithoutLast = Arrays.copyOfRange(split, 0, split.length - 1);
+                String joined = Stream.of(splitWithoutLast).map(s -> s.isEmpty() ? "" : s.substring(0, 1)).collect(Collectors.joining("."));
+                result = joined + "." + split[split.length - 1];
+            }
+        }
+
+        return result;
     }
 
 }

@@ -10,6 +10,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 /**
  * Tracks the current {@link AssetExtraction}s of an asset by {@link Branch}.
@@ -73,4 +74,5 @@ public class AssetExtractionByBranch extends AuditableEntity {
     public void setAssetExtraction(AssetExtraction assetExtraction) {
         this.assetExtraction = assetExtraction;
     }
+
 }

@@ -25,7 +25,7 @@ import java.util.Set;
 @Table(
         name = "asset",
         indexes = {
-            @Index(name = "UK__ASSET__REPOSITORY_ID__PATH", columnList = "repository_id, path", unique = true),
+                @Index(name = "UK__ASSET__REPOSITORY_ID__PATH", columnList = "repository_id, path", unique = true),
         }
 )
 public class Asset extends AuditableEntity {
@@ -40,10 +40,10 @@ public class Asset extends AuditableEntity {
     @JsonView(View.AssetSummary.class)
     private String path;
 
-    @Column(name = "`virtual`", nullable=false)
+    @Column(name = "`virtual`", nullable = false)
     @JsonView(View.AssetSummary.class)
     private Boolean virtual = false;
-    
+
     @OneToOne
     @JoinColumn(name = "last_successful_asset_extraction_id", foreignKey = @ForeignKey(name = "FK__ASSET__ASSET_EXTRACTION__ID"))
     @JsonManagedReference("asset")

@@ -24,7 +24,7 @@ public class MultiBranchStateMerger {
      * @param priorityBranchNames
      * @return
      */
-   public MultiBranchState merge(MultiBranchState intoState, MultiBranchState toMergeState, ImmutableList<String> priorityBranchNames) {
+    public MultiBranchState merge(MultiBranchState intoState, MultiBranchState toMergeState, ImmutableList<String> priorityBranchNames) {
         MultiBranchState newState = new MultiBranchState();
 
         newState.setBranches(mergeBranchesByPriorityThenCreatedDateThenName(intoState.getBranches(), toMergeState.getBranches(), priorityBranchNames));
@@ -52,6 +52,29 @@ public class MultiBranchStateMerger {
                 .collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, Function.identity()));
 
         newState.setMd5ToBranchStateTextUnits(all);
+        return newState;
+
+    }
+
+
+    public MultiBranchState removeBranch(MultiBranchState state, String branchName) {
+        MultiBranchState newState = new MultiBranchState();
+
+        newState.setBranches(state.getBranches().stream().filter(b -> !branchName.equals(b.getName())).collect(ImmutableSet.toImmutableSet()));
+
+        ImmutableMap<String, BranchStateTextUnit> intoStateUpdated = state.getMd5ToBranchStateTextUnits().values().stream()
+                .map(intoStateTextUnit -> {
+                    BranchStateTextUnit updatedIntoStateTextUnit = copy(intoStateTextUnit);
+
+                    ImmutableMap<Branch, BranchData> newBranchesAndDataForBaseTextUnit = intoStateTextUnit.getBranchToBranchDatas().entrySet().stream()
+                            .filter(branchBranchDataEntry -> !branchName.equals(branchBranchDataEntry.getKey().getName()))
+                            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
+                    updatedIntoStateTextUnit.setBranchToBranchDatas(newBranchesAndDataForBaseTextUnit);
+                    return updatedIntoStateTextUnit;
+                })
+                .collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, Function.identity()));
+
+        newState.setMd5ToBranchStateTextUnits(intoStateUpdated);
         return newState;
 
     }
@@ -95,7 +118,7 @@ public class MultiBranchStateMerger {
                     .filter(branchBranchDataEntry -> !toMergeState.getBranches().contains(branchBranchDataEntry.getKey()))
                     .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
         } else {
-             branchNamesToBranchDatas = Stream.concat(
+            branchNamesToBranchDatas = Stream.concat(
                     baseBranchStateTextUnit.getBranchToBranchDatas().entrySet().stream(),
                     toMergeBranchStateTextUnit.getBranchToBranchDatas().entrySet().stream())
                     .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue, (branchData, branchData2) -> branchData2));

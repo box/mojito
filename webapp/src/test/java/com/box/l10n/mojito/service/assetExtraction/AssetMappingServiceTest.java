@@ -363,7 +363,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assetExtractionService.createAssetTextUnit(assetExtraction, "TEST2A", "Content2A", "Comment2A");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction);
 
         logger.debug("Add initial translation initial to test leveraging (this translation will be copied from 1 TMTextUnit to another");
         TMTextUnit tmTextUnitForLeveraging = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging.getMd5());
@@ -381,7 +381,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assetExtractionService.createAssetTextUnit(assetExtraction2, "TEST2A", "Content2A", "Comment2A");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction2.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction2);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction2);
 
         TMTextUnit tmTextUnitForLeveraging2 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging2.getMd5());
 
@@ -427,7 +427,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assetExtractionService.createAssetTextUnit(assetExtraction3, "TEST2A", "Content2A", "Comment2A");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction3.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction3);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction3);
 
         TMTextUnit tmTextUnitForLeveraging3 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging3.getMd5());
 
@@ -473,7 +473,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         assetExtractionService.createAssetTextUnit(assetExtraction4, "TEST2A", "Content2A", "Comment2A");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction4.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction4);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction4);
 
         TMTextUnit tmTextUnitForLeveraging4 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging4.getMd5());
 
@@ -520,7 +520,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         AssetTextUnit assetTextUnitForLeveraging5c = assetExtractionService.createAssetTextUnit(assetExtraction5, "TEST2A", "Content1B", "Comment2A");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction5.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction5);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction5);
 
         TMTextUnit tmTextUnitForLeveraging5 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging5.getMd5());
         TMTextUnit tmTextUnitForLeveraging5b = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging5b.getMd5());
@@ -636,7 +636,7 @@ public class AssetMappingServiceTest extends ServiceTestBase {
         AssetTextUnit assetTextUnitForLeveraging6 = assetExtractionService.createAssetTextUnit(assetExtraction6, "TEST6A", "Content1B", "Comment6A");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction6.getId(), tm.getId(), asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction6);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction6);
 
         TMTextUnit tmTextUnitForLeveraging6 = tmTextUnitRepository.findFirstByTmAndMd5(tm, assetTextUnitForLeveraging6.getMd5());
 

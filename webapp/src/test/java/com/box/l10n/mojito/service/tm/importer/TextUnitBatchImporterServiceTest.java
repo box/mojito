@@ -173,7 +173,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         AssetTextUnit createAssetTextUnit2 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST4", "Content4b", "comment4");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tmTestData.tm.getId(), tmTestData.asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(tmTestData.asset, assetExtraction);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(tmTestData.asset, assetExtraction);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(tmTestData.repository.getName()));
@@ -215,7 +215,7 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
         AssetTextUnit createAssetTextUnit1 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST4", "Content4", "comment4");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tmTestData.tm.getId(), tmTestData.asset.getId(), null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(tmTestData.asset, assetExtraction);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(tmTestData.asset, assetExtraction);
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParametersForTesting();
         textUnitSearcherParameters.setRepositoryNames(Arrays.asList(tmTestData.repository.getName()));

@@ -145,7 +145,7 @@ public class TMTestData {
         createAssetTextUnit2 = assetExtractionService.createAssetTextUnit(assetExtraction, "TEST2", "Content2", "Comment2");
 
         assetMappingService.mapAssetTextUnitAndCreateTMTextUnit(assetExtraction.getId(), tm.getId(), assetId, null, PollableTask.INJECT_CURRENT_TASK);
-        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
+        assetExtractionService.markAssetExtractionAsLastSuccessfulWithRetry(asset, assetExtraction);
 
         addCurrentTMTextUnitVariant1KoKR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit1.getId(), koKR.getId(), "올바른 국가, 지역 또는 시/도를 입력하십시오.");
         addCurrentTMTextUnitVariant1FrFR = tmService.addCurrentTMTextUnitVariant(addTMTextUnit1.getId(), frFR.getId(), "Veuillez indiquer un état, une région ou une province valide.");
