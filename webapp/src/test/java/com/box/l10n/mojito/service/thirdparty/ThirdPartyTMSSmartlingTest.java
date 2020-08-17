@@ -324,7 +324,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 repository.getName() + "/00000_plural_source.xml");
         assertThat(result.stream().map(SmartlingFile::getFileContent)).containsOnly(
                 singularContent(testData),
-                pluralsContent());
+                pluralsContent(testData));
         verifyNoInteractions(smartlingClient);
     }
 
@@ -345,7 +345,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 repository.getName() + "/00000_plural_source.xml");
         assertThat(result.stream().map(SmartlingFile::getFileContent)).containsOnly(
                 singularContent(testData),
-                pluralsContent());
+                pluralsContent(testData));
 
         verify(smartlingClient, times(1)).uploadFile(
                 eq("projectId"),
@@ -532,9 +532,9 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         doReturn(singularContent(testData)).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(jaJP.getBcp47Tag()),
                 eq(singularFileName(repository, 0)), eq(false));
 
-        doReturn(pluralsContent()).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(frCA.getBcp47Tag()),
+        doReturn(pluralsContent(testData)).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(frCA.getBcp47Tag()),
                 eq(pluralFileName(repository, 0)), eq(false));
-        doReturn(pluralsContent()).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(jaJP.getBcp47Tag()),
+        doReturn(pluralsContent(testData)).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(jaJP.getBcp47Tag()),
                 eq(pluralFileName(repository, 0)), eq(false));
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
@@ -1148,15 +1148,15 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 "</resources>\n";
     }
 
-    public String pluralsContent() {
+    public String pluralsContent(ThirdPartyServiceTestData testData) {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>\n" +
                 "<plurals name=\"src/main/res/values/strings.xml#@#plural_things\">\n" +
-                "<item quantity=\"zero\">Multiple things</item>\n" +
-                "<item quantity=\"one\">One thing</item>\n" +
-                "<item quantity=\"two\">Multiple things</item>\n" +
-                "<item quantity=\"few\">Multiple things</item>\n" +
-                "<item quantity=\"many\">Multiple things</item>\n" +
-                "<item quantity=\"other\">Multiple things</item>\n" +
+                "<item quantity=\"zero\" tmTextUnitId=\"" + testData.tmTextUnitPluralThingsZero.getId() +"\">Multiple things</item>\n" +
+                "<item quantity=\"one\" tmTextUnitId=\"" + testData.tmTextUnitPluralThingsOne.getId() +"\">One thing</item>\n" +
+                "<item quantity=\"two\" tmTextUnitId=\"" + testData.tmTextUnitPluralThingsTwo.getId() +"\">Multiple things</item>\n" +
+                "<item quantity=\"few\" tmTextUnitId=\"" + testData.tmTextUnitPluralThingsFew.getId() +"\">Multiple things</item>\n" +
+                "<item quantity=\"many\" tmTextUnitId=\"" + testData.tmTextUnitPluralThingsMany.getId() +"\">Multiple things</item>\n" +
+                "<item quantity=\"other\" tmTextUnitId=\"" + testData.tmTextUnitPluralThingsOther.getId() +"\">Multiple things</item>\n" +
                 "</plurals>\n" +
                 "</resources>\n";
     }

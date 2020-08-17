@@ -143,13 +143,13 @@ public class AndroidStringDocumentWriterTest {
                 "<string name=\"string1\" tmTextUnitId=\"10\">string1 @ content</string>\n" +
                 "<!--plural1 @ comment-->\n" +
                 "<plurals name=\"plural1\">\n" +
-                "<item quantity=\"one\">One item</item>\n" +
-                "<item quantity=\"other\">{more} items</item>\n" +
+                "<item quantity=\"one\" tmTextUnitId=\"20\">One item</item>\n" +
+                "<item quantity=\"other\" tmTextUnitId=\"21\">{more} items</item>\n" +
                 "</plurals>\n" +
                 "<!--plural2 @ comment-->\n" +
                 "<plurals name=\"plural2\">\n" +
-                "<item quantity=\"one\">One test</item>\n" +
-                "<item quantity=\"other\">{more} tests</item>\n" +
+                "<item quantity=\"one\" tmTextUnitId=\"22\">One test</item>\n" +
+                "<item quantity=\"other\" tmTextUnitId=\"23\">{more} tests</item>\n" +
                 "</plurals>\n" +
                 "</resources>\n";
 
@@ -181,15 +181,15 @@ public class AndroidStringDocumentWriterTest {
                 "<string name=\"string1\" tmTextUnitId=\"10\">string1 @ content</string>\n" +
                 "<!--plural1 @ comment-->\n" +
                 "<plurals name=\"plural1\">\n" +
-                "<item quantity=\"one\">One item</item>\n" +
-                "<item quantity=\"other\">{more} items</item>\n" +
+                "<item quantity=\"one\" tmTextUnitId=\"20\">One item</item>\n" +
+                "<item quantity=\"other\" tmTextUnitId=\"21\">{more} items</item>\n" +
                 "</plurals>\n" +
                 "<!--test comment2-->\n" +
                 "<string name=\"string2\" tmTextUnitId=\"11\">string2 @ content</string>\n" +
                 "<!--plural2 @ comment-->\n" +
                 "<plurals name=\"plural2\">\n" +
-                "<item quantity=\"one\">One test</item>\n" +
-                "<item quantity=\"other\">{more} tests</item>\n" +
+                "<item quantity=\"one\" tmTextUnitId=\"22\">One test</item>\n" +
+                "<item quantity=\"other\" tmTextUnitId=\"23\">{more} tests</item>\n" +
                 "</plurals>\n" +
                 "</resources>\n";
 
