@@ -105,6 +105,7 @@ public class AndroidStringDocumentWriter {
         Element element = addChild(node, PLURAL_ITEM_ELEMENT_NAME);
         setContent(element, item.getContent());
         setQuantityAttribute(element, item.getQuantity());
+        setIdAttribute(element, item.getId().toString());
     }
 
     private void addComment(Node node, String comment){

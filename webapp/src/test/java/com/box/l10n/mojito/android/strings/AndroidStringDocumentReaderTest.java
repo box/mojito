@@ -10,6 +10,7 @@ import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.MANY;
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.ONE;
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.OTHER;
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.TWO;
+import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AndroidStringDocumentReaderTest {
@@ -140,12 +141,12 @@ public class AndroidStringDocumentReaderTest {
                 + "<!--testing plural-->\n"
                 + "<plurals name=\"pins\">\n"
                 + "<!--testing plural-->\n"
-                + "<item quantity=\"zero\">0 Pin</item>\n"
-                + "<item quantity=\"one\">1 Pin</item>\n"
-                + "<item quantity=\"two\" tmTextUnitId=\"20\">2 Pins</item>\n"
-                + "<item quantity=\"few\">3 Pins</item>\n"
-                + "<item quantity=\"many\">4 Pins</item>\n"
-                + "<item quantity=\"other\">{num_pins} Pins</item>\n"
+                + "<item quantity=\"zero\" tmTextUnitId=\"100\">0 Pins</item>\n"
+                + "<item quantity=\"one\" tmTextUnitId=\"101\">1 Pin</item>\n"
+                + "<item quantity=\"two\" tmTextUnitId=\"102\">2 Pins</item>\n"
+                + "<item quantity=\"few\" tmTextUnitId=\"103\">3 Pins</item>\n"
+                + "<item quantity=\"many\" tmTextUnitId=\"104\">4 Pins</item>\n"
+                + "<item quantity=\"other\" tmTextUnitId=\"105\">{num_pins} Pins</item>\n"
                 + "</plurals>\n"
                 + "</resources>";
 
@@ -160,15 +161,17 @@ public class AndroidStringDocumentReaderTest {
         assertThat(plural.getComment()).isEqualTo("testing plural");
         assertThat(plural.getName()).isEqualTo("pins");
         assertThat(plural.getItems()).hasSize(6);
-        assertThat(plural.getItems().get(ONE).getId()).isNull();
+        assertThat(plural.getItems().get(ZERO).getId()).isEqualTo(100L);
+        assertThat(plural.getItems().get(ZERO).getContent()).isEqualTo("0 Pins");
+        assertThat(plural.getItems().get(ONE).getId()).isEqualTo(101L);
         assertThat(plural.getItems().get(ONE).getContent()).isEqualTo("1 Pin");
-        assertThat(plural.getItems().get(TWO).getId()).isEqualTo(20L);
+        assertThat(plural.getItems().get(TWO).getId()).isEqualTo(102L);
         assertThat(plural.getItems().get(TWO).getContent()).isEqualTo("2 Pins");
-        assertThat(plural.getItems().get(FEW).getId()).isNull();
+        assertThat(plural.getItems().get(FEW).getId()).isEqualTo(103L);
         assertThat(plural.getItems().get(FEW).getContent()).isEqualTo("3 Pins");
-        assertThat(plural.getItems().get(MANY).getId()).isNull();
+        assertThat(plural.getItems().get(MANY).getId()).isEqualTo(104L);
         assertThat(plural.getItems().get(MANY).getContent()).isEqualTo("4 Pins");
-        assertThat(plural.getItems().get(OTHER).getId()).isNull();
+        assertThat(plural.getItems().get(OTHER).getId()).isEqualTo(105L);
         assertThat(plural.getItems().get(OTHER).getContent()).isEqualTo("{num_pins} Pins");
     }
 
