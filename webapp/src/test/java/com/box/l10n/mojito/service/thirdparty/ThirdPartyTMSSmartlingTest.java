@@ -395,23 +395,24 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         List<List<TextUnitDTO>> captured = textUnitListCaptor.getAllValues();
 
+        String assetPath = "src/main/res/values/strings.xml";
         assertThat(captured.subList(0,2).stream().flatMap(List::stream))
-                .extracting("name", "comment", "target", "assetPath")
+                .extracting("name", "comment", "target", "assetPath", "targetLocale", "repositoryName")
                 .containsExactlyInAnyOrder(
-                        tuple("hello", "comment 1", "Hello in ja-JP", "src/main/res/values/strings.xml"),
-                        tuple("bye", "comment 2", "Bye in ja-JP", "src/main/res/values/strings.xml"),
-                        tuple("hello", "comment 1", "Hello in fr-CA", "src/main/res/values/strings.xml"),
-                        tuple("bye", "comment 2", "Bye in fr-CA", "src/main/res/values/strings.xml"));
+                        tuple("hello", "comment 1", "Hello in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("hello", "comment 1", "Hello in fr-CA", assetPath, "fr-CA", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in fr-CA", assetPath, "fr-CA", repository.getName()));
 
         assertThat(captured.subList(2,4).stream().flatMap(List::stream))
-                .extracting("name", "target", "pluralForm")
+                .extracting("name", "target", "pluralForm", "assetPath", "targetLocale", "repositoryName")
                 .containsExactlyInAnyOrder(
-                        tuple("plural_things _one", "One thing in ja-JP", "one"),
-                        tuple("plural_things _few", "Few things in ja-JP", "few"),
-                        tuple("plural_things _other", "Other things in ja-JP", "other"),
-                        tuple("plural_things _one", "One thing in fr-CA", "one"),
-                        tuple("plural_things _few", "Few things in fr-CA", "few"),
-                        tuple("plural_things _other", "Other things in fr-CA", "other"));
+                        tuple("plural_things _one", "One thing in ja-JP", "one", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _few", "Few things in ja-JP", "few", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _other", "Other things in ja-JP", "other", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _one", "One thing in fr-CA", "one", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _few", "Few things in fr-CA", "few", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _other", "Other things in fr-CA", "other", assetPath, "fr-CA", repository.getName()));
     }
 
     @Test
@@ -446,23 +447,24 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         List<List<TextUnitDTO>> captured = textUnitListCaptor.getAllValues();
 
+        String assetPath = "src/main/res/values/strings.xml";
         assertThat(captured.subList(0,2).stream().flatMap(List::stream))
-                .extracting("name", "comment", "target", "assetPath")
+                .extracting("name", "comment", "target", "assetPath", "targetLocale", "repositoryName")
                 .containsExactlyInAnyOrder(
-                        tuple("hello", "comment 1", "Hello in ja-JP", "src/main/res/values/strings.xml"),
-                        tuple("bye", "comment 2", "Bye in ja-JP", "src/main/res/values/strings.xml"),
-                        tuple("hello", "comment 1", "Hello in fr", "src/main/res/values/strings.xml"),
-                        tuple("bye", "comment 2", "Bye in fr", "src/main/res/values/strings.xml"));
+                        tuple("hello", "comment 1", "Hello in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("hello", "comment 1", "Hello in fr", assetPath, "fr-CA", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in fr", assetPath, "fr-CA", repository.getName()));
 
         assertThat(captured.subList(2,4).stream().flatMap(List::stream))
-                .extracting("name", "target", "pluralForm")
+                .extracting("name", "target", "pluralForm", "assetPath", "targetLocale", "repositoryName")
                 .containsExactlyInAnyOrder(
-                        tuple("plural_things _one", "One thing in ja-JP", "one"),
-                        tuple("plural_things _few", "Few things in ja-JP", "few"),
-                        tuple("plural_things _other", "Other things in ja-JP", "other"),
-                        tuple("plural_things _one", "One thing in fr", "one"),
-                        tuple("plural_things _few", "Few things in fr", "few"),
-                        tuple("plural_things _other", "Other things in fr", "other"));
+                        tuple("plural_things _one", "One thing in ja-JP", "one", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _few", "Few things in ja-JP", "few", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _other", "Other things in ja-JP", "other", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _one", "One thing in fr", "one", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _few", "Few things in fr", "few", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _other", "Other things in fr", "other", assetPath, "fr-CA", repository.getName()));
     }
 
     @Test
@@ -497,13 +499,25 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         List<List<TextUnitDTO>> captured = textUnitListCaptor.getAllValues();
 
+        String assetPath = "src/main/res/values/strings.xml";
         assertThat(captured.subList(0,2).stream().flatMap(List::stream))
-                .extracting("name", "comment", "target", "assetPath")
+                .extracting("name", "comment", "target", "assetPath", "targetLocale", "repositoryName")
                 .containsExactlyInAnyOrder(
-                        tuple("hello", "comment 1", "Hello in ja-JP", "src/main/res/values/strings.xml"),
-                        tuple("bye", "comment 2", "Bye in ja-JP", "src/main/res/values/strings.xml"),
-                        tuple("hello", "comment 1", "Hello in fr-CA", "src/main/res/values/strings.xml"),
-                        tuple("bye", "comment 2", "Bye in fr-CA", "src/main/res/values/strings.xml"));
+                        tuple("hello", "comment 1", "Hello in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("hello", "comment 1", "Hello in fr-CA", assetPath, "fr-CA", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in fr-CA", assetPath, "fr-CA", repository.getName()));
+
+        assertThat(captured.subList(2,4).stream().flatMap(List::stream))
+                .extracting("name", "target", "pluralForm", "assetPath", "targetLocale", "repositoryName")
+                .containsExactlyInAnyOrder(
+                        tuple("plural_things _one", "One thing in ja-JP", "one", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _few", "Few things in ja-JP", "few", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _other", "Other things in ja-JP", "other", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _many", "Other things in ja-JP", "many", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _one", "One thing in fr-CA", "one", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _few", "Few things in fr-CA", "few", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _other", "Other things in fr-CA", "other", assetPath, "fr-CA", repository.getName()));
 
         assertThat(captured.subList(2,4).stream().flatMap(List::stream))
                 .extracting("name", "target", "pluralForm")

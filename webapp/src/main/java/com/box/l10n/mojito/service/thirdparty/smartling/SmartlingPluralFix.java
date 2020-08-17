@@ -25,6 +25,10 @@ public final class SmartlingPluralFix {
                     tu.setPluralForm("many");
                     tu.setPluralFormOther(textUnit.getPluralFormOther());
                     tu.setTarget(textUnit.getTarget());
+                    tu.setRepositoryName(textUnit.getRepositoryName());
+                    tu.setAssetPath(textUnit.getAssetPath());
+                    tu.setTargetLocale(textUnit.getTargetLocale());
+
                     return tu;
                 });
 
