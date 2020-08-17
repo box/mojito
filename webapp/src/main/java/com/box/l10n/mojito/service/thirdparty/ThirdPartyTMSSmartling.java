@@ -223,24 +223,25 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                      List<String> optionList) {
 
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
-        AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
         Long singulars = singularCount(repository.getId(), LOCALE_EN, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
         LongStream.range(0, batchesFor(singulars))
-                  .forEach(num -> processPullBatch(num, mapper, repository, projectId, options, localeMapping, Prefix.SINGULAR));
+                  .forEach(num -> processPullBatch(num, pluralSeparator, repository, projectId, options, localeMapping, Prefix.SINGULAR));
 
         Long plurals = pluralCount(repository.getId(), LOCALE_EN, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
         LongStream.range(0, batchesFor(plurals))
-                  .forEach(num -> processPullBatch(num, mapper, repository, projectId, options, localeMapping, Prefix.PLURAL));
+                  .forEach(num -> processPullBatch(num, pluralSeparator, repository, projectId, options, localeMapping, Prefix.PLURAL));
     }
 
     private void processPullBatch(Long batchNumber,
-                                  AndroidStringDocumentMapper mapper,
+                                  String pluralSeparator,
                                   Repository repository,
                                   String projectId,
                                   SmartlingOptions options,
                                   Map<String, String> localeMapping,
                                   Prefix filePrefix) {
+
+        AndroidStringDocumentMapper mapper;
 
         for (RepositoryLocale locale : repository.getRepositoryLocales()) {
 
@@ -251,6 +252,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             String localeTag = locale.getLocale().getBcp47Tag();
             String smartlingLocale = getSmartlingLocale(localeMapping, localeTag);
             String fileName = getOutputSourceFile(batchNumber, repository.getName(), filePrefix.getType());
+            mapper = new AndroidStringDocumentMapper(pluralSeparator, null, localeTag, repository.getName());
 
             logger.debug("Download localized file from Smartling for file: {}, Mojito locale: {} and Smartling locale: {}",
                     fileName, localeTag, smartlingLocale);
