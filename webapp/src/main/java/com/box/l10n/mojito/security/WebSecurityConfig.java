@@ -156,7 +156,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 antMatchers("/intl/*", "/img/*", "/login/**", "/favicon.ico",
                         "/fonts/*", "/cli/**", "/js/**", "/css/**").permitAll(). // always accessible to serve the frontend
                 antMatchers(getHeathcheckPatterns()).permitAll(). // allow health entry points
-                antMatchers("/actuator/shutdown", "/api/rotation").hasIpAddress("127.0.0.1"). // local access only for rotation management
+                antMatchers("/actuator/shutdown", "/actuator/loggers/**", "/api/rotation").hasIpAddress("127.0.0.1"). // local access only for rotation management and logger config
                 antMatchers("/**").authenticated() // everything else must be authenticated
         );
 
