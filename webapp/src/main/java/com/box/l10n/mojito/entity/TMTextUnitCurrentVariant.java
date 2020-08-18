@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.RelationTargetAuditMode;
 import org.springframework.data.annotation.CreatedBy;
+
 import javax.persistence.Basic;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -36,6 +37,14 @@ public class TMTextUnitCurrentVariant extends AuditableEntity {
     @ManyToOne
     @JoinColumn(name = "tm_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__TM__ID"))
     private TM tm;
+
+    /**
+     * Denormalization to optimize lookup by asset id, with no joins
+     */
+    @Basic(optional = false)
+    @ManyToOne
+    @JoinColumn(name = "asset_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_CURRENT_VARIANT__ASSET__ID"))
+    private Asset asset;
 
     @Basic(optional = false)
     @ManyToOne
@@ -71,6 +80,14 @@ public class TMTextUnitCurrentVariant extends AuditableEntity {
 
     public void setTm(TM tm) {
         this.tm = tm;
+    }
+
+    public Asset getAsset() {
+        return asset;
+    }
+
+    public void setAsset(Asset asset) {
+        this.asset = asset;
     }
 
     public TMTextUnit getTmTextUnit() {
