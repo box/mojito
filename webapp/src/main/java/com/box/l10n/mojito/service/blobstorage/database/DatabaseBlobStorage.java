@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.blobstorage.database;
 
 import com.box.l10n.mojito.entity.MBlob;
-import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.blobstorage.BlobStorage;
 import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.google.common.base.Preconditions;
@@ -12,7 +11,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.retry.support.RetryTemplate;
 
 import java.util.List;
@@ -47,13 +45,13 @@ public class DatabaseBlobStorage implements BlobStorage {
     }
 
     /**
-     * TODO Should we support updates!!!??
+     * TODO(perf) Should we support updates!!!??
      *
      * @param name
      * @param content
      * @param retention
      */
-    //TODO perf wondering why the annotation didn't work
+    //TODO(perf) wondering why the retry? annotation didn't work
     @Override
     public void put(String name, byte[] content, Retention retention) {
 
