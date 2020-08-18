@@ -434,6 +434,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
             addedTMTextUnitVariant = tmService.addTMTextUnitCurrentVariantWithResult(
                     getTMTextUnitCurrentVariant(targetLocaleId, tmTextUnit),
                     tmTextUnit.getTm().getId(),
+                    tmTextUnit.getAsset().getId(),
                     tmTextUnitId,
                     targetLocaleId,
                     targetString,
@@ -441,7 +442,8 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
                     status,
                     includedInLocalizedFile,
                     createdDate,
-                    createdBy).getTmTextUnitCurrentVariant().getTmTextUnitVariant();
+                    createdBy
+            ).getTmTextUnitCurrentVariant().getTmTextUnitVariant();
         } else {
             addedTMTextUnitVariant = tmService.addTMTextUnitVariant(tmTextUnitId, targetLocaleId, targetString, null, status, includedInLocalizedFile, createdDate, createdBy);
         }
