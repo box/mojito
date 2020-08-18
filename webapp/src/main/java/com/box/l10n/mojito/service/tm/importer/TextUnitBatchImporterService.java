@@ -185,6 +185,7 @@ public class TextUnitBatchImporterService {
                     tmService.addTMTextUnitCurrentVariantWithResult(
                             tmTextUnitCurrentVariant,
                             asset.getRepository().getTm().getId(),
+                            asset.getId(),
                             currentTextUnit.getTmTextUnitId(),
                             locale.getId(),
                             textUnitForBatchImport.getContent(),
@@ -192,7 +193,8 @@ public class TextUnitBatchImporterService {
                             textUnitForBatchImport.getStatus(),
                             textUnitForBatchImport.isIncludedInLocalizedFile(),
                             importTime,
-                            importedBy);
+                            importedBy
+                    );
                 });
     }
 

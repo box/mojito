@@ -260,7 +260,7 @@ public class TMService {
 
         logger.debug("Add a current TMTextUnitVariant for the source text ie. the default locale");
         TMTextUnitVariant addTMTextUnitVariant = addTMTextUnitVariant(tmTextUnit.getId(), sourceLocaleId, content, comment, TMTextUnitVariant.Status.APPROVED, true, createdDate);
-        makeTMTextUnitVariantCurrent(tmId, tmTextUnit.getId(), sourceLocaleId, addTMTextUnitVariant.getId());
+        makeTMTextUnitVariantCurrent(tmId, tmTextUnit.getId(), sourceLocaleId, addTMTextUnitVariant.getId(), assetId);
 
         return tmTextUnit;
     }
@@ -489,14 +489,15 @@ public class TMService {
         return addTMTextUnitCurrentVariantWithResult(
                 currentTmTextUnitCurrentVariant,
                 tmTextUnit.getTm().getId(),
+                tmTextUnit.getAsset().getId(),
                 tmTextUnitId,
                 localeId,
                 content,
                 comment,
                 status,
                 includedInLocalizedFile,
-                createdDate,
-                createdBy);
+                createdDate, createdBy
+        );
     }
 
     /**
@@ -721,15 +722,17 @@ public class TMService {
      * @param tmTextUnitId the text unit that will contains the translation
      * @param localeId locale id of the translation
      * @param tmTextUnitVariantId the text unit variant id to be made current
+     * @param assetId
      * @return {@link TMTextUnitCurrentVariant} that contains the
      * {@link TMTextUnitVariant}
      * @throws DataIntegrityViolationException If tmId, tmTextUnitId or localeId
      * are invalid
      */
-    protected TMTextUnitCurrentVariant makeTMTextUnitVariantCurrent(Long tmId, Long tmTextUnitId, Long localeId, Long tmTextUnitVariantId) {
+    protected TMTextUnitCurrentVariant makeTMTextUnitVariantCurrent(Long tmId, Long tmTextUnitId, Long localeId, Long tmTextUnitVariantId, Long assetId) {
         logger.debug("Make the TMTextUnitVariant with id: {} current for locale: {}", tmTextUnitVariantId, localeId);
         TMTextUnitCurrentVariant tmTextUnitCurrentVariant = new TMTextUnitCurrentVariant();
         tmTextUnitCurrentVariant.setTm(entityManager.getReference(TM.class, tmId));
+        tmTextUnitCurrentVariant.setAsset(entityManager.getReference(Asset.class, assetId));
         tmTextUnitCurrentVariant.setTmTextUnit(entityManager.getReference(TMTextUnit.class, tmTextUnitId));
         tmTextUnitCurrentVariant.setTmTextUnitVariant(entityManager.getReference(TMTextUnitVariant.class, tmTextUnitVariantId));
         tmTextUnitCurrentVariant.setLocale(entityManager.getReference(Locale.class, localeId));
