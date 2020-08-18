@@ -7,8 +7,8 @@ import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
-import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.ImportExportTextUnitUtils;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.StopWatch;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -303,7 +304,7 @@ public class ImportExportedXliffStep extends BasePipelineStep {
                             importExportNote.isIncludedInLocalizedFile(),
                             importExportNote.getCreatedDate());
 
-                    tmService.makeTMTextUnitVariantCurrent(asset.getRepository().getTm().getId(), tmTextUnitId, targetLocale.getId(), addTMTextUnitVariant.getId());
+                    tmService.makeTMTextUnitVariantCurrent(asset.getRepository().getTm().getId(), tmTextUnitId, targetLocale.getId(), addTMTextUnitVariant.getId(), asset.getId());
                 }
 
                 for (TMTextUnitVariantComment variantComment : importExportNote.getVariantComments()) {
