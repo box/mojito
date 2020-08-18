@@ -351,6 +351,7 @@ public class TextUnitWS {
         if (tmtucv == null) {
             logger.debug("Already removed, do nothing");
         } else {
+            // TODO instead of removing reccord we want to mark as deleted
             logger.debug("Remove tmTextUnitCurrentVariantRepository: {}", tmtucv.getId());
             tmTextUnitCurrentVariantRepository.deleteById(tmtucv.getId());
         }

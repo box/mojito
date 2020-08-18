@@ -31,6 +31,7 @@ public class StructuredBlobStorage {
     public enum Prefix {
         POLLABLE_TASK,
         IMAGE,
-        MERGE_STATE
+        MERGE_STATE,
+        TRANSLATIONS
     }
 }
