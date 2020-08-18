@@ -22,7 +22,7 @@ public class MBlob extends SettableAuditableEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "content")
+    @Column(name = "content", length = Integer.MAX_VALUE)
     @Lob
     private byte[] content;
 
