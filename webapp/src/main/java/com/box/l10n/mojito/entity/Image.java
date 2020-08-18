@@ -8,7 +8,7 @@ import javax.persistence.Table;
 
 /**
  * Simple storage for images.
- * 
+ *
  * @author jaurambault
  */
 @Entity
@@ -22,7 +22,7 @@ public class Image extends AuditableEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "content")
+    @Column(name = "content", length = Integer.MAX_VALUE)
     @Lob
     private byte[] content;
 
