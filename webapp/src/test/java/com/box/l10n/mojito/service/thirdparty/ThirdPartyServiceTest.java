@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutionException;
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -531,6 +532,18 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertThat(thirdPartyService.replaceSpacePlaceholder("%s-s")).isEqualTo(" -s");
         assertThat(thirdPartyService.replaceSpacePlaceholder("%%ss")).isEqualTo("% s");
         assertThat(thirdPartyService.replaceSpacePlaceholder("%s%s")).isEqualTo("  ");
+    }
+
+    @Test
+    public void testParseLocaleMapping() {
+        assertThat(thirdPartyService.parseLocaleMapping(null)).isEmpty();
+        assertThat(thirdPartyService.parseLocaleMapping("")).isEmpty();
+        assertThat(thirdPartyService.parseLocaleMapping("es:es-MX")).containsKey("es-MX").containsValue("es");
+        assertThat(thirdPartyService.parseLocaleMapping("es:es-MX,fr:fr-FR"))
+                .containsKeys("es-MX", "fr-FR").containsValues("es", "fr");
+        assertThatThrownBy(() -> thirdPartyService.parseLocaleMapping("unparseable"))
+                .isInstanceOf(IllegalArgumentException.class);
+
     }
 
     ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {

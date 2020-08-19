@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.utils.MergeFunctions;
+import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -129,12 +131,12 @@ public class ThirdPartyService {
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
             thirdPartyTMS.pushTranslations(repository, thirdPartyProjectId, pluralSeparator,
-                    localeMappingHelper.getInverseLocaleMapping(localeMapping),
+                    parseLocaleMapping(localeMapping),
                     skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.PULL)) {
             thirdPartyTMS.pull(repository, thirdPartyProjectId, pluralSeparator,
-                    localeMappingHelper.getInverseLocaleMapping(localeMapping),
+                    parseLocaleMapping(localeMapping),
                     skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
@@ -346,6 +348,11 @@ public class ThirdPartyService {
 
     String replaceSpacePlaceholder(String input) {
         return input.replaceAll(PLURAL_SEPARATOR_SPACE, " ");
+    }
+
+    Map<String, String> parseLocaleMapping(String input) {
+        return Optional.ofNullable(localeMappingHelper.getInverseLocaleMapping(Strings.emptyToNull(input)))
+                       .orElseGet(Collections::emptyMap);
     }
 }
 
