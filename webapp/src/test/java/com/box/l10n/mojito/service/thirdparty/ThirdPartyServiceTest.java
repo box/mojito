@@ -368,6 +368,34 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void testPushArgumentsWithSpacePlaceholder() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId("projectId");
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH));
+        thirdPartySync.setPluralSeparator("%s_");
+        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+        verify(thirdPartyTMSMock, only()).push(
+                repoCaptor.capture(),
+                eq("projectId"),
+                eq(" _"),
+                eq("text_unit_pattern"),
+                eq("asset_path_pattern"),
+                optionsArgumentCaptor.capture());
+
+        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    }
+
+    @Test
     public void testPushTranslationArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
@@ -400,6 +428,38 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void testPushTranslationArgumentsWithSpacePlaceholder() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String localeMapping = "ja:ja-JP";
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId("projectId");
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH_TRANSLATION));
+        thirdPartySync.setPluralSeparator("%s_");
+        thirdPartySync.setLocaleMapping(localeMapping);
+        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+        verify(thirdPartyTMSMock, only()).pushTranslations(
+                repoCaptor.capture(),
+                eq("projectId"),
+                eq(" _"),
+                localeMappingArgumentCaptor.capture(),
+                eq("text_unit_pattern"),
+                eq("asset_path_pattern"),
+                optionsArgumentCaptor.capture());
+
+        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    }
+
+    @Test
     public void testPullArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
@@ -408,7 +468,39 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         thirdPartySync.setRepositoryId(repository.getId());
         thirdPartySync.setProjectId("projectId");
         thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PULL));
-        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setPluralSeparator("_");
+        thirdPartySync.setLocaleMapping(localeMapping);
+        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+        verify(thirdPartyTMSMock, only()).pull(
+                repoCaptor.capture(),
+                eq("projectId"),
+                eq("_"),
+                localeMappingArgumentCaptor.capture(),
+                eq("text_unit_pattern"),
+                eq("asset_path_pattern"),
+                optionsArgumentCaptor.capture());
+
+        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    }
+
+    @Test
+    public void testPullArgumentsWithSpacePlaceholder() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+        String localeMapping = "ja:ja-JP";
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId("projectId");
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PULL));
+        thirdPartySync.setPluralSeparator("%s_");
         thirdPartySync.setLocaleMapping(localeMapping);
         thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
         thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
@@ -429,6 +521,16 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
         assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
         assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    }
+
+    @Test
+    public void testReplaceSpacePlaceholder() {
+        assertThat(thirdPartyService.replaceSpacePlaceholder("%s_")).isEqualTo(" _");
+        assertThat(thirdPartyService.replaceSpacePlaceholder("_%s%")).isEqualTo("_ %");
+        assertThat(thirdPartyService.replaceSpacePlaceholder("_%ss")).isEqualTo("_ s");
+        assertThat(thirdPartyService.replaceSpacePlaceholder("%s-s")).isEqualTo(" -s");
+        assertThat(thirdPartyService.replaceSpacePlaceholder("%%ss")).isEqualTo("% s");
+        assertThat(thirdPartyService.replaceSpacePlaceholder("%s%s")).isEqualTo("  ");
     }
 
     ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {

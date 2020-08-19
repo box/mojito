@@ -62,7 +62,7 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
         //  JCommander trims the argument values, even when quoted.
         // https://github.com/cbeust/jcommander/issues/417
         // https://github.com/cbeust/jcommander/commit/4aec38b4a0ea63a8dc6f41636fa81c2ebafddc18
-        String pluralSeparator = "_";
+        String pluralSeparator = "%s_";
         String skipTextUnitPattern = "%skip_text_pattern";
         String skipAssetPattern = "%skip_asset_pattern%";
         List<String> options = Arrays.asList(
