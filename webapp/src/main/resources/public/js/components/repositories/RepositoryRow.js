@@ -127,7 +127,8 @@ class RepositoryRow extends React.Component {
 
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
-            if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
+            if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag] !== null &&
+                repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
                 numberOfNeedsTranslation += repoLocaleStat.forTranslationCount;
             }
         });
@@ -148,7 +149,8 @@ class RepositoryRow extends React.Component {
 
         let repoLocaleStatistics = this.getRepoLocaleStatistics(repoId);
         repoLocaleStatistics.forEach(repoLocaleStat => {
-            if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
+            if (repoLocalesMap[repoLocaleStat.locale.bcp47Tag] !== null &&
+                repoLocalesMap[repoLocaleStat.locale.bcp47Tag].toBeFullyTranslated) {
                 numberOfWordNeedsTranslation += repoLocaleStat.forTranslationWordCount;
             }
         });
