@@ -486,7 +486,8 @@ public class TMService {
         }
 
         User createdBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
-        return addTMTextUnitCurrentVariantWithResult(currentTmTextUnitCurrentVariant,
+        return addTMTextUnitCurrentVariantWithResult(
+                currentTmTextUnitCurrentVariant,
                 tmTextUnit.getTm().getId(),
                 tmTextUnit.getAsset().getId(),
                 tmTextUnitId,
@@ -544,10 +545,16 @@ public class TMService {
 
         TMTextUnitVariant tmTextUnitVariant;
 
-        if (tmTextUnitCurrentVariant == null) {
+        if (tmTextUnitCurrentVariant == null || tmTextUnitCurrentVariant.getTmTextUnitVariant() == null) {
             logger.debug("There is no currrent text unit variant, add entities");
             tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate, createdBy);
-            tmTextUnitCurrentVariant = makeTMTextUnitVariantCurrent(tmId, tmTextUnitId, localeId, tmTextUnitVariant.getId(), assetId);
+
+            if (tmTextUnitCurrentVariant == null) {
+                tmTextUnitCurrentVariant = makeTMTextUnitVariantCurrent(tmId, tmTextUnitId, localeId, tmTextUnitVariant.getId(), assetId);
+            } else {
+                tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
+                tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
+            }
 
             logger.trace("Put the actual tmTextUnitVariant instead of the proxy");
             tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);

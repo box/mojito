@@ -87,6 +87,8 @@ public class TMServiceTest extends ServiceTestBase {
     @Autowired
     TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
     @Autowired
+    TMTextUnitCurrentVariantService tmTextUnitCurrentVariantService;
+    @Autowired
     TMTextUnitRepository tmTextUnitRepository;
     @Autowired
     LocaleService localeService;
@@ -581,7 +583,7 @@ public class TMServiceTest extends ServiceTestBase {
                 removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
         );
 
-        tmTextUnitCurrentVariantRepository.deleteById(variant2.getTmTextUnitCurrentVariant().getId());
+        tmTextUnitCurrentVariantService.removeCurrentVariant(variant2.getTmTextUnitCurrentVariant().getId());
         localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
 
         expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1),
