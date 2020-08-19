@@ -16,7 +16,7 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
-import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantService;
 import com.box.l10n.mojito.service.tm.TMTextUnitHistoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitIntegrityCheckService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
@@ -76,7 +76,7 @@ public class TextUnitWS {
     TMTextUnitHistoryService tmHistoryService;
 
     @Autowired
-    TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
+    TMTextUnitCurrentVariantService tmTextUnitCurrentVariantService;
 
     @Autowired
     TMTextUnitIntegrityCheckService tmTextUnitIntegrityCheckService;
@@ -334,26 +334,17 @@ public class TextUnitWS {
     /**
      * Deletes the TextUnit.
      *
-     * Corresponds to removing the TmTextUnitCurrentVariant entry. This doesn't
+     * Corresponds to updating the TmTextUnitCurrentVariant entry. This doesn't
      * remove the translation from the system, it just removes it from being the
      * current translation.
      *
      * @param textUnitId TextUnit id (maps to
      *                   {@link TMTextUnitCurrentVariant#id})
      */
-    @Transactional
     @RequestMapping(method = RequestMethod.DELETE, value = "/api/textunits/{textUnitId}")
     public void deleteTMTextUnitCurrentVariant(@PathVariable Long textUnitId) {
-        logger.debug("Delete TextUnit, id: {}", textUnitId);
-
-        TMTextUnitCurrentVariant tmtucv = tmTextUnitCurrentVariantRepository.findById(textUnitId).orElse(null);
-
-        if (tmtucv == null) {
-            logger.debug("Already removed, do nothing");
-        } else {
-            logger.debug("Remove tmTextUnitCurrentVariantRepository: {}", tmtucv.getId());
-            tmTextUnitCurrentVariantRepository.deleteById(tmtucv.getId());
-        }
+        logger.debug("Delete textUnitId, id: {}", textUnitId);
+        tmTextUnitCurrentVariantService.removeCurrentVariant(textUnitId);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/check")
