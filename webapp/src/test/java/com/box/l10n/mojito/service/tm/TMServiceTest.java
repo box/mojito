@@ -42,6 +42,7 @@ import net.sf.okapi.common.resource.TextUnit;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.proxy.HibernateProxy;
+import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -87,6 +88,9 @@ public class TMServiceTest extends ServiceTestBase {
 
     @Autowired
     TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
+
+    @Autowired
+    TMTextUnitCurrentVariantService tmTextUnitCurrentVariantService;
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
@@ -563,6 +567,46 @@ public class TMServiceTest extends ServiceTestBase {
 
         String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1),
                 newTmTextUnitWithVariant(tmTextUnit2, variant2), newTmTextUnitWithVariant(tmTextUnit3, variant3));
+        assertEquals(
+                removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
+        );
+    }
+
+    @Test
+    public void testGenerateLocalizedXLIFFWithDelete() throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException {
+
+        createTestData();
+
+        TMTextUnit tmTextUnit1 = tmService.addTMTextUnit(tmId, assetId, "application_name", "Application Name", "This text is shown in the start screen of the application. Keep it short.");
+        TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tmId, assetId, "home", "Home", "This is the text displayed in the link that takes the user to the home page.");
+        TMTextUnit tmTextUnit3 = tmService.addTMTextUnit(tmId, assetId, "test", "Not approved", null);
+
+        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryAndLocale_Bcp47Tag(repository, "fr-FR");
+        Locale locale = repositoryLocale.getLocale();
+
+        tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'app");
+        TMTextUnitVariant variant1 = tmService.addCurrentTMTextUnitVariant(tmTextUnit1.getId(), locale.getId(), "Nom de l'application", TMTextUnitVariant.Status.APPROVED, true);
+
+        AddTMTextUnitCurrentVariantResult variant2 = tmService.addTMTextUnitCurrentVariantWithResult(tmTextUnit2.getId(), locale.getId(), "Maison", null, TMTextUnitVariant.Status.REVIEW_NEEDED, true, new DateTime());
+
+        TMTextUnitVariant variant3 = tmService.addCurrentTMTextUnitVariant(tmTextUnit3.getId(), locale.getId(), "Non approuve", TMTextUnitVariant.Status.TRANSLATION_NEEDED, true);
+
+        String sourceXLIFF = getSourceXLIFFContent(Lists.newArrayList(tmTextUnit1, tmTextUnit2, tmTextUnit3));
+        String localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
+
+        String expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1),
+                newTmTextUnitWithVariant(tmTextUnit2, variant2.getTmTextUnitCurrentVariant().getTmTextUnitVariant()), newTmTextUnitWithVariant(tmTextUnit3, variant3));
+        assertEquals(
+                removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
+                removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)
+        );
+
+        tmTextUnitCurrentVariantService.removeCurrentVariant(variant2.getTmTextUnitCurrentVariant().getId());
+        localizedAsset = tmService.generateLocalized(asset, sourceXLIFF, repositoryLocale, null, null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
+
+        expectedLocalizedXLIFF = getExpectedLocalizedXLIFFContent(locale.getBcp47Tag(), newTmTextUnitWithVariant(tmTextUnit1, variant1),
+                newTmTextUnitWithVariant(tmTextUnit3, variant3));
         assertEquals(
                 removeLeadingAndTrailingSpacesOnEveryLine(expectedLocalizedXLIFF),
                 removeLeadingAndTrailingSpacesOnEveryLine(localizedAsset)

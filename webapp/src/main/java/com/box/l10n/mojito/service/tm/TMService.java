@@ -486,7 +486,8 @@ public class TMService {
         }
 
         User createdBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
-        return addTMTextUnitCurrentVariantWithResult(currentTmTextUnitCurrentVariant,
+        return addTMTextUnitCurrentVariantWithResult(
+                currentTmTextUnitCurrentVariant,
                 tmTextUnit.getTm().getId(),
                 tmTextUnitId,
                 localeId,
@@ -507,6 +508,7 @@ public class TMService {
      *
      * @param tmTextUnitCurrentVariant current variant or null is there is none
      * @param tmId the {@link TM} id in which the translation is added
+     * @param assetId
      * @param tmTextUnitId the text unit that will contains the translation
      * @param localeId locale id of the translation (default locale not
      * accepted)
@@ -528,6 +530,7 @@ public class TMService {
     public AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantWithResult(
             TMTextUnitCurrentVariant tmTextUnitCurrentVariant,
             Long tmId,
+            Long assetId,
             Long tmTextUnitId,
             Long localeId,
             String content,
@@ -541,10 +544,16 @@ public class TMService {
 
         TMTextUnitVariant tmTextUnitVariant;
 
-        if (tmTextUnitCurrentVariant == null) {
+        if (tmTextUnitCurrentVariant == null || tmTextUnitCurrentVariant.getTmTextUnitVariant() == null) {
             logger.debug("There is no currrent text unit variant, add entities");
             tmTextUnitVariant = addTMTextUnitVariant(tmTextUnitId, localeId, content, comment, status, includedInLocalizedFile, createdDate, createdBy);
-            tmTextUnitCurrentVariant = makeTMTextUnitVariantCurrent(tmId, tmTextUnitId, localeId, tmTextUnitVariant.getId());
+
+            if (tmTextUnitCurrentVariant == null) {
+                tmTextUnitCurrentVariant = makeTMTextUnitVariantCurrent(tmId, tmTextUnitId, localeId, tmTextUnitVariant.getId(), assetId);
+            } else {
+                tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
+                tmTextUnitCurrentVariant = tmTextUnitCurrentVariantRepository.save(tmTextUnitCurrentVariant);
+            }
 
             logger.trace("Put the actual tmTextUnitVariant instead of the proxy");
             tmTextUnitCurrentVariant.setTmTextUnitVariant(tmTextUnitVariant);
