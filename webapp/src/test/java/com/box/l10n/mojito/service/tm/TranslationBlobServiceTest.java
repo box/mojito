@@ -4,12 +4,10 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
-
-public class TranslatonBlobServiceTest extends ServiceTestBase {
+public class TranslationBlobServiceTest extends ServiceTestBase {
 
     @Autowired
-    TranslatonBlobService translatonBlobService;
+    TranslationBlobService translationBlobService;
 
     @Test
     public void test() {

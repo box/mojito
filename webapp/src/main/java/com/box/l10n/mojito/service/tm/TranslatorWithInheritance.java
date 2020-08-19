@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +60,7 @@ public class TranslatorWithInheritance {
     boolean newImplementation = true;
 
     @Autowired
-    TranslatonBlobService translatonBlobService;
+    TranslationBlobService translationBlobService;
 
     private StatusFilter statusFilter;
 
@@ -201,7 +200,7 @@ public class TranslatorWithInheritance {
     private Map<String, TextUnitDTO> getTextUnitDTOsForLocaleByMD5(Long localeId) {
 
         if (newImplementation) {
-            return translatonBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), localeId, statusFilter);
+            return translationBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), localeId, statusFilter, false);
         }
 
         Map<String, TextUnitDTO> res = new HashMap<>();

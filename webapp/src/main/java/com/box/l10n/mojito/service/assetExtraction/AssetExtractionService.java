@@ -48,7 +48,6 @@ import com.box.l10n.mojito.service.tm.TextUnitIdMd5DTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Predicates;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -164,7 +163,6 @@ public class AssetExtractionService {
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
 
-
     @Autowired
     AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
@@ -180,6 +178,9 @@ public class AssetExtractionService {
     // create ATM from new state
     @Autowired
     StructuredBlobStorage structuredBlobStorage;
+
+    @Autowired
+    MultiBranchStateJsonService multiBranchStateJsonService;
 
     boolean useNewImplementation = true;
 
@@ -398,14 +399,12 @@ public class AssetExtractionService {
     }
 
     MultiBranchState readMultiBranchState(Asset asset) {
-        Optional<String> string = structuredBlobStorage.getString(StructuredBlobStorage.Prefix.MERGE_STATE, "shared_" + asset.getId().toString());
-        MultiBranchStateJson multiBranchStateJson = string.map(s -> objectMapper.readValueUnchecked(s, MultiBranchStateJson.class)).orElse(new MultiBranchStateJson());
+        MultiBranchStateJson multiBranchStateJson = multiBranchStateJsonService.readMultiBranchStateJson(asset.getId());
         return convertJsonToMultiBranchState(multiBranchStateJson);
     }
 
     MultiBranchState readMultiBranchStateOfBranch(AssetExtractionByBranch assetExtractionByBranch) {
-        Optional<String> string = structuredBlobStorage.getString(StructuredBlobStorage.Prefix.MERGE_STATE, "branch_" + assetExtractionByBranch.getId().toString());
-        MultiBranchStateJson multiBranchStateJson = string.map(s -> objectMapper.readValueUnchecked(s, MultiBranchStateJson.class)).orElse(new MultiBranchStateJson());
+        MultiBranchStateJson multiBranchStateJson = multiBranchStateJsonService.readMultiBranchStateOfBranchJson(assetExtractionByBranch.getId());
         return convertJsonToMultiBranchState(multiBranchStateJson);
     }
 
@@ -425,7 +424,7 @@ public class AssetExtractionService {
         ImmutableMap<String, com.box.l10n.mojito.ltm.merger.Branch> branchNamesToBranches = multiBranchState.getBranches().stream()
                 .collect(ImmutableMap.toImmutableMap(com.box.l10n.mojito.ltm.merger.Branch::getName, identity()));
 
-        ImmutableMap<String, BranchStateTextUnit> branchStateTextUnits = multiBranchStateJson.getMd5ToBranchStateTextUnits().stream()
+        ImmutableMap<String, BranchStateTextUnit> branchStateTextUnits = multiBranchStateJson.getBranchStateTextUnitJsons().stream()
                 .map(t -> {
                     BranchStateTextUnit branchStateTextUnit = new BranchStateTextUnit();
                     branchStateTextUnit.setComments(t.getComments());
@@ -489,7 +488,7 @@ public class AssetExtractionService {
                 })
                 .collect(ImmutableList.toImmutableList());
 
-        multiBranchStateJson.setMd5ToBranchStateTextUnits(branchStateTextUnitJsons);
+        multiBranchStateJson.setBranchStateTextUnitJsons(branchStateTextUnitJsons);
         return multiBranchStateJson;
     }
 

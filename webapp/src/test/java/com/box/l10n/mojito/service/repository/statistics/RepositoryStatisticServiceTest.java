@@ -208,15 +208,17 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
             long expectedTranslationNeededCount,
             long expectedTranslationNeededWordCount) {
 
-        assertEquals(expectedBcp47tag, repositoryLocaleStatistic.getLocale().getBcp47Tag());
-        assertEquals(expectedTranslatedCount, (long) repositoryLocaleStatistic.getTranslatedCount());
-        assertEquals(expectedTranslatedWordCount, (long) repositoryLocaleStatistic.getTranslatedWordCount());
-        assertEquals(expectedIncludeInFileCount, (long) repositoryLocaleStatistic.getIncludeInFileCount());
-        assertEquals(expectedIncludeInFileWordCount, (long) repositoryLocaleStatistic.getIncludeInFileWordCount());
-        assertEquals(reviewNeededCount, (long) repositoryLocaleStatistic.getReviewNeededCount());
-        assertEquals(reviewNeededWordCount, (long) repositoryLocaleStatistic.getReviewNeededWordCount());
-        assertEquals(expectedTranslationNeededCount, (long) repositoryLocaleStatistic.getTranslationNeededCount());
-        assertEquals(expectedTranslationNeededWordCount, (long) repositoryLocaleStatistic.getTranslationNeededWordCount());
+        assertEquals("expectedBcp47tag", expectedBcp47tag, repositoryLocaleStatistic.getLocale().getBcp47Tag());
+        assertEquals("expectedTranslatedCount", expectedTranslatedCount, (long) repositoryLocaleStatistic.getTranslatedCount());
+        assertEquals("expectedTranslatedWordCount", expectedTranslatedWordCount, (long) repositoryLocaleStatistic.getTranslatedWordCount());
+        assertEquals("expectedIncludeInFileCount", expectedIncludeInFileCount, (long) repositoryLocaleStatistic.getIncludeInFileCount());
+        assertEquals("expectedIncludeInFileWordCount", expectedIncludeInFileWordCount, (long) repositoryLocaleStatistic.getIncludeInFileWordCount());
+        assertEquals("reviewNeededCount", reviewNeededCount, (long) repositoryLocaleStatistic.getReviewNeededCount());
+        assertEquals("reviewNeededWordCount", reviewNeededWordCount, (long) repositoryLocaleStatistic.getReviewNeededWordCount());
+        assertEquals("expectedTranslationNeededCount", expectedTranslationNeededCount, (long) repositoryLocaleStatistic.getTranslationNeededCount());
+        assertEquals("expectedTranslationNeededWordCount", expectedTranslationNeededWordCount, (long) repositoryLocaleStatistic.getTranslationNeededWordCount());
+
+        // TODO(why don't we check for translation here???
     }
 
 }

@@ -26,7 +26,8 @@ import javax.persistence.Table;
 @Table(
         name = "tm_text_unit_current_variant",
         indexes = {
-                @Index(name = "UK__TM_TEXT_UNIT_ID__LOCALE_ID", columnList = "tm_text_unit_id, locale_id", unique = true)
+                @Index(name = "UK__TM_TEXT_UNIT_ID__LOCALE_ID", columnList = "tm_text_unit_id, locale_id", unique = true),
+                @Index(name = "I__ASSET_ID_", columnList = "asset_id")
         }
 )
 public class TMTextUnitCurrentVariant extends AuditableEntity {

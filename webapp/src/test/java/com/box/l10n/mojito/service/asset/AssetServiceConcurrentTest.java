@@ -193,7 +193,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
             try {
                 logger.debug("Get asset result: {}", assetResults.get(i).getPollableTask().getId());
                 PollableFuture<Asset> assetResult = assetResults.get(i);
-                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId(), getTimeoutForIndex(i, 60000));
+                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId(), getTimeoutForIndex(i, 120000));
                 Asset asset = assetRepository.findById(assetResult.get().getId()).orElse(null);
 
 //                assertEquals(assetContent.toString(), asset.getLastSuccessfulAssetExtraction().getAssetContent().getContent());
