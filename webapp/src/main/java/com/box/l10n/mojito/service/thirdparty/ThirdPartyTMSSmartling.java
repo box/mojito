@@ -339,9 +339,9 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         if (!options.isDryRun()) {
             logger.debug("Push Android file to Smartling project: {} and locale: {}", projectId, localeTag);
-            smartlingClient.uploadLocalizedFile(projectId, sourceFilename, "android", file.getFileContent(),
-                    getSmartlingLocale(localeMapping, localeTag), options.getPlaceholderFormat(),
-                    options.getCustomPlaceholderFormat());
+            smartlingClient.uploadLocalizedFile(projectId, sourceFilename, "android",
+                    getSmartlingLocale(localeMapping, localeTag), file.getFileContent(),
+                    options.getPlaceholderFormat(), options.getCustomPlaceholderFormat());
         }
 
         return file;

@@ -67,6 +67,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -707,8 +708,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                     eq("projectId"),
                     eq(singularFileName(repository, 0)),
                     eq("android"),
-                    any(),
                     eq(locale.getBcp47Tag()),
+                    startsWith("<?xml version="),
                     eq(null),
                     eq(null));
         });
@@ -768,8 +769,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                     eq("projectId"),
                     eq(singularFileName(repository, 0)),
                     eq("android"),
-                    any(),
                     eq(locale.getBcp47Tag()),
+                    startsWith("<?xml version="),
                     eq(null),
                     eq(null));
         });
@@ -857,8 +858,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                     eq("projectId"),
                     eq(singularFileName(repository, 0)),
                     eq("android"),
-                    any(),
                     eq(locale.getBcp47Tag()),
+                    startsWith("<?xml version="),
                     eq(null),
                     eq(null));
 
@@ -866,8 +867,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                     eq("projectId"),
                     eq(pluralFileName(repository, 0)),
                     eq("android"),
-                    any(),
                     eq(locale.getBcp47Tag()),
+                    startsWith("<?xml version="),
                     eq(null),
                     eq(null));
         });
@@ -947,8 +948,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                     eq("projectId"),
                     eq(pluralFileName(repository, 0)),
                     eq("android"),
-                    any(),
                     eq(locale.getBcp47Tag()),
+                    startsWith("<?xml version="),
                     eq(null),
                     eq(null))
         );
@@ -1051,8 +1052,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                             eq("projectId"),
                             eq(singularFileName(repository, idx)),
                             eq("android"),
-                            any(),
                             eq(locale.getBcp47Tag()),
+                            startsWith("<?xml version="),
                             eq(null),
                             eq(null)));
 
@@ -1061,8 +1062,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                             eq("projectId"),
                             eq(pluralFileName(repository, idx)),
                             eq("android"),
-                            any(),
                             eq(locale.getBcp47Tag()),
+                            startsWith("<?xml version="),
                             eq(null),
                             eq(null)));
         });
