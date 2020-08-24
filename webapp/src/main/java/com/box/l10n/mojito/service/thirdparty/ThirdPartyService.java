@@ -347,7 +347,7 @@ public class ThirdPartyService {
     }
 
     String replaceSpacePlaceholder(String input) {
-        return input.replaceAll(PLURAL_SEPARATOR_SPACE, " ");
+        return Strings.nullToEmpty(input).replaceAll(PLURAL_SEPARATOR_SPACE, " ");
     }
 
     Map<String, String> parseLocaleMapping(String input) {
