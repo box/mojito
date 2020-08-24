@@ -116,6 +116,71 @@ public class AndroidStringDocumentMapperTest {
     }
 
     @Test
+    public void testReadFromSourceTextUnitsWithDuplicatePlurals() {
+        mapper = new AndroidStringDocumentMapper(" _", assetDelimiter);
+        textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
+
+        textUnits.add(sourceTextUnitDTO(100L, "name1 _other", "content1_zero", "comment1", "my/path0.xml", "zero", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(101L, "name1 _other", "content1_one", "comment1", "my/path0.xml", "one", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(102L, "name1 _other", "content1_two", "comment1", "my/path0.xml", "two", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(103L, "name1 _other", "content1_few", "comment1", "my/path0.xml", "few", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(104L, "name1 _other", "content1_many", "comment1", "my/path0.xml", "many", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(105L, "name1 _other", "content1_other", "comment1", "my/path0.xml", "other", "name1_other"));
+
+        textUnits.add(sourceTextUnitDTO(200L, "name1 _other", "content1_zero", "comment1", "my/path1.xml", "zero", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(201L, "name1 _other", "content1_one", "comment1", "my/path1.xml", "one", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(202L, "name1 _other", "content1_two", "comment1", "my/path1.xml", "two", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(203L, "name1 _other", "content1_few", "comment1", "my/path1.xml", "few", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(204L, "name1 _other", "content1_many", "comment1", "my/path1.xml", "many", "name1_other"));
+        textUnits.add(sourceTextUnitDTO(205L, "name1 _other", "content1_other", "comment1", "my/path1.xml", "other", "name1_other"));
+
+        document = mapper.readFromSourceTextUnits(textUnits);
+
+        assertThat(document).isNotNull();
+        assertThat(document.getSingulars()).hasSize(1);
+        AndroidSingular singular = document.getSingulars().get(0);
+        assertThat(singular.getId()).isEqualTo(123L);
+        assertThat(singular.getName()).isEqualTo("my/path0#@#name0");
+        assertThat(singular.getContent()).isEqualTo("content0");
+        assertThat(singular.getComment()).isEqualTo("comment0");
+
+        assertThat(document.getPlurals()).hasSize(2);
+        AndroidPlural plural = document.getPlurals().get(1);
+        assertThat(plural.getName()).isEqualTo("my/path0.xml#@#name1");
+        assertThat(plural.getComment()).isEqualTo("comment1");
+        assertThat(plural.getItems()).hasSize(6);
+        assertThat(plural.getItems().get(ZERO).getId()).isEqualTo(100L);
+        assertThat(plural.getItems().get(ZERO).getContent()).isEqualTo("content1_zero");
+        assertThat(plural.getItems().get(ONE).getId()).isEqualTo(101L);
+        assertThat(plural.getItems().get(ONE).getContent()).isEqualTo("content1_one");
+        assertThat(plural.getItems().get(TWO).getId()).isEqualTo(102L);
+        assertThat(plural.getItems().get(TWO).getContent()).isEqualTo("content1_two");
+        assertThat(plural.getItems().get(FEW).getId()).isEqualTo(103L);
+        assertThat(plural.getItems().get(FEW).getContent()).isEqualTo("content1_few");
+        assertThat(plural.getItems().get(MANY).getId()).isEqualTo(104L);
+        assertThat(plural.getItems().get(MANY).getContent()).isEqualTo("content1_many");
+        assertThat(plural.getItems().get(OTHER).getId()).isEqualTo(105L);
+        assertThat(plural.getItems().get(OTHER).getContent()).isEqualTo("content1_other");
+
+        plural = document.getPlurals().get(0);
+        assertThat(plural.getName()).isEqualTo("my/path1.xml#@#name1");
+        assertThat(plural.getComment()).isEqualTo("comment1");
+        assertThat(plural.getItems()).hasSize(6);
+        assertThat(plural.getItems().get(ZERO).getId()).isEqualTo(200L);
+        assertThat(plural.getItems().get(ZERO).getContent()).isEqualTo("content1_zero");
+        assertThat(plural.getItems().get(ONE).getId()).isEqualTo(201L);
+        assertThat(plural.getItems().get(ONE).getContent()).isEqualTo("content1_one");
+        assertThat(plural.getItems().get(TWO).getId()).isEqualTo(202L);
+        assertThat(plural.getItems().get(TWO).getContent()).isEqualTo("content1_two");
+        assertThat(plural.getItems().get(FEW).getId()).isEqualTo(203L);
+        assertThat(plural.getItems().get(FEW).getContent()).isEqualTo("content1_few");
+        assertThat(plural.getItems().get(MANY).getId()).isEqualTo(204L);
+        assertThat(plural.getItems().get(MANY).getContent()).isEqualTo("content1_many");
+        assertThat(plural.getItems().get(OTHER).getId()).isEqualTo(205L);
+        assertThat(plural.getItems().get(OTHER).getContent()).isEqualTo("content1_other");
+    }
+
+    @Test
     public void testReadFromTargetTextUnitsForEmptyList() {
         mapper = new AndroidStringDocumentMapper("", assetDelimiter);
 
@@ -202,6 +267,71 @@ public class AndroidStringDocumentMapperTest {
         assertThat(plural.getItems().get(MANY).getId()).isEqualTo(104L);
         assertThat(plural.getItems().get(MANY).getContent()).isEqualTo("content1_many");
         assertThat(plural.getItems().get(OTHER).getId()).isEqualTo(105L);
+        assertThat(plural.getItems().get(OTHER).getContent()).isEqualTo("content1_other");
+    }
+
+    @Test
+    public void testReadFromTargetTextUnitsWithPluralsDuplicated() {
+        mapper = new AndroidStringDocumentMapper(" _", assetDelimiter);
+        textUnits.add(targetTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
+
+        textUnits.add(targetTextUnitDTO(100L, "name1 _other", "content1_zero", "comment1", "my/path0.xml", "zero", "name1_other"));
+        textUnits.add(targetTextUnitDTO(101L, "name1 _other", "content1_one", "comment1", "my/path0.xml", "one", "name1_other"));
+        textUnits.add(targetTextUnitDTO(102L, "name1 _other", "content1_two", "comment1", "my/path0.xml", "two", "name1_other"));
+        textUnits.add(targetTextUnitDTO(103L, "name1 _other", "content1_few", "comment1", "my/path0.xml", "few", "name1_other"));
+        textUnits.add(targetTextUnitDTO(104L, "name1 _other", "content1_many", "comment1", "my/path0.xml", "many", "name1_other"));
+        textUnits.add(targetTextUnitDTO(105L, "name1 _other", "content1_other", "comment1", "my/path0.xml", "other", "name1_other"));
+
+        textUnits.add(targetTextUnitDTO(200L, "name1 _other", "content1_zero", "comment1", "my/path1.xml", "zero", "name1_other"));
+        textUnits.add(targetTextUnitDTO(201L, "name1 _other", "content1_one", "comment1", "my/path1.xml", "one", "name1_other"));
+        textUnits.add(targetTextUnitDTO(202L, "name1 _other", "content1_two", "comment1", "my/path1.xml", "two", "name1_other"));
+        textUnits.add(targetTextUnitDTO(203L, "name1 _other", "content1_few", "comment1", "my/path1.xml", "few", "name1_other"));
+        textUnits.add(targetTextUnitDTO(204L, "name1 _other", "content1_many", "comment1", "my/path1.xml", "many", "name1_other"));
+        textUnits.add(targetTextUnitDTO(205L, "name1 _other", "content1_other", "comment1", "my/path1.xml", "other", "name1_other"));
+
+        document = mapper.readFromTargetTextUnits(textUnits);
+
+        assertThat(document).isNotNull();
+        assertThat(document.getSingulars()).hasSize(1);
+        AndroidSingular singular = document.getSingulars().get(0);
+        assertThat(singular.getId()).isEqualTo(123L);
+        assertThat(singular.getName()).isEqualTo("my/path0#@#name0");
+        assertThat(singular.getContent()).isEqualTo("content0");
+        assertThat(singular.getComment()).isEqualTo("comment0");
+
+        assertThat(document.getPlurals()).hasSize(2);
+        AndroidPlural plural = document.getPlurals().get(1);
+        assertThat(plural.getName()).isEqualTo("my/path0.xml#@#name1");
+        assertThat(plural.getComment()).isEqualTo("comment1");
+        assertThat(plural.getItems()).hasSize(6);
+        assertThat(plural.getItems().get(ZERO).getId()).isEqualTo(100L);
+        assertThat(plural.getItems().get(ZERO).getContent()).isEqualTo("content1_zero");
+        assertThat(plural.getItems().get(ONE).getId()).isEqualTo(101L);
+        assertThat(plural.getItems().get(ONE).getContent()).isEqualTo("content1_one");
+        assertThat(plural.getItems().get(TWO).getId()).isEqualTo(102L);
+        assertThat(plural.getItems().get(TWO).getContent()).isEqualTo("content1_two");
+        assertThat(plural.getItems().get(FEW).getId()).isEqualTo(103L);
+        assertThat(plural.getItems().get(FEW).getContent()).isEqualTo("content1_few");
+        assertThat(plural.getItems().get(MANY).getId()).isEqualTo(104L);
+        assertThat(plural.getItems().get(MANY).getContent()).isEqualTo("content1_many");
+        assertThat(plural.getItems().get(OTHER).getId()).isEqualTo(105L);
+        assertThat(plural.getItems().get(OTHER).getContent()).isEqualTo("content1_other");
+
+        plural = document.getPlurals().get(0);
+        assertThat(plural.getName()).isEqualTo("my/path1.xml#@#name1");
+        assertThat(plural.getComment()).isEqualTo("comment1");
+        assertThat(plural.getItems()).hasSize(6);
+        assertThat(plural.getItems().get(ZERO).getId()).isEqualTo(200L);
+        assertThat(plural.getItems().get(ZERO).getContent()).isEqualTo("content1_zero");
+        assertThat(plural.getItems().get(ONE).getId()).isEqualTo(201L);
+        assertThat(plural.getItems().get(ONE).getContent()).isEqualTo("content1_one");
+        assertThat(plural.getItems().get(TWO).getId()).isEqualTo(202L);
+        assertThat(plural.getItems().get(TWO).getContent()).isEqualTo("content1_two");
+        assertThat(plural.getItems().get(FEW).getId()).isEqualTo(203L);
+        assertThat(plural.getItems().get(FEW).getContent()).isEqualTo("content1_few");
+        assertThat(plural.getItems().get(MANY).getId()).isEqualTo(204L);
+        assertThat(plural.getItems().get(MANY).getContent()).isEqualTo("content1_many");
+        assertThat(plural.getItems().get(OTHER).getId()).isEqualTo(205L);
         assertThat(plural.getItems().get(OTHER).getContent()).isEqualTo("content1_other");
     }
 

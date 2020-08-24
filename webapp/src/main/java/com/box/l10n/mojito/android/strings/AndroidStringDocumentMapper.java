@@ -48,7 +48,7 @@ public class AndroidStringDocumentMapper {
             if (isSingularTextUnit(textUnit)) {
                 document.addSingular(textUnitToAndroidSingular(textUnit, useSource));
             } else {
-                pluralByOther.compute(textUnit.getPluralFormOther(), (key, builder) -> {
+                pluralByOther.compute(textUnitKey(textUnit), (key, builder) -> {
                     if (builder == null) {
                         builder = AndroidPlural.builder();
                     }
@@ -163,6 +163,10 @@ public class AndroidStringDocumentMapper {
 
     boolean isSingularTextUnit(TextUnitDTO textUnit) {
         return Strings.isNullOrEmpty(textUnit.getPluralForm());
+    }
+
+    String textUnitKey(TextUnitDTO textUnit){
+        return textUnit.getAssetPath() + DEFAULT_ASSET_DELIMITER + textUnit.getPluralFormOther();
     }
 
     AndroidSingular textUnitToAndroidSingular(TextUnitDTO textUnit, boolean useSource) {

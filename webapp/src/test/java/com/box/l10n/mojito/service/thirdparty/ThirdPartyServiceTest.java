@@ -526,6 +526,9 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
 
     @Test
     public void testReplaceSpacePlaceholder() {
+        assertThat(thirdPartyService.replaceSpacePlaceholder(null)).isEqualTo("");
+        assertThat(thirdPartyService.replaceSpacePlaceholder("")).isEqualTo("");
+        assertThat(thirdPartyService.replaceSpacePlaceholder("_")).isEqualTo("_");
         assertThat(thirdPartyService.replaceSpacePlaceholder("%s_")).isEqualTo(" _");
         assertThat(thirdPartyService.replaceSpacePlaceholder("_%s%")).isEqualTo("_ %");
         assertThat(thirdPartyService.replaceSpacePlaceholder("_%ss")).isEqualTo("_ s");
