@@ -19,7 +19,7 @@ public class AndroidPlural extends AbstractAndroidString {
 
     public AndroidPlural(String name, String comment, List<AndroidPluralItem> items) {
         super(name, comment);
-        this.items = items.stream().collect(Collectors.toMap(AndroidPluralItem::getQuantity, Function.identity()));
+        this.items = buildItemMap(items);
     }
 
     public Map<AndroidPluralQuantity, AndroidPluralItem> getItems() {
@@ -34,6 +34,14 @@ public class AndroidPlural extends AbstractAndroidString {
         return items.values()
                 .stream()
                 .sorted(Comparator.comparingInt(item -> item.getQuantity().ordinal()));
+    }
+
+    private Map<AndroidPluralQuantity, AndroidPluralItem> buildItemMap(List<AndroidPluralItem> items) {
+        try {
+            return items.stream().collect(Collectors.toMap(AndroidPluralItem::getQuantity, Function.identity()));
+        } catch (IllegalStateException e) {
+            throw new AndroidPluralDuplicateKeyException("A duplicate was found when building an Android Plural", e);
+        }
     }
 
     @Override

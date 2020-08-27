@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.android.strings;
 
+import java.util.StringJoiner;
+
 public class AndroidPluralItem {
 
     private final Long id;
@@ -26,5 +28,14 @@ public class AndroidPluralItem {
 
     public String getContent() {
         return content;
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", AndroidPluralItem.class.getSimpleName() + "[", "]")
+                .add("id=" + id)
+                .add("quantity=" + quantity)
+                .add("content='" + content + "'")
+                .toString();
     }
 }
