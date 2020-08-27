@@ -23,6 +23,7 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TextUnitBatchMatcher;
 import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
+import com.box.l10n.mojito.service.tm.TranslationBlobService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -213,7 +214,17 @@ public class TextUnitBatchImporterService {
                 textUnitForBatchImport.getComment());
     }
 
+
+    boolean newImplementation = true;
+
+    @Autowired
+    TranslationBlobService translationBlobService;
+
     List<TextUnitDTO> getTextUnitTDOsForLocaleAndAsset(Locale locale, Asset asset) {
+
+        if (newImplementation) {
+            return translationBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), locale.getId(), null, false, true).values().asList();
+        }
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(asset.getRepository().getId());
