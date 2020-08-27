@@ -321,7 +321,6 @@ public class AssetExtractionService {
 
         logger.info("Done processing asset content id: {}", assetContentId);
 
-
         justdoSomethingpollable(currentTask);
 
         return new PollableFutureTaskResult<>(asset);

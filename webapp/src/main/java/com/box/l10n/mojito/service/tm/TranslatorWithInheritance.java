@@ -200,7 +200,7 @@ public class TranslatorWithInheritance {
     private Map<String, TextUnitDTO> getTextUnitDTOsForLocaleByMD5(Long localeId) {
 
         if (newImplementation) {
-            return translationBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), localeId, statusFilter, false);
+            return translationBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), localeId, statusFilter, false, true);
         }
 
         Map<String, TextUnitDTO> res = new HashMap<>();

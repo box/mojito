@@ -221,8 +221,7 @@ public class RepositoryStatisticService {
         RepositoryStatistic repositoryStatistic = assetRepository.findIdByRepositoryIdAndDeleted(repositoryId, false).stream()
                 .map(assetId -> {
 
-                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, localeService.getDefaultLocale().getId(), null, true);
-
+                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, localeService.getDefaultLocale().getId(), null, true, true);
 
                     RepositoryStatistic assetRepositoryStatistic = new RepositoryStatistic();
 
@@ -268,6 +267,11 @@ public class RepositoryStatisticService {
                             .sum()
                     );
 
+
+                    // todo here is actually a good play do compute branch information
+
+
+
                     return assetRepositoryStatistic;
                 })
                 .reduce(new RepositoryStatistic(), (r1, r2) -> {
@@ -279,12 +283,11 @@ public class RepositoryStatisticService {
                     sum.setPluralTextUnitWordCount(r1.getPluralTextUnitWordCount() + r2.getPluralTextUnitWordCount());
                     sum.setUnusedTextUnitCount(r1.getUnusedTextUnitCount() + r2.getUnusedTextUnitCount());
                     sum.setUnusedTextUnitWordCount(r1.getUnusedTextUnitWordCount() + r2.getUnusedTextUnitWordCount());
-
-                    //TODO(perf) we're missing unused stats (and oosla if we want to keep that, also why isn't it at the locale level...)
-
+                    //TODO(perf) is unused tested?
                     return sum;
                 });
 
+        //TODO(perf) we don't re-implement since it is not really usable as it
         //        updateRepositoryStatisticWithOutOfSla(repositoryId, repositoryStatistic);
 
         return repositoryStatistic;
@@ -329,7 +332,7 @@ public class RepositoryStatisticService {
                 .map(assetId -> {
 
                     // for stats it doesn't make sense by md5
-                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, repositoryLocale.getLocale().getId(), null, false);
+                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, repositoryLocale.getLocale().getId(), null, false, true);
 
                     RepositoryLocaleStatistic repositoryLocaleStatistic = new RepositoryLocaleStatistic();
 

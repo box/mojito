@@ -50,9 +50,17 @@ public class TranslationBlobService {
     @Autowired
     TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
-    public Map<String, TextUnitDTO> getTextUnitDTOsForLocaleByMD5New(Long assetId, Long localeId, StatusFilter statusFilter, boolean isRootLocale) {
+    public Map<String, TextUnitDTO> getTextUnitDTOsForLocaleByMD5New(Long assetId, Long localeId, StatusFilter statusFilter, boolean isRootLocale, boolean updateBlob) {
+
         Optional<String> translationBlobString = structuredBlobStorage.getString(StructuredBlobStorage.Prefix.TRANSLATIONS, getBlobName(assetId, localeId));
         TranslationBlob translationBlob = translationBlobString.map(s -> objectMapper.readValueUnchecked(s, TranslationBlob.class)).orElse(new TranslationBlob());
+
+        if (!updateBlob) {
+            //TODO(perf) argggg - mutli return ect....
+            return  translationBlob.getTextUnitDTOs().stream()
+                    .filter(statusPredicate(statusFilter))
+                    .collect(ImmutableMap.toImmutableMap(getTextUnitDTOMd5(), Function.identity()));
+        }
 
         List<TMTextUnitCurrentVariantDTO> currentVariants = tmTextUnitCurrentVariantRepository.findByAsset_idAndLocale_Id(assetId, localeId);
         // will keep querying that which is bad for perf and consitancy - pass it as an option
