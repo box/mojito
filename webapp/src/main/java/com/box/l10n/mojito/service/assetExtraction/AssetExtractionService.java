@@ -602,7 +602,7 @@ public class AssetExtractionService {
                     Preconditions.checkNotNull(assetExtraction.getId());
 
                     try {
-                        logger.info("add asset text unit, extraction id: {} - name: {}", assetExtraction.getId(), textUnit.getName());
+                        logger.debug("add asset text unit, extraction id: {} - name: {}", assetExtraction.getId(), textUnit.getName());
                         AssetTextUnit assetTextUnit = createAssetTextUnit(
                                 assetExtraction.getId(),
                                 textUnit.getName(),
@@ -640,6 +640,7 @@ public class AssetExtractionService {
 
         logAndReset(stopwatch, "Getting all text units to check:");
 
+        //TODO(perf) this doesn't scale batch it!!
         byAssetExtraction.stream()
                 .filter(t -> !usedInMerged.contains(t.getMd5())) // TODO or unused in merged ?? kind of the same
                 // TODO removing this can step on a concurrent modification ... this is not

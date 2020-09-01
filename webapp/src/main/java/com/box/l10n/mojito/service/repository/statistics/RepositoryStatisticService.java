@@ -223,6 +223,8 @@ public class RepositoryStatisticService {
 
                     Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, localeService.getDefaultLocale().getId(), null, true, true);
 
+                    logger.info("computeBaseStatisticsNew, total: {}", textUnitDTOsForLocaleByMD5New.size());
+
                     RepositoryStatistic assetRepositoryStatistic = new RepositoryStatistic();
 
                     assetRepositoryStatistic.setUsedTextUnitCount(textUnitDTOsForLocaleByMD5New.values().stream()
@@ -269,8 +271,6 @@ public class RepositoryStatisticService {
 
 
                     // todo here is actually a good play do compute branch information
-
-
 
                     return assetRepositoryStatistic;
                 })
@@ -343,7 +343,7 @@ public class RepositoryStatisticService {
                                     .filter(TextUnitDTO::isTranslated)
                                     .filter(TextUnitDTO::isUsed)
                                     .filter(not(TextUnitDTO::isDoNotTranslate))
-                                    .peek(t -> logger.info("translated for {}: {}", t.getTargetLocale(), t.getName()))
+                                    .peek(t -> logger.debug("translated for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
 
@@ -360,7 +360,7 @@ public class RepositoryStatisticService {
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
                                     .filter(translationBlobService.statusPredicate(StatusFilter.TRANSLATION_NEEDED))
-                                    .peek(t -> logger.info("translation needed for {}: {}", t.getTargetLocale(), t.getName()))
+                                    .peek(t -> logger.debug("translation needed for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
 
@@ -377,7 +377,7 @@ public class RepositoryStatisticService {
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
                                     .filter(translationBlobService.statusPredicate(StatusFilter.REVIEW_NEEDED))
-                                    .peek(t -> logger.info("review needed for {}: {}", t.getTargetLocale(), t.getName()))
+                                    .peek(t -> logger.debug("review needed for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
 
@@ -394,7 +394,7 @@ public class RepositoryStatisticService {
                                     .filter(TextUnitDTO::isUsed)
                                     .filter(TextUnitDTO::isIncludedInLocalizedFile)
                                     .filter(not(TextUnitDTO::isDoNotTranslate))
-                                    .peek(t -> logger.info("include in file for {}: {}", t.getTargetLocale(), t.getName()))
+                                    .peek(t -> logger.debug("include in file for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
 
@@ -412,7 +412,7 @@ public class RepositoryStatisticService {
                                     .filter(TextUnitDTO::isUsed)
                                     .filter(not(TextUnitDTO::isDoNotTranslate))
                                     .filter(translationBlobService.statusPredicate(StatusFilter.FOR_TRANSLATION))
-                                    .peek(t -> logger.info("for translation for {}: {}", t.getTargetLocale(), t.getName()))
+                                    .peek(t -> logger.debug("for translation for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
 

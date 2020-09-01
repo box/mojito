@@ -116,12 +116,7 @@ public class BranchStatisticService {
 
         Repository repository = branch.getRepository();
 
-
-        // we have to go by locale and then by asset since that's how it is cached
-        //
-
-
-        ImmutableMap<Long, ForTranslationCountForTmTextUnitId> collect = assetRepository.findIdByRepositoryIdAndDeleted(repository.getId(), false).stream()
+        ImmutableMap<Long, ForTranslationCountForTmTextUnitId> tmTextUnitIdToForTranslationCount = assetRepository.findIdByRepositoryIdAndDeleted(repository.getId(), false).stream()
                 .flatMap(assetId -> {
 
                     MultiBranchStateJson multiBranchStateJson = multiBranchStateJsonService.readMultiBranchStateJson(assetId);
@@ -133,7 +128,7 @@ public class BranchStatisticService {
                     logger.debug("tmTextUnitIds in branch: {} : {}", branch.getName(), tmTextUnitIds);
 
                     return repository.getRepositoryLocales().stream()
-                            .filter(rl -> rl.getParentLocale() != null)
+                            .filter(rl -> rl.getParentLocale() != null && rl.isToBeFullyTranslated())
                             .flatMap(rl -> {
                                 logger.debug("Proccesing asset id: {} for branch: {}", assetId, branch.getName());
 
@@ -143,7 +138,7 @@ public class BranchStatisticService {
                                 return tmTextUnitIds.stream()
                                         .map(tmTextUnitId -> {
                                             long forTranslationCount = textUnitDTOsForLocaleByMD5New.values().stream()
-                                                    .filter(t -> t.getTmTextUnitId() == tmTextUnitId)
+                                                    .filter(t -> t.getTmTextUnitId().equals(tmTextUnitId))
                                                     .filter(TextUnitDTO::isUsed)
                                                     .filter(not(TextUnitDTO::isDoNotTranslate))
                                                     .filter(translationBlobService.statusPredicate(FOR_TRANSLATION))
@@ -151,7 +146,7 @@ public class BranchStatisticService {
                                                     .count();
 
                                             long totalCount = textUnitDTOsForLocaleByMD5New.values().stream()
-                                                    .filter(t -> t.getTmTextUnitId() == tmTextUnitId)
+                                                    .filter(t -> t.getTmTextUnitId().equals(tmTextUnitId))
                                                     .filter(TextUnitDTO::isUsed)
                                                     .filter(not(TextUnitDTO::isDoNotTranslate))
                                                     .peek(t -> logger.debug("total count in branch {} for {}: {} ({})", branch.getName(), t.getTargetLocale(), t.getName(), tmTextUnitId))
@@ -176,15 +171,10 @@ public class BranchStatisticService {
             branchStatistic = branchStatisticRepository.save(branchStatistic);
         }
 
-        Set<Long> tmTextUnitIdsToRemove = getTmTextUnitIdsOfBranchStatistic(branchStatistic);
-        List<TextUnitDTO> branchTextUnits = getTextUnitDTOsForBranch(branch);
-
         long sumTotalCount = 0;
         long sumForTranslationCount = 0;
 
-        for (TextUnitDTO textUnitDTO : branchTextUnits) {
-            long tmTextUnitId = textUnitDTO.getTmTextUnitId();
-            tmTextUnitIdsToRemove.remove(tmTextUnitId);
+        for (Long tmTextUnitId : tmTextUnitIdToForTranslationCount.keySet()) {
 
             logger.debug("Get BranchTextUnitStatistic for tmTextUnitId: {}", tmTextUnitId);
             BranchTextUnitStatistic branchTextUnitStatistic = branchTextUnitStatisticRepository.getByBranchStatisticIdAndTmTextUnitId(branchStatistic.getId(), tmTextUnitId);
@@ -196,10 +186,10 @@ public class BranchStatisticService {
                 branchTextUnitStatistic.setTmTextUnit(tmTextUnitRepository.getOne(tmTextUnitId));
             }
 
-            long forTranslationCount = collect.get(tmTextUnitId).getForTranslationCount();
+            long forTranslationCount = tmTextUnitIdToForTranslationCount.get(tmTextUnitId).getForTranslationCount();
             sumForTranslationCount += forTranslationCount;
 
-            long totalCount =  collect.get(tmTextUnitId).getTotalCount();
+            long totalCount =  tmTextUnitIdToForTranslationCount.get(tmTextUnitId).getTotalCount();
             sumTotalCount += totalCount;
 
             logger.debug("Update counts, forTranslation: {}, total: {}", forTranslationCount, totalCount);
@@ -214,6 +204,12 @@ public class BranchStatisticService {
         branchStatisticRepository.save(branchStatistic);
 
         logger.debug("Remove statistic for unused text units for branch: {} ({})", branch.getId(), branch.getName());
+
+        Set<Long> tmTextUnitIdsToRemove = branchStatistic.getBranchTextUnitStatistics().stream().
+                map(branchTextUnitStatistic -> branchTextUnitStatistic.getTmTextUnit().getId()).
+                filter(id -> !tmTextUnitIdToForTranslationCount.keySet().contains(id)).
+                collect(Collectors.toSet());
+
         int removedCount = branchTextUnitStatisticRepository.deleteByBranchStatisticBranchIdAndTmTextUnitIdIn(branch.getId(), tmTextUnitIdsToRemove);
         logger.debug("Removed statistic: {}", removedCount);
 

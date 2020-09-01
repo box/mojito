@@ -1,18 +1,25 @@
 package com.box.l10n.mojito.service.tm;
 
+import com.box.l10n.mojito.aspect.StopWatch;
+import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.assetExtraction.AssetMappingDTO;
+import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +29,15 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 @Component
 public class TranslationBlobService {
 
-    static Logger logger = LoggerFactory.getLogger(TranslatorWithInheritance.class);
+    static Logger logger = LoggerFactory.getLogger(TranslationBlobService.class);
 
     @Autowired
     StructuredBlobStorage structuredBlobStorage;
@@ -49,10 +58,15 @@ public class TranslationBlobService {
     @Autowired
     TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
 
+    @Autowired
+    AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
+
+    @Autowired
+    AssetRepository assetRepository;
+
     public ImmutableMap<String, TextUnitDTO> getTextUnitDTOsForLocaleByMD5New(Long assetId, Long localeId, StatusFilter statusFilter, boolean isRootLocale, boolean updateBlob) {
 
-        Optional<String> translationBlobString = structuredBlobStorage.getString(StructuredBlobStorage.Prefix.TRANSLATIONS, getBlobName(assetId, localeId));
-        TranslationBlob translationBlob = translationBlobString.map(s -> objectMapper.readValueUnchecked(s, TranslationBlob.class)).orElse(new TranslationBlob());
+        TranslationBlob translationBlob = getTranslationBlob(assetId, localeId);
 
         if (!updateBlob) {
             //TODO(perf) argggg - mutli return ect....
@@ -61,30 +75,51 @@ public class TranslationBlobService {
                     .collect(ImmutableMap.toImmutableMap(getTextUnitDTOMd5(), Function.identity()));
         }
 
-        List<TMTextUnitCurrentVariantDTO> currentVariants = tmTextUnitCurrentVariantRepository.findByAsset_idAndLocale_Id(assetId, localeId);
-        // will keep querying that which is bad for perf and consitancy - pass it as an option
-        List<Long> tmTextUnitIds = tmTextUnitRepository.getTextUnitIdsByAssetId(assetId);
+        //TODO(perf) this will become slow as the asset becomes fully translated
+        List<TMTextUnitCurrentVariantDTO> currentVariants = getCurrentVariantsByAssetIdAndLocaleId(assetId, localeId);
 
+        // will keep querying that which is bad for perf and consitancy - pass it as an option
+        //TODO(perf) this could/should be read for S3 too since this would change only when the asset changes. so
+        // we have this data
+        //TODO(perf) this doesn't capture unused strings!
+        //TODO(perf) check that this asset is deleted?
+        List<Long> tmTextUnitIds = getTextUnitIdsByAssetId(assetId);
+
+        // should be in service?
+        Asset asset = assetRepository.findById(assetId).orElseThrow(() -> new IllegalArgumentException("Asset missing for given id"));
+        Set<Long> currentTmTextUnits = findTmTextUnitIdsByAssetExtractionId(asset);
+
+        // need to fetch current variant to are not translationblob or that have been changed
         ImmutableMap<Long, TextUnitDTO> fromBlobByTmTextUnitId = translationBlob.getTextUnitDTOs().stream()
                 .collect(ImmutableMap.toImmutableMap(TextUnitDTO::getTmTextUnitId, Function.identity()));
 
-        ImmutableSet<Long> skipFetch = currentVariants.stream()
+        Stream<Long> toFetchFromCurrentVariant = currentVariants.stream()
                 .filter(t -> {
                     TextUnitDTO textUnitDTO = fromBlobByTmTextUnitId.get(t.getTmTextUnitId());
-                    return textUnitDTO != null && textUnitDTO.getTmTextUnitVariantId() == t.getTmTextUnitVariantId();
+                    return textUnitDTO == null ||
+                            !Objects.equals(textUnitDTO.getTmTextUnitVariantId(), t.getTmTextUnitVariantId());
                 })
-                .map(TMTextUnitCurrentVariantDTO::getTmTextUnitId)
-                .collect(ImmutableSet.toImmutableSet());
+                .map(TMTextUnitCurrentVariantDTO::getTmTextUnitId);
 
-        ImmutableList<Long> textUnitsToFetch = tmTextUnitIds.stream()
-                .filter(tmTextUnitId -> !skipFetch.contains(tmTextUnitId))
-                .collect(ImmutableList.toImmutableList());
+        Stream<Long> toFetchFromTextUnits = tmTextUnitIds.stream()
+                .filter(tmTextUnitId -> !fromBlobByTmTextUnitId.containsKey(tmTextUnitId));
 
-        logger.info("Number of text units to fetch: {}", textUnitsToFetch.size());
+        Stream<Long> toFetchUsedChanged = translationBlob.getTextUnitDTOs().stream()
+                .peek(t -> logger.debug("checking used has changed: {}", t.getName()))
+                .filter(t -> {
+                    boolean newUsed = currentTmTextUnits.contains(t.getTmTextUnitId());
+                    return newUsed != t.isUsed(); // useless fetch when asset is removed? but makes it more synced?
+                })
+                .peek(t -> logger.debug("used has changed: {}", t.getName()))
+                .map(TextUnitDTO::getTmTextUnitId);
 
-        ImmutableMap<Long, TextUnitDTO> fetchedByTmTextUnitId = Lists.partition(textUnitsToFetch, 100).stream()
+        ImmutableSet<Long> textUnitsToFetch = Streams.concat(toFetchFromCurrentVariant, toFetchFromTextUnits, toFetchUsedChanged).collect(ImmutableSet.toImmutableSet());
+
+        logger.info("Number of text units to fetch: {} (of total: {})", textUnitsToFetch.size(), tmTextUnitIds.size());
+
+        ImmutableMap<Long, TextUnitDTO> fetchedByTmTextUnitId = Lists.partition(textUnitsToFetch.asList(), 100).stream()
                 .flatMap(tmTextUnitIdsForBatch -> {
-                    logger.info("fetching for tmTextUnitIds: {}", tmTextUnitIdsForBatch);
+                    logger.debug("fetching for tmTextUnitIds: {}", tmTextUnitIdsForBatch);
 
                     TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
                     textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIdsForBatch);
@@ -105,17 +140,23 @@ public class TranslationBlobService {
         ImmutableMap<String, TextUnitDTO> byMd5s = tmTextUnitIds.stream()
                 .map(id -> {
                     TextUnitDTO textUnitDTO = fetchedByTmTextUnitId.get(id);
+
                     if (textUnitDTO == null) {
                         textUnitDTO = fromBlobByTmTextUnitId.get(id);
                     }
                     return textUnitDTO;
                 })
                 .filter(Objects::nonNull) // plural forms won't match for some language so need to skip
+                .map(textUnitDTO -> {
+                    textUnitDTO.setAssetDeleted(asset.getDeleted());
+                    return textUnitDTO;
+                })
                 .collect(ImmutableMap.toImmutableMap(getTextUnitDTOMd5(), Function.identity()));
 
 
         TranslationBlob toWrite = new TranslationBlob();
         toWrite.setTextUnitDTOs(byMd5s.values().asList());
+        logger.debug("Writting to translation blob: {}", toWrite.getTextUnitDTOs().size());
         structuredBlobStorage.put(StructuredBlobStorage.Prefix.TRANSLATIONS, getBlobName(assetId, localeId), objectMapper.writeValueAsStringUnchecked(toWrite), Retention.PERMANENT);
 
         ImmutableMap<String, TextUnitDTO> withStatus = byMd5s.values().stream()
@@ -125,6 +166,25 @@ public class TranslationBlobService {
         return withStatus;
     }
 
+    Set<Long> findTmTextUnitIdsByAssetExtractionId(Asset asset) {
+        return assetTextUnitToTMTextUnitRepository.findTmTextUnitIdsByAssetExtractionId(asset.getLastSuccessfulAssetExtraction().getId());
+    }
+
+    @StopWatch
+    TranslationBlob getTranslationBlob(Long assetId, Long localeId) {
+        Optional<String> translationBlobString = structuredBlobStorage.getString(StructuredBlobStorage.Prefix.TRANSLATIONS, getBlobName(assetId, localeId));
+        return translationBlobString.map(s -> objectMapper.readValueUnchecked(s, TranslationBlob.class)).orElse(new TranslationBlob());
+    }
+
+    @StopWatch
+    List<Long> getTextUnitIdsByAssetId(Long assetId) {
+        return tmTextUnitRepository.getTextUnitIdsByAssetId(assetId);
+    }
+
+    @StopWatch
+    List<TMTextUnitCurrentVariantDTO> getCurrentVariantsByAssetIdAndLocaleId(Long assetId, Long localeId) {
+        return tmTextUnitCurrentVariantRepository.findByAsset_idAndLocale_Id(assetId, localeId);
+    }
 
     /**
      * this implementation should be in sync with what's done in {@llink TextUnitSearcher}
@@ -172,7 +232,7 @@ public class TranslationBlobService {
                     boolean b = t.getTmTextUnitVariantId() == null ||
                             TMTextUnitVariant.Status.TRANSLATION_NEEDED.equals(t.getStatus()) ||
                             !t.isIncludedInLocalizedFile();
-                    logger.info("predicate for translation: {}, {} --> {} ({}, {}, {})", t.getTargetLocale(), t.getName(), b, t.getTmTextUnitVariantId(), t.isIncludedInLocalizedFile(), t.getStatus());
+                    logger.trace("predicate for translation: {}, {} --> {} ({}, {}, {})", t.getTargetLocale(), t.getName(), b, t.getTmTextUnitVariantId(), t.isIncludedInLocalizedFile(), t.getStatus());
                     return b;
 
                 default:

@@ -366,6 +366,9 @@ public class AssetService {
     }
 
     public void deleteAssetOfBranchNew(Long assetId, Long branchId) {
+
+        //TODO(perf) need to update the blob with removed translations
+
         logger.debug("deleteAssetOfBranch: asset id: {}, branch id: {}", assetId, branchId);
         Asset asset = assetRepository.findById(assetId).orElse(null);
         if (asset != null) {
