@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2AccessDeniedException;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
@@ -45,7 +44,6 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
 
     @Override
     public OAuth2AccessToken obtainAccessToken(OAuth2ProtectedResourceDetails details, AccessTokenRequest accessTokenRequest) throws UserRedirectRequiredException, UserApprovalRequiredException, AccessDeniedException {
-
 
         logger.debug("Get access token");
         Map<String, String> request = new HashMap<>();
@@ -105,12 +103,13 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
     }
 
     /**
-     * Since Smartling gives the TTL of the token but not the emission time, play safe taking now() minus 1 seconds as
-     * "now" time.
+     * Since Smartling gives the TTL of the token but not the emission time, play safe taking now() minus 15 seconds as
+     * "now" time. If the token is already expired it's better to take it as expired, even if it has some leeway, and
+     * just refresh it while keeping the token alive.
      *
      * @return
      */
     DateTime getNowForToken() {
-        return DateTime.now().minusSeconds(1);
+        return DateTime.now().minusSeconds(15);
     }
 }

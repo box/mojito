@@ -15,6 +15,7 @@ import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -86,6 +87,48 @@ public class SmartlingClientTest {
                 logger.debug("\n\n");
             }
         });
+    }
+
+    @Ignore
+    public void testRefreshToken() throws InterruptedException {
+        Assume.assumeNotNull(smartlingTestConfig.projectId);
+        Assume.assumeNotNull(smartlingTestConfig.fileUri);
+
+        smartlingClient.getStringInfos(smartlingTestConfig.projectId, smartlingTestConfig.fileUri).forEach(stringInfo -> {
+            if (stringInfo.getKeys().size() == 1) {
+                logger.debug("hashcode: {}\nvariant: {}\nparsed string: {}\n stringtext: {}\nkeys:",
+                        stringInfo.getHashcode(),
+                        stringInfo.getStringVariant(),
+                        stringInfo.getParsedStringText(),
+                        stringInfo.getStringText());
+
+                stringInfo.getKeys().stream().forEach(key -> logger.debug("key: {}, file: {}", key.getKey(), key.getFileUri()));
+
+                logger.debug("\n\n");
+            }
+        });
+
+        System.out.println("Sleeping until token is almost expired");
+        Thread.sleep(460*1000L);
+
+        for (int i = 0; i < 350; i++) {
+            smartlingClient.getStringInfos(smartlingTestConfig.projectId, smartlingTestConfig.fileUri).forEach(stringInfo -> {
+                if (stringInfo.getKeys().size() == 1) {
+                    logger.debug("hashcode: {}\nvariant: {}\nparsed string: {}\n stringtext: {}\nkeys:",
+                            stringInfo.getHashcode(),
+                            stringInfo.getStringVariant(),
+                            stringInfo.getParsedStringText(),
+                            stringInfo.getStringText());
+
+                    stringInfo.getKeys().stream().forEach(key -> logger.debug("key: {}, file: {}", key.getKey(), key.getFileUri()));
+
+                    logger.debug("\n\n");
+                }
+            });
+
+            System.out.println("Sleeping for token to expire and get refreshed");
+            Thread.sleep(100L);
+        }
     }
 
     @Test

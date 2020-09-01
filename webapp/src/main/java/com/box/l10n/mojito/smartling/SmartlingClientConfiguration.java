@@ -12,14 +12,12 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.springframework.security.oauth2.client.token.AccessTokenProviderChain;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.util.DefaultUriTemplateHandler;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * @author jaurambault
@@ -62,14 +60,10 @@ public class SmartlingClientConfiguration {
         RestTemplateUtils restTemplateUtils = new RestTemplateUtils();
         restTemplateUtils.enableFeature(oAuth2RestTemplate, DeserializationFeature.UNWRAP_ROOT_VALUE);
 
-        AccessTokenProviderChain accessTokenProviderChain = new AccessTokenProviderChain(Arrays.asList(
-                new SmartlingAuthorizationCodeAccessTokenProvider())
-        );
-        oAuth2RestTemplate.setAccessTokenProvider(accessTokenProviderChain);
+        oAuth2RestTemplate.setAccessTokenProvider(new SmartlingAuthorizationCodeAccessTokenProvider());
+        oAuth2RestTemplate.setRetryBadAccessTokens(true);
 
-        DefaultUriTemplateHandler defaultUriTemplateHandler = new DefaultUriTemplateHandler();
-        defaultUriTemplateHandler.setBaseUrl(baseUri);
-
+        DefaultUriBuilderFactory defaultUriTemplateHandler = new DefaultUriBuilderFactory(baseUri);
         oAuth2RestTemplate.setUriTemplateHandler(defaultUriTemplateHandler);
 
         oAuth2RestTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
