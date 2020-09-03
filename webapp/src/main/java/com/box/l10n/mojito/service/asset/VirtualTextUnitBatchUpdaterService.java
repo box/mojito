@@ -12,10 +12,12 @@ import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepo
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobScheduler;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.TranslationBlobService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -76,17 +78,33 @@ public class VirtualTextUnitBatchUpdaterService {
     @Autowired
     EntityManager entityManager;
 
+    @Autowired
+    TranslationBlobService translationBlobService;
+
+    @Autowired
+    LocaleService localeService;
+
+    boolean newImplementation = true;
+
     @Transactional
     public void updateTextUnits(Asset asset, List<VirtualAssetTextUnit> virtualAssetTextUnits, boolean replace) throws VirtualAssetRequiredException {
 
         logger.debug("Update text unit for asset: {}", asset.getPath());
 
         logger.debug("Build maps by name and md5 for existing text units");
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setAssetId(asset.getId());
-        textUnitSearcherParameters.setForRootLocale(true);
-        textUnitSearcherParameters.setPluralFormsFiltered(false);
-        List<TextUnitDTO> allAssetTextUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        List<TextUnitDTO> allAssetTextUnitDTOs;
+
+        if (newImplementation) {
+            //TODO(perf) locale?
+            allAssetTextUnitDTOs = translationBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), localeService.getDefaultLocale().getId(), null, true, true).values().asList();
+        } else {
+            TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+            textUnitSearcherParameters.setAssetId(asset.getId());
+            textUnitSearcherParameters.setForRootLocale(true);
+            textUnitSearcherParameters.setPluralFormsFiltered(false);
+            allAssetTextUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+        }
 
         HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs = new HashMap<>();
         HashMap<String, TextUnitDTO> md5ToTextUnitDTOs = new HashMap<>();

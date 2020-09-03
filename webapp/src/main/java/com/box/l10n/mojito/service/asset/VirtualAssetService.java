@@ -283,18 +283,18 @@ public class VirtualAssetService {
     }
 
     public PollableFuture<Void> addTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
-        VirtualTextUnitBatchUpdateJobInput importVirtualAssetJobInput = new VirtualTextUnitBatchUpdateJobInput();
-        importVirtualAssetJobInput.setAssetId(assetId);
-        importVirtualAssetJobInput.setVirtualAssetTextUnits(virtualAssetTextUnits);
-        importVirtualAssetJobInput.setReplace(false);
-        return quartzPollableTaskScheduler.scheduleJob(VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput);
+        return updateTextUnits(assetId, virtualAssetTextUnits, false);
     }
 
     public PollableFuture<Void> replaceTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
+        return updateTextUnits(assetId, virtualAssetTextUnits, true);
+    }
+
+    PollableFuture<Void> updateTextUnits(long assetId, List<VirtualAssetTextUnit> virtualAssetTextUnits, boolean b) {
         VirtualTextUnitBatchUpdateJobInput importVirtualAssetJobInput = new VirtualTextUnitBatchUpdateJobInput();
         importVirtualAssetJobInput.setAssetId(assetId);
         importVirtualAssetJobInput.setVirtualAssetTextUnits(virtualAssetTextUnits);
-        importVirtualAssetJobInput.setReplace(true);
+        importVirtualAssetJobInput.setReplace(b);
         return quartzPollableTaskScheduler.scheduleJob(VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput);
     }
 

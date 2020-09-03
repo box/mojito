@@ -3,7 +3,9 @@ package com.box.l10n.mojito.service.asset;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
+import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.entity.Branch;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
@@ -18,6 +20,7 @@ import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,8 +33,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,33 +48,24 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
      * logger
      */
     static Logger logger = getLogger(AssetServiceConcurrentTest.class);
-
-    @Autowired
-    AssetService assetService;
-
-    @Autowired
-    BranchRepository branchRepository;
-
-    @Autowired
-    RepositoryService repositoryService;
-
-    @Autowired
-    AssetRepository assetRepository;
-
-    @Autowired
-    AssetContentRepository assetContentRepository;
-
-    @Autowired
-    AssetExtractionRepository assetExtractionRepository;
-
-    @Autowired
-    PollableTaskService pollableTaskService;
-
-    @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
-
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
+    @Autowired
+    AssetService assetService;
+    @Autowired
+    BranchRepository branchRepository;
+    @Autowired
+    RepositoryService repositoryService;
+    @Autowired
+    AssetRepository assetRepository;
+    @Autowired
+    AssetContentRepository assetContentRepository;
+    @Autowired
+    AssetExtractionRepository assetExtractionRepository;
+    @Autowired
+    PollableTaskService pollableTaskService;
+    @Autowired
+    TMTextUnitRepository tmTextUnitRepository;
 
     /**
      * Test for processing same or updated asset with single text unit in parallel.
@@ -104,17 +96,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
             assetResults.add(assetResult);
         }
 
-        List<Exception> exceptions = new ArrayList<>();
-        for (int i = 0; i < assetResults.size(); i++) {
-            try {
-                logger.debug("Get asset result: {} (i={})", assetResults.get(i).getPollableTask().getId(), i);
-                PollableFuture<Asset> assetResult = assetResults.get(i);
-                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId(), getTimeoutForIndex(i, 5000));
-                Asset asset = assetRepository.findById(assetResult.get().getId()).orElse(null);
-            } catch (PollableTaskException | InterruptedException e) {
-                exceptions.add(e);
-            }
-        }
+        List<Exception> exceptions = waitForResult(assetResults);
 
         Branch branch = branchRepository.findByNameAndRepository(null, repository);
 
@@ -137,16 +119,6 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
         List<AssetExtraction> assetExtractions = assetExtractionRepository.findByAsset(asset);
 
         assertEquals("There should be 2 asset extractions", 2, assetExtractions.size());
-    }
-
-    /**
-     * To use when waiting for a list of pollable with a global timeout. Wait for the first element the whole timeout
-     * and then don't wait.
-     *
-     * Gives a long timeout for the idx = 0 else ~ no wait.
-     */
-    int getTimeoutForIndex(int idx, int timeout) {
-        return idx == 0 ? timeout : 1;
     }
 
     /**
@@ -175,8 +147,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
             assetResults.add(assetResult);
         }
 
-        List<Exception> exceptions = new ArrayList<>();
-        processAssets(assetContent, assetResults, exceptions);
+        List<Exception> exceptions = waitForResult(assetResults);
         logger.debug("{} exceptions found", exceptions.size());
         assertTrue("No exceptions should have been thrown", exceptions.isEmpty());
 
@@ -187,21 +158,32 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
         assertEquals("There should be " + 100 * numThreads + " tmTextUnits", 100 * numThreads, tmTextUnits.size());
     }
 
-    public void processAssets(StringBuilder assetContent, List<PollableFuture<Asset>> assetResults, List<Exception> exceptions) throws ExecutionException {
+    public List<Exception> waitForResult(List<PollableFuture<Asset>> assetResults) {
+        ImmutableList<Long> pollableTaskIds = assetResults.stream()
+                .map(PollableFuture::getPollableTask)
+                .map(BaseEntity::getId)
+                .collect(ImmutableList.toImmutableList());
+
+        List<Exception> exceptions = new ArrayList<>();
+
+        try {
+            pollableTaskService.waitForPollableTasks(pollableTaskIds, 60000, 50);
+        } catch (InterruptedException e) {
+            logger.error(ExceptionUtils.getStackTrace(e));
+            exceptions.add(e);
+        }
 
         for (int i = 0; i < assetResults.size(); i++) {
             try {
-                logger.debug("Get asset result: {}", assetResults.get(i).getPollableTask().getId());
+                logger.debug("Get asset result: {} (i={})", assetResults.get(i).getPollableTask().getId(), i);
                 PollableFuture<Asset> assetResult = assetResults.get(i);
-                pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId(), getTimeoutForIndex(i, 120000));
                 Asset asset = assetRepository.findById(assetResult.get().getId()).orElse(null);
-
-//                assertEquals(assetContent.toString(), asset.getLastSuccessfulAssetExtraction().getAssetContent().getContent());
-            } catch (PollableTaskException | InterruptedException e) {
-                logger.error(ExceptionUtils.getStackTrace(e));
+            } catch (PollableTaskException | InterruptedException | ExecutionException e) {
                 exceptions.add(e);
             }
         }
+
+        return exceptions;
     }
 
     /**
@@ -230,8 +212,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
             assetResults.add(assetResult);
         }
 
-        List<Exception> exceptions = new ArrayList<>();
-        processAssets(assetContent, assetResults, exceptions);
+        List<Exception> exceptions = waitForResult(assetResults);
         logger.debug("{} exceptions found", exceptions.size());
         assertTrue("No exceptions should have been thrown", exceptions.isEmpty());
 
