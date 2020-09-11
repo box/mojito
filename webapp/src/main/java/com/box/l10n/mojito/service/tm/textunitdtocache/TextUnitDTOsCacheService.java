@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import io.micrometer.core.annotation.Timed;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,8 +203,8 @@ public class TextUnitDTOsCacheService {
                     return previous == null ||
                             !Objects.equals(previous.getTmTextUnitVariantId(), current.getTmTextUnitVariantId());
                 })
-                .distinct()
-                .map(TMTextUnitCurrentVariantDTO::getTmTextUnitId);
+                .map(TMTextUnitCurrentVariantDTO::getTmTextUnitId)
+                .distinct();
     }
 
     Asset getAssetById(Long assetId) {

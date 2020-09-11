@@ -124,8 +124,10 @@ public class TextUnitDTOsCacheServiceTest extends ServiceTestBase {
                 );
 
 
+        Long idToRemove = tmTextUnitCurrentVariantService.tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(tmTestData.frFR.getId(), tmTestData.addTMTextUnit3.getId()).getId();
+
         tmTestData.tmService.addCurrentTMTextUnitVariant(tmTestData.addTMTextUnit1.getId(), tmTestData.frFR.getId(), "Veuillez indiquer un état, une région ou une province valide. - update");
-        tmTextUnitCurrentVariantService.removeCurrentVariant(tmTestData.addCurrentTMTextUnitVariant3FrFR.getId());
+        tmTextUnitCurrentVariantService.removeCurrentVariant(idToRemove);
         tmTestData.tmService.addCurrentTMTextUnitVariant(plural1.get("one").getId(), tmTestData.frFR.getId(), "plural1 - one - fr");
         textUnitDTOsForAssetAndLocaleByMD5 = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(tmTestData.asset.getId(), tmTestData.frFR.getId(), null, false, true);
         assertThat(textUnitDTOsForAssetAndLocaleByMD5.values().stream())
