@@ -375,7 +375,7 @@ public class AssetExtractionService {
     }
 
     /**
-     * TODO this is mutating objects --- review
+     * TODO(perf) this is mutating objects --- review
      */
     private MultiBranchState addids(MultiBranchState stateForNewContent, MultiBranchState newStateForLastSuccesfulExtractionWithIds) {
 

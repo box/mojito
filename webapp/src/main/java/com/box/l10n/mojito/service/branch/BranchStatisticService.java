@@ -1,13 +1,9 @@
 package com.box.l10n.mojito.service.branch;
 
 import com.box.l10n.mojito.entity.Branch;
-import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryStatistic;
-import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.ltm.merger.BranchStateTextUnit;
 import com.box.l10n.mojito.ltm.merger.BranchStateTextUnitJson;
 import com.box.l10n.mojito.ltm.merger.MultiBranchStateJson;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
@@ -18,29 +14,23 @@ import com.box.l10n.mojito.service.assetExtraction.MultiBranchStateJsonService;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationJobInput;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.box.l10n.mojito.service.tm.TranslationBlob;
-import com.box.l10n.mojito.service.tm.TranslationBlobService;
-import com.box.l10n.mojito.service.tm.search.StatusFilter;
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableTable;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.box.l10n.mojito.service.assetExtraction.AssetExtractionService.PRIMARY_BRANCH;
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.FOR_TRANSLATION;
@@ -78,12 +68,16 @@ public class BranchStatisticService {
 
     @Autowired
     AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
+
     @Autowired
     MultiBranchStateJsonService multiBranchStateJsonService;
+
     @Autowired
     AssetRepository assetRepository;
+
     @Autowired
-    TranslationBlobService translationBlobService;
+    TextUnitDTOsCacheService textUnitDTOsCacheService;
+
     private boolean newImplementation = true;
 
     /**
@@ -133,7 +127,7 @@ public class BranchStatisticService {
                                 logger.debug("Proccesing asset id: {} for branch: {}", assetId, branch.getName());
 
                                 //TODO(perf) stop refetching over and over, cache or whatever + lookup by id
-                                Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, rl.getLocale().getId(), null, false, true);
+                                Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(assetId, rl.getLocale().getId(), null, false, true);
 
                                 return tmTextUnitIds.stream()
                                         .map(tmTextUnitId -> {
@@ -141,7 +135,7 @@ public class BranchStatisticService {
                                                     .filter(t -> t.getTmTextUnitId().equals(tmTextUnitId))
                                                     .filter(TextUnitDTO::isUsed)
                                                     .filter(not(TextUnitDTO::isDoNotTranslate))
-                                                    .filter(translationBlobService.statusPredicate(FOR_TRANSLATION))
+                                                    .filter(textUnitDTOsCacheService.statusPredicate(FOR_TRANSLATION))
                                                     .peek(t -> logger.debug("for translation in branch {} for {}: {} ({})", branch.getName(), t.getTargetLocale(), t.getName(), tmTextUnitId))
                                                     .count();
 

@@ -17,7 +17,7 @@ import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobScheduler;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.box.l10n.mojito.service.tm.TranslationBlobService;
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -79,7 +79,7 @@ public class VirtualTextUnitBatchUpdaterService {
     EntityManager entityManager;
 
     @Autowired
-    TranslationBlobService translationBlobService;
+    TextUnitDTOsCacheService textUnitDTOsCacheService;
 
     @Autowired
     LocaleService localeService;
@@ -97,7 +97,7 @@ public class VirtualTextUnitBatchUpdaterService {
 
         if (newImplementation) {
             //TODO(perf) locale?
-            allAssetTextUnitDTOs = translationBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), localeService.getDefaultLocale().getId(), null, true, true).values().asList();
+            allAssetTextUnitDTOs = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(asset.getId(), localeService.getDefaultLocale().getId(), null, true, true).values().asList();
         } else {
             TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
             textUnitSearcherParameters.setAssetId(asset.getId());

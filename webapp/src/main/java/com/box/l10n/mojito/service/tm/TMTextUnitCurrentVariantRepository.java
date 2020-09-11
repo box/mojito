@@ -23,6 +23,12 @@ public interface TMTextUnitCurrentVariantRepository extends JpaRepository<TMText
 
     @Query("select new com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantDTO(ttucv.tmTextUnit.id, ttucv.tmTextUnitVariant.id) " +
             "from #{#entityName} ttucv where ttucv.asset.id = ?1 and ttucv.locale.id = ?2")
+    List<TMTextUnitCurrentVariantDTO> findByAsset_idAndLocale_IdDenormalized(Long assetId, Long localeId);
+
+    @Query("select new com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantDTO(ttucv.tmTextUnit.id, ttucv.tmTextUnitVariant.id) " +
+            "from #{#entityName} ttucv " +
+            "inner join ttucv.asset a " +
+            "where a.id = ?1 and ttucv.locale.id = ?2")
     List<TMTextUnitCurrentVariantDTO> findByAsset_idAndLocale_Id(Long assetId, Long localeId);
 
 }

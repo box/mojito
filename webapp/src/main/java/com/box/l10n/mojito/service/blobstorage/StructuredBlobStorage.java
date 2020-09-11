@@ -32,6 +32,6 @@ public class StructuredBlobStorage {
         POLLABLE_TASK,
         IMAGE,
         MERGE_STATE,
-        TRANSLATIONS
+        TEXT_UNIT_DTOS_CACHE
     }
 }

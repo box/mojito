@@ -15,7 +15,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.sla.DropScheduleService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.box.l10n.mojito.service.tm.TranslationBlobService;
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -94,7 +94,7 @@ public class RepositoryStatisticService {
     WordCountService wordCountService;
 
     @Autowired
-    TranslationBlobService translationBlobService;
+    TextUnitDTOsCacheService textUnitDTOsCacheService;
 
     @Autowired
     LocaleService localeService;
@@ -221,7 +221,7 @@ public class RepositoryStatisticService {
         RepositoryStatistic repositoryStatistic = assetRepository.findIdByRepositoryIdAndDeleted(repositoryId, false).stream()
                 .map(assetId -> {
 
-                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, localeService.getDefaultLocale().getId(), null, true, true);
+                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(assetId, localeService.getDefaultLocale().getId(), null, true, true);
 
                     logger.info("computeBaseStatisticsNew, total: {}", textUnitDTOsForLocaleByMD5New.size());
 
@@ -332,7 +332,7 @@ public class RepositoryStatisticService {
                 .map(assetId -> {
 
                     // for stats it doesn't make sense by md5
-                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = translationBlobService.getTextUnitDTOsForLocaleByMD5New(assetId, repositoryLocale.getLocale().getId(), null, false, true);
+                    Map<String, TextUnitDTO> textUnitDTOsForLocaleByMD5New = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(assetId, repositoryLocale.getLocale().getId(), null, false, true);
 
                     RepositoryLocaleStatistic repositoryLocaleStatistic = new RepositoryLocaleStatistic();
 
@@ -359,7 +359,7 @@ public class RepositoryStatisticService {
                     repositoryLocaleStatistic.setTranslationNeededCount(
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
-                                    .filter(translationBlobService.statusPredicate(StatusFilter.TRANSLATION_NEEDED))
+                                    .filter(textUnitDTOsCacheService.statusPredicate(StatusFilter.TRANSLATION_NEEDED))
                                     .peek(t -> logger.debug("translation needed for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
@@ -367,7 +367,7 @@ public class RepositoryStatisticService {
                     repositoryLocaleStatistic.setTranslationNeededWordCount(
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
-                                    .filter(translationBlobService.statusPredicate(StatusFilter.TRANSLATION_NEEDED))
+                                    .filter(textUnitDTOsCacheService.statusPredicate(StatusFilter.TRANSLATION_NEEDED))
                                     .mapToLong(wordCountFunction())
                                     .sum()
                     );
@@ -376,7 +376,7 @@ public class RepositoryStatisticService {
                     repositoryLocaleStatistic.setReviewNeededCount(
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
-                                    .filter(translationBlobService.statusPredicate(StatusFilter.REVIEW_NEEDED))
+                                    .filter(textUnitDTOsCacheService.statusPredicate(StatusFilter.REVIEW_NEEDED))
                                     .peek(t -> logger.debug("review needed for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
@@ -384,7 +384,7 @@ public class RepositoryStatisticService {
                     repositoryLocaleStatistic.setReviewNeededWordCount(
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
-                                    .filter(translationBlobService.statusPredicate(StatusFilter.REVIEW_NEEDED))
+                                    .filter(textUnitDTOsCacheService.statusPredicate(StatusFilter.REVIEW_NEEDED))
                                     .mapToLong(wordCountFunction())
                                     .sum()
                     );
@@ -411,7 +411,7 @@ public class RepositoryStatisticService {
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
                                     .filter(not(TextUnitDTO::isDoNotTranslate))
-                                    .filter(translationBlobService.statusPredicate(StatusFilter.FOR_TRANSLATION))
+                                    .filter(textUnitDTOsCacheService.statusPredicate(StatusFilter.FOR_TRANSLATION))
                                     .peek(t -> logger.debug("for translation for {}: {}", t.getTargetLocale(), t.getName()))
                                     .count()
                     );
@@ -420,7 +420,7 @@ public class RepositoryStatisticService {
                             textUnitDTOsForLocaleByMD5New.values().stream()
                                     .filter(TextUnitDTO::isUsed)
                                     .filter(not(TextUnitDTO::isDoNotTranslate))
-                                    .filter(translationBlobService.statusPredicate(StatusFilter.FOR_TRANSLATION))
+                                    .filter(textUnitDTOsCacheService.statusPredicate(StatusFilter.FOR_TRANSLATION))
                                     .mapToLong(wordCountFunction())
                                     .sum()
                     );

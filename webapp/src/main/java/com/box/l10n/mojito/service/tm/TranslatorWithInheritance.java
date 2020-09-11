@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,7 @@ public class TranslatorWithInheritance {
     boolean newImplementation = true;
 
     @Autowired
-    TranslationBlobService translationBlobService;
+    TextUnitDTOsCacheService textUnitDTOsCacheService;
 
     private StatusFilter statusFilter;
 
@@ -200,7 +201,7 @@ public class TranslatorWithInheritance {
     private Map<String, TextUnitDTO> getTextUnitDTOsForLocaleByMD5(Long localeId) {
 
         if (newImplementation) {
-            return translationBlobService.getTextUnitDTOsForLocaleByMD5New(asset.getId(), localeId, statusFilter, false, true);
+            return textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(asset.getId(), localeId, statusFilter, false, true);
         }
 
         Map<String, TextUnitDTO> res = new HashMap<>();
