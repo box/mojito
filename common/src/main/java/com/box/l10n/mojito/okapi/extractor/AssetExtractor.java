@@ -3,11 +3,11 @@ package com.box.l10n.mojito.okapi.extractor;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.RawDocument;
 import com.box.l10n.mojito.okapi.asset.AssetPathToFilterConfigMapper;
-import com.box.l10n.mojito.okapi.asset.FilterConfigurationMappers;
 import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.okapi.filters.FilterOptions;
 import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import net.sf.okapi.common.LocaleId;
+import net.sf.okapi.common.filters.IFilterConfigurationMapper;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
 import net.sf.okapi.steps.common.RawDocumentToFilterEventsStep;
@@ -27,7 +27,7 @@ public class AssetExtractor {
     AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
 
     @Autowired
-    FilterConfigurationMappers filterConfigurationMappers;
+    IFilterConfigurationMapper filterConfigurationMapper;
 
     public List<AssetExtractorTextUnit> getAssetExtractorTextUnitsForAsset(String assetPath,
                                                                            String assetContent,
@@ -44,7 +44,7 @@ public class AssetExtractor {
         driver.addStep(assetExtractionStep);
 
         logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(filterConfigurationMappers.getConfiguredFilterConfigurationMapper());
+        driver.setFilterConfigurationMapper(filterConfigurationMapper);
 
         RawDocument rawDocument = new RawDocument(assetContent, LocaleId.ENGLISH);
 
