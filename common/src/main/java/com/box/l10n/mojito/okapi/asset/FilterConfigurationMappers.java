@@ -11,16 +11,24 @@ import com.box.l10n.mojito.okapi.filters.POFilter;
 import com.box.l10n.mojito.okapi.filters.XMLFilter;
 import com.box.l10n.mojito.okapi.filters.XcodeXliffFilter;
 import net.sf.okapi.common.filters.DefaultFilters;
-import net.sf.okapi.common.filters.FilterConfigurationMapper;
 import net.sf.okapi.common.filters.IFilterConfigurationMapper;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
-@Component
+@Configuration
 public class FilterConfigurationMappers {
 
     /**
-     * @return A {@link net.sf.okapi.common.filters.FilterConfigurationMapper}, which has been configured with the default mappings
+     * Creates a {@link net.sf.okapi.common.filters.FilterConfigurationMapper}, which has been configured with the default mappings
+     *
+     * Creating the FilterConfigurationMapper turns out to be very slow (XMLFilter? forgot which one can be seen with profiler).
+     * So made it a lazy bean to run the code only once instead of creating the instance by calling the function.
+     *
+     * Follow up is to check if that impacts startup time in some ways and or why that is so slow.
      */
+    @Lazy
+    @Bean
     public IFilterConfigurationMapper getConfiguredFilterConfigurationMapper() {
 
         IFilterConfigurationMapper mapper = new net.sf.okapi.common.filters.FilterConfigurationMapper();
