@@ -245,7 +245,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         for (RepositoryLocale locale : repository.getRepositoryLocales()) {
 
-            if (locale.getLocale().getBcp47Tag().equalsIgnoreCase(repository.getSourceLocale().getBcp47Tag())){
+            if (locale.getParentLocale() == null){
                 continue;
             }
 
