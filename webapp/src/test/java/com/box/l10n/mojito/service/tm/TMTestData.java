@@ -15,9 +15,12 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetMappingService;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.ImmutableMap;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,8 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  *
@@ -65,6 +70,9 @@ public class TMTestData {
     @Autowired
     RepositoryLocaleRepository repositoryLocaleRepository;
 
+    @Autowired
+    PluralFormService pluralFormService;
+
     public Repository repository;
     public TM tm;
     public TMTextUnit addTMTextUnit1;
@@ -79,12 +87,11 @@ public class TMTestData {
     public TMTextUnitVariant addCurrentTMTextUnitVariant3FrFR;
     public TMTextUnitVariant addCurrentTMTextUnitVariant2FrCA;
     public TMTextUnitVariant addCurrentTMTextUnitVariant3FrCA;
-
     public Locale koKR;
     public Locale frFR;
     public Locale frCA;
     public Locale jaJP;
-
+    public Locale en;
     public RepositoryLocale repoLocaleFrFR;
     public RepositoryLocale repoLocaleKoKR;
 
@@ -100,6 +107,7 @@ public class TMTestData {
 
         logger.debug("Create data set tot test searches");
 
+        en = localeService.findByBcp47Tag("en");
         koKR = localeService.findByBcp47Tag("ko-KR");
         frFR = localeService.findByBcp47Tag("fr-FR");
         frCA = localeService.findByBcp47Tag("fr-CA");
@@ -154,4 +162,17 @@ public class TMTestData {
         addCurrentTMTextUnitVariant3FrCA = tmService.addCurrentTMTextUnitVariant(addTMTextUnit3.getId(), frCA.getId(), "Content3 fr-CA");
     }
 
+    public ImmutableMap<String, TMTextUnit> addPluralString(String basename) {
+        DateTime date = new DateTime();
+
+        ImmutableMap<String, TMTextUnit> tmTextUnitsByForm = Stream.of("other", "zero", "one", "two", "few", "many")
+                .map(form -> addPluralForm(basename, form, date))
+                .collect(ImmutableMap.toImmutableMap(t -> t.getPluralForm().getName(), Function.identity()));
+
+        return tmTextUnitsByForm;
+    }
+
+    TMTextUnit addPluralForm(String basename, String pluralForm, DateTime date) {
+        return tmService.addTMTextUnit(tm.getId(), asset.getId(), basename + "_" + pluralForm, basename + "_" + pluralForm + " content", null, null, date, pluralFormService.findByPluralFormString(pluralForm), basename + "_other", en.getId());
+    }
 }

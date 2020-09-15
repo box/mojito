@@ -58,6 +58,10 @@ public enum StatusFilter {
      */
     REVIEW_NOT_NEEDED,
     /**
+     * TextUnits with status ({@link TMTextUnitVariant.Status#TRANSLATION_NEEDED}).
+     */
+    TRANSLATION_NEEDED,
+    /**
      * TextUnits that are rejected, ie
      * {@link TMTextUnitVariant#includedInLocalizedFile} is false.
      */
