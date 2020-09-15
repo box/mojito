@@ -19,6 +19,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static com.box.l10n.mojito.quartz.QuartzConfig.DYNAMIC_GROUP_NAME;
 
 @Component
@@ -147,8 +151,32 @@ public class QuartzPollableTaskScheduler {
         return getPollableTaskName(clazz) + "_" + id;
     }
 
-    private String getPollableTaskName(Class clazz) {
+    String getPollableTaskName(Class clazz) {
         return clazz.getCanonicalName();
+    }
+
+    /**
+     * Need to shorten the class name to fit the database column size.
+     *
+     * I think I added this to fix a test that was failing but the class was renamed, so as it it is probably not
+     * needed. Keep it for later. Also not the implementation would work to well with a very long class name..
+     */
+    String getShortClassName(Class clazz) {
+        String result = clazz.getCanonicalName();
+
+        if (result.length() > 170) {
+            String[] split = clazz.getCanonicalName().split("\\.");
+
+            if (split.length == 1) {
+                result = split[0];
+            } else {
+                String[] splitWithoutLast = Arrays.copyOfRange(split, 0, split.length - 1);
+                String wordFirstLetters = Stream.of(splitWithoutLast).map(s -> s.isEmpty() ? "" : s.substring(0, 1)).collect(Collectors.joining("."));
+                result = wordFirstLetters + "." + split[split.length - 1];
+            }
+        }
+
+        return result;
     }
 
 }
