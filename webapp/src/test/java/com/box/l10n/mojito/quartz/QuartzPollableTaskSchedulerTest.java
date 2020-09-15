@@ -44,6 +44,13 @@ public class QuartzPollableTaskSchedulerTest  extends ServiceTestBase {
         }
     }
 
+    @Test
+    public void testGetShortClassName() {
+        assertEquals("com.box.l10n.mojito.quartz.QuartzPollableTaskSchedulerTest", quartzPollableTaskScheduler.getShortClassName(QuartzPollableTaskSchedulerTest.class));
+        assertEquals("c.b.l.m.q.Q.ALongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongNameClassForTest",
+                quartzPollableTaskScheduler.getShortClassName(ALongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongNameClassForTest.class));
+    }
+
     public static class AQuartzPollableJob  extends AQuartzPollableJob2 {
     }
 
@@ -76,4 +83,6 @@ public class QuartzPollableTaskSchedulerTest  extends ServiceTestBase {
         }
     }
 
+    static class ALongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongLongNameClassForTest {
+    }
 }
