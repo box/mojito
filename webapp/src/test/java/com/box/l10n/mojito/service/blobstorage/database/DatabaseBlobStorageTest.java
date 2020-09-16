@@ -69,6 +69,12 @@ public class DatabaseBlobStorageTest extends ServiceTestBase implements BlobStor
     }
 
     @Test
+    @Override
+    public void testUpdatesWithPut() {
+        BlobStorageTestShared.super.testUpdatesWithPut();
+    }
+
+    @Test
     public void testCleanup() {
 
         DateTime now = DateTime.now();

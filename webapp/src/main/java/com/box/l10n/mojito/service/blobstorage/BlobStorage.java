@@ -5,6 +5,8 @@ import java.util.Optional;
 
 /**
  * Low level API for blob storage supporting basic retention policy.
+ *
+ * put() methods should override content if an empty entry already exists for the given name.
  */
 public interface BlobStorage {
 
