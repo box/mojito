@@ -13,10 +13,10 @@ import java.util.Optional;
 
 /**
  * Implementation that use the database to store the blobs.
- *
+ * <p>
  * Expired blobs are cleaned up by {@link DatabaseBlobStorageCleanupJob}, time to live can be configured with
  * {@link DatabaseBlobStorageConfigurationProperties#min1DayTtl}
- *
+ * <p>
  * This is implementation should be used only for testing or for deployments with limited load.
  */
 public class DatabaseBlobStorage implements BlobStorage {
@@ -39,9 +39,13 @@ public class DatabaseBlobStorage implements BlobStorage {
 
     @Override
     public void put(String name, byte[] content, Retention retention) {
-        MBlob mBlob = new MBlob();
+        MBlob mBlob = mBlobRepository.findByName(name);
 
-        mBlob.setName(name);
+        if (mBlob == null) {
+            mBlob = new MBlob();
+            mBlob.setName(name);
+        }
+
         mBlob.setContent(content);
 
         if (Retention.MIN_1_DAY.equals(retention)) {
