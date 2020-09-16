@@ -463,6 +463,23 @@ public class AndroidStringDocumentMapperTest {
 
     }
 
+    @Test
+    public void testAddTextUnitDTOAttributesAssetPathAndName() {
+        mapper = new AndroidStringDocumentMapper("_",  null);
+        TextUnitDTO textUnitDTO = new TextUnitDTO();
+
+        textUnitDTO.setName("asset_path#@#name_part1");
+        assertThat(mapper.addTextUnitDTOAttributes(textUnitDTO))
+                .extracting(TextUnitDTO::getAssetPath, TextUnitDTO::getName)
+                .containsExactly("asset_path", "name_part1");
+
+        textUnitDTO.setName("asset_path#@#name_part1#@#name_part2");
+        assertThat(mapper.addTextUnitDTOAttributes(textUnitDTO))
+                .extracting(TextUnitDTO::getAssetPath, TextUnitDTO::getName)
+                .containsExactly("asset_path", "name_part1#@#name_part2");
+
+    }
+
     private TextUnitDTO sourceTextUnitDTO(Long id, String name, String content, String comment, String assetPath, String pluralForm, String pluralFormOther){
         return textUnitDTO(id, name, content, comment, assetPath, pluralForm, pluralFormOther, true);
     }

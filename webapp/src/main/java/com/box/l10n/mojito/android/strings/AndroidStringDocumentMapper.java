@@ -104,9 +104,9 @@ public class AndroidStringDocumentMapper {
         }
 
         if (textUnit.getName().contains(assetDelimiter)){
-            String[] nameParts = textUnit.getName().split(assetDelimiter);
+            String[] nameParts = textUnit.getName().split(assetDelimiter, 2);
 
-            if (nameParts.length == 2) {
+            if (nameParts.length > 1) {
                 textUnit.setAssetPath(nameParts[0]);
                 textUnit.setName(nameParts[1]);
             }

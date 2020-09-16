@@ -262,8 +262,9 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             try {
                 textUnits = mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
             } catch (ParserConfigurationException | IOException | SAXException e) {
-                logger.error("An error ocurred when processing a pull batch", e);
-                throw new RuntimeException(e);
+                String msg = "An error ocurred when processing a pull batch";
+                logger.error(msg, e);
+                throw new RuntimeException(msg, e);
             }
 
             if (!textUnits.isEmpty() && filePrefix.isPlural() && options.getPluralFixForLocales().contains(localeTag)){
