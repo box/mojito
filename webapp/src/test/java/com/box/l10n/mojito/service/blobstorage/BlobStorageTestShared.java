@@ -71,4 +71,11 @@ public interface BlobStorageTestShared {
         assertEquals(CONTENT, new String(bytes.get(), StandardCharsets.UTF_8));
     }
 
+    @Test
+    default void testUpdatesWithPut() {
+        String name = "test-updates-wiht-put" + UUID.randomUUID().toString();
+        getBlobStorage().put(name, CONTENT, Retention.PERMANENT);
+        getBlobStorage().put(name, CONTENT, Retention.PERMANENT);
+    }
+
 }
