@@ -21,10 +21,9 @@ import static org.junit.Assert.fail;
  * @author jaurambault
  */
 @RunWith(SpringRunner.class)
-@Configuration
-@ComponentScan(basePackageClasses = {JsonRawStringAspectTest.class, JsonValidator.class}, 
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = {RunAsAspectConfig.class}))
-@SpringBootTest(classes = {JsonRawStringAspectTest.class})
+@SpringBootTest(classes = {JsonRawStringAspectTest.class, JsonRawStringAspectAnnotated.class,
+        JsonRawStringAspectNotAnnotated.class, JsonRawStringAspect.class, JsonValidator.class,
+        JsonRawStringAspectConfig.class})
 public class JsonRawStringAspectTest {
 
     @Test
