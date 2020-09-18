@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.blobstorage.database;
 
 import com.box.l10n.mojito.entity.MBlob;
+import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
 import com.box.l10n.mojito.service.blobstorage.BlobStorage;
 import com.box.l10n.mojito.service.blobstorage.Retention;
 import com.google.common.base.Preconditions;
@@ -27,24 +28,39 @@ public class DatabaseBlobStorage implements BlobStorage {
 
     MBlobRepository mBlobRepository;
 
+    DataIntegrityViolationExceptionRetryTemplate dataIntegrityViolationExceptionRetryTemplate;
+
     public DatabaseBlobStorage(DatabaseBlobStorageConfigurationProperties databaseBlobStorageConfigurationProperties,
-                               MBlobRepository mBlobRepository) {
+                               MBlobRepository mBlobRepository,
+                               DataIntegrityViolationExceptionRetryTemplate dataIntegrityViolationExceptionRetryTemplate) {
 
         Preconditions.checkNotNull(mBlobRepository);
         Preconditions.checkNotNull(databaseBlobStorageConfigurationProperties);
+        Preconditions.checkNotNull(dataIntegrityViolationExceptionRetryTemplate);
 
         this.mBlobRepository = mBlobRepository;
         this.databaseBlobStorageConfigurationProperties = databaseBlobStorageConfigurationProperties;
+        this.dataIntegrityViolationExceptionRetryTemplate = dataIntegrityViolationExceptionRetryTemplate;
     }
 
     @Override
     public void put(String name, byte[] content, Retention retention) {
-        MBlob mBlob = mBlobRepository.findByName(name);
 
-        if (mBlob == null) {
-            mBlob = new MBlob();
-            mBlob.setName(name);
-        }
+        dataIntegrityViolationExceptionRetryTemplate.execute(context -> {
+            if (context.getRetryCount() > 0) {
+                logger.info("Assume concurrent modification happened, retry attempt: {}", context.getRetryCount());
+            }
+            putBase(name, content, retention);
+            return null;
+        });
+    }
+
+    void putBase(String name, byte[] content, Retention retention) {
+        MBlob mBlob = mBlobRepository.findByName(name).orElseGet(() -> {
+            MBlob mb = new MBlob();
+            mb.setName(name);
+            return mb;
+        });
 
         mBlob.setContent(content);
 
@@ -58,14 +74,7 @@ public class DatabaseBlobStorage implements BlobStorage {
     @Override
     public Optional<byte[]> getBytes(String name) {
         byte[] bytes = null;
-
-        MBlob mBlob = mBlobRepository.findByName(name);
-
-        if (mBlob != null) {
-            bytes = mBlob.getContent();
-        }
-
-        return Optional.ofNullable(bytes);
+        return mBlobRepository.findByName(name).map(MBlob::getContent);
     }
 
     public void deleteExpired() {
@@ -82,4 +91,5 @@ public class DatabaseBlobStorage implements BlobStorage {
             }
         } while (deletedCount > 0);
     }
+
 }
