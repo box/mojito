@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.blobstorage;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.box.l10n.mojito.retry.DataIntegrityViolationExceptionRetryTemplate;
 import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorage;
 import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorageCleanupJob;
 import com.box.l10n.mojito.service.blobstorage.database.DatabaseBlobStorageConfigurationProperties;
@@ -24,7 +25,7 @@ import java.time.Duration;
 
 /**
  * Configuration for {@link BlobStorage}
- *
+ * <p>
  * {@link DatabaseBlobStorage} is the default implementation but it should be use only for testing or deployments with
  * limited load.
  * <p>
@@ -62,10 +63,13 @@ public class BlobStorageConfiguration {
         @Autowired
         DatabaseBlobStorageConfigurationProperties databaseBlobStorageConfigurationProperties;
 
+        @Autowired
+        DataIntegrityViolationExceptionRetryTemplate dataIntegrityViolationExceptionRetryTemplate;
+
         @Bean
         public DatabaseBlobStorage databaseBlobStorage() {
             logger.info("Configure DatabaseBlobStorage");
-            return new DatabaseBlobStorage(databaseBlobStorageConfigurationProperties, mBlobRepository);
+            return new DatabaseBlobStorage(databaseBlobStorageConfigurationProperties, mBlobRepository, dataIntegrityViolationExceptionRetryTemplate);
         }
 
         @Bean(name = "jobDetailDatabaseBlobStorageCleanupJob")
