@@ -137,7 +137,7 @@ public class LeveragingCommandTest extends CLITestBase {
         Iterator<String> itExpectedTargetTranslations = expectedTargetTranslations.iterator();
 
         for (TMTextUnitVariant targetTranslation : targetTranslations) {
-            logger.error("target translation: {}", targetTranslation.getContent());
+            logger.debug("target translation: {}", targetTranslation.getContent());
         }
 
         while (itExpectedTargetTranslations.hasNext()) {
@@ -211,7 +211,7 @@ public class LeveragingCommandTest extends CLITestBase {
         Iterator<String> itExpectedTargetTranslations = expectedTargetTranslations.iterator();
 
         for (TMTextUnitVariant targetTranslation : targetTranslations) {
-            logger.error("target translation: {}", targetTranslation.getContent());
+            logger.debug("target translation: {}", targetTranslation.getContent());
         }
 
         while (itExpectedTargetTranslations.hasNext()) {
