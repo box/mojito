@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.cli.filefinder.file;
 
 /**
+ * UTF-8 with no basename.
+ *
  * Format to support properties file that don't have a basename but use a locale
  * for the source file
  *
