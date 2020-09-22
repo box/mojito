@@ -5,6 +5,7 @@ import com.box.l10n.mojito.cli.filefinder.locale.PropertiesJavaLocaleType;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 
 /**
+ * Escaped/ISO 8859-1 with base name
  * @author jaurambault
  */
 public class PropertiesJavaFileType extends LocaleInNameFileType {

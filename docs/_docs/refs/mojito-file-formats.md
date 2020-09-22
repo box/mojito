@@ -146,15 +146,17 @@ Localized Resource File (Spanish): `es.lproj/Localizable.stringsdict`
 
 
 ### Java Properties
-Source Resource File (English): `en.properties`
 
+3 flavors are supported: `PROPERTIES` (`UTF-8`), `PROPERTIES_JAVA` (`ISO-8891`), `PROPERTIES_NOBASENAME` (`UTF-8` + `ISO-8859`)
+
+Source Resource File (English): `en.properties` (no basename) or `messages.properties` (with basename)
 
 ```properties
 # Greeting from Main UI
 hello = Hello!
 ```
 
-Localized Resource File (Spanish): `es.properties`
+Localized Resource File (Spanish): `es.properties` (no basename) or `messages_es.properties` (with basename)
 
 
 ```properties
