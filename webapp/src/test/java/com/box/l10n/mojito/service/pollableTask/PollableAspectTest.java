@@ -41,6 +41,12 @@ public class PollableAspectTest extends ServiceTestBase {
 
         String simpleMethodWithResult = simpleMethodWithResult();
         assertEquals("simpleMethodWithResult", simpleMethodWithResult);
+
+        // TODO this seems sensitive to job running at the same time - is the profile to disable cron job not working
+        // anymore ?
+        // Error:  testSimpleMethodWithResult  Time elapsed: 0.022 s  <<< FAILURE!
+        // java.lang.AssertionError: expected:<1310> but was:<1315>
+        //at com.box.l10n.mojito.service.pollableTask.PollableAspectTest.testSimpleMethodWithResult(PollableAspectTest.java:44)
         assertEquals(count + 1, pollableTaskRepository.count());
     }
 
