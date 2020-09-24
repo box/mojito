@@ -14,6 +14,13 @@ Using the `mojito-cli`, importing translations with the `import` command is real
 simple and helps bootstrap quickly a repository. It can also be used to recreate
 repository from scratch following a bad manipulation.
 
+If starting with a new repository, the `push` command must be run first since `import` doesn't process the source
+ files. Skip following step if working on an existing project:
+```bash
+mojito repo-create -n MyRepo -l fr-FR,ja-JP
+mojito push -r MyRepo
+```
+
 The main options of the `import` command are the same as the `push` and `pull`
 command. The simplest call being:
 
