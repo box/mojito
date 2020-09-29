@@ -31,4 +31,7 @@ public interface MBlobRepository extends JpaRepository<MBlob, Long>, JpaSpecific
     @Modifying
     @Query("delete from #{#entityName} mb where mb.id in ?1")
     int deleteByIds(List<Long> ids);
+
+    @Query("select mb.id from  #{#entityName} mb where mb.name = ?1")
+    Optional<Long> findIdByName(String name);
 }
