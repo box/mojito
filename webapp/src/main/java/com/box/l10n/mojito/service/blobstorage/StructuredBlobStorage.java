@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * Layer on top of {@link BlobStorage} to avoid naming clash between different Mojito services.
- *
+ * <p>
  * Use this class instead of using directly {@link BlobStorage}
  */
 @Component
@@ -22,6 +22,14 @@ public class StructuredBlobStorage {
 
     public void put(Prefix prefix, String name, String content, Retention retention) {
         blobStorage.put(getFullName(prefix, name), content, retention);
+    }
+
+    public void delete(Prefix prefix, String name) {
+        blobStorage.delete(getFullName(prefix, name));
+    }
+
+    public boolean exists(Prefix prefix, String name) {
+        return blobStorage.exists(getFullName(prefix, name));
     }
 
     String getFullName(Prefix prefix, String name) {
