@@ -56,6 +56,16 @@ public class DatabaseBlobStorage implements BlobStorage {
     }
 
     @Override
+    public void delete(String name) {
+        mBlobRepository.findByName(name).ifPresent(mb -> mBlobRepository.deleteById(mb.getId()));
+    }
+
+    @Override
+    public boolean exists(String name) {
+        return mBlobRepository.findByName(name).map(mb -> Boolean.TRUE).orElse(Boolean.FALSE).booleanValue();
+    }
+
+    @Override
     public Optional<byte[]> getBytes(String name) {
         byte[] bytes = null;
         return mBlobRepository.findByName(name).map(MBlob::getContent);

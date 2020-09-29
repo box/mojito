@@ -78,4 +78,20 @@ public interface BlobStorageTestShared {
         getBlobStorage().put(name, CONTENT, Retention.PERMANENT);
     }
 
+    @Test
+    default void testExsits() {
+        String name = "test-exists" + UUID.randomUUID().toString();
+        getBlobStorage().put(name, CONTENT, Retention.MIN_1_DAY);
+        assertTrue(getBlobStorage().exists(name));
+    }
+
+    @Test
+    default void testDelete() {
+        String name = "test-delete" + UUID.randomUUID().toString();
+        getBlobStorage().put(name, CONTENT, Retention.MIN_1_DAY);
+        assertTrue(getBlobStorage().exists(name));
+        getBlobStorage().delete(name);
+        assertFalse(getBlobStorage().exists(name));
+    }
+
 }

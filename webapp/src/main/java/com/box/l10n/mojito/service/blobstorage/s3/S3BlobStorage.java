@@ -106,6 +106,16 @@ public class S3BlobStorage implements BlobStorage {
     }
 
     @Override
+    public void delete(String name) {
+        amazonS3.deleteObject(s3BlobStorageConfigurationProperties.getBucket(), getFullName(name));
+    }
+
+    @Override
+    public boolean exists(String name) {
+        return amazonS3.doesObjectExist(s3BlobStorageConfigurationProperties.getBucket(), getFullName(name));
+    }
+
+    @Override
     public void put(String name, String content, Retention retention) {
         byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
 

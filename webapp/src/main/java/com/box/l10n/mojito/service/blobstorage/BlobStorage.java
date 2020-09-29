@@ -14,6 +14,10 @@ public interface BlobStorage {
 
     void put(String name, byte[] content, Retention retention);
 
+    void delete(String name);
+
+    boolean exists(String name);
+
     default Optional<String> getString(String name) {
         return getBytes(name).map(bytes -> new String(bytes, StandardCharsets.UTF_8));
     }
