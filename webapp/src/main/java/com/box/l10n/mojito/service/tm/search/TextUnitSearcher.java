@@ -313,6 +313,9 @@ public class TextUnitSearcher {
                 case REVIEW_NOT_NEEDED:
                     conjunction.add(NativeExps.notEq("tuv.status", TMTextUnitVariant.Status.REVIEW_NEEDED.toString()));
                     break;
+                case TRANSLATION_NEEDED:
+                    conjunction.add(new NativeEqExpFix("tuv.status", TMTextUnitVariant.Status.TRANSLATION_NEEDED.toString()));
+                    break;
                 case TRANSLATED:
                     conjunction.add(NativeExps.isNotNull("tuv.id"));
                     break;
@@ -344,6 +347,8 @@ public class TextUnitSearcher {
                             )
                     ));
                     break;
+                default:
+                    throw new RuntimeException("Filter type not implemented");
             }
         }
 
