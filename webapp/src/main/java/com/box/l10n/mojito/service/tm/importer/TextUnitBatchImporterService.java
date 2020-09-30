@@ -26,6 +26,8 @@ import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
+import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -89,6 +91,9 @@ public class TextUnitBatchImporterService {
 
     @Autowired
     AuditorAwareImpl auditorAwareImpl;
+
+    @Autowired
+    TextUnitDTOsCacheService textUnitDTOsCacheService;
 
     /**
      * Imports a batch of text units.
@@ -214,13 +219,7 @@ public class TextUnitBatchImporterService {
     }
 
     List<TextUnitDTO> getTextUnitTDOsForLocaleAndAsset(Locale locale, Asset asset) {
-
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setRepositoryIds(asset.getRepository().getId());
-        textUnitSearcherParameters.setAssetId(asset.getId());
-        textUnitSearcherParameters.setLocaleId(locale.getId());
-
-        return textUnitSearcher.search(textUnitSearcherParameters);
+        return textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale(asset.getId(), locale.getId(), false, UpdateType.ALWAYS);
     }
 
     void applyIntegrityChecks(
