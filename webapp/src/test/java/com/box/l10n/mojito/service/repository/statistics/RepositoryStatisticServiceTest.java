@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.RepositoryLocaleStatistic;
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
@@ -27,7 +28,6 @@ import static org.junit.Assert.assertEquals;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- *
  * @author jaurambault
  */
 public class RepositoryStatisticServiceTest extends ServiceTestBase {
@@ -78,11 +78,10 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
 
         checkTextUnitCounts(repositoryStatistic);
 
-        int i = 0;
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-FR"), "fr-FR", 1, 8, 1, 8, 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-CA"), "fr-CA", 1, 1, 1, 1, 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ja-JP"), "ja-JP", 0, 0, 0, 0, 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ko-KR"), "ko-KR", 1, 8, 1, 8, 0, 0, 0, 0);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-FR"), "fr-FR", 1, 8, 1, 8, 0, 0, 0, 0, 1, 1);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("fr-CA"), "fr-CA", 1, 1, 1, 1, 0, 0, 0, 0, 1, 8);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ja-JP"), "ja-JP", 0, 0, 0, 0, 0, 0, 0, 0, 2, 9);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatistics.get("ko-KR"), "ko-KR", 1, 8, 1, 8, 0, 0, 0, 0, 1, 1);
     }
 
     @Test
@@ -98,11 +97,14 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
     @Test
     public void testComputeBaseStatisticsDoNotTranslate() throws Exception {
 
-        TMTestData tmTestData = new TMTestData(testIdWatcher);
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        RepositoryLocale repoLocaleFrFR = repositoryService.addRepositoryLocale(repository, "fr-FR");
+        RepositoryLocale repoLocaleJaJP = repositoryService.addRepositoryLocale(repository, "ja-JP");
+
 
         VirtualAsset virtualAsset = new VirtualAsset();
         virtualAsset.setPath("forStats");
-        virtualAsset.setRepositoryId(tmTestData.repository.getId());
+        virtualAsset.setRepositoryId(repository.getId());
         virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
 
         VirtualAssetTextUnit virtualAssetTextUnit = new VirtualAssetTextUnit();
@@ -123,40 +125,40 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         virtualAssetService.addTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2, virtualAssetTextUnit3)).get();
         PollableFuture replaceTextUnits = virtualAssetService.replaceTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2));
         replaceTextUnits.get();
-        
-        RepositoryStatistic repositoryStatistic = repositoryStatisticService.computeBaseStatistics(tmTestData.repository.getId());
 
-        assertEquals(3L, (long) repositoryStatistic.getUsedTextUnitCount());
-        assertEquals(11L, (long) repositoryStatistic.getUsedTextUnitWordCount());
-        assertEquals(2L, (long) repositoryStatistic.getUnusedTextUnitCount());
-        assertEquals(3L, (long) repositoryStatistic.getUnusedTextUnitWordCount());
+        RepositoryStatistic repositoryStatistic = repositoryStatisticService.computeBaseStatistics(repository.getId());
 
-        RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
-        RepositoryLocaleStatistic repositoryLocaleStatisticKoKR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleKoKR);
+        assertEquals(2L, (long) repositoryStatistic.getUsedTextUnitCount());
+        assertEquals(4L, (long) repositoryStatistic.getUsedTextUnitWordCount());
+        assertEquals(1L, (long) repositoryStatistic.getUnusedTextUnitCount());
+        assertEquals(2L, (long) repositoryStatistic.getUnusedTextUnitWordCount());
 
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 1, 8, 0, 0, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticKoKR, "ko-KR", 1, 8, 1, 8, 0, 0, 0, 0);
+        RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(repoLocaleFrFR);
+        RepositoryLocaleStatistic repositoryLocaleStatisticJaJP = repositoryStatisticService.computeLocaleStatistics(repoLocaleJaJP);
+
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 0, 0, 0, 0, 0, 0, 0, 0, 1, 2);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticJaJP, "ja-JP", 0, 0, 0, 0, 0, 0, 0, 0, 1, 2);
 
         TMTextUnitVariant addTextUnitVariant = virtualAssetService.addTextUnitVariant(
                 virtualAsset.getId(),
-                tmTestData.frFR.getId(),
+                repoLocaleFrFR.getLocale().getId(),
                 "test2 name",
                 "test2 content fr-FR",
                 "");
 
-        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 1, 8, 0, 0, 0, 0);
-        
+        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(repoLocaleFrFR);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 2, 1,2,0,0,0,0,1,2);
+
         tmService.addTMTextUnitCurrentVariant(
                 addTextUnitVariant.getTmTextUnit().getId(),
-                tmTestData.frFR.getId(),
+                repoLocaleFrFR.getLocale().getId(),
                 "test2 content fr-FR",
                 "",
                 TMTextUnitVariant.Status.TRANSLATION_NEEDED,
                 true);
-        
-        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 1, 8, 0, 0, 1, 2);
+
+        repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(repoLocaleFrFR);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 2, 1, 2, 0, 0, 1,2,1,2);
     }
 
     private void checkTextUnitCounts(RepositoryStatistic repositoryStatistic) {
@@ -192,10 +194,10 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         RepositoryLocaleStatistic repositoryLocaleStatisticFrFR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleFrFR);
         RepositoryLocaleStatistic repositoryLocaleStatisticKoKR = repositoryStatisticService.computeLocaleStatistics(tmTestData.repoLocaleKoKR);
 
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 0, 0, 1, 8, 0, 0);
-        checkRepositoryLocaleStatistic(repositoryLocaleStatisticKoKR, "ko-KR", 1, 8, 1, 8, 0, 0, 1, 8);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticFrFR, "fr-FR", 1, 8, 0, 0, 1, 8, 0, 0, 2, 9);
+        checkRepositoryLocaleStatistic(repositoryLocaleStatisticKoKR, "ko-KR", 1, 8, 1, 8, 0, 0, 1, 8, 2, 9);
     }
-   
+
     private void checkRepositoryLocaleStatistic(
             RepositoryLocaleStatistic repositoryLocaleStatistic,
             String expectedBcp47tag,
@@ -206,17 +208,21 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
             long reviewNeededCount,
             long reviewNeededWordCount,
             long expectedTranslationNeededCount,
-            long expectedTranslationNeededWordCount) {
+            long expectedTranslationNeededWordCount,
+            long expectedForTranslationCount,
+            long expectedForTranslationWordCount) {
 
-        assertEquals(expectedBcp47tag, repositoryLocaleStatistic.getLocale().getBcp47Tag());
-        assertEquals(expectedTranslatedCount, (long) repositoryLocaleStatistic.getTranslatedCount());
-        assertEquals(expectedTranslatedWordCount, (long) repositoryLocaleStatistic.getTranslatedWordCount());
-        assertEquals(expectedIncludeInFileCount, (long) repositoryLocaleStatistic.getIncludeInFileCount());
-        assertEquals(expectedIncludeInFileWordCount, (long) repositoryLocaleStatistic.getIncludeInFileWordCount());
-        assertEquals(reviewNeededCount, (long) repositoryLocaleStatistic.getReviewNeededCount());
-        assertEquals(reviewNeededWordCount, (long) repositoryLocaleStatistic.getReviewNeededWordCount());
-        assertEquals(expectedTranslationNeededCount, (long) repositoryLocaleStatistic.getTranslationNeededCount());
-        assertEquals(expectedTranslationNeededWordCount, (long) repositoryLocaleStatistic.getTranslationNeededWordCount());
+        assertEquals("expectedBcp47tag", expectedBcp47tag, repositoryLocaleStatistic.getLocale().getBcp47Tag());
+        assertEquals("expectedTranslatedCount", expectedTranslatedCount, (long) repositoryLocaleStatistic.getTranslatedCount());
+        assertEquals("expectedTranslatedWordCount", expectedTranslatedWordCount, (long) repositoryLocaleStatistic.getTranslatedWordCount());
+        assertEquals("expectedIncludeInFileCount", expectedIncludeInFileCount, (long) repositoryLocaleStatistic.getIncludeInFileCount());
+        assertEquals("expectedIncludeInFileWordCount", expectedIncludeInFileWordCount, (long) repositoryLocaleStatistic.getIncludeInFileWordCount());
+        assertEquals("reviewNeededCount", reviewNeededCount, (long) repositoryLocaleStatistic.getReviewNeededCount());
+        assertEquals("reviewNeededWordCount", reviewNeededWordCount, (long) repositoryLocaleStatistic.getReviewNeededWordCount());
+        assertEquals("expectedTranslationNeededCount", expectedTranslationNeededCount, (long) repositoryLocaleStatistic.getTranslationNeededCount());
+        assertEquals("expectedTranslationNeededWordCount", expectedTranslationNeededWordCount, (long) repositoryLocaleStatistic.getTranslationNeededWordCount());
+        assertEquals("expectedForTranslationCount", expectedForTranslationCount, (long) repositoryLocaleStatistic.getForTranslationCount());
+        assertEquals("expectedForTranslationWordCount", expectedForTranslationWordCount, (long) repositoryLocaleStatistic.getForTranslationWordCount());
     }
 
 }

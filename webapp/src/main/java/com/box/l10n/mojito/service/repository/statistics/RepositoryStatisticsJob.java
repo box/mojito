@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.repository.statistics;
 
 import com.box.l10n.mojito.entity.RepositoryStatistic;
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
+import com.google.common.base.Preconditions;
 import org.quartz.DisallowConcurrentExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ public class RepositoryStatisticsJob extends QuartzPollableJob<RepositoryStatist
     @Override
     public Void call(RepositoryStatisticsJobInput input) throws Exception {
         Long repositoryId = input.getRepositoryId();
+        Preconditions.checkNotNull(repositoryId);
         logger.debug("Execute for repositoryId: {}", repositoryId);
         repositoryStatisticService.updateStatistics(repositoryId);
         return null;
