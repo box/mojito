@@ -12,6 +12,7 @@ import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepo
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentForSourceLeveraging;
 import com.box.l10n.mojito.service.leveraging.LeveragerByTmTextUnit;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pluralform.PluralFormService;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobScheduler;
 import com.box.l10n.mojito.service.tm.TMService;
@@ -19,6 +20,8 @@ import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
+import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,17 +79,20 @@ public class VirtualTextUnitBatchUpdaterService {
     @Autowired
     EntityManager entityManager;
 
+    @Autowired
+    TextUnitDTOsCacheService textUnitDTOsCacheService;
+
+    @Autowired
+    LocaleService localeService;
+
     @Transactional
     public void updateTextUnits(Asset asset, List<VirtualAssetTextUnit> virtualAssetTextUnits, boolean replace) throws VirtualAssetRequiredException {
 
         logger.debug("Update text unit for asset: {}", asset.getPath());
 
         logger.debug("Build maps by name and md5 for existing text units");
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setAssetId(asset.getId());
-        textUnitSearcherParameters.setForRootLocale(true);
-        textUnitSearcherParameters.setPluralFormsFiltered(false);
-        List<TextUnitDTO> allAssetTextUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+        List<TextUnitDTO> allAssetTextUnitDTOs = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale(asset.getId(), localeService.getDefaultLocale().getId(), true, UpdateType.ALWAYS);
 
         HashMap<String, TextUnitDTO> nameToUsedtextUnitDTOs = new HashMap<>();
         HashMap<String, TextUnitDTO> md5ToTextUnitDTOs = new HashMap<>();
