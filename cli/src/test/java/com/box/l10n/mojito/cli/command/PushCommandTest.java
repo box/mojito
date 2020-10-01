@@ -283,7 +283,7 @@ public class PushCommandTest extends CLITestBase {
         textUnitSearcherParameters.setForRootLocale(true);
         textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
 
-        logger.debug("Push 1 string to the master null");
+        logger.debug("Push 1 string to the null branch");
 
         File masterDirectory = getInputResourcesTestDir("null");
         getL10nJCommander().run("push", "-r", repository.getName(), "-s", masterDirectory.getAbsolutePath());
