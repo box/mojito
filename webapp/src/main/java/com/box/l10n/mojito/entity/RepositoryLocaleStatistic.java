@@ -27,51 +27,6 @@ import org.hibernate.annotations.NamedNativeQuery;
             @Index(name = "UK__REPO_LOCALE_STAT___REPO_STAT_ID_LOCALE_ID", columnList = "repository_statistic_id, locale_id", unique = true)
         }
 )
-@SqlResultSetMapping(
-        name = "RepositoryLocaleStatistic.computeLocaleStatistics",
-        classes = {
-            @ConstructorResult(
-                    targetClass = RepositoryLocaleStatistic.class,
-                    columns = {
-                        @ColumnResult(name = "translated_count", type = Long.class),
-                        @ColumnResult(name = "translated_word_count", type = Long.class),
-                        @ColumnResult(name = "translation_needed_count", type = Long.class),
-                        @ColumnResult(name = "translation_needed_word_count", type = Long.class),
-                        @ColumnResult(name = "review_needed_count", type = Long.class),
-                        @ColumnResult(name = "review_needed_word_count", type = Long.class),
-                        @ColumnResult(name = "included_in_localized_file_count", type = Long.class),
-                        @ColumnResult(name = "included_in_localized_file_word_count", type = Long.class)
-                    }
-            )
-        }
-)
-@NamedNativeQueries(
-        @NamedNativeQuery(name = "RepositoryLocaleStatistic.computeLocaleStatistics",
-                query
-                = "select "
-                + "   coalesce(sum(case when (atu.do_not_translate = false) then 1 else 0 end), 0) as translated_count, "
-                + "   coalesce(sum(case when (atu.do_not_translate = false) then tu.word_count else 0 end), 0) as translated_word_count, "
-                + "   coalesce(sum(case when (tuv.status = 'TRANSLATION_NEEDED') then 1 else 0 end), 0) as translation_needed_count, "
-                + "   coalesce(sum(case when (tuv.status = 'TRANSLATION_NEEDED') then tu.word_count else 0 end), 0) as translation_needed_word_count, "
-                + "   coalesce(sum(case when (tuv.status = 'REVIEW_NEEDED'     ) then 1 else 0 end), 0) as review_needed_count, "
-                + "   coalesce(sum(case when (tuv.status = 'REVIEW_NEEDED'     ) then tu.word_count else 0 end), 0) as review_needed_word_count, "
-                + "   coalesce(sum(case when (tuv.included_in_localized_file and atu.do_not_translate = false) then 1 else 0 end), 0) as included_in_localized_file_count, "
-                + "   coalesce(sum(case when (tuv.included_in_localized_file and atu.do_not_translate = false) then tu.word_count else 0 end), 0) as included_in_localized_file_word_count "
-                + "from tm_text_unit tu "
-                + "   inner join asset a on a.id = tu.asset_id "
-                + "   left outer join asset_text_unit_to_tm_text_unit map on tu.id = map.tm_text_unit_id "
-                + "   left outer join asset_text_unit atu on atu.id = map.asset_text_unit_id "
-                + "   inner join tm_text_unit_current_variant tucv on tucv.tm_text_unit_id = tu.id "
-                + "   inner join tm_text_unit_variant tuv on tuv.id = tucv.tm_text_unit_variant_id "
-                + "   inner join repository_locale rl on (rl.locale_id = tuv.locale_id and rl.repository_id = a.repository_id) "
-                + "where "
-                + "   map.id is not null "
-                + "   and map.asset_extraction_id = a.last_successful_asset_extraction_id "
-                + "   and a.deleted = false "
-                + "   and rl.id = ?1 ",
-                resultSetMapping = "RepositoryLocaleStatistic.computeLocaleStatistics"
-        )
-)
 public class RepositoryLocaleStatistic extends BaseEntity {
 
     @ManyToOne

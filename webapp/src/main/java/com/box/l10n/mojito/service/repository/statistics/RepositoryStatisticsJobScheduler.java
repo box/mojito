@@ -5,6 +5,7 @@ import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob;
 import com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJobInput;
+import com.google.common.base.Preconditions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,8 @@ public class RepositoryStatisticsJobScheduler {
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     public void schedule(Long repositoryId) {
+        Preconditions.checkNotNull(repositoryId);
+
         RepositoryStatisticsJobInput repositoryStatisticsJobInput = new RepositoryStatisticsJobInput();
         repositoryStatisticsJobInput.setRepositoryId(repositoryId);
 

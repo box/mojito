@@ -32,44 +32,6 @@ import org.springframework.data.annotation.CreatedBy;
  */
 @Entity
 @Table(name = "repository_statistic")
-@SqlResultSetMapping(
-        name = "RepositoryStatistic.computeBaseStatistics",
-        classes = {
-            @ConstructorResult(
-                    targetClass = RepositoryStatistic.class,
-                    columns = {
-                        @ColumnResult(name = "usedTextUnitCount", type = Long.class),
-                        @ColumnResult(name = "usedTextUnitWordCount", type = Long.class),
-                        @ColumnResult(name = "unusedTextUnitCount", type = Long.class),
-                        @ColumnResult(name = "unusedTextUnitWordCount", type = Long.class),
-                        @ColumnResult(name = "uncommentedTextUnitCount", type = Long.class),
-                        @ColumnResult(name = "pluralTextUnitCount", type = Long.class),
-                        @ColumnResult(name = "pluralTextUnitWordCount", type = Long.class)
-                    }
-            )
-        }
-)
-@NamedNativeQueries(
-        @NamedNativeQuery(name = "RepositoryStatistic.computeBaseStatistics",
-                query
-                = "select "
-                + "   coalesce(sum(case when map.id is not null and a.deleted = false and atu.do_not_translate = false then 1 else 0 end), 0) as usedTextUnitCount, "
-                + "   coalesce(sum(case when map.id is not null and a.deleted = false and atu.do_not_translate = false then tu.word_count else 0 end), 0) as usedTextUnitWordCount, "
-                + "   coalesce(sum(case when map.id is null or a.deleted = true then 1 else 0 end), 0) as unusedTextUnitCount, "
-                + "   coalesce(sum(case when map.id is null or a.deleted = true then tu.word_count else 0 end), 0) as unusedTextUnitWordCount, "
-                + "   coalesce(sum(case when (map.id is not null and a.deleted = false and tu.comment is null) then 1 else 0 end), 0) as uncommentedTextUnitCount, "
-                + "   coalesce(sum(case when (map.id is not null and a.deleted = false and tu.plural_form_id is not null and atu.do_not_translate = false) then 1 else 0 end), 0) / 6 as pluralTextUnitCount, "
-                + "   coalesce(sum(case when (map.id is not null and a.deleted = false and tu.plural_form_id is not null and atu.do_not_translate = false) then tu.word_count else 0 end), 0) / 6 as pluralTextUnitWordCount "
-                + " "
-                + "from tm_text_unit tu "
-                + "   inner join asset a on a.id = tu.asset_id "
-                + "   left outer join asset_text_unit_to_tm_text_unit map on tu.id = map.tm_text_unit_id and map.asset_extraction_id = a.last_successful_asset_extraction_id "
-                + "   left outer join asset_text_unit atu on atu.id = map.asset_text_unit_id "
-                + "where "
-                + "   a.repository_id = ?1",
-                resultSetMapping = "RepositoryStatistic.computeBaseStatistics"
-        )
-)
 public class RepositoryStatistic extends AuditableEntity {
 
     /**
