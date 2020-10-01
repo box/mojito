@@ -85,7 +85,7 @@ public abstract class AbstractLeverager {
      * translations were added are removed from the list to prevent further
      * processing.
      *
-     * @param tmTextUnits list of {@link TMTextUnit}s that needs to be
+     * @param tmTextUnits mutable list of {@link TMTextUnit}s that needs to be
      * processed. {@link TMTextUnit}s for which leveraged translations were
      * found are removed from the list to prevent further processing.
      * @param sourceTmId the {@link TM#id} of TM to use to look for matches into
