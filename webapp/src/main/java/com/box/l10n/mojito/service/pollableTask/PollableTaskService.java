@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -150,43 +151,64 @@ public class PollableTaskService {
      * @throws PollableTaskException
      */
     public PollableTask waitForPollableTask(Long pollableId, long timeout, long sleepTime) throws InterruptedException, PollableTaskException {
+        return waitForPollableTasks(Arrays.asList(pollableId), timeout, sleepTime).get(0);
+    }
+
+    /**
+     * Waits for a list of {@link PollableTask}s to be all finished (see {@link PollableTask#isAllFinished()
+     * }).
+     *
+     * @param pollableIds a list of {@link PollableTask#id}
+     * @param timeout    timeout in milliseconds.
+     * @param sleepTime  time to sleep before checking the status again
+     * @throws InterruptedException
+     * @throws PollableTaskException
+     */
+    public List<PollableTask> waitForPollableTasks(List<Long> pollableIds, long timeout, long sleepTime) throws InterruptedException, PollableTaskException {
 
         long currentTime = System.currentTimeMillis();
         long timeoutTime = currentTime + timeout;
 
-        boolean isAllFinished = false;
+        List<PollableTask> pollableTasks = new ArrayList<>();
 
-        while (!isAllFinished && (timeout == NO_TIMEOUT || currentTime <= timeoutTime)) {
+        for (Long pollableId : pollableIds) {
 
-            logger.debug("Waiting for PollableTask id: {} to finish", pollableId);
+            boolean isAllFinished = false;
 
-            PollableTask pollableTask = getPollableTask(pollableId);
-            isAllFinished = pollableTask.isAllFinished();
+            while (!isAllFinished && (timeout == NO_TIMEOUT || currentTime <= timeoutTime)) {
 
-            List<PollableTask> pollableTaskWithErrors = getAllPollableTasksWithError(pollableTask);
-            if (!pollableTaskWithErrors.isEmpty()) {
-                for (PollableTask pollableTaskWithError : pollableTaskWithErrors) {
-                    logger.error("Error happened in PollableTask: {}\n{}",
-                            pollableTaskWithError.getId(),
-                            pollableTaskWithError.getErrorStack());
+                logger.debug("Waiting for PollableTask id: {} to finish", pollableId);
+
+                PollableTask pollableTask = getPollableTask(pollableId);
+                isAllFinished = pollableTask.isAllFinished();
+
+                List<PollableTask> pollableTaskWithErrors = getAllPollableTasksWithError(pollableTask);
+                if (!pollableTaskWithErrors.isEmpty()) {
+                    for (PollableTask pollableTaskWithError : pollableTaskWithErrors) {
+                        logger.error("Error happened in PollableTask: {}\n{}",
+                                pollableTaskWithError.getId(),
+                                pollableTaskWithError.getErrorStack());
+                    }
+                    throw new PollableTaskExecutionException("Error happened in PollableTask or sub tasks: " + pollableTask.getId());
                 }
-                throw new PollableTaskExecutionException("Error happened in PollableTask or sub tasks: " + pollableTask.getId());
+
+                if (!isAllFinished) {
+                    Thread.sleep(sleepTime);
+                    currentTime = System.currentTimeMillis();
+                }
             }
 
-            if (!isAllFinished) {
-                Thread.sleep(sleepTime);
-                currentTime = System.currentTimeMillis();
+            if (isAllFinished) {
+                logger.debug("PollableTask: {} finished", pollableId);
+            } else {
+                logger.debug("Timed out waiting for PollableTask: {} to finished", pollableId);
+                throw new PollableTaskTimeoutException("Timed out waiting for PollableTask: " + pollableId);
             }
+
+            pollableTasks.add(getPollableTask(pollableId));
         }
 
-        if (isAllFinished) {
-            logger.debug("PollableTask: {} finished", pollableId);
-        } else {
-            logger.debug("Timed out waiting for PollableTask: {} to finished", pollableId);
-            throw new PollableTaskTimeoutException("Timed out waiting for PollableTask: " + pollableId);
-        }
-
-        return getPollableTask(pollableId);
+        return pollableTasks;
     }
 
     /**
