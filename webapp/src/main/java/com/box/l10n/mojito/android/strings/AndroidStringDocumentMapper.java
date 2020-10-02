@@ -59,6 +59,10 @@ public class AndroidStringDocumentMapper {
                         builder.setComment(textUnit.getComment());
                     }
 
+                    // TODO builder.build() can fail if multiple text units have the same plural form and form
+                    // t1=name_one,source,one,name_other t2=name_one,source2,one,name_other t3=name_other,sourcepl,other,name_other
+                    // nothing prevent this to have this state in the DB and it can happen with the current mac filter
+                    // and wrong data.
                     builder.addItem(new AndroidPluralItem(
                             textUnit.getPluralForm(),
                             textUnit.getTmTextUnitId(),
