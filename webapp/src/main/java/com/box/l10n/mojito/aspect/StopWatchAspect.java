@@ -30,7 +30,7 @@ public class StopWatchAspect {
 
         stopwatch.stop();
        
-        logger.debug("{} took: {}", pjp.getSignature().getName(), stopwatch.toString());
+        logger.debug("{}#{} took: {}", pjp.getSignature().getDeclaringTypeName(), pjp.getSignature().getName(), stopwatch.toString());
         
         return res;
     }
