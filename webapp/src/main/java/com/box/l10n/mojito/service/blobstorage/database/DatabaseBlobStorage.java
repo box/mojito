@@ -39,12 +39,12 @@ public class DatabaseBlobStorage implements BlobStorage {
 
     @Override
     public void put(String name, byte[] content, Retention retention) {
-        MBlob mBlob = mBlobRepository.findByName(name);
 
-        if (mBlob == null) {
-            mBlob = new MBlob();
-            mBlob.setName(name);
-        }
+        MBlob mBlob = mBlobRepository.findByName(name).orElseGet(() -> {
+            MBlob mb = new MBlob();
+            mb.setName(name);
+            return mb;
+        });
 
         mBlob.setContent(content);
 
@@ -58,14 +58,7 @@ public class DatabaseBlobStorage implements BlobStorage {
     @Override
     public Optional<byte[]> getBytes(String name) {
         byte[] bytes = null;
-
-        MBlob mBlob = mBlobRepository.findByName(name);
-
-        if (mBlob != null) {
-            bytes = mBlob.getContent();
-        }
-
-        return Optional.ofNullable(bytes);
+        return mBlobRepository.findByName(name).map(MBlob::getContent);
     }
 
     public void deleteExpired() {
@@ -82,4 +75,5 @@ public class DatabaseBlobStorage implements BlobStorage {
             }
         } while (deletedCount > 0);
     }
+
 }
