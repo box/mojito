@@ -103,7 +103,7 @@ public class Application {
     @Bean
     public RetryTemplate retryTemplate() {
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(5);
+        retryPolicy.setMaxAttempts(6);
 
         ExponentialRandomBackOffPolicy exponentialRandomBackOffPolicy = new ExponentialRandomBackOffPolicy();
         exponentialRandomBackOffPolicy.setInitialInterval(10);
