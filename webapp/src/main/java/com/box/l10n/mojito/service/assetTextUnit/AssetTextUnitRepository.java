@@ -19,6 +19,8 @@ public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Lo
 
     List<AssetTextUnit> findByAssetExtraction(AssetExtraction assetExtraction);
 
+    List<AssetTextUnit> findByAssetExtractionId(long assetExtractionId);
+
     @Query("select atu.md5 from #{#entityName} atu where atu.assetExtraction = ?1 and not atu.branch = ?2")
     List<String> findMd5ByAssetExtractionAndBranch(AssetExtraction assetExtraction, Branch branch);
 
