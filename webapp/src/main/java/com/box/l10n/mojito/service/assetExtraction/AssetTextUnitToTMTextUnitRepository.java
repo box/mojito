@@ -8,6 +8,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -32,4 +33,10 @@ public interface AssetTextUnitToTMTextUnitRepository extends JpaRepository<Asset
             "from AssetTextUnitToTMTextUnit atuttu " +
             "where atuttu.assetExtraction.id = ?1")
     Set<Long> findTmTextUnitIdsByAssetExtractionId(Long assetExtractionId);
+
+    @Query("select atuttu.tmTextUnit.id " +
+            "from AssetTextUnitToTMTextUnit atuttu " +
+            "where atuttu.assetExtraction.id = ?1 and atuttu.assetTextUnit.id = ?2")
+    Optional<Long> findTmTextUnitId(long assetExtractionId, long assetTextUnitId);
+
 }
