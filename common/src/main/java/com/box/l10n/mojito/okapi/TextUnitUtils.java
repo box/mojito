@@ -26,9 +26,6 @@ public class TextUnitUtils {
      */
     static Logger logger = LoggerFactory.getLogger(TextUnitUtils.class);
 
-    @Autowired
-    ObjectMapper objectMapper;
-
     /**
      * Gets the note from a {@link ITextUnit}.
      *
