@@ -277,7 +277,7 @@ public class BranchNotificationService {
 
     boolean isBranchTranslated(Branch branch) {
         BranchStatistic branchStatistic = branchStatisticRepository.findByBranch(branch);
-        return branchStatistic.getForTranslationCount() == 0;
+        return branchStatistic != null && branchStatistic.getForTranslationCount() == 0;
     }
 
     String getUsername(Branch branch) {
