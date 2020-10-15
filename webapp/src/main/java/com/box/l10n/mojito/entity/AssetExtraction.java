@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -54,6 +55,10 @@ public class AssetExtraction extends AuditableEntity {
     @OneToOne
     @JoinColumn(name = "pollable_task_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__POLLABLE_TASK__ID"))
     private PollableTask pollableTask;
+
+    @Column(name = "version")
+    @Version
+    private Long version = 0L;
 
     @CreatedBy
     @ManyToOne
@@ -123,5 +128,13 @@ public class AssetExtraction extends AuditableEntity {
 
     public void setAssetExtractionByBranches(Set<AssetExtractionByBranch> assetExtractionByBranches) {
         this.assetExtractionByBranches = assetExtractionByBranches;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }
