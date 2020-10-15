@@ -27,7 +27,7 @@ public class BranchStatistic extends BaseEntity {
 
     @JsonView(View.BranchStatistic.class)
     @JsonManagedReference
-    @OneToMany(mappedBy = "branchStatistic", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "branchStatistic")
     @OrderBy(value = "tm_text_unit_id")
     private Set<BranchTextUnitStatistic> branchTextUnitStatistics = new HashSet<>();
 
