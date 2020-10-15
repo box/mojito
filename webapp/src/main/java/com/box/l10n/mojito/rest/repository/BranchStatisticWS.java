@@ -24,6 +24,7 @@ import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.c
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.empty;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.search;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.totalCountLessThanOrEqualsTo;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -57,6 +58,7 @@ public class BranchStatisticWS {
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "deleted", required = false) Boolean deleted,
             @RequestParam(value = "empty", required = false) Boolean empty,
+            @RequestParam(value = "totalCountLte", required = false, defaultValue = "30000") Long totalCountLte,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<BranchStatistic> page = branchStatisticRepository.findAll(where(
@@ -65,7 +67,9 @@ public class BranchStatisticWS {
                 ifParamNotNull(branchNameEquals(branchName))).and(
                 ifParamNotNull(search(search))).and(
                 ifParamNotNull(deletedEquals(deleted))).and(
-                ifParamNotNull(empty(empty))), pageable);
+                ifParamNotNull(empty(empty))).and(
+                totalCountLessThanOrEqualsTo(totalCountLte))
+                , pageable);
 
         return new PageView<>(page);
     }
