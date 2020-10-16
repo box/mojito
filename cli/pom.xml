@@ -130,6 +130,11 @@
                         <artifactId>aspectjtools</artifactId>
                         <version>${aspectj.version}</version>
                     </dependency>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjrt</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
                 </dependencies>
                 <executions>
                     <execution>
