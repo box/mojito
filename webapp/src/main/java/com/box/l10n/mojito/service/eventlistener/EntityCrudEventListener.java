@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.eventlistener;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetExtraction;
+import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMTextUnit;
@@ -81,6 +83,10 @@ public class EntityCrudEventListener implements PostCommitInsertEventListener, P
             TMTextUnitCurrentVariant tmTextUnitCurrentVariant = (TMTextUnitCurrentVariant) entity;
             repository = tmTextUnitCurrentVariant.getTmTextUnit().getAsset().getRepository();
             logger.debug("Repository statistics is outdated because translation is deleted");
+        }  else if (entity instanceof AssetExtraction) {
+            AssetExtraction assetExtraction = (AssetExtraction) entity;
+            repository = assetExtraction.getAsset().getRepository();
+            logger.debug("Repository statistics is outdated because asset extraction has changed");
         }
 
         setRepositoryStatistisOutOfDate(repository);

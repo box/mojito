@@ -33,6 +33,10 @@ public class AssetExtraction extends AuditableEntity {
     @JoinColumn(name = "asset_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__ASSET__ID"))
     private Asset asset;
 
+    /**
+     * With new implementation where the asset extraction is updated over time the asset content will be null.
+     * (before we would create an asset extraction every single time and have a mapping there)
+     */
     @JsonBackReference("assetContent")
     @ManyToOne
     @JoinColumn(name = "asset_content_id", foreignKey = @ForeignKey(name = "FK__ASSET_EXTRACTION__ASSET_CONTENT__ID"))
