@@ -5,6 +5,8 @@ import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.localtm.merger.BranchStateTextUnit;
+import com.box.l10n.mojito.localtm.merger.MultiBranchState;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
@@ -15,6 +17,10 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -66,6 +72,9 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
     @Autowired
     BranchService branchService;
+
+    @Autowired
+    MultiBranchStateService multiBranchStateService;
 
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
@@ -388,7 +397,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
             assertEquals("Example of plurals", assetTextUnits.get(i).getComment());
 
         }
-        
+
     }
 
     @Test
@@ -1237,6 +1246,11 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         AssetContent assetContent = assetContentService.createAssetContent(asset, masterContent, false, master);
         assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null).get();
 
+        checkLastSuccessfulMultiBranchState(asset,
+                ImmutableList.of("master"),
+                ImmutableList.of("string1", "string2"),
+                ImmutableList.of(ImmutableSet.of("master"), ImmutableSet.of("master")));
+
         List<AssetTextUnit> masterAssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findById(asset.getId()).orElse(null));
 
         logger.info("Number of text units: {}", masterAssetTextUnits.size());
@@ -1249,6 +1263,11 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         AssetContent branch1AssetContent = assetContentService.createAssetContent(asset, branch1Content, false, branch1);
         assetExtractionService.processAssetAsync(branch1AssetContent.getId(), null, null, null).get();
+
+        checkLastSuccessfulMultiBranchState(asset,
+                ImmutableList.of("master", "branch1"),
+                ImmutableList.of("string1", "string2"),
+                ImmutableList.of(ImmutableSet.of("master", "branch1"), ImmutableSet.of("master")));
 
         List<AssetTextUnit> branch1AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findById(asset.getId()).orElse(null));
 
@@ -1263,6 +1282,11 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
 
         AssetContent branch2AssetContent = assetContentService.createAssetContent(asset, branch2Content, false, branch2);
         assetExtractionService.processAssetAsync(branch2AssetContent.getId(), null, null, null).get();
+
+        checkLastSuccessfulMultiBranchState(asset,
+                ImmutableList.of("master", "branch1", "branch2"),
+                ImmutableList.of("string1", "string2", "string3"),
+                ImmutableList.of(ImmutableSet.of("master", "branch1"), ImmutableSet.of("master"), ImmutableSet.of("branch2")));
 
         List<AssetTextUnit> branch2AssetTextUnits = getAssetTextUnitsWithUsages(assetRepository.findById(asset.getId()).orElse(null));
 
@@ -1279,6 +1303,48 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         assertEquals("string1", deletebranch2AssetTextUnits.get(0).getName());
         assertEquals("string2", deletebranch2AssetTextUnits.get(1).getName());
 
+        checkLastSuccessfulMultiBranchState(asset,
+                ImmutableList.of("master", "branch1"),
+                ImmutableList.of("string1", "string2", "string3"),
+                ImmutableList.of(ImmutableSet.of("master", "branch1"), ImmutableSet.of("master"), ImmutableSet.of())); // we don't removed unused
+
+        String branch2ContentInMaster = "# string1 description\n"
+                + "string1=content1\n"
+                + "string2=content2\n"
+                + "# string3 description\n"
+                + "string3=content3\n";
+
+        AssetContent branch2InMasterAssetContent = assetContentService.createAssetContent(asset, branch2ContentInMaster, false, master);
+        assetExtractionService.processAssetAsync(branch2InMasterAssetContent.getId(), null, null, null).get();
+
+        checkLastSuccessfulMultiBranchState(asset,
+                ImmutableList.of("master", "branch1"),
+                ImmutableList.of("string1", "string2", "string3"),
+                ImmutableList.of(ImmutableSet.of("master", "branch1"), ImmutableSet.of("master"), ImmutableSet.of("master")));
+    }
+
+    void checkLastSuccessfulMultiBranchState(Asset asset,
+                                             ImmutableList<String> branches,
+                                             ImmutableList<String> names,
+                                             ImmutableList<ImmutableSet<String>> branchNamesForTextUnits) {
+        asset = assetRepository.findById(asset.getId()).orElse(null);
+        MultiBranchState multiBranchState = multiBranchStateService.getMultiBranchStateForAssetExtractionId(
+                asset.getLastSuccessfulAssetExtraction().getId(),
+                asset.getLastSuccessfulAssetExtraction().getVersion()
+        );
+        Assertions.assertThat(multiBranchState.getBranches())
+                .extracting(com.box.l10n.mojito.localtm.merger.Branch::getName)
+                .containsExactly(branches.stream().toArray(String[]::new));
+
+        Assertions.assertThat(multiBranchState.getBranchStateTextUnits())
+                .extracting(BranchStateTextUnit::getName)
+                .containsExactly(names.stream().toArray(String[]::new));
+
+        Assertions.assertThat(multiBranchState.getBranchStateTextUnits().stream()
+                .map(BranchStateTextUnit::getBranchNameToBranchDatas)
+                .map(ImmutableMap::keySet)
+                .collect(ImmutableList.toImmutableList()))
+                .isEqualTo(branchNamesForTextUnits);
     }
 
     /**

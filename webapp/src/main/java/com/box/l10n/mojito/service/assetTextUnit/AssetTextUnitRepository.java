@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.assetTextUnit;
 import com.box.l10n.mojito.entity.AssetExtraction;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
+import com.box.l10n.mojito.service.tm.TextUnitIdMd5DTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author aloison
@@ -21,8 +23,8 @@ public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Lo
 
     List<AssetTextUnit> findByAssetExtractionId(long assetExtractionId);
 
-    @Query("select atu.md5 from #{#entityName} atu where atu.assetExtraction = ?1 and not atu.branch = ?2")
-    List<String> findMd5ByAssetExtractionAndBranch(AssetExtraction assetExtraction, Branch branch);
+    @Query("select new com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitIdToMd5(atu.id, atu.md5) from #{#entityName} atu where atu.assetExtraction = ?1")
+    List<AssetTextUnitIdToMd5> findMd5ByAssetExtraction(AssetExtraction assetExtraction);
 
     /**
      * Gets unmapped {@link AssetTextUnit}s
@@ -51,5 +53,7 @@ public interface AssetTextUnitRepository extends JpaRepository<AssetTextUnit, Lo
     List<AssetTextUnit> findByAssetExtractionIdAndName(Long assetExtractionId, String name);
 
     List<AssetTextUnit> findByIdIn(List<Long> assetTextUnitIds);
+
+    void deleteByIdIn(List<Long> assetTextUnitIds);
 
 }

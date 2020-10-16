@@ -22,6 +22,8 @@ public interface AssetTextUnitToTMTextUnitRepository extends JpaRepository<Asset
 
     void deleteByAssetTextUnitId(Long assetTextUnitId);
 
+    void deleteByAssetTextUnitIdIn(List<Long> assetTextUnitIds);
+
     @Query("select atuttu.tmTextUnit.id from AssetTextUnitToTMTextUnit atuttu "
             + "inner join atuttu.assetExtraction ae "
             + "inner join ae.assetExtractionByBranches aec "
