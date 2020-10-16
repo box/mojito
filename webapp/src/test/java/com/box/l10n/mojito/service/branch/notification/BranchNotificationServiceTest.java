@@ -6,12 +6,11 @@ import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.textunit.ImportTextUnitsBatch;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
+import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
-import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
-import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -50,6 +49,9 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     BranchNotificationRepository branchNotificationRepository;
 
     @Autowired
+    AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
+
+    @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
     @Rule
@@ -72,17 +74,21 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
         AssetContent assetContentBranch2 = assetContentService.createAssetContent(branchTestData.getAsset(), branch2ContentUpdated, false, branchTestData.getBranch2());
         assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null).get();
 
+        waitForCondition("Branch1 new notification must be sent",
+                () -> {
+                    return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType).getNewMsgSentAt() != null;
+                });
+
+        waitForCondition("Branch2 translated notification must be sent",
+                () -> {
+                    return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch2(), senderType).getNewMsgSentAt() != null;
+                });
+
         translateBranch(branchTestData.getBranch2());
 
         waitForCondition("Branch2 translated notification must be sent",
                 () -> {
                     return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch2(), senderType).getTranslatedMsgSentAt() != null;
-                });
-
-
-        waitForCondition("Branch1 new notification must be sent",
-                () -> {
-                    return branchNotificationRepository.findByBranchAndSenderType(branchTestData.getBranch1(), senderType).getNewMsgSentAt() != null;
                 });
     }
 
@@ -108,9 +114,12 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     }
 
     void translateBranch(Branch branch) throws ExecutionException, InterruptedException {
+
+        List<Long> tmTextUnitIdsByBranch = assetTextUnitToTMTextUnitRepository.findByBranch(branch);
+
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
-        textUnitSearcherParameters.setBranchId(branch.getId());
+        textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIdsByBranch); //TODO(perf) does it mean you can see the branch in workbench as before? also need to review the branch page?
         List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
         textUnitDTOs.stream().forEach(tu -> {

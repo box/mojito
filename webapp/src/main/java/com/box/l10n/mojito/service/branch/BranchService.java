@@ -86,7 +86,6 @@ public class BranchService {
         return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 
-    @Transactional
     public void deleteBranch(Long repositoryId, Long branchId) {
         deleteBranchAsset(branchId, repositoryId);
 

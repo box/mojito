@@ -34,8 +34,10 @@ import java.util.List;
 /**
  * Service to map {@link AssetTextUnit} to {@link TMTextUnit}.
  *
+ * @deprecated that is not used anymore but keep it for now for tests which rely on it. Next is to cleanup those tests.
  * @author jaurambault
  */
+@Deprecated
 @Service
 public class AssetMappingService {
 
@@ -85,6 +87,7 @@ public class AssetMappingService {
      * @param createdByUser     user creates text unit
      * @param parentTask        the parent task to be updated
      */
+    @Deprecated
     @Pollable(message = "Mapping AssetTextUnit to TMTextUnit")
     public void mapAssetTextUnitAndCreateTMTextUnit(Long assetExtractionId, Long tmId, Long assetId, User createdByUser, @ParentTask PollableTask parentTask) {
 

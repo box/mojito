@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.asset;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetExtractionByBranch;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
@@ -11,6 +12,7 @@ import com.box.l10n.mojito.rest.client.PollableTaskClient;
 import com.box.l10n.mojito.rest.client.exception.RepositoryNotFoundException;
 import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.assetExtraction.AssetExtractionByBranchRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.locale.LocaleService;
@@ -32,6 +34,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -68,6 +71,9 @@ public class AssetWSTest extends WSTestBase {
     @Autowired
     BranchRepository branchRepository;
 
+    @Autowired
+    AssetExtractionByBranchRepository assetExtractionByBranchRepository;
+
     @Rule
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
@@ -86,7 +92,11 @@ public class AssetWSTest extends WSTestBase {
 
         assertEquals(sourceAsset.getRepositoryId(), addedAsset.getRepository().getId());
         assertEquals(sourceAsset.getPath(), addedAsset.getPath());
-        assertEquals(DigestUtils.md5Hex(sourceAsset.getContent()), addedAsset.getLastSuccessfulAssetExtraction().getContentMd5());
+
+        Branch branch = branchRepository.findByNameAndRepository(null, repository);
+        AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(addedAsset, branch).get();
+        assertEquals(DigestUtils.md5Hex(sourceAsset.getContent()), assetExtractionByBranch.getAssetExtraction().getContentMd5());
+        assertNull(addedAsset.getLastSuccessfulAssetExtraction().getContentMd5());
 
         assertNotNull("Extraction of the asset should have completed", addedAsset.getLastSuccessfulAssetExtraction());
 

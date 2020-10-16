@@ -47,24 +47,27 @@ public class BranchDeleteCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("b4Source").getAbsolutePath(),
                 "-b", "b4");
 
-        waitForCondition("b4 should become untranslated when stats are computed", () -> {
+        getL10nJCommander().run("branch-view", "-r", repository.getName());
+
+        // master and null not processed for branch statistic see {@link BranchStatisticService#getBranchesToProcess}
+        waitForCondition("b1, b2, b3, b4 should become untranslated when stats are computed", () -> {
             List<String> branches = repositoryClient.getBranches(repository.getId(), null, null, null,
-                    false, false, null).stream().map(Branch::getName).sorted().collect(Collectors.toList());
-            return branches.equals(asList("b4"));
+                    false, true, null).stream().map(Branch::getName).sorted().collect(Collectors.toList());
+
+            return branches.equals(asList("b1", "b2", "b3", "b4"));
         });
-
-        checkBranches("b1, b2, b3 should be translated",
-                repository, null, true, "b1", "b2", "b3");
-
 
         getL10nJCommander().run("import", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("b4Source").getAbsolutePath(),
                 "-t", getInputResourcesTestDir("b4Translations").getAbsolutePath());
 
-        waitForCondition("All b* branches should now be translated", () -> {
-            List<String> branches = repositoryClient.getBranches(repository.getId(), null, null, null,
+        waitForCondition("All b4 translated other branches should still not be translated", () -> {
+            List<String> branchesTranslated = repositoryClient.getBranches(repository.getId(), null, null, null,
                     true, false, null).stream().map(Branch::getName).sorted().collect(Collectors.toList());
-            return branches.equals(asList("b1", "b2", "b3", "b4"));
+
+            List<String> branchesUntransaslted = repositoryClient.getBranches(repository.getId(), null, null, null,
+                    false, false, null).stream().map(Branch::getName).sorted().collect(Collectors.toList());
+            return branchesTranslated.equals(asList("b4")) && branchesUntransaslted.equals(asList("b1", "b2", "b3"));
         });
 
         getL10nJCommander().run("branch-view", "-r", repository.getName());
