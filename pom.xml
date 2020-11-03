@@ -50,6 +50,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- to fix warning in maven: can't find aspectrj in classpath -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${aspectj.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
