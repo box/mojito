@@ -146,7 +146,7 @@
                 </executions>
                 <configuration>
                     <showWeaveInfo>true</showWeaveInfo>
-                    <deprecation>true</deprecation>
+                    <deprecation>false</deprecation>
                     <complianceLevel>${java.version}</complianceLevel>
                     <proc>none</proc>
                     <weaveDependencies>
