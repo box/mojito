@@ -69,6 +69,7 @@ Configure {{ site.mojito_green }} to use MySQL. When using MySQL, Flyway must be
     l10n.org.quartz.jobStore.class=org.quartz.impl.jdbcjobstore.JobStoreTX
     l10n.org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.StdJDBCDelegate
     l10n.org.quartz.jobStore.dataSource=myDS
+    l10n.org.quartz.dataSource.myDS.provider=hikaricp
     l10n.org.quartz.dataSource.myDS.driver=com.mysql.jdbc.Driver
     l10n.org.quartz.dataSource.myDS.URL=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
     l10n.org.quartz.dataSource.myDS.user=${DB_USERNAME}
