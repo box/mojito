@@ -237,7 +237,7 @@ To easily run `CLI` commands using the latest code, you can create an alias that
 alias mojito='java -Dspring.config.additional-location=~/.l10n/config/cli/application.properties -jar ${PROJECT_DIR}/cli/target/mojito-cli-*-SNAPSHOT-exec.jar '
 ```
 
-For example to create Demo data, you can now run: `mojito demo-create -r DemoCLI`.
+For example to create Demo data, you can now run: `mojito demo-create -n DemoCLI`.
 
 Alternatively, install the CLI using the [install scripts]({{ site.url }}/docs/guides/install/#cli-install-script).
 
