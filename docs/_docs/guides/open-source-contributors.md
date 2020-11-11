@@ -227,7 +227,19 @@ cd ${PROJECT_DIR}/webapp
 npm run create-demo-data
 ```
     
-This creates Demo repository in {{ site.mojito_green }} with 21 languages.  17 languages are fully translated.  A Demo directory is created in ${Project_DIR} with source file.
+This creates `Demo` repository in {{ site.mojito_green }} with 21 languages.  17 languages are fully translated.  A Demo directory is created in ${Project_DIR} with source file.
+
+## Alias for the CLI
+
+To easily run `CLI` commands using the latest code, you can create an alias that point to the `jar` that was previously built. 
+
+```sh
+alias mojito='java -Dspring.config.additional-location=~/.l10n/config/cli/application.properties -jar ${PROJECT_DIR}/cli/target/mojito-cli-*-SNAPSHOT-exec.jar '
+```
+
+For example to create Demo data, you can now run: `mojito demo-create -r DemoCLI`.
+
+Alternatively, install the CLI using the [install scripts]({{ site.url }}/docs/guides/install/#cli-install-script).
 
 ## Run Unit Tests
    
