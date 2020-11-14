@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -83,23 +84,25 @@ public class PushCommand extends Command {
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
-        Stream<SourceAsset> sourceAssetStream = sourceFileMatches.stream().map(sourceFileMatch -> {
-            String sourcePath = sourceFileMatch.getSourcePath();
+        Stream<SourceAsset> sourceAssetStream = sourceFileMatches.stream()
+                .sorted(Comparator.comparing(FileMatch::getSourcePath))
+                .map(sourceFileMatch -> {
+                    String sourcePath = sourceFileMatch.getSourcePath();
 
-            String assetContent = commandHelper.getFileContentWithXcodePatch(sourceFileMatch);
+                    String assetContent = commandHelper.getFileContentWithXcodePatch(sourceFileMatch);
 
-            SourceAsset sourceAsset = new SourceAsset();
-            sourceAsset.setBranch(branchName);
-            sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
-            sourceAsset.setPath(sourcePath);
-            sourceAsset.setContent(assetContent);
-            sourceAsset.setExtractedContent(false);
-            sourceAsset.setRepositoryId(repository.getId());
-            sourceAsset.setFilterConfigIdOverride(sourceFileMatch.getFileType().getFilterConfigIdOverride());
-            sourceAsset.setFilterOptions(commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam));
+                    SourceAsset sourceAsset = new SourceAsset();
+                    sourceAsset.setBranch(branchName);
+                    sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
+                    sourceAsset.setPath(sourcePath);
+                    sourceAsset.setContent(assetContent);
+                    sourceAsset.setExtractedContent(false);
+                    sourceAsset.setRepositoryId(repository.getId());
+                    sourceAsset.setFilterConfigIdOverride(sourceFileMatch.getFileType().getFilterConfigIdOverride());
+                    sourceAsset.setFilterOptions(commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam));
 
-            return sourceAsset;
-        });
+                    return sourceAsset;
+                });
 
         pushService.push(repository, sourceAssetStream, branchName, PushService.PushType.NORMAL);
 
