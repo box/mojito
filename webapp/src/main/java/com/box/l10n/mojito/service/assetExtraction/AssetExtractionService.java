@@ -327,7 +327,7 @@ public class AssetExtractionService {
      * @param currentTask
      * @return state with tm text units ids updated (either from creation or reading existing text units)
      */
-    @Timed
+    @Timed("AssetExtractionService.createTextUnitsForNewContent")
     @Pollable(message = "Create new text units")
     CreateTextUnitsResult createTextUnitsForNewContent(AssetContent assetContent, MultiBranchState stateForNewContent, @ParentTask PollableTask currentTask) {
         return retryTemplate.execute(context -> {
@@ -511,7 +511,6 @@ public class AssetExtractionService {
     }
 
     void removeAssetTextUnits(AssetExtraction assetExtraction, ImmutableSet<BranchStateTextUnit> branchStateTextUnitsToRemove) {
-
         ImmutableList<Long> assetTextUnitIdsToRemove = branchStateTextUnitsToRemove.stream()
                 .map(BranchStateTextUnit::getAssetTextUnitId)
                 .collect(ImmutableList.toImmutableList());

@@ -79,7 +79,7 @@ public class TextUnitDTOsCacheService {
                 .collect(ImmutableMap.toImmutableMap(funGetTextUnitDTOMd5(), Function.identity()));
     }
 
-    @Timed
+    @Timed("TextUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale")
     public ImmutableList<TextUnitDTO> getTextUnitDTOsForAssetAndLocale(Long assetId, Long localeId, boolean isRootLocale, UpdateType updateType) {
 
         Optional<ImmutableList<TextUnitDTO>> optionalTextUnitDTOs = textUnitDTOsCacheBlobStorage.getTextUnitDTOs(assetId, localeId);
@@ -105,7 +105,7 @@ public class TextUnitDTOsCacheService {
      * @param isRootLocale
      * @return
      */
-    @Timed
+    @Timed("TextUnitDTOsCacheService.updateTextUnitDTOsWithDeltaFromDatabase")
     ImmutableList<TextUnitDTO> updateTextUnitDTOsWithDeltaFromDatabase(ImmutableList<TextUnitDTO> toUpdate, Long assetId, Long localeId, boolean isRootLocale) {
 
         Asset asset = getAssetById(assetId);
@@ -229,7 +229,7 @@ public class TextUnitDTOsCacheService {
      * @param assetId
      * @return
      */
-    @Timed
+    @Timed("TextUnitDTOsCacheService.getIdsOfAllTextUnits")
     ImmutableList<Long> getIdsOfAllTextUnits(Long assetId) {
         return ImmutableList.copyOf(tmTextUnitRepository.getTextUnitIdsByAssetId(assetId));
     }
@@ -244,7 +244,7 @@ public class TextUnitDTOsCacheService {
      * @param localeId
      * @return
      */
-    @Timed
+    @Timed("TextUnitDTOsCacheService.getCurrentTranslationsOfAllTextUnits")
     ImmutableList<TMTextUnitCurrentVariantDTO> getCurrentTranslationsOfAllTextUnits(Long assetId, Long localeId) {
         return ImmutableList.copyOf(tmTextUnitCurrentVariantRepository.findByAsset_idAndLocale_Id(assetId, localeId));
     }
