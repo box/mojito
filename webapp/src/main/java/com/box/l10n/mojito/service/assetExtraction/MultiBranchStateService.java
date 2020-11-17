@@ -11,6 +11,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import io.micrometer.core.annotation.Timed;
+import org.checkerframework.checker.units.qual.Time;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -47,6 +49,7 @@ public class MultiBranchStateService {
         this.localBranchToEntityBranchConverter = Preconditions.checkNotNull(localBranchToEntityBranchConverter);
     }
 
+    @Timed("MultiBranchStateService.getMultiBranchStateForAssetExtractionId")
     public MultiBranchState getMultiBranchStateForAssetExtractionId(long assetExtractionId, long version) {
         return multiBranchStateBlobStorage.getMultiBranchStateForAssetExtractionId(assetExtractionId, version)
                 .orElseGet(() -> {
@@ -59,6 +62,7 @@ public class MultiBranchStateService {
         multiBranchStateBlobStorage.deleteMultiBranchStateForAssetExtractionId(assetExtractionId, version);
     }
 
+    @Timed("MultiBranchStateService.putMultiBranchStateForAssetExtractionId")
     public void putMultiBranchStateForAssetExtractionId(MultiBranchState multiBranchState, long assetExtractionId, long version) {
         multiBranchStateBlobStorage.putMultiBranchStateForAssetExtractionId(multiBranchState, assetExtractionId, version);
     }
@@ -83,6 +87,7 @@ public class MultiBranchStateService {
      * @param version
      * @return
      */
+    @Timed("MultiBranchStateService.getInitialMultiBranchStateFromDatabase")
     MultiBranchState getInitialMultiBranchStateFromDatabase(long assetExtractionId, long version) {
 
         logger.debug("Get initial MultiBranchState for asset extraction id: {}", assetExtractionId);
