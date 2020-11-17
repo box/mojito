@@ -37,14 +37,14 @@ class TextUnitDTOsCacheBlobStorage {
      * @param localeId
      * @return
      */
-    @Timed
+    @Timed("TextUnitDTOsCacheBlobStorage.getTextUnitDTOs")
     public Optional<ImmutableList<TextUnitDTO>> getTextUnitDTOs(Long assetId, Long localeId) {
         logger.debug("Get TextUnitDTOs from Blob Storage for assetId: {}, localeId: {}", assetId, localeId);
         Optional<String> asString = structuredBlobStorage.getString(TEXT_UNIT_DTOS_CACHE, getName(assetId, localeId));
         return asString.map(this::convertToListOrEmptyList);
     }
 
-    @Timed
+    @Timed("TextUnitDTOsCacheBlobStorage.putTextUnitDTOs")
     public void putTextUnitDTOs(Long assetId, Long localeId, ImmutableList<TextUnitDTO> textUnitDTOs) {
         logger.debug("Put TextUnitDTOs to Blob Storage for assetId: {}, localeId: {}, count: {}", assetId, localeId, textUnitDTOs.size());
         TextUnitDTOsCacheBlobStorageJson textUnitDTOsCacheBlobStorageJson = new TextUnitDTOsCacheBlobStorageJson();
