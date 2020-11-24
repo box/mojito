@@ -249,6 +249,12 @@ public class AssetExtractionService {
             Preconditions.checkNotNull(assetExtraction.getVersion(), "Invalid asset extraction, there must be a version, asset extraction id: " + assetExtractionId);
             final long assetExtractionVersionForDelete = assetExtraction.getVersion(); // important to keep the version and not re-read it in some way since it can be incremented
 
+            if (context.getRetryCount() == 5) {
+                // 5th is last right now, this is very brittle. Help fix deployement issue for now.
+                logger.info("On 5th retry, assume something is wrong with with the state. Delete state for asset extraction id: " + assetExtractionId);
+                multiBranchStateService.deleteMultiBranchStateForAssetExtractionId(assetExtraction.getId(), assetExtraction.getVersion());
+            }
+
             logger.debug("Fetching base state, asset extraction id: {}, version: {}", assetExtraction.getId(), assetExtraction.getVersion());
             MultiBranchState baseState = multiBranchStateService.getMultiBranchStateForAssetExtractionId(assetExtraction.getId(), assetExtraction.getVersion());
             MultiBranchState newState = multiBranchStateMerger.merge(currentState, baseState, ImmutableSet.of(PRIMARY_BRANCH, NULL_BRANCH_TEXT_PLACEHOLDER));
