@@ -247,6 +247,7 @@ public class AssetExtractionService {
                     .orElseThrow(() -> new RuntimeException("There must be an asset extraction for id: " + assetExtractionId));
 
             Preconditions.checkNotNull(assetExtraction.getVersion(), "Invalid asset extraction, there must be a version, asset extraction id: " + assetExtractionId);
+            final long assetExtractionVersionForDelete = assetExtraction.getVersion(); // important to keep the version and not re-read it in some way since it can be incremented
 
             logger.debug("Fetching base state, asset extraction id: {}, version: {}", assetExtraction.getId(), assetExtraction.getVersion());
             MultiBranchState baseState = multiBranchStateService.getMultiBranchStateForAssetExtractionId(assetExtraction.getId(), assetExtraction.getVersion());
@@ -259,7 +260,7 @@ public class AssetExtractionService {
             // (database storage would benefit of that logic to be in the transacation) hence it would corrupt the
             // dataset. A drawback is that if the service fail, this may not be deleted while the DB is i]n final state.
             // We could have a cleanup job for those cases.
-            multiBranchStateService.deleteMultiBranchStateForAssetExtractionId(assetExtractionId, assetExtraction.getVersion());
+            multiBranchStateService.deleteMultiBranchStateForAssetExtractionId(assetExtractionId, assetExtractionVersionForDelete);
             return updatedMergedState;
         });
     }
