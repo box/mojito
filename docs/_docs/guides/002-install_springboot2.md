@@ -15,6 +15,8 @@ For detail instructions on development environement setup, [see here]({{ site.ur
 
 ### Using Executable Jars
 
+`Java 1.8` is required.
+
 Run the Webapp with:
 
 ```bash
@@ -64,7 +66,7 @@ server.forward-headers-strategy=native
 ## Setup
 
 The default setup comes with `HSQL` in-memory database, database authentication and runs on port `8080`.
-For production, `MySQL` should be setup. Different types of [authentication](/docs/guides/authentication/) are 
+For production, `MySQL` should be setup. Different types of [authentication](/docs/guides/authentication-springboot2/) are 
 available too.
 
 On the first Webapp startup, a user: `admin/ChangeMe` is created. This can be customized with configuration, 
