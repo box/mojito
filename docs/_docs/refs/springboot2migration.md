@@ -1,8 +1,8 @@
 ---
 layout: doc
 title:  "Springboot 2 Migration"
-categories: guides
-permalink: /docs/guides/springboot2migration/
+categories: refs
+permalink: /docs/refs/springboot2migration/
 ---
 
 This document is meant to help migrate {{ site.mojito_green }} from versions `<= 0.110` to newer versions which actually 
