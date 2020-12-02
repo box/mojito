@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service;
 
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
+import com.ibm.icu.text.Normalizer2;
 
 /**
  * Wrapper for {@link Normalizer} to do null-safe unicode normalization
@@ -9,12 +8,10 @@ import java.text.Normalizer.Form;
  * @author jyi
  */
 public class NormalizationUtils {
-    
-    public static final Form NORMALIZATION_FORM = Normalizer.Form.NFC;
-    
+
     public static String normalize(String string) {
         if (string != null) {
-            string = Normalizer.normalize(string, NORMALIZATION_FORM);
+            string = Normalizer2.getNFCInstance().normalize(string);
         }
         return string;
     }

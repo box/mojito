@@ -21,6 +21,7 @@ import com.box.l10n.mojito.service.tm.GenerateLocalizedAssetJob;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -234,7 +235,12 @@ public class AssetWS {
             @RequestBody ImportLocalizedAssetBody importLocalizedAssetBody) {
 
         logger.debug("Import localized asset with id = {}, and locale id = {}", assetId, localeId);
+
+        // normalization is too slow for hi-IN??? and we time out??? normalization should be moved inside the job :-|
+        Stopwatch started = Stopwatch.createStarted();
         String normalizedContent = NormalizationUtils.normalize(importLocalizedAssetBody.getContent());
+        logger.info("normalization time: {}", started.elapsed());
+
 
         PollableFuture pollableFuture = tmService.importLocalizedAssetAsync(
                 assetId,
