@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Preconditions;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,6 +43,13 @@ public abstract class Command {
         } else {
             execute();
         }
+    }
+
+    /**
+     * Indicates if the command should be shown in help command list
+     */
+    public boolean shouldShowInCommandList() {
+        return true;
     }
 
     /**

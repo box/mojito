@@ -178,7 +178,7 @@ public class L10nJCommander {
 
         for (Command command : commands.values()) {
 
-            if (!command.getName().isEmpty()) {
+            if (command.shouldShowInCommandList() && !command.getName().isEmpty()) {
                 String paddedCommandName = Strings.padStart(command.getName(), 20, ' ');
                 consoleWriter.fg(Ansi.Color.CYAN).a(paddedCommandName).reset().a(" ").a(command.getDescription()).println();
             }
