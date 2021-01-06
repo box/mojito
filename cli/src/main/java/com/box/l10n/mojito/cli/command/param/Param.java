@@ -137,6 +137,14 @@ public class Param {
     public static final String EXTRACTION_INPUT_SHORT = "-i";
     public static final String EXTRACTION_INPUT_DESCRIPTION = "The input directory of the extractions commands (if not specified, uses the output directory)";
 
+    public static final String SIMPLE_FILE_EDITOR_OUTPUT_LONG = "--output-directory";
+    public static final String SIMPLE_FILE_EDITOR_OUTPUT_SHORT = "-o";
+    public static final String SIMPLE_FILE_EDITOR_OUTPUT_DESCRIPTION = "The output directory";
+
+    public static final String SIMPLE_FILE_EDITOR_INPUT_LONG = "--input-directory";
+    public static final String SIMPLE_FILE_EDITOR_INPUT_SHORT = "-i";
+    public static final String SIMPLE_FILE_EDITOR_INPUT_DESCRIPTION = "The input directory";
+
     public static final String PUSH_TYPE_LONG = "--push-type";
     public static final String PUSH_TYPE_DESCRIPTION = "To choose the push type. Don't change unless you know exactly what it does";
 }
