@@ -69,8 +69,7 @@
     "mojito-pull": "cd src/main/resources/properties/; java -jar ../../../../../cli/target/mojito-cli-*.jar pull -r Mojito -lm \"fr:fr-FR,be:be-BY,ko:ko-KR,ru:ru-RU\" -ft PROPERTIES_NOBASENAME",
     "mojito-drop-export": "java -jar ../cli/target/mojito-cli-*.jar drop-export -r Mojito",
     "mojito-drop-import": "java -jar ../cli/target/mojito-cli-*.jar drop-import -r Mojito",
-    "create-demo-data": "java -jar ../cli/target/mojito-cli-*-exec.jar demo-create -n Demo",
-    "preinstall": "if type npx >/dev/null 2>&1; then npx npm-force-resolutions; fi"
+    "create-demo-data": "java -jar ../cli/target/mojito-cli-*-exec.jar demo-create -n Demo"
   },
   "resolutions": {
     "kind-of": "^6.0.3",
