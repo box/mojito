@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,6 +54,9 @@ public class SimpleFileEditorCommand extends Command {
     @Parameter(names = {Param.SIMPLE_FILE_EDITOR_OUTPUT_LONG, Param.SIMPLE_FILE_EDITOR_OUTPUT_SHORT}, arity = 1, required = false, description = Param.SIMPLE_FILE_EDITOR_OUTPUT_DESCRIPTION)
     String outputDirectoryParam;
 
+    @Parameter(names = {"--input-filter-regex"}, required = false, description = "Regex to filter input files with a regex eg. '.*Localizable.strings.*'")
+    String inputFilterRegex;
+
     @Parameter(names = {"--po-remove-usages"}, required = false, description = "To remove usages/refreneces/location/line starting with #: in PO files")
     boolean removeUsagesInPO = false;
 
@@ -63,6 +68,8 @@ public class SimpleFileEditorCommand extends Command {
 
     CommandDirectories commandDirectories;
 
+    Pattern inputFilterPattern;
+
     @Override
     public boolean shouldShowInCommandList() {
         return false;
@@ -73,6 +80,7 @@ public class SimpleFileEditorCommand extends Command {
 
         consoleWriter.newLine().a("Edit files: ").fg(Ansi.Color.CYAN).println(2);
         commandDirectories = new CommandDirectories(inputDirectoryParam, outputDirectoryParam);
+        inputFilterPattern = inputFilterRegex == null ? null : Pattern.compile(inputFilterRegex);
 
         if (removeUsagesInPO) {
             removeUsagesInPOFiles();
@@ -90,7 +98,8 @@ public class SimpleFileEditorCommand extends Command {
     }
 
     void indentJsonFiles() throws CommandException {
-        commandDirectories.listFilesWithExtensionInSourceDirectory("json")
+        commandDirectories.listFilesWithExtensionInSourceDirectory("json").stream()
+                .filter(getInputFilterMatch())
                 .forEach(inputPath -> {
                     consoleWriter.a(" - Indent: ").fg(Ansi.Color.MAGENTA).a(inputPath.toString()).print();
                     String jsonStr = Files.lines(inputPath).collect(Collectors.joining());
@@ -102,7 +111,8 @@ public class SimpleFileEditorCommand extends Command {
 
     void removeUsagesInPOFiles() throws CommandException {
         POFileType poFileType = new POFileType();
-        commandDirectories.listFilesWithExtensionInSourceDirectory(poFileType.getSourceFileExtension(), poFileType.getTargetFileExtension())
+        commandDirectories.listFilesWithExtensionInSourceDirectory(poFileType.getSourceFileExtension(), poFileType.getTargetFileExtension()).stream()
+                .filter(getInputFilterMatch())
                 .forEach(inputPath -> {
                     consoleWriter.a(" - Remove usages: ").fg(Ansi.Color.MAGENTA).a(inputPath.toString()).print();
                     String modifiedContent = Files.lines(inputPath)
@@ -118,12 +128,17 @@ public class SimpleFileEditorCommand extends Command {
                         fileType.getSourceFileExtension(),
                         fileType.getTargetFileExtension()).stream()
                 )
+                .filter(getInputFilterMatch())
                 .forEach(inputPath -> {
                     consoleWriter.a(" - Remove usages: ").fg(Ansi.Color.MAGENTA).a(inputPath.toString()).print();
                     String modifiedContent = commandHelper.getFileContent(inputPath)
                             .replaceAll(ExtractUsagesFromTextUnitComments.USAGES_PATTERN, "");
                     writeOutputFile(inputPath, modifiedContent);
                 });
+    }
+
+    Predicate<Path> getInputFilterMatch() {
+        return path -> inputFilterPattern == null || inputFilterPattern.matcher(path.toAbsolutePath().toString()).matches();
     }
 
     void writeOutputFile(Path inputPath, String modifiedContent) {
