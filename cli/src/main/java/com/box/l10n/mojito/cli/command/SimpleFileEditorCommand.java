@@ -4,9 +4,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.cli.filefinder.file.MacStringsFileType;
+import com.box.l10n.mojito.cli.filefinder.file.MacStringsdictFileType;
 import com.box.l10n.mojito.cli.filefinder.file.POFileType;
 import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.json.JsonIndenter;
+import com.box.l10n.mojito.okapi.ExtractUsagesFromTextUnitComments;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Perform some (very) simple edits on files.
@@ -39,6 +43,9 @@ public class SimpleFileEditorCommand extends Command {
     @Autowired
     ConsoleWriter consoleWriter;
 
+    @Autowired
+    CommandHelper commandHelper;
+
     @Parameter(names = {Param.SIMPLE_FILE_EDITOR_INPUT_LONG, Param.SIMPLE_FILE_EDITOR_INPUT_SHORT}, arity = 1, required = false, description = Param.SIMPLE_FILE_EDITOR_INPUT_DESCRIPTION)
     String inputDirectoryParam;
 
@@ -47,6 +54,9 @@ public class SimpleFileEditorCommand extends Command {
 
     @Parameter(names = {"--po-remove-usages"}, required = false, description = "To remove usages/refreneces/location/line starting with #: in PO files")
     boolean removeUsagesInPO = false;
+
+    @Parameter(names = {"--macstrings-remove-usages"}, required = false, description = "To remove location from both Mac strings and string dict files")
+    boolean removeUsagesInMacStrings = false;
 
     @Parameter(names = {"--json-indent"}, required = false, description = "To indent JSON files")
     boolean indentJson = false;
@@ -66,6 +76,10 @@ public class SimpleFileEditorCommand extends Command {
 
         if (removeUsagesInPO) {
             removeUsagesInPOFiles();
+        }
+
+        if (removeUsagesInMacStrings) {
+            removeUsagesInMacStringsAndStringDict();
         }
 
         if (indentJson) {
@@ -98,14 +112,23 @@ public class SimpleFileEditorCommand extends Command {
                 });
     }
 
+    void removeUsagesInMacStringsAndStringDict() throws CommandException {
+        Stream.of(new MacStringsFileType(), new MacStringsdictFileType())
+                .flatMap(fileType -> commandDirectories.listFilesWithExtensionInSourceDirectory(
+                        fileType.getSourceFileExtension(),
+                        fileType.getTargetFileExtension()).stream()
+                )
+                .forEach(inputPath -> {
+                    consoleWriter.a(" - Remove usages: ").fg(Ansi.Color.MAGENTA).a(inputPath.toString()).print();
+                    String modifiedContent = commandHelper.getFileContent(inputPath)
+                            .replaceAll(ExtractUsagesFromTextUnitComments.USAGES_PATTERN, "");
+                    writeOutputFile(inputPath, modifiedContent);
+                });
+    }
+
     void writeOutputFile(Path inputPath, String modifiedContent) {
-        Path outputPath = null;
-        try {
-            outputPath = commandDirectories.resolveWithTargetDirectoryAndCreateParentDirectories(inputPath);
-        } catch (CommandException e) {
-            throw new RuntimeException(e);
-        }
-        Files.write(outputPath, modifiedContent);
+        Path outputPath = commandDirectories.resolveWithTargetDirectoryAndCreateParentDirectories(inputPath);
+        commandHelper.writeFileContent(modifiedContent, outputPath);
         consoleWriter.a(" --> ").fg(Ansi.Color.CYAN).a(outputPath.toAbsolutePath().toString()).println();
     }
 

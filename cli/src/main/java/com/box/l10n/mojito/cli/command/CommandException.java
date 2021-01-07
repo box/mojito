@@ -11,7 +11,7 @@ package com.box.l10n.mojito.cli.command;
  *
  * @author jaurambault
  */
-public class CommandException extends Exception {
+public class CommandException extends RuntimeException {
 
     public CommandException(Throwable cause) {
         super(cause);
