@@ -143,7 +143,7 @@ public class SimpleFileEditorCommand extends Command {
 
     void writeOutputFile(Path inputPath, String modifiedContent) {
         Path outputPath = commandDirectories.resolveWithTargetDirectoryAndCreateParentDirectories(inputPath);
-        commandHelper.writeFileContent(modifiedContent, outputPath);
+        commandHelper.writeFileContent(modifiedContent, outputPath, inputPath);
         consoleWriter.a(" --> ").fg(Ansi.Color.CYAN).a(outputPath.toAbsolutePath().toString()).println();
     }
 

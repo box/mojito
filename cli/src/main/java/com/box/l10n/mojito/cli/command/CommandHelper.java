@@ -185,9 +185,13 @@ public class CommandHelper {
      * @throws CommandException
      */
     public void writeFileContent(String content, Path path, FileMatch sourceFileMatch) throws CommandException {
+        writeFileContent(content, path, sourceFileMatch.getPath());
+    }
+
+    public void writeFileContent(String content, Path outputPath, Path inputFileForBOMCopy) throws CommandException {
         try {
-            File outputFile = path.toFile();
-            BOMInputStream inputStream = new BOMInputStream(FileUtils.openInputStream(sourceFileMatch.getPath().toFile()), false, boms);
+            File outputFile = outputPath.toFile();
+            BOMInputStream inputStream = new BOMInputStream(FileUtils.openInputStream(inputFileForBOMCopy.toFile()), false, boms);
             if (inputStream.hasBOM()) {
                 FileUtils.writeByteArrayToFile(outputFile, inputStream.getBOM().getBytes());
                 FileUtils.writeByteArrayToFile(outputFile, content.getBytes(inputStream.getBOMCharsetName()), true);
@@ -195,7 +199,7 @@ public class CommandHelper {
                 FileUtils.writeStringToFile(outputFile, content, StandardCharsets.UTF_8);
             }
         } catch (IOException e) {
-            throw new CommandException("Cannot write file content in path: " + path.toString(), e);
+            throw new CommandException("Cannot write file content in path: " + outputPath.toString(), e);
         }
     }
 
