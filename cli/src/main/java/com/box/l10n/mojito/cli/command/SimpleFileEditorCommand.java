@@ -127,6 +127,8 @@ public class SimpleFileEditorCommand extends Command {
                 .flatMap(fileType -> commandDirectories.listFilesWithExtensionInSourceDirectory(
                         fileType.getSourceFileExtension(),
                         fileType.getTargetFileExtension()).stream()
+                        .filter(path -> fileType.getSourceFilePattern().getPattern().matcher(path.toAbsolutePath().toString()).matches()
+                                || fileType.getTargetFilePattern().getPattern().matcher(path.toAbsolutePath().toString()).matches())
                 )
                 .filter(getInputFilterMatch())
                 .forEach(inputPath -> {
