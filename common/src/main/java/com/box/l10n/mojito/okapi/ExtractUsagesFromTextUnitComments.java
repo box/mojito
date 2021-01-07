@@ -27,8 +27,8 @@ public class ExtractUsagesFromTextUnitComments {
     @Autowired
     TextUnitUtils textUnitUtils;
 
-    private static final String USAGES_PATTERN = "\\s*?<locations>\n?(?<usages>(.*?\\s)*?)</locations>";
-    private static final String USAGES_GROUP_NAME = "usages";
+    public static final String USAGES_PATTERN = "\\s*?<locations>\n?(?<usages>(.*?\\s)*?)</locations>";
+    public static final String USAGES_GROUP_NAME = "usages";
 
     /**
      * Add usage locations to the text unit
