@@ -43,10 +43,6 @@ public abstract class Command {
         }
     }
 
-    public boolean shouldShowInCommandList() {
-        return true;
-    }
-
     /**
      * Indicates if the command should be shown in help command list
      */
