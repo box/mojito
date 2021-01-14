@@ -307,9 +307,7 @@ public class TextUnitWS {
 
         ImportTextUnitsBatch importTextUnitsBatch = new ImportTextUnitsBatch();
 
-        // TODO remove when  clients are migrated
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectMapper objectMapper = ObjectMapper.withNoFailOnUnknownProperties();
         try {
             List<TextUnitDTO> textUnitDTOs = objectMapper.readValue(string, new TypeReference<List<TextUnitDTO>>() {
             });

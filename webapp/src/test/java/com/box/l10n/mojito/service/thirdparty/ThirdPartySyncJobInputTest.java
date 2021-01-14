@@ -15,8 +15,7 @@ public class ThirdPartySyncJobInputTest {
     @Test
     public void testBackwardsCompatibility() {
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectMapper objectMapper = ObjectMapper.withNoFailOnUnknownProperties();
 
         // The old representation of the ThirdPartySyncJobInput class
         Long repositoryId = 120L;
