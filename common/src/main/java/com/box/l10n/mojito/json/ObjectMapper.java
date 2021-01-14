@@ -3,6 +3,7 @@ package com.box.l10n.mojito.json;
 import com.box.l10n.mojito.io.Files;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -112,6 +113,12 @@ public class ObjectMapper extends com.fasterxml.jackson.databind.ObjectMapper {
     public static ObjectMapper withIndentedOutput() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        return objectMapper;
+    }
+
+    public static ObjectMapper withNoFailOnUnknownProperties() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return objectMapper;
     }
 }
