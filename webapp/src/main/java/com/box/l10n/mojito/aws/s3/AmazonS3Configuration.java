@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.aws.s3;
 
+import com.amazonaws.PredefinedClientConfigurations;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -16,8 +17,9 @@ public class AmazonS3Configuration {
 
     @Bean
     public AmazonS3 amazonS3Client(AmazonS3ConfigurationProperties amazonS3ConfigurationProperties) {
-         AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder
+        AmazonS3ClientBuilder amazonS3ClientBuilder = AmazonS3ClientBuilder
                 .standard()
+                .withClientConfiguration(PredefinedClientConfigurations.defaultConfig().withGzip(true))
                 .withRegion(Regions.fromName(amazonS3ConfigurationProperties.getRegion()));
 
         if (amazonS3ConfigurationProperties.getAccessKeyId() != null) {
