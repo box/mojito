@@ -782,6 +782,7 @@ public class PullCommandTest extends CLITestBase {
     public void pullFullyTranslated() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
+        repositoryService.addRepositoryLocale(repository, "en-AU", null, false);
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
