@@ -28,6 +28,7 @@ public class SimpleFileEditorCommandTest extends CLITestBase {
 
     @Test
     public void macStringsRemoveUsages() {
+
         getL10nJCommander().run("simple-file-editor",
                 "-i", getInputResourcesTestDir().getAbsolutePath(),
                 "-o", getTargetTestDir().getAbsolutePath(),

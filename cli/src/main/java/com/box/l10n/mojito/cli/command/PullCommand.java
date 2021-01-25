@@ -357,7 +357,8 @@ public class PullCommand extends Command {
             if (repositoryLocale.isToBeFullyTranslated()) {
                 localize = localeFullyTranslated.get(repositoryLocale.getLocale().getBcp47Tag());
             } else {
-                localize = localeFullyTranslated.get(repositoryLocale.getParentLocale().getLocale().getBcp47Tag());
+                // the root locale (which is defacto fully translated) is not in the localeFullyTranslated map so default to true
+                localize = localeFullyTranslated.getOrDefault(repositoryLocale.getParentLocale().getLocale().getBcp47Tag(), true);
             }
         }
 
