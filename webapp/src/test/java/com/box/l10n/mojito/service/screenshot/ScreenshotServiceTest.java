@@ -73,7 +73,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshotRun.getScreenshots().add(screenshot1);
         screenshotRun.getScreenshots().add(screenshot2);
 
-        ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
+        ScreenshotRun createScreenshotRun = screenshotService.createOrAddToScreenshotRun(screenshotRun, true);
 
         ScreenshotRun createdFromDB = screenshotRunRepository.findById(createScreenshotRun.getId()).orElse(null);
         ArrayList<Screenshot> arrayList = new ArrayList<>(createdFromDB.getScreenshots());
@@ -103,7 +103,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshotRun.getScreenshots().add(screenshot1);
         screenshotRun.getScreenshots().add(screenshot2);
 
-        ScreenshotRun createScreenshotRun = screenshotService.createOrUpdateScreenshotRun(screenshotRun, false);
+        ScreenshotRun createScreenshotRun = screenshotService.createOrAddToScreenshotRun(screenshotRun, false);
 
         repository.setManualScreenshotRun(createScreenshotRun);
         repositoryRepository.save(repository);
@@ -136,7 +136,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshot2.setName("s2");
         screenshotRun.getScreenshots().add(screenshot1);
         screenshotRun.getScreenshots().add(screenshot2);
-        screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
+        screenshotService.createOrAddToScreenshotRun(screenshotRun, true);
 
         ScreenshotRun forUpdate = new ScreenshotRun();
         forUpdate.setRepository(repository);
@@ -146,7 +146,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshot3.setName("s3");
         forUpdate.getScreenshots().add(screenshot3);
 
-        ScreenshotRun updatedScreenshotRun = screenshotService.createOrUpdateScreenshotRun(forUpdate, true);
+        ScreenshotRun updatedScreenshotRun = screenshotService.createOrAddToScreenshotRun(forUpdate, true);
 
         ScreenshotRun updatedFromDB = screenshotRunRepository.findById(updatedScreenshotRun.getId()).orElse(null);
         ArrayList<Screenshot> arrayList = new ArrayList<>(updatedFromDB.getScreenshots());
@@ -323,7 +323,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
         screenshotRun.getScreenshots().add(screen1);
         screenshotRun.getScreenshots().add(screen2);
         screenshotRun.getScreenshots().add(screen3);
-        screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
+        screenshotService.createOrAddToScreenshotRun(screenshotRun, true);
     }
 
 }
