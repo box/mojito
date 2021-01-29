@@ -150,7 +150,7 @@ public class ThirdPartyServiceTestData {
         screenshotRun.getScreenshots().add(screen2);
         screenshotRun.getScreenshots().add(screen3);
         screenshotRun.getScreenshots().add(screen4);
-        screenshotService.createOrUpdateScreenshotRun(screenshotRun, false);
+        screenshotService.createOrAddToScreenshotRun(screenshotRun, false);
 
         return this;
     }

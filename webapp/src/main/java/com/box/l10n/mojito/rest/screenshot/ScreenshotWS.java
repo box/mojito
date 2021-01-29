@@ -35,8 +35,8 @@ public class ScreenshotWS {
     ScreenshotService screenshotService;
 
     @RequestMapping(value = "/api/screenshots", method = RequestMethod.POST)
-    public ScreenshotRun createOrUpdateScreenshotRun(@RequestBody ScreenshotRun screenshotRun) {
-        ScreenshotRun screenshotRunSaved = screenshotService.createOrUpdateScreenshotRun(screenshotRun, true);
+    public ScreenshotRun createOrAddToScreenshotRun(@RequestBody ScreenshotRun screenshotRun) {
+        ScreenshotRun screenshotRunSaved = screenshotService.createOrAddToScreenshotRun(screenshotRun, true);
         return screenshotRunSaved;
     }
 

@@ -321,7 +321,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         screenshotRun.getScreenshots().add(screen1);
         screenshotRun.getScreenshots().add(screen2);
         screenshotRun.getScreenshots().add(screen3);
-        screenshotService.createOrUpdateScreenshotRun(screenshotRun, false);
+        screenshotService.createOrAddToScreenshotRun(screenshotRun, false);
 
         List<Screenshot> unmappedScreenshots = screenshotRepository.findUnmappedScreenshots(repository);
         assertEquals(3L, unmappedScreenshots.size());

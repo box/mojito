@@ -73,8 +73,8 @@ public class ScreenshotService {
     EntityManager em;
 
     /**
-     * Creates or update a screenshot run including the creation of related
-     * screenshots. If updating a screenshot run then new screenshots get added
+     * Creates or add to a screenshot run including the creation of related
+     * screenshots. If the screenshot run already exists then new screenshots get added to it
      *
      * @param screenshotRun                  the screenshot run information, contains a list of
      *                                       screenshot to be persisted
@@ -84,7 +84,7 @@ public class ScreenshotService {
      * update/create case)
      */
     @Transactional
-    public ScreenshotRun createOrUpdateScreenshotRun(ScreenshotRun screenshotRun, boolean setLastSuccessfulScreenshotRun) {
+    public ScreenshotRun createOrAddToScreenshotRun(ScreenshotRun screenshotRun, boolean setLastSuccessfulScreenshotRun) {
 
         ScreenshotRun currentScreenshotRun;
 
