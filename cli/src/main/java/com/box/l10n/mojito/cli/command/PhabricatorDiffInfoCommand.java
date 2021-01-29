@@ -5,6 +5,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.phabricator.DifferentialDiff;
+import com.box.l10n.mojito.phabricator.PhabricatorHttpClient;
 import com.box.l10n.mojito.phabricator.payload.QueryDiffsFields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +49,21 @@ public class PhabricatorDiffInfoCommand extends Command {
     @Parameter(names = {"--diff-id"}, arity = 1, required = true, description = "Diff id")
     String diffId = null;
 
+    @Parameter(names = {"--url"}, arity = 1, required = false, description = "Phabricator URL (if not provided, it must be passed through the environment)")
+    String url = null;
+
+    @Parameter(names = {"--token"}, arity = 1, required = false, description = "Phabricator Token (if not provided, it must be passed through the environment)")
+    String token = null;
+
     @Override
     public void execute() throws CommandException {
         if (differentialDiff == null) {
-            throw new CommandException("Phabricator must be configured with properties: l10n.phabricator.url and l10n.phabricator.token");
+            if (url != null && token != null) {
+               differentialDiff= new DifferentialDiff(new PhabricatorHttpClient(url, token));
+            } else {
+                throw new CommandException("Phabricator must either be configured with properties: " +
+                        "l10n.phabricator.url and l10n.phabricator.token, or using command params: --url and --token");
+            }
         }
 
         QueryDiffsFields queryDiffsFields = differentialDiff.queryDiff(diffId);
