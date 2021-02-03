@@ -516,18 +516,6 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>npx force resolutions</id>
-                                <goals>
-                                    <goal>npx</goal>
-                                </goals>
-
-                                <phase>generate-resources</phase>
-
-                                <configuration>
-                                    <arguments>npm-force-resolutions</arguments>
-                                </configuration>
-                            </execution>
-                            <execution>
                                 <id>npm install</id>
                                 <goals>
                                     <goal>npm</goal>
