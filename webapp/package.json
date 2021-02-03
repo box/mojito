@@ -70,7 +70,7 @@
     "mojito-drop-export": "java -jar ../cli/target/mojito-cli-*.jar drop-export -r Mojito",
     "mojito-drop-import": "java -jar ../cli/target/mojito-cli-*.jar drop-import -r Mojito",
     "create-demo-data": "java -jar ../cli/target/mojito-cli-*.jar demo-create -n Demo",
-    "preinstall": "if type npx >/dev/null 2>&1; then npx npm-force-resolutions; fi"
+    "preinstall": "node/node_modules/npm/bin/npx-cli.js npm-force-resolutions"
   },
   "resolutions": {
     "kind-of": "^6.0.3",
