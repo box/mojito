@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.tm;
 
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.Optionals;
+import com.google.common.collect.ImmutableList;
 import org.apache.mina.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,13 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.box.l10n.mojito.utils.Predicates.not;
 import static java.util.stream.Collectors.groupingBy;
@@ -50,7 +51,7 @@ public class TextUnitBatchMatcher {
         Predicate<TextUnitDTO> notAlreadyMatched = notAlreadyMatched("global");
 
         return textUnitForBatchMatcher -> {
-            return Optionals.or(textUnitForBatchMatcher, matchByTmTextUnitId, matchByNameAndUsed, matchByNameAndUnused).filter(notAlreadyMatched);
+            return Optionals.or(textUnitForBatchMatcher, notAlreadyMatched, matchByTmTextUnitId, matchByNameAndUsed, matchByNameAndUnused);
         };
     }
 
@@ -62,8 +63,14 @@ public class TextUnitBatchMatcher {
         Predicate<List<TextUnitDTO>> notAlreadyMatchedInList = notAlreadyMatchedInList("global");
 
         return textUnitForBatchMatcher -> {
-            return Optionals.or(textUnitForBatchMatcher, matchByPluralPrefixAndUsed, matchByNameAndUsed, matchByNameAndUnused).
-                    filter(notAlreadyMatchedInList).orElse(Collections.emptyList());
+            ImmutableList<TextUnitDTO> textUnitDTOs = Stream.of(matchByPluralPrefixAndUsed, matchByNameAndUsed, matchByPluralPrefixAndUnused, matchByNameAndUnused)
+                    .map(f -> f.apply(textUnitForBatchMatcher))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .filter(notAlreadyMatchedInList)
+                    .flatMap(textUnitDTOS -> textUnitDTOS.stream())
+                    .collect(ImmutableList.toImmutableList());
+            return textUnitDTOs;
         };
     }
 
