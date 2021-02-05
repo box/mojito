@@ -2,10 +2,14 @@ package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySync;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -20,6 +24,7 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.io.ByteStreams;
 import org.junit.Before;
@@ -42,10 +47,12 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
+import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -166,43 +173,29 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
         logger.debug("Verify states");
-        thirdPartyTextUnitRepository.findAll().stream()
-                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
-                .forEach(t -> {
-                    logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
-                            t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
-                            t.getTmTextUnit().getName(), t.getThirdPartyId());
-                });
-
         List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
                 .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .peek(t -> logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
+                        t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
+                        t.getTmTextUnit().getName(), t.getThirdPartyId()))
                 .collect(toList());
-        assertEquals(8, thirdPartyTextUnits.size());
-        thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
 
-        assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
-        assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
-
-        assertEquals(thirdPartyServiceTestData.tmTextUnitBye.getId(), thirdPartyTextUnits.get(1).getTmTextUnit().getId());
-        assertEquals("3rd-bye", thirdPartyTextUnits.get(1).getThirdPartyId());
-
-        assertEquals(thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId(), thirdPartyTextUnits.get(2).getTmTextUnit().getId());
-        assertEquals("3rd-plural_things", thirdPartyTextUnits.get(2).getThirdPartyId());
-
-        assertEquals(thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId(), thirdPartyTextUnits.get(3).getTmTextUnit().getId());
-        assertEquals("3rd-plural_things", thirdPartyTextUnits.get(3).getThirdPartyId());
-
-        assertEquals(thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId(), thirdPartyTextUnits.get(4).getTmTextUnit().getId());
-        assertEquals("3rd-plural_things", thirdPartyTextUnits.get(4).getThirdPartyId());
-
-        assertEquals(thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId(), thirdPartyTextUnits.get(5).getTmTextUnit().getId());
-        assertEquals("3rd-plural_things", thirdPartyTextUnits.get(5).getThirdPartyId());
-
-        assertEquals(thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId(), thirdPartyTextUnits.get(6).getTmTextUnit().getId());
-        assertEquals("3rd-plural_things", thirdPartyTextUnits.get(6).getThirdPartyId());
-
-        assertEquals(thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId(), thirdPartyTextUnits.get(7).getTmTextUnit().getId());
-        assertEquals("3rd-plural_things", thirdPartyTextUnits.get(7).getThirdPartyId());
+        assertThat(thirdPartyTextUnits)
+                .as("Should have mappping for the normal and plural text units")
+                .extracting(
+                        t -> t.getAsset().getId(),
+                        com.box.l10n.mojito.entity.ThirdPartyTextUnit::getThirdPartyId,
+                        t -> t.getTmTextUnit().getId())
+                .containsExactly(
+                        tuple(asset.getId(), "3rd-hello", thirdPartyServiceTestData.tmTextUnitHello.getId()),
+                        tuple(asset.getId(), "3rd-bye", thirdPartyServiceTestData.tmTextUnitBye.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId())
+                );
 
         logger.debug("Verify behavior");
         verify(thirdPartyTMSMock, times(3)).createImageToTextUnitMappings(
@@ -229,6 +222,81 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(0).getTextUnitId());
         assertEquals("img-image3a.png", thirdPartyImageToTextUnits.get(1).getImageId());
         assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(1).getTextUnitId());
+    }
+
+    @Test
+    public void updateTextUnitComment() throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
+
+        ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
+        Repository repository = thirdPartyServiceTestData.repository;
+        Asset asset = thirdPartyServiceTestData.asset;
+        String projectId = "someProjectIdForTest";
+
+        logger.debug("Just update a comment");
+        String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<resources>\n" +
+                "    <!--comment 1 updated-->\n" +
+                "    <string name=\"hello\">Hello</string>\n" +
+                "    <!--comment 2-->\n" +
+                "    <string name=\"bye\">Bye</string>\n" +
+                "    <plurals name=\"plural_things\">\n" +
+                "        <item quantity=\"one\">One thing</item>\n" +
+                "        <item quantity=\"other\">Multiple things</item>\n" +
+                "    </plurals>" +
+                "</resources>";
+
+        AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent);
+        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null).get();
+
+        TMTextUnit tmTextUnitHelloCommentUpdated = tmTextUnitRepository.findFirstByTmAndMd5(asset.getRepository().getTm(),
+                new TextUnitUtils().computeTextUnitMD5("hello", "Hello", "comment 1 updated"));
+
+        logger.debug("Create mocks and data for tests");
+        doAnswer(invocation -> Arrays.asList(
+                createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
+                createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
+                createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things", true)
+        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
+
+        doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
+
+        logger.debug("Invoke function to test");
+
+        ThirdPartySync thirdPartySync = new ThirdPartySync();
+        thirdPartySync.setRepositoryId(repository.getId());
+        thirdPartySync.setProjectId(projectId);
+        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
+        thirdPartySync.setPluralSeparator(" _");
+        thirdPartySync.setOptions(new ArrayList<>());
+
+        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+        logger.debug("Verify states");
+        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
+                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+                .peek(t -> {
+                    logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
+                            t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
+                            t.getTmTextUnit().getName(), t.getThirdPartyId());
+                }).collect(toList());
+
+        assertThat(thirdPartyTextUnits)
+                .as("both the used and unsed text units with the same name must be mapped")
+                .extracting(
+                        t -> t.getAsset().getId(),
+                        com.box.l10n.mojito.entity.ThirdPartyTextUnit::getThirdPartyId,
+                        t -> t.getTmTextUnit().getId())
+                .containsExactly(
+                        tuple(asset.getId(), "3rd-hello", tmTextUnitHelloCommentUpdated.getId()),
+                        tuple(asset.getId(), "3rd-hello", thirdPartyServiceTestData.tmTextUnitHello.getId()),
+                        tuple(asset.getId(), "3rd-bye", thirdPartyServiceTestData.tmTextUnitBye.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId()),
+                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId())
+                );
     }
 
     @Test
