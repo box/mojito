@@ -12,6 +12,7 @@ import com.box.l10n.mojito.rest.thirdparty.ThirdPartySync;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.image.ImageService;
+import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
@@ -20,19 +21,23 @@ import com.box.l10n.mojito.service.tm.TextUnitBatchMatcher;
 import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
+import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
 import com.box.l10n.mojito.utils.MergeFunctions;
+import com.box.l10n.mojito.utils.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +45,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -85,6 +91,12 @@ public class ThirdPartyService {
 
     @Autowired
     LocaleMappingHelper localeMappingHelper;
+
+    @Autowired
+    TextUnitDTOsCacheService textUnitDTOsCacheService;
+
+    @Autowired
+    LocaleService localeService;
 
     @Autowired
     ImageService imageService;
@@ -148,56 +160,49 @@ public class ThirdPartyService {
     }
 
     void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId) {
+        logger.debug("Map text units from repository: {} with and projectId: {}", repository.getName(), projectId);
+
+        logger.debug("Get the text units of the third party TMS");
         List<ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTMS.getThirdPartyTextUnits(repository, projectId);
 
+        logger.debug("Batch the third party text units by asset");
         LoadingCache<String, Optional<Asset>> assetCache = getAssetCache(repository);
-
-        logger.debug("Get the third party ids that have been already mapped");
-        Set<String> thirdPartyTextUnitIdsAlreadyMapped = thirdPartyTextUnitRepository.findThirdPartyIdsByRepository(repository);
-
-        logger.debug("Batch by asset to optimize the import and exclude already mapped");
-        Map<Asset, List<ThirdPartyTextUnit>> notMappedGroupedByAsset = thirdPartyTextUnits.stream().
-                filter(t -> !thirdPartyTextUnitIdsAlreadyMapped.contains(t.getId())).
+        Map<Asset, List<ThirdPartyTextUnit>> thirdPartyTextUnitsByAsset = thirdPartyTextUnits.stream().
                 collect(groupingBy(o -> assetCache.getUnchecked(o.getAssetPath()).orElse(null), LinkedHashMap::new, toList()));
 
-        logger.debug("Perform mapping by asset (exclude null assset, that could appear if asset path didn't match)");
-        notMappedGroupedByAsset.entrySet().stream()
+        logger.debug("Perform mapping by asset (exclude null asset, that could appear if asset path didn't match)");
+        thirdPartyTextUnitsByAsset.entrySet().stream()
                 .filter(e -> e.getKey() != null)
                 .forEach(e -> mapThirdPartyTextUnitsToTextUnitDTOs(e.getKey(), e.getValue()));
     }
 
-    /**
-     * Plural forms are grouped together, that assume the third party TMS has a single entry for plural strings. This
-     * will need to be changed to support 1:1 mapping for third party TMS that have multiple text units as Mojito
-     *
-     * @param asset
-     * @param thirdPartyTextUnitsToMap
-     */
     void mapThirdPartyTextUnitsToTextUnitDTOs(Asset asset, List<ThirdPartyTextUnit> thirdPartyTextUnitsToMap) {
         logger.debug("Map third party text units to text unit DTOs for asset: {}", asset.getId());
-        List<TextUnitDTO> notMappedTextUnitTDOsForAsset = getNotMappedTextUnitTDOsForAsset(asset);
+        Set<Long> alreadyMappedTmTextUnitId = thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
 
-        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> matchByNameAndPluralPrefix = textUnitBatchMatcher.matchByNameAndPluralPrefix(notMappedTextUnitTDOsForAsset);
+        logger.debug("Get all text units of the asset that are not mapped yet");
+        ImmutableList<TextUnitDTO> notMappedTextUnitDTOs = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale(asset.getId(),
+                localeService.getDefaultLocale().getId(), true, UpdateType.ALWAYS).stream()
+                .filter(textUnitDTO -> !alreadyMappedTmTextUnitId.contains(textUnitDTO.getTmTextUnitId()))
+                .collect(ImmutableList.toImmutableList());
 
-        Map<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap = thirdPartyTextUnitsToMap.stream()
-                .collect(Collectors.toMap(
+        ImmutableMap<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap = thirdPartyTextUnitsToMap.stream()
+                .collect(ImmutableMap.toImmutableMap(
                         Function.identity(),
-                        tptu -> matchByNameAndPluralPrefix.apply(tptu),
-                        MergeFunctions.keepLast(),
-                        LinkedHashMap::new
+                        textUnitBatchMatcher.matchByNameAndPluralPrefix(notMappedTextUnitDTOs)::apply
                 ));
 
         saveMojitoToThirdParthTextUnitMapping(asset, thirdPartyTextUnitToMojitoMap);
     }
 
-    void saveMojitoToThirdParthTextUnitMapping(Asset asset, Map<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap) {
+    void saveMojitoToThirdParthTextUnitMapping(Asset asset, ImmutableMap<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap) {
 
         logger.debug("Create the entities for the mapping mojito to third party ");
 
         List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitToMojitoMap.entrySet().stream().flatMap(e -> {
             ThirdPartyTextUnit thirdPartyTextUnitForMapping = e.getKey();
             return e.getValue().stream().map(textUnitDTO -> {
-                logger.debug("Create entity third party: {}, tm textunit: {}", thirdPartyTextUnitForMapping.getId(), textUnitDTO.getTmTextUnitId());
+                logger.debug("Create entity third party text unit : {}, tm textunit: {}", thirdPartyTextUnitForMapping.getId(), textUnitDTO.getTmTextUnitId());
                 com.box.l10n.mojito.entity.ThirdPartyTextUnit thirdPartyTextUnit = new com.box.l10n.mojito.entity.ThirdPartyTextUnit();
                 thirdPartyTextUnit.setThirdPartyId(thirdPartyTextUnitForMapping.getId());
                 thirdPartyTextUnit.setAsset(asset);
@@ -213,7 +218,7 @@ public class ThirdPartyService {
 
     void uploadScreenshotsAndCreateMappings(Repository repository, String projectId) {
         logger.debug("Get the screenshot that are not yet mapped");
-        screenshotRepository.findUnmappedScreenshots(repository).stream().forEach(screenshot -> {
+        screenshotRepository.findUnmappedScreenshots(repository).forEach(screenshot -> {
             getImage(screenshot).map(image -> {
                 uploadImageWithMappings(projectId, screenshot, image);
                 return image;
@@ -311,29 +316,6 @@ public class ThirdPartyService {
                 .map(name -> imageService.getImage(name));
 
         return image;
-    }
-
-    /**
-     * Get TextUnitDTOs of the asset that are not mapped yet and are candidate for mapping.
-     *
-     * Already mapped entires can't be remapped since it would cause a containst issue in
-     * {@link com.box.l10n.mojito.entity.ThirdPartyTextUnit#getTmTextUnit()}
-     *
-     * @param asset
-     * @return
-     */
-    List<TextUnitDTO> getNotMappedTextUnitTDOsForAsset(Asset asset) {
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setRepositoryIds(asset.getRepository().getId());
-        textUnitSearcherParameters.setAssetId(asset.getId());
-        textUnitSearcherParameters.setForRootLocale(true);
-        textUnitSearcherParameters.setPluralFormsFiltered(false);
-        List<TextUnitDTO> all = textUnitSearcher.search(textUnitSearcherParameters);
-
-        HashSet<Long> alreadyMapped = thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
-        List<TextUnitDTO> notMapped = all.stream().filter(t -> !alreadyMapped.contains(t.getTmTextUnitId())).collect(toList());
-
-        return notMapped;
     }
 
     LoadingCache<String, Optional<Asset>> getAssetCache(Repository repository) {

@@ -16,6 +16,8 @@ import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.io.ByteStreams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.core.io.ClassPathResource;
@@ -28,6 +30,8 @@ import static org.junit.Assert.assertEquals;
 
 @Configurable
 public class ThirdPartyServiceTestData {
+
+    static Logger logger = LoggerFactory.getLogger(ThirdPartyServiceTestData.class);
 
     @Autowired
     RepositoryService repositoryService;
@@ -70,6 +74,7 @@ public class ThirdPartyServiceTestData {
 
     @PostConstruct
     public ThirdPartyServiceTestData init() throws Exception {
+        logger.debug("Starting init of ThirdPartyServiceTestData");
         repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
@@ -152,6 +157,7 @@ public class ThirdPartyServiceTestData {
         screenshotRun.getScreenshots().add(screen4);
         screenshotService.createOrAddToScreenshotRun(screenshotRun, false);
 
+        logger.debug("Finished init of ThirdPartyServiceTestData");
         return this;
     }
 }
