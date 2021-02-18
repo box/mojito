@@ -21,6 +21,9 @@ public interface BranchTextUnitStatisticRepository extends JpaRepository<BranchT
     @Query("select btus.tmTextUnit.id from #{#entityName} btus where btus.branchStatistic.id = ?1")
     List<Long> findTmTextUnitIds(long branchStatisticId);
 
+    @Query("select count(btus.tmTextUnit.id) from #{#entityName} btus where btus.branchStatistic.branch.id = ?1")
+    long countTmTextUnitIds(long branchId);
+
     @Transactional
     int deleteByBranchStatisticBranchIdAndTmTextUnitIdIn(long branchId, Set<Long> ids);
 

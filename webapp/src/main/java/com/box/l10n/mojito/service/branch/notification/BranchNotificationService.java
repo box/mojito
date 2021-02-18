@@ -3,17 +3,21 @@ package com.box.l10n.mojito.service.branch.notification;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.entity.BranchStatistic;
+import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
 import com.box.l10n.mojito.entity.Screenshot;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
+import com.box.l10n.mojito.service.branch.BranchTextUnitStatisticRepository;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -47,6 +51,9 @@ public class BranchNotificationService {
 
     @Autowired
     BranchStatisticRepository branchStatisticRepository;
+
+    @Autowired
+    BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
 
     @Autowired(required = false)
     List<BranchNotificationMessageSender> branchNotificationMessageSenders = new ArrayList<>();
@@ -150,8 +157,6 @@ public class BranchNotificationService {
 
     void sendMissingScreenshotNotificationsForBranch(BranchNotificationMessageSender branchNotificationMessageSender, Branch branch) {
         logger.debug("sendMissingScreenshotNotificationForBranch: {} ({})", branch.getId(), branch.getName());
-
-        BranchNotificationInfo branchNotificationInfo = getBranchNotificationInfo(branch);
         BranchNotification branchNotification = getOrCreateBranchNotification(branch, getSenderType(branchNotificationMessageSender));
 
         if (shouldSendScreenshotMissingMessage(branch, branchNotification)) {
@@ -258,15 +263,15 @@ public class BranchNotificationService {
     }
 
     boolean isScreenshotMissing(Branch branch) {
-        BranchStatistic branchStatistic = branchStatisticRepository.findByBranch(branch);
+        long numberOfTmTextUnitInBranch = branchTextUnitStatisticRepository.countTmTextUnitIds(branch.getId());
 
-        List<Long> tmTextUnitWithScreenshotIds = branch.getScreenshots().stream().
+        long numberOfTmTextUnitWithScreenshot = branch.getScreenshots().stream().
                 map(Screenshot::getScreenshotTextUnits).
                 flatMap(Collection::stream).
                 map(screenshotTextUnit -> screenshotTextUnit.getTmTextUnit().getId()).
-                distinct().collect(Collectors.toList());
+                distinct().count();
 
-        return tmTextUnitWithScreenshotIds.size() < branchStatistic.getTotalCount();
+        return numberOfTmTextUnitWithScreenshot < numberOfTmTextUnitInBranch;
     }
 
     boolean shouldSendTranslatedMessage(Branch branch, BranchNotification branchNotification) {
