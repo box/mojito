@@ -354,7 +354,7 @@ public class AssetService {
         DeleteAssetsOfBranchJobInput deleteAssetsOfBranchJobInput = new DeleteAssetsOfBranchJobInput();
         deleteAssetsOfBranchJobInput.setAssetIds(assetIds);
         deleteAssetsOfBranchJobInput.setBranchId(branchId);
-        String pollableMessage = MessageFormat.format(" - Delete assetIds: {0} in branch: {1}", Joiner.on(",").join(assetIds), branchId);
+        String pollableMessage = MessageFormat.format(" - Delete assetIds: [{0}] in branch: {1}", Joiner.on(",").join(assetIds), branchId.toString());
 
         QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(DeleteAssetsOfBranchJob.class).withInput(deleteAssetsOfBranchJobInput).withMessage(pollableMessage).build();
         return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
