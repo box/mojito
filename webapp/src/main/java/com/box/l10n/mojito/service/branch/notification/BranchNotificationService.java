@@ -3,9 +3,7 @@ package com.box.l10n.mojito.service.branch.notification;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.BranchNotification;
 import com.box.l10n.mojito.entity.BranchStatistic;
-import com.box.l10n.mojito.entity.BranchTextUnitStatistic;
 import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.branch.BranchRepository;
@@ -17,7 +15,6 @@ import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMis
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -282,7 +279,9 @@ public class BranchNotificationService {
 
     boolean isBranchTranslated(Branch branch) {
         BranchStatistic branchStatistic = branchStatisticRepository.findByBranch(branch);
-        return branchStatistic != null && branchStatistic.getForTranslationCount() == 0;
+        return branchStatistic != null
+                && branchStatistic.getTotalCount() > 0
+                && branchStatistic.getForTranslationCount() == 0;
     }
 
     String getUsername(Branch branch) {
