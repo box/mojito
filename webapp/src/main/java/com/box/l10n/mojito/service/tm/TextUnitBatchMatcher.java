@@ -55,10 +55,10 @@ public class TextUnitBatchMatcher {
         };
     }
 
-    public Function<TextUnitForBatchMatcher, List<TextUnitDTO>> matchByNameAndPluralPrefix(List<TextUnitDTO> existingTextUnits) {
-        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefixAndUsed = createMatchByPluralPrefixAndUsed(existingTextUnits);
+    public Function<TextUnitForBatchMatcher, List<TextUnitDTO>> matchByNameAndPluralPrefix(List<TextUnitDTO> existingTextUnits, String pluralSeparator) {
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefixAndUsed = createMatchByPluralPrefixAndUsed(existingTextUnits, pluralSeparator);
         Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByNameAndUsed = createMatchByNameAndUsed(existingTextUnits).andThen(Optionals::optionalToOptionalList);
-        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefixAndUnused = createMatchByPluralPrefixAndUnused(existingTextUnits);
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefixAndUnused = createMatchByPluralPrefixAndUnused(existingTextUnits, pluralSeparator);
         Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByNameAndUnused = createMatchByNameAndUnused(existingTextUnits).andThen(Optionals::optionalToOptionalList);
         Predicate<List<TextUnitDTO>> notAlreadyMatchedInList = notAlreadyMatchedInList("global");
 
@@ -128,15 +128,16 @@ public class TextUnitBatchMatcher {
      * Plural text units are grouped by prefix. The plural separator is assumed to be: "_" at the very end of the string
      *
      * @param existingTextUnits
+     * @param pluralSeparator
      * @return
      */
-    Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> createMatchByPluralPrefixAndUsed(List<TextUnitDTO> existingTextUnits) {
+    Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> createMatchByPluralPrefixAndUsed(List<TextUnitDTO> existingTextUnits, String pluralSeparator) {
 
         logger.debug("Create the map to match by prefix and used text units");
         Map<String, List<TextUnitDTO>> pluralPrefixToUsedTextUnitDTOsMap = existingTextUnits.stream()
                 .filter(TextUnitDTO::isUsed)
                 .filter(t -> t.getPluralForm() != null)
-                .collect(groupingBy(o -> pluralNameParser.getPrefix(o.getPluralFormOther())));
+                .collect(groupingBy(o -> pluralNameParser.getPrefix(o.getPluralFormOther(), pluralSeparator)));
 
         Predicate<TextUnitDTO> byPluralPreifxNotAlreadyMatched = notAlreadyMatched("byPluralPrefixAndUsed");
 
@@ -157,13 +158,13 @@ public class TextUnitBatchMatcher {
         };
     }
 
-    Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> createMatchByPluralPrefixAndUnused(List<TextUnitDTO> existingTextUnits) {
+    Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> createMatchByPluralPrefixAndUnused(List<TextUnitDTO> existingTextUnits, String pluralSeparator) {
 
         logger.debug("Create the map to match by prefix and not used text units");
         Map<String, List<TextUnitDTO>> pluralPrefixToUsedTextUnitDTOsMap = existingTextUnits.stream()
                 .filter(not(TextUnitDTO::isUsed))
                 .filter(t -> t.getPluralForm() != null)
-                .collect(groupingBy(o -> pluralNameParser.getPrefix(o.getPluralFormOther())));
+                .collect(groupingBy(o -> pluralNameParser.getPrefix(o.getPluralFormOther(), pluralSeparator)));
 
         Predicate<TextUnitDTO> byPluralPreifxNotAlreadyMatched = notAlreadyMatched("byPluralPrefixAndUnused");
 

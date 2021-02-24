@@ -18,20 +18,16 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TextUnitBatchMatcher;
-import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
-import com.box.l10n.mojito.utils.MergeFunctions;
-import com.box.l10n.mojito.utils.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +41,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
@@ -152,14 +146,14 @@ public class ThirdPartyService {
                     skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
-            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId);
+            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId, pluralSeparator);
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_SCREENSHOT)) {
             uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
         }
     }
 
-    void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId) {
+    void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId, String pluralSeparator) {
         logger.debug("Map text units from repository: {} with and projectId: {}", repository.getName(), projectId);
 
         logger.debug("Get the text units of the third party TMS");
@@ -173,10 +167,10 @@ public class ThirdPartyService {
         logger.debug("Perform mapping by asset (exclude null asset, that could appear if asset path didn't match)");
         thirdPartyTextUnitsByAsset.entrySet().stream()
                 .filter(e -> e.getKey() != null)
-                .forEach(e -> mapThirdPartyTextUnitsToTextUnitDTOs(e.getKey(), e.getValue()));
+                .forEach(e -> mapThirdPartyTextUnitsToTextUnitDTOs(e.getKey(), e.getValue(), pluralSeparator));
     }
 
-    void mapThirdPartyTextUnitsToTextUnitDTOs(Asset asset, List<ThirdPartyTextUnit> thirdPartyTextUnitsToMap) {
+    void mapThirdPartyTextUnitsToTextUnitDTOs(Asset asset, List<ThirdPartyTextUnit> thirdPartyTextUnitsToMap, String pluralSeparator) {
         logger.debug("Map third party text units to text unit DTOs for asset: {}", asset.getId());
         Set<Long> alreadyMappedTmTextUnitId = thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
 
@@ -189,7 +183,7 @@ public class ThirdPartyService {
         ImmutableMap<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap = thirdPartyTextUnitsToMap.stream()
                 .collect(ImmutableMap.toImmutableMap(
                         Function.identity(),
-                        textUnitBatchMatcher.matchByNameAndPluralPrefix(notMappedTextUnitDTOs)::apply
+                        textUnitBatchMatcher.matchByNameAndPluralPrefix(notMappedTextUnitDTOs, pluralSeparator)::apply
                 ));
 
         saveMojitoToThirdParthTextUnitMapping(asset, thirdPartyTextUnitToMojitoMap);

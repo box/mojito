@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.tm;
 
 import org.junit.Test;
 
+import static com.box.l10n.mojito.service.tm.PluralNameParser.DEFAULT_PLURAL_SEPARATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PluralNameParserTest {
@@ -9,17 +10,7 @@ public class PluralNameParserTest {
     PluralNameParser pluralNameParser = new PluralNameParser();
 
     @Test
-    public void testGetPrefixWithoutSeparator() {
-        assertThat(pluralNameParser.getPrefix("name_zero")).isEqualTo("name");
-        assertThat(pluralNameParser.getPrefix("name_one")).isEqualTo("name");
-        assertThat(pluralNameParser.getPrefix("name_two")).isEqualTo("name");
-        assertThat(pluralNameParser.getPrefix("name_few")).isEqualTo("name");
-        assertThat(pluralNameParser.getPrefix("name_many")).isEqualTo("name");
-        assertThat(pluralNameParser.getPrefix("name_other")).isEqualTo("name");
-    }
-
-    @Test
-    public void testGetPrefixWithSeparator() {
+    public void testGetPrefix() {
         assertThat(pluralNameParser.getPrefix("name_zero", "_")).isEqualTo("name");
         assertThat(pluralNameParser.getPrefix("name_one", "_")).isEqualTo("name");
         assertThat(pluralNameParser.getPrefix("name_two", "_")).isEqualTo("name");
