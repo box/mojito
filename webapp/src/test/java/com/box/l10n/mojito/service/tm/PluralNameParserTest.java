@@ -2,7 +2,6 @@ package com.box.l10n.mojito.service.tm;
 
 import org.junit.Test;
 
-import static com.box.l10n.mojito.service.tm.PluralNameParser.DEFAULT_PLURAL_SEPARATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PluralNameParserTest {

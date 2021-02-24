@@ -54,8 +54,6 @@ public class ThirdPartyService {
 
     static Logger logger = LoggerFactory.getLogger(ThirdPartyService.class);
 
-    static final String PLURAL_SEPARATOR_SPACE = "%s";
-
     @Autowired
     TextUnitSearcher textUnitSearcher;
 
@@ -121,7 +119,6 @@ public class ThirdPartyService {
                                      String skipTextUnitsWithPattern,
                                      String skipAssetsWithPathPattern,
                                      List<String> options) {
-        pluralSeparator = replaceSpacePlaceholder(pluralSeparator);
         logger.debug("Thirdparty TMS Sync: repositoryId={} thirdPartyProjectId={} " +
                 "actions={} pluralSeparator={} localeMapping={} " +
                 "skipTextUnitsWithPattern={} skipAssetsWithPattern={} " +
@@ -320,10 +317,6 @@ public class ThirdPartyService {
                     return Optional.ofNullable(asset);
                 })
         );
-    }
-
-    String replaceSpacePlaceholder(String input) {
-        return Strings.nullToEmpty(input).replaceAll(PLURAL_SEPARATOR_SPACE, " ");
     }
 
     Map<String, String> parseLocaleMapping(String input) {

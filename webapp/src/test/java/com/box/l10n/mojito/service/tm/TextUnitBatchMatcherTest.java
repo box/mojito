@@ -12,12 +12,13 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import static com.box.l10n.mojito.service.tm.PluralNameParser.DEFAULT_PLURAL_SEPARATOR;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class TextUnitBatchMatcherTest {
+
+    static final String PLURAL_SEPARATOR = "_";
 
     TextUnitBatchMatcher textUnitBatchMatcher;
 
@@ -72,7 +73,7 @@ public class TextUnitBatchMatcherTest {
                 createTextUnitDTO("name-0"),
                 createTextUnitDTO("name-1"));
 
-        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUsed(existingTextUnitDTOs, DEFAULT_PLURAL_SEPARATOR);
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUsed(existingTextUnitDTOs, PLURAL_SEPARATOR);
 
         Optional<List<TextUnitDTO>> result = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-0"));
         assertFalse(result.isPresent());
@@ -93,7 +94,7 @@ public class TextUnitBatchMatcherTest {
                 createPluralTextUnitDTO("name-3", "other")
         );
 
-        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUsed(existingTextUnitDTOs, DEFAULT_PLURAL_SEPARATOR);
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUsed(existingTextUnitDTOs, PLURAL_SEPARATOR);
 
         List<TextUnitDTO> name2 = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-2")).get();
         assertEquals(2, name2.size());
@@ -128,7 +129,7 @@ public class TextUnitBatchMatcherTest {
                 createUnusedPluralTextUnitDTO("name-3", "other")
         );
 
-        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUnused(existingTextUnitDTOs, DEFAULT_PLURAL_SEPARATOR);
+        Function<TextUnitForBatchMatcher, Optional<List<TextUnitDTO>>> matchByPluralPrefix = textUnitBatchMatcher.createMatchByPluralPrefixAndUnused(existingTextUnitDTOs, PLURAL_SEPARATOR);
 
         List<TextUnitDTO> name2 = matchByPluralPrefix.apply(createPluralTextUnitForBatchMatcher("name-2")).get();
         assertEquals(2, name2.size());
@@ -150,7 +151,7 @@ public class TextUnitBatchMatcherTest {
 
     @Test
     public void testMatchByNameAndPluralPrefix() {
-        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> textUnitForBatchMatcherListFunction = textUnitBatchMatcher.matchByNameAndPluralPrefix(Collections.emptyList(), DEFAULT_PLURAL_SEPARATOR);
+        Function<TextUnitForBatchMatcher, List<TextUnitDTO>> textUnitForBatchMatcherListFunction = textUnitBatchMatcher.matchByNameAndPluralPrefix(Collections.emptyList(), PLURAL_SEPARATOR);
         textUnitForBatchMatcherListFunction.apply(createTextUnitForBatchMatcher("test"));
     }
 
@@ -217,7 +218,7 @@ public class TextUnitBatchMatcherTest {
     }
 
     TextUnitDTO createPluralTextUnitDTO(String prefix, String form) {
-        TextUnitDTO textUnitDTO = createTextUnitDTO(prefix + "_" + form);
+        TextUnitDTO textUnitDTO = createTextUnitDTO(prefix + PLURAL_SEPARATOR + form);
         textUnitDTO.setPluralForm(form);
         textUnitDTO.setPluralFormOther(prefix + "_other");
         return textUnitDTO;
