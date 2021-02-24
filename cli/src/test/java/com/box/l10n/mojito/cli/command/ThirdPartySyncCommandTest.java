@@ -58,11 +58,7 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
         Repository repository = repositoryService.createRepository(repoName, repoName + " description", null, false);
         String projectId = testIdWatcher.getEntityName("projectId");
 
-        // TODO: For a plural separator like " _" this test will fail. The current version we have for
-        //  JCommander trims the argument values, even when quoted.
-        // https://github.com/cbeust/jcommander/issues/417
-        // https://github.com/cbeust/jcommander/commit/4aec38b4a0ea63a8dc6f41636fa81c2ebafddc18
-        String pluralSeparator = "%s_";
+        String pluralSeparator = "\\u0032_";
         String skipTextUnitPattern = "%skip_text_pattern";
         String skipAssetPattern = "%skip_asset_pattern%";
         List<String> options = Arrays.asList(
@@ -96,10 +92,18 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
         assertThat(jobInput.getRepositoryId()).isEqualTo(repository.getId());
         assertThat(jobInput.getThirdPartyProjectId()).isEqualTo(projectId);
         assertThat(jobInput.getActions()).containsExactlyInAnyOrder(MAP_TEXTUNIT, PUSH_SCREENSHOT);
-        assertThat(jobInput.getPluralSeparator()).isEqualTo(pluralSeparator);
+        assertThat(jobInput.getPluralSeparator()).isEqualTo(" _");
         assertThat(jobInput.getSkipTextUnitsWithPattern()).isEqualTo(skipTextUnitPattern);
         assertThat(jobInput.getSkipAssetsWithPathPattern()).isEqualTo(skipAssetPattern);
         assertThat(jobInput.getOptions()).containsExactlyInAnyOrderElementsOf(options);
+    }
+
+    @Test
+    public void repalce() {
+        ThirdPartySyncCommand thirdPartySyncCommand = new ThirdPartySyncCommand();
+        assertThat(thirdPartySyncCommand.unescpeUnicodeSpaceSequence("\\u0032")).isEqualTo(" ");
+        assertThat(thirdPartySyncCommand.unescpeUnicodeSpaceSequence("\\u0032a\\u0032")).isEqualTo(" a ");
+        assertThat(thirdPartySyncCommand.unescpeUnicodeSpaceSequence("nop")).isEqualTo("nop");
     }
 
 }

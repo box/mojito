@@ -53,6 +53,11 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
     static final String USAGE_LOCATION_GROUP_NAME = "location";
     static final String USAGE_LOCATION_PATTERN = "#: (?<location>.*)";
 
+    // Having " _" as plural separator wasn't very wise... Android filter for example doesn't have a space: "_".
+    // see {@link ThirdPartySyncCommand} too.
+    // Consider cleanup but that not that simple as it would require migrating data...
+    static final String PLURAL_SEPARATOR = " _";
+
     @Autowired
     TextUnitUtils textUnitUtils;
 
@@ -337,7 +342,7 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
 
         if (poPluralForm != null) {
             String cldrForm = poPluralRule.poFormToCldrForm(Integer.toString(poPluralForm));
-            newName.append(" _").append(cldrForm);
+            newName.append(PLURAL_SEPARATOR).append(cldrForm);
         }
 
         textUnit.setName(newName.toString());

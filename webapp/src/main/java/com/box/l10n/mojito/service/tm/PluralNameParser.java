@@ -13,8 +13,6 @@ import java.util.regex.Pattern;
 @Component
 public class PluralNameParser {
 
-    public static final String DEFAULT_PLURAL_SEPARATOR = "_";
-
     LoadingCache<String, Pattern> patternCache;
 
     public PluralNameParser() {

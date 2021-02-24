@@ -46,8 +46,14 @@ public class ThirdPartySyncCommand extends Command {
     @Parameter(names = {"--actions", "-a"}, variableArity = true, required = false, description = "Actions to synchronize", converter = ThirdPartySyncActionsConverter.class)
     List<ThirdPartySyncAction> actions = Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT, ThirdPartySyncAction.PUSH_SCREENSHOT);
 
-    @Parameter(names = {"--plural-separator", "-ps"}, arity = 1, required = false, description = "Plural separator for name")
-    String pluralSeparator;
+    /**
+     * The plural separator changes depending on the file type: android, po files and can also change depending on the
+     * system uploading the plural strings.
+     *
+     * Default value is for PO files. Android is "_" only
+      */
+    @Parameter(names = {"--plural-separator", "-ps"}, arity = 1, required = false, description = "Plural separator for name (can use unicode espace: \\u0032 for leading/trailing space. Default value is for PO files.")
+    String pluralSeparator = " _";
 
     @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = Param.REPOSITORY_LOCALES_MAPPING_DESCRIPTION)
     String localeMapping;
@@ -70,13 +76,15 @@ public class ThirdPartySyncCommand extends Command {
     @Override
     public void execute() throws CommandException {
 
+        pluralSeparator = unescpeUnicodeSpaceSequence(pluralSeparator);
+
         consoleWriter.newLine().a("Third party TMS synchronization for repository: ").fg(CYAN).a(repositoryParam).reset()
                 .a(" project id: ").fg(CYAN).a(thirdPartyProjectId).reset()
                 .a(" actions: ").fg(CYAN).a(Objects.toString(actions)).reset()
-                .a(" plural-separator: ").fg(CYAN).a(Objects.toString(pluralSeparator)).reset()
-                .a(" locale-mapping: ").fg(CYAN).a(Objects.toString(localeMapping)).reset()
-                .a(" skip-text-units-with-pattern: ").fg(CYAN).a(Objects.toString(skipTextUnitsWithPattern)).reset()
-                .a(" skip-assets-path-pattern: ").fg(CYAN).a(Objects.toString(skipAssetsWithPathPattern)).reset()
+                .a(" plural-separator: \"").fg(CYAN).a(pluralSeparator).reset().a("\"")
+                .a(" locale-mapping: ").fg(CYAN).a(localeMapping).reset()
+                .a(" skip-text-units-with-pattern: ").fg(CYAN).a(skipTextUnitsWithPattern).reset()
+                .a(" skip-assets-path-pattern: ").fg(CYAN).a(skipAssetsWithPathPattern).reset()
                 .a(" options: ").fg(CYAN).a(Objects.toString(options)).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
@@ -89,4 +97,14 @@ public class ThirdPartySyncCommand extends Command {
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }
 
+    /**
+     * The current version we have for JCommander trims the argument values, even when quoted.
+     * https://github.com/cbeust/jcommander/issues/417
+     * https://github.com/cbeust/jcommander/commit/4aec38b4a0ea63a8dc6f41636fa81c2ebafddc18
+     *
+     * So for now we allow passing the unicode escape sequence into the parameter and escape
+     */
+    String unescpeUnicodeSpaceSequence(String input) {
+        return input.replace("\\u0032", " ");
+    }
 }
