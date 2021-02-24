@@ -53,6 +53,18 @@ import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtil
 import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.isPluralFile;
 import static com.google.common.collect.Streams.mapWithIndex;
 
+/**
+ * tmTextUnitId are not preserved in Smartling plural localized files so we have to import based on name which
+ * causes some challenges when there are ambiguities (eg. same name different comment).
+ *
+ * In singular file, the id is preserved hence used during import.
+ *
+ * Smartling accept android files with entries where the name is dupplicated. It maps to a single text unit in Smartling.
+ * Both entries get the same translation in the localized files.
+ *
+ * There is no constrain in mojito database that insure the plural text units are valid. This can cause issue with
+ * the current implementation. we group by plural form other and the comment.
+ */
 @ConditionalOnProperty(value = "l10n.ThirdPartyTMS.impl", havingValue = "ThirdPartyTMSSmartling")
 @Component
 public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
