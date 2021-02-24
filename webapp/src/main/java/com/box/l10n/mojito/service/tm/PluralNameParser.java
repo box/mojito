@@ -1,5 +1,9 @@
 package com.box.l10n.mojito.service.tm;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -9,18 +13,26 @@ import java.util.regex.Pattern;
 @Component
 public class PluralNameParser {
 
-    public String getPrefix(String nameWithPluralForm) {
-        return nameWithPluralForm.replaceAll("_(zero|one|two|few|many|other)$", "");
+    public static final String DEFAULT_PLURAL_SEPARATOR = "_";
+
+    LoadingCache<String, Pattern> patternCache;
+
+    public PluralNameParser() {
+        patternCache = CacheBuilder.newBuilder()
+                .maximumSize(10)
+                .build(CacheLoader.from(separtor -> getPattern(separtor)));
     }
 
     public String getPrefix(String name, String separator) {
-
-        Pattern pattern = Pattern.compile("(.*)" + separator + "(zero|one|two|few|many|other)");
-
+        Pattern pattern = patternCache.getUnchecked(separator);
         return Optional.of(pattern.matcher(name))
                 .filter(Matcher::matches)
                 .map(m -> m.group(1))
                 .orElse(name);
+    }
+
+    Pattern getPattern(String separator) {
+        return Pattern.compile("(.*)" + separator + "(zero|one|two|few|many|other)");
     }
 
     public String toPluralName(String prefix, String name, String separator){

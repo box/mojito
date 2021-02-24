@@ -9,6 +9,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
+import com.box.l10n.mojito.service.tm.PluralNameParser;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
@@ -20,6 +21,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static com.box.l10n.mojito.service.tm.PluralNameParser.DEFAULT_PLURAL_SEPARATOR;
 
 /**
  * Integration test that needs Smartling account and verfication on the screenshot upload done manually in Smartling
@@ -96,10 +99,10 @@ public class ThirdPartyTMSSmartlingITest extends ServiceTestBase {
         smartlingClient.uploadFile(testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null);
 
         logger.debug("First mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId);
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, DEFAULT_PLURAL_SEPARATOR);
 
         logger.debug("Second mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId);
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, DEFAULT_PLURAL_SEPARATOR);
 
         thirdPartyService.uploadScreenshotsAndCreateMappings(repository, testConfig.projectId);
     }
