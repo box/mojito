@@ -246,7 +246,7 @@ public class GitBlameCommand extends Command {
                     int line = getLineNumber(usage);
 
                     if (extractedFilePrefix != null) {
-                        filename = filename.replace(extractedFilePrefix, "");
+                        filename = filename.replaceFirst("^" + extractedFilePrefix, "");
                     }
 
                     try {
