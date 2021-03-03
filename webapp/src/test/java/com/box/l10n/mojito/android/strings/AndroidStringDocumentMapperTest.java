@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.android.strings;
 
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.google.common.io.Resources;
 import org.assertj.core.groups.Tuple;
 import org.junit.Test;
@@ -20,14 +21,14 @@ import static org.assertj.core.api.Assertions.tuple;
 
 public class AndroidStringDocumentMapperTest {
 
-    String assetDelimiter = "#@#";
     AndroidStringDocumentMapper mapper;
     AndroidStringDocument document;
     List<TextUnitDTO> textUnits = new ArrayList<>();
+    AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys = new AssetPathAndTextUnitNameKeys();
 
     @Test
     public void testReadFromSourceTextUnitsForEmptyList() {
-        mapper = new AndroidStringDocumentMapper("", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("", null, null,  assetPathAndTextUnitNameKeys);
 
         document = mapper.readFromSourceTextUnits(textUnits);
 
@@ -38,7 +39,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromSourceTextUnitsWithoutPluralForms() {
-        mapper = new AndroidStringDocumentMapper("_", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("_", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
         textUnits.add(sourceTextUnitDTO(124L, "name1", "content1", "comment1", "my/path1", null, null));
 
@@ -61,7 +62,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromSourceTextUnitsWithoutPluralFormsRemovesBadCharacters() {
-        mapper = new AndroidStringDocumentMapper("_", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("_", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(sourceTextUnitDTO(124L, "name1", "test" + '\u001D' + "content1", "comment1", "my/path1", null, null));
 
         document = mapper.readFromSourceTextUnits(textUnits);
@@ -76,7 +77,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromSourceTextUnitsWithPlurals() {
-        mapper = new AndroidStringDocumentMapper(" _", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper(" _", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
 
         textUnits.add(sourceTextUnitDTO(100L, "name1 _other", "content1_zero", "comment1", "my/path1", "zero", "name1_other"));
@@ -117,7 +118,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromSourceTextUnitsWithDuplicatePlurals() {
-        mapper = new AndroidStringDocumentMapper(" _", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper(" _", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(sourceTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
 
         textUnits.add(sourceTextUnitDTO(100L, "name1 _other", "content1_zero", "comment1", "my/path0.xml", "zero", "name1_other"));
@@ -182,7 +183,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromTargetTextUnitsForEmptyList() {
-        mapper = new AndroidStringDocumentMapper("", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("", null, null,  assetPathAndTextUnitNameKeys);
 
         document = mapper.readFromTargetTextUnits(textUnits);
 
@@ -193,7 +194,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromTargetTextUnitsWithoutPlural() {
-        mapper = new AndroidStringDocumentMapper("_", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("_", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(targetTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
         textUnits.add(targetTextUnitDTO(124L, "name1", "content1", "comment1", "my/path1", null, null));
 
@@ -216,7 +217,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromTargetTextUnitsWithoutPluralsRemovesBadCharacters() {
-        mapper = new AndroidStringDocumentMapper("_", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("_", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(targetTextUnitDTO(124L, "name1", "test" + '\u001D' + "content1", "comment1", "my/path1", null, null));
 
         document = mapper.readFromTargetTextUnits(textUnits);
@@ -231,7 +232,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromTargetTextUnitsWithPlurals() {
-        mapper = new AndroidStringDocumentMapper(" _", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper(" _", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(targetTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
 
         textUnits.add(targetTextUnitDTO(100L, "name1 _other", "content1_zero", "comment1", "my/path1", "zero", "name1_other"));
@@ -272,7 +273,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testReadFromTargetTextUnitsWithPluralsDuplicated() {
-        mapper = new AndroidStringDocumentMapper(" _", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper(" _", null, null,  assetPathAndTextUnitNameKeys);
         textUnits.add(targetTextUnitDTO(123L, "name0", "content0", "comment0", "my/path0", null, null));
 
         textUnits.add(targetTextUnitDTO(100L, "name1 _other", "content1_zero", "comment1", "my/path0.xml", "zero", "name1_other"));
@@ -337,7 +338,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testMapToTextUnitsFromEmptyDocument() {
-        mapper = new AndroidStringDocumentMapper("", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("", null, null,  assetPathAndTextUnitNameKeys);
         document = new AndroidStringDocument();
 
         textUnits = mapper.mapToTextUnits(document);
@@ -347,7 +348,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testMapToTextUnitsFromSingularsDocument() {
-        mapper = new AndroidStringDocumentMapper("", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("", null, null,  assetPathAndTextUnitNameKeys);
 
         document = new AndroidStringDocument();
         document.addSingular(new AndroidSingular(10L, "string/path1#@#name1", "content1", "comment1"));
@@ -365,7 +366,7 @@ public class AndroidStringDocumentMapperTest {
     public void testMapToTextUnitsFromPluralsDocument() {
         String locale = "pt-BR";
         String repo = "brazil";
-        mapper = new AndroidStringDocumentMapper("_", assetDelimiter, locale, repo);
+        mapper = new AndroidStringDocumentMapper("_", locale, repo, assetPathAndTextUnitNameKeys);
 
         document = new AndroidStringDocument();
         AndroidPlural.AndroidPluralBuilder builder1 = AndroidPlural.builder();
@@ -415,7 +416,7 @@ public class AndroidStringDocumentMapperTest {
     @Test
     public void testReadingTextUnitsFromFile() throws Exception {
         String path = Resources.getResource("com/box/l10n/mojito/android/strings/test_resources_file.xml").getPath();
-        mapper = new AndroidStringDocumentMapper("_", assetDelimiter);
+        mapper = new AndroidStringDocumentMapper("_", null, null,  assetPathAndTextUnitNameKeys);
         textUnits = mapper.mapToTextUnits(AndroidStringDocumentReader.fromFile(path));
 
         assertThat(textUnits).isNotEmpty();
@@ -465,7 +466,7 @@ public class AndroidStringDocumentMapperTest {
 
     @Test
     public void testAddTextUnitDTOAttributesAssetPathAndName() {
-        mapper = new AndroidStringDocumentMapper("_",  null);
+        mapper = new AndroidStringDocumentMapper("_",  null, null, assetPathAndTextUnitNameKeys);
         TextUnitDTO textUnitDTO = new TextUnitDTO();
 
         textUnitDTO.setName("asset_path#@#name_part1");

@@ -274,8 +274,12 @@ public class TextUnitSearcher {
             conjunction.add(new NativeEqExpFix("tu.plural_form_id", searchParameters.getPluralFormId()));
         }
 
-        if (searchParameters.isPluralFormsExcluded()) {
-            conjunction.add(new NativeIsNullExp("tu.plural_form_id"));
+        if (searchParameters.getPluralFilter() != null) {
+            if (PluralFilter.SINGULAR.equals(searchParameters.getPluralFilter())) {
+                conjunction.add(new NativeIsNullExp("tu.plural_form_id"));
+            } else {
+                conjunction.add(new NativeIsNotNullExp("tu.plural_form_id"));
+            }
         }
 
         if (searchParameters.getDoNotTranslateFilter() != null) {

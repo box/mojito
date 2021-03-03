@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.leveraging;
 
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.service.tm.search.PluralFilter;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
@@ -35,7 +36,7 @@ public class LeveragerByContent extends AbstractLeverager {
         if (tmTextUnit.getPluralForm() != null) {
             textUnitSearcherParameters.setPluralFormId(tmTextUnit.getPluralForm().getId());
         } else {
-            textUnitSearcherParameters.setPluralFormsExcluded(true);
+            textUnitSearcherParameters.setPluralFilter(PluralFilter.SINGULAR);
         }
         return textUnitSearcher.search(textUnitSearcherParameters);
     }

@@ -2,6 +2,7 @@ package com.box.l10n.mojito.android.strings;
 
 import com.box.l10n.mojito.service.tm.PluralNameParser;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.google.common.base.Strings;
 
 import java.util.HashMap;
@@ -18,24 +19,20 @@ public class AndroidStringDocumentMapper {
     private static final String DEFAULT_ASSET_DELIMITER = "#@#";
 
     private final String pluralSeparator;
-    private final String assetDelimiter;
     private final String locale;
     private final String repositoryName;
     private final PluralNameParser pluralNameParser;
+    AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys;
 
     public AndroidStringDocumentMapper(String pluralSeparator,
-                                       String assetDelimiter,
                                        String locale,
-                                       String repositoryName) {
+                                       String repositoryName,
+                                       AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys) {
         this.pluralSeparator = pluralSeparator;
-        this.assetDelimiter = Optional.ofNullable(Strings.emptyToNull(assetDelimiter)).orElse(DEFAULT_ASSET_DELIMITER);
         this.locale = locale;
         this.repositoryName = repositoryName;
-        this.pluralNameParser = new PluralNameParser();
-    }
-
-    public AndroidStringDocumentMapper(String pluralSeparator, String assetDelimiter) {
-        this(pluralSeparator, assetDelimiter, null, null);
+        this.assetPathAndTextUnitNameKeys = assetPathAndTextUnitNameKeys;
+        this.pluralNameParser = new PluralNameParser(); //TODO use DI
     }
 
     public AndroidStringDocument readFromTextUnits(List<TextUnitDTO> textUnits, boolean useSource) {
@@ -55,7 +52,7 @@ public class AndroidStringDocumentMapper {
 
                     if (OTHER.name().equalsIgnoreCase(textUnit.getPluralForm())) {
                         String name = pluralNameParser.getPrefix(textUnit.getName(), pluralSeparator);
-                        builder.setName(textUnit.getAssetPath() + assetDelimiter + name);
+                        builder.setName(assetPathAndTextUnitNameKeys.toKey(textUnit.getAssetPath(), name));
                         builder.setComment(textUnit.getComment());
                     }
 
@@ -107,14 +104,9 @@ public class AndroidStringDocumentMapper {
             textUnit.setRepositoryName(repositoryName);
         }
 
-        if (textUnit.getName().contains(assetDelimiter)){
-            String[] nameParts = textUnit.getName().split(assetDelimiter, 2);
-
-            if (nameParts.length > 1) {
-                textUnit.setAssetPath(nameParts[0]);
-                textUnit.setName(nameParts[1]);
-            }
-        }
+        AssetPathAndTextUnitNameKeys.Key key = assetPathAndTextUnitNameKeys.parse(textUnit.getName());
+        textUnit.setName(key.getTextUnitName());
+        textUnit.setAssetPath(key.getAssetPath());
 
         return textUnit;
     }
@@ -170,13 +162,13 @@ public class AndroidStringDocumentMapper {
     }
 
     String getKeyToGroupByPluralOtherAndComment(TextUnitDTO textUnit) {
-        return textUnit.getAssetPath() + DEFAULT_ASSET_DELIMITER + textUnit.getPluralFormOther() + "_" + textUnit.getComment();
+        return assetPathAndTextUnitNameKeys.toKey(textUnit.getAssetPath(), textUnit.getName()) + "_" + textUnit.getComment();
     }
 
     AndroidSingular textUnitToAndroidSingular(TextUnitDTO textUnit, boolean useSource) {
         return new AndroidSingular(
                 textUnit.getTmTextUnitId(),
-                textUnit.getAssetPath() + assetDelimiter + textUnit.getName(),
+                assetPathAndTextUnitNameKeys.toKey(textUnit.getAssetPath(), textUnit.getName()),
                 removeBadCharacters(useSource ? textUnit.getSource() : textUnit.getTarget()),
                 textUnit.getComment());
     }

@@ -231,6 +231,7 @@ public class ThirdPartyService {
      */
     void uploadImageWithMappings(String projectId, Screenshot screenshot, Image image) {
         logger.debug("uploadImageWithMappings, project id: {}, screenshot: {}", projectId, screenshot.getName());
+        //TODO(jean) hm, that should just be a list of longs ... and stop mutating object weirdly
         List<ThirdPartyImageToTextUnit> thirdPartyImageToTextUnits = buildBaseThirdPartyImageToTextUnitsWithoutImageId(screenshot);
 
         if (!thirdPartyImageToTextUnits.isEmpty()) {

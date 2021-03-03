@@ -20,6 +20,7 @@ import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantService;
 import com.box.l10n.mojito.service.tm.TMTextUnitHistoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitIntegrityCheckService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
+import com.box.l10n.mojito.service.tm.search.PluralFilter;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitAndWordCount;
@@ -248,7 +249,9 @@ public class TextUnitWS {
         textUnitSearcherParameters.setAssetPath(assetPath);
         textUnitSearcherParameters.setPluralFormOther(pluralFormOther);
         textUnitSearcherParameters.setPluralFormsFiltered(pluralFormFiltered);
-        textUnitSearcherParameters.setPluralFormsExcluded(pluralFormExcluded);
+        if (pluralFormExcluded) {
+            textUnitSearcherParameters.setPluralFilter(PluralFilter.SINGULAR);
+        }
         textUnitSearcherParameters.setSearchType(searchType);
         textUnitSearcherParameters.setRootLocaleExcluded(false);
         textUnitSearcherParameters.setLocaleTags(localeTags);

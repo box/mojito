@@ -15,24 +15,20 @@ public final class SmartlingOptions {
     public static final String PLURAL_FIX = "smartling-plural-fix";
     public static final String PLACEHOLDER_FORMAT = "smartling-placeholder-format";
     public static final String PLACEHOLDER_FORMAT_CUSTOM = "smartling-placeholder-format-custom";
-    public static final String DRY_RUN = "dry-run";
     public static final String REQUEST_ID = "request-id";
 
     private final Set<String> pluralFixForLocales;
     private final String placeholderFormat;
     private final String customPlaceholderFormat;
-    private final boolean dryRun;
     private final String requestId;
 
     public SmartlingOptions(Set<String> pluralFixForLocales,
                             String placeholderFormat,
                             String customPlaceholderFormat,
-                            boolean dryRun,
                             String requestId) {
         this.pluralFixForLocales = pluralFixForLocales;
         this.placeholderFormat = placeholderFormat;
         this.customPlaceholderFormat = customPlaceholderFormat;
-        this.dryRun = dryRun;
         this.requestId = requestId;
     }
 
@@ -44,7 +40,6 @@ public final class SmartlingOptions {
                 .collect(Collectors.toMap(a -> a[0], a -> a[1]));
 
         String pluralFixStr = map.getOrDefault(PLURAL_FIX, "");
-        String dryRunStr = map.getOrDefault(DRY_RUN, "");
         String placeholderFormat = map.getOrDefault(PLACEHOLDER_FORMAT, null);
         String customPlaceholderFormat = map.getOrDefault(PLACEHOLDER_FORMAT_CUSTOM, null);
         String requestId = map.getOrDefault(REQUEST_ID, null);
@@ -53,7 +48,6 @@ public final class SmartlingOptions {
                 pluralFixStr.isEmpty() ? Collections.emptySet() : ImmutableSet.copyOf(pluralFixStr.split(",")),
                 placeholderFormat,
                 customPlaceholderFormat,
-                parseBoolean(dryRunStr),
                 requestId);
     }
 
@@ -67,10 +61,6 @@ public final class SmartlingOptions {
 
     public String getCustomPlaceholderFormat() {
         return customPlaceholderFormat;
-    }
-
-    public boolean isDryRun() {
-        return dryRun;
     }
 
     public String getRequestId() {

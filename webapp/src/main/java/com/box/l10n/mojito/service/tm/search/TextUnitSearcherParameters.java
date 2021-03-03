@@ -39,7 +39,7 @@ public class TextUnitSearcherParameters {
     Boolean toBeFullyTranslatedFilter;
     boolean untranslatedOrTranslationNeeded = false;
     boolean pluralFormsFiltered = true;
-    boolean pluralFormsExcluded = false;
+    PluralFilter pluralFilter;
     Long pluralFormId;
     Boolean doNotTranslateFilter;
     DateTime tmTextUnitCreatedBefore;
@@ -228,12 +228,12 @@ public class TextUnitSearcherParameters {
         this.pluralFormId = pluralFormId;
     }
 
-    public boolean isPluralFormsExcluded() {
-        return pluralFormsExcluded;
+    public PluralFilter getPluralFilter() {
+        return pluralFilter;
     }
 
-    public void setPluralFormsExcluded(boolean pluralFormsExcluded) {
-        this.pluralFormsExcluded = pluralFormsExcluded;
+    public void setPluralFilter(PluralFilter pluralFilter) {
+        this.pluralFilter = pluralFilter;
     }
 
     public Boolean getDoNotTranslateFilter() {
