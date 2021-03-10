@@ -26,9 +26,10 @@ interface ThirdPartyTMS {
      *
      * @param repository the Mojito repository (info can be used to compute file uri, look sub-project etc)
      * @param projectId  the third party project id
+     * @param optionList
      * @return the list of text units from the third party TMS
      */
-    List<ThirdPartyTextUnit> getThirdPartyTextUnits(Repository repository, String projectId);
+    List<ThirdPartyTextUnit> getThirdPartyTextUnits(Repository repository, String projectId, List<String> optionList);
 
     /**
      * Create mappings (images to text units) in the third party TMS

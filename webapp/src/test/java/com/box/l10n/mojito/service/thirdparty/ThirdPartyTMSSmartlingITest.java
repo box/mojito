@@ -9,12 +9,14 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
+import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
 import com.box.l10n.mojito.service.tm.PluralNameParser;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingTestConfig;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.ImmutableList;
 import org.junit.Assume;
 import org.junit.Rule;
 import org.junit.Test;
@@ -96,11 +98,12 @@ public class ThirdPartyTMSSmartlingITest extends ServiceTestBase {
         String smartlingFileUri = repository.getName() + "/0000_singular_source.xml";
         smartlingClient.uploadFile(testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null);
 
+
         logger.debug("First mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_");
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of());
 
         logger.debug("Second mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_");
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of());
 
         thirdPartyService.uploadScreenshotsAndCreateMappings(repository, testConfig.projectId);
     }

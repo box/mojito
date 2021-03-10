@@ -38,7 +38,7 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
     }
 
     @Override
-    public List<ThirdPartyTextUnit> getThirdPartyTextUnits(Repository repository, String projectId) {
+    public List<ThirdPartyTextUnit> getThirdPartyTextUnits(Repository repository, String projectId, List<String> optionList) {
         logger.debug("Get third party text units for repository: {} and project id: {}", repository.getId(), projectId);
 
         // TODO return empty for now but later the interface will support adding strings and so this can retrun them

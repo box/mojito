@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.iterators;
 
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.Spliterators;
 import java.util.function.Consumer;
 
@@ -14,6 +15,7 @@ public class PageFetcherOffsetAndLimitSplitIterator<T> extends Spliterators.Abst
     final int limit;
     int offset;
     boolean needsFetching = true;
+    Queue<T> fetched;
     PageFetcherOffsetAndLimit<T> pageFetcherOffsetAndLimit;
 
     public PageFetcherOffsetAndLimitSplitIterator(PageFetcherOffsetAndLimit<T> pageFetcherOffsetAndLimit, int limit) {
@@ -21,16 +23,21 @@ public class PageFetcherOffsetAndLimitSplitIterator<T> extends Spliterators.Abst
         this.limit = limit;
         this.offset = -limit;
         this.pageFetcherOffsetAndLimit = pageFetcherOffsetAndLimit;
+        this.fetched = new ArrayDeque<>(limit);
     }
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
-        if (needsFetching) {
+        if (!fetched.isEmpty()) {
+            action.accept(fetched.remove());
+        } else if (needsFetching) {
             offset += limit;
-            List<T> fetch = pageFetcherOffsetAndLimit.fetch(offset, limit);
-            fetch.forEach(action::accept);
-            needsFetching = fetch.size() == limit;
+            fetched.addAll(pageFetcherOffsetAndLimit.fetch(offset, limit));
+            needsFetching = fetched.size() == limit;
+            if (!fetched.isEmpty()) {
+                action.accept(fetched.remove());
+            }
         }
-        return needsFetching;
+        return needsFetching || !fetched.isEmpty();
     }
 }

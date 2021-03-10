@@ -19,11 +19,15 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
+import com.box.l10n.mojito.smartling.SmartlingJsonKeys;
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.ContextUpload;
 import com.box.l10n.mojito.smartling.response.File;
+import com.box.l10n.mojito.smartling.response.Key;
 import com.box.l10n.mojito.smartling.response.StringInfo;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -39,6 +43,7 @@ import javax.xml.transform.TransformerException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -86,15 +91,17 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     private final TextUnitBatchImporterService textUnitBatchImporterService;
     private final SmartlingResultProcessor resultProcessor;
     private final Integer batchSize;
+    private final ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson;
 
     @Autowired
     public ThirdPartyTMSSmartling(SmartlingClient smartlingClient,
                                   TextUnitSearcher textUnitSearcher,
                                   AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys,
                                   TextUnitBatchImporterService textUnitBatchImporterService,
-                                  SmartlingResultProcessor resultProcessor) {
+                                  SmartlingResultProcessor resultProcessor,
+                                  ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson) {
         this(smartlingClient, textUnitSearcher, assetPathAndTextUnitNameKeys,
-                textUnitBatchImporterService, resultProcessor, DEFAULT_BATCH_SIZE);
+                textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, DEFAULT_BATCH_SIZE);
     }
 
     public ThirdPartyTMSSmartling(SmartlingClient smartlingClient,
@@ -102,6 +109,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                   AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys,
                                   TextUnitBatchImporterService textUnitBatchImporterService,
                                   SmartlingResultProcessor resultProcessor,
+                                  ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson,
                                   int batchSize) {
         this.smartlingClient = smartlingClient;
         this.assetPathAndTextUnitNameKeys = assetPathAndTextUnitNameKeys;
@@ -109,6 +117,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         this.textUnitSearcher = textUnitSearcher;
         this.resultProcessor = resultProcessor;
         this.batchSize = batchSize < 1 ? DEFAULT_BATCH_SIZE : batchSize;
+        this.thirdPartyTMSSmartlingWithJson = thirdPartyTMSSmartlingWithJson;
     }
 
     @Override
@@ -121,7 +130,13 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     }
 
     @Override
-    public List<ThirdPartyTextUnit> getThirdPartyTextUnits(Repository repository, String projectId) {
+    public List<ThirdPartyTextUnit> getThirdPartyTextUnits(Repository repository, String projectId, List<String> optionList) {
+
+        SmartlingOptions options = SmartlingOptions.parseList(optionList);
+
+        if (options.isJsonSync()) {
+            return thirdPartyTMSSmartlingWithJson.getThirdPartyTextUnits(repository, projectId, optionList);
+        }
 
         logger.debug("Get third party text units for repository: {} and project id: {}", repository.getId(), projectId);
 
@@ -140,12 +155,10 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                         stringInfo.getParsedStringText());
 
                 AssetPathAndTextUnitNameKeys.Key key = assetPathAndTextUnitNameKeys.parse(stringInfo.getStringVariant());
-
                 ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
                 thirdPartyTextUnit.setId(stringInfo.getHashcode());
                 thirdPartyTextUnit.setAssetPath(key.getAssetPath());
                 thirdPartyTextUnit.setName(key.getTextUnitName());
-                thirdPartyTextUnit.setContent(stringInfo.getStringVariant());
                 thirdPartyTextUnit.setNamePluralPrefix(isPluralFile(file.getFileUri()));
 
                 return thirdPartyTextUnit;
@@ -180,6 +193,12 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                      List<String> optionList) {
 
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
+
+        if (options.isJsonSync()) {
+            thirdPartyTMSSmartlingWithJson.push(repository, projectId, pluralSeparator, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            return;
+        }
+
         AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
         Stream<SmartlingFile> singularFiles = mapWithIndex(
@@ -236,13 +255,18 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
 
+        if (options.isJsonSync()) {
+            thirdPartyTMSSmartlingWithJson.pull(repository, projectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            return;
+        }
+
         Long singulars = singularCount(repository.getId(), LOCALE_EN, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
         LongStream.range(0, batchesFor(singulars))
-                  .forEach(num -> processPullBatch(num, pluralSeparator, repository, projectId, options, localeMapping, Prefix.SINGULAR));
+                .forEach(num -> processPullBatch(num, pluralSeparator, repository, projectId, options, localeMapping, Prefix.SINGULAR));
 
         Long plurals = pluralCount(repository.getId(), LOCALE_EN, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
         LongStream.range(0, batchesFor(plurals))
-                  .forEach(num -> processPullBatch(num, pluralSeparator, repository, projectId, options, localeMapping, Prefix.PLURAL));
+                .forEach(num -> processPullBatch(num, pluralSeparator, repository, projectId, options, localeMapping, Prefix.PLURAL));
     }
 
     private void processPullBatch(Long batchNumber,
@@ -257,7 +281,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         for (RepositoryLocale locale : repository.getRepositoryLocales()) {
 
-            if (locale.getParentLocale() == null){
+            if (locale.getParentLocale() == null) {
                 continue;
             }
 
@@ -279,7 +303,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                 throw new RuntimeException(msg, e);
             }
 
-            if (!textUnits.isEmpty() && filePrefix.isPlural() && options.getPluralFixForLocales().contains(localeTag)){
+            if (!textUnits.isEmpty() && filePrefix.isPlural() && options.getPluralFixForLocales().contains(localeTag)) {
                 textUnits = SmartlingPluralFix.fixTextUnits(textUnits);
             }
 
@@ -299,8 +323,14 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                  String skipAssetsWithPathPattern,
                                  List<String> optionList) {
 
-        List<SmartlingFile> result;
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
+        if (options.isJsonSync()) {
+            thirdPartyTMSSmartlingWithJson.pushTranslations(repository, projectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            return;
+        }
+
+        List<SmartlingFile> result;
+
         AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
         result = repository.getRepositoryLocales()
@@ -384,7 +414,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         Function<TextUnitSearcherParameters, List<TextUnitDTO>> searchFunction = textUnitSearcher::search;
 
-        if (pluralFixForLocales.contains(localeTag)){
+        if (pluralFixForLocales.contains(localeTag)) {
             searchFunction = searchFunction.andThen(textUnits -> textUnits.stream()
                     .filter(tu -> !MANY.toString().equalsIgnoreCase(tu.getPluralForm()))
                     .collect(Collectors.toList()));
@@ -395,7 +425,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     }
 
     private Stream<List<TextUnitDTO>> partitionedStream(TextUnitSearcherParameters params,
-                                                        Function<TextUnitSearcherParameters, List<TextUnitDTO>> function){
+                                                        Function<TextUnitSearcherParameters, List<TextUnitDTO>> function) {
         return StreamSupport.stream(
                 Iterables.partition(function.apply(params), batchSize).spliterator(),
                 false);
@@ -464,11 +494,11 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     private enum Prefix {
         SINGULAR, PLURAL;
 
-        public String getType(){
+        public String getType() {
             return name().toLowerCase();
         }
 
-        public boolean isPlural(){
+        public boolean isPlural() {
             return this.equals(PLURAL);
         }
     }
