@@ -120,9 +120,9 @@ public class ThirdPartyService {
                                      String skipAssetsWithPathPattern,
                                      List<String> options) {
         logger.debug("Thirdparty TMS Sync: repositoryId={} thirdPartyProjectId={} " +
-                "actions={} pluralSeparator={} localeMapping={} " +
-                "skipTextUnitsWithPattern={} skipAssetsWithPattern={} " +
-                "options={}", repositoryId, thirdPartyProjectId, actions,
+                        "actions={} pluralSeparator={} localeMapping={} " +
+                        "skipTextUnitsWithPattern={} skipAssetsWithPattern={} " +
+                        "options={}", repositoryId, thirdPartyProjectId, actions,
                 pluralSeparator, localeMapping, skipTextUnitsWithPattern,
                 skipAssetsWithPathPattern, options);
 
@@ -143,18 +143,18 @@ public class ThirdPartyService {
                     skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
         }
         if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
-            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId, pluralSeparator);
+            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId, pluralSeparator, options);
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_SCREENSHOT)) {
             uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
         }
     }
 
-    void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId, String pluralSeparator) {
+    void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId, String pluralSeparator, List<String> options) {
         logger.debug("Map text units from repository: {} with and projectId: {}", repository.getName(), projectId);
 
         logger.debug("Get the text units of the third party TMS");
-        List<ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTMS.getThirdPartyTextUnits(repository, projectId);
+        List<ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTMS.getThirdPartyTextUnits(repository, projectId, options);
 
         logger.debug("Batch the third party text units by asset");
         LoadingCache<String, Optional<Asset>> assetCache = getAssetCache(repository);
@@ -171,33 +171,48 @@ public class ThirdPartyService {
         logger.debug("Map third party text units to text unit DTOs for asset: {}", asset.getId());
         Set<Long> alreadyMappedTmTextUnitId = thirdPartyTextUnitRepository.findTmTextUnitIdsByAsset(asset);
 
-        logger.debug("Get all text units of the asset that are not mapped yet");
-        ImmutableList<TextUnitDTO> notMappedTextUnitDTOs = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale(asset.getId(),
-                localeService.getDefaultLocale().getId(), true, UpdateType.ALWAYS).stream()
-                .filter(textUnitDTO -> !alreadyMappedTmTextUnitId.contains(textUnitDTO.getTmTextUnitId()))
-                .collect(ImmutableList.toImmutableList());
+        Boolean allWithTmTextUnitId = thirdPartyTextUnitsToMap.stream()
+                .map(ThirdPartyTextUnit::getTmTextUnitId)
+                .allMatch(Objects::nonNull);
 
-        ImmutableMap<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap = thirdPartyTextUnitsToMap.stream()
+        ImmutableList<TextUnitDTO> notMappedTextUnitDTOs;
+
+        if (allWithTmTextUnitId) {
+            logger.debug("No need to map by name, put empty candidate list");
+            notMappedTextUnitDTOs =  ImmutableList.of();
+        } else {
+            logger.debug("Get all text units of the asset that are not mapped yet");
+            notMappedTextUnitDTOs = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale(asset.getId(),
+                    localeService.getDefaultLocale().getId(), true, UpdateType.ALWAYS).stream()
+                    .filter(textUnitDTO -> !alreadyMappedTmTextUnitId.contains(textUnitDTO.getTmTextUnitId()))
+                    .collect(ImmutableList.toImmutableList());
+        }
+
+        ImmutableMap<ThirdPartyTextUnit, ImmutableList<Long>> thirdPartyTextUnitToTmTextUnitIdMap = thirdPartyTextUnitsToMap.stream()
+                .filter(t -> !alreadyMappedTmTextUnitId.contains(t.getTmTextUnitId()))
                 .collect(ImmutableMap.toImmutableMap(
                         Function.identity(),
-                        textUnitBatchMatcher.matchByNameAndPluralPrefix(notMappedTextUnitDTOs, pluralSeparator)::apply
+                        t -> t.getTmTextUnitId() != null ?
+                                ImmutableList.of(t.getTmTextUnitId()) :
+                                textUnitBatchMatcher.matchByNameAndPluralPrefix(notMappedTextUnitDTOs, pluralSeparator).apply(t)
+                                        .stream().map(TextUnitDTO::getTmTextUnitId).collect(ImmutableList.toImmutableList())
                 ));
 
-        saveMojitoToThirdParthTextUnitMapping(asset, thirdPartyTextUnitToMojitoMap);
+        saveMojitoToThirdParthTextUnitMapping(asset, thirdPartyTextUnitToTmTextUnitIdMap);
     }
 
-    void saveMojitoToThirdParthTextUnitMapping(Asset asset, ImmutableMap<ThirdPartyTextUnit, List<TextUnitDTO>> thirdPartyTextUnitToMojitoMap) {
+    void saveMojitoToThirdParthTextUnitMapping(Asset asset, ImmutableMap<ThirdPartyTextUnit, ImmutableList<Long>> thirdPartyTextUnitToTmTextUnitIdMap) {
 
         logger.debug("Create the entities for the mapping mojito to third party ");
 
-        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitToMojitoMap.entrySet().stream().flatMap(e -> {
+        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitToTmTextUnitIdMap.entrySet().stream().flatMap(e -> {
             ThirdPartyTextUnit thirdPartyTextUnitForMapping = e.getKey();
-            return e.getValue().stream().map(textUnitDTO -> {
-                logger.debug("Create entity third party text unit : {}, tm textunit: {}", thirdPartyTextUnitForMapping.getId(), textUnitDTO.getTmTextUnitId());
+            return e.getValue().stream().map(tmTextUnitId -> {
+                logger.debug("Create entity third party text unit : {}, tm textunit: {}", thirdPartyTextUnitForMapping.getId(), tmTextUnitId);
                 com.box.l10n.mojito.entity.ThirdPartyTextUnit thirdPartyTextUnit = new com.box.l10n.mojito.entity.ThirdPartyTextUnit();
                 thirdPartyTextUnit.setThirdPartyId(thirdPartyTextUnitForMapping.getId());
                 thirdPartyTextUnit.setAsset(asset);
-                TMTextUnit tmTextUnit = tmTextUnitRepository.getOne(textUnitDTO.getTmTextUnitId());
+                TMTextUnit tmTextUnit = tmTextUnitRepository.getOne(tmTextUnitId);
                 thirdPartyTextUnit.setTmTextUnit(tmTextUnit);
                 return thirdPartyTextUnit;
             });
@@ -321,7 +336,7 @@ public class ThirdPartyService {
 
     Map<String, String> parseLocaleMapping(String input) {
         return Optional.ofNullable(localeMappingHelper.getInverseLocaleMapping(Strings.emptyToNull(input)))
-                       .orElseGet(Collections::emptyMap);
+                .orElseGet(Collections::emptyMap);
     }
 }
 

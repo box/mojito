@@ -2,14 +2,12 @@ package com.box.l10n.mojito.rest;
 
 import com.box.l10n.mojito.Application;
 import com.box.l10n.mojito.factory.XliffDataFactory;
-import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.annotation.WithDefaultTestUser;
 import com.box.l10n.mojito.rest.client.LocaleClient;
 import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -17,11 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.retry.backoff.ExponentialRandomBackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
-import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
@@ -102,6 +95,10 @@ public class WSTestBase {
      * @throws InterruptedException
      */
     protected void waitForCondition(String failMessage, Supplier<Boolean> condition) throws InterruptedException {
+        waitForCondition(failMessage, condition, 30, 100);
+    }
+
+    protected void waitForCondition(String failMessage, Supplier<Boolean> condition, int maxNumberAttempt, int milisecondSleepTime) throws InterruptedException {
         int numberAttempt = 0;
         while (true) {
             numberAttempt++;
@@ -116,10 +113,10 @@ public class WSTestBase {
 
             if (res) {
                 break;
-            } else if (numberAttempt > 30) {
+            } else if (numberAttempt > maxNumberAttempt) {
                 Assert.fail(failMessage);
             }
-            Thread.sleep(numberAttempt * 100);
+            Thread.sleep(numberAttempt * milisecondSleepTime);
         }
     }
 }

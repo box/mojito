@@ -1,16 +1,19 @@
 package com.box.l10n.mojito.smartling;
 
+import com.box.l10n.mojito.service.thirdparty.ThirdPartyTextUnit;
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
 import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.FileUploadResponse;
 import com.box.l10n.mojito.smartling.response.Items;
+import com.box.l10n.mojito.smartling.response.Key;
 import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -28,8 +31,12 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.isPluralFile;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
@@ -109,7 +116,7 @@ public class SmartlingClientTest {
         });
 
         System.out.println("Sleeping until token is almost expired");
-        Thread.sleep(460*1000L);
+        Thread.sleep(460 * 1000L);
 
         for (int i = 0; i < 350; i++) {
             smartlingClient.getStringInfos(smartlingTestConfig.projectId, smartlingTestConfig.fileUri).forEach(stringInfo -> {
@@ -188,7 +195,7 @@ public class SmartlingClientTest {
                 "    <string name=\"bye\">Adios</string>\n" +
                 "</resources>";
 
-        response =  smartlingClient.uploadLocalizedFile(smartlingTestConfig.projectId,
+        response = smartlingClient.uploadLocalizedFile(smartlingTestConfig.projectId,
                 fileName,
                 "android",
                 "es-MX",

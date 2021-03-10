@@ -24,7 +24,6 @@ import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
-import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.io.ByteStreams;
 import org.junit.Before;
@@ -47,7 +46,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
-import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -140,7 +138,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
             return thirdPartyTMSImage;
         }).when(thirdPartyTMSMock).uploadImage(any(), any(), any());
 
-        doThrow(new RuntimeException("test must stub this")).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
+        doThrow(new RuntimeException("test must stub this")).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
         doThrow(new RuntimeException("test must stub this")).when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
     }
 
@@ -157,7 +155,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                 createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
                 createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
                 createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things", true)
-        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
+        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
 
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
@@ -256,7 +254,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                 createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
                 createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
                 createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things", true)
-        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
+        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
 
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
@@ -311,7 +309,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                 createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello")
         )).doAnswer(invocation -> Arrays.asList(
                 createThirdPartyTextUnit(asset.getPath(), "3rd-hello-duplicate", "hello")
-        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any());
+        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
 
         doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 

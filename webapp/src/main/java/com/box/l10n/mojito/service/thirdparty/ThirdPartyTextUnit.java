@@ -10,6 +10,11 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
     String id;
 
     /**
+     * The tmTextUnitId in Mojito (should be extracted from information from the third party TMS)
+     */
+    Long tmTextUnitId;
+
+    /**
      * The asset path in Mojito (should be extracted from information from the third party TMS)
      */
     String assetPath;
@@ -64,7 +69,11 @@ public class ThirdPartyTextUnit implements TextUnitForBatchMatcher {
 
     @Override
     public Long getTmTextUnitId() {
-        return null;
+        return tmTextUnitId;
+    }
+
+    public void setTmTextUnitId(Long tmTextUnitId) {
+        this.tmTextUnitId = tmTextUnitId;
     }
 
     @Override

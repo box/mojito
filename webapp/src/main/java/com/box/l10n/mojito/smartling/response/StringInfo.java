@@ -8,6 +8,12 @@ public class StringInfo {
      */
     String hashcode;
 
+    /**
+     * Note: in some case, the stringVariant is null but the information for asset/textunit mapping is in the key.
+     * This happened for example with JSON that is processed with variants disable (default). In our case we want
+     * variant to be enabled anyway. When it is, the keys contains extra format that is not directly parseable and
+     * `stringVariant` does have the information that we want.
+     */
     List<Key> keys;
 
     /**
@@ -15,7 +21,7 @@ public class StringInfo {
      */
     String parsedStringText;
     /**
-     * Seems empty
+     * Seems empty (and that's a problem since we can't match...)
      */
     String stringText;
 
