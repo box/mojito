@@ -86,15 +86,17 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     private final TextUnitBatchImporterService textUnitBatchImporterService;
     private final SmartlingResultProcessor resultProcessor;
     private final Integer batchSize;
+    private final ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson;
 
     @Autowired
     public ThirdPartyTMSSmartling(SmartlingClient smartlingClient,
                                   TextUnitSearcher textUnitSearcher,
                                   AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys,
                                   TextUnitBatchImporterService textUnitBatchImporterService,
-                                  SmartlingResultProcessor resultProcessor) {
+                                  SmartlingResultProcessor resultProcessor,
+                                  ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson) {
         this(smartlingClient, textUnitSearcher, assetPathAndTextUnitNameKeys,
-                textUnitBatchImporterService, resultProcessor, DEFAULT_BATCH_SIZE);
+                textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, DEFAULT_BATCH_SIZE);
     }
 
     public ThirdPartyTMSSmartling(SmartlingClient smartlingClient,
@@ -102,6 +104,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                   AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys,
                                   TextUnitBatchImporterService textUnitBatchImporterService,
                                   SmartlingResultProcessor resultProcessor,
+                                  ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson,
                                   int batchSize) {
         this.smartlingClient = smartlingClient;
         this.assetPathAndTextUnitNameKeys = assetPathAndTextUnitNameKeys;
@@ -109,6 +112,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         this.textUnitSearcher = textUnitSearcher;
         this.resultProcessor = resultProcessor;
         this.batchSize = batchSize < 1 ? DEFAULT_BATCH_SIZE : batchSize;
+        this.thirdPartyTMSSmartlingWithJson = thirdPartyTMSSmartlingWithJson;
     }
 
     @Override
@@ -180,6 +184,11 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                      List<String> optionList) {
 
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
+
+        if (options.isJsonSync()) {
+            thirdPartyTMSSmartlingWithJson.push(repository, projectId, pluralSeparator, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+        }
+
         AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
         Stream<SmartlingFile> singularFiles = mapWithIndex(
@@ -235,6 +244,10 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                      List<String> optionList) {
 
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
+
+        if (options.isJsonSync()) {
+            thirdPartyTMSSmartlingWithJson.pull(repository, projectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+        }
 
         Long singulars = singularCount(repository.getId(), LOCALE_EN, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
         LongStream.range(0, batchesFor(singulars))
@@ -299,8 +312,13 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                  String skipAssetsWithPathPattern,
                                  List<String> optionList) {
 
-        List<SmartlingFile> result;
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
+        if (options.isJsonSync()) {
+            thirdPartyTMSSmartlingWithJson.pushTranslations(repository, projectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+        }
+
+        List<SmartlingFile> result;
+
         AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
         result = repository.getRepositoryLocales()

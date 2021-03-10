@@ -89,6 +89,9 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     SmartlingClient smartlingClient;
 
     @Autowired
+    ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson;
+
+    @Autowired
     AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys;
 
     @Autowired
@@ -148,7 +151,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         doReturn(null).when(smartlingClient).uploadLocalizedFile(anyString(), anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
         doReturn(null).when(mockTextUnitBatchImporterService).importTextUnits(any(), eq(false), eq(true));
         resultProcessor = new StubSmartlingResultProcessor();
-        tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher, assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor);
+        tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher, assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson);
 
         mapper = new AndroidStringDocumentMapper(pluralSep, null);
     }
@@ -173,7 +176,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         List<SmartlingFile> result;
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, batchSize);
+                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, batchSize);
 
         TM tm = repository.getTm();
         Asset asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
@@ -209,7 +212,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         List<SmartlingFile> result;
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, batchSize);
+                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, batchSize);
 
         TM tm = repository.getTm();
         Asset asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
@@ -250,7 +253,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         List<SmartlingFile> result;
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, batchSize);
+                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, batchSize);
 
         TM tm = repository.getTm();
         Asset asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
@@ -386,7 +389,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 eq(pluralFileName(repository, 0)), eq(false));
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson);
         tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
         verify(mockTextUnitBatchImporterService, times(4)).importTextUnits(
@@ -438,7 +441,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 eq(pluralFileName(repository, 0)), eq(false));
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson);
         tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
         verify(mockTextUnitBatchImporterService, times(4)).importTextUnits(
@@ -489,7 +492,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 eq(pluralFileName(repository, 0)), eq(false));
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson);
         tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping,
                 null, null, ImmutableList.of("smartling-plural-fix=ja-JP"));
 
@@ -553,7 +556,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 eq(pluralFileName(repository, 0)), eq(false));
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson);
         tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, ImmutableList.of("dry-run=true"));
 
         verify(mockTextUnitBatchImporterService, never()).importTextUnits(
@@ -570,7 +573,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         List<Locale> locales = new ArrayList<>();
         Map<String, String> localeMapping = Collections.emptyMap();
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, batchSize);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, batchSize);
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
         Locale frCA = localeService.findByBcp47Tag("fr-CA");
         Locale jaJP = localeService.findByBcp47Tag("ja-JP");
@@ -962,7 +965,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         List<SmartlingFile> result;
         List<Locale> locales = new ArrayList<>();
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, batchSize);
+                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, batchSize);
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
         Locale frCA = localeService.findByBcp47Tag("fr-CA");
         Locale jaJP = localeService.findByBcp47Tag("ja-JP");
@@ -1073,7 +1076,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     public void testBatchesFor(){
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, 3);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson,3);
 
         assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
         assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -1085,7 +1088,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         assertThat(tmsSmartling.batchesFor(32)).isEqualTo(11);
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, 35);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson,35);
 
         assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
         assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -1095,7 +1098,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         assertThat(tmsSmartling.batchesFor(290)).isEqualTo(9);
 
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
-                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, 4231);
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson,4231);
 
         assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
         assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
