@@ -29,7 +29,6 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -243,8 +242,8 @@ public class TextUnitWS {
         textUnitSearcherParameters.setRepositoryNames(repositoryNames);
         textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
         textUnitSearcherParameters.setName(name);
-        textUnitSearcherParameters.setSource(source);
-        textUnitSearcherParameters.setTarget(target);
+        textUnitSearcherParameters.setSource(emptyOrString(source, searchType));
+        textUnitSearcherParameters.setTarget(emptyOrString(target, searchType));
         textUnitSearcherParameters.setAssetPath(assetPath);
         textUnitSearcherParameters.setPluralFormOther(pluralFormOther);
         textUnitSearcherParameters.setPluralFormsFiltered(pluralFormFiltered);
@@ -260,6 +259,14 @@ public class TextUnitWS {
         textUnitSearcherParameters.setBranchId(branchId);
 
         return textUnitSearcherParameters;
+    }
+
+    /**
+     * To search for the empty string, allow to pass \0000 unicode escape sequence to EXACT search. It will convert
+     * that character into the empty string
+     */
+    String emptyOrString(String string, SearchType searchType) {
+        return string != null && SearchType.EXACT.equals(searchType) && string.equals("\\u0000") ? "" : string;
     }
 
     /**
