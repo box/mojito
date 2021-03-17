@@ -161,7 +161,7 @@ class TextUnitStore {
                     break;
             }
 
-            if (textUnit.getTarget()) {
+            if (textUnit.getTarget() !== null) {
                 // TODO: Test error handling when one or more saveTextUnit operations fail. How should they be handled in the UI?
                 // TODO: Show visual clue on the workbench when save is successful.
                 this.onSaveTextUnit(textUnit);
