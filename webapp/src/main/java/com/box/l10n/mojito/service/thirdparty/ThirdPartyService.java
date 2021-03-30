@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +179,7 @@ public class ThirdPartyService {
         ImmutableList<TextUnitDTO> notMappedTextUnitDTOs;
 
         if (allWithTmTextUnitId) {
-            logger.debug("No need to map by name, put empty candidate list");
+            logger.info("No need to map by name, put empty candidate list");
             notMappedTextUnitDTOs =  ImmutableList.of();
         } else {
             logger.debug("Get all text units of the asset that are not mapped yet");
@@ -198,13 +199,14 @@ public class ThirdPartyService {
                                         .stream().map(TextUnitDTO::getTmTextUnitId).collect(ImmutableList.toImmutableList())
                 ));
 
-        saveMojitoToThirdParthTextUnitMapping(asset, thirdPartyTextUnitToTmTextUnitIdMap);
+        saveMojitoToThirdPartyTextUnitMapping(asset, thirdPartyTextUnitToTmTextUnitIdMap);
     }
 
-    void saveMojitoToThirdParthTextUnitMapping(Asset asset, ImmutableMap<ThirdPartyTextUnit, ImmutableList<Long>> thirdPartyTextUnitToTmTextUnitIdMap) {
+    void saveMojitoToThirdPartyTextUnitMapping(Asset asset, ImmutableMap<ThirdPartyTextUnit, ImmutableList<Long>> thirdPartyTextUnitToTmTextUnitIdMap) {
+
+        HashMap<Long, String> tmTextUnitAlreadySaved = new LinkedHashMap<>();
 
         logger.debug("Create the entities for the mapping mojito to third party ");
-
         List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitToTmTextUnitIdMap.entrySet().stream().flatMap(e -> {
             ThirdPartyTextUnit thirdPartyTextUnitForMapping = e.getKey();
             return e.getValue().stream().map(tmTextUnitId -> {
@@ -213,10 +215,18 @@ public class ThirdPartyService {
                 thirdPartyTextUnit.setThirdPartyId(thirdPartyTextUnitForMapping.getId());
                 thirdPartyTextUnit.setAsset(asset);
                 TMTextUnit tmTextUnit = tmTextUnitRepository.getOne(tmTextUnitId);
+
+                if (tmTextUnitAlreadySaved.containsKey(tmTextUnitId)) {
+                    logger.warn("There shouldn't be two matches, skip tmTextUnitId: {}, thirdPartyTextUnit: {} (previous: {})", tmTextUnitId, thirdPartyTextUnit.getThirdPartyId(), tmTextUnitAlreadySaved.get(tmTextUnitId));
+                    return null;
+                } else {
+                    tmTextUnitAlreadySaved.put(tmTextUnitId, thirdPartyTextUnitForMapping.getId());
+                }
+
                 thirdPartyTextUnit.setTmTextUnit(tmTextUnit);
                 return thirdPartyTextUnit;
             });
-        }).collect(toList());
+        }).filter(Objects::nonNull).collect(toList());
 
         logger.debug("Save {} entities", thirdPartyTextUnits.size());
         thirdPartyTextUnitRepository.saveAll(thirdPartyTextUnits);
