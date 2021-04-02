@@ -54,7 +54,7 @@ public class MessageFormatIntegrityChecker extends AbstractTextUnitIntegrityChec
         int numberTargetFormats = targetMessageFormat.getFormats().length;
 
         if (numberSourceFormats != numberTargetFormats) {
-            throw new MessageFormatIntegrityCheckerException("Number of placeholders in source (" + numberSourceFormats + ") and target ("
+            throw new MessageFormatIntegrityCheckerException("Number of top level placeholders in source (" + numberSourceFormats + ") and target ("
                     + numberTargetFormats + ") is different");
         }
 

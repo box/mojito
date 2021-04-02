@@ -77,7 +77,7 @@ public class MessageFormatIntegrityCheckerTest {
             checker.check(source, target);
             fail("Exception must be thrown");
         } catch (MessageFormatIntegrityCheckerException e) {
-            assertEquals("Number of placeholders in source (4) and target (3) is different", e.getMessage());
+            assertEquals("Number of top level placeholders in source (4) and target (3) is different", e.getMessage());
         }
     }
 
