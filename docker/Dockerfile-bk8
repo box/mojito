@@ -1,0 +1,23 @@
+# syntax=docker/dockerfile:experimental
+
+FROM maven:3.5.4-jdk-8 as build
+RUN apt-get update && apt-get install -y build-essential python nodejs-legacy libpng-dev pngquant
+VOLUME ["/tmp"]
+
+WORKDIR /mnt/mojito
+
+# copy source and make sure node* are not present (Mac version may conflict with Linux)
+COPY . /mnt/mojito
+
+ENV PATH="/mnt/mojito/webapp/node/:${PATH}"
+RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/mnt/mojito/node --mount=type=cache,target=/mnt/mojito/node_module mvn clean install -DskipTests
+
+
+FROM openjdk:8-alpine
+VOLUME /tmp
+COPY --from=build /mnt/mojito/webapp/target/mojito-webapp-*-exec.jar mojito-webapp.jar
+COPY --from=build /mnt/mojito/cli/target/mojito-cli-*-exec.jar mojito-cli.jar
+RUN sh -c 'touch /mojito-webapp.jar'
+RUN sh -c 'touch /mojito-cli.jar'
+# starting with "exec doesn't seem to be needed with openjdk:8-alpine. As per docker documentation, it is required in general
+ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /mojito-webapp.jar
