@@ -18,7 +18,10 @@ services:
   webapp:
     depends_on:
       - db
-    image: aurambaj/mojito-webapp-spring2
+    build:
+      dockerfile: docker/Dockerfile-bk8
+      context: ../
+#    image: aurambaj/mojito-webapp-bk8:latest
     links:
       - db
     ports:
@@ -26,7 +29,7 @@ services:
     restart: always
     environment:
 #      JAVA_OPTS: '-Xms2g'
-      SPRING_APPLICATION_JSON: '{ 
+      SPRING_APPLICATION_JSON: '{
       "spring.flyway.enabled": "true",
       "l10n.flyway.clean" : "false",
       "spring.jpa.database-platform" : "org.hibernate.dialect.MySQLDialect",
@@ -35,4 +38,4 @@ services:
       "spring.datasource.username" : "mojito",
       "spring.datasource.password" : "ChangeMe",
       "spring.datasource.driverClassName" : "com.mysql.cj.jdbc.Driver"
-      }'     
+      }'

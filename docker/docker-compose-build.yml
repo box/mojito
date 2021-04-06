@@ -1,0 +1,13 @@
+version: '2'
+services:
+  compile:
+#    image: aurambaj/mojito-dev
+    build:
+      dockerfile: dev/Dockerfile
+      context: .
+    working_dir: /mnt/mojito
+    volumes:
+      - ..:/mnt/mojito
+      - ~/.m2:/root/.m2
+    command: mvn install -DskipTests
+
