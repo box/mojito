@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.resttemplate;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -92,6 +93,27 @@ public class AuthenticatedRestTemplateTest {
         authenticatedRestTemplate.getForObjectWithQueryStringParams("/api/assets", String.class, uriVariables);
 
         WireMock.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/api/assets?path=abc%5Cdef")));
+    }
+
+    @Test
+    public void testDateTimeZoneEncodingUrlForGetForObject() {
+        initialAuthenticationMock();
+        mockCsrfTokenEndpoint();
+
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo("/api/repositories/1/branches?deleted=false&createdBefore=2021-04-22T21%3A24%3A56.579%2B01%3A00"))
+                .willReturn(WireMock.aResponse()
+                        .withStatus(HttpStatus.FOUND.value())
+                        .withHeader("Location", "/api/repositories/1/branches?deleted=false&createdBefore=2021-04-22T21%3A24%3A56.579%2B01%3A00")
+                        .withBody("")));
+
+        Map<String, Object> uriVariables = new HashMap<>();
+        uriVariables.put("deleted", "false");
+        // Add a datetime in a valid ISO 8601 format with a timezone offset
+        uriVariables.put("createdBefore", new DateTime("2021-04-22T21:24:56.579+01:00"));
+        authenticatedRestTemplate.getForObjectWithQueryStringParams("/api/repositories/1/branches", String.class, uriVariables);
+
+        // Verify that the datetime was encoded by the Rest template (the key part is that '+' was encoded to '%2B')
+        WireMock.verify(WireMock.getRequestedFor(WireMock.urlEqualTo("/api/repositories/1/branches?deleted=false&createdBefore=2021-04-22T21%3A24%3A56.579%2B01%3A00")));
     }
 
     @Test
