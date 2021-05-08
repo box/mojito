@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -195,29 +191,7 @@ public class AuthenticatedRestTemplate {
             uriBuilder.queryParam(entry.getKey(), entry.getValue());
         }
 
-        // Encode illegal characters in the URI
-        URI uri = uriBuilder.build(false).toUri();
-
-        // Encode DateTime objects in place fully, to ensure the '+' timezone separator doesn't get decoded as a space on the API side
-        uriBuilder = UriComponentsBuilder.fromUri(uri);
-
-        for (Map.Entry<String, ?> entry : queryStringParams.entrySet()) {
-            if (entry.getValue() instanceof DateTime)
-            {
-                String encodedDatetime = null;
-                try {
-                    encodedDatetime = URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8.toString());
-                } catch (UnsupportedEncodingException ex) {
-                    throw new RuntimeException(ex);
-                }
-
-                uriBuilder.replaceQueryParam(entry.getKey(), encodedDatetime);
-            }
-        }
-
-        // Disable any further encoding on the builder to prevent double encoding
-        uri = uriBuilder.build(true).toUri();
-        return uri;
+        return uriBuilder.build(false).toUri();
     }
 
     /**
@@ -336,7 +310,7 @@ public class AuthenticatedRestTemplate {
     }
 
     /**
-     * Delegate, see {@link RestTemplate#delete(String, Object...)}}
+     * Delegate, see {@link RestTemplate#delete(String)}
      *
      * @param resourcePath resource path transformed into final URI by this instance
      * @throws RestClientException

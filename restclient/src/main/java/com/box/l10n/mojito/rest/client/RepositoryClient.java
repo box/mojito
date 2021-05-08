@@ -209,7 +209,7 @@ public class RepositoryClient extends BaseClient {
     public List<Branch> getBranches(Long repositoryId, String branchName, String branchNameRegex,
                                     Boolean deleted, Boolean translated, boolean includeNullBranch,
                                     DateTime createdBefore) {
-        Map<String, Object> filterParams = new HashMap<>();
+        Map<String, String> filterParams = new HashMap<>();
 
         if (branchName != null) {
             filterParams.put("name", branchName);
@@ -224,7 +224,7 @@ public class RepositoryClient extends BaseClient {
         }
 
         if (createdBefore != null) {
-            filterParams.put("createdBefore", createdBefore);
+            filterParams.put("createdBefore", createdBefore.toString());
         }
 
         List<Branch> branches = authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
