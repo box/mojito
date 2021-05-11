@@ -224,7 +224,7 @@ public class RepositoryClient extends BaseClient {
         }
 
         if (createdBefore != null) {
-            filterParams.put("createdBefore", createdBefore.toString());
+            filterParams.put("createdBefore", String.valueOf(createdBefore.getMillis()));
         }
 
         List<Branch> branches = authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
