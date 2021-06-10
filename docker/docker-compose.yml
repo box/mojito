@@ -2,9 +2,6 @@ version: '2'
 services:
   db:
     image: mysql:5.7
-    user: "1000:50" # needed on Mac
-    volumes:
-      - "./.data/db:/var/lib/mysql"
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ChangeMe
@@ -14,12 +11,13 @@ services:
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_bin
-      - --innodb_use_native_aio=0 # needed on Mac
   webapp:
     depends_on:
       - db
     build:
       dockerfile: docker/Dockerfile-bk8
+#      dockerfile: docker/Dockerfile-bk11
+#      dockerfile: docker/Dockerfile-bk16
       context: ../
 #    image: aurambaj/mojito-webapp-bk8:latest
     links:
