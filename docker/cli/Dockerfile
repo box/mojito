@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM adoptopenjdk:8-jre
 
 ENV MOJITO_BIN=/usr/local/mojito/bin
 ENV PATH $PATH:${MOJITO_BIN}

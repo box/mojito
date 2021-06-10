@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:experimental
 
-FROM maven:3.8.1-adoptopenjdk-8 as build
+FROM maven:3.8.1-adoptopenjdk-11 as build
 VOLUME ["/tmp"]
 
 WORKDIR /mnt/mojito
@@ -12,7 +12,7 @@ ENV PATH="/mnt/mojito/webapp/node/:${PATH}"
 RUN --mount=type=cache,target=/root/.m2 --mount=type=cache,target=/mnt/mojito/node --mount=type=cache,target=/mnt/mojito/node_module mvn clean install -DskipTests
 
 
-FROM adoptopenjdk:8-jre
+FROM adoptopenjdk:11-jre
 VOLUME /tmp
 
 ENV MOJITO_BIN=/usr/local/mojito/bin
