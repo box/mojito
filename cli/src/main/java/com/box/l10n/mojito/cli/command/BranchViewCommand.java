@@ -62,7 +62,7 @@ public class BranchViewCommand extends Command {
     String branchNameRegex = null;
 
     @Parameter(names = {BRANCH_NULL_BRANCH_LONG, BRANCH_NULL_BRANCH_SHORT}, arity = 0, description = BRANCH_NULL_BRANCH_DESCRIPTION)
-    boolean includeNullBranch = true;
+    boolean includeNullBranch = false;
 
     @Parameter(names = {BRANCH_CREATED_BEFORE_LAST_WEEK_LONG, BRANCH_CREATED_BEFORE_LAST_WEEK_SHORT}, arity = 0, description = BRANCH_CREATED_BEFORE_LAST_WEEK_DESCRIPTION)
     boolean beforeLastWeek;
