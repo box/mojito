@@ -7,6 +7,8 @@ In detached mode `docker compose up -d`. And to remove everything including volu
 
 To re-use a pre-built image, uncomment the `image` configuration in `docker-compose.yml`.
 
+For older version, may need to set some env variable `COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 docker-compose up`
+
 ## To use a local data directory
 
 Create the data directory for mysql: `mkdir mojito/docker/.data/db`
