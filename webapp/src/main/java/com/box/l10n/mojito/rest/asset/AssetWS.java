@@ -21,6 +21,10 @@ import com.box.l10n.mojito.service.tm.GenerateLocalizedAssetJob;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +38,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author aloison
@@ -72,6 +78,9 @@ public class AssetWS {
     @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
+    @Autowired
+    MeterRegistry meterRegistry;
+
     /**
      * Gets the list of {@link Asset} for a given {@link Repository} and other
      * optional filters
@@ -104,6 +113,11 @@ public class AssetWS {
     @RequestMapping(value = "/api/assets", method = RequestMethod.POST)
     public SourceAsset importSourceAsset(@RequestBody SourceAsset sourceAsset) throws Throwable {
         logger.debug("Importing source asset");
+
+        meterRegistry.counter("assetWS.importSourceAsset",
+                Tags.of("repositoryId", sourceAsset.getRepositoryId().toString(),
+                        "branch", MoreObjects.firstNonNull(sourceAsset.getBranch(), " - ")))
+                        .increment();
 
         // ********************************************
         // TODO(P1) check permission to update the repo
@@ -154,7 +168,12 @@ public class AssetWS {
         logger.debug("Localizing content payload with asset id = {}, and locale id = {}", assetId, localeId);
 
         Asset asset = assetRepository.getOne(assetId);
+
         RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localeId);
+
+        meterRegistry.counter("assetWS.getLocalizedAssetForContent",
+                Tags.of("repositoryId", asset.getRepository().getId().toString())
+        ).increment();
 
         String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
