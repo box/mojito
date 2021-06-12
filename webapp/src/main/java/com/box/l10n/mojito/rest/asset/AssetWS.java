@@ -208,6 +208,11 @@ public class AssetWS {
             localizedAssetBody.setAssetId(assetId);
         }
 
+        Asset asset = assetRepository.getOne(assetId);
+        meterRegistry.counter("assetWS.getLocalizedAssetForContentAsync",
+                Tags.of("repositoryId", asset.getRepository().getId().toString())
+        ).increment();
+
         QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(GenerateLocalizedAssetJob.class).withInlineInput(false).withInput(localizedAssetBody).build();
         PollableFuture<LocalizedAssetBody> localizedAssetBodyPollableFuture = quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
         return localizedAssetBodyPollableFuture.getPollableTask();
