@@ -110,6 +110,9 @@ class Ict {
         var divIct = document.createElement('div');
 
         divIct.setAttribute('id', 'mojito-ict');
+        // latticehq.com adds forcibly "height: 100%" to the Mojito div, which in turn push the rendering of the lattice
+        // app one screen below. Make the Mojito div float to prevent the rendering issue...
+        divIct.setAttribute("style", 'float: left;');
         body.insertBefore(divIct, document.body.firstChild);
 
         ReactDOM.render(
