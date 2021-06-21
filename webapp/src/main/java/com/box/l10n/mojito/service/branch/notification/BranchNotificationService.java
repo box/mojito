@@ -102,20 +102,21 @@ public class BranchNotificationService {
 
     void sendNotificationsForBranch(Branch branch) {
         logger.debug("sendNotificationsForBranch: {} ({})", branch.getId(), branch.getName());
+
+        BranchNotificationInfo branchNotificationInfo = getBranchNotificationInfo(branch);
         for (BranchNotificationMessageSender branchNotificationMessageSender : branchNotificationMessageSenders) {
             try {
-                sendNotificationsForBranchWithSender(branchNotificationMessageSender, branch);
+                sendNotificationsForBranchWithSender(branchNotificationMessageSender, branch, branchNotificationInfo);
             } catch (Exception e) {
                 logger.error("Fail safe, error tracking is up to each sender", e);
             }
         }
     }
 
-    void sendNotificationsForBranchWithSender(BranchNotificationMessageSender branchNotificationMessageSender, Branch branch) {
+    void sendNotificationsForBranchWithSender(BranchNotificationMessageSender branchNotificationMessageSender, Branch branch, BranchNotificationInfo branchNotificationInfo) {
         String senderType = getSenderType(branchNotificationMessageSender);
 
         logger.debug("sendNotificationsForBranch: {} ({} with sender: {})", branch.getId(), branch.getName(), senderType);
-        BranchNotificationInfo branchNotificationInfo = getBranchNotificationInfo(branch);
         BranchNotification branchNotification = getOrCreateBranchNotification(branch, senderType);
 
         if (shouldSendNewMessage(branchNotification, branchNotificationInfo)) {
