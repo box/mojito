@@ -89,4 +89,11 @@ public class BranchNotificationMessageBuilderSlackTest {
                 "short\":null}],\"mrkdwn_in\":[\"text\",\"pretex\",\"fields\"]}],\"thread_ts\":\"pr-test\"}", json);
     }
 
+    @Test
+    public void testGetUpdatedMessageNoMoreStrings() {
+        Message newMessage = branchNotificationMessageBuilderSlack.getUpdatedMessage("channel-test", "pr-test", "ts-test", Arrays.asList());
+        String json = objectMapper.writeValueAsStringUnchecked(newMessage);
+        assertEquals("{\"channel\":\"channel-test\",\"text\":\"The branch was updated and there are no more strings to translate.\",\"attachments\":[],\"thread_ts\":\"pr-test\"}", json);
+    }
+
 }

@@ -3,7 +3,6 @@ package com.box.l10n.mojito.service.branch.notification.phabricator;
 import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,10 +29,18 @@ public class BranchNotificationMessageBuilderPhabricator {
     }
 
     public String getUpdatedMessage(String branchName, List<String> sourceStrings) {
-        return "Your branch was updated with new strings! Please **add screenshots** " +
-                "as soon as possible and **wait for translations** before releasing. " +
-                getLinkGoToMojito(branchName) + "\n\n" +
-                getFormattedSourceStrings(sourceStrings);
+
+        String msg = null;
+
+        if (sourceStrings.isEmpty()) {
+            msg = "The branch was updated and there are no more strings to translate.";
+        } else {
+            msg = "Your branch was updated with new strings! Please **add screenshots** " +
+                    "as soon as possible and **wait for translations** before releasing. " +
+                    getLinkGoToMojito(branchName) + "\n\n" +
+                    getFormattedSourceStrings(sourceStrings);
+        }
+        return msg;
     }
 
     public String getTranslatedMessage() {
