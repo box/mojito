@@ -8,7 +8,6 @@ import com.box.l10n.mojito.slack.request.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,7 +15,9 @@ import java.util.stream.Collectors;
 import static com.box.l10n.mojito.slack.SlackClient.COLOR_GOOD;
 import static com.box.l10n.mojito.slack.request.Action.ACTION_STYLE_PRIMARY;
 import static com.box.l10n.mojito.slack.request.Action.ACTION_TYPE_BUTTON;
-import static com.box.l10n.mojito.slack.request.Attachment.*;
+import static com.box.l10n.mojito.slack.request.Attachment.MRKDOWNIN_FILEDS;
+import static com.box.l10n.mojito.slack.request.Attachment.MRKDOWNIN_PRETEXT;
+import static com.box.l10n.mojito.slack.request.Attachment.MRKDWNIN_TEXT;
 
 @Component
 public class BranchNotificationMessageBuilderSlack {
@@ -34,8 +35,18 @@ public class BranchNotificationMessageBuilderSlack {
     }
 
     public Message getUpdatedMessage(String channel, String threadTs, String pr, List<String> sourceStrings) {
-        Message message = getBaseMessage(channel, pr, sourceStrings,
-                "Your branch was updated with new strings! Please *add screenshots* as soon as possible and *wait for translations* before releasing.");
+
+        Message message = null;
+
+        if (sourceStrings.isEmpty()) {
+            message = new Message();
+            message.setChannel(channel);
+            message.setText("The branch was updated and there are no more strings to translate.");
+        } else {
+            message = getBaseMessage(channel, pr, sourceStrings,
+                    "Your branch was updated with new strings! Please *add screenshots* as soon as possible and *wait for translations* before releasing.");
+        }
+
         message.setThreadTs(threadTs);
         return message;
     }
