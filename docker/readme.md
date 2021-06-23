@@ -34,6 +34,9 @@ services:
       - "mojito_mysql:/var/lib/mysql"
 ```
 
+# Build CLI image
+
+`docker build -t aurambaj/mojito-cli -f docker/Dockerfile-cli-bk8 .`
 
 # Multi-stage build
 
