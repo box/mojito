@@ -25,7 +25,6 @@ import java.util.stream.IntStream;
  * By default this run on HSQL, so point it to proper configuration to run with MySQL for example by changing the
  * pom.xml to use webapp configuration instead of cli's.
  */
-@Ignore
 public class PerformanceSanboxTest extends CLITestBase {
 
     /**

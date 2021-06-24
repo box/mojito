@@ -37,13 +37,21 @@ public class ExtractionService {
     AssetExtractor assetExtractor;
 
 
-    public void fileMatchToAssetExtractionAndSaveToJsonFile(
-            String extractionName, ExtractionsPaths extractionsPaths, List<String> filterOptions,
-            FilterConfigIdOverride filterConfigIdOverride, FileMatch sourceFileMatch) throws CommandException {
+    public void fileMatchToAssetExtractionAndSaveToJsonFile(ExtractionPaths extractionPaths,
+                                                            List<String> filterOptions,
+                                                            FilterConfigIdOverride filterConfigIdOverride,
+                                                            FileMatch sourceFileMatch) throws CommandException {
 
-        AssetExtraction assetExtraction = fileMatchToAssetExtraction(extractionName, sourceFileMatch, filterOptions, filterConfigIdOverride);
-        Path assetExtractionPath = extractionsPaths.assetExtractionPath(sourceFileMatch.getSourcePath(), extractionName);
+        AssetExtraction assetExtraction = fileMatchToAssetExtraction(extractionPaths.getExtractionName(), sourceFileMatch, filterOptions, filterConfigIdOverride);
+        Path assetExtractionPath = extractionPaths.assetExtractionPath(sourceFileMatch.getSourcePath());
         objectMapper.createDirectoriesAndWrite(assetExtractionPath, assetExtraction);
+    }
+
+    public void recreateExtractionDirectory(ExtractionPaths extractionPaths) {
+        logger.debug("Delete the extraction directory for name: {}", extractionPaths.getExtractionName());
+        Path path = extractionPaths.extractionPath();
+        Files.deleteRecursivelyIfExists(path);
+        Files.createDirectories(path);
     }
 
     AssetExtraction fileMatchToAssetExtraction(String extractionName, FileMatch sourceFileMatch, List<String> filterOptions, FilterConfigIdOverride filterConfigIdOverride) throws CommandException {
@@ -69,12 +77,4 @@ public class ExtractionService {
             throw new RuntimeException("Source file match must be for a supported file type", uasft);
         }
     }
-
-    public void recreateExtractionDirectory(ExtractionsPaths extractionsPaths, String extractionName) {
-        logger.debug("Delete the extraction directory for name: {}", extractionName);
-        Path path = extractionsPaths.extractionPath(extractionName);
-        Files.deleteRecursivelyIfExists(path);
-        Files.createDirectories(path);
-    }
-
 }

@@ -37,12 +37,12 @@ public class ExtractionDiffService {
     /**
      * Check if a diff has added text units in it.
      *
-     * @param extractionDiffsPaths
+     * @param extractionDiffPaths
      * @param diffExtractionName
      * @return
      */
-    public boolean hasAddedTextUnits(ExtractionDiffsPaths extractionDiffsPaths, String diffExtractionName) {
-        boolean hasAddedTextUnits = extractionDiffsPaths.findAllAssetExtractionDiffPaths(diffExtractionName)
+    public boolean hasAddedTextUnits(ExtractionDiffPaths extractionDiffPaths) {
+        boolean hasAddedTextUnits = extractionDiffPaths.findAllAssetExtractionDiffPaths()
                 .anyMatch(path -> {
                     AssetExtractionDiff assetExtractionDiff = objectMapper.readValueUnchecked(path.toFile(), AssetExtractionDiff.class);
                     return !assetExtractionDiff.getAddedTextunits().isEmpty();
@@ -52,70 +52,106 @@ public class ExtractionDiffService {
     }
 
     /**
+     * Compute basic statistics of a diff.
+     *
+     * @param extractionDiffPaths
+     * @return
+     * @throws MissingExtractionDirectoryExcpetion
+     */
+    public ExtractionDiffStatistics computeExtractionDiffStatistics(ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
+
+        ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
+        ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
+
+        checkExtractionDirectoryExists(baseExtractionPaths);
+        checkExtractionDirectoryExists(currentExtractionPaths);
+
+        ExtractionDiffStatistics extractionDiffStatistics = ExtractionDiffStatistics.builder()
+                .base(baseExtractionPaths.findAllAssetExtractionPaths().stream()
+                        .map(this::getAssetExtractionForPath)
+                        .mapToInt(assetExtraction -> assetExtraction.getTextunits().size())
+                        .sum())
+                .current(currentExtractionPaths.findAllAssetExtractionPaths().stream()
+                        .map(this::getAssetExtractionForPath)
+                        .mapToInt(assetExtraction -> assetExtraction.getTextunits().size())
+                        .sum()
+                )
+                .build();
+
+        extractionDiffStatistics = extractionDiffPaths.findAllAssetExtractionDiffPaths()
+                .map(path -> objectMapper.readValueUnchecked(path.toFile(), AssetExtractionDiff.class))
+                .map(assetExtractionDiff -> ExtractionDiffStatistics.builder()
+                        .added(assetExtractionDiff.getAddedTextunits().size())
+                        .removed(assetExtractionDiff.getRemovedTextunits().size())
+                        .build())
+                .reduce(extractionDiffStatistics, (c1, c2) -> c1.withAdded(c1.getAdded() + c2.getAdded()).withRemoved(c1.getRemoved() + c2.getRemoved()));
+
+        return extractionDiffStatistics;
+    }
+
+
+    /**
      * Computes the difference between 2 local extractions designated by their names.
      *
      * @param currentAssetExtraction
      * @param baseAssetExtraction
      * @param diffExtractionName
-     * @param extractionsPaths
-     * @param extractionDiffsPaths
+     * @param extractionDiffPaths
      * @throws MissingExtractionDirectoryExcpetion
      */
-    public void computeAndWriteDiffs(
-            String currentAssetExtraction,
-            String baseAssetExtraction,
-            String diffExtractionName,
-            ExtractionsPaths extractionsPaths,
-            ExtractionDiffsPaths extractionDiffsPaths) throws MissingExtractionDirectoryExcpetion {
+    public void computeAndWriteDiffs(ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
 
-        checkExtractionDirectoryExists(currentAssetExtraction, extractionsPaths);
-        checkExtractionDirectoryExists(baseAssetExtraction, extractionsPaths);
+        ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
+        ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
 
-        logger.debug("Process existing files in first extraction");
-        Set<Path> assetExtractionPaths1 = Sets.newTreeSet(extractionsPaths.findAllAssetExtractionPaths(currentAssetExtraction));
+        checkExtractionDirectoryExists(baseExtractionPaths);
+        checkExtractionDirectoryExists(currentExtractionPaths);
 
-        assetExtractionPaths1.forEach(assetExtractionPath1 -> {
-            String sourceFileMatchPath = extractionsPaths.sourceFileMatchPath(assetExtractionPath1, currentAssetExtraction);
-            Path assetExtractionPath2 = extractionsPaths.assetExtractionPath(sourceFileMatchPath, baseAssetExtraction);
+        logger.debug("Process existing files in the current extraction");
+        Set<Path> currentAssetExtractionPaths = currentExtractionPaths.findAllAssetExtractionPaths();
 
-            AssetExtraction assetExtraction1 = getAssetExtractionForPath(assetExtractionPath1);
-            AssetExtraction assetExtraction2 = getAssetExtractionForPath(assetExtractionPath2);
+        currentAssetExtractionPaths.forEach(currentAssetExtractionPath -> {
+            String sourceFileMatchPath = currentExtractionPaths.sourceFileMatchPath(currentAssetExtractionPath);
+            Path baseAssetExtractionPath = baseExtractionPaths.assetExtractionPath(sourceFileMatchPath);
+
+            AssetExtraction currentAssetExtraction = getAssetExtractionForPath(currentAssetExtractionPath);
+            AssetExtraction baseAssetExtraction = getAssetExtractionForPath(baseAssetExtractionPath);
 
             AssetExtractionDiff assetExtractionDiff;
 
-            if (assetExtraction2 != null) {
-                logger.debug("File in second extraction, compute added and removed text units");
-                assetExtractionDiff = computeDiffBetweenExtractions(assetExtraction1, assetExtraction2);
+            if (baseAssetExtraction != null) {
+                logger.debug("File in base extraction, compute added and removed text units");
+                assetExtractionDiff = computeDiffBetweenExtractions(currentAssetExtraction, baseAssetExtraction);
             } else {
-                logger.debug("No file in second extraction, just added text units");
+                logger.debug("No file in base extraction, just added text units");
                 assetExtractionDiff = new AssetExtractionDiff();
-                assetExtractionDiff.setAddedTextunits(assetExtraction1.getTextunits());
+                assetExtractionDiff.setAddedTextunits(currentAssetExtraction.getTextunits());
             }
 
-            writeAssetExtractionDiff(diffExtractionName, extractionDiffsPaths, sourceFileMatchPath, assetExtractionDiff);
+            writeAssetExtractionDiff(extractionDiffPaths, sourceFileMatchPath, assetExtractionDiff);
         });
 
-        logger.debug("Process files from second extraction that are not in the first extraction, just removed text units");
-        Set<Path> assetExtractionPaths2 = Sets.newTreeSet(extractionsPaths.findAllAssetExtractionPaths(baseAssetExtraction));
-        assetExtractionPaths2.stream()
-                .filter(assetExtractionPath2 -> {
-                    String sourceFileMatchPath = extractionsPaths.sourceFileMatchPath(assetExtractionPath2, baseAssetExtraction);
-                    Path assetExtractionPath1 = extractionsPaths.assetExtractionPath(sourceFileMatchPath, currentAssetExtraction);
-                    return !assetExtractionPaths1.contains(assetExtractionPath1);
+        logger.debug("Process files from the base that are not in the current extraction, just removed text units");
+        Set<Path> baseAssetExtractionPaths = baseExtractionPaths.findAllAssetExtractionPaths();
+        baseAssetExtractionPaths.stream()
+                .filter(baseAssetExtractionPath -> {
+                    String sourceFileMatchPath = baseExtractionPaths.sourceFileMatchPath(baseAssetExtractionPath);
+                    Path currentAssetExtractionPath = currentExtractionPaths.assetExtractionPath(sourceFileMatchPath);
+                    return !currentAssetExtractionPaths.contains(currentAssetExtractionPath);
                 })
                 .forEach(assetExtractionPath -> {
                     AssetExtraction assetExtractionForPath = getAssetExtractionForPath(assetExtractionPath);
                     AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
                     assetExtractionDiff.setRemovedTextunits(assetExtractionForPath.getTextunits());
 
-                    String sourceFileMatchPath = extractionsPaths.sourceFileMatchPath(assetExtractionPath, baseAssetExtraction);
-                    writeAssetExtractionDiff(diffExtractionName, extractionDiffsPaths, sourceFileMatchPath, assetExtractionDiff);
+                    String sourceFileMatchPath = baseExtractionPaths.sourceFileMatchPath(assetExtractionPath);
+                    writeAssetExtractionDiff(extractionDiffPaths, sourceFileMatchPath, assetExtractionDiff);
                 });
     }
 
-    void writeAssetExtractionDiff(String diffExtractionName, ExtractionDiffsPaths extractionDiffsPaths, String sourceFileMatchPath, AssetExtractionDiff assetExtractionDiff) {
+    void writeAssetExtractionDiff(ExtractionDiffPaths extractionDiffPaths, String sourceFileMatchPath, AssetExtractionDiff assetExtractionDiff) {
         objectMapper.createDirectoriesAndWrite(
-                extractionDiffsPaths.assetExtractionDiffPath(sourceFileMatchPath, diffExtractionName),
+                extractionDiffPaths.assetExtractionDiffPath(sourceFileMatchPath),
                 assetExtractionDiff);
     }
 
@@ -134,11 +170,11 @@ public class ExtractionDiffService {
         return assetExtractionDiff;
     }
 
-    AssetExtraction getAssetExtractionForPath(Path assetExtractionPath2) {
+    AssetExtraction getAssetExtractionForPath(Path assetExtractionPath) {
         AssetExtraction assetExtraction2 = null;
 
-        if (assetExtractionPath2.toFile().exists()) {
-            assetExtraction2 = objectMapper.readValueUnchecked(assetExtractionPath2.toFile(), AssetExtraction.class);
+        if (assetExtractionPath.toFile().exists()) {
+            assetExtraction2 = objectMapper.readValueUnchecked(assetExtractionPath.toFile(), AssetExtraction.class);
         }
         return assetExtraction2;
     }
@@ -149,11 +185,11 @@ public class ExtractionDiffService {
         return sortedSet;
     }
 
-    void checkExtractionDirectoryExists(String extractionName, ExtractionsPaths extractionsPaths) throws MissingExtractionDirectoryExcpetion {
-        Path extractionPath = extractionsPaths.extractionPath(extractionName);
+    void checkExtractionDirectoryExists(ExtractionPaths extractionPaths) throws MissingExtractionDirectoryExcpetion {
+        Path extractionPath = extractionPaths.extractionPath();
 
         if (!extractionPath.toFile().exists()) {
-            String msg = MessageFormat.format("There is no directory for extraction: {0}, can't compare", extractionName);
+            String msg = MessageFormat.format("There is no directory for extraction: {0}, can't compare", extractionPaths.getExtractionName());
             throw new MissingExtractionDirectoryExcpetion(msg);
         }
     }

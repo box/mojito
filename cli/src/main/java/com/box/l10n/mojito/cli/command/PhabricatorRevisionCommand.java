@@ -40,10 +40,7 @@ public class PhabricatorRevisionCommand extends Command {
 
     @Override
     public void execute() throws CommandException {
-        if (phabricator == null) {
-            throw new CommandException("Phabricator must be configured with properties: l10n.phabricator.url and l10n.phabricator.token");
-        }
-
+        PhabricatorPreconditions.checkNotNull(phabricator);
         Data<RevisionSearchFields> revisionForTargetPhid = phabricator.getRevisionForTargetPhid(targetPhid);
         consoleWriterAnsiCodeEnabledFalse.a(revisionForTargetPhid.getId()).println();
     }

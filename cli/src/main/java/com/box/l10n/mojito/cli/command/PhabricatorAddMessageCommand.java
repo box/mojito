@@ -41,10 +41,7 @@ public class PhabricatorAddMessageCommand extends Command {
 
     @Override
     public void execute() throws CommandException {
-        if (differentialRevision == null) {
-            throw new CommandException("Phabricator must be configured with properties: l10n.phabricator.url and l10n.phabricator.token");
-        }
-
+        PhabricatorPreconditions.checkNotNull(differentialRevision);
         differentialRevision.addComment(objectId, message);
     }
 }
