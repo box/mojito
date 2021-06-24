@@ -55,9 +55,7 @@ public class PhabricatorDiffInfoCommand extends Command {
 
     @Override
     public void execute() throws CommandException {
-        if (differentialDiff == null) {
-            throw new CommandException("Phabricator must be configured with properties: l10n.phabricator.url and l10n.phabricator.token");
-        }
+        PhabricatorPreconditions.checkNotNull(differentialDiff);
 
         QueryDiffsFields queryDiffsFields = differentialDiff.queryDiff(diffId);
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_PHAB_REVISION_ID=").a(queryDiffsFields.getRevisionId()).println();

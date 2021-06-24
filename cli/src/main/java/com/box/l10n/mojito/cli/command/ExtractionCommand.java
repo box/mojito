@@ -3,7 +3,7 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionService;
-import com.box.l10n.mojito.cli.command.extraction.ExtractionsPaths;
+import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.cli.filefinder.FileMatch;
@@ -54,7 +54,7 @@ public class ExtractionCommand extends Command {
     String extractionName;
 
     @Parameter(names = {Param.EXTRACTION_OUTPUT_LONG, Param.EXTRACTION_OUTPUT_SHORT}, arity = 1, required = false, description = Param.EXTRACTION_OUTPUT_DESCRIPTION)
-    String outputDirectoryParam = ExtractionsPaths.DEFAULT_OUTPUT_DIRECTORY;
+    String outputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
     @Autowired
     CommandHelper commandHelper;
@@ -71,14 +71,14 @@ public class ExtractionCommand extends Command {
 
         consoleWriter.newLine().a("Perform local extraction, name: ").fg(Ansi.Color.CYAN).a(extractionName).println();
 
-        ExtractionsPaths extractionsPaths = new ExtractionsPaths(outputDirectoryParam);
-        extractionService.recreateExtractionDirectory(extractionsPaths, extractionName);
+        ExtractionPaths extractionPaths = new ExtractionPaths(outputDirectoryParam, extractionName);
+        extractionService.recreateExtractionDirectory(extractionPaths);
 
         ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
         for (FileMatch sourceFileMatch : sourceFileMatches) {
             List<String> filterOptions = commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam);
-            extractionService.fileMatchToAssetExtractionAndSaveToJsonFile(extractionName, extractionsPaths,
+            extractionService.fileMatchToAssetExtractionAndSaveToJsonFile(extractionPaths,
                     filterOptions, sourceFileMatch.getFileType().getFilterConfigIdOverride(), sourceFileMatch);
         }
 

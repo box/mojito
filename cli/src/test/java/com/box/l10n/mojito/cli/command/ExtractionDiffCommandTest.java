@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
@@ -143,23 +144,6 @@ public class ExtractionDiffCommandTest extends CLITestBase {
         assertEquals("LC_MESSAGES/messages2.pot", textUnitDTOS.get(7).getAssetPath());
 
         checkExpectedGeneratedResources();
-    }
-
-    @Test
-    public void getDiffExtractionNameOrDefault() {
-        ExtractionDiffCommand extractionDiffCommand = new ExtractionDiffCommand();
-        extractionDiffCommand.currentExtractionName = "current";
-        extractionDiffCommand.baseExtractionName = "base";
-        String diffExtractionNameOrDefault = extractionDiffCommand.getDiffExtractionNameOrDefault();
-        Assert.assertEquals("current_base", diffExtractionNameOrDefault);
-    }
-
-    @Test
-    public void getDiffExtractionNameOrDefaultWithName() {
-        ExtractionDiffCommand extractionDiffCommand = new ExtractionDiffCommand();
-        extractionDiffCommand.extractionDiffName = "edf";
-        String diffExtractionNameOrDefault = extractionDiffCommand.getDiffExtractionNameOrDefault();
-        Assert.assertEquals("edf", diffExtractionNameOrDefault);
     }
 
     @Test

@@ -4,8 +4,8 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
-import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffsPaths;
-import com.box.l10n.mojito.cli.command.extraction.ExtractionsPaths;
+import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
+import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
@@ -67,6 +67,12 @@ import java.util.stream.Stream;
 @Parameters(commandNames = {"extract-diff"}, commandDescription = "Generate a diff between 2 local extractions")
 public class ExtractionDiffCommand extends Command {
 
+    public static final String EXCTRACTION_DIFF_NAME_DESCRIPTION = "Name of the directory that will contain the diff, if not provided it will be {currentExtractionName}_{baseExtractionName}";
+    public static final String OUTPUT_DIRECTORY_DESCRIPTION = "The output directory of the extraction diff (default " + ExtractionDiffPaths.DEFAULT_OUTPUT_DIRECTORY + ")";
+    public static final String INPUT_DIRECTORY_DESCRIPTION = "The input directory that contains the extractions (default " + ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY + ")";
+    public static final String CURRENT_EXTRACTION_NAME_DESCRIPTION = "The current extraction name";
+    public static final String BASE_EXTRACTION_NAME_DESCRIPTION = "The base extraction name";
+
     /**
      * logger
      */
@@ -75,20 +81,20 @@ public class ExtractionDiffCommand extends Command {
     @Autowired
     ConsoleWriter consoleWriter;
 
-    @Parameter(names = {"--current", "-c"}, arity = 1, required = true, description = "The current extraction name")
+    @Parameter(names = {"--current", "-c"}, arity = 1, required = true, description = CURRENT_EXTRACTION_NAME_DESCRIPTION)
     String currentExtractionName;
 
-    @Parameter(names = {"--base", "-b"}, arity = 1, required = true, description = "The base extraction name")
+    @Parameter(names = {"--base", "-b"}, arity = 1, required = true, description = BASE_EXTRACTION_NAME_DESCRIPTION)
     String baseExtractionName;
 
-    @Parameter(names = {"--name", "-n"}, arity = 1, required = false, description = "Name of the directory that will contain the diff, if not provided it will be {currentExtractionName}_{baseExtractionName}")
+    @Parameter(names = {"--name", "-n"}, arity = 1, required = false, description = EXCTRACTION_DIFF_NAME_DESCRIPTION)
     String extractionDiffName = null;
 
-    @Parameter(names = {"--output-directory", "-o"}, arity = 1, required = false, description = "The output directory (default " + ExtractionDiffsPaths.DEFAULT_OUTPUT_DIRECTORY + ")")
-    String outputDirectoryParam = ExtractionDiffsPaths.DEFAULT_OUTPUT_DIRECTORY;
+    @Parameter(names = {"--output-directory", "-o"}, arity = 1, required = false, description = OUTPUT_DIRECTORY_DESCRIPTION)
+    String outputDirectoryParam = ExtractionDiffPaths.DEFAULT_OUTPUT_DIRECTORY;
 
-    @Parameter(names = {"--input-directory", "-i"}, arity = 1, required = false, description = "The input directory that contains the extractions (default " + ExtractionsPaths.DEFAULT_OUTPUT_DIRECTORY + ")")
-    String inputDirectoryParam = ExtractionsPaths.DEFAULT_OUTPUT_DIRECTORY;
+    @Parameter(names = {"--input-directory", "-i"}, arity = 1, required = false, description = INPUT_DIRECTORY_DESCRIPTION)
+    String inputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
     @Parameter(names = {"--push-to", "-p"}, arity = 1, required = false, description = "Push to the specified repository if there are added text units in the diff")
     String pushToRepository = null;
@@ -140,36 +146,40 @@ public class ExtractionDiffCommand extends Command {
         consoleWriter.newLine().a("Generate diff between extractions: ").fg(Ansi.Color.CYAN).a(currentExtractionName).reset()
                 .a(" and: ").fg(Ansi.Color.CYAN).a(baseExtractionName).println(2);
 
-        ExtractionsPaths extractionsPaths = new ExtractionsPaths(inputDirectoryParam);
-        ExtractionDiffsPaths extractionDiffsPaths = new ExtractionDiffsPaths(outputDirectoryParam);
-
-        String diffExtractionNameOrDefault = getDiffExtractionNameOrDefault();
+        ExtractionPaths baseExtractionPaths = new ExtractionPaths(inputDirectoryParam, baseExtractionName);
+        ExtractionPaths currentExtractionPaths = new ExtractionPaths(inputDirectoryParam, currentExtractionName);
+        ExtractionDiffPaths extractionDiffPaths = ExtractionDiffPaths.builder()
+                .outputDirectory(outputDirectoryParam)
+                .diffExtractionName(extractionDiffName)
+                .baseExtractorPaths(baseExtractionPaths)
+                .currentExtractorPaths(currentExtractionPaths)
+                .build();
 
         try {
-            extractionDiffService.computeAndWriteDiffs(currentExtractionName, baseExtractionName, diffExtractionNameOrDefault, extractionsPaths, extractionDiffsPaths);
+            extractionDiffService.computeAndWriteDiffs(extractionDiffPaths);
         } catch (MissingExtractionDirectoryExcpetion msobe) {
             throw new CommandException(msobe.getMessage());
         }
 
         if (pushToRepository != null) {
-            boolean hasAddedTextunits = extractionDiffService.hasAddedTextUnits(extractionDiffsPaths, diffExtractionNameOrDefault);
+            boolean hasAddedTextunits = extractionDiffService.hasAddedTextUnits(extractionDiffPaths);
 
             if (!hasAddedTextunits) {
                 consoleWriter.a("The diff is empty, don't push to repository: ").fg(Ansi.Color.CYAN).a(pushToRepository).println();
             } else {
                 consoleWriter.a("Push asset diffs to repository: ").fg(Ansi.Color.CYAN).a(pushToRepository).println(2);
-                pushToRepository(extractionDiffsPaths, diffExtractionNameOrDefault);
+                pushToRepository(extractionDiffPaths);
             }
         }
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }
 
-    void pushToRepository(ExtractionDiffsPaths extractionDiffsPaths, String diffExtractionNameOrDefault) throws CommandException {
+    void pushToRepository(ExtractionDiffPaths extractionDiffPaths) throws CommandException {
 
         Repository repository = commandHelper.findRepositoryByName(pushToRepository);
 
-        Stream<Path> allAssetExtractionDiffPaths = extractionDiffsPaths.findAllAssetExtractionDiffPaths(diffExtractionNameOrDefault);
+        Stream<Path> allAssetExtractionDiffPaths = extractionDiffPaths.findAllAssetExtractionDiffPaths();
 
         Stream<SourceAsset> sourceAssetStream = allAssetExtractionDiffPaths.map(path -> {
 
@@ -180,12 +190,12 @@ public class ExtractionDiffCommand extends Command {
             if (!assetExtractionDiff.getAddedTextunits().isEmpty()) {
                 String assetContent = objectMapper.writeValueAsStringUnchecked(assetExtractionDiff.getAddedTextunits());
 
-                String sourceFileMatchPath = extractionDiffsPaths.sourceFileMatchPath(path, extractionDiffName);
+                String sourceFileMatchPath = extractionDiffPaths.sourceFileMatchPath(path);
 
                 sourceAsset = new SourceAsset();
                 sourceAsset.setBranch(pushToBranchName);
                 sourceAsset.setBranchCreatedByUsername(pushToBranchCreatedBy);
-                sourceAsset.setPath(extractionDiffsPaths.sourceFileMatchPath(path, extractionDiffName));
+                sourceAsset.setPath(sourceFileMatchPath);
                 sourceAsset.setContent(assetContent);
                 sourceAsset.setExtractedContent(true);
                 sourceAsset.setRepositoryId(repository.getId());
@@ -197,13 +207,6 @@ public class ExtractionDiffCommand extends Command {
         }).filter(Objects::nonNull);
 
         pushService.push(repository, sourceAssetStream, pushToBranchName, pushType);
-    }
-
-    String getDiffExtractionNameOrDefault() {
-        if (extractionDiffName == null) {
-            extractionDiffName = currentExtractionName + "_" + baseExtractionName;
-        }
-        return extractionDiffName;
     }
 
     void failSafe(Throwable t) {
