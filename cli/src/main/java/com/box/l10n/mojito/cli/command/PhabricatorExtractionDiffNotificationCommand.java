@@ -98,7 +98,7 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
             consoleWriterAnsiCodeEnabledFalse.a(message).print();
             differentialRevision.addComment(objectId, message);
         } else {
-            consoleWriterAnsiCodeEnabledFalse.a("No need to send notification");
+            consoleWriterAnsiCodeEnabledFalse.a("No need to send notification").println();
         }
     }
 
