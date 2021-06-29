@@ -95,7 +95,7 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
 
         if (shouldSendNotification(extractionDiffStatistics)) {
             String message = getMessage(extractionDiffStatistics);
-            consoleWriterAnsiCodeEnabledFalse.a(message).print();
+            consoleWriterAnsiCodeEnabledFalse.a(message).println();
             differentialRevision.addComment(objectId, message);
         } else {
             consoleWriterAnsiCodeEnabledFalse.a("No need to send notification").println();
