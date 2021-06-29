@@ -26,6 +26,11 @@ public class QuartzJobsDeleteCommand extends Command {
     QuartzJobsClient quartzJobsClient;
 
     @Override
+    public boolean shouldShowInCommandList() {
+        return false;
+    }
+
+    @Override
     protected void execute() throws CommandException {   
         consoleWriter.a("Delete quartz jobs").println();
         quartzJobsClient.deleteAllDynamicJobs();

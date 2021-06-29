@@ -34,6 +34,11 @@ public class PhabricatorRevisionCommand extends Command {
     String targetPhid = null;
 
     @Override
+    public boolean shouldShowInCommandList() {
+        return false;
+    }
+
+    @Override
     public void execute() throws CommandException {
         if (phabricator == null) {
             throw new CommandException("Phabricator must be configured with properties: l10n.phabricator.url and l10n.phabricator.token");

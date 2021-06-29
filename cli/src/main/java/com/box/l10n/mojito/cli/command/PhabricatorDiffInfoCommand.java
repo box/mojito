@@ -15,16 +15,16 @@ import org.springframework.stereotype.Component;
 
 /**
  * Command to export Phabricator Diff info to list of envrionment variables
- *
+ * <p>
  * It will export revision id, base commit, author email and author username
  * (that's computed by removing the email part from the author email, it is not coming from phabricator).
- *
+ * <p>
  * Format is a list of environment variables like this:
  * MOJITO_PHAB_REVISION_ID=789456
  * MOJITO_PHAB_BASE_COMMIT=c32dadb23
  * MOJITO_PHAB_AUTHOR_EMAIL=user@test.com
  * MOJITO_PHAB_AUTHOR_USERNAME=user
- *
+ * <p>
  * Example how to source the result of the command in bash shell
  * source <(mojito phab-diff-to-env-variables --diff-id 123456)
  */
@@ -47,6 +47,11 @@ public class PhabricatorDiffInfoCommand extends Command {
 
     @Parameter(names = {"--diff-id"}, arity = 1, required = true, description = "Diff id")
     String diffId = null;
+
+    @Override
+    public boolean shouldShowInCommandList() {
+        return false;
+    }
 
     @Override
     public void execute() throws CommandException {

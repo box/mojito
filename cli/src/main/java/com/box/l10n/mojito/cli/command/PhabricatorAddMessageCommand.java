@@ -34,6 +34,10 @@ public class PhabricatorAddMessageCommand extends Command {
     @Parameter(names = {"--message", "-m"}, arity = 1, required = true, description = "message to add")
     String message;
 
+    @Override
+    public boolean shouldShowInCommandList() {
+        return false;
+    }
 
     @Override
     public void execute() throws CommandException {
