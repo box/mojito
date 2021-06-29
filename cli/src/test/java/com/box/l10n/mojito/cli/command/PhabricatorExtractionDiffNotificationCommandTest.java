@@ -115,5 +115,6 @@ public class PhabricatorExtractionDiffNotificationCommandTest extends CLITestBas
                 "-oid", "{objectId}");
 
         Mockito.verify(mock, Mockito.never()).addComment(anyString(), anyString());
+        assertTrue(outputCapture.toString().contains("No need to send notification"));
     }
 }
