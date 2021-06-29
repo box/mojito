@@ -74,6 +74,11 @@ public class EvolveCommand extends Command {
     CommandHelper commandHelper;
 
     @Override
+    public boolean shouldShowInCommandList() {
+        return false;
+    }
+
+    @Override
     public void execute() throws CommandException {
         checkEvolveConfiguration();
 

@@ -29,6 +29,11 @@ public class QuartzJobsViewCommand extends Command {
     QuartzJobsClient quartzJobsClient;
 
     @Override
+    public boolean shouldShowInCommandList() {
+        return false;
+    }
+
+    @Override
     protected void execute() throws CommandException {
         consoleWriter.a("Dynamic quartz jobs:").println();
         List<String> allDynamicJobs = quartzJobsClient.getAllDynamicJobs();
