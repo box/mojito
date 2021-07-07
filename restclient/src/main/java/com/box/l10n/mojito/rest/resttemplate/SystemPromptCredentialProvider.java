@@ -17,6 +17,7 @@ public class SystemPromptCredentialProvider implements CredentialProvider {
     @Value("${user.name}")
     String systemUserName;
 
+    @Value("${user.password}")
     String password;
 
     @Override
