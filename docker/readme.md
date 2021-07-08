@@ -34,19 +34,39 @@ services:
       - "mojito_mysql:/var/lib/mysql"
 ```
 
-# Build CLI image
+## Common issues
 
-`docker build -t aurambaj/mojito-cli -f docker/Dockerfile-cli-bk8 .`
+Incompatibility Mac/Linux for `node/` `node_modules/`, remove the directories before calling docker commands. Some
+`Dockerfile` remove the directories explicitly.
 
-# Multi-stage build
+# One-off build and push 
+
+## CLI image
+
+Build: `docker build -t aurambaj/mojito-cli -f docker/Dockerfile-cli-bk8 .` and push: `docker push aurambaj/mojito-cli:latest`
+
+Example to run a command: 
+`docker run --rm --name mojito-cli -it -e MOJITO_HOST="mojito.org" -e MOJITO_PORT="443" -e MOJITO_SCHEME="https" aurambaj/mojito-cli repo-view -n demo1`
+
+## Webapp image
+
+Build: `docker build -t aurambaj/mojito-webapp -f docker/Dockerfile-bk8 .` and push: `docker push aurambaj/mojito-webapp:latest`
+
+Start the webapp: `docker run --rm --name mojito-webapp -it aurambaj/mojito-webapp` and
+get a shell to try some command `docker exec -it mojito-webapp bash`
+
+# Old notes
+
+## May need extra env variable
+
+Depending on the version of docker
+`DOCKER_BUILDKIT=1 docker build -t aurambaj/mojito-webapp-bk8 -f docker/Dockerfile-bk8 .`
+
+## Multi-stage build
 
 To build manually `docker build -t aurambaj/mojito-webapp-ms8 -f docker/Dockerfile-ms8 .`
 
-# Multi-stage build with Buildkit 
-
-`DOCKER_BUILDKIT=1 docker build -t aurambaj/mojito-webapp-bk8 -f docker/Dockerfile-bk8 .`
-
-# Old, create image from already built jars
+## Create image from already built jars
 
 First build the Webapp with `mvn clean install -DskipTests`
 
@@ -54,31 +74,25 @@ In the `webapp/target` directory run `docker build -t aurambaj/mojito-webapp-old
 
 To test run it: `docker run -p 8080:8080 aurambaj/mojito-webapp-old:latest`
 
-# Local builds using docker compose
+## Local builds using docker compose
 
 Create a docker image only with the build binaries, and use docker-compose to build locally by mounting the source code
 and `.m2` repository
 
 `docker-compose -f docker/docker-compose-build.yml run compile`
 
-# Common issues / Random notes
-
-Incompatibility Mac/Linux for `node/` `node_modules/`, remove the directories before calling docker commands. Some 
-`Dockerfile` remove the directories explicitly.
-
-
-# Depending on the docker installation on Mac
+### Depending on the docker installation on Mac
 
 This is not needed with Docker Desktop for Mac but was needed before so for the reccord
 
-## Find IP on Mac
+### Find IP on Mac
 
 Depending on how you instlled docker on Mac, `localhost` may not work. To get the IP to reach the service: `docker-machine ip default`.
 
 `export l10n_resttemplate_host="192.168.99.111" ` and then whatever CLI command you have to run, eg.
 `mojito demo-create -n dockertest`
 
-## Extra configuration for mysql
+### Extra configuration for mysql
 
 ```
 services:
@@ -99,6 +113,7 @@ services:
           - --innodb_use_native_aio=0 # needed on Mac
 ```
 
-# Alpine version 
+## Alpine version 
 
-`FROM adoptopenjdk:8-jre` --> `FROM adoptopenjdk/openjdk8:alpine-jre`
+`FROM adoptopenjdk:8-jre` --> `FROM adoptopenjdk/openjdk8:alpine-jre` and change to `echo -e` for script generation
+and make sure to use `/bin/echo` for consistent behavior between alpine and ubuntu.
