@@ -104,8 +104,6 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
     @Test
     public void importPo() throws Exception {
 
-//        System.setProperty("overrideExpectedTestFiles", "true");
-
         Repository repository = createTestRepoUsingRepoService();
         repositoryService.addRepositoryLocale(repository, "ar-SA");
 
@@ -334,6 +332,28 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir().getAbsolutePath(),
                 "-ft", "JSON");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void importJsonI18NextParser() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft", "I18NEXT_PARSER_JSON");
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft", "I18NEXT_PARSER_JSON");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t", getTargetTestDir().getAbsolutePath(),
+            "-ft", "I18NEXT_PARSER_JSON");
 
         checkExpectedGeneratedResources();
     }
