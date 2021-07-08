@@ -779,6 +779,32 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void pullJsonI18NextParser() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft", "I18NEXT_PARSER_JSON");
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("locales/en/demo.json", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t", getTargetTestDir("target").getAbsolutePath(),
+            "-ft", "I18NEXT_PARSER_JSON");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+            "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+            "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+            "-ft", "I18NEXT_PARSER_JSON");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void pullFullyTranslated() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();

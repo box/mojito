@@ -101,7 +101,7 @@ public class IOTestBase {
      * Options to override expected test files.
      *
      * Test can be run that way: mvn test -DoverrideExpectedTestFiles=true
-     * or System.setProperty("DoverrideExpectedTestFiles", "true");
+     * or System.setProperty("overrideExpectedTestFiles", "true");
      *
      * @return
      */
