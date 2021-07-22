@@ -61,7 +61,7 @@ public class SmartlingAuthorizationCodeAccessTokenProviderTest {
     }
 
     @Test
-    public void testRefreshTokenMethodCalledIfNoExistingToken(){
+    public void testRefreshTokenMethodNotCalledIfNoExistingToken(){
 
         OAuth2AccessToken accessToken = smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(mockResourceDetails, mockAccessTokenRequest);
         Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(0)).refreshAccessToken(isA(OAuth2ProtectedResourceDetails.class), isA(OAuth2RefreshToken.class), isA(AccessTokenRequest.class));
