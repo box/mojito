@@ -58,7 +58,7 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
         }else {
             try {
                 DateTime now = getNowForToken();
-                AuthenticationResponse authenticationResponse = restTemplate.postForObject(details.getAccessTokenUri(), request, AuthenticationResponse.class);
+                AuthenticationResponse authenticationResponse = getRestTemplate().postForObject(details.getAccessTokenUri(), request, AuthenticationResponse.class);
                 accessToken = getDefaultOAuth2AccessToken(now, authenticationResponse);
             } catch (Exception e) {
                 String msg = "Can't get Smartling token";
@@ -82,7 +82,7 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
         DefaultOAuth2AccessToken defaultOAuth2AccessToken = null;
         try {
             DateTime now = getNowForToken();
-            AuthenticationResponse authenticationResponse = restTemplate.postForObject(smartlingOAuth2ProtectedResourceDetails.getRefreshUri(), request, AuthenticationResponse.class);
+            AuthenticationResponse authenticationResponse = getRestTemplate().postForObject(smartlingOAuth2ProtectedResourceDetails.getRefreshUri(), request, AuthenticationResponse.class);
             defaultOAuth2AccessToken = getDefaultOAuth2AccessToken(now, authenticationResponse);
         } catch (Exception e) {
             String msg = "Can't get Smartling refresh token";
@@ -118,4 +118,10 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
     DateTime getNowForToken() {
         return DateTime.now().minusSeconds(15);
     }
+
+    protected RestTemplate getRestTemplate(){
+        return restTemplate;
+    }
+
+
 }
