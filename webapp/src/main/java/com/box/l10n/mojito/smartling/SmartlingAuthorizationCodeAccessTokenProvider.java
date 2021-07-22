@@ -50,18 +50,24 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
         request.put("userIdentifier", details.getClientId());
         request.put("userSecret", details.getClientSecret());
 
-        DefaultOAuth2AccessToken defaultOAuth2AccessToken = null;
-        try {
-            DateTime now = getNowForToken();
-            AuthenticationResponse authenticationResponse = restTemplate.postForObject(details.getAccessTokenUri(), request, AuthenticationResponse.class);
-            defaultOAuth2AccessToken = getDefaultOAuth2AccessToken(now, authenticationResponse);
-        } catch (Exception e) {
-            String msg = "Can't get Smartling token";
-            logger.debug(msg, e);
-            throw new OAuth2AccessDeniedException(msg, details, e);
+        OAuth2AccessToken accessToken = null;
+        OAuth2AccessToken existingToken = accessTokenRequest.getExistingToken();
+        if (existingToken != null && existingToken.getRefreshToken() != null) {
+            logger.debug("Token exists with refresh token, refreshing access token");
+            accessToken = refreshAccessToken(details, existingToken.getRefreshToken(), accessTokenRequest);
+        } else {
+            try {
+                DateTime now = getNowForToken();
+                AuthenticationResponse authenticationResponse = getRestTemplate().postForObject(details.getAccessTokenUri(), request, AuthenticationResponse.class);
+                accessToken = getDefaultOAuth2AccessToken(now, authenticationResponse);
+            } catch (Exception e) {
+                String msg = "Can't get Smartling token";
+                logger.debug(msg, e);
+                throw new OAuth2AccessDeniedException(msg, details, e);
+            }
         }
 
-        return defaultOAuth2AccessToken;
+        return accessToken;
     }
 
     @Override
@@ -76,7 +82,7 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
         DefaultOAuth2AccessToken defaultOAuth2AccessToken = null;
         try {
             DateTime now = getNowForToken();
-            AuthenticationResponse authenticationResponse = restTemplate.postForObject(smartlingOAuth2ProtectedResourceDetails.getRefreshUri(), request, AuthenticationResponse.class);
+            AuthenticationResponse authenticationResponse = getRestTemplate().postForObject(smartlingOAuth2ProtectedResourceDetails.getRefreshUri(), request, AuthenticationResponse.class);
             defaultOAuth2AccessToken = getDefaultOAuth2AccessToken(now, authenticationResponse);
         } catch (Exception e) {
             String msg = "Can't get Smartling refresh token";
@@ -112,4 +118,10 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
     DateTime getNowForToken() {
         return DateTime.now().minusSeconds(15);
     }
+
+    protected RestTemplate getRestTemplate() {
+        return restTemplate;
+    }
+
+
 }
