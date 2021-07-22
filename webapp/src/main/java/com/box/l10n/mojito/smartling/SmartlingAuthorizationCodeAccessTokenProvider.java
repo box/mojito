@@ -52,10 +52,10 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
 
         OAuth2AccessToken accessToken = null;
         OAuth2AccessToken existingToken = accessTokenRequest.getExistingToken();
-        if(existingToken != null && existingToken.getRefreshToken() != null){
+        if (existingToken != null && existingToken.getRefreshToken() != null) {
             logger.debug("Token exists with refresh token, refreshing access token");
             accessToken = refreshAccessToken(details, existingToken.getRefreshToken(), accessTokenRequest);
-        }else {
+        } else {
             try {
                 DateTime now = getNowForToken();
                 AuthenticationResponse authenticationResponse = getRestTemplate().postForObject(details.getAccessTokenUri(), request, AuthenticationResponse.class);
@@ -119,7 +119,7 @@ public class SmartlingAuthorizationCodeAccessTokenProvider implements AccessToke
         return DateTime.now().minusSeconds(15);
     }
 
-    protected RestTemplate getRestTemplate(){
+    protected RestTemplate getRestTemplate() {
         return restTemplate;
     }
 
