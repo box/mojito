@@ -62,7 +62,7 @@ public class SmartlingClient {
 
     static final String ERROR_CANT_GET_FILES = "Can't get files";
     static final String ERROR_CANT_GET_SOURCE_STRINGS = "Can't get source strings";
-    static final String ERROR_CANT_DOWNLOAD_FILE = "Can't download file: %s ";
+    static final String ERROR_CANT_DOWNLOAD_FILE = "Can't download file: %s, projectId: %s, locale %s";
     static final String ERROR_CANT_UPLOAD_FILE = "Can't upload file: %s";
     static final String ERROR_CANT_DELETE_FILE = "Can't delete file: %s";
     static final String ERROR_CANT_UPLOAD_CONTEXT = "Can't upload context: %s";
@@ -112,7 +112,7 @@ public class SmartlingClient {
                     API_FILES_DOWNLOAD, String.class, projectId, locale, fileUri, includeOriginalStrings, retrievalType.getValue());
             return file;
         } catch(HttpClientErrorException e) {
-            throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_FILE, fileUri);
+            throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_FILE, fileUri, projectId, locale);
         }
     }
 
