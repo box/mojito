@@ -31,6 +31,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
+import com.box.l10n.mojito.smartling.SmartlingClientException;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -47,6 +48,8 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -63,17 +66,23 @@ import java.util.stream.Stream;
 import static com.box.l10n.mojito.android.strings.AndroidStringDocumentReader.fromText;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 /*
 * Hybrid integration test that uses a mocked smartling client to perform its operations.
@@ -204,6 +213,85 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         assertThat(result).allSatisfy(file -> assertThat(file.getFileName()).endsWith("singular_source.xml"));
         assertThat(result.subList(0, 4)).allSatisfy(file -> assertThat(readTextUnits(file, pluralSep)).hasSize(batchSize));
         assertThat(result.get(5)).satisfies(file -> assertThat(readTextUnits(file, pluralSep)).hasSize(singularTextUnits % batchSize));
+    }
+
+
+    @Test
+    public void testRetryDuringPush() throws RepositoryNameAlreadyUsedException {
+        int batchSize = 3;
+        List<SmartlingFile> result;
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
+        tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
+                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, mockThirdPartyTMSSmartlingWithJson, batchSize);
+        // throw timeout exception for first request, following request should be successful
+        when(smartlingClient.uploadFile(any(), any(), any(), any(), any(), any())).
+                thenThrow(new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT))).
+                thenReturn(null);
+
+        TM tm = repository.getTm();
+        Asset asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        int singularTextUnits = 16;
+        int singularBatches = 6;
+
+        for (int i = 0; i < singularTextUnits; i++){
+            String name = "singular_message_test" + i;
+            String content = "Singular Message Test " + i;
+            String comment = "Singular Comment" + i;
+            tmService.addTMTextUnit(tm.getId(), asset.getId(), name, content, comment);
+            assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+        }
+
+        prepareAssetAndTextUnits(assetExtraction, asset, tm);
+
+        tmsSmartling.push(repository, "projectId", pluralSep, null, null, Collections.emptyList());
+        result = resultProcessor.pushFiles;
+
+        assertThat(result).hasSize(singularBatches);
+        assertThat(result).allSatisfy(file -> assertThat(file.getFileName()).endsWith("singular_source.xml"));
+        assertThat(result.subList(0, 4)).allSatisfy(file -> assertThat(readTextUnits(file, pluralSep)).hasSize(batchSize));
+        assertThat(result.get(5)).satisfies(file -> assertThat(readTextUnits(file, pluralSep)).hasSize(singularTextUnits % batchSize));
+
+        // Verify Smartling client called 7 times, total batch size is 6 but first request fails and then successful retry.
+        verify(smartlingClient, times(7)).uploadFile(any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    public void testRetriesExhaustedDuringPush() throws RepositoryNameAlreadyUsedException {
+        doThrow(new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT))).when(smartlingClient).uploadFile(any(), any(), any(), any(), any(), any());
+        int batchSize = 3;
+        List<SmartlingFile> result;
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
+        tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
+                assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, mockThirdPartyTMSSmartlingWithJson, batchSize);
+
+
+        TM tm = repository.getTm();
+        Asset asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        int singularTextUnits = 16;
+        int singularBatches = 6;
+
+        for (int i = 0; i < singularTextUnits; i++){
+            String name = "singular_message_test" + i;
+            String content = "Singular Message Test " + i;
+            String comment = "Singular Comment" + i;
+            tmService.addTMTextUnit(tm.getId(), asset.getId(), name, content, comment);
+            assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+        }
+
+        prepareAssetAndTextUnits(assetExtraction, asset, tm);
+
+        RuntimeException exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.push(repository, "projectId", pluralSep, null, null, Collections.emptyList()));
+        assertTrue(exception.getMessage().contains("Retries exhausted: 3/3"));
+        // Verify Smartling client called 4 times, original request and then 3 retries before failure
+        verify(smartlingClient, times(4)).uploadFile(any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -417,6 +505,84 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                         tuple("plural_things _one", "One thing in fr-CA", "one", assetPath, "fr-CA", repository.getName()),
                         tuple("plural_things _few", "Few things in fr-CA", "few", assetPath, "fr-CA", repository.getName()),
                         tuple("plural_things _other", "Other things in fr-CA", "other", assetPath, "fr-CA", repository.getName()));
+    }
+
+    @Test
+    public void testRetrySuccessDuringPull() throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException {
+
+        ThirdPartyServiceTestData testData = new ThirdPartyServiceTestData(testIdWatcher);
+        Repository repository = testData.repository;
+        Map<String, String> localeMapping = Collections.emptyMap();
+        Locale frCA = localeService.findByBcp47Tag("fr-CA");
+        Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+        repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
+        repositoryService.addRepositoryLocale(repository, jaJP.getBcp47Tag());
+
+        // throw timeout exception on first request, retried request should be a success
+        when(smartlingClient.downloadPublishedFile(eq("projectId"), eq(frCA.getBcp47Tag()),
+                eq(singularFileName(repository, 0)), eq(false))).
+                thenThrow(new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT))).
+                thenReturn(singularContent(testData, frCA));
+
+        doReturn(singularContent(testData, jaJP)).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(jaJP.getBcp47Tag()),
+                eq(singularFileName(repository, 0)), eq(false));
+
+        doReturn(pluralsContent(frCA)).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(frCA.getBcp47Tag()),
+                eq(pluralFileName(repository, 0)), eq(false));
+        doReturn(pluralsContent(jaJP)).when(smartlingClient).downloadPublishedFile(eq("projectId"), eq(jaJP.getBcp47Tag()),
+                eq(pluralFileName(repository, 0)), eq(false));
+
+        tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, mockThirdPartyTMSSmartlingWithJson);
+        tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
+
+        verify(mockTextUnitBatchImporterService, times(4)).importTextUnits(
+                textUnitListCaptor.capture(),
+                eq(false),
+                eq(true));
+
+        // Verify 5 interactions with the mock (4 calls to pull method, one request failed but the first retry attempt is successful)
+        verify(smartlingClient, times(5)).downloadPublishedFile(anyString(), anyString(), anyString(), anyBoolean());
+
+        List<List<TextUnitDTO>> captured = textUnitListCaptor.getAllValues();
+
+        String assetPath = "src/main/res/values/strings.xml";
+        assertThat(captured.subList(0, 2).stream().flatMap(List::stream))
+                .extracting("name", "comment", "target", "assetPath", "targetLocale", "repositoryName")
+                .containsExactlyInAnyOrder(
+                        tuple("hello", "comment 1", "Hello in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in ja-JP", assetPath, "ja-JP", repository.getName()),
+                        tuple("hello", "comment 1", "Hello in fr-CA", assetPath, "fr-CA", repository.getName()),
+                        tuple("bye", "comment 2", "Bye in fr-CA", assetPath, "fr-CA", repository.getName()));
+
+        assertThat(captured.subList(2, 4).stream().flatMap(List::stream))
+                .extracting("name", "target", "pluralForm", "assetPath", "targetLocale", "repositoryName")
+                .containsExactlyInAnyOrder(
+                        tuple("plural_things _one", "One thing in ja-JP", "one", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _few", "Few things in ja-JP", "few", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _other", "Other things in ja-JP", "other", assetPath, "ja-JP", repository.getName()),
+                        tuple("plural_things _one", "One thing in fr-CA", "one", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _few", "Few things in fr-CA", "few", assetPath, "fr-CA", repository.getName()),
+                        tuple("plural_things _other", "Other things in fr-CA", "other", assetPath, "fr-CA", repository.getName()));
+    }
+
+    @Test
+    public void testRetriesExhaustedDuringPull() throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException {
+        doThrow(new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT))).when(smartlingClient).downloadPublishedFile(anyString(), anyString(), anyString(), anyBoolean());
+        ThirdPartyServiceTestData testData = new ThirdPartyServiceTestData(testIdWatcher);
+        Repository repository = testData.repository;
+        Map<String, String> localeMapping = Collections.emptyMap();
+        Locale frCA = localeService.findByBcp47Tag("fr-CA");
+        Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+        repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
+        repositoryService.addRepositoryLocale(repository, jaJP.getBcp47Tag());
+
+        tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
+                assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, mockThirdPartyTMSSmartlingWithJson);
+        RuntimeException exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList()));
+        assertTrue(exception.getMessage().contains("Retries exhausted: 3/3"));
+        // Verify 1 request and 3 retry attempts before exception thrown.
+        verify(smartlingClient, times(4)).downloadPublishedFile(anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -716,6 +882,113 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                     eq(null),
                     eq(null));
         });
+    }
+
+    @Test
+    public void testRetriesExhaustedPushTranslations() throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException {
+        doThrow(new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT))).when(smartlingClient).uploadLocalizedFile(anyString(), anyString(), anyString(), anyString(), anyString(), any(), any());
+        List<SmartlingFile> result;
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
+        Locale frCA = localeService.findByBcp47Tag("fr-CA");
+        Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+        repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
+        repositoryService.addRepositoryLocale(repository, jaJP.getBcp47Tag());
+
+        TM tm = repository.getTm();
+        Asset asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        int textUnits = 5;
+
+        for (int i = 0; i < textUnits; i++){
+            String name = "singular_message_test" + i;
+            String content = "Singular Message Test #" + i;
+            String comment = "Singular Comment" + i;
+            TMTextUnit textUnit = tmService.addTMTextUnit(tm.getId(), asset.getId(), name, content, comment);
+            assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+            tmService.addCurrentTMTextUnitVariant(textUnit.getId(), frCA.getId(), String.format("%s in %s", content, frCA.getBcp47Tag()));
+            tmService.addCurrentTMTextUnitVariant(textUnit.getId(), jaJP.getId(), String.format("%s in %s", content, jaJP.getBcp47Tag()));
+        }
+
+        prepareAssetAndTextUnits(assetExtraction, asset, tm);
+
+        Exception exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of()));
+        assertTrue(exception.getMessage().contains("Error uploading localized file to Smartling"));
+
+        verify(smartlingClient, times(4)).uploadLocalizedFile(
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString(),
+                any(),
+                any());
+    }
+
+    @Test
+    public void testRetryPushTranslations() throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException {
+        // First request results in timeout, retry then successful
+        when(smartlingClient.uploadLocalizedFile(anyString(), anyString(), anyString(), anyString(), anyString(), any(), any()))
+                .thenThrow(new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT)))
+                .thenReturn(null);
+        List<SmartlingFile> result;
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
+        Locale frCA = localeService.findByBcp47Tag("fr-CA");
+        Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+        repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
+        repositoryService.addRepositoryLocale(repository, jaJP.getBcp47Tag());
+
+        TM tm = repository.getTm();
+        Asset asset = assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        int textUnits = 5;
+
+        for (int i = 0; i < textUnits; i++){
+            String name = "singular_message_test" + i;
+            String content = "Singular Message Test #" + i;
+            String comment = "Singular Comment" + i;
+            TMTextUnit textUnit = tmService.addTMTextUnit(tm.getId(), asset.getId(), name, content, comment);
+            assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+            tmService.addCurrentTMTextUnitVariant(textUnit.getId(), frCA.getId(), String.format("%s in %s", content, frCA.getBcp47Tag()));
+            tmService.addCurrentTMTextUnitVariant(textUnit.getId(), jaJP.getId(), String.format("%s in %s", content, jaJP.getBcp47Tag()));
+        }
+
+        prepareAssetAndTextUnits(assetExtraction, asset, tm);
+
+        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of());
+        result = resultProcessor.pushTranslationFiles;
+
+        assertThat(result).hasSize(2);
+        Stream.of(jaJP, frCA).forEach(locale -> {
+            SmartlingFile file = result.stream()
+                    .filter(f -> f.getFileName().contains(locale.getBcp47Tag()))
+                    .findFirst()
+                    .get();
+
+            assertThat(file.getFileName()).isEqualTo(singularTargetFileName(repository, locale, 0));
+            assertThat(readTextUnits(file, pluralSep)).allSatisfy(tu -> {
+                assertThat(tu.getComment()).startsWith("Singular Comment");
+                assertThat(tu.getName()).startsWith("singular_message_test");
+                assertThat(tu.getAssetPath()).isEqualTo("fake_for_test");
+                assertThat(tu.getTarget()).startsWith("Singular Message Test #");
+                assertThat(tu.getTarget()).endsWith(locale.getBcp47Tag());
+            });
+        });
+
+        // Verify upload localized file called three times due to retry on first request
+        verify(smartlingClient, times(3)).uploadLocalizedFile(
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString(),
+                eq(null),
+                eq(null));
     }
 
     @Test
