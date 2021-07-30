@@ -16,6 +16,8 @@ class BranchesScreenshotUploadModalStore {
         this.show = false;
         this.uploadDisabled = true;
 
+        this.uploadInProgress = false;
+
         this.fileToUpload = null;
 
         // Data URL
@@ -40,6 +42,7 @@ class BranchesScreenshotUploadModalStore {
     uploadScreenshotImage() {
         let generatedUuid = v4() + this.fileToUpload.name;
         this.screenshotSrc = 'api/images/' + generatedUuid;
+        this.uploadInProgress = true;
         this.getInstance().performUploadScreenshotImage(generatedUuid);
     }
 
@@ -48,6 +51,7 @@ class BranchesScreenshotUploadModalStore {
     }
 
     uploadScreenshotImageError() {
+        this.uploadInProgress = false;
         this.errorMessage = "Couldn't upload image";
     }
 

@@ -8,6 +8,7 @@ class BranchesScreenshotUploadModal extends React.Component {
     static propTypes = {
         "show": PropTypes.bool.isRequired,
         "uploadDisabled": PropTypes.bool.isRequired,
+        "uploadInProgress": PropTypes.bool.isRequired,
         "onUpload": PropTypes.func.isRequired,
         "onCancel": PropTypes.func.isRequired,
         "onSelectedFileChange": PropTypes.func.isRequired,
@@ -43,8 +44,9 @@ class BranchesScreenshotUploadModal extends React.Component {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={this.props.onUpload} bsStyle="primary"
-                            disabled={this.props.imageForUpload === null}>
-                        <FormattedMessage id="branches.screenshotUploadModal.upload"/>
+                            disabled={this.props.imageForUpload === null || this.props.uploadInProgress}>
+                        {!this.props.uploadInProgress && <FormattedMessage id="branches.screenshotUploadModal.upload"/>}
+                        {this.props.uploadInProgress && <FormattedMessage id="upload.screenshot.processing"/>}
                     </Button>
                     <Button onClick={this.props.onCancel}>
                         <FormattedMessage id="label.cancel"/>
