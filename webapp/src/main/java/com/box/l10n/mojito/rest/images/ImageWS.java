@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.images;
 import com.box.l10n.mojito.entity.Image;
 import com.box.l10n.mojito.service.image.ImageService;
 import java.io.IOException;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -41,20 +42,13 @@ public class ImageWS {
 
         String imageName = getImageNameFromRequest(httpServletRequest);
 
-        Image image = imageService.getImage(imageName);
-
-        ResponseEntity responseEntity = null;
-
-        if (image != null) {
-            responseEntity = ResponseEntity
-                    .ok()
-                    .contentType(getMediaTypeFromImageName(imageName))
-                    .body(image.getContent());
-        } else {
-            responseEntity = ResponseEntity.notFound().build();
-        }
+        Optional<Image> image = imageService.getImage(imageName);
         
-        return responseEntity;
+        return image.map(i -> ResponseEntity
+                        .ok()
+                        .contentType(getMediaTypeFromImageName(imageName))
+                        .body(image.get().getContent()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @RequestMapping(value = "/api/images/**", method = RequestMethod.PUT)
