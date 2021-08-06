@@ -329,7 +329,7 @@ public class ThirdPartyService {
 
         Optional<Image> image = Optional.ofNullable(screenshot.getSrc())
                 .map(src -> src.replaceAll("^api/images/", ""))
-                .map(name -> imageService.getImage(name));
+                .flatMap(name -> imageService.getImage(name));
 
         return image;
     }

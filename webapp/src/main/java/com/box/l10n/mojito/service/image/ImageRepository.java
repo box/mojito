@@ -6,11 +6,13 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
+import java.util.Optional;
+
 /**
  * @author jaurambault
  */
 @RepositoryRestResource(exported = false)
 public interface ImageRepository extends JpaRepository<Image, Long>, JpaSpecificationExecutor<Image> {
     
-    Image findByName(@Param("name") String name);
+    Optional<Image> findByName(@Param("name") String name);
 }
