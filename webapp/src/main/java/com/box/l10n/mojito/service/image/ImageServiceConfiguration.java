@@ -9,6 +9,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+/**
+ * Configuration for {@link ImageService}
+ *
+ * {@link DatabaseImageService} is the default implementation.
+ *
+ * {@link S3ImageService} and {@link S3FallbackImageService} both require that configured {@link S3BlobStorage}
+ *  and {@link com.amazonaws.services.s3.AmazonS3} client instances are available in the container.
+ *
+ */
 @Configuration
 public class ImageServiceConfiguration {
 
