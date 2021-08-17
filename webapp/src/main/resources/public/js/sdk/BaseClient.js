@@ -105,6 +105,7 @@ class BaseClient {
     }
 
     putBinaryData(url, data) {
+        const redirectMethod = APP_CONFIG.security.handleRedirectAsErrorOnImageUpload === true ? "manual" : "follow"
         return fetch(url, {
             method: 'put',
             compress: false, // workaround for node-fetch, see this file header
@@ -113,8 +114,13 @@ class BaseClient {
             headers: {
                 'X-CSRF-TOKEN': this.getCSRF()
             },
-            follow: 0
+            follow: 0,
+            redirect: redirectMethod
         }).then(response => {
+            if (APP_CONFIG.security.handleRedirectAsErrorOnImageUpload === true && response.status === 0) {
+                // Workaround for OAuth redirect for auth on image upload causing silent TOO_MANY_REDIRECTS failure
+                BaseClient.authenticateHandler();
+            }
             this.handleUnauthenticatedResponse(response);
         });
     }

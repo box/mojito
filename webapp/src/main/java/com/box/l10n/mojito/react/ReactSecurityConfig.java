@@ -15,6 +15,8 @@ public class ReactSecurityConfig {
 
     Map<String, OAuth2> oAuth2;
 
+    boolean handleRedirectAsErrorOnImageUpload;
+
     @Autowired
     public ReactSecurityConfig(SecurityConfig securityConfig) {
         Preconditions.checkNotNull(securityConfig);
@@ -23,6 +25,15 @@ public class ReactSecurityConfig {
                 e -> e.getKey(),
                 e -> new OAuth2(e.getValue())
         ));
+        this.handleRedirectAsErrorOnImageUpload = securityConfig.isHandleRedirectAsErrorOnImageUpload();
+    }
+
+    public boolean isHandleRedirectAsErrorOnImageUpload() {
+        return handleRedirectAsErrorOnImageUpload;
+    }
+
+    public void setHandleRedirectAsErrorOnImageUpload(boolean handleRedirectAsErrorOnImageUpload) {
+        this.handleRedirectAsErrorOnImageUpload = handleRedirectAsErrorOnImageUpload;
     }
 
     public String getUnauthRedirectTo() {

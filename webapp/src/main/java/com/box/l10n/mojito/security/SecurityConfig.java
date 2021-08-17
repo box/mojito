@@ -35,6 +35,8 @@ public class SecurityConfig {
 
     Map<String, OAuth2> oAuth2 = new HashMap<>();
 
+    boolean handleRedirectAsErrorOnImageUpload;
+
     public List<AuthenticationType> getAuthenticationType() {
         return authenticationType;
     }
@@ -57,6 +59,14 @@ public class SecurityConfig {
 
     public void setoAuth2(Map<String, OAuth2> oAuth2) {
         this.oAuth2 = oAuth2;
+    }
+
+    public boolean isHandleRedirectAsErrorOnImageUpload() {
+        return handleRedirectAsErrorOnImageUpload;
+    }
+
+    public void setHandleRedirectAsErrorOnImageUpload(boolean handleRedirectAsErrorOnImageUpload) {
+        this.handleRedirectAsErrorOnImageUpload = handleRedirectAsErrorOnImageUpload;
     }
 
     /**

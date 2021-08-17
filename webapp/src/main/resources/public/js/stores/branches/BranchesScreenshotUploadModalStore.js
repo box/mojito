@@ -50,9 +50,12 @@ class BranchesScreenshotUploadModalStore {
         this.getInstance().performUploadScreenshot();
     }
 
-    uploadScreenshotImageError() {
+    uploadScreenshotImageError(error) {
         this.uploadInProgress = false;
         this.errorMessage = "Couldn't upload image";
+        if (error.response && (error.response.status === 401 || error.response.status === 0)) {
+            this.errorMessage = "Authentication has expired. Please reauthenticate and try again."
+        }
     }
 
     uploadScreenshotSuccess() {
