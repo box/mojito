@@ -2,6 +2,8 @@ package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hibernate.annotations.BatchSize;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.Column;
@@ -11,6 +13,8 @@ import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedAttributeNode;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -26,6 +30,10 @@ import javax.persistence.Table;
             @Index(name = "UK__SCREENSHOT_RUN__NAME", columnList = "name", unique = true)
         }
 )
+@NamedEntityGraph(
+        name = "ScreenshotRunGraph",
+        attributeNodes = { @NamedAttributeNode("screenshots") })
+@BatchSize(size = 1000)
 public class ScreenshotRun extends SettableAuditableEntity {
 
     @ManyToOne
@@ -37,7 +45,7 @@ public class ScreenshotRun extends SettableAuditableEntity {
     private String name;
 
     @JsonDeserialize(as = LinkedHashSet.class)
-    @OneToMany(mappedBy = "screenshotRun", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "screenshotRun", fetch = FetchType.LAZY)
     Set<Screenshot> screenshots = new LinkedHashSet<>();
 
     @Column(name = "lastSuccessfulRun")

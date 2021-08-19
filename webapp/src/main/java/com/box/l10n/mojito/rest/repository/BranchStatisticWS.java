@@ -1,15 +1,17 @@
 package com.box.l10n.mojito.rest.repository;
 
+import com.box.l10n.mojito.aspect.StopWatch;
 import com.box.l10n.mojito.entity.BranchStatistic;
 import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
-import com.box.l10n.mojito.service.branch.BranchStatisticService;
+import com.box.l10n.mojito.service.branch.SparseBranchStatisticRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.branchEquals;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.branchNameEquals;
@@ -47,10 +51,11 @@ public class BranchStatisticWS {
     BranchStatisticRepository branchStatisticRepository;
 
     @Autowired
-    BranchStatisticService branchStatisticService;
+    SparseBranchStatisticRepository sparseBranchStatisticRepository;
 
     @JsonView(View.BranchStatistic.class)
     @RequestMapping(value = "/api/branchStatistics", method = RequestMethod.GET)
+    @StopWatch
     public Page<BranchStatistic> getBranchesOfRepository(
             @RequestParam(value = "createdByUserName", required = false) String createdByUserName,
             @RequestParam(value = "branchId", required = false) Long branchId,
@@ -61,16 +66,21 @@ public class BranchStatisticWS {
             @RequestParam(value = "totalCountLte", required = false, defaultValue = "30000") Long totalCountLte,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        Page<BranchStatistic> page = branchStatisticRepository.findAll(where(
-                ifParamNotNull(createdByUserNameEquals(createdByUserName))).and(
-                ifParamNotNull(branchEquals(branchId))).and(
-                ifParamNotNull(branchNameEquals(branchName))).and(
-                ifParamNotNull(search(search))).and(
-                ifParamNotNull(deletedEquals(deleted))).and(
-                ifParamNotNull(empty(empty))).and(
-                totalCountLessThanOrEqualsTo(totalCountLte))
+        // Two phase querying: 1. retrieve BranchStatistic IDs for pagination first
+        Page<Long> branchStatisticIds = sparseBranchStatisticRepository.findAllWithIdOnly(where(
+                        ifParamNotNull(createdByUserNameEquals(createdByUserName))).and(
+                        ifParamNotNull(branchEquals(branchId))).and(
+                        ifParamNotNull(branchNameEquals(branchName))).and(
+                        ifParamNotNull(search(search))).and(
+                        ifParamNotNull(deletedEquals(deleted))).and(
+                        ifParamNotNull(empty(empty))).and(
+                        totalCountLessThanOrEqualsTo(totalCountLte))
                 , pageable);
 
+        // 2. Hydrate BranchStatistic entities for JSON response using eager loading to avoid N+1 queries
+        List<BranchStatistic> branchStatistics = branchStatisticRepository.findByIdIn(branchStatisticIds.getContent(), pageable.getSort());
+
+        PageImpl page = new PageImpl(branchStatistics, branchStatisticIds.getPageable(), branchStatisticIds.getTotalElements());
         return new PageView<>(page);
     }
 }

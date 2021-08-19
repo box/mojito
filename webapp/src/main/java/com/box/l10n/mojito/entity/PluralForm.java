@@ -5,6 +5,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.NaturalId;
 
 /**
@@ -20,6 +22,7 @@ import org.hibernate.annotations.NaturalId;
             @Index(name = "UK__PLURAL_FORM__NAME", columnList = "name", unique = true)
         }
 )
+@BatchSize(size = 6)
 public class PluralForm extends BaseEntity {
 
     @Basic(optional = false)

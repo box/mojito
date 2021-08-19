@@ -7,6 +7,7 @@ import javax.persistence.*;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 
 import java.util.Set;
@@ -28,6 +29,7 @@ import java.util.Set;
             @Index(name = "UK__ASSET__REPOSITORY_ID__PATH", columnList = "repository_id, path", unique = true),
         }
 )
+@BatchSize(size = 1000)
 public class Asset extends AuditableEntity {
 
     @ManyToOne(optional = false)

@@ -1,4 +1,5 @@
 /docker/.data
+/cli/performance/
 /cli/target/
 /webapp/target/
 application.pid

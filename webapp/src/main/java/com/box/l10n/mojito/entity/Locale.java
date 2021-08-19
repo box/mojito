@@ -7,6 +7,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.Table;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.NaturalId;
 
 /**
@@ -21,6 +22,9 @@ import org.hibernate.annotations.NaturalId;
                 @Index(name = "UK__LOCALE__BCP47_TAG", columnList = "bcp47_tag", unique = true)
         }
 )
+// The batch size should be the size of the table, it's set to 2000 to allow
+// for growth without needing further updates.
+@BatchSize(size = 2000)
 public class Locale extends BaseEntity {
 
     @Basic(optional = false)

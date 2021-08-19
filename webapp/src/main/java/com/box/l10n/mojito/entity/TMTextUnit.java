@@ -3,6 +3,7 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -33,6 +34,7 @@ import javax.persistence.Table;
             @Index(name = "I__TM_TEXT_UNIT__PLURAL_FORM_OTHER", columnList = "plural_form_other")
         }
 )
+@BatchSize(size = 1000)
 public class TMTextUnit extends SettableAuditableEntity {
 
     @JsonView(View.IdAndName.class)

@@ -22,6 +22,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
+
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.springframework.data.annotation.CreatedBy;
@@ -38,6 +40,7 @@ import org.springframework.data.annotation.CreatedBy;
                 @Index(name = "I__POLLABLE_TASK__FINISHED_DATE", columnList = "finished_date")
         }
 )
+@BatchSize(size = 1000)
 public class PollableTask extends AuditableEntity {
 
     /**
@@ -71,6 +74,7 @@ public class PollableTask extends AuditableEntity {
 
     @OneToMany(mappedBy = "parentTask", fetch = FetchType.EAGER)
     @OrderBy("id")
+    @BatchSize(size = 1000)
     private Set<PollableTask> subTasks;
 
     @JsonBackReference

@@ -3,6 +3,7 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import java.util.HashSet;
 import java.util.Set;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedBy;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -17,6 +18,7 @@ import javax.persistence.OneToMany;
  * @author jaurambault
  */
 @Entity
+@BatchSize(size = 1000)
 public class TM extends AuditableEntity {
 
     @CreatedBy

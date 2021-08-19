@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -23,7 +24,6 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
@@ -87,6 +87,7 @@ public class Screenshot extends SettableAuditableEntity {
     @OneToMany(mappedBy = "screenshot", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonProperty("textUnits")
     @JsonDeserialize(as = LinkedHashSet.class)
+    @BatchSize(size = 1000)
     private Set<ScreenshotTextUnit> screenshotTextUnits = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "screenshot")
