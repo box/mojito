@@ -46,4 +46,22 @@ public class BranchNotificationMessageBuilderPhabricatorTest {
                 " - string2", updatedMessage);
     }
 
+    @Test
+    public void getNoMoreStringsMessage() {
+        String noMoreStrings = branchNotificationMessageBuilderPhabricator.getNoMoreStringsMessage();
+        assertEquals("The branch was updated and there are no more strings to translate.", noMoreStrings);
+    }
+
+    @Test
+    public void getTranslationsReadyMessage() {
+        String translationsReady = branchNotificationMessageBuilderPhabricator.getTranslatedMessage();
+        assertEquals("Translations are ready!!", translationsReady);
+    }
+
+    @Test
+    public void getScreenshotsMissingMessage() {
+        String screenshotsMissingMsg = branchNotificationMessageBuilderPhabricator.getScreenshotMissingMessage();
+        assertEquals("Please provide screenshots to help localization team", screenshotsMissingMsg);
+    }
+
 }
