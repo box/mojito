@@ -202,6 +202,7 @@ function onEnterBranches() {
 function onEnterScreenshots() {
     setTimeout(() => {
         ScreenshotsRepositoryActions.getAllRepositories();
+        ScreenshotsPageActions.performSearch();
     }, 1);
 }
 

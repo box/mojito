@@ -125,8 +125,6 @@ class BranchesHistoryStore {
         }
 
         BranchesDataSource.enableHistoryUpdate();
-
-        BranchesPageActions.getBranches();
     }
 }
 

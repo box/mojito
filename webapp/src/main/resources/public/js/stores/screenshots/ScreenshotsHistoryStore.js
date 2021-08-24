@@ -171,8 +171,6 @@ class ScreenshotsHistoryStore {
         ScreenshotsPageActions.changeSelectedScreenshotIdx(selectedScreenshotIdx);
 
         ScreenshotsHistoryActions.enableHistoryUpdate();
-
-        ScreenshotsPageActions.performSearch();
     }
 }
 
