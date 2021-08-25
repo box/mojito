@@ -7,6 +7,7 @@ import com.box.l10n.mojito.slack.request.Field;
 import com.box.l10n.mojito.slack.request.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -28,9 +29,28 @@ public class BranchNotificationMessageBuilderSlack {
     @Autowired
     BranchUrlBuilder branchUrlBuilder;
 
+    @Value("${l10n.branchNotification.slack.notification.message.new:We received your strings! " +
+            "Please *add screenshots* as soon as possible and *wait for translations* before releasing.}")
+    String newNotificationMsg;
+
+    @Value("${l10n.branchNotification.slack.notification.message.updated:Your branch was updated with new strings! " +
+            "Please *add screenshots* as soon as possible and *wait for translations* before releasing.}")
+    String updatedNotificationMsg;
+
+    @Value("${l10n.branchNotification.slack.notification.message.translationsReady:Translations are ready !! :party:}")
+    String translationsReadyMsg;
+
+    @Value("${l10n.branchNotification.slack.notification.message.screenshotsMissing:" +
+            ":warning: Please provide screenshots to help localization team :warning:}")
+    String screenshotsMissingMsg;
+
+    @Value("${l10n.branchNotification.slack.notification.message.noMoreStrings:The branch was updated and there are no more strings to translate.}")
+    String noMoreStringsMsg;
+
+
     public Message getNewMessage(String channel, String pr, List<String> sourceStrings) {
         Message message = getBaseMessage(channel, pr, sourceStrings,
-                "We received your strings! Please *add screenshots* as soon as possible and *wait for translations* before releasing.");
+                newNotificationMsg);
         return message;
     }
 
@@ -41,10 +61,10 @@ public class BranchNotificationMessageBuilderSlack {
         if (sourceStrings.isEmpty()) {
             message = new Message();
             message.setChannel(channel);
-            message.setText("The branch was updated and there are no more strings to translate.");
+            message.setText(noMoreStringsMsg);
         } else {
             message = getBaseMessage(channel, pr, sourceStrings,
-                    "Your branch was updated with new strings! Please *add screenshots* as soon as possible and *wait for translations* before releasing.");
+                    updatedNotificationMsg);
         }
 
         message.setThreadTs(threadTs);
@@ -55,7 +75,7 @@ public class BranchNotificationMessageBuilderSlack {
         Message message = new Message();
         message.setChannel(channel);
         message.setThreadTs(threadTs);
-        message.setText("Translations are ready !! :party:");
+        message.setText(translationsReadyMsg);
         return message;
     }
 
@@ -63,7 +83,7 @@ public class BranchNotificationMessageBuilderSlack {
         Message message = new Message();
         message.setChannel(channel);
         message.setThreadTs(threadTs);
-        message.setText(":warning: Please provide screenshots to help localization team :warning:");
+        message.setText(screenshotsMissingMsg);
         return message;
     }
 
