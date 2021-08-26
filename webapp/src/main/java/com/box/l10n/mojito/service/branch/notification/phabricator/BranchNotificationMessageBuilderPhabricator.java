@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.branch.notification.phabricator;
 
 import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
+import com.google.common.collect.ImmutableMap;
+import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +24,12 @@ public class BranchNotificationMessageBuilderPhabricator {
     @Autowired
     BranchUrlBuilder branchUrlBuilder;
 
+    @Value("${l10n.branchNotification.phabricator.notification.message.new.format:{message}{link}\n\n{strings}}")
+    String getNewNotificationMsgFormat;
+
+    @Value("${l10n.branchNotification.phabricator.notification.message.updated.format:{message}{link}\n\n{strings}}")
+    String getUpdatedNotificationMsgFormat;
+
     @Value("${l10n.branchNotification.phabricator.notification.message.new:We received your strings! " +
             "Please **add screenshots** as soon as possible and **wait for translations** before releasing. }")
     String newNotificationMsg;
@@ -40,23 +48,32 @@ public class BranchNotificationMessageBuilderPhabricator {
     String screenshotsMissingMsg;
 
     public String getNewMessage(String branchName, List<String> sourceStrings) {
-        return newNotificationMsg +
-                getLinkGoToMojito(branchName) + "\n\n" +
-                getFormattedSourceStrings(sourceStrings);
+        MessageFormat messageFormat = new MessageFormat(getNewNotificationMsgFormat);
+        ImmutableMap<String, Object> messageParamMap = ImmutableMap.<String, Object>builder()
+                .put("message", newNotificationMsg)
+                .put("link", getLinkGoToMojito(branchName))
+                .put("strings", getFormattedSourceStrings(sourceStrings))
+                .build();
+        return messageFormat.format(messageParamMap);
     }
+
 
     public String getUpdatedMessage(String branchName, List<String> sourceStrings) {
 
         String msg = null;
 
+        MessageFormat messageFormat = new MessageFormat(getUpdatedNotificationMsgFormat);
+        ImmutableMap<String, Object> messageParamMap;
         if (sourceStrings.isEmpty()) {
-            msg = noMoreStringsMsg;
+            messageParamMap = ImmutableMap.<String, Object>builder().put("message", noMoreStringsMsg).build();
         } else {
-            msg = updatedNotificationMsg +
-                    getLinkGoToMojito(branchName) + "\n\n" +
-                    getFormattedSourceStrings(sourceStrings);
+            messageParamMap = ImmutableMap.<String, Object>builder()
+                    .put("message", updatedNotificationMsg)
+                    .put("link", getLinkGoToMojito(branchName))
+                    .put("strings", getFormattedSourceStrings(sourceStrings))
+                    .build();
         }
-        return msg;
+        return messageFormat.format(messageParamMap);
     }
 
     public String getNoMoreStringsMessage() { return noMoreStringsMsg; }
