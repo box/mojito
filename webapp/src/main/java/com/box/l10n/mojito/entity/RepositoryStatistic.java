@@ -16,10 +16,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
-import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
-import org.hibernate.annotations.NamedNativeQueries;
-import org.hibernate.annotations.NamedNativeQuery;
+
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.springframework.data.annotation.CreatedBy;
@@ -32,6 +31,7 @@ import org.springframework.data.annotation.CreatedBy;
  */
 @Entity
 @Table(name = "repository_statistic")
+@BatchSize(size = 1000)
 public class RepositoryStatistic extends AuditableEntity {
 
     /**

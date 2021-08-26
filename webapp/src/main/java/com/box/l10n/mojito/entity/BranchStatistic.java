@@ -18,17 +18,27 @@ import java.util.Set;
                 @Index(name = "UK__BRANCH_STATISTIC__BRANCH_ID", columnList = "branch_id", unique = true),
         }
 )
+@NamedEntityGraph(
+        name = "BranchStatisticGraph",
+        attributeNodes = {
+            @NamedAttributeNode(value = "branch", subgraph = "branchGraph"),
+            @NamedAttributeNode("branchTextUnitStatistics")},
+        subgraphs = @NamedSubgraph(name = "branchGraph",
+                attributeNodes = {
+                    @NamedAttributeNode(value = "screenshots"),
+                    @NamedAttributeNode(value = "repository"),
+                }))
 public class BranchStatistic extends BaseEntity {
 
     @JsonView(View.BranchStatistic.class)
-    @ManyToOne(optional = false)
+    @OneToOne(optional = false)
     @JoinColumn(name = "branch_id", foreignKey = @ForeignKey(name = "FK__BRANCH_STATISTIC__BRANCH__ID"))
     private Branch branch;
 
     @JsonView(View.BranchStatistic.class)
     @JsonManagedReference
     @OneToMany(mappedBy = "branchStatistic")
-    @OrderBy(value = "tm_text_unit_id")
+    @OrderBy("tmTextUnit.id")
     private Set<BranchTextUnitStatistic> branchTextUnitStatistics = new HashSet<>();
 
     @JsonView(View.BranchStatistic.class)
