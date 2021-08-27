@@ -20,15 +20,10 @@ import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingClientException;
-import com.box.l10n.mojito.smartling.SmartlingJsonKeys;
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
-import com.box.l10n.mojito.smartling.response.ContextUpload;
 import com.box.l10n.mojito.smartling.response.File;
-import com.box.l10n.mojito.smartling.response.Key;
 import com.box.l10n.mojito.smartling.response.StringInfo;
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -48,7 +43,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -311,7 +305,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
 
         if (options.isJsonSync()) {
-            thirdPartyTMSSmartlingWithJson.pull(repository, projectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            thirdPartyTMSSmartlingWithJson.pull(repository, projectId, localeMapping);
             return;
         }
 
