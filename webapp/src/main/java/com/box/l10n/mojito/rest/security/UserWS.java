@@ -59,6 +59,16 @@ public class UserWS {
     }
 
     /**
+     * Endpoint to verify if the user session is active
+     *
+     * @return a 200 response if the user session is active.
+     */
+    @RequestMapping(value = "/api/users/session", method = RequestMethod.GET)
+    public ResponseEntity isSessionActive(){
+        return ResponseEntity.ok().build();
+    }
+
+    /**
      * Creates a {@link User}
      *
      * @param user
