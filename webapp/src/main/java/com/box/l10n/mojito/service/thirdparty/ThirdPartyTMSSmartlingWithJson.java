@@ -25,12 +25,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
-import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -122,11 +121,7 @@ public class ThirdPartyTMSSmartlingWithJson {
 
     void pull(Repository repository,
               String projectId,
-              String pluralSeparator,
-              Map<String, String> localeMapping,
-              String skipTextUnitsWithPattern,
-              String skipAssetsWithPathPattern,
-              SmartlingOptions smartlingOptions) {
+              Map<String, String> localeMapping) {
 
         List<File> repositoryFilesFromProject = getRepositoryFilesFromProject(repository, projectId);
 
@@ -135,18 +130,20 @@ public class ThirdPartyTMSSmartlingWithJson {
             getRepositoryLocaleWithoutRootStream(repository)
                     .forEach(repositoryLocale -> {
                         String smartlingLocale = getSmartlingLocale(localeMapping, repositoryLocale);
-                        String localizedFileContent = Mono.fromCallable(() -> smartlingClient.downloadPublishedFile(projectId, smartlingLocale, file.getFileUri(), false))
-                                .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
-                                        .doBeforeRetry(e -> logger.info(String.format("Retrying download published file request for locale %s, file %s in project %s", smartlingLocale, file.getFileUri(), projectId), e.failure())))
-                                .doOnError(e -> {
-                                    String msg = String.format("Error downloading published file for locale %s, file %s in project %s", smartlingLocale, file.getFileUri(), projectId);
-                                    logger.error(msg, e);
-                                    throw new SmartlingClientException(msg, e);
-                                })
-                                .blockOptional()
-                                .orElseThrow(() -> new SmartlingClientException("Error downloading published file from Smartling, file content is not present"));
+                        String localizedFileContent = getLocalizedFileContent(projectId, file, smartlingLocale, false);
 
                         ImmutableList<TextUnitDTO> textUnitDTOS = smartlingJsonConverter.jsonStringToTextUnitDTOs(localizedFileContent, TextUnitDTO::setTarget);
+
+                        // When returning translations from Smartling in JSON format with includeOriginalStrings set to
+                        // false, untranslated strings get returned as an empty string. To be able to disambiguate
+                        // between empty strings and untranslated strings, whenever we encounter that we'll make another
+                        // call to Smartling with includeOriginalStrings set to true and compare the results.
+                        if (hasEmptyTranslations(textUnitDTOS)) {
+                            localizedFileContent = getLocalizedFileContent(projectId, file, smartlingLocale, true);
+                            ImmutableList<TextUnitDTO> textUnitDTOSWithOriginalStrings = smartlingJsonConverter.jsonStringToTextUnitDTOs(localizedFileContent, TextUnitDTO::setTarget);
+                            textUnitDTOS = getTranslatedUnits(textUnitDTOS, textUnitDTOSWithOriginalStrings);
+                        }
+
                         textUnitDTOS.stream().forEach(t -> {
                             t.setRepositoryName(repository.getName());
                             t.setTargetLocale(repositoryLocale.getLocale().getBcp47Tag());
@@ -314,6 +311,44 @@ public class ThirdPartyTMSSmartlingWithJson {
         }).collect(Collectors.toList());
 
         return thirdPartyTextUnits;
+    }
+
+    boolean hasEmptyTranslations(ImmutableList<TextUnitDTO> textUnitDTOS) {
+        return textUnitDTOS.stream().anyMatch(TextUnitDTO::hasEmptyTranslation);
+    }
+
+    String getLocalizedFileContent(String projectId, File file, String smartlingLocale, boolean includeOriginalStrings) {
+        return Mono.fromCallable(() -> smartlingClient.downloadPublishedFile(projectId, smartlingLocale, file.getFileUri(), includeOriginalStrings))
+                .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
+                        .doBeforeRetry(e -> logger.info(String.format("Retrying download published file request for locale %s, file %s in project %s", smartlingLocale, file.getFileUri(), projectId), e.failure())))
+                .doOnError(e -> {
+                    String msg = String.format("Error downloading published file for locale %s, file %s in project %s", smartlingLocale, file.getFileUri(), projectId);
+                    logger.error(msg, e);
+                    throw new SmartlingClientException(msg, e);
+                })
+                .blockOptional()
+                .orElseThrow(() -> new SmartlingClientException("Error downloading published file from Smartling, file content is not present"));
+    }
+
+    /**
+     * Returns the list of translated units ready for import based on two lists of TextUnitDTOs that represent
+     * untranslated strings in different formats for the same text units.
+     *
+     * @param textUnitDTOS has untranslated strings as empty strings
+     * @param textUnitDTOSWithOriginalStrings has untranslated strings as the original source strings
+     */
+    ImmutableList<TextUnitDTO> getTranslatedUnits(ImmutableList<TextUnitDTO> textUnitDTOS, ImmutableList<TextUnitDTO> textUnitDTOSWithOriginalStrings) {
+        Map<Long, TextUnitDTO> textUnitDTOWithOriginalStringsMap = textUnitDTOSWithOriginalStrings
+                .stream()
+                .collect(Collectors.toMap(TextUnitDTO::getTmTextUnitId, Function.identity()));
+
+        return textUnitDTOS.stream().filter(textUnitDTO -> {
+            TextUnitDTO textUnitDTOWithOriginalString = textUnitDTOWithOriginalStringsMap.get(textUnitDTO.getTmTextUnitId());
+
+            // Skip untranslated strings
+            return !(textUnitDTOWithOriginalString == null
+                    || textUnitDTO.hasEmptyTranslation() && !textUnitDTOWithOriginalString.hasEmptyTranslation());
+        } ).collect(ImmutableList.toImmutableList());
     }
 
     private Items<File> getFilesListForProject(String projectId) {
