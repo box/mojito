@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- *
  * @author jeanaurambault
  */
 public class ImportLocalizedAssetCommandTest extends CLITestBase {
@@ -41,7 +40,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
-    
+
     @Test
     public void importAndroidStringsPlural() throws Exception {
 
@@ -321,17 +320,45 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string",
                 "-ft", "JSON");
 
         getL10nJCommander().run("import", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string",
                 "-ft", "JSON");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir().getAbsolutePath(),
+                "-fo", "noteKeyPattern=note", "extractAllPairs=false", "exceptions=string",
                 "-ft", "JSON");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void importJsonDefaultFormatJs() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME",
+                "-fo", "noteKeyPattern=description", "extractAllPairs=false", "exceptions=defaultMessage");
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME",
+                "-fo", "noteKeyPattern=description", "extractAllPairs=false", "exceptions=defaultMessage");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir().getAbsolutePath(),
+                "-ft", "JSON_NOBASENAME",
+                "-fo", "noteKeyPattern=description", "extractAllPairs=false", "exceptions=defaultMessage");
 
         checkExpectedGeneratedResources();
     }
