@@ -28,6 +28,8 @@ const SearchDataSource = {
                     textUnitSearcherParameters.assetPath(searchParams.searchText);
                 } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.PLURAL_FORM_OTHER) {
                     textUnitSearcherParameters.pluralFormOther(searchParams.searchText);
+                } else if (searchParams.searchAttribute === SearchParamsStore.SEARCH_ATTRIBUTES.TM_TEXT_UNIT_ID) {
+                    textUnitSearcherParameters.tmTextUnitIds([parseInt(searchParams.searchText) || 0]);
                 } else {
                     textUnitSearcherParameters.name(searchParams.searchText);
                 }
@@ -63,7 +65,7 @@ const SearchDataSource = {
                 textUnitSearcherParameters.tmTextUnitCreatedAfter(searchParams.tmTextUnitCreatedAfter);
             }
 
-            if (searchParams.tmTextUnitIds != null) {
+            if (searchParams.tmTextUnitIds != null && searchParams.tmTextUnitIds.length > 0) {
                 textUnitSearcherParameters.tmTextUnitIds(searchParams.tmTextUnitIds);
             }
 
