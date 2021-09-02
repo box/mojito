@@ -117,6 +117,10 @@ public class TextUnitDTO {
         return tmTextUnitVariantId != null;
     }
 
+    public boolean hasEmptyTranslation() {
+        return target == null || target.isEmpty();
+    }
+
     public Long getLastSuccessfulAssetExtractionId() {
         return lastSuccessfulAssetExtractionId;
     }
