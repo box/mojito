@@ -384,7 +384,8 @@ SearchParamsStore.SEARCH_ATTRIBUTES = {
     "SOURCE": "source",
     "TARGET": "target",
     "ASSET": "asset",
-    "PLURAL_FORM_OTHER": "pluralFormOther"
+    "PLURAL_FORM_OTHER": "pluralFormOther",
+    "TM_TEXT_UNIT_ID": "tmTextUnitId"
 };
 
 SearchParamsStore.STATUS = {
