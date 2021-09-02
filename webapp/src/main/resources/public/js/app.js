@@ -96,37 +96,37 @@ function startApp(messages) {
     }
 
     ReactDOM.render(
-            <AppConfig appConfig={APP_CONFIG}>
-                <IntlProvider locale={APP_CONFIG.locale} messages={messages}>
-                    <Router history={browserHistory}>
-                        <Route component={Main}>
-                            <Route path="/" component={App}
-                                onEnter={onEnterRoot}>
-                                <Route path="workbench" component={Workbench}
-                                       onEnter={getAllRepositoriesDeffered}
-                                       onLeave={onLeaveWorkbench}/>
-                                <Route path="repositories" component={Repositories}
-                                       onEnter={getAllRepositoriesDeffered}/>
-                                <Route path="project-requests" component={Drops}/>
-                                <Route path="branches" component={BranchesPage}
-                                       onEnter={onEnterBranches}
-                                       onLeave={() => {
-                                           BranchesPageActions.resetBranchesSearchParams();
-                                       }} />
-                                <Route path="screenshots" component={ScreenshotsPage}
-                                       onEnter={onEnterScreenshots}
-                                       onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
-                                <Route path="settings" component={Settings}/>
-                                <IndexRoute component={Repositories}/>
-                            </Route>
-                            <Route path="login" component={Login}></Route>
+        <AppConfig appConfig={APP_CONFIG}>
+            <IntlProvider locale={APP_CONFIG.locale} messages={messages}>
+                <Router history={browserHistory}>
+                    <Route component={Main}>
+                        <Route path="/" component={App}
+                               onEnter={onEnterRoot}>
+                            <Route path="workbench" component={Workbench}
+                                   onEnter={getAllRepositoriesDeffered}
+                                   onLeave={onLeaveWorkbench}/>
+                            <Route path="repositories" component={Repositories}
+                                   onEnter={getAllRepositoriesDeffered}/>
+                            <Route path="project-requests" component={Drops}/>
+                            <Route path="branches" component={BranchesPage}
+                                   onEnter={onEnterBranches}
+                                   onLeave={() => {
+                                       BranchesPageActions.resetBranchesSearchParams();
+                                   }} />
+                            <Route path="screenshots" component={ScreenshotsPage}
+                                   onEnter={onEnterScreenshots}
+                                   onLeave={ScreenshotsPageActions.resetScreenshotSearchParams}/>
+                            <Route path="settings" component={Settings}/>
+                            <IndexRoute component={Repositories}/>
                         </Route>
+                        <Route path="login" component={Login}></Route>
+                    </Route>
 
-                    </Router>
-                </IntlProvider>
-            </AppConfig>
-            , document.getElementById("app")
-            );
+                </Router>
+            </IntlProvider>
+        </AppConfig>
+        , document.getElementById("app")
+    );
 
     /**
      * Override handler to customise behavior
@@ -140,7 +140,12 @@ function startApp(messages) {
             let pathNameStrippedLeadingSlash = location.pathname.substr(1 + APP_CONFIG.contextPath.length, location.pathname.length);
             let currentLocation = pathNameStrippedLeadingSlash + window.location.search;
 
-            if (APP_CONFIG.security.unauthRedirectTo) {
+            if (currentLocation === "") {
+                // handles the edge case where the user logs in and doesn't navigate anywhere & then the token expires.
+                // Ensures that on relogin the user will be returned to the 'onEnterRoot' view
+                window.location.href = UrlHelper.getUrlWithContextPath("/")
+            }
+            else if (APP_CONFIG.security.unauthRedirectTo) {
                 // if we don't log through login page we just reload the current location
                 // that needs to be improved eg. when navigating within the workbench if an api calls fails it will
                 // re-authenticate and the load the API response instead of showing the frontend
@@ -152,24 +157,24 @@ function startApp(messages) {
         }
 
         ReactDOM.render(
-                <IntlProvider locale={APP_CONFIG.locale} messages={messages}>
-                    <Modal show={true}>
-                        <Modal.Header closeButton={true}>
-                            <Modal.Title>
-                                <FormattedMessage id="error.modal.header.title" />
-                            </Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <FormattedMessage id="error.modal.message.loggedOut" />
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button bsStyle="primary" onClick={okOnClick}>
-                                <FormattedMessage id="label.okay" />
-                            </Button>
-                        </Modal.Footer>
-                    </Modal>
-                </IntlProvider>
-                , container);
+            <IntlProvider locale={APP_CONFIG.locale} messages={messages}>
+                <Modal show={true}>
+                    <Modal.Header closeButton={true}>
+                        <Modal.Title>
+                            <FormattedMessage id="error.modal.header.title" />
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <FormattedMessage id="error.modal.message.loggedOut" />
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button bsStyle="primary" onClick={okOnClick}>
+                            <FormattedMessage id="label.okay" />
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </IntlProvider>
+            , container);
     };
 
 }
