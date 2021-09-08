@@ -13,6 +13,7 @@ import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.shell.Shell;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -22,7 +23,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -99,6 +102,9 @@ public class ExtractionDiffCommand extends Command {
     @Parameter(names = {"--push-to", "-p"}, arity = 1, required = false, description = "Push to the specified repository if there are added text units in the diff")
     String pushToRepository = null;
 
+    @Parameter(names = {"--push-to-fallback", "-pf"}, arity = 1, required = false, hidden = true, description = "Optional repository name to use when the primary pushToRepository repository isn't available. Useful during repo renames and migrations.")
+    String pushToRepositoryFallback = null;
+
     @Parameter(names = {"--push-to-branch", "-pb"}, arity = 1, required = false, description = "Optional branch name when pushing to a repository")
     String pushToBranchName;
 
@@ -161,10 +167,11 @@ public class ExtractionDiffCommand extends Command {
             throw new CommandException(msobe.getMessage());
         }
 
+        pushToRepository = getValidRepositoryName();
         if (pushToRepository != null) {
-            boolean hasAddedTextunits = extractionDiffService.hasAddedTextUnits(extractionDiffPaths);
+            boolean hasAddedTextUnits = extractionDiffService.hasAddedTextUnits(extractionDiffPaths);
 
-            if (!hasAddedTextunits) {
+            if (!hasAddedTextUnits) {
                 consoleWriter.a("The diff is empty, don't push to repository: ").fg(Ansi.Color.CYAN).a(pushToRepository).println();
             } else {
                 consoleWriter.a("Push asset diffs to repository: ").fg(Ansi.Color.CYAN).a(pushToRepository).println(2);
@@ -173,6 +180,20 @@ public class ExtractionDiffCommand extends Command {
         }
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+    }
+
+    private String getValidRepositoryName() {
+        List<Repository> repositories = commandHelper.getAllRepositories();
+
+        if (repositories.stream().anyMatch(repository -> repository.getName().equals(pushToRepository))) {
+            return pushToRepository;
+        }
+
+        if (repositories.stream().anyMatch(repository -> repository.getName().equals(pushToRepositoryFallback))) {
+            return pushToRepositoryFallback;
+        }
+
+        throw new CommandException("Could not find a valid repository for the name provided. pushToRepository = " + pushToRepository + " pushToRepositoryFallback = " + pushToRepositoryFallback);
     }
 
     void pushToRepository(ExtractionDiffPaths extractionDiffPaths) throws CommandException {

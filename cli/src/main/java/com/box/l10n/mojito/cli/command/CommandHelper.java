@@ -82,6 +82,14 @@ public class CommandHelper {
     }
 
     /**
+     * Get all repositories
+     * @return
+     */
+    public List<Repository> getAllRepositories() {
+            return repositoryClient.getRepositories(null);
+    }
+
+    /**
      * Get list of {@link com.box.l10n.mojito.cli.filefinder.FileMatch} from
      * source directory
      *

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 /**
  * @author jeanaurambault
@@ -159,6 +160,47 @@ public class ExtractionDiffCommandTest extends CLITestBase {
     public void buildFailSafeMailCommandAllNull() {
         ExtractionDiffCommand extractionDiffCommand = new ExtractionDiffCommand();
         assertEquals("echo 'null' | mail -s 'Extraction diff command failed for branch: null' null", extractionDiffCommand.buildFailSafeMailCommand());
+    }
+
+    @Test
+    public void testRepositoryFallback() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source1").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source1",
+                "-fo", "sometestoption=value1");
+
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source3").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source3",
+                "-fo", "sometestoption=value1");
+
+        getL10nJCommander().run("extract-diff",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source3",
+                "-b", "source1",
+                "--push-to", "missingRepo",
+                "--push-to-fallback" , repository.getName());
+
+        // Expecting the fallback repo to be used and to see one text unit in it
+        List<TextUnitDTO> textUnitDTOS = getTextUnitDTOS(repository);
+        assertEquals(1L, textUnitDTOS.size());
+
+        L10nJCommander l10nJCommander = getL10nJCommander();
+        l10nJCommander.run("extract-diff",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source3",
+                "-b", "source1",
+                "--push-to", "missingRepo",
+                "--push-to-fallback" , "anotherMissingRepo");
+
+        // Expecting the command to fail because none of the provided repos were valid options
+        Assert.assertEquals(1L, l10nJCommander.getExitCode());
     }
 
     List<TextUnitDTO> getTextUnitDTOS(Repository repository) {
