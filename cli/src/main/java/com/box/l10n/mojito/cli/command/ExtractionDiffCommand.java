@@ -167,13 +167,13 @@ public class ExtractionDiffCommand extends Command {
             throw new CommandException(msobe.getMessage());
         }
 
-        pushToRepository = getValidRepositoryName();
         if (pushToRepository != null) {
             boolean hasAddedTextUnits = extractionDiffService.hasAddedTextUnits(extractionDiffPaths);
 
             if (!hasAddedTextUnits) {
                 consoleWriter.a("The diff is empty, don't push to repository: ").fg(Ansi.Color.CYAN).a(pushToRepository).println();
             } else {
+                pushToRepository = getValidRepositoryName();
                 consoleWriter.a("Push asset diffs to repository: ").fg(Ansi.Color.CYAN).a(pushToRepository).println(2);
                 pushToRepository(extractionDiffPaths);
             }
