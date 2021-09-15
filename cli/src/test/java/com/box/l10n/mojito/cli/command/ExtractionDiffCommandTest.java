@@ -1,12 +1,12 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
 
 /**
  * @author jeanaurambault
@@ -32,6 +31,11 @@ public class ExtractionDiffCommandTest extends CLITestBase {
 
     @Autowired
     TextUnitSearcher textUnitSearcher;
+
+    @Before
+    public void init() {
+        resetHost();
+    }
 
     @Test
     public void extractDiff() throws Exception {
@@ -201,6 +205,47 @@ public class ExtractionDiffCommandTest extends CLITestBase {
 
         // Expecting the command to fail because none of the provided repos were valid options
         Assert.assertEquals(1L, l10nJCommander.getExitCode());
+    }
+
+    @Test
+    public void noDiffChangesNoDatabaseCalls() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source1").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source1",
+                "-fo", "sometestoption=value1");
+
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source3").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source3",
+                "-fo", "sometestoption=value1");
+
+        setNonExistentHost();
+
+        L10nJCommander l10nJCommander = getL10nJCommander();
+        l10nJCommander.run("extract-diff",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source1",
+                "-b", "source1",
+                "--push-to", repository.getName());
+
+        // No failure expected as no database call should be made here
+        Assert.assertEquals(0L, l10nJCommander.getExitCode());
+
+        l10nJCommander = getL10nJCommander();
+        l10nJCommander.run("extract-diff",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source3",
+                "-b", "source1",
+                "--push-to", repository.getName());
+
+        // Failure expected as a database call will be made when text units are added
+        Assert.assertNotEquals(0L, l10nJCommander.getExitCode());
     }
 
     List<TextUnitDTO> getTextUnitDTOS(Repository repository) {

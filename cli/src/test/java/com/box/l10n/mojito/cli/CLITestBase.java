@@ -95,6 +95,14 @@ public class CLITestBase extends IOTestBase {
         resttemplateConfig.setPort(port);
     }
 
+    public void resetHost() {
+        resttemplateConfig.setHost("localhost");
+    }
+
+    public void setNonExistentHost() {
+        resttemplateConfig.setHost("nonExistentHostAddress");
+    }
+
     public L10nJCommander getL10nJCommander() {
         L10nJCommander l10nJCommander = new L10nJCommander();
         l10nJCommander.setSystemExitEnabled(false);
