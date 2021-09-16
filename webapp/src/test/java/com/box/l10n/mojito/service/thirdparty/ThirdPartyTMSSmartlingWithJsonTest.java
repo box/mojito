@@ -1,14 +1,12 @@
 package com.box.l10n.mojito.service.thirdparty;
 
-import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.entity.AssetContent;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
+import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingJsonConverter;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
@@ -78,6 +76,9 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
     @Autowired
     AssetExtractionService assetExtractionService;
+
+    @Autowired
+    PollableTaskService pollableTaskService;
 
     @Autowired
     TextUnitBatchImporterService textUnitBatchImporterService;
@@ -168,8 +169,10 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
                         tuple("messageformat_2", "ja-JP", "{numCats,plural,one{# cat}other{# cats}} and {numDogs,plural,one{# dog}other{# dogs}}-ja-JP"),
                         tuple("messageformat_3", "ja-JP", "{numCats, plural, other {Hello {name}! There are {numCats,number} cats-ja-JP}}")
                 );
+        String pollableTaskName = "testThirdPartyJsonPollableTask";
+        PollableTask parentTask = pollableTaskService.createPollableTask(null, pollableTaskName, null, 0);
 
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.getProjectId(), null, Arrays.asList("json-sync=true"));
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.getProjectId(), null, Arrays.asList("json-sync=true"), parentTask);
     }
 
     @Test
