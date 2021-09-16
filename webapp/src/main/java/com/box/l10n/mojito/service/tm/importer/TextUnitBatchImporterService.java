@@ -245,6 +245,9 @@ public class TextUnitBatchImporterService {
                     textUnitChecker.check(currentTextUnit.getSource(), textUnitForBatchImport.getContent());
                 } catch (IntegrityCheckException ice) {
 
+                    logger.info("Integrity check failed for string with source {}, content {}: {}", currentTextUnit.getSource(),
+                            textUnitForBatchImport.getContent(), ice.getMessage());
+
                     boolean hasSameTarget = textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
 
                     if (hasSameTarget && keepStatusIfCheckFailedAndSameTarget) {
