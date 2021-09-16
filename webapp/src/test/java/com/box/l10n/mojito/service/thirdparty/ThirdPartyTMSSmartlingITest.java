@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
@@ -9,8 +10,6 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotService;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
-import com.box.l10n.mojito.service.tm.PluralNameParser;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
@@ -98,13 +97,15 @@ public class ThirdPartyTMSSmartlingITest extends ServiceTestBase {
         String smartlingFileUri = repository.getName() + "/0000_singular_source.xml";
         smartlingClient.uploadFile(testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null);
 
+        String pollableTaskName = "testThirdPartyPollableTask";
+        PollableTask parentTask = pollableTaskService.createPollableTask(null, pollableTaskName, null, 0);
 
         logger.debug("First mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of());
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of(), parentTask);
 
         logger.debug("Second mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of());
+        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of(), parentTask);
 
-        thirdPartyService.uploadScreenshotsAndCreateMappings(repository, testConfig.projectId);
+        thirdPartyService.uploadScreenshotsAndCreateMappings(repository, testConfig.projectId, parentTask);
     }
 }

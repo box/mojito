@@ -35,7 +35,8 @@ public class ThirdPartySyncJob extends QuartzPollableJob<ThirdPartySyncJobInput,
                 input.getLocaleMapping(),
                 input.getSkipTextUnitsWithPattern(),
                 input.getSkipAssetsWithPathPattern(),
-                input.getOptions());
+                input.getOptions(),
+                getCurrentPollableTask());
         return null;
     }
 }

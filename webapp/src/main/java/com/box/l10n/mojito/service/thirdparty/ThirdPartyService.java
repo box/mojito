@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.thirdparty;
 import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Image;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.TMTextUnit;
@@ -13,6 +14,8 @@ import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.image.ImageService;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pollableTask.ParentTask;
+import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.screenshot.ScreenshotRepository;
@@ -119,7 +122,8 @@ public class ThirdPartyService {
                                      String localeMapping,
                                      String skipTextUnitsWithPattern,
                                      String skipAssetsWithPathPattern,
-                                     List<String> options) {
+                                     List<String> options,
+                                     PollableTask currentTask) {
         logger.debug("Thirdparty TMS Sync: repositoryId={} thirdPartyProjectId={} " +
                         "actions={} pluralSeparator={} localeMapping={} " +
                         "skipTextUnitsWithPattern={} skipAssetsWithPattern={} " +
@@ -130,28 +134,44 @@ public class ThirdPartyService {
         Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
         if (actions.contains(ThirdPartySyncAction.PUSH)) {
-            thirdPartyTMS.push(repository, thirdPartyProjectId, pluralSeparator,
-                    skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            push(thirdPartyProjectId, pluralSeparator, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options, repository, currentTask);
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
-            thirdPartyTMS.pushTranslations(repository, thirdPartyProjectId, pluralSeparator,
-                    parseLocaleMapping(localeMapping),
-                    skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            pushTranslations(thirdPartyProjectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options, repository, currentTask);
         }
         if (actions.contains(ThirdPartySyncAction.PULL)) {
-            thirdPartyTMS.pull(repository, thirdPartyProjectId, pluralSeparator,
-                    parseLocaleMapping(localeMapping),
-                    skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            pull(thirdPartyProjectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options, repository, currentTask);
         }
         if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
-            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId, pluralSeparator, options);
+            mapMojitoAndThirdPartyTextUnits(repository, thirdPartyProjectId, pluralSeparator, options, currentTask);
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_SCREENSHOT)) {
-            uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId);
+            uploadScreenshotsAndCreateMappings(repository, thirdPartyProjectId, currentTask);
         }
     }
 
-    void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId, String pluralSeparator, List<String> options) {
+    @Pollable(message = "Push source strings to third party service.")
+    private void push(String thirdPartyProjectId, String pluralSeparator, String skipTextUnitsWithPattern, String skipAssetsWithPathPattern, List<String> options, Repository repository, @ParentTask PollableTask currentTask) {
+        thirdPartyTMS.push(repository, thirdPartyProjectId, pluralSeparator,
+                skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+    }
+
+    @Pollable(message = "Push translations to third party service.")
+    private void pushTranslations(String thirdPartyProjectId, String pluralSeparator, String localeMapping, String skipTextUnitsWithPattern, String skipAssetsWithPathPattern, List<String> options, Repository repository, @ParentTask PollableTask currentTask) {
+        thirdPartyTMS.pushTranslations(repository, thirdPartyProjectId, pluralSeparator,
+                parseLocaleMapping(localeMapping),
+                skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+    }
+
+    @Pollable(message = "Pull translations from third party service.")
+    private void pull(String thirdPartyProjectId, String pluralSeparator, String localeMapping, String skipTextUnitsWithPattern, String skipAssetsWithPathPattern, List<String> options, Repository repository, @ParentTask PollableTask currentTask) {
+        thirdPartyTMS.pull(repository, thirdPartyProjectId, pluralSeparator,
+                parseLocaleMapping(localeMapping),
+                skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+    }
+
+    @Pollable(message = "Map Mojito and third party text units.")
+    void mapMojitoAndThirdPartyTextUnits(Repository repository, String projectId, String pluralSeparator, List<String> options, @ParentTask PollableTask currentTask) {
         logger.debug("Map text units from repository: {} with and projectId: {}", repository.getName(), projectId);
 
         logger.debug("Get the text units of the third party TMS");
@@ -232,7 +252,8 @@ public class ThirdPartyService {
         thirdPartyTextUnitRepository.saveAll(thirdPartyTextUnits);
     }
 
-    void uploadScreenshotsAndCreateMappings(Repository repository, String projectId) {
+    @Pollable(message = "Upload screenshots to third party service and create mappings.")
+    void uploadScreenshotsAndCreateMappings(Repository repository, String projectId, @ParentTask PollableTask currentTask) {
         logger.debug("Get the screenshot that are not yet mapped");
         screenshotRepository.findUnmappedScreenshots(repository).forEach(screenshot -> {
             getImage(screenshot).map(image -> {
