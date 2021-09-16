@@ -12,7 +12,7 @@ The following requirements are needed to develop on {{ site.mojito_green }}:
 1. [Git](https://git-scm.com/about)
 2. [JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) 
            (9+ are not supported)
-3. [Maven](https://maven.apache.org/download.cgi), or use the project Maven wrapper `mvnw` (version `3.5`)
+3. [Maven](https://maven.apache.org/download.cgi), or use the project Maven wrapper `mvnw` (version `3.8`)
 4. Optional but highly recommanded, [MySQL 5.7](https://dev.mysql.com/downloads/mysql/5.7.html) 
 
 Next are instructions to setup the developper environment on Mac OS and Ubuntu. Both have instructions to install 
@@ -59,7 +59,7 @@ If you need to have mysql@5.7 first in your PATH run:
   echo 'export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"' >> ~/.zshrc
 ```
 
-Note, to install the exact same `maven` version as the wrapper: `brew install maven@3.5` (check the instructions since it is key-only) .
+Note, to install the exact same `maven` version as the wrapper: `brew install maven@3.8` (check the instructions since it is key-only) .
 
       
 ### Install on Unbutu 18.4 LTS
@@ -313,18 +313,17 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.121-b13, mixed mode)
 
 ### Check Maven version
 
-Maven 3.5+ should work fine. Consider trying the Maven wrapper `mvnw` from the project if you have any issue with Maven or don't want to install it.
+Maven 3.8+ should work fine. Consider trying the Maven wrapper `mvnw` from the project if you have any issue with Maven or don't want to install it.
     
 If you have multiple version of Java installed, make sure Maven uses the right version (forth line):
 
 ```sh
 [01:21:31] ~ $ mvn -version
-Apache Maven 3.5.2 (138edd61fd100ec658bfa2d307c43b76940a5d7d; 2017-10-18T00:58:13-07:00)
-Maven home: /usr/local/Cellar/maven/3.5.2/libexec
-Java version: 1.8.0_121, vendor: Oracle Corporation
-Java home: /Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home/jre
-Default locale: en_US, platform encoding: UTF-8
-OS name: "mac os x", version: "10.13.5", arch: "x86_64", family: "mac"
+Apache Maven 3.8.2 (ea98e05a04480131370aa0c110b8c54cf726c06f)
+Maven home: /usr/local/Cellar/maven/3.8.2/libexec
+Java version: 1.8.0_292, vendor: AdoptOpenJDK, runtime: /Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre
+Default locale: en_IE, platform encoding: UTF-8
+OS name: "mac os x", version: "10.16", arch: "x86_64", family: "mac"
 ```
 
 ### Caused by: java.lang.NoClassDefFoundError: javax/xml/bind/ValidationException
