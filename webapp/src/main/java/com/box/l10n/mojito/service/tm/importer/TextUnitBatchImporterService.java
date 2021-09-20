@@ -245,15 +245,14 @@ public class TextUnitBatchImporterService {
                     textUnitChecker.check(currentTextUnit.getSource(), textUnitForBatchImport.getContent());
                 } catch (IntegrityCheckException ice) {
 
-                    logger.info("Integrity check failed for string with source {}, content {}: {}", currentTextUnit.getSource(),
-                            textUnitForBatchImport.getContent(), ice.getMessage());
-
                     boolean hasSameTarget = textUnitForBatchImport.getContent().equals(currentTextUnit.getTarget());
 
                     if (hasSameTarget && keepStatusIfCheckFailedAndSameTarget) {
                         textUnitForBatchImport.setIncludedInLocalizedFile(currentTextUnit.isIncludedInLocalizedFile());
                         textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
                     } else {
+                        logger.info("Integrity check failed for string with source {}, content {}: {}", currentTextUnit.getSource(),
+                                textUnitForBatchImport.getContent(), ice);
                         textUnitForBatchImport.setIncludedInLocalizedFile(false);
                         textUnitForBatchImport.setStatus(Status.TRANSLATION_NEEDED);
                     }

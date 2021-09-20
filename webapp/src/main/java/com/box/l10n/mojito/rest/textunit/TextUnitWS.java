@@ -361,7 +361,7 @@ public class TextUnitWS {
             tmTextUnitIntegrityCheckService.checkTMTextUnitIntegrity(textUnitCheckBody.getTmTextUnitId(), textUnitCheckBody.getContent());
             result.setCheckResult(true);
         } catch (IntegrityCheckException e) {
-            logger.info("Integrity check failed for text unit id {}, content {}: {}", textUnitCheckBody.getTmTextUnitId(), textUnitCheckBody.getContent(), e.getMessage());
+            logger.info("Integrity check failed for text unit id {}, content {}: {}", textUnitCheckBody.getTmTextUnitId(), textUnitCheckBody.getContent(), e);
             result.setCheckResult(false);
             result.setFailureDetail(e.getMessage());
         }
