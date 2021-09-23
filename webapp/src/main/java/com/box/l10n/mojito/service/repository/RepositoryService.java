@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -235,22 +236,30 @@ public class RepositoryService {
     public void updateAssetIntegrityCheckers(Repository repository, Set<AssetIntegrityChecker> assetIntegrityCheckers) {
 
         Set<AssetIntegrityChecker> existingAssetIntegrityCheckers = assetIntegrityCheckerRepository.findByRepository(repository);
-        Map<String, AssetIntegrityChecker> existingAssetIntegrityCheckersToDelete = getAssetIntegrityCheckerMap(existingAssetIntegrityCheckers);
+        Map<String, Map<String, AssetIntegrityChecker>> existingAssetIntegrityCheckersToDelete = getAssetIntegrityCheckerMap(existingAssetIntegrityCheckers);
 
         for (AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckers) {
             logger.debug("Setting repository for integrity checker: " + assetIntegrityChecker.getAssetExtension());
             assetIntegrityChecker.setRepository(repository);
-            AssetIntegrityChecker existingIntegrityChecker = existingAssetIntegrityCheckersToDelete.get(assetIntegrityChecker.getAssetExtension());
-            if (existingIntegrityChecker != null) {
-                logger.debug("Updating existing integrity checker: " + assetIntegrityChecker.getId());
-                assetIntegrityChecker.setId(existingIntegrityChecker.getId());
-                existingAssetIntegrityCheckersToDelete.remove(assetIntegrityChecker.getAssetExtension());
+            Map<String, AssetIntegrityChecker> existingIntegrityCheckersMap = existingAssetIntegrityCheckersToDelete.get(assetIntegrityChecker.getAssetExtension());
+            if (existingIntegrityCheckersMap != null) {
+                AssetIntegrityChecker existingIntegrityChecker = existingIntegrityCheckersMap.get(assetIntegrityChecker.getIntegrityCheckerType().name());
+                if (existingIntegrityChecker != null) {
+                    logger.debug("Updating existing integrity checker: " + assetIntegrityChecker.getId());
+                    assetIntegrityChecker.setId(existingIntegrityChecker.getId());
+                    existingIntegrityCheckersMap.remove(assetIntegrityChecker.getIntegrityCheckerType().name());
+                    if(existingIntegrityCheckersMap.isEmpty()) {
+                        existingAssetIntegrityCheckersToDelete.remove(assetIntegrityChecker.getAssetExtension());
+                    }
+                }
             }
         }
 
         logger.debug("Deleting all unused existing asset integrity checkers for repository");
-        for (AssetIntegrityChecker assetIntegrityChecker : existingAssetIntegrityCheckersToDelete.values()) {
-            assetIntegrityCheckerRepository.delete(assetIntegrityChecker);
+        for (Map<String, AssetIntegrityChecker> assetIntegrityCheckerMap : existingAssetIntegrityCheckersToDelete.values()) {
+            for(AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckerMap.values()){
+                assetIntegrityCheckerRepository.delete(assetIntegrityChecker);
+            }
         }
 
         if (assetIntegrityCheckers.size() > 0) {
@@ -266,10 +275,12 @@ public class RepositoryService {
      * @param assetIntegrityCheckers
      * @return
      */
-    private Map<String, AssetIntegrityChecker> getAssetIntegrityCheckerMap(Set<AssetIntegrityChecker> assetIntegrityCheckers) {
-        Map<String, AssetIntegrityChecker> assetIntegrityCheckerMap = new HashMap<>();
+    private Map<String, Map<String, AssetIntegrityChecker>> getAssetIntegrityCheckerMap(Set<AssetIntegrityChecker> assetIntegrityCheckers) {
+        Map<String, Map<String, AssetIntegrityChecker>> assetIntegrityCheckerMap = new HashMap<>();
         for (AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckers) {
-            assetIntegrityCheckerMap.put(assetIntegrityChecker.getAssetExtension(), assetIntegrityChecker);
+            Map<String, AssetIntegrityChecker> checksForAssetExtension = assetIntegrityCheckerMap.computeIfAbsent(assetIntegrityChecker.getAssetExtension(), k -> new HashMap<String, AssetIntegrityChecker>());
+            checksForAssetExtension.put(assetIntegrityChecker.getIntegrityCheckerType().name(), assetIntegrityChecker);
+            assetIntegrityCheckerMap.put(assetIntegrityChecker.getAssetExtension(), checksForAssetExtension);
         }
         return assetIntegrityCheckerMap;
     }
