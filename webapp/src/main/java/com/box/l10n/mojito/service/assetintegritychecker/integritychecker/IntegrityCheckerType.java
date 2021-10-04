@@ -13,6 +13,7 @@ public enum IntegrityCheckerType {
     SIMPLE_PRINTF_LIKE(SimplePrintfLikeIntegrityChecker.class.getName()),
     PRINTF_LIKE_IGNORE_PERCENTAGE_AFTER_BRACKETS(PrintfLikeIgnorePercentageAfterBracketsIntegrityChecker.class.getName()),
     PRINTF_LIKE_VARIABLE_TYPE(PrintfLikeVariableTypeIntegrityChecker.class.getName()),
+    PRINTF_LIKE_ADD_PARAMETER_SPECIFIER(PrintfLikeAddParameterSpecifierIntegrityChecker.class.getName()),
     COMPOSITE_FORMAT(CompositeFormatIntegrityChecker.class.getName()),
     WHITESPACE(WhitespaceIntegrityChecker.class.getName()),
     TRAILING_WHITESPACE(TrailingWhitespaceIntegrityChecker.class.getName()),
@@ -20,7 +21,6 @@ public enum IntegrityCheckerType {
     ELLIPSIS(EllipsisIntegrityChecker.class.getName()),
     BACKQUOTE(BackquoteIntegrityChecker.class.getName()),
     EMPTY_TARGET_NOT_EMPTY_SOURCE(EmptyTargetNotEmptySourceIntegrityChecker.class.getName());
-
 
     String className;
 
