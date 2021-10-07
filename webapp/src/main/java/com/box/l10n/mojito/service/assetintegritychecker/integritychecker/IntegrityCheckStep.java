@@ -4,6 +4,7 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
+import com.google.common.io.CharStreams;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
@@ -17,10 +18,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author aloison
@@ -70,7 +74,12 @@ public class IntegrityCheckStep extends BasePipelineStep {
     protected Event handleStartDocument(Event event) {
         logger.debug("Check integrity of document");
 
-        String documentContent = rawDocument.getInputCharSequence().toString();
+        String documentContent = null;
+        try {
+            documentContent = CharStreams.toString(rawDocument.getReader());
+        } catch (IOException e) {
+            logger.error("Error reading document content", e);
+        }
 
         // TODO(P1): do not hardcode the type here
         List<DocumentIntegrityChecker> documentIntegrityCheckers = integrityCheckerFactory.getDocumentCheckers("xliff");

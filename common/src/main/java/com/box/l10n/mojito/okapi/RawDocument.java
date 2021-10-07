@@ -3,10 +3,12 @@ package com.box.l10n.mojito.okapi;
 import net.sf.okapi.common.LocaleId;
 import org.springframework.util.ReflectionUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -24,7 +26,7 @@ public class RawDocument extends net.sf.okapi.common.resource.RawDocument {
     }
 
     public RawDocument(CharSequence inputCharSequence, LocaleId sourceLocale, LocaleId targetLocale) {
-        super(inputCharSequence, sourceLocale, targetLocale);
+        super(new ByteArrayInputStream(inputCharSequence.toString().getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name().toLowerCase(), sourceLocale, targetLocale);
 
         Field inputURIField = ReflectionUtils.findField(RawDocument.class, "inputURI");
         ReflectionUtils.makeAccessible(inputURIField);

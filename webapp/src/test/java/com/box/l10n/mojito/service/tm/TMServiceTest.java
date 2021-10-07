@@ -2515,7 +2515,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "  // Greeting from Main UI 3\n"
                 + "  \"hello3\": \"Hello 3\"\n"
                 + "}";
-        String expectedContent = "\uFEFF" + assetContent;
+        String expectedContent = assetContent;
 
         asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
         asset = assetRepository.findById(asset.getId()).orElse(null);
@@ -2573,7 +2573,7 @@ public class TMServiceTest extends ServiceTestBase {
                 "    \"note\": \"A description that shows the number of photos a user has.\"\n" +
                 "  }\n" +
                 "}";
-        String expectedContent = "\uFEFF" + assetContent;
+        String expectedContent = assetContent;
 
         asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
         asset = assetRepository.findById(asset.getId()).orElse(null);
