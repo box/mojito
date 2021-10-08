@@ -876,12 +876,7 @@ public class TMServiceTest extends ServiceTestBase {
 
         List<String> filterOptionOldEscaping = Arrays.asList("oldEscaping=true");
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<resources>\n"
@@ -922,12 +917,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeAndroidStringsWithSpecialCharacters() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<resources>\n"
@@ -1004,12 +994,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeAndroidStringsWithEscapedHTMLAndCDATA() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<resources>\n"
@@ -1149,12 +1134,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeAndroidStringsArrayWithEmptyItem() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<resources>\n"
@@ -1199,12 +1179,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeAndroidStringsNoXMLVersion() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent
                 = "<resources>\n"
@@ -1245,12 +1220,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeAndroidStringsRemoveUntranslatedOldEsaping() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent
                 = "<resources>\n"
@@ -1292,12 +1262,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeAndroidStringsRemoveUntranslatedSingleItem() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!-- comment after prolog -->\n\n"
@@ -1342,12 +1307,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeMacStringsWithSpecialCharacters() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "\"100_character_description\" = \"\\\"100\\\" character description:\";\n"
                 + "\"two_lines\" = \"first\\nsecond\";";
@@ -2361,12 +2321,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeMacStringsNamessNotEnclosedInDoubleQuotes() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "NSUsageDescription = \"Usage description:\";\n";
         asset = assetService.createAssetWithContent(repo.getId(), "en.lproj/Localizable.strings", assetContent);
@@ -2399,12 +2354,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testLocalizeXtb() throws Exception {
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE translationbundle>\n"
@@ -2450,12 +2400,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testLocalizeXtbRemoveUntranslated() throws Exception {
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<!DOCTYPE translationbundle>\n"
@@ -2500,12 +2445,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testLocalizeJsonWithComments() throws Exception {
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "{\n"
                 + "  // Greeting from Main UI 1\n"
@@ -2551,12 +2491,7 @@ public class TMServiceTest extends ServiceTestBase {
     @Test
     public void testLocalizeJson() throws Exception {
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         List<String> jsonFilterOptions = Arrays.asList("useFullKeyPath=true", "extractAllPairs=false", "exceptions=.*/string");
 
@@ -2967,12 +2902,7 @@ public class TMServiceTest extends ServiceTestBase {
     public void testLocalizeTSFile() throws Exception {
 
         Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        RepositoryLocale repoLocale;
-        try {
-            repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
-        } catch (RepositoryLocaleCreationException e) {
-            throw new RuntimeException(e);
-        }
+        RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
 
         String assetContent = "namespace Translations {\n"
                 + "    export const en = {\n"
