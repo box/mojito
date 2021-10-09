@@ -2,21 +2,23 @@ package com.box.l10n.mojito.okapi;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.okapi.filters.RemoveUntranslatedStategyAnnotation;
+import com.box.l10n.mojito.okapi.filters.RemoveUntranslatedStrategy;
 import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
+import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
+import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 /**
@@ -29,14 +31,14 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
     static final String ANDROID_FIRST_TEXT_UNIT_REGEX = "(?s)(^.*<resources>).*";
 
-    @Autowired
-    TextUnitSearcher textUnitSearcher;
     Asset asset;
     RepositoryLocale repositoryLocale;
     TranslatorWithInheritance translatorWithInheritance;
-    private LocaleId targetLocale;
-    private Status status;
-    private InheritanceMode inheritanceMode;
+    LocaleId targetLocale;
+    Status status;
+    InheritanceMode inheritanceMode;
+    RawDocument rawDocument;
+    boolean rawDocumentProcessingEnabled = false;
 
     /**
      * Creates the {@link TranslateStep} for a given asset.
@@ -83,6 +85,11 @@ public class TranslateStep extends AbstractMd5ComputationStep {
         this.targetLocale = targetLocale;
     }
 
+    @StepParameterMapping(parameterType = StepParameterType.INPUT_RAWDOC)
+    public void setInputDocument(RawDocument rawDocument) {
+        this.rawDocument = rawDocument;
+    }
+
     @Override
     public String getName() {
         return "Text units translation";
@@ -104,11 +111,19 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
             if (translation == null && InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
                 logger.debug("Remove untranslated text unit");
+                Event androidEvent = getEventForAndroidFirstTextUnit(textUnit);
 
-                event = getEventForAndroidFirstTextUnit(textUnit);
-
-                if (event == null) {
-                    event = Event.NOOP_EVENT;
+                if (androidEvent == null) {
+                    switch (getRemoveUntranslatedStrategyFromAnnotation()) {
+                        case NOOP_EVENT:
+                            event = Event.NOOP_EVENT;
+                            break;
+                        case PLACEHOLDER_AND_POST_PROCESSING:
+                            logger.debug("Set untranslated placeholder for text unit with name: {}", name);
+                            textUnit.setTarget(targetLocale, new TextContainer(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER));
+                            enableOutputDocumentPostProcessing();
+                            break;
+                    }
                 }
             } else {
                 logger.debug("Set translation for text unit with name: {}, translation: {}", name, translation);
@@ -117,6 +132,21 @@ public class TranslateStep extends AbstractMd5ComputationStep {
         }
 
         return event;
+    }
+
+    void enableOutputDocumentPostProcessing() {
+        OutputDocumentPostProcessingAnnotation annotation = rawDocument.getAnnotation(OutputDocumentPostProcessingAnnotation.class);
+        if (annotation != null && !rawDocumentProcessingEnabled) {
+            annotation.setEnabled(true);
+            rawDocumentProcessingEnabled = true;
+        }
+    }
+
+    RemoveUntranslatedStrategy getRemoveUntranslatedStrategyFromAnnotation() {
+        RemoveUntranslatedStategyAnnotation removeUntranslatedStategyAnnotation = rawDocument.getAnnotation(RemoveUntranslatedStategyAnnotation.class);
+        return removeUntranslatedStategyAnnotation == null ?
+                RemoveUntranslatedStrategy.NOOP_EVENT :
+                removeUntranslatedStategyAnnotation.getUntranslatedStrategy();
     }
 
     Event getEventForAndroidFirstTextUnit(ITextUnit textUnit) {
