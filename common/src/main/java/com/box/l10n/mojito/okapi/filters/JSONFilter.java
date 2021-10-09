@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import com.box.l10n.mojito.json.JsonObjectRemoverByValue;
+import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.google.common.collect.Lists;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.annotation.XLIFFNote;
@@ -72,6 +74,13 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     public void open(RawDocument input) {
         applyFilterOptions(input);
         super.open(input);
+        input.setAnnotation(new RemoveUntranslatedStategyAnnotation(RemoveUntranslatedStrategy.PLACEHOLDER_AND_POST_PROCESSING));
+        // Post processing is disable for now, it will be enabled by the TranslsateStep if there are actual text unit to remove
+        input.setAnnotation(new OutputDocumentPostProcessingAnnotation(JSONFilter::removeUntranslated, false));
+    }
+
+    static String removeUntranslated(String content) {
+        return JsonObjectRemoverByValue.remove(content, RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER);
     }
 
     void applyFilterOptions(RawDocument input) {
