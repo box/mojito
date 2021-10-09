@@ -13,5 +13,5 @@ public enum RemoveUntranslatedStrategy {
      */
     PLACEHOLDER_AND_POST_PROCESSING;
 
-    public static final String UNTRANSLATED_PLACEHOLDER = "@#$untranslated$#@";
+    public static final String UNTRANSLATED_PLACEHOLDER = "\u0000@#$untranslated$#@\u0000";
 }
