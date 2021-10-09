@@ -13,11 +13,11 @@ import java.util.stream.IntStream;
 public class JsonObjectRemoverByValue {
 
     /**
-     * Removes the objects that contain the specified value (attribute name is doesn't matter) from the input JSON and
-     * returns the indented result.
-     * - if the object: o1 contains the specified value is in an array: a1 the o1 is removed from the a1
-     * - if the object: o1 contains the specified value (for attribute name: n1) is in another object: o2,
-     * the filed: "n1 : o1" is removed from o2
+     * Removes the objects that contain the specified value from the input JSON and returns the indented result.
+     *
+     * - if the object: o1 that contains the specified value is in an array: a1 then o1 is removed from a1
+     * - if the object: o1 that contains the specified value is in another object: o2 (for attribute name: an1) then
+     * the field: "an1 : o1" is removed from o2
      *
      * @param jsonContent
      * @param valueToRemove
