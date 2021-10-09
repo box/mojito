@@ -79,6 +79,7 @@ public class IntegrityCheckStep extends BasePipelineStep {
             documentContent = CharStreams.toString(rawDocument.getReader());
         } catch (IOException e) {
             logger.error("Error reading document content", e);
+            throw new RuntimeException("Error reading document content", e);
         }
 
         // TODO(P1): do not hardcode the type here
