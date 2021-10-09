@@ -10,6 +10,7 @@ import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.StartDocument;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -113,13 +114,25 @@ public class FilterEventsToInMemoryRawDocumentStep extends BasePipelineStep {
             // Return the RawDocument Event that is the end result of all previous Events
             // Note that the source locale is now set to the 'target locale' value since it is an output
             // We also set the target to the same value to have a value
-            inMemoryOutputDocuments.put(rawDocument, outputDocument.toString(outputEncoding));
+            inMemoryOutputDocuments.put(rawDocument, getOutputDocument());
         } catch (UnsupportedEncodingException ex) {
             throw new RuntimeException(ex);
         }
 
         RawDocument input = new RawDocument(outputFile.toURI(), outputEncoding, targetLocale, targetLocale);
         return new Event(EventType.RAW_DOCUMENT, input);
+    }
+
+    String getOutputDocument() throws UnsupportedEncodingException {
+        String outputDocument = this.outputDocument.toString(outputEncoding);
+
+        OutputDocumentPostProcessingAnnotation outputDocumentPostProcessingAnnotation =
+                rawDocument.getAnnotation(OutputDocumentPostProcessingAnnotation.class);
+        if (outputDocumentPostProcessingAnnotation != null && outputDocumentPostProcessingAnnotation.isEnabled()) {
+            outputDocument = outputDocumentPostProcessingAnnotation.getPostProcessing().apply(outputDocument);
+        }
+
+        return outputDocument;
     }
 
     @Override
