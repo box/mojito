@@ -782,6 +782,29 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void pullJsonDefaultFormatJsRemoveUntranslated() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-fo", "noteKeyPattern=description", "extractAllPairs=false", "exceptions=defaultMessage",
+                "-ft", "JSON_NOBASENAME");
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("en.json", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-fo", "noteKeyPattern=description", "extractAllPairs=false", "exceptions=defaultMessage",
+                "-ft", "JSON_NOBASENAME",
+                "--inheritance-mode", "REMOVE_UNTRANSLATED");
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void pullJsonFromChromeExtension() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
@@ -813,22 +836,22 @@ public class PullCommandTest extends CLITestBase {
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-            "-ft", "I18NEXT_PARSER_JSON");
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-ft", "I18NEXT_PARSER_JSON");
 
         Asset asset = assetClient.getAssetByPathAndRepositoryId("locales/en/demo.json", repository.getId());
         importTranslations(asset.getId(), "source-xliff_", "fr-FR");
         importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
-            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-            "-t", getTargetTestDir("target").getAbsolutePath(),
-            "-ft", "I18NEXT_PARSER_JSON");
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "-ft", "I18NEXT_PARSER_JSON");
 
         getL10nJCommander().run("pull", "-r", repository.getName(),
-            "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
-            "-t", getTargetTestDir("target_modified").getAbsolutePath(),
-            "-ft", "I18NEXT_PARSER_JSON");
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "-ft", "I18NEXT_PARSER_JSON");
 
         checkExpectedGeneratedResources();
     }
