@@ -10,6 +10,7 @@ class BranchesScreenshotUploadModalStore {
         this.setDefaultState();
         this.bindActions(BranchesScreenshotUploadActions);
         this.registerAsync(BranchesScreenshotUploadDataSource);
+        this.supportedImageExtensionsSet = new Set([".png", ".gif", ".tiff", ".jpg",".jpeg"])
     }
 
     setDefaultState() {
@@ -40,10 +41,14 @@ class BranchesScreenshotUploadModalStore {
     }
 
     uploadScreenshotImage() {
-        let generatedUuid = v4() + this.fileToUpload.name;
-        this.screenshotSrc = 'api/images/' + generatedUuid;
-        this.uploadInProgress = true;
-        this.getInstance().performUploadScreenshotImage(generatedUuid);
+        if (this.isImageExtensionSupported(this.fileToUpload.name)) {
+            let generatedUuid = v4() + this.fileToUpload.name;
+            this.screenshotSrc = 'api/images/' + generatedUuid;
+            this.uploadInProgress = true;
+            this.getInstance().performUploadScreenshotImage(generatedUuid);
+        } else {
+            this.errorMessage =  this.fileToUpload.name + " is not in .png, .gif, .tiff, .jpg or .jpeg format."
+        }
     }
 
     uploadScreenshotImageSuccess() {
@@ -86,6 +91,11 @@ class BranchesScreenshotUploadModalStore {
 
     changeImageForUpload(imageForUpload) {
         this.imageForUpload = imageForUpload;
+    }
+
+    isImageExtensionSupported(name) {
+        let fileExtension = this.fileToUpload.name.substring(this.fileToUpload.name.lastIndexOf(".")).toLowerCase();
+        return this.supportedImageExtensionsSet.has(fileExtension);
     }
 
     loadImage() {

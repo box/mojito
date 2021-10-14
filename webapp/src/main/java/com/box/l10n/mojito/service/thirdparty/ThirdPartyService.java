@@ -282,19 +282,24 @@ public class ThirdPartyService {
         if (!thirdPartyImageToTextUnits.isEmpty()) {
             logger.debug("There are text units to be mapped, upload image: {}", image.getName());
 
-            ThirdPartyTMSImage thirdPartyTMSImage = thirdPartyTMS.uploadImage(projectId, image.getName(), image.getContent());
+            try {
+                ThirdPartyTMSImage thirdPartyTMSImage = thirdPartyTMS.uploadImage(projectId, image.getName(), image.getContent());
 
-            ThirdPartyScreenshot thirdPartyScreenshot = new ThirdPartyScreenshot();
-            thirdPartyScreenshot.setScreenshot(screenshot);
-            thirdPartyScreenshot.setThirdPartyId(thirdPartyTMSImage.getId());
+                ThirdPartyScreenshot thirdPartyScreenshot = new ThirdPartyScreenshot();
+                thirdPartyScreenshot.setScreenshot(screenshot);
+                thirdPartyScreenshot.setThirdPartyId(thirdPartyTMSImage.getId());
 
-            logger.debug("Save screenshot mapping");
-            thirdPartyScreenshotRepository.save(thirdPartyScreenshot);
+                logger.debug("Save screenshot mapping");
+                thirdPartyScreenshotRepository.save(thirdPartyScreenshot);
 
-            logger.debug("Set the image id on the mappings");
-            thirdPartyImageToTextUnits.stream().forEach(t -> t.setImageId(thirdPartyScreenshot.getThirdPartyId()));
+                logger.debug("Set the image id on the mappings");
+                thirdPartyImageToTextUnits.stream().forEach(t -> t.setImageId(thirdPartyScreenshot.getThirdPartyId()));
 
-            thirdPartyTMS.createImageToTextUnitMappings(projectId, thirdPartyImageToTextUnits);
+                thirdPartyTMS.createImageToTextUnitMappings(projectId, thirdPartyImageToTextUnits);
+            } catch (UnsupportedImageFormatException e) {
+                logger.warn(e.getMessage());
+            }
+
         } else {
             logger.debug("No text units to be mapped so we don't upload the image (might be late to perform the mapping and/or it" +
                     "is not usefull to send the image)");

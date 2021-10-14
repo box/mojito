@@ -27,6 +27,8 @@ import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,6 +94,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     private final Integer batchSize;
     private final ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson;
 
+    private final Set<String> supportedImageExtensions = Sets.newHashSet("png", "jpg", "jpeg", "gif", "tiff");
+
     protected static RetryBackoffSpec getRetryConfiguration(){
         return Retry.backoff(3, Duration.ofSeconds(0)).maxBackoff(Duration.ofSeconds(1));
     }
@@ -126,6 +130,10 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     @Override
     public ThirdPartyTMSImage uploadImage(String projectId, String name, byte[] content) {
         logger.debug("Upload image to Smartling, project id: {}, name: {}", projectId, name);
+        if (!isImageExtensionSupported(name)) {
+            logger.warn("Skipping upload of {} in project {} to Smartling as image format is not supported", name, projectId);
+            throw new UnsupportedImageFormatException(Files.getFileExtension(name) + " is an unsupported file extension.");
+        }
         return Mono.fromCallable(() -> smartlingClient.uploadContext(projectId, name, content))
                 .retryWhen(getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info("Retrying after image upload to Smartling failed, project id: {}, name: {}, error: {}", projectId, name, e.failure())))
@@ -571,6 +579,12 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         public boolean isPlural() {
             return this.equals(PLURAL);
         }
+    }
+
+
+    private boolean isImageExtensionSupported(String name) {
+        String extension = Files.getFileExtension(name).toLowerCase();
+        return supportedImageExtensions.contains(extension);
     }
 
 }
