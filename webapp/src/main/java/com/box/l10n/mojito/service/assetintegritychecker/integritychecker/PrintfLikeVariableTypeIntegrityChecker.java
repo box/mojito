@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_VARIABLE_TYPE_REGEX;
+
 /**
  * Validates that a variable format type is not modified in the target string,
  * only validates variables contained within brackets e.g. %([variable_name])[flags][width][.precision][t]conversion)
@@ -13,7 +15,7 @@ public class PrintfLikeVariableTypeIntegrityChecker extends RegexIntegrityChecke
         /**
          * Regex checks for strings in the format %([variable_name])[conversion flags][type]
          */
-        return "%([{|(])+([a-zA-Z0-9_])+([}|)])+([-#+ 0,\\.(\\<]+)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|c|d|e|E|f|F|g|G|i|o|p|r|s|u|x|X)";
+        return PRINTF_LIKE_VARIABLE_TYPE_REGEX;
     }
 
     @Override

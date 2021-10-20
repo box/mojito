@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_REGEX;
+
 /**
  * Checks that there are the same c-printf like placeholders 
  * in the source and target content, order is not important.
@@ -15,7 +17,7 @@ public class PrintfLikeIntegrityChecker extends RegexIntegrityChecker {
      */
     @Override
     public String getRegex() {
-        return "%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n|@)";
+        return PRINTF_LIKE_REGEX;
     }
 
     @Override

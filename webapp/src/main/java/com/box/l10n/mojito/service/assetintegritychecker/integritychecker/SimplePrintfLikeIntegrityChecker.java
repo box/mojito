@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SIMPLE_PRINTF_REGEX;
+
 /**
  * Checks that there are the same placeholders like %1, %2, etc
  * in the source and target content, order is not important.
@@ -10,7 +12,7 @@ public class SimplePrintfLikeIntegrityChecker extends RegexIntegrityChecker {
     
     @Override
     public String getRegex() {
-        return "%\\d+";
+        return SIMPLE_PRINTF_REGEX;
     }
 
     @Override

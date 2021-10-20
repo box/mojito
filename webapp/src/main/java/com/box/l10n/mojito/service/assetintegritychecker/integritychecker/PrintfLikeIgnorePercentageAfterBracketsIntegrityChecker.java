@@ -4,6 +4,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS;
+
 /**
  * '%' symbol preceded by a '}' or ')' are ignored as variable tokens. This can be useful
  * for avoiding false negatives when handling translations that contain percentages inside
@@ -15,7 +17,7 @@ public class PrintfLikeIgnorePercentageAfterBracketsIntegrityChecker extends Reg
 
     @Override
     public String getRegex() {
-        return "(?<![}|)])%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n|@)";
+        return PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS;
     }
 
     @Override

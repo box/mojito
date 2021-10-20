@@ -3,6 +3,8 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
+
 /**
  * Integrity checker that modifies any placeholders with format '%[type]' in the source & target strings to use
  * a placeholder with parameter specifier '%1$[type]' before executing the {@link PrintfLikeIntegrityChecker} checks.
@@ -12,7 +14,6 @@ import java.util.regex.Pattern;
  */
 public class PrintfLikeAddParameterSpecifierIntegrityChecker extends PrintfLikeIntegrityChecker {
 
-    private static final String PLACEHOLDER_NO_SPECIFIER_REGEX = "%[d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n]";
     private Pattern pattern = Pattern.compile(PLACEHOLDER_NO_SPECIFIER_REGEX);
 
     @Override
