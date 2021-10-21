@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.extraction;
 
+import com.box.l10n.mojito.cli.command.checks.CliChecker;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.google.common.collect.Sets;
@@ -99,8 +100,9 @@ public class ExtractionDiffService {
      * @param extractionDiffPaths
      * @throws MissingExtractionDirectoryExcpetion
      */
-    public void computeAndWriteDiffs(ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
+    public List<AssetExtractionDiff> computeAndWriteDiffs(ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
 
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
         ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
         ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
 
@@ -127,7 +129,7 @@ public class ExtractionDiffService {
                 assetExtractionDiff = new AssetExtractionDiff();
                 assetExtractionDiff.setAddedTextunits(currentAssetExtraction.getTextunits());
             }
-
+            assetExtractionDiffs.add(assetExtractionDiff);
             writeAssetExtractionDiff(extractionDiffPaths, sourceFileMatchPath, assetExtractionDiff);
         });
 
@@ -147,6 +149,8 @@ public class ExtractionDiffService {
                     String sourceFileMatchPath = baseExtractionPaths.sourceFileMatchPath(assetExtractionPath);
                     writeAssetExtractionDiff(extractionDiffPaths, sourceFileMatchPath, assetExtractionDiff);
                 });
+
+        return assetExtractionDiffs;
     }
 
     void writeAssetExtractionDiff(ExtractionDiffPaths extractionDiffPaths, String sourceFileMatchPath, AssetExtractionDiff assetExtractionDiff) {
