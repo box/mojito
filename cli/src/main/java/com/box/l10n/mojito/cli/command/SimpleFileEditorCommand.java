@@ -10,6 +10,19 @@ import com.box.l10n.mojito.cli.filefinder.file.POFileType;
 import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.json.JsonIndenter;
 import com.box.l10n.mojito.okapi.ExtractUsagesFromTextUnitComments;
+import com.box.l10n.mojito.okapi.RawDocument;
+import com.box.l10n.mojito.okapi.filters.CopyFormsOnImport;
+import com.box.l10n.mojito.okapi.filters.POFilter;
+import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
+import com.box.l10n.mojito.okapi.steps.FilterEventsToInMemoryRawDocumentStep;
+import net.sf.okapi.common.Event;
+import net.sf.okapi.common.LocaleId;
+import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
+import net.sf.okapi.common.pipelinedriver.PipelineDriver;
+import net.sf.okapi.common.resource.StartGroup;
+import net.sf.okapi.common.skeleton.GenericSkeleton;
+import net.sf.okapi.common.skeleton.GenericSkeletonPart;
+import net.sf.okapi.steps.common.RawDocumentToFilterEventsStep;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +32,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,6 +74,9 @@ public class SimpleFileEditorCommand extends Command {
     @Parameter(names = {"--po-remove-usages"}, required = false, description = "To remove usages/refreneces/location/line starting with #: in PO files")
     boolean removeUsagesInPO = false;
 
+    @Parameter(names = {"--po-add-context-comment"}, required = false, description = "Add context and comment when missing")
+    boolean addContextAndComment = false;
+
     @Parameter(names = {"--macstrings-remove-usages"}, required = false, description = "To remove location from both Mac strings and string dict files")
     boolean removeUsagesInMacStrings = false;
 
@@ -84,6 +101,10 @@ public class SimpleFileEditorCommand extends Command {
 
         if (removeUsagesInPO) {
             removeUsagesInPOFiles();
+        }
+
+        if (addContextAndComment) {
+            addContextAndCommentInPOFiles();
         }
 
         if (removeUsagesInMacStrings) {
@@ -120,6 +141,96 @@ public class SimpleFileEditorCommand extends Command {
                             .collect(Collectors.joining("\n"));
                     writeOutputFile(inputPath, modifiedContent);
                 });
+    }
+
+    void addContextAndCommentInPOFiles() throws CommandException {
+        POFileType poFileType = new POFileType();
+
+        Pattern localePattern = Pattern.compile(".*/(.*?)/LC_MESSAGES/.*\\.po$");
+
+        commandDirectories.listFilesWithExtensionInSourceDirectory(poFileType.getSourceFileExtension(), poFileType.getTargetFileExtension()).stream()
+                .filter(getInputFilterMatch())
+                .forEach(inputPath -> {
+                    String inputPathStr = inputPath.toString();
+                    LocaleId localeId = LocaleId.EMPTY;
+                    if (inputPathStr.endsWith(".po")) {
+                        Matcher matcher = localePattern.matcher(inputPathStr);
+                        if (matcher.matches()) {
+                            String strLocale = matcher.group(1);
+                            localeId = LocaleId.fromString(strLocale);
+                        } else {
+                            throw new RuntimeException("can't find locale");
+                        }
+                    }
+                    consoleWriter.a(" - Add context and comment to: ").fg(Ansi.Color.MAGENTA).a(inputPathStr).print();
+                    String modifiedContent = addContextAndCommentInPOFile(commandHelper.getFileContent(inputPath), localeId);
+                    writeOutputFile(inputPath, modifiedContent);
+                });
+    }
+
+    String addContextAndCommentInPOFile(String poContent, LocaleId localeId) {
+        IPipelineDriver driver = new PipelineDriver();
+        driver.addStep(new RawDocumentToFilterEventsStep(new POFilter()));
+        driver.addStep(new AbstractMd5ComputationStep() {
+
+            @Override
+            protected Event handleTextUnit(Event event) {
+                event = super.handleTextUnit(event);
+                GenericSkeleton genericSkeleton = (GenericSkeleton) event.getTextUnit().getSkeleton();
+                addContextAndCommentInSkeleton(genericSkeleton);
+                return event;
+            }
+
+            @Override
+            protected Event handleStartGroup(Event event) {
+                StartGroup startGroup = event.getStartGroup();
+                if ("x-gettext-plurals".equals(startGroup.getType())) {
+                    GenericSkeleton genericSkeleton = (GenericSkeleton) startGroup.getSkeleton();
+                    addContextAndCommentInSkeleton(genericSkeleton);
+                }
+                return event;
+            }
+
+            @Override
+            public String getName() {
+                return "addContextAndCommentInPOFile";
+            }
+
+            @Override
+            public String getDescription() {
+                return "addContextAndCommentInPOFile";
+            }
+        });
+
+        FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
+        driver.addStep(filterEventsToInMemoryRawDocumentStep);
+        RawDocument rawDocument = new RawDocument(poContent, LocaleId.ENGLISH, localeId);
+        rawDocument.setAnnotation(new CopyFormsOnImport());
+        driver.addBatchItem(rawDocument);
+        logger.debug("Start processing batch");
+        driver.processBatch();
+        return filterEventsToInMemoryRawDocumentStep.getOutput(rawDocument);
+    }
+
+    void addContextAndCommentInSkeleton(GenericSkeleton genericSkeleton) {
+        String skeletonStr = genericSkeleton.toString();
+        boolean needsContext = !skeletonStr.contains("msgctx");
+        boolean needsComment = !skeletonStr.contains("#.");
+        for (GenericSkeletonPart part : genericSkeleton.getParts()) {
+            StringBuilder sb = part.getData();
+            String str = sb.toString();
+            if (needsComment) {
+                if (skeletonStr.contains("#:")) {
+                    str = str.replaceFirst("#: ", "#. --\n#: ");
+                } else {
+                    str = str.replaceFirst("msgid ", "#. --\nmsgid ");
+                }
+            }
+            if (needsContext) {
+                str = str.replaceFirst("msgid ", "msgctxt \" - \"\nmsgid ");
+            }
+            sb.replace(0, sb.length(), str);
+        }
     }
 
     void removeUsagesInMacStringsAndStringDict() throws CommandException {

@@ -27,6 +27,17 @@ public class SimpleFileEditorCommandTest extends CLITestBase {
     }
 
     @Test
+    public void addContextAndCommentInPOFiles() {
+        getL10nJCommander().run("simple-file-editor",
+                "-i", getInputResourcesTestDir().getAbsolutePath(),
+                "-o", getTargetTestDir().getAbsolutePath(),
+                "--po-add-context-comment"
+        );
+
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void macStringsRemoveUsages() {
 
         getL10nJCommander().run("simple-file-editor",
