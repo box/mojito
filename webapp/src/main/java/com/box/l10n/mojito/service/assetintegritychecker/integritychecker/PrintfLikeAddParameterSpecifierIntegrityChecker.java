@@ -14,7 +14,7 @@ import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDE
  */
 public class PrintfLikeAddParameterSpecifierIntegrityChecker extends PrintfLikeIntegrityChecker {
 
-    private Pattern pattern = Pattern.compile(PLACEHOLDER_NO_SPECIFIER_REGEX);
+    private Pattern pattern = Pattern.compile(PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex());
 
     @Override
     public void check(String sourceContent, String targetContent) throws PrintfLikeIntegrityCheckerException {

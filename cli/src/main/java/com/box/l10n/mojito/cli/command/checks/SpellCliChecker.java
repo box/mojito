@@ -10,8 +10,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SpellCliChecker extends AbstractCliChecker {
@@ -26,9 +28,9 @@ public class SpellCliChecker extends AbstractCliChecker {
         List<String> sourceStrings = getSourceStringsFromDiff();
         loadAdditionalWordsToDictionary(cliCheckerOptions.getDictionaryAdditionsFilePath());
         Map<String, Map<String, List<String>>> failureMap = spellCheck(sourceStrings);
-        CliCheckResult cliCheckResult = new CliCheckResult(true, "", isHardFail());
+        CliCheckResult cliCheckResult = new CliCheckResult(true, "", isHardFail(), CliCheckerType.SPELL_CHECKER.name());
         if(!failureMap.isEmpty()) {
-            cliCheckResult = new CliCheckResult(false, buildNotificationText(failureMap), isHardFail());
+            cliCheckResult = new CliCheckResult(false, buildNotificationText(failureMap), isHardFail(), CliCheckerType.SPELL_CHECKER.name());
         }
 
         return cliCheckResult;
@@ -55,7 +57,11 @@ public class SpellCliChecker extends AbstractCliChecker {
     }
 
     private String removePlaceholdersFromString(String sourceString) {
-        return sourceString.replaceAll(cliCheckerOptions.getParameterRegex(), "");
+        String stringWithoutPlaceholders = sourceString;
+        for(String regex : cliCheckerOptions.getParameterRegexSet()) {
+            stringWithoutPlaceholders = stringWithoutPlaceholders.replaceAll(regex, "");
+        }
+        return stringWithoutPlaceholders;
     }
 
     private void loadAdditionalWordsToDictionary(String additionalWordsFilePath) throws IOException {
@@ -71,11 +77,13 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     private Map<String, List<String>> spellCheckSourceString(List<String> words) {
         Map<String, List<String>> failureMap = new HashMap<>();
+        Set<String> checked = new HashSet<>();
         for (String word : words) {
-            if (!hunspell.spell(word)) {
+            if (!checked.contains(word) && !hunspell.spell(word)) {
                 List<String> suggestions = hunspell.suggest(word);
                 logger.debug("{} is spelt incorrectly. Suggested correct spellings are {}", word, suggestions);
                 failureMap.put(word, suggestions);
+                checked.add(word);
             }
         }
         return failureMap;

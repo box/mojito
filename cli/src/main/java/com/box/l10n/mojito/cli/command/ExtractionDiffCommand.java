@@ -2,15 +2,9 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.box.l10n.mojito.cli.command.checks.CliChecker;
-import com.box.l10n.mojito.cli.command.checks.CliCheckerException;
-import com.box.l10n.mojito.cli.command.checks.CliCheckerExecutor;
-import com.box.l10n.mojito.cli.command.checks.CliCheckerInstantiationException;
-import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
-import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
-import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
+import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.command.param.Param;
@@ -28,9 +22,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -130,21 +121,6 @@ public class ExtractionDiffCommand extends Command {
     @Parameter(names = "--fail-safe-message", arity = 1, required = false, description = "Message for the fail safe email")
     String failSafeMessage = null;
 
-    @Parameter(names = {"--run-checks", "-rc"}, arity = 1, required = false, description = "List of checks to be run against source strings")
-    String checkerList;
-
-    @Parameter(names = "--hard-fail", arity = 1, required = false, description = "List of checks that will cause a hard failure, if list is empty all checks will default to a hard failure")
-    String checkerHardFailList;
-
-    @Parameter(names = {"--checker-parameter-regexes", "-cpr"}, arity = 1, required = false, description = "Regex types used to identify parameters in source strings")
-    String checkerParameterRegex;
-
-    @Parameter(names = {"--dictionary-additions-file", "-daf"}, arity = 1, required = false, description = "Path to the dictionary additions file used for the spelling check")
-    String dictionaryAdditionsFilePath;
-
-    @Parameter(names = {"--glossary-file", "-gf"}, arity = 1, required = false, description = "Path to the glossary file used for the glossary check")
-    String glossaryFilePath;
-
     @Autowired
     ExtractionDiffService extractionDiffService;
 
@@ -185,21 +161,9 @@ public class ExtractionDiffCommand extends Command {
 
         List<AssetExtractionDiff> assetExtractionDiffs;
         try {
-            assetExtractionDiffs = extractionDiffService.computeAndWriteDiffs(extractionDiffPaths);
+            extractionDiffService.computeAndWriteDiffs(extractionDiffPaths);
         } catch (MissingExtractionDirectoryExcpetion msobe) {
             throw new CommandException(msobe.getMessage());
-        }
-
-        try {
-            consoleWriter.newLine().a("Running checks against new source strings").println(2);
-            CliCheckerExecutor cliCheckerExecutor = new CliCheckerExecutor(generateChecks(assetExtractionDiffs));
-            cliCheckerExecutor.executeChecks();
-        } catch (CliCheckerException cliCheckerException) {
-            if (cliCheckerException.isHardFail()) {
-                throw new CommandException(cliCheckerException.getMessage());
-            } else {
-                //TODO: handle notification send
-            }
         }
 
         if (pushToRepository != null) {
@@ -215,38 +179,6 @@ public class ExtractionDiffCommand extends Command {
         }
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
-    }
-
-    private CliCheckerOptions generateCheckerOptions() {
-        //TODO: Update to use mojito-common regexes & create the hard failure set
-        return new CliCheckerOptions(checkerParameterRegex, new HashSet<>(), dictionaryAdditionsFilePath, glossaryFilePath);
-    }
-
-    private List<CliChecker> generateChecks(List<AssetExtractionDiff> assetExtractionDiffs) {
-        List<CliChecker> cliCheckers = new ArrayList<>();
-        String[] checks = checkerList.split(",");
-        CliCheckerOptions options = generateCheckerOptions();
-        Stream<CliCheckerType> checkerTypes = Arrays.stream(CliCheckerType.values());
-        for(String check : checks) {
-           if(checkerTypes.anyMatch(c -> c.getClassName().equals(check))){
-               CliChecker checker = createInstanceForClassName(check);
-               checker.setAssetExtractionDiffs(assetExtractionDiffs);
-               checker.setCliCheckerOptions(options);
-               cliCheckers.add(checker);
-           } else {
-               //TODO: throw unknown check error here.
-           }
-        }
-        return cliCheckers;
-    }
-
-    private CliChecker createInstanceForClassName(String className) throws CliCheckerInstantiationException {
-        try {
-            Class<?> clazz = Class.forName(className);
-            return (CliChecker) clazz.newInstance();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            throw new CliCheckerInstantiationException("Cannot create an instance of CliChecker using reflection", e);
-        }
     }
 
     private String getValidRepositoryName() {

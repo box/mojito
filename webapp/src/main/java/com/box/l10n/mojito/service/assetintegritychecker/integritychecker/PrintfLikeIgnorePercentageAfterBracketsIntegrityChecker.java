@@ -17,7 +17,7 @@ public class PrintfLikeIgnorePercentageAfterBracketsIntegrityChecker extends Reg
 
     @Override
     public String getRegex() {
-        return PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS;
+        return PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS.getRegex();
     }
 
     @Override

@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Set;
 
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_VARIABLE_TYPE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,7 +33,7 @@ public class SpellCliCheckerTest {
     @Before
     public void setup() {
         spellCliChecker = new SpellCliChecker();
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(SINGLE_BRACE_REGEX, Sets.newHashSet(), "", ""));
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX.getRegex()), Sets.newHashSet(), "", ""));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setSource("A source string with no errors.");
@@ -47,7 +49,7 @@ public class SpellCliCheckerTest {
     public void testHardFailureIsSet() throws Exception {
         Set<String> hardFailureSet = new HashSet<>();
         hardFailureSet.add(CliCheckerType.SPELL_CHECKER.name());
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(PLACEHOLDER_NO_SPECIFIER_REGEX, hardFailureSet, "", ""));
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex()), hardFailureSet, "", ""));
         CliCheckResult result = spellCliChecker.call();
         assertTrue(result.isHardFail());
     }
@@ -91,7 +93,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
         createTempDictionaryAdditionsFile("strng" + System.lineSeparator() + "erors");
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(PLACEHOLDER_NO_SPECIFIER_REGEX, Sets.newHashSet(),
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex()), Sets.newHashSet(),
                 "target/tests/resources/dictAddition.txt", ""));
         CliCheckResult result = spellCliChecker.call();
         assertTrue(result.isSuccessful());
@@ -128,7 +130,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
         createTempDictionaryAdditionsFile("");
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(PLACEHOLDER_NO_SPECIFIER_REGEX, Sets.newHashSet(),
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex()), Sets.newHashSet(),
                 "target/tests/resources/dictAddition.txt", ""));
         CliCheckResult result = spellCliChecker.call();
         assertFalse(result.isSuccessful());
@@ -159,6 +161,58 @@ public class SpellCliCheckerTest {
         assertTrue(result.getNotificationText().contains("\t* 'erors'"));
         assertTrue(result.getNotificationText().contains("\t* 'strng'"));
         assertTrue(result.getNotificationText().contains("\t* 'falures'"));
+    }
+
+    @Test
+    public void testNestedICUPlaceholderIsExcludedFromSpellcheck() throws Exception {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("You have {count, plurl, one{1 photo} othr{{count} phutos}}");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+        CliCheckResult result = spellCliChecker.call();
+        assertTrue(result.isSuccessful());
+        assertTrue(result.getNotificationText().isEmpty());
+        assertFalse(result.isHardFail());
+    }
+
+    @Test
+    public void testMultipleIdenticalErrorsInStringAreReportedOnlyOnce() throws Exception {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("A source string with identicl identicl identicl errors.");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+        CliCheckResult result = spellCliChecker.call();
+        assertFalse(result.isSuccessful());
+        assertTrue(result.getNotificationText().contains("\t* 'identicl'"));
+        assertEquals(1, result.getNotificationText().chars().filter(c -> c =='*').count());
+    }
+
+    @Test
+    public void testMultipleConfiguredPlaceholderRegexesAreNotSpellChecked() throws Exception {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("A source string with a {numbr} of %(diferent)s errors.");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX.getRegex(), PRINTF_LIKE_VARIABLE_TYPE_REGEX.getRegex()), Sets.newHashSet(),
+                "", ""));
+        CliCheckResult result = spellCliChecker.call();
+        assertTrue(result.isSuccessful());
+        assertTrue(result.getNotificationText().isEmpty());
     }
 
     private void createTempDictionaryAdditionsFile(String contents) throws IOException {

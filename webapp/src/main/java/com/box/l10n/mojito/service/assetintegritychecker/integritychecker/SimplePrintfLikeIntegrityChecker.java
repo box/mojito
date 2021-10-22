@@ -12,7 +12,7 @@ public class SimplePrintfLikeIntegrityChecker extends RegexIntegrityChecker {
     
     @Override
     public String getRegex() {
-        return SIMPLE_PRINTF_REGEX;
+        return SIMPLE_PRINTF_REGEX.getRegex();
     }
 
     @Override

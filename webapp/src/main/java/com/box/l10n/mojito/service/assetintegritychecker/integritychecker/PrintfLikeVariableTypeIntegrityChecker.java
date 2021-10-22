@@ -15,7 +15,7 @@ public class PrintfLikeVariableTypeIntegrityChecker extends RegexIntegrityChecke
         /**
          * Regex checks for strings in the format %([variable_name])[conversion flags][type]
          */
-        return PRINTF_LIKE_VARIABLE_TYPE_REGEX;
+        return PRINTF_LIKE_VARIABLE_TYPE_REGEX.getRegex();
     }
 
     @Override

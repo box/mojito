@@ -17,7 +17,7 @@ public class PrintfLikeIntegrityChecker extends RegexIntegrityChecker {
      */
     @Override
     public String getRegex() {
-        return PRINTF_LIKE_REGEX;
+        return PRINTF_LIKE_REGEX.getRegex();
     }
 
     @Override

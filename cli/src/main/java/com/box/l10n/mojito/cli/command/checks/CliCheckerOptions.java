@@ -4,20 +4,20 @@ import java.util.Set;
 
 public class CliCheckerOptions {
 
-    private final String parameterRegex;
+    private final Set<String> parameterRegexSet;
     private final Set<String> hardFailureSet;
     private final String dictionaryAdditionsFilePath;
     private final String glossaryFilePath;
 
-    public CliCheckerOptions(String parameterRegex, Set<String> hardFailureSet, String dictionaryAdditionsFilePath, String glossaryFilePath) {
-        this.parameterRegex = parameterRegex;
+    public CliCheckerOptions(Set<String> parameterRegexSet, Set<String> hardFailureSet, String dictionaryAdditionsFilePath, String glossaryFilePath) {
+        this.parameterRegexSet = parameterRegexSet;
         this.hardFailureSet = hardFailureSet;
         this.dictionaryAdditionsFilePath = dictionaryAdditionsFilePath;
         this.glossaryFilePath = glossaryFilePath;
     }
     
-    public String getParameterRegex() {
-        return parameterRegex;
+    public Set<String> getParameterRegexSet() {
+        return parameterRegexSet;
     }
 
     public Set<String> getHardFailureSet() {
