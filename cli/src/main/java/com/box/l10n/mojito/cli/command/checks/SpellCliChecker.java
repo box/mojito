@@ -16,6 +16,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * {@link CliChecker} that uses hunspell native libraries to spell check words in source strings. The hunspell libraries
+ * need to available on your system separately for this check to execute successfully.
+ *
+ * @author mallen
+ */
 public class SpellCliChecker extends AbstractCliChecker {
 
     static Logger logger = LoggerFactory.getLogger(SpellCliChecker.class);
