@@ -158,8 +158,7 @@ public class ExtractionDiffCommand extends Command {
                 .baseExtractorPaths(baseExtractionPaths)
                 .currentExtractorPaths(currentExtractionPaths)
                 .build();
-
-        List<AssetExtractionDiff> assetExtractionDiffs;
+        
         try {
             extractionDiffService.computeAndWriteDiffs(extractionDiffPaths);
         } catch (MissingExtractionDirectoryExcpetion msobe) {
