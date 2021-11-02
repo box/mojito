@@ -4,7 +4,7 @@ import com.box.l10n.mojito.cli.CLITestBase;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class CheckerCommandTest extends CLITestBase {
+public class RunChecksCommandTest extends CLITestBase {
 
 
     @Test
