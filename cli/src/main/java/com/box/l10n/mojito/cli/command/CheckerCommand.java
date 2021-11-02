@@ -76,6 +76,9 @@ public class CheckerCommand extends Command {
     @Parameter(names = {"--input-directory", "-i"}, arity = 1, required = false, description = ExtractionDiffCommand.INPUT_DIRECTORY_DESCRIPTION)
     String inputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
+    @Parameter(names = {"--threads", "-t"}, arity = 1, required = false, description = "Number of threads to be used for checks. Defaults to the number of available processors.")
+    Integer numOfThreads = Runtime.getRuntime().availableProcessors();
+
     @Override
     protected void execute() throws CommandException {
 
@@ -101,10 +104,13 @@ public class CheckerCommand extends Command {
             throw new CommandException("Can't compute extraction diffs", missingExtractionDirectoryException);
         }
 
-        CliCheckerExecutor cliCheckerExecutor = new CliCheckerExecutor(generateChecks(assetExtractionDiffs));
+        CliCheckerExecutor cliCheckerExecutor = new CliCheckerExecutor(generateChecks(assetExtractionDiffs), numOfThreads);
         consoleWriter.newLine().a("Running checks against new strings").println();
-        if(!cliCheckerExecutor.executeChecks()) {
-            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Checks soft failed, sending notifications.").println();
+        List<String> failedCheckNames = cliCheckerExecutor.executeChecks();
+        if(failedCheckNames.size() > 0) {
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failed checks: ").println();
+            failedCheckNames.stream().forEach(check -> consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("\t* " + check).println());
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Sending notifications.").println();
             //TODO: Checks failed, send notifications
         }
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
