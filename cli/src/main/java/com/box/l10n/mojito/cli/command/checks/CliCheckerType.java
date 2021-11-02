@@ -2,7 +2,8 @@ package com.box.l10n.mojito.cli.command.checks;
 
 public enum CliCheckerType {
 
-    SPELL_CHECKER(SpellCliChecker.class.getName());
+    SPELL_CHECKER(SpellCliChecker.class.getName()),
+    CONTEXT_COMMENT_CHECKER(ContextAndCommentCliChecker.class.getName());
 
     String className;
 

@@ -2,7 +2,9 @@ package com.box.l10n.mojito.cli.command.checks;
 
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractCliChecker implements CliChecker {
@@ -11,10 +13,8 @@ public abstract class AbstractCliChecker implements CliChecker {
 
     protected List<AssetExtractionDiff> assetExtractionDiffs;
 
-    protected boolean hardFail;
-
     public boolean isHardFail() {
-        return hardFail;
+        return cliCheckerOptions.getHardFailureSet().contains(this.getClass().getName());
     }
 
     public void setCliCheckerOptions(CliCheckerOptions options) {
@@ -25,4 +25,9 @@ public abstract class AbstractCliChecker implements CliChecker {
         this.assetExtractionDiffs = assetExtractionDiffs;
     }
 
+    protected List<AssetExtractorTextUnit> getAddedTextUnits() {
+        List<AssetExtractorTextUnit> addedTextUnits = new ArrayList<>();
+        assetExtractionDiffs.stream().forEach(assetExtractionDiff -> addedTextUnits.addAll(assetExtractionDiff.getAddedTextunits()));
+        return addedTextUnits;
+    }
 }

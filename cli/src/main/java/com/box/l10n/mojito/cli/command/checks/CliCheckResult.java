@@ -2,14 +2,18 @@ package com.box.l10n.mojito.cli.command.checks;
 
 public class CliCheckResult {
 
-    private final boolean successful;
-    private final String notificationText;
     private final boolean hardFail;
     private final String checkName;
+    private boolean successful = true;
+    private String notificationText = "";
 
-    public CliCheckResult(boolean successful, String notificationText, boolean hardFail, String checkName) {
+    public CliCheckResult(boolean hardFail, String checkName) {
+        this.hardFail = hardFail;
+        this.checkName = checkName;
+    }
+
+    public CliCheckResult(boolean successful, boolean hardFail, String checkName) {
         this.successful = successful;
-        this.notificationText = notificationText;
         this.hardFail = hardFail;
         this.checkName = checkName;
     }
@@ -28,5 +32,13 @@ public class CliCheckResult {
 
     public String getCheckName() {
         return checkName;
+    }
+
+    public void setSuccessful(boolean successful) {
+        this.successful = successful;
+    }
+
+    public void setNotificationText(String notificationText) {
+        this.notificationText = notificationText;
     }
 }

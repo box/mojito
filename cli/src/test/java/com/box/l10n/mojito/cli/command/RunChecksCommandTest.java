@@ -6,7 +6,6 @@ import org.junit.Test;
 
 public class RunChecksCommandTest extends CLITestBase {
 
-
     @Test
     public void runSuccessfulChecks() throws Exception {
 

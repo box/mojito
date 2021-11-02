@@ -48,7 +48,7 @@ public class SpellCliCheckerTest {
     @Test
     public void testHardFailureIsSet() throws Exception {
         Set<String> hardFailureSet = new HashSet<>();
-        hardFailureSet.add(CliCheckerType.SPELL_CHECKER.name());
+        hardFailureSet.add(CliCheckerType.SPELL_CHECKER.getClassName());
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex()), hardFailureSet, "", ""));
         CliCheckResult result = spellCliChecker.call();
         assertTrue(result.isHardFail());

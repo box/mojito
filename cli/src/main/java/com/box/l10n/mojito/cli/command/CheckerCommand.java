@@ -127,12 +127,12 @@ public class CheckerCommand extends Command {
         Stream<CliCheckerType> cliCheckerTypeStream = Arrays.stream(CliCheckerType.values());
         if (hardFailList != null) {
             if (hardFailList.equalsIgnoreCase("all")) {
-                cliCheckerTypeStream.forEach(cliCheckerType -> hardFailureSet.add(cliCheckerType.name()));
+                cliCheckerTypeStream.forEach(cliCheckerType -> hardFailureSet.add(cliCheckerType.getClassName()));
             } else {
                 String[] hardFails = hardFailList.split(",");
                 for (String checkName : hardFails) {
                     if (cliCheckerTypeStream.anyMatch(cliCheckerType -> cliCheckerType.name().equals(checkName))) {
-                        hardFailureSet.add(checkName);
+                        hardFailureSet.add(CliCheckerType.valueOf(checkName).getClassName());
                     } else {
                         throw new CommandException("Unknown check name in hard fail list '" + checkName + "'");
                     }

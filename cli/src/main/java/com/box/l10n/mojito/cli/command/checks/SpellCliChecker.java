@@ -30,22 +30,16 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     @Override
     public CliCheckResult call() throws Exception {
-        setHardFailure();
         List<String> sourceStrings = getSourceStringsFromDiff();
         loadAdditionalWordsToDictionary(cliCheckerOptions.getDictionaryAdditionsFilePath());
         Map<String, Map<String, List<String>>> failureMap = spellCheck(sourceStrings);
-        CliCheckResult cliCheckResult = new CliCheckResult(true, "", isHardFail(), CliCheckerType.SPELL_CHECKER.name());
+        CliCheckResult cliCheckResult = new CliCheckResult(isHardFail(), CliCheckerType.SPELL_CHECKER.name());
         if(!failureMap.isEmpty()) {
-            cliCheckResult = new CliCheckResult(false, buildNotificationText(failureMap), isHardFail(), CliCheckerType.SPELL_CHECKER.name());
+            cliCheckResult.setSuccessful(false);
+            cliCheckResult.setNotificationText(buildNotificationText(failureMap));
         }
 
         return cliCheckResult;
-    }
-
-    private void setHardFailure() {
-        if (cliCheckerOptions.getHardFailureSet().contains(CliCheckerType.SPELL_CHECKER.name())){
-            hardFail = true;
-        }
     }
 
     private Map<String, Map<String, List<String>>> spellCheck(List<String> sourceStrings) {
@@ -97,9 +91,7 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     private List<String> getSourceStringsFromDiff() {
         List<String> sourceStrings = new ArrayList<>();
-        assetExtractionDiffs.stream().forEach(assetExtractionDiff ->
-                assetExtractionDiff.getAddedTextunits().stream()
-                        .forEach(assetExtractorTextUnit -> sourceStrings.add(assetExtractorTextUnit.getSource())));
+        getAddedTextUnits().stream().forEach(assetExtractorTextUnit -> sourceStrings.add(assetExtractorTextUnit.getSource()));
         return sourceStrings;
     }
 
