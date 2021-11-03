@@ -164,5 +164,24 @@ public class EmptyPlaceholderCheckerTest {
                 "Please remove or update placeholders to contain a descriptive name." + System.lineSeparator(), result.getNotificationText());
     }
 
+    @Test
+    public void testStringWithNestedICUPlaceholder() {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("Some string id --- Test context");
+        assetExtractorTextUnit.setSource("A source string with a nested ICU placeholder {pagesCount, plural, one {# page.} other {# pages.}}.");
+        assetExtractorTextUnit.setComments("Test comment");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        emptyPlaceholderChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+
+        CliCheckResult result = emptyPlaceholderChecker.call();
+        Assert.assertTrue(result.isSuccessful());
+        Assert.assertFalse(result.isHardFail());
+    }
+
     //TODO: Test other regex options
 }

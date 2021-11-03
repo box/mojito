@@ -167,7 +167,7 @@ public class SpellCliCheckerTest {
     public void testNestedICUPlaceholderIsExcludedFromSpellcheck() throws Exception {
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
-        assetExtractorTextUnit.setSource("You have {count, plurl, one{1 photo} othr{{count} phutos}}");
+        assetExtractorTextUnit.setSource("You have {pagesCount, plural, one {# pazge.} other {# pages.}}");
         addedTUs.add(assetExtractorTextUnit);
         List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
         AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();

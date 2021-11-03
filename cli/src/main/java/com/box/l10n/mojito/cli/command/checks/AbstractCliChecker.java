@@ -32,7 +32,7 @@ public abstract class AbstractCliChecker implements CliChecker {
         return addedTextUnits;
     }
 
-    protected List<Pattern> getPatterns() {
+    protected List<Pattern> getRegexPatterns() {
         List<Pattern> patterns = new ArrayList<>();
         cliCheckerOptions.getParameterRegexSet().stream().forEach(regex -> patterns.add(Pattern.compile(regex)));
         return patterns;

@@ -4,7 +4,8 @@ public enum CliCheckerType {
 
     SPELL_CHECKER(SpellCliChecker.class.getName()),
     CONTEXT_COMMENT_CHECKER(ContextAndCommentCliChecker.class.getName()),
-    EMPTY_PLACEHOLDER_CHECKER(EmptyPlaceholderChecker.class.getName());
+    EMPTY_PLACEHOLDER_CHECKER(EmptyPlaceholderChecker.class.getName()),
+    PLACEHOLDER_COMMENT_CHECKER(PlaceholderCommentChecker.class.getName());
 
     String className;
 

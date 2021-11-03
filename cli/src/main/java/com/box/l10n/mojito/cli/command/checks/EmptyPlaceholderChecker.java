@@ -8,9 +8,19 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Checker that verifies a source string does not contain an empty placeholder e.g. '{}'.
+ *
+ * The check uses the provided regex patterns to identify placeholders in a source string and then checks that the
+ * placeholder substring contains regex 'word' values.
+ *
+ * @author mallen
+ */
 public class EmptyPlaceholderChecker extends AbstractCliChecker {
 
     static Logger logger = LoggerFactory.getLogger(EmptyPlaceholderChecker.class);
+
+    private Pattern wordPattern = Pattern.compile("\\w+");
 
     @Override
     public CliCheckResult call() {
@@ -26,8 +36,7 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
 
     private List<String> checkForEmptyPlaceholders() {
         List<String> failures = new ArrayList<>();
-        List<Pattern> patterns = getPatterns();
-        Pattern wordPattern = Pattern.compile("\\w+");
+        List<Pattern> patterns = getRegexPatterns();
         getAddedTextUnits().stream().forEach(assetExtractorTextUnit -> {
             String source = assetExtractorTextUnit.getSource();
             patterns.stream().forEach(pattern -> {
