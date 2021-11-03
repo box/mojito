@@ -1,11 +1,22 @@
 package com.box.l10n.mojito.cli.command.checks;
 
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ContextAndCommentCliChecker extends AbstractCliChecker{
+/**
+ * Checker that verifies the comment and context parameters are provided and
+ * are not identical.
+ *
+ * @author mallen
+ */
+public class ContextAndCommentCliChecker extends AbstractCliChecker {
+
+    static Logger logger = LoggerFactory.getLogger(ContextAndCommentCliChecker.class);
 
     @Override
     public CliCheckResult call() {
@@ -14,12 +25,14 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker{
         getAddedTextUnits().stream().forEach(assetExtractorTextUnit -> {
             String failureText = checkTextUnit(assetExtractorTextUnit);
             if(failureText != null) {
+                logger.debug("'{}' source string failed check with error: {}", assetExtractorTextUnit.getSource(), failureText);
                 failureMap.put(assetExtractorTextUnit.getSource(), failureText);
             }
         });
 
         if(!failureMap.isEmpty()) {
-            StringBuilder notificationText = buildNotificationText(cliCheckResult, failureMap);
+            cliCheckResult.setSuccessful(false);
+            StringBuilder notificationText = buildNotificationText(failureMap);
             cliCheckResult.setNotificationText(notificationText.toString());
         }
         return cliCheckResult;
@@ -34,25 +47,22 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker{
         }
         String comment = assetExtractorTextUnit.getComments();
 
-        if (!isNullOrEmpty(context) && !isNullOrEmpty(comment)) {
+        if (!isBlank(context) && !isBlank(comment)) {
             if(context.trim().equalsIgnoreCase(comment.trim())) {
                 failureText = "Context & comment strings should not be identical.";
             }
-        }
-
-        if(isNullOrEmpty(context) && isNullOrEmpty(comment)) {
+        } else if (isBlank(context) && isBlank(comment)) {
             failureText = "Context and comment strings are both empty.";
-        } else if (isNullOrEmpty(context)) {
+        } else if (isBlank(context)) {
             failureText = "Context string is empty.";
-        } else if (isNullOrEmpty(comment)) {
+        } else if (isBlank(comment)) {
             failureText = "Comment string is empty.";
         }
 
         return failureText;
     }
 
-    private StringBuilder buildNotificationText(CliCheckResult cliCheckResult, Map<String, String> failureMap) {
-        cliCheckResult.setSuccessful(false);
+    private StringBuilder buildNotificationText(Map<String, String> failureMap) {
         StringBuilder notificationText = new StringBuilder();
         notificationText.append("Context and comment check found failures:");
         notificationText.append(System.lineSeparator());
@@ -64,8 +74,8 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker{
         return notificationText;
     }
 
-    private boolean isNullOrEmpty(String string) {
-        return string == null || string.isEmpty();
+    private boolean isBlank(String string) {
+        return StringUtils.isBlank(string);
     }
 
 }

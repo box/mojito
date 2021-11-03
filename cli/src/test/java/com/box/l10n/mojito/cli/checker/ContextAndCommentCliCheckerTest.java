@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.checker;
 
 import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
+import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
 import com.box.l10n.mojito.cli.command.checks.ContextAndCommentCliChecker;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
@@ -128,6 +129,48 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
                 "\t* Source string 'A source string with no errors.' failed check with error: Context & comment strings should not be identical."
+                + System.lineSeparator(), result.getNotificationText());
+    }
+
+    @Test
+    public void testHardFailure() {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("");
+        assetExtractorTextUnit.setSource("A source string with no errors.");
+        assetExtractorTextUnit.setComments(null);
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX.getRegex()), Sets.newHashSet(CliCheckerType.CONTEXT_COMMENT_CHECKER.getClassName()), "", ""));
+
+        CliCheckResult result = contextAndCommentCliChecker.call();
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertTrue(result.isHardFail());
+    }
+
+    @Test
+    public void testStringsOnlyContainingWhitespace() {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("Some string id --- ");
+        assetExtractorTextUnit.setSource("A source string with no errors.");
+        assetExtractorTextUnit.setComments(" ");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+
+        CliCheckResult result = contextAndCommentCliChecker.call();
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertFalse(result.isHardFail());
+        Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
+                "\t* Source string 'A source string with no errors.' failed check with error: Context and comment strings are both empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 }

@@ -6,6 +6,7 @@ import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public abstract class AbstractCliChecker implements CliChecker {
 
@@ -29,5 +30,11 @@ public abstract class AbstractCliChecker implements CliChecker {
         List<AssetExtractorTextUnit> addedTextUnits = new ArrayList<>();
         assetExtractionDiffs.stream().forEach(assetExtractionDiff -> addedTextUnits.addAll(assetExtractionDiff.getAddedTextunits()));
         return addedTextUnits;
+    }
+
+    protected List<Pattern> getPatterns() {
+        List<Pattern> patterns = new ArrayList<>();
+        cliCheckerOptions.getParameterRegexSet().stream().forEach(regex -> patterns.add(Pattern.compile(regex)));
+        return patterns;
     }
 }
