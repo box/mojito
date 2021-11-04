@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public class CliCheckerExecutor {
 
@@ -17,19 +18,26 @@ public class CliCheckerExecutor {
 
     private final List<CliChecker> cliCheckerList;
 
-    private final ExecutorService executorService;
+    private final int numOfThreads;
 
     private String notificationText;
 
     public CliCheckerExecutor(List<CliChecker> cliCheckerList, int numOfThreads) {
         this.cliCheckerList = cliCheckerList;
-        this.executorService = Executors.newFixedThreadPool(numOfThreads);
+        this.numOfThreads = numOfThreads;
     }
 
     public List<String> executeChecks() {
+        ExecutorService executorService = Executors.newFixedThreadPool(numOfThreads);
         try {
             List<Future<CliCheckResult>> futures = startChecks(executorService);
-            return analyzeResults(retrieveCheckResults(futures));
+            List<CliCheckResult> failures = retrieveCheckResults(futures).stream()
+                    .filter(result -> !result.isSuccessful()).collect(Collectors.toList());
+            checkForHardFail(failures);
+            notificationText = buildNotificationText(failures);
+            return failures.stream()
+                    .map(CliCheckResult::getCheckName)
+                    .collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             throw new CommandException("Failed to retrieve results from check executor: " + e.getMessage(), e);
         } finally {
@@ -37,24 +45,21 @@ public class CliCheckerExecutor {
         }
     }
 
-    private List<String> analyzeResults(List<CliCheckResult> results) {
-        List<String> failedChecks = new ArrayList<>();
+    private void checkForHardFail(List<CliCheckResult> failures) {
+        for(CliCheckResult failure : failures) {
+            if(failure.isHardFail()) {
+                throw new CommandException("Check " + failure.getCheckName() + " failed with error: "
+                        + System.lineSeparator() + failure.getNotificationText());
+            }
+        }
+    }
+
+    private String buildNotificationText(List<CliCheckResult> failures) {
         StringBuilder notificationTextBuilder = new StringBuilder();
         notificationTextBuilder.append("Checks on new source strings failed.");
         notificationTextBuilder.append(System.lineSeparator());
-        for(CliCheckResult result : results) {
-            if(!result.isSuccessful()) {
-                failedChecks.add(result.getCheckName());
-                if (result.isHardFail()) {
-                    throw new CommandException("Check " + result.getCheckName() + " failed with error: "
-                            + System.lineSeparator() + result.getNotificationText());
-                }
-                notificationTextBuilder.append(result.getNotificationText());
-                notificationTextBuilder.append(System.lineSeparator());
-            }
-        }
-        notificationText = notificationTextBuilder.toString();
-        return failedChecks;
+        failures.stream().forEach(failure -> notificationTextBuilder.append(failure.getNotificationText() + System.lineSeparator()));
+        return notificationTextBuilder.toString();
     }
 
     private List<CliCheckResult> retrieveCheckResults(List<Future<CliCheckResult>> futures) throws InterruptedException, ExecutionException {
@@ -62,7 +67,7 @@ public class CliCheckerExecutor {
         for(Future<CliCheckResult> future : futures) {
             while(!future.isDone()) {
                 logger.debug("Waiting for checks to complete.");
-                Thread.sleep(200);
+                Thread.sleep(100);
             }
             checkResults.add(future.get());
         }

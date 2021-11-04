@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Service to compute difference between local extractions
@@ -90,56 +91,18 @@ public class ExtractionDiffService {
         return extractionDiffStatistics;
     }
 
-    public List<AssetExtractionDiff> computeAssetExtractionDiffs(ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
-        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+    public List<AssetExtractionDiff> computeAssetExtractionDiffsWithAddedTextUnits(ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
+
         ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
         ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
 
         checkExtractionDirectoryExists(baseExtractionPaths);
         checkExtractionDirectoryExists(currentExtractionPaths);
 
-        logger.debug("Process existing files in the current extraction");
-        Set<Path> currentAssetExtractionPaths = currentExtractionPaths.findAllAssetExtractionPaths();
-
-        currentAssetExtractionPaths.forEach(currentAssetExtractionPath -> {
-            String sourceFileMatchPath = currentExtractionPaths.sourceFileMatchPath(currentAssetExtractionPath);
-            Path baseAssetExtractionPath = baseExtractionPaths.assetExtractionPath(sourceFileMatchPath);
-
-            AssetExtraction currentAssetExtraction = getAssetExtractionForPath(currentAssetExtractionPath);
-            AssetExtraction baseAssetExtraction = getAssetExtractionForPath(baseAssetExtractionPath);
-
-            AssetExtractionDiff assetExtractionDiff;
-
-            if (baseAssetExtraction != null) {
-                logger.debug("File in base extraction, compute added and removed text units");
-                assetExtractionDiff = computeDiffBetweenExtractions(currentAssetExtraction, baseAssetExtraction);
-            } else {
-                logger.debug("No file in base extraction, just added text units");
-                assetExtractionDiff = new AssetExtractionDiff();
-                assetExtractionDiff.setAddedTextunits(currentAssetExtraction.getTextunits());
-            }
-
-            assetExtractionDiffs.add(assetExtractionDiff);
-        });
-
-        logger.debug("Process files from the base that are not in the current extraction, just removed text units");
-        Set<Path> baseAssetExtractionPaths = baseExtractionPaths.findAllAssetExtractionPaths();
-        baseAssetExtractionPaths.stream()
-                .filter(baseAssetExtractionPath -> {
-                    String sourceFileMatchPath = baseExtractionPaths.sourceFileMatchPath(baseAssetExtractionPath);
-                    Path currentAssetExtractionPath = currentExtractionPaths.assetExtractionPath(sourceFileMatchPath);
-                    return !currentAssetExtractionPaths.contains(currentAssetExtractionPath);
-                })
-                .forEach(assetExtractionPath -> {
-                    AssetExtraction assetExtractionForPath = getAssetExtractionForPath(assetExtractionPath);
-                    AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
-                    assetExtractionDiff.setRemovedTextunits(assetExtractionForPath.getTextunits());
-                    assetExtractionDiffs.add(assetExtractionDiff);
-                });
-
-        return assetExtractionDiffs;
+        return extractionDiffPaths.findAllAssetExtractionDiffPaths().map(path -> objectMapper.readValueUnchecked(path.toFile(), AssetExtractionDiff.class))
+                .filter(assetExtractionDiff -> !assetExtractionDiff.getAddedTextunits().isEmpty())
+                .collect(Collectors.toList());
     }
-
 
     /**
      * Computes the difference between 2 local extractions designated by their names.

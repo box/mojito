@@ -62,7 +62,7 @@ public class RunChecksCommandTest extends CLITestBase {
                 "-c", "source2",
                 "-b", "source1",
                 "-cl", "SPELL_CHECKER",
-                "-hf", "all");
+                "-hf", "SPELL_CHECKER");
 
         Assert.assertTrue(outputCapture.toString().contains("Running checks against new strings"));
         Assert.assertTrue(outputCapture.toString().contains("Check SPELL_CHECKER failed with error"));
@@ -110,5 +110,63 @@ public class RunChecksCommandTest extends CLITestBase {
         Assert.assertFalse(outputCapture.toString().contains("The string 'This is a new sorce string with spelling failure' contains misspelled words:"));
         Assert.assertFalse(outputCapture.toString().contains("\t* 'sorce' - Did you mean "));
         Assert.assertFalse(outputCapture.toString().contains("Please correct any spelling errors in a new commit."));
+    }
+
+    @Test
+    public void runCheckWithInvalidCheckName() {
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source1").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source1");
+
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source2").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source2");
+
+        getL10nJCommander().run("extract-diff",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source2",
+                "-b", "source1");
+
+        getL10nJCommander().run("run-checks",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source2",
+                "-b", "source1",
+                "-cl", "INVALID_CHECK_NAME");
+
+        Assert.assertTrue(outputCapture.toString().contains("Unknown check 'INVALID_CHECK_NAME'"));
+    }
+
+    @Test
+    public void runHardFailChecksWithInvalidCheckName() throws Exception {
+
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source1").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source1");
+
+        getL10nJCommander().run("extract",
+                "-s", getInputResourcesTestDir("source2").getAbsolutePath(),
+                "-o", getTargetTestDir("extractions").getAbsolutePath(),
+                "-n", "source2");
+
+        getL10nJCommander().run("extract-diff",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source2",
+                "-b", "source1");
+
+        getL10nJCommander().run("run-checks",
+                "-i", getTargetTestDir("extractions").getAbsolutePath(),
+                "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
+                "-c", "source2",
+                "-b", "source1",
+                "-cl", "SPELL_CHECKER",
+                "-hf", "INVALID_NAME");
+
+        Assert.assertTrue(outputCapture.toString().contains("Unknown check name in hard fail list 'INVALID_NAME'"));
     }
 }

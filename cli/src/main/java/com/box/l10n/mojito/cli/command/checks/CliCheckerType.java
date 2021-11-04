@@ -16,4 +16,6 @@ public enum CliCheckerType {
     public String getClassName() {
         return className;
     }
+
+
 }

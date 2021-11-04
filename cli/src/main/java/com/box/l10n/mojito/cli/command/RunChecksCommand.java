@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.beust.jcommander.internal.Sets;
 import com.box.l10n.mojito.cli.command.checks.CliChecker;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerExecutor;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerInstantiationException;
@@ -14,6 +15,8 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,13 +24,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -36,7 +39,7 @@ import java.util.stream.Stream;
 @Component
 @Scope("prototype")
 @Parameters(commandNames = {"run-checks"}, commandDescription = "Execute checks against new source strings")
-public class CheckerCommand extends Command {
+public class RunChecksCommand extends Command {
 
     static Logger logger = LoggerFactory.getLogger(ExtractionDiffCommand.class);
 
@@ -95,7 +98,7 @@ public class CheckerCommand extends Command {
 
         try {
             if (extractionDiffService.hasAddedTextUnits(extractionDiffPaths)) {
-                assetExtractionDiffs = extractionDiffService.computeAssetExtractionDiffs(extractionDiffPaths);
+                assetExtractionDiffs = extractionDiffService.computeAssetExtractionDiffsWithAddedTextUnits(extractionDiffPaths);
             } else {
                 consoleWriter.newLine().a("No new strings in diff to be checked.").println();
                 return;
@@ -123,23 +126,21 @@ public class CheckerCommand extends Command {
     }
 
     private Set<String> generateHardFailureSet() {
-        Set<String> hardFailureSet = new HashSet<>();
-        Stream<CliCheckerType> cliCheckerTypeStream = Arrays.stream(CliCheckerType.values());
         if (hardFailList != null) {
             if (hardFailList.equalsIgnoreCase("all")) {
-                cliCheckerTypeStream.forEach(cliCheckerType -> hardFailureSet.add(cliCheckerType.getClassName()));
+                return Stream.of(CliCheckerType.values()).map(CliCheckerType::getClassName).collect(Collectors.toSet());
             } else {
                 String[] hardFails = hardFailList.split(",");
-                for (String checkName : hardFails) {
-                    if (cliCheckerTypeStream.anyMatch(cliCheckerType -> cliCheckerType.name().equals(checkName))) {
-                        hardFailureSet.add(CliCheckerType.valueOf(checkName).getClassName());
-                    } else {
-                        throw new CommandException("Unknown check name in hard fail list '" + checkName + "'");
+                return Stream.of(hardFails).map(check -> {
+                    Optional<CliCheckerType> checkEnum = Enums.getIfPresent(CliCheckerType.class, check);
+                    if(checkEnum.isPresent()) {
+                        return checkEnum.get().getClassName();
                     }
-                }
+                    throw new CommandException("Unknown check name in hard fail list '" + check + "'");
+                }).collect(Collectors.toSet());
             }
         }
-        return hardFailureSet;
+        return Sets.newHashSet();
     }
 
     private Set<String> generateParameterRegexSet() {
@@ -158,21 +159,18 @@ public class CheckerCommand extends Command {
     }
 
     private List<CliChecker> generateChecks(List<AssetExtractionDiff> assetExtractionDiffs) {
-        List<CliChecker> cliCheckers = new ArrayList<>();
         String[] checks = checkerList.split(",");
         CliCheckerOptions options = generateCheckerOptions();
-        Stream<CliCheckerType> checkerTypes = Arrays.stream(CliCheckerType.values());
-        for(String check : checks) {
-            if(checkerTypes.anyMatch(c -> c.name().equals(check))){
-                CliChecker checker = createInstanceForClassName(CliCheckerType.valueOf(check).getClassName());
+        return Stream.of(checks).map(check -> {
+            Optional<CliCheckerType> checkEnum = Enums.getIfPresent(CliCheckerType.class, check);
+            if(checkEnum.isPresent()){
+                CliChecker checker = createInstanceForClassName(checkEnum.get().getClassName());
                 checker.setAssetExtractionDiffs(assetExtractionDiffs);
                 checker.setCliCheckerOptions(options);
-                cliCheckers.add(checker);
-            } else {
-                throw new CommandException("Unknown check '" + check + "'");
+                return checker;
             }
-        }
-        return cliCheckers;
+            throw new CommandException("Unknown check '" + check + "'");
+        }).collect(Collectors.toList());
     }
 
     private CliChecker createInstanceForClassName(String className) throws CliCheckerInstantiationException {
