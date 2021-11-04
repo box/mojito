@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,13 +50,13 @@ public class RunChecksCommand extends Command {
     ConsoleWriter consoleWriter;
 
     @Parameter(names = {"--checker-list", "-cl"}, arity = 1, required = true, description = "List of checks to be run against new source strings")
-    String checkerList;
+    List<String> checkerList;
 
     @Parameter(names = {"--hard-fail", "-hf"}, arity = 1, required = false, description = "List of checks that will cause a hard failure, use ALL if all checks should be hard failures")
-    String hardFailList = null;
+    List<String> hardFailList = new ArrayList<>();
 
     @Parameter(names = {"--parameter-regexes", "-pr"}, arity = 1, required = false, description = "Regex types used to identify parameters in source strings")
-    String parameterRegexList = "";
+    List<String> parameterRegexList = new ArrayList<>();
 
     @Parameter(names = {"--dictionary-additions-file", "-daf"}, arity = 1, required = false, description = "Path to the dictionary additions file used for the spelling check")
     String dictionaryAdditionsFilePath = "";
@@ -127,11 +127,10 @@ public class RunChecksCommand extends Command {
 
     private Set<String> generateHardFailureSet() {
         if (hardFailList != null) {
-            if (hardFailList.equalsIgnoreCase("all")) {
+            if (hardFailList.contains("ALL")) {
                 return Stream.of(CliCheckerType.values()).map(CliCheckerType::getClassName).collect(Collectors.toSet());
             } else {
-                String[] hardFails = hardFailList.split(",");
-                return Stream.of(hardFails).map(check -> {
+                return hardFailList.stream().map(check -> {
                     Optional<CliCheckerType> checkEnum = Enums.getIfPresent(CliCheckerType.class, check);
                     if(checkEnum.isPresent()) {
                         return checkEnum.get().getClassName();
@@ -145,10 +144,9 @@ public class RunChecksCommand extends Command {
 
     private Set<String> generateParameterRegexSet() {
         Set<String> regexSet = new HashSet<>();
-        if(parameterRegexList != null && !parameterRegexList.isEmpty()) {
-            String[] regexNames = parameterRegexList.split(",");
+        if(parameterRegexList.isEmpty()) {
             Map<String, String> placeholderRegexMap = getPlaceholderRegexStringMap();
-            for(String regexName : regexNames) {
+            for(String regexName : parameterRegexList) {
                 if (!placeholderRegexMap.containsKey(regexName)){
                     throw new CommandException("Unknown parameter regex name " + regexName);
                 }
@@ -159,9 +157,8 @@ public class RunChecksCommand extends Command {
     }
 
     private List<CliChecker> generateChecks(List<AssetExtractionDiff> assetExtractionDiffs) {
-        String[] checks = checkerList.split(",");
         CliCheckerOptions options = generateCheckerOptions();
-        return Stream.of(checks).map(check -> {
+        return checkerList.stream().map(check -> {
             Optional<CliCheckerType> checkEnum = Enums.getIfPresent(CliCheckerType.class, check);
             if(checkEnum.isPresent()){
                 CliChecker checker = createInstanceForClassName(checkEnum.get().getClassName());
