@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Set;
 
 public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
 
@@ -18,9 +19,9 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
 
     @Test
     public void testSuccess() {
-        String source = "There is %(count)d books";
-        String comment = "Test comment count:The number of books";
-        List<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
+        String source = "There is %(count)d books on %(count)d shelves";
+        String comment = "Test comment count:The number of books and shelves";
+        Set<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.isEmpty());
     }
 
@@ -28,35 +29,18 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
     public void testFailure() {
         String source = "There is %(count)d books";
         String comment = "Test comment";
-        List<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
+        Set<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertEquals("Missing description for placeholder with name 'count' in comment.", failures.get(0));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'count' in comment."));
     }
 
     @Test
     public void testFailureWithMultiplePlaceholders() {
         String source = "There is %(count)d books and %(shelf_count)d shelves";
         String comment = "Test comment count:The number of books";
-        List<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
+        Set<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertEquals("Missing description for placeholder with name 'shelf_count' in comment.", failures.get(0));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'shelf_count' in comment."));
     }
 
-    @Test
-    public void testFailureWithNoNames() {
-        String source = "There is %d books";
-        String comment = "Test comment";
-        List<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
-        Assert.assertTrue(failures.size() == 1);
-        Assert.assertEquals("Missing description for placeholder number '0' in comment.", failures.get(0));
-    }
-
-    @Test
-    public void testFailureWithMultipleNoNames() {
-        String source = "There is %d books, %d shelves and %d librarians";
-        String comment = "Test comment 0:The number of books,2:The number of librarians";
-        List<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
-        Assert.assertTrue(failures.size() == 1);
-        Assert.assertEquals("Missing description for placeholder number '1' in comment.", failures.get(0));
-    }
 }

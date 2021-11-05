@@ -100,18 +100,4 @@ public class PrintLikeVariableTypeIntegrityCheckerTest {
 
         checker.check(source, target);
     }
-
-    @Test
-    public void testCheckFailsIfNoBracketsPresentAndTypeChanged() {
-        PrintfLikeVariableTypeIntegrityChecker checker = new PrintfLikeVariableTypeIntegrityChecker();
-        String source = "%s test";
-        String target = "%d test";
-
-        try {
-            checker.check(source, target);
-            fail("PrintfLikeVariableTypeIntegrityCheckerException should have been thrown.");
-        } catch (PrintfLikeVariableTypeIntegrityCheckerException e) {
-            assertEquals("Variable types do not match.", e.getMessage());
-        }
-    }
 }

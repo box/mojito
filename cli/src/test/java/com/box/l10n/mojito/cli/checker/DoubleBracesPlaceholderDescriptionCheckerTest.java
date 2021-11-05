@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Set;
 
 public class DoubleBracesPlaceholderDescriptionCheckerTest {
 
@@ -19,46 +20,46 @@ public class DoubleBracesPlaceholderDescriptionCheckerTest {
 
     @Test
     public void testSuccessRun() {
-        List<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}}.", "Test comment placeholder:This is a description of a placeholder");
+        Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}}.", "Test comment placeholder:This is a description of a placeholder");
         Assert.assertTrue(failures.isEmpty());
     }
 
     @Test
     public void testMissingPlaceholderDescriptionInComment() {
-        List<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}}.", "Test comment");
+        Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}}.", "Test comment");
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.get(0).equals("Missing description for placeholder with name 'placeholder' in comment."));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'placeholder' in comment."));
     }
 
     @Test
     public void testMultiplePlaceholderDescriptionsInComment() {
-        List<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}} and {another} and so {more}.", "Test comment placeholder:description 1,another: description 2,more: description 3");
+        Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}} and {another} and so {more}.", "Test comment placeholder:description 1,another: description 2,more: description 3");
         Assert.assertTrue(failures.isEmpty());
     }
 
     @Test
     public void testOneOfMultiplePlaceholderDescriptionsMissingInComment() {
-        List<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}} and {another} and some {more}.", "Test comment placeholder:description 1,more: description 3");
+        Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}} and {another} and some {more}.", "Test comment placeholder:description 1,more: description 3");
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.get(0).equals("Missing description for placeholder with name 'another' in comment."));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'another' in comment."));
     }
 
     @Test
     public void testPluralPlaceholderMissingDescription(){
         String source = "{{numFiles, plural, one{{# There is one file}} other{{There are # files}}}}";
         String comment = "Test comment";
-        List<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
+        Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertEquals("Missing description for placeholder with name 'numFiles' in comment.", failures.get(0));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'numFiles' in comment."));
     }
 
     @Test
     public void testNumberedPlaceholder() {
         String source = "A source string with a single {{0}}.";
         String comment = "Test comment";
-        List<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
+        Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertEquals("Missing description for placeholder number '0' in comment.", failures.get(0));
+        Assert.assertTrue(failures.contains("Missing description for placeholder number '0' in comment."));
     }
 
 }

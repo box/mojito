@@ -2,11 +2,11 @@ package com.box.l10n.mojito.cli.command.checks;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractPlaceholderDescriptionCheck {
 
-    public abstract List<String> checkCommentForDescriptions(String source, String comment);
+    public abstract Set<String> checkCommentForDescriptions(String source, String comment);
 
     public String getFailureText(String placeholder) {
         String failureText;

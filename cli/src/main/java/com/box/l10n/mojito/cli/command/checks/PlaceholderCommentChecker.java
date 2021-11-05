@@ -82,9 +82,11 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
                         case PRINTF_LIKE_VARIABLE_TYPE_REGEX:
                             placeholderDescriptionCheck = new PrintfLikeVariableTypePlaceholderDescriptionChecker();
                             break;
+                        case PLACEHOLDER_NO_SPECIFIER_REGEX:
+                            placeholderDescriptionCheck = new PlaceholderNoSpecifierPlaceholderDescriptionChecker();
+                            break;
                         case PRINTF_LIKE_REGEX:
                         case SIMPLE_PRINTF_REGEX:
-                        case PLACEHOLDER_NO_SPECIFIER_REGEX:
                         case PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS:
                             //TODO
                     }

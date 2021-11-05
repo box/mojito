@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
-import java.util.List;
+import java.util.Set;
 
 public class DoubleBracesPlaceholderDescriptionChecker extends MessageFormatPlaceholderDescriptionChecker {
 
@@ -8,7 +8,7 @@ public class DoubleBracesPlaceholderDescriptionChecker extends MessageFormatPlac
     private static final String RIGHT_DOUBLE_BRACES_REGEX = "\\}\\}.*?";
 
     @Override
-    public List<String> checkCommentForDescriptions(String source, String comment) {
+    public Set<String> checkCommentForDescriptions(String source, String comment) {
         return super.checkCommentForDescriptions(replaceDoubleBracesWithSingle(source), comment);
     }
 

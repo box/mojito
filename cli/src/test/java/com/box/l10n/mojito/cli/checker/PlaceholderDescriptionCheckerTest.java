@@ -103,6 +103,4 @@ public class PlaceholderDescriptionCheckerTest {
                 "String 'A source string with a single {placeholder} and {another} and some {more}.' failed check:" + System.lineSeparator() +
                 "\t* Missing description for placeholder with name 'another' in comment." + System.lineSeparator(), result.getNotificationText());
     }
-
-    //TODO: Add tests for other regex types
 }
