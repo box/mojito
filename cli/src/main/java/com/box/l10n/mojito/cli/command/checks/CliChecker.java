@@ -1,12 +1,13 @@
 package com.box.l10n.mojito.cli.command.checks;
 
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
-import com.box.l10n.mojito.cli.console.ConsoleWriter;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
-public interface CliChecker extends Callable<CliCheckResult> {
+public interface CliChecker {
+
+    CliCheckResult run();
 
     void setCliCheckerOptions(CliCheckerOptions options);
 

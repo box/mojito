@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import com.box.l10n.mojito.cli.command.CommandException;
+import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import dumonts.hunspell.Hunspell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +31,7 @@ public class SpellCliChecker extends AbstractCliChecker {
     Hunspell hunspell = Hunspell.forDictionaryInResources("en_US", "dictionaries/");
 
     @Override
-    public CliCheckResult call() throws Exception {
+    public CliCheckResult run() {
         List<String> sourceStrings = getSourceStringsFromDiff();
         loadAdditionalWordsToDictionary(cliCheckerOptions.getDictionaryAdditionsFilePath());
         Map<String, Map<String, List<String>>> failureMap = spellCheck(sourceStrings);
@@ -58,20 +60,25 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     private String removePlaceholdersFromString(String sourceString) {
         String stringWithoutPlaceholders = sourceString;
-        for(String regex : cliCheckerOptions.getParameterRegexSet()) {
-            stringWithoutPlaceholders = stringWithoutPlaceholders.replaceAll(regex, "");
+        for(PlaceholderRegularExpressions regex : cliCheckerOptions.getParameterRegexSet()) {
+            stringWithoutPlaceholders = stringWithoutPlaceholders.replaceAll(regex.getRegex(), "");
         }
         return stringWithoutPlaceholders;
     }
 
-    private void loadAdditionalWordsToDictionary(String additionalWordsFilePath) throws IOException {
+    private void loadAdditionalWordsToDictionary(String additionalWordsFilePath) {
 
         if (additionalWordsFilePath != null && !additionalWordsFilePath.isEmpty()) {
-            Files.readAllLines(Paths.get(additionalWordsFilePath)).stream().forEach(word -> {
-                String w = word.trim();
-                logger.debug("Adding {} to dictionary", w);
-                hunspell.add(w);
-            });
+            try {
+                Files.readAllLines(Paths.get(additionalWordsFilePath)).stream().forEach(word -> {
+                    String w = word.trim();
+                    logger.debug("Adding {} to dictionary", w);
+                    hunspell.add(w);
+                });
+            } catch (IOException e) {
+                logger.error("Error adding additional words to dictionary: {}", e);
+                throw new CommandException("Error adding additional words to dictionary: " + e.getMessage());
+            }
         }
     }
 

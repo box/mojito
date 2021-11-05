@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,9 +25,9 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
     private Pattern wordPattern = Pattern.compile("\\w+");
 
     @Override
-    public CliCheckResult call() {
+    public CliCheckResult run() {
         CliCheckResult cliCheckResult = new CliCheckResult(isHardFail(), CliCheckerType.EMPTY_PLACEHOLDER_CHECKER.name());
-        List<String> failures = checkForEmptyPlaceholders();
+        Set<String> failures = checkForEmptyPlaceholders();
         if (!failures.isEmpty()) {
             cliCheckResult.setSuccessful(false);
             cliCheckResult.setNotificationText(buildNotificationText(failures).toString());
@@ -34,8 +36,8 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
         return cliCheckResult;
     }
 
-    private List<String> checkForEmptyPlaceholders() {
-        List<String> failures = new ArrayList<>();
+    private Set<String> checkForEmptyPlaceholders() {
+        Set<String> failures = new HashSet<>();
         List<Pattern> patterns = getRegexPatterns();
         getAddedTextUnits().stream().forEach(assetExtractorTextUnit -> {
             String source = assetExtractorTextUnit.getSource();
@@ -55,7 +57,7 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
         return failures;
     }
 
-    private StringBuilder buildNotificationText(List<String> failures) {
+    private StringBuilder buildNotificationText(Set<String> failures) {
         StringBuilder notificationText = new StringBuilder();
         notificationText.append("Found empty placeholders in the following source strings:");
         notificationText.append(System.lineSeparator());

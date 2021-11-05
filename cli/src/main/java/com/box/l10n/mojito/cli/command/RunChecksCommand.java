@@ -2,7 +2,6 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.beust.jcommander.internal.Sets;
 import com.box.l10n.mojito.cli.command.checks.CliChecker;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerExecutor;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerInstantiationException;
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,9 +77,6 @@ public class RunChecksCommand extends Command {
     @Parameter(names = {"--input-directory", "-i"}, arity = 1, required = false, description = ExtractionDiffCommand.INPUT_DIRECTORY_DESCRIPTION)
     String inputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
-    @Parameter(names = {"--threads", "-t"}, arity = 1, required = false, description = "Number of threads to be used for checks. Defaults to the number of available processors.")
-    Integer numOfThreads = Runtime.getRuntime().availableProcessors();
-
     @Override
     protected void execute() throws CommandException {
 
@@ -107,7 +102,7 @@ public class RunChecksCommand extends Command {
             throw new CommandException("Can't compute extraction diffs", missingExtractionDirectoryException);
         }
 
-        CliCheckerExecutor cliCheckerExecutor = new CliCheckerExecutor(generateChecks(assetExtractionDiffs), numOfThreads);
+        CliCheckerExecutor cliCheckerExecutor = new CliCheckerExecutor(generateChecks(assetExtractionDiffs));
         consoleWriter.newLine().a("Running checks against new strings").println();
         List<String> failedCheckNames = cliCheckerExecutor.executeChecks();
         if(failedCheckNames.size() > 0) {
@@ -115,45 +110,39 @@ public class RunChecksCommand extends Command {
             failedCheckNames.stream().forEach(check -> consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("\t* " + check).println());
             consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Sending notifications.").println();
             //TODO: Checks failed, send notifications
+            String notificationText = cliCheckerExecutor.getNotificationText();
         }
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
     }
 
     private CliCheckerOptions generateCheckerOptions() {
-        Set<String> regexSet = generateParameterRegexSet();
+        Set<PlaceholderRegularExpressions> regexSet = generateParameterRegexSet();
         Set<String> hardFailureSet = generateHardFailureSet();
         return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath);
     }
 
     private Set<String> generateHardFailureSet() {
-        if (hardFailList != null) {
-            if (hardFailList.contains("ALL")) {
-                return Stream.of(CliCheckerType.values()).map(CliCheckerType::getClassName).collect(Collectors.toSet());
-            } else {
-                return hardFailList.stream().map(check -> {
-                    Optional<CliCheckerType> checkEnum = Enums.getIfPresent(CliCheckerType.class, check);
-                    if(checkEnum.isPresent()) {
-                        return checkEnum.get().getClassName();
-                    }
+        if(hardFailList.stream().anyMatch(checkName -> checkName.equalsIgnoreCase("ALL"))) {
+            return Stream.of(CliCheckerType.values()).map(CliCheckerType::getClassName).collect(Collectors.toSet());
+        } else {
+            return hardFailList.stream().map(check -> {
+                try {
+                    return CliCheckerType.valueOf(check).getClassName();
+                } catch (IllegalArgumentException e) {
                     throw new CommandException("Unknown check name in hard fail list '" + check + "'");
-                }).collect(Collectors.toSet());
-            }
+                }
+            }).collect(Collectors.toSet());
         }
-        return Sets.newHashSet();
     }
 
-    private Set<String> generateParameterRegexSet() {
-        Set<String> regexSet = new HashSet<>();
-        if(parameterRegexList.isEmpty()) {
-            Map<String, String> placeholderRegexMap = getPlaceholderRegexStringMap();
-            for(String regexName : parameterRegexList) {
-                if (!placeholderRegexMap.containsKey(regexName)){
-                    throw new CommandException("Unknown parameter regex name " + regexName);
-                }
-                regexSet.add(placeholderRegexMap.get(regexName));
+    private Set<PlaceholderRegularExpressions> generateParameterRegexSet() {
+        return parameterRegexList.stream().map(regexName -> {
+            try {
+                return PlaceholderRegularExpressions.valueOf(regexName);
+            } catch (IllegalArgumentException e) {
+                throw new CommandException("Unknown parameter regex name " + regexName);
             }
-        }
-        return regexSet;
+        }).collect(Collectors.toSet());
     }
 
     private List<CliChecker> generateChecks(List<AssetExtractionDiff> assetExtractionDiffs) {

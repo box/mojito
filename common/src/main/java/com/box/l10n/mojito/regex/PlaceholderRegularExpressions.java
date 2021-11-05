@@ -14,7 +14,7 @@ public enum PlaceholderRegularExpressions {
     /**
      * Regex checks for strings in the format %([variable_name])[conversion flags][type]
      */
-    PRINTF_LIKE_VARIABLE_TYPE_REGEX("%([{|(])+([a-zA-Z0-9_])+([}|)])+([-#+ 0,\\.(\\<]+)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|c|d|e|E|f|F|g|G|i|o|p|r|s|u|x|X)"),
+    PRINTF_LIKE_VARIABLE_TYPE_REGEX("%(([{|(])+([a-zA-Z0-9_])+([}|)])+([-#+ 0,\\.(\\<]+)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|c|d|e|E|f|F|g|G|i|o|p|r|s|u|x|X))|%(c|d|e|E|f|F|g|G|i|o|p|r|s|u|x|X)"),
 
     /**
      * Checks for placeholders like %1, %2

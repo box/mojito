@@ -4,12 +4,7 @@ import com.box.l10n.mojito.cli.command.CommandException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class CliCheckerExecutor {
@@ -18,40 +13,29 @@ public class CliCheckerExecutor {
 
     private final List<CliChecker> cliCheckerList;
 
-    private final int numOfThreads;
-
     private String notificationText;
 
-    public CliCheckerExecutor(List<CliChecker> cliCheckerList, int numOfThreads) {
+    public CliCheckerExecutor(List<CliChecker> cliCheckerList) {
         this.cliCheckerList = cliCheckerList;
-        this.numOfThreads = numOfThreads;
     }
 
     public List<String> executeChecks() {
-        ExecutorService executorService = Executors.newFixedThreadPool(numOfThreads);
-        try {
-            List<Future<CliCheckResult>> futures = startChecks(executorService);
-            List<CliCheckResult> failures = retrieveCheckResults(futures).stream()
-                    .filter(result -> !result.isSuccessful()).collect(Collectors.toList());
-            checkForHardFail(failures);
-            notificationText = buildNotificationText(failures);
-            return failures.stream()
-                    .map(CliCheckResult::getCheckName)
-                    .collect(Collectors.toList());
-        } catch (InterruptedException | ExecutionException e) {
-            throw new CommandException("Failed to retrieve results from check executor: " + e.getMessage(), e);
-        } finally {
-            executorService.shutdown();
-        }
+        List<CliCheckResult> failures = runChecks().stream()
+                .filter(result -> !result.isSuccessful())
+                .collect(Collectors.toList());
+        checkForHardFail(failures);
+        notificationText = buildNotificationText(failures);
+        return failures.stream()
+                .map(CliCheckResult::getCheckName)
+                .collect(Collectors.toList());
     }
 
     private void checkForHardFail(List<CliCheckResult> failures) {
-        for(CliCheckResult failure : failures) {
-            if(failure.isHardFail()) {
-                throw new CommandException("Check " + failure.getCheckName() + " failed with error: "
-                        + System.lineSeparator() + failure.getNotificationText());
-            }
-        }
+        failures.stream().filter(result -> result.isHardFail()).findFirst().map(hardFail -> {
+            logger.debug("Hard failure occurred for cli check {} with error {}", hardFail.getCheckName(), hardFail.getNotificationText());
+            throw new CommandException("Check " + hardFail.getCheckName() + " failed with error: "
+                    + System.lineSeparator() + hardFail.getNotificationText());
+        });
     }
 
     private String buildNotificationText(List<CliCheckResult> failures) {
@@ -62,24 +46,10 @@ public class CliCheckerExecutor {
         return notificationTextBuilder.toString();
     }
 
-    private List<CliCheckResult> retrieveCheckResults(List<Future<CliCheckResult>> futures) throws InterruptedException, ExecutionException {
-        List<CliCheckResult> checkResults = new ArrayList<>();
-        for(Future<CliCheckResult> future : futures) {
-            while(!future.isDone()) {
-                logger.debug("Waiting for checks to complete.");
-                Thread.sleep(100);
-            }
-            checkResults.add(future.get());
-        }
-        return checkResults;
-    }
-
-    private List<Future<CliCheckResult>> startChecks(ExecutorService executorService) {
-        List<Future<CliCheckResult>> futures = new ArrayList<>();
-        for(CliChecker checker : cliCheckerList) {
-            futures.add(executorService.submit(checker));
-        }
-        return futures;
+    private List<CliCheckResult> runChecks() {
+        return cliCheckerList.stream()
+                .map(check -> check.run())
+                .collect(Collectors.toList());
     }
 
     public String getNotificationText() {

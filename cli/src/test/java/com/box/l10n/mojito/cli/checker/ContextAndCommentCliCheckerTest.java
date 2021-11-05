@@ -23,7 +23,7 @@ public class ContextAndCommentCliCheckerTest {
     @Before
     public void setup() {
         contextAndCommentCliChecker = new ContextAndCommentCliChecker();
-        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX.getRegex()), Sets.newHashSet(), "", ""));
+        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(), "", ""));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setName("Some string id --- Test context");
@@ -39,7 +39,7 @@ public class ContextAndCommentCliCheckerTest {
 
     @Test
     public void testContextAndCommentPreset() {
-        CliCheckResult result = contextAndCommentCliChecker.call();
+        CliCheckResult result = contextAndCommentCliChecker.run();
         Assert.assertTrue(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
     }
@@ -58,7 +58,7 @@ public class ContextAndCommentCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = contextAndCommentCliChecker.call();
+        CliCheckResult result = contextAndCommentCliChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
@@ -80,7 +80,7 @@ public class ContextAndCommentCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = contextAndCommentCliChecker.call();
+        CliCheckResult result = contextAndCommentCliChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
@@ -102,7 +102,7 @@ public class ContextAndCommentCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = contextAndCommentCliChecker.call();
+        CliCheckResult result = contextAndCommentCliChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
@@ -124,7 +124,7 @@ public class ContextAndCommentCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = contextAndCommentCliChecker.call();
+        CliCheckResult result = contextAndCommentCliChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
@@ -145,9 +145,9 @@ public class ContextAndCommentCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
-        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX.getRegex()), Sets.newHashSet(CliCheckerType.CONTEXT_COMMENT_CHECKER.getClassName()), "", ""));
+        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(CliCheckerType.CONTEXT_COMMENT_CHECKER.getClassName()), "", ""));
 
-        CliCheckResult result = contextAndCommentCliChecker.call();
+        CliCheckResult result = contextAndCommentCliChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertTrue(result.isHardFail());
     }
@@ -166,7 +166,7 @@ public class ContextAndCommentCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         contextAndCommentCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = contextAndCommentCliChecker.call();
+        CliCheckResult result = contextAndCommentCliChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +

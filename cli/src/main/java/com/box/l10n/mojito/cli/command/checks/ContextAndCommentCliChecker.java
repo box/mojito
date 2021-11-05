@@ -1,12 +1,15 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Checker that verifies the comment and context parameters are provided and
@@ -18,24 +21,72 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
 
     static Logger logger = LoggerFactory.getLogger(ContextAndCommentCliChecker.class);
 
-    @Override
-    public CliCheckResult call() {
-        CliCheckResult cliCheckResult = new CliCheckResult(isHardFail(), CliCheckerType.CONTEXT_COMMENT_CHECKER.name());
-        Map<String, String> failureMap = new HashMap<>();
-        getAddedTextUnits().stream().forEach(assetExtractorTextUnit -> {
-            String failureText = checkTextUnit(assetExtractorTextUnit);
-            if(failureText != null) {
-                logger.debug("'{}' source string failed check with error: {}", assetExtractorTextUnit.getSource(), failureText);
-                failureMap.put(assetExtractorTextUnit.getSource(), failureText);
-            }
-        });
+    class ContextAndCommentCliCheckerResult {
+        String sourceString;
+        String failureMessage;
+        boolean failed;
 
-        if(!failureMap.isEmpty()) {
-            cliCheckResult.setSuccessful(false);
-            StringBuilder notificationText = buildNotificationText(failureMap);
+        public ContextAndCommentCliCheckerResult(boolean failed, String sourceString, String failureMessage) {
+            this.sourceString = sourceString;
+            this.failureMessage = failureMessage;
+            this.failed = failed;
+        }
+
+        public ContextAndCommentCliCheckerResult(boolean failed) {
+            this.failed = failed;
+        }
+
+        public String getSourceString() {
+            return sourceString;
+        }
+
+        public String getFailureMessage() {
+            return failureMessage;
+        }
+
+        public boolean isFailed() {
+            return failed;
+        }
+    }
+
+    @Override
+    public CliCheckResult run() {
+        CliCheckResult cliCheckResult = new CliCheckResult(isHardFail(), CliCheckerType.CONTEXT_COMMENT_CHECKER.name());
+        StringBuilder notificationText = new StringBuilder();
+        notificationText.append("Context and comment check found failures:");
+        notificationText.append(System.lineSeparator());
+        runChecks(cliCheckResult, notificationText);
+
+        if(!cliCheckResult.isSuccessful()) {
             cliCheckResult.setNotificationText(notificationText.toString());
         }
         return cliCheckResult;
+    }
+
+    private void runChecks(CliCheckResult cliCheckResult, StringBuilder notificationText) {
+        getAddedTextUnits().stream()
+            .map(assetExtractorTextUnit -> getContextAndCommentCliCheckerResult(assetExtractorTextUnit, checkTextUnit(assetExtractorTextUnit)))
+            .filter(result -> result.isFailed())
+            .forEach(result -> {
+                cliCheckResult.setSuccessful(false);
+                appendFailureToNotificationText(notificationText, result);
+            });
+    }
+
+    private ContextAndCommentCliCheckerResult getContextAndCommentCliCheckerResult(AssetExtractorTextUnit assetExtractorTextUnit, String failureText) {
+        ContextAndCommentCliCheckerResult result;
+        if(failureText != null) {
+            logger.debug("'{}' source string failed check with error: {}", assetExtractorTextUnit.getSource(), failureText);
+            result = new ContextAndCommentCliCheckerResult(true, assetExtractorTextUnit.getSource(), failureText);
+        } else {
+            result = new ContextAndCommentCliCheckerResult(false);
+        }
+        return result;
+    }
+
+    private void appendFailureToNotificationText(StringBuilder notificationText, ContextAndCommentCliCheckerResult result) {
+        notificationText.append("\t* Source string '" + result.getSourceString() + "' failed check with error: " + result.getFailureMessage());
+        notificationText.append(System.lineSeparator());
     }
 
     private String checkTextUnit(AssetExtractorTextUnit assetExtractorTextUnit) {
@@ -60,18 +111,6 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
         }
 
         return failureText;
-    }
-
-    private StringBuilder buildNotificationText(Map<String, String> failureMap) {
-        StringBuilder notificationText = new StringBuilder();
-        notificationText.append("Context and comment check found failures:");
-        notificationText.append(System.lineSeparator());
-        failureMap.keySet().stream().forEach(key -> {
-            notificationText.append("\t* Source string '" + key + "' failed check with error: " + failureMap.get(key));
-            notificationText.append(System.lineSeparator());
-        });
-
-        return notificationText;
     }
 
     private boolean isBlank(String string) {

@@ -22,7 +22,7 @@ public class EmptyPlaceholderCheckerTest {
     @Before
     public void setup() {
         emptyPlaceholderChecker = new EmptyPlaceholderChecker();
-        emptyPlaceholderChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX.getRegex()), Sets.newHashSet(), "", ""));
+        emptyPlaceholderChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(), "", ""));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setName("Some string id --- Test context");
@@ -38,7 +38,7 @@ public class EmptyPlaceholderCheckerTest {
 
     @Test
     public void testNoEmptyPlaceholders() {
-        CliCheckResult result = emptyPlaceholderChecker.call();
+        CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertTrue(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
     }
@@ -57,7 +57,7 @@ public class EmptyPlaceholderCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         emptyPlaceholderChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = emptyPlaceholderChecker.call();
+        CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
@@ -79,7 +79,7 @@ public class EmptyPlaceholderCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         emptyPlaceholderChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = emptyPlaceholderChecker.call();
+        CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
@@ -106,7 +106,7 @@ public class EmptyPlaceholderCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         emptyPlaceholderChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = emptyPlaceholderChecker.call();
+        CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
@@ -128,7 +128,7 @@ public class EmptyPlaceholderCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         emptyPlaceholderChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = emptyPlaceholderChecker.call();
+        CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
@@ -155,7 +155,7 @@ public class EmptyPlaceholderCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         emptyPlaceholderChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = emptyPlaceholderChecker.call();
+        CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
@@ -178,7 +178,7 @@ public class EmptyPlaceholderCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         emptyPlaceholderChecker.setAssetExtractionDiffs(assetExtractionDiffs);
 
-        CliCheckResult result = emptyPlaceholderChecker.call();
+        CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertTrue(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
     }

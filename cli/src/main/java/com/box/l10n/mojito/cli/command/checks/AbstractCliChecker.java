@@ -34,7 +34,7 @@ public abstract class AbstractCliChecker implements CliChecker {
 
     protected List<Pattern> getRegexPatterns() {
         List<Pattern> patterns = new ArrayList<>();
-        cliCheckerOptions.getParameterRegexSet().stream().forEach(regex -> patterns.add(Pattern.compile(regex)));
+        cliCheckerOptions.getParameterRegexSet().stream().forEach(regex -> patterns.add(Pattern.compile(regex.getRegex())));
         return patterns;
     }
 }
