@@ -11,11 +11,18 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Checks for placeholders in the form '%s', '%d' etc.
+ * Checks for placeholders by number using a regex pattern, expects to find numbered descriptions in the comment
+ * that matches the number of placeholders in the source string.
+ *
+ * @author mallen
  */
-public class PlaceholderNoSpecifierPlaceholderDescriptionChecker extends AbstractPlaceholderDescriptionCheck {
+public class SimpleRegexNumberedPlaceholderDescriptionChecker extends AbstractPlaceholderDescriptionCheck {
 
-    private Pattern pattern = Pattern.compile(PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex());
+    private Pattern pattern;
+
+    public SimpleRegexNumberedPlaceholderDescriptionChecker(PlaceholderRegularExpressions placeholderRegularExpressions) {
+        this.pattern = Pattern.compile(placeholderRegularExpressions.getRegex());
+    }
 
     @Override
     public Set<String> checkCommentForDescriptions(String source, String comment) {
@@ -26,16 +33,18 @@ public class PlaceholderNoSpecifierPlaceholderDescriptionChecker extends Abstrac
                 .collect(Collectors.toSet());
     }
 
+    public void setPattern(Pattern pattern) {
+        this.pattern = pattern;
+    }
+
     private List<String> getPlaceholderNames(String source, Matcher placeHolderMatcher) {
         List<String> placeholderNames = new ArrayList<>();
-        int placeholderCount = 0;
         Set<String> previousPlaceholders = new HashSet<>();
         while (placeHolderMatcher.find()) {
             String placeholder = source.substring(placeHolderMatcher.start(), placeHolderMatcher.end());
             if(!previousPlaceholders.contains(placeholder)){
-                placeholderNames.add(Integer.toString(placeholderCount));
+                placeholderNames.add(placeholder);
                 previousPlaceholders.add(placeholder);
-                placeholderCount++;
             }
         }
         return placeholderNames;

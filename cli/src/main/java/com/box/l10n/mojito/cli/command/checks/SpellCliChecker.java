@@ -30,6 +30,35 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     Hunspell hunspell = Hunspell.forDictionaryInResources("en_US", "dictionaries/");
 
+    class SpellCliCheckerResult {
+
+        String source;
+        Map<String, List<String>> suggestionMap;
+        boolean isSuccessful;
+
+        public SpellCliCheckerResult(String source, Map<String, List<String>> suggestionMap) {
+            this.source = source;
+            this.suggestionMap = suggestionMap;
+            this.isSuccessful = true;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public Map<String, List<String>> getSuggestionMap() {
+            return suggestionMap;
+        }
+
+        public boolean isSuccessful() {
+            return isSuccessful;
+        }
+
+        public void setSuccessful(boolean successful) {
+            this.isSuccessful = successful;
+        }
+    }
+
     @Override
     public CliCheckResult run() {
         List<String> sourceStrings = getSourceStringsFromDiff();
@@ -46,16 +75,21 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     private Map<String, Map<String, List<String>>> spellCheck(List<String> sourceStrings) {
 
-        Map<String, Map<String, List<String>>> failureMap = new HashMap<>();
-        sourceStrings.stream().forEach(sourceString -> {
-            Map<String, List<String>> suggestionMap = spellCheckSourceString(Arrays.asList(removePlaceholdersFromString(sourceString)
-                    .split("\\P{L}+")));
-            if (!suggestionMap.isEmpty()) {
-                failureMap.put(sourceString, suggestionMap);
-            }
-        });
+        return sourceStrings.stream()
+                .map(sourceString -> {
+                    return getSpellCliCheckerResult(sourceString);
+                })
+                .filter(result -> !result.isSuccessful)
+                .collect(Collectors.toMap(SpellCliCheckerResult::getSource, SpellCliCheckerResult::getSuggestionMap));
 
-        return failureMap;
+    }
+
+    private SpellCliCheckerResult getSpellCliCheckerResult(String sourceString) {
+        SpellCliCheckerResult result = new SpellCliCheckerResult(sourceString, spellCheckSourceString(Arrays.asList(removePlaceholdersFromString(sourceString).split("\\P{L}+"))));
+        if(!result.getSuggestionMap().isEmpty()) {
+            result.setSuccessful(false);
+        }
+        return result;
     }
 
     private String removePlaceholdersFromString(String sourceString) {

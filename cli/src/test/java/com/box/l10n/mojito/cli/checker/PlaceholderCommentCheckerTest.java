@@ -13,9 +13,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.DOUBLE_BRACE_REGEX;
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_VARIABLE_TYPE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
 
-public class PlaceholderDescriptionCheckerTest {
+public class PlaceholderCommentCheckerTest {
 
     private PlaceholderCommentChecker placeholderCommentChecker;
 
@@ -102,5 +105,43 @@ public class PlaceholderDescriptionCheckerTest {
                 + System.lineSeparator() +
                 "String 'A source string with a single {placeholder} and {another} and some {more}.' failed check:" + System.lineSeparator() +
                 "\t* Missing description for placeholder with name 'another' in comment." + System.lineSeparator(), result.getNotificationText());
+    }
+
+    @Test
+    public void testMultipleRegexsChecked() {
+        placeholderCommentChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(DOUBLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX, PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), "", ""));
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("A source string with different {placeholder} %(placeholder2)s {{placeholder3}} %d");
+        assetExtractorTextUnit.setComments("Test comment placeholder:A description of placeholder,placeholder2: Another description,%d:some more,placeholder3: another description");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        placeholderCommentChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+
+        CliCheckResult result = placeholderCommentChecker.run();
+        Assert.assertTrue(result.isSuccessful());
+    }
+
+    @Test
+    public void testMultipleRegexsCheckedFailure() {
+        placeholderCommentChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(DOUBLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX, PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), "", ""));
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("A source string with different {placeholder} %(placeholder2)s {{placeholder3}} %d");
+        assetExtractorTextUnit.setComments("Test comment placeholder:A description of placeholder,placeholder3: another description");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        placeholderCommentChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+
+        CliCheckResult result = placeholderCommentChecker.run();
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertTrue(result.getNotificationText().contains("\t* Missing description for placeholder with name 'placeholder2' in comment."));
+        Assert.assertTrue(result.getNotificationText().contains("\t* Missing description for placeholder with name '%d' in comment."));
     }
 }

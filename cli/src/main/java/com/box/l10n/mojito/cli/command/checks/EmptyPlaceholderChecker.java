@@ -1,14 +1,13 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Checker that verifies a source string does not contain an empty placeholder e.g. '{}'.
@@ -37,24 +36,28 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
     }
 
     private Set<String> checkForEmptyPlaceholders() {
-        Set<String> failures = new HashSet<>();
-        List<Pattern> patterns = getRegexPatterns();
-        getAddedTextUnits().stream().forEach(assetExtractorTextUnit -> {
-            String source = assetExtractorTextUnit.getSource();
-            patterns.stream().forEach(pattern -> {
-                Matcher matcher = pattern.matcher(source);
-                while (matcher.find()) {
-                    String placeholder = source.substring(matcher.start(), matcher.end());
-                    logger.debug("Found placeholder '{}' in source string '{}'", placeholder, source);
-                    if(!wordPattern.matcher(placeholder).find()) {
-                        logger.debug("Found empty placeholder '{}' in source string '{}'", placeholder, source);
-                        failures.add(source);
-                        break;
-                    }
-                }
-            });
-        });
-        return failures;
+        return cliCheckerOptions.getParameterRegexSet().stream()
+                .filter(regex -> isEmptyPlaceholderRegex(regex))
+                .flatMap(placeholderRegularExpressions -> getAddedTextUnits().stream()
+                    .map(assetExtractorTextUnit -> assetExtractorTextUnit.getSource())
+                    .filter(source -> isSourceStringWithEmptyPlaceholders(placeholderRegularExpressions, source))).collect(Collectors.toSet());
+    }
+
+    private boolean isEmptyPlaceholderRegex(PlaceholderRegularExpressions regex) {
+        return regex.equals(PlaceholderRegularExpressions.SINGLE_BRACE_REGEX) || regex.equals(PlaceholderRegularExpressions.DOUBLE_BRACE_REGEX);
+    }
+
+    private boolean isSourceStringWithEmptyPlaceholders(PlaceholderRegularExpressions placeholderRegularExpressions, String source) {
+        Matcher matcher = Pattern.compile(placeholderRegularExpressions.getRegex()).matcher(source);
+        while (matcher.find()) {
+            String placeholder = source.substring(matcher.start(), matcher.end());
+            logger.debug("Found placeholder '{}' in source string '{}'", placeholder, source);
+            if (!wordPattern.matcher(placeholder).find()) {
+                logger.debug("Found empty placeholder '{}' in source string '{}'", placeholder, source);
+                return true;
+            }
+        }
+        return false;
     }
 
     private StringBuilder buildNotificationText(Set<String> failures) {

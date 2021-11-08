@@ -1,11 +1,15 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -18,8 +22,6 @@ import java.util.stream.Collectors;
 public class PlaceholderCommentChecker extends AbstractCliChecker {
 
     static Logger logger = LoggerFactory.getLogger(PlaceholderCommentChecker.class);
-
-    private Pattern wordPattern = Pattern.compile("\\w+");
 
     class PlaceholderCommentCheckResult {
         final List<String> failures;
@@ -55,44 +57,50 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
         List<AbstractPlaceholderDescriptionCheck> placeholderDescriptionChecks = getPlaceholderCommentChecks();
 
         return getAddedTextUnits().stream()
-                .map(assetExtractorTextUnit -> {
-                    String source = assetExtractorTextUnit.getSource();
-                    String comment = assetExtractorTextUnit.getComments();
-                    List<String> failures = new ArrayList<>();
-                    placeholderDescriptionChecks.stream().forEach(check -> {
-                        failures.addAll(check.checkCommentForDescriptions(source, comment));
-                    });
-                    return new PlaceholderCommentCheckResult(source, failures);
-                })
+                .map(assetExtractorTextUnit -> getPlaceholderCommentCheckResult(placeholderDescriptionChecks, assetExtractorTextUnit))
                 .filter(result -> !result.getFailures().isEmpty())
                 .collect(Collectors.toMap(PlaceholderCommentCheckResult::getSource, PlaceholderCommentCheckResult::getFailures));
     }
 
+    private PlaceholderCommentCheckResult getPlaceholderCommentCheckResult(List<AbstractPlaceholderDescriptionCheck> placeholderDescriptionChecks, AssetExtractorTextUnit assetExtractorTextUnit) {
+        String source = assetExtractorTextUnit.getSource();
+        String comment = assetExtractorTextUnit.getComments();
+        List<String> failures = placeholderDescriptionChecks.stream()
+                .flatMap(check -> check.checkCommentForDescriptions(source, comment).stream())
+                .collect(Collectors.toList());
+        return new PlaceholderCommentCheckResult(source, failures);
+    }
+
     private List<AbstractPlaceholderDescriptionCheck> getPlaceholderCommentChecks() {
         return cliCheckerOptions.getParameterRegexSet().stream()
-                .map(placeholderRegularExpressions -> {
-                    AbstractPlaceholderDescriptionCheck placeholderDescriptionCheck = null;
-                    switch (placeholderRegularExpressions){
-                        case SINGLE_BRACE_REGEX:
-                            placeholderDescriptionCheck = new MessageFormatPlaceholderDescriptionChecker();
-                            break;
-                        case DOUBLE_BRACE_REGEX:
-                            placeholderDescriptionCheck = new DoubleBracesPlaceholderDescriptionChecker();
-                            break;
-                        case PRINTF_LIKE_VARIABLE_TYPE_REGEX:
-                            placeholderDescriptionCheck = new PrintfLikeVariableTypePlaceholderDescriptionChecker();
-                            break;
-                        case PLACEHOLDER_NO_SPECIFIER_REGEX:
-                            placeholderDescriptionCheck = new PlaceholderNoSpecifierPlaceholderDescriptionChecker();
-                            break;
-                        case PRINTF_LIKE_REGEX:
-                        case SIMPLE_PRINTF_REGEX:
-                        case PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS:
-                            //TODO
-                    }
-                    return placeholderDescriptionCheck;
-                })
+                .map(placeholderRegularExpressions -> getPlaceholderDescriptionCheck(placeholderRegularExpressions))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toList());
+    }
+
+    private Optional<AbstractPlaceholderDescriptionCheck> getPlaceholderDescriptionCheck(PlaceholderRegularExpressions placeholderRegularExpressions) {
+        AbstractPlaceholderDescriptionCheck placeholderDescriptionCheck = null;
+        switch (placeholderRegularExpressions){
+            case SINGLE_BRACE_REGEX:
+                placeholderDescriptionCheck = new MessageFormatPlaceholderDescriptionChecker();
+                break;
+            case DOUBLE_BRACE_REGEX:
+                placeholderDescriptionCheck = new DoubleBracesPlaceholderDescriptionChecker();
+                break;
+            case PRINTF_LIKE_VARIABLE_TYPE_REGEX:
+                placeholderDescriptionCheck = new PrintfLikeVariableTypePlaceholderDescriptionChecker();
+                break;
+            case PLACEHOLDER_NO_SPECIFIER_REGEX:
+            case SIMPLE_PRINTF_REGEX:
+            case PRINTF_LIKE_REGEX:
+            case PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS:
+                placeholderDescriptionCheck = new SimpleRegexNumberedPlaceholderDescriptionChecker(placeholderRegularExpressions);
+                break;
+            default:
+                logger.warn("Placeholder comment checker not implemented for regex {}", placeholderRegularExpressions.name());
+        }
+        return Optional.ofNullable(placeholderDescriptionCheck);
     }
 
     private StringBuilder buildNotificationText(Map<String, List<String>> failureMap) {
