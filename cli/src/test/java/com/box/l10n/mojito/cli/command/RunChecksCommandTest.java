@@ -65,7 +65,8 @@ public class RunChecksCommandTest extends CLITestBase {
                 "-hf", "SPELL_CHECKER");
 
         Assert.assertTrue(outputCapture.toString().contains("Running checks against new strings"));
-        Assert.assertTrue(outputCapture.toString().contains("Check SPELL_CHECKER failed with error"));
+        Assert.assertTrue(outputCapture.toString().contains("The following checks had hard failures:" + System.lineSeparator()));
+        Assert.assertTrue(outputCapture.toString().contains("\t * SPELL_CHECKER"));
         Assert.assertTrue(outputCapture.toString().contains("Spelling failures found:"));
         Assert.assertTrue(outputCapture.toString().contains("The string 'This is a new sorce string with spelling failure' contains misspelled words:"));
         Assert.assertTrue(outputCapture.toString().contains("\t* 'sorce' - Did you mean "));
@@ -104,12 +105,6 @@ public class RunChecksCommandTest extends CLITestBase {
         Assert.assertTrue(outputCapture.toString().contains("Sending notifications."));
         Assert.assertTrue(outputCapture.toString().contains("Checks completed"));
 
-        // Verify hard failure output is not contained in soft fails
-        Assert.assertFalse(outputCapture.toString().contains("SPELL_CHECKER failed with error"));
-        Assert.assertFalse(outputCapture.toString().contains("Spelling failures found:"));
-        Assert.assertFalse(outputCapture.toString().contains("The string 'This is a new sorce string with spelling failure' contains misspelled words:"));
-        Assert.assertFalse(outputCapture.toString().contains("\t* 'sorce' - Did you mean "));
-        Assert.assertFalse(outputCapture.toString().contains("Please correct any spelling errors in a new commit."));
     }
 
     @Test

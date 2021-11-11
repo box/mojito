@@ -183,5 +183,4 @@ public class EmptyPlaceholderCheckerTest {
         Assert.assertFalse(result.isHardFail());
     }
 
-    //TODO: Test other regex options
 }

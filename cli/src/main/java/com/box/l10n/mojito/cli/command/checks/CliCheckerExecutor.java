@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public class CliCheckerExecutor {
@@ -20,29 +21,37 @@ public class CliCheckerExecutor {
     }
 
     public List<String> executeChecks() {
-        List<CliCheckResult> failures = runChecks().stream()
+        List<CliCheckResult> results = runChecks();
+        notificationText = buildNotificationText(results);
+        checkForHardFail(results);
+        return results.stream()
                 .filter(result -> !result.isSuccessful())
-                .collect(Collectors.toList());
-        checkForHardFail(failures);
-        notificationText = buildNotificationText(failures);
-        return failures.stream()
                 .map(CliCheckResult::getCheckName)
                 .collect(Collectors.toList());
     }
 
-    private void checkForHardFail(List<CliCheckResult> failures) {
-        failures.stream().filter(result -> result.isHardFail()).findFirst().map(hardFail -> {
-            logger.debug("Hard failure occurred for cli check {} with error {}", hardFail.getCheckName(), hardFail.getNotificationText());
-            throw new CommandException("Check " + hardFail.getCheckName() + " failed with error: "
-                    + System.lineSeparator() + hardFail.getNotificationText());
+    private void checkForHardFail(List<CliCheckResult> results) {
+        AtomicBoolean hardFail = new AtomicBoolean(false);
+        StringBuilder hardFailureListString = new StringBuilder();
+        hardFailureListString.append("The following checks had hard failures:" + System.lineSeparator());
+        results.stream().filter(result -> !result.isSuccessful() && result.isHardFail()).map(CliCheckResult::getCheckName).forEach(failure -> {
+            hardFail.set(true);
+            hardFailureListString.append("\t * " + failure);
+            hardFailureListString.append(System.lineSeparator());
         });
+        if(hardFail.get()) {
+            logger.debug(hardFailureListString.toString());
+            throw new CommandException(hardFailureListString
+                    + System.lineSeparator() + System.lineSeparator() +
+                    notificationText);
+        }
     }
 
-    private String buildNotificationText(List<CliCheckResult> failures) {
+    private String buildNotificationText(List<CliCheckResult> results) {
         StringBuilder notificationTextBuilder = new StringBuilder();
         notificationTextBuilder.append("Checks on new source strings failed.");
         notificationTextBuilder.append(System.lineSeparator());
-        failures.stream().forEach(failure -> notificationTextBuilder.append(failure.getNotificationText() + System.lineSeparator()));
+        results.stream().forEach(result -> notificationTextBuilder.append(result.getNotificationText() + System.lineSeparator()));
         return notificationTextBuilder.toString();
     }
 

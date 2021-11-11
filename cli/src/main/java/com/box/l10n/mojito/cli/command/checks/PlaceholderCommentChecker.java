@@ -5,12 +5,9 @@ import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -83,7 +80,7 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
         AbstractPlaceholderDescriptionCheck placeholderDescriptionCheck = null;
         switch (placeholderRegularExpressions){
             case SINGLE_BRACE_REGEX:
-                placeholderDescriptionCheck = new MessageFormatPlaceholderDescriptionChecker();
+                placeholderDescriptionCheck = new SingleBracesPlaceholderDescriptionChecker();
                 break;
             case DOUBLE_BRACE_REGEX:
                 placeholderDescriptionCheck = new DoubleBracesPlaceholderDescriptionChecker();
@@ -95,7 +92,7 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
             case SIMPLE_PRINTF_REGEX:
             case PRINTF_LIKE_REGEX:
             case PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS:
-                placeholderDescriptionCheck = new SimpleRegexNumberedPlaceholderDescriptionChecker(placeholderRegularExpressions);
+                placeholderDescriptionCheck = new SimpleRegexPlaceholderDescriptionChecker(placeholderRegularExpressions);
                 break;
             default:
                 logger.warn("Placeholder comment checker not implemented for regex {}", placeholderRegularExpressions.name());

@@ -24,12 +24,12 @@ public enum PlaceholderRegularExpressions {
     /**
      * Checks for placeholders within single braces e.g. {placeholder}
      */
-    SINGLE_BRACE_REGEX("\\{.*?(?=\\})\\}"),
+    SINGLE_BRACE_REGEX("\\{(.|\\n)*?(?=\\})\\}"),
 
     /**
      * Checks for placeholders within double braces e.g. {{placeholder}}
      */
-    DOUBLE_BRACE_REGEX("\\{\\{.*?(?=\\}\\})\\}\\}"),
+    DOUBLE_BRACE_REGEX("\\{\\{(.|\\n)*?(?=\\}\\})\\}\\}"),
 
     /**
      * Checks for placeholders as % followed by a type e.g. %s, %d

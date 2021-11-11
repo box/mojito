@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.checker;
 
+import com.box.l10n.mojito.cli.command.CommandException;
 import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
@@ -167,7 +168,7 @@ public class SpellCliCheckerTest {
     public void testNestedICUPlaceholderIsExcludedFromSpellcheck() throws Exception {
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
-        assetExtractorTextUnit.setSource("You have {pagesCount, plural, one {# pazge.} other {# pages.}}");
+        assetExtractorTextUnit.setSource("You have {pagesCount, plral, one {# pazge.} othr {# pages.}}");
         addedTUs.add(assetExtractorTextUnit);
         List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
         AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
@@ -178,6 +179,37 @@ public class SpellCliCheckerTest {
         assertTrue(result.isSuccessful());
         assertTrue(result.getNotificationText().isEmpty());
         assertFalse(result.isHardFail());
+    }
+
+    @Test
+    public void testMultipleNestedICUPlaceholderIsExcludedFromSpellcheck() throws Exception {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("You have {pagesCount, plral, one {# pazge.} othr {# pages.}} {anotherCount, plral, one {# count } othr { # cnt }}");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+        CliCheckResult result = spellCliChecker.run();
+        assertTrue(result.isSuccessful());
+        assertTrue(result.getNotificationText().isEmpty());
+        assertFalse(result.isHardFail());
+    }
+
+    @Test(expected = CommandException.class)
+    public void testInvalidNumberClosingBracketsForPlaceholder() throws Exception {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("You have {pagesCount, plral, one {# pazge.} othr {# pages.}} {anotherCount, plral, one {# count } othr { # cnt }");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+        CliCheckResult result = spellCliChecker.run();
     }
 
     @Test
@@ -222,4 +254,5 @@ public class SpellCliCheckerTest {
         dictAdditions.createNewFile();
         Files.write(Paths.get("target/tests/resources/dictAddition.txt"), contents);
     }
+
 }

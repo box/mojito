@@ -102,17 +102,27 @@ public class RunChecksCommand extends Command {
             throw new CommandException("Can't compute extraction diffs", missingExtractionDirectoryException);
         }
 
-        CliCheckerExecutor cliCheckerExecutor = new CliCheckerExecutor(generateChecks(assetExtractionDiffs));
-        consoleWriter.newLine().a("Running checks against new strings").println();
+        CliCheckerExecutor cliCheckerExecutor = getCliCheckerExecutor(assetExtractionDiffs);
         List<String> failedCheckNames = cliCheckerExecutor.executeChecks();
         if(failedCheckNames.size() > 0) {
-            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failed checks: ").println();
-            failedCheckNames.stream().forEach(check -> consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("\t* " + check).println());
-            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Sending notifications.").println();
-            //TODO: Checks failed, send notifications
-            String notificationText = cliCheckerExecutor.getNotificationText();
+            outputFailuresToCommandLine(cliCheckerExecutor, failedCheckNames);
+            //TODO: (mallen) Checks failed, send notifications
         }
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
+    }
+
+    private CliCheckerExecutor getCliCheckerExecutor(List<AssetExtractionDiff> assetExtractionDiffs) {
+        CliCheckerExecutor cliCheckerExecutor = new CliCheckerExecutor(generateChecks(assetExtractionDiffs));
+        consoleWriter.newLine().a("Running checks against new strings").println();
+        return cliCheckerExecutor;
+    }
+
+    private void outputFailuresToCommandLine(CliCheckerExecutor cliCheckerExecutor, List<String> failedCheckNames) {
+        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failed checks: ").println();
+        failedCheckNames.stream().forEach(check -> consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("\t* " + check).println());
+        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failures:").println();
+        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(cliCheckerExecutor.getNotificationText()).println();
+        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Sending notifications.").println();
     }
 
     private CliCheckerOptions generateCheckerOptions() {
@@ -166,13 +176,5 @@ public class RunChecksCommand extends Command {
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
             throw new CliCheckerInstantiationException("Cannot create an instance of CliChecker using reflection", e);
         }
-    }
-
-    private Map<String, String> getPlaceholderRegexStringMap() {
-        Map<String, String> placeholderRegexMap = new HashMap<>();
-        for(PlaceholderRegularExpressions placeholderRegularExpression : PlaceholderRegularExpressions.values()) {
-            placeholderRegexMap.put(placeholderRegularExpression.name(), placeholderRegularExpression.getRegex());
-        }
-        return placeholderRegexMap;
     }
 }

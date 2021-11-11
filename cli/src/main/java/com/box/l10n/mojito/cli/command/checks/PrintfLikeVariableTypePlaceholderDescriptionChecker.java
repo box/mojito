@@ -4,6 +4,7 @@ import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +26,8 @@ public class PrintfLikeVariableTypePlaceholderDescriptionChecker extends Abstrac
         return getPlaceholderNames(source, placeHolderMatcher).stream()
             .filter(placeholder -> !Pattern.compile(placeholder + ":.+").matcher(comment).find())
             .map(placeholder -> getFailureText(placeholder))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toSet());
     }
 

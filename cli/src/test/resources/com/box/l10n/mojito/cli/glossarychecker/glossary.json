@@ -1,0 +1,10 @@
+[
+  {
+    "term": "Pinterest",
+    "severity": "MAJOR"
+  },
+  {
+    "term": "Ads Manager",
+    "severity": "MINOR"
+  }
+]

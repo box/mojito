@@ -1,19 +1,23 @@
 package com.box.l10n.mojito.cli.checker;
 
-import com.box.l10n.mojito.cli.command.checks.MessageFormatPlaceholderDescriptionChecker;
+import com.box.l10n.mojito.cli.command.checks.SingleBracesPlaceholderDescriptionChecker;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 
-public class MessageFormatPlaceholderDescriptionCheckerTest {
+public class SingleBracesPlaceholderDescriptionCheckerTest {
 
-    private MessageFormatPlaceholderDescriptionChecker messageFormatPlaceholderCommentChecker;
+    private SingleBracesPlaceholderDescriptionChecker messageFormatPlaceholderCommentChecker;
 
     @Before
     public void setup() {
-        messageFormatPlaceholderCommentChecker = new MessageFormatPlaceholderDescriptionChecker();
+        messageFormatPlaceholderCommentChecker = new SingleBracesPlaceholderDescriptionChecker();
 
     }
 
@@ -62,4 +66,13 @@ public class MessageFormatPlaceholderDescriptionCheckerTest {
         Assert.assertTrue(failures.contains("Missing description for placeholder number '0' in comment."));
     }
 
+    @Test
+    public void testOtherRegexInString() {
+        String source = "A source string with a different placeholder types %(count)s %d %3.";
+        String comment = "Test comment";
+
+        Set<String> failures = messageFormatPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
+        Assert.assertTrue(failures.size() == 0);
+    }
+    
 }

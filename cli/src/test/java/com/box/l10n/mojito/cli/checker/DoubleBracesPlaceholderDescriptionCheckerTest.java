@@ -5,6 +5,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
@@ -60,6 +63,14 @@ public class DoubleBracesPlaceholderDescriptionCheckerTest {
         Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
         Assert.assertTrue(failures.contains("Missing description for placeholder number '0' in comment."));
+    }
+
+    @Test
+    public void testLines() throws IOException {
+        List<String> lines = Files.readAllLines(Paths.get("/Users/mallen/test2.txt"));
+        for(String line : lines) {
+            doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(line, "Test comment");
+        }
     }
 
 }

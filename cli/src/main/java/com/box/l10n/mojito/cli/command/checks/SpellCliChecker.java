@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -76,16 +77,14 @@ public class SpellCliChecker extends AbstractCliChecker {
     private Map<String, Map<String, List<String>>> spellCheck(List<String> sourceStrings) {
 
         return sourceStrings.stream()
-                .map(sourceString -> {
-                    return getSpellCliCheckerResult(sourceString);
-                })
+                .map(sourceString -> getSpellCliCheckerResult(sourceString))
                 .filter(result -> !result.isSuccessful)
                 .collect(Collectors.toMap(SpellCliCheckerResult::getSource, SpellCliCheckerResult::getSuggestionMap));
 
     }
 
     private SpellCliCheckerResult getSpellCliCheckerResult(String sourceString) {
-        SpellCliCheckerResult result = new SpellCliCheckerResult(sourceString, spellCheckSourceString(Arrays.asList(removePlaceholdersFromString(sourceString).split("\\P{L}+"))));
+        SpellCliCheckerResult result = new SpellCliCheckerResult(sourceString, spellCheckSourceString(Arrays.asList(removePlaceholdersFromString(sourceString).split("\\W+"))));
         if(!result.getSuggestionMap().isEmpty()) {
             result.setSuccessful(false);
         }
@@ -95,9 +94,53 @@ public class SpellCliChecker extends AbstractCliChecker {
     private String removePlaceholdersFromString(String sourceString) {
         String stringWithoutPlaceholders = sourceString;
         for(PlaceholderRegularExpressions regex : cliCheckerOptions.getParameterRegexSet()) {
+            stringWithoutPlaceholders = removePlaceholders(stringWithoutPlaceholders, regex);
+        }
+        return stringWithoutPlaceholders;
+    }
+
+    private String removePlaceholders(String stringWithoutPlaceholders, PlaceholderRegularExpressions regex) {
+        if(regex.equals(PlaceholderRegularExpressions.SINGLE_BRACE_REGEX) || regex.equals(PlaceholderRegularExpressions.DOUBLE_BRACE_REGEX)) {
+            stringWithoutPlaceholders = removeBracketedPlaceholders(stringWithoutPlaceholders);
+        }else {
             stringWithoutPlaceholders = stringWithoutPlaceholders.replaceAll(regex.getRegex(), "");
         }
         return stringWithoutPlaceholders;
+    }
+
+    private String removeBracketedPlaceholders(String stringWithoutPlaceholders) {
+        int index = stringWithoutPlaceholders.indexOf("{");
+        while(index != -1 && stringWithoutPlaceholders.contains("}")) {
+            int associatedClosingBraceIndex = getEndOfPlaceholderIndex(stringWithoutPlaceholders, index);
+            String tmp = stringWithoutPlaceholders.substring(index, associatedClosingBraceIndex + 1 < stringWithoutPlaceholders.length()? associatedClosingBraceIndex + 1 : associatedClosingBraceIndex).replaceAll("\\{", "\\\\{").replaceAll("\\}", "\\\\}");
+            stringWithoutPlaceholders = stringWithoutPlaceholders.replaceAll(tmp, "");
+            index = stringWithoutPlaceholders.indexOf("{");
+        }
+        return stringWithoutPlaceholders;
+    }
+
+    private int getEndOfPlaceholderIndex(String str, int startIndex){
+        ArrayDeque<Character> stack = new ArrayDeque<>();
+        int indexCount = startIndex;
+        for (Character c : str.substring(startIndex).toCharArray()) {
+            if (c.equals('{')) {
+                stack.push(c);
+                continue;
+            } else if (c.equals('}')) {
+                if(stack.isEmpty()){
+                    throw new CommandException("Invalid number of opening brackets in string.");
+                }
+                stack.pop();
+                if(stack.isEmpty()) {
+                    return indexCount;
+                }
+            }
+            indexCount++;
+        }
+        if(!stack.isEmpty()) {
+            throw new CommandException("Invalid number of closing brackets in string.");
+        }
+        return -1;
     }
 
     private void loadAdditionalWordsToDictionary(String additionalWordsFilePath) {
