@@ -6,7 +6,8 @@ public enum CliCheckerType {
     CONTEXT_COMMENT_CHECKER(ContextAndCommentCliChecker.class.getName()),
     EMPTY_PLACEHOLDER_CHECKER(EmptyPlaceholderChecker.class.getName()),
     PLACEHOLDER_COMMENT_CHECKER(PlaceholderCommentChecker.class.getName()),
-    GLOSSARY_CHECKER(GlossaryChecker.class.getName());
+    GLOSSARY_CHECKER(GlossaryChecker.class.getName()),
+    PHAB_RECOMMEND_STRING_ID(PhabricatorRecommendStringIdChecker.class.getName());
 
     String className;
 

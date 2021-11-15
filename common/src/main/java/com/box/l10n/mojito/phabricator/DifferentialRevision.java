@@ -1,6 +1,9 @@
 package com.box.l10n.mojito.phabricator;
 
 import com.box.l10n.mojito.phabricator.payload.Data;
+import com.box.l10n.mojito.phabricator.payload.GetCommitPathsFields;
+import com.box.l10n.mojito.phabricator.payload.GetCommitPathsResult;
+import com.box.l10n.mojito.phabricator.payload.ListResult;
 import com.box.l10n.mojito.phabricator.payload.ResultWithError;
 import com.box.l10n.mojito.phabricator.payload.RevisionSearchFields;
 import com.box.l10n.mojito.phabricator.payload.RevisionSearchResult;
@@ -8,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.util.MultiValueMap;
+
+import java.util.List;
 
 public class DifferentialRevision {
 
@@ -41,6 +46,25 @@ public class DifferentialRevision {
             return revisionSearchResponse.getResult().getData().get(0);
         } catch (Exception e) {
             throw new PhabricatorException("Can't find revision", e);
+        }
+    }
+
+    /**
+     * Retrieves the list of file paths added or updated in the Phabricator revision.
+     *
+     * @param revisionId - the Phabricator revision id
+     * @return a list of file paths relative to the repository root
+     */
+    public List<String> getCommitPaths(String revisionId){
+        try {
+            GetCommitPathsResult commitPathsResponse = phabricatorHttpClient.postEntityAndCheckResponse(
+                    Method.DIFFERENTIAL_GET_COMMIT_PATHS,
+                    phabricatorHttpClient.withRevisionId(revisionId),
+                    GetCommitPathsResult.class);
+
+            return commitPathsResponse.getResult();
+        } catch (Exception e) {
+            throw new PhabricatorException("Can't find commit paths for revision id D" + revisionId, e);
         }
     }
 

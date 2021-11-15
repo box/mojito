@@ -16,6 +16,7 @@ class PhabricatorHttpClient {
     static final String API_TOKEN = "api.token";
     static final String CONSTRAINTS_PHIDS_0 = "constraints[phids][0]";
     static final String IDS_0 = "ids[0]";
+    static final String REVISION_ID = "revision_id";
 
     /**
      * logger
@@ -66,6 +67,12 @@ class PhabricatorHttpClient {
     public HttpEntity<MultiValueMap<String, Object>> withId(String id) {
         HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityFormUrlEncoded();
         httpEntity.getBody().add(IDS_0, id);
+        return httpEntity;
+    }
+
+    public HttpEntity<MultiValueMap<String, Object>> withRevisionId(String revisionId) {
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityFormUrlEncoded();
+        httpEntity.getBody().add(REVISION_ID, revisionId);
         return httpEntity;
     }
 

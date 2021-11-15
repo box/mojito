@@ -49,8 +49,6 @@ public class CliCheckerExecutor {
 
     private String buildNotificationText(List<CliCheckResult> results) {
         StringBuilder notificationTextBuilder = new StringBuilder();
-        notificationTextBuilder.append("Checks on new source strings failed.");
-        notificationTextBuilder.append(System.lineSeparator());
         results.stream().forEach(result -> notificationTextBuilder.append(result.getNotificationText() + System.lineSeparator()));
         return notificationTextBuilder.toString();
     }

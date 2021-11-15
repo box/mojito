@@ -9,7 +9,8 @@ public enum Method {
     DIFFERENTIAL_DIFF_SEARCH("differential.diff.search"),
     DIFFERENTIAL_QUERYDIFFS("differential.querydiffs"),
     DIFFERENTIAL_REVISION_SEARCH("differential.revision.search"),
-    DIFFERENTIAL_REVISION_EDIT("differential.revision.edit");
+    DIFFERENTIAL_REVISION_EDIT("differential.revision.edit"),
+    DIFFERENTIAL_GET_COMMIT_PATHS("differential.getcommitpaths");
 
     String method;
 

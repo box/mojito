@@ -13,6 +13,8 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.phabricator.DifferentialDiff;
+import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
@@ -47,6 +49,12 @@ public class RunChecksCommand extends Command {
     @Autowired
     ConsoleWriter consoleWriter;
 
+    @Autowired(required = false)
+    DifferentialDiff differentialDiff;
+
+    @Autowired(required = false)
+    DifferentialRevision differentialRevision;
+
     @Parameter(names = {"--checker-list", "-cl"}, arity = 1, required = true, description = "List of checks to be run against new source strings")
     List<String> checkerList;
 
@@ -64,6 +72,9 @@ public class RunChecksCommand extends Command {
 
     @Parameter(names = {"--name", "-n"}, arity = 1, required = false, description = ExtractionDiffCommand.EXCTRACTION_DIFF_NAME_DESCRIPTION)
     String extractionDiffName = null;
+
+    @Parameter(names = {"--diff-id", "-did"}, arity = 1, required = false, description = "Phabricator diff id, required if using the 'PHAB_RECOMMEND_STRING_ID' checker.")
+    String diffId = null;
 
     @Parameter(names = {"--current", "-c"}, arity = 1, required = true, description = ExtractionDiffCommand.CURRENT_EXTRACTION_NAME_DESCRIPTION)
     String currentExtractionName;
@@ -128,7 +139,7 @@ public class RunChecksCommand extends Command {
     private CliCheckerOptions generateCheckerOptions() {
         Set<PlaceholderRegularExpressions> regexSet = generateParameterRegexSet();
         Set<String> hardFailureSet = generateHardFailureSet();
-        return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath);
+        return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath, diffId, differentialDiff, differentialRevision);
     }
 
     private Set<String> generateHardFailureSet() {
