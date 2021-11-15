@@ -32,8 +32,8 @@ public class PhabricatorRecommendStringIdCheckerTest {
         phabricatorRecommendStringIdChecker.setAssetExtractionDiffs(assetExtractionDiffs);
     }
 
-    @Test
-    public void testSuccess() {
-        phabricatorRecommendStringIdChecker.run();
-    }
+//    @Test
+//    public void testSuccess() {
+//        phabricatorRecommendStringIdChecker.run();
+//    }
 }

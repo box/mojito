@@ -65,12 +65,4 @@ public class DoubleBracesPlaceholderDescriptionCheckerTest {
         Assert.assertTrue(failures.contains("Missing description for placeholder number '0' in comment."));
     }
 
-    @Test
-    public void testLines() throws IOException {
-        List<String> lines = Files.readAllLines(Paths.get("/Users/mallen/test2.txt"));
-        for(String line : lines) {
-            doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(line, "Test comment");
-        }
-    }
-
 }
