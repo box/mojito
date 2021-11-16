@@ -7,7 +7,7 @@ public enum CliCheckerType {
     EMPTY_PLACEHOLDER_CHECKER(EmptyPlaceholderChecker.class.getName()),
     PLACEHOLDER_COMMENT_CHECKER(PlaceholderCommentChecker.class.getName()),
     GLOSSARY_CHECKER(GlossaryChecker.class.getName()),
-    PHAB_RECOMMEND_STRING_ID(PhabricatorRecommendStringIdChecker.class.getName());
+    RECOMMEND_STRING_ID_CHECKER(RecommendStringIdChecker.class.getName());
 
     String className;
 

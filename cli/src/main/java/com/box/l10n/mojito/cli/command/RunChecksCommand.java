@@ -49,12 +49,6 @@ public class RunChecksCommand extends Command {
     @Autowired
     ConsoleWriter consoleWriter;
 
-    @Autowired(required = false)
-    DifferentialDiff differentialDiff;
-
-    @Autowired(required = false)
-    DifferentialRevision differentialRevision;
-
     @Parameter(names = {"--checker-list", "-cl"}, arity = 1, required = true, description = "List of checks to be run against new source strings")
     List<String> checkerList;
 
@@ -139,7 +133,7 @@ public class RunChecksCommand extends Command {
     private CliCheckerOptions generateCheckerOptions() {
         Set<PlaceholderRegularExpressions> regexSet = generateParameterRegexSet();
         Set<String> hardFailureSet = generateHardFailureSet();
-        return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath, diffId, differentialDiff, differentialRevision);
+        return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath);
     }
 
     private Set<String> generateHardFailureSet() {

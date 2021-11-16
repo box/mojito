@@ -12,29 +12,12 @@ public class CliCheckerOptions {
     private final Set<String> hardFailureSet;
     private final String dictionaryAdditionsFilePath;
     private final String glossaryFilePath;
-    private final String diffId;
-    private final DifferentialDiff differentialDiff;
-    private final DifferentialRevision differentialRevision;
 
     public CliCheckerOptions(Set<PlaceholderRegularExpressions> parameterRegexSet, Set<String> hardFailureSet, String dictionaryAdditionsFilePath, String glossaryFilePath) {
         this.parameterRegexSet = parameterRegexSet;
         this.hardFailureSet = hardFailureSet;
         this.dictionaryAdditionsFilePath = dictionaryAdditionsFilePath;
         this.glossaryFilePath = glossaryFilePath;
-        this.diffId = null;
-        this.differentialRevision = null;
-        this.differentialDiff = null;
-    }
-
-    public CliCheckerOptions(Set<PlaceholderRegularExpressions> parameterRegexSet, Set<String> hardFailureSet,
-                             String dictionaryAdditionsFilePath, String glossaryFilePath, String diffId, DifferentialDiff differentialDiff, DifferentialRevision differentialRevision) {
-        this.parameterRegexSet = parameterRegexSet;
-        this.hardFailureSet = hardFailureSet;
-        this.dictionaryAdditionsFilePath = dictionaryAdditionsFilePath;
-        this.glossaryFilePath = glossaryFilePath;
-        this.diffId = diffId;
-        this.differentialDiff = differentialDiff;
-        this.differentialRevision = differentialRevision;
     }
     
     public Set<PlaceholderRegularExpressions> getParameterRegexSet() {
@@ -53,15 +36,4 @@ public class CliCheckerOptions {
         return glossaryFilePath;
     }
 
-    public String getDiffId() {
-        return diffId;
-    }
-
-    public DifferentialDiff getDifferentialDiff() {
-        return differentialDiff;
-    }
-
-    public DifferentialRevision getDifferentialRevision() {
-        return differentialRevision;
-    }
 }

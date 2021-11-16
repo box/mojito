@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Checker that verifies the comment and context parameters are provided and
+ * {@link CliChecker} that verifies the comment and context parameters are provided and
  * are not identical.
  *
  * @author mallen
