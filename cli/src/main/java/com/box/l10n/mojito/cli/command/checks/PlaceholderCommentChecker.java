@@ -76,9 +76,9 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
                 .collect(Collectors.toList());
     }
 
-    private Optional<AbstractPlaceholderDescriptionCheck> getPlaceholderDescriptionCheck(PlaceholderRegularExpressions placeholderRegularExpressions) {
+    private Optional<AbstractPlaceholderDescriptionCheck> getPlaceholderDescriptionCheck(PlaceholderRegularExpressions placeholderRegularExpression) {
         AbstractPlaceholderDescriptionCheck placeholderDescriptionCheck = null;
-        switch (placeholderRegularExpressions){
+        switch (placeholderRegularExpression){
             case SINGLE_BRACE_REGEX:
                 placeholderDescriptionCheck = new SingleBracesPlaceholderDescriptionChecker();
                 break;
@@ -92,10 +92,10 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
             case SIMPLE_PRINTF_REGEX:
             case PRINTF_LIKE_REGEX:
             case PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS:
-                placeholderDescriptionCheck = new SimpleRegexPlaceholderDescriptionChecker(placeholderRegularExpressions);
+                placeholderDescriptionCheck = new SimpleRegexPlaceholderDescriptionChecker(placeholderRegularExpression);
                 break;
             default:
-                logger.warn("Placeholder comment checker not implemented for regex {}", placeholderRegularExpressions.name());
+                logger.warn("Placeholder comment checker not implemented for regex {}", placeholderRegularExpression.name());
         }
         return Optional.ofNullable(placeholderDescriptionCheck);
     }
@@ -109,7 +109,7 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
             notificationText.append("String '" + source + "' failed check:");
             notificationText.append(System.lineSeparator());
             failureMap.get(source).stream().forEach(failure -> {
-                notificationText.append("\t* " + failure);
+                notificationText.append("* " + failure);
                 notificationText.append(System.lineSeparator());
             });
         });

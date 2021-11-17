@@ -77,8 +77,8 @@ public class SpellCliCheckerTest {
         CliCheckResult result = spellCliChecker.run();
         assertFalse(result.isSuccessful());
         assertFalse(result.getNotificationText().isEmpty());
-        assertTrue(result.getNotificationText().contains("\t* 'erors'"));
-        assertTrue(result.getNotificationText().contains("\t* 'strng'"));
+        assertTrue(result.getNotificationText().contains("* 'erors'"));
+        assertTrue(result.getNotificationText().contains("* 'strng'"));
         assertFalse(result.isHardFail());
     }
 
@@ -136,9 +136,9 @@ public class SpellCliCheckerTest {
         CliCheckResult result = spellCliChecker.run();
         assertFalse(result.isSuccessful());
         assertFalse(result.getNotificationText().isEmpty());
-        assertTrue(result.getNotificationText().contains("\t* 'erors'"));
-        assertTrue(result.getNotificationText().contains("\t* 'strng'"));
-        assertTrue(result.getNotificationText().contains("If the word is correctly spelt please add your spelling to target/tests/resources/dictAddition.txt to avoid future false negatives."));
+        assertTrue(result.getNotificationText().contains("* 'erors'"));
+        assertTrue(result.getNotificationText().contains("* 'strng'"));
+        assertTrue(result.getNotificationText().contains("If a word is correctly spelt please add your spelling to target/tests/resources/dictAddition.txt to avoid future false negatives."));
         assertFalse(result.isHardFail());
     }
 
@@ -159,9 +159,9 @@ public class SpellCliCheckerTest {
         CliCheckResult result = spellCliChecker.run();
         assertFalse(result.isSuccessful());
         assertFalse(result.getNotificationText().isEmpty());
-        assertTrue(result.getNotificationText().contains("\t* 'erors'"));
-        assertTrue(result.getNotificationText().contains("\t* 'strng'"));
-        assertTrue(result.getNotificationText().contains("\t* 'falures'"));
+        assertTrue(result.getNotificationText().contains("* 'erors'"));
+        assertTrue(result.getNotificationText().contains("* 'strng'"));
+        assertTrue(result.getNotificationText().contains("* 'falures'"));
     }
 
     @Test
@@ -225,8 +225,8 @@ public class SpellCliCheckerTest {
         spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
         CliCheckResult result = spellCliChecker.run();
         assertFalse(result.isSuccessful());
-        assertTrue(result.getNotificationText().contains("\t* 'identicl'"));
-        assertEquals(1, result.getNotificationText().chars().filter(c -> c =='*').count());
+        assertTrue(result.getNotificationText().contains("* 'identicl'"));
+        assertEquals(1, result.getNotificationText().chars().filter(c -> c == '*').count());
     }
 
     @Test

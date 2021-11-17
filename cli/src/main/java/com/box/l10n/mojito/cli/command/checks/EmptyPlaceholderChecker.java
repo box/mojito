@@ -10,9 +10,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Checker that verifies a source string does not contain an empty placeholder e.g. '{}'.
+ * {@link CliChecker} that verifies a source string does not contain an empty placeholder e.g. '{}'.
  *
- * The check uses the provided regex patterns to identify placeholders in a source string and then checks that the
+ * The check uses Single or Double braces regex to identify placeholders in a source string and then checks that the
  * placeholder substring contains regex 'word' values.
  *
  * @author mallen
@@ -62,13 +62,12 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
 
     private StringBuilder buildNotificationText(Set<String> failures) {
         StringBuilder notificationText = new StringBuilder();
-        notificationText.append("Found empty placeholders in the following source strings:");
+        notificationText.append("Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:");
         notificationText.append(System.lineSeparator());
         failures.stream().forEach(source -> {
-            notificationText.append("\t* '" + source + "'");
+            notificationText.append("* '" + source + "'");
             notificationText.append(System.lineSeparator());
         });
-        notificationText.append("Please remove or update placeholders to contain a descriptive name.");
         notificationText.append(System.lineSeparator());
         return notificationText;
     }

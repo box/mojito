@@ -62,7 +62,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "\t* Source string 'A source string with no errors.' failed check with error: Comment string is empty."
+                "* Source string 'A source string with no errors.' failed check with error: Comment string is empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -84,7 +84,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "\t* Source string 'A source string with no errors.' failed check with error: Context string is empty."
+                "* Source string 'A source string with no errors.' failed check with error: Context string is empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -106,7 +106,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "\t* Source string 'A source string with no errors.' failed check with error: Context and comment strings are both empty."
+                "* Source string 'A source string with no errors.' failed check with error: Context and comment strings are both empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -128,7 +128,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "\t* Source string 'A source string with no errors.' failed check with error: Context & comment strings should not be identical."
+                "* Source string 'A source string with no errors.' failed check with error: Context & comment strings should not be identical."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -170,7 +170,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "\t* Source string 'A source string with no errors.' failed check with error: Context and comment strings are both empty."
+                "* Source string 'A source string with no errors.' failed check with error: Context and comment strings are both empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 }

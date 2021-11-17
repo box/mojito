@@ -122,15 +122,15 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
         return formatted;
     }
 
-    private Icon getIcon(int addedCount, int removedCount) {
-        Icon icon = Icon.INFO;
+    private PhabricatorIcon getIcon(int addedCount, int removedCount) {
+        PhabricatorIcon icon = PhabricatorIcon.INFO;
 
         if (addedCount - removedCount < 0) {
-            icon = Icon.WARNING;
+            icon = PhabricatorIcon.WARNING;
         }
 
         if (removedCount > 20) {
-            icon = Icon.STOP;
+            icon = PhabricatorIcon.STOP;
         }
         return icon;
     }
@@ -142,25 +142,5 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
         return formatted;
     }
 
-
-    private enum Icon {
-        INFO("\u2139\uFE0F"),
-        WARNING("\u26A0\uFE0F"),
-        STOP("\uD83D\uDED1");
-        String str;
-
-        Icon(String str) {
-            this.str = str;
-        }
-
-        public String getStr() {
-            return str;
-        }
-
-        @Override
-        public String toString() {
-            return str;
-        }
-    }
 
 }

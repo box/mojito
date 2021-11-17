@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  */
 public class RecommendStringIdChecker extends AbstractCliChecker {
 
-    class PhabricatorRecommendStringIdCheckResult {
+    class RecommendStringIdCheckResult {
         String source;
         String recommendedIdPrefix;
         boolean isRecommendedUpdate;
@@ -66,12 +66,12 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
         StringBuilder sb = new StringBuilder();
         sb.append("Recommended id updates for the following strings:");
         sb.append(System.lineSeparator());
-        recommendations.stream().forEach(recommendation -> sb.append("\t * " + recommendation + System.lineSeparator()));
+        recommendations.stream().forEach(recommendation -> sb.append("* " + recommendation + System.lineSeparator()));
         return sb.toString();
     }
 
     private List<String> getRecommendedIdPrefixUpdates() {
-        return getAddedTextUnits().stream().map(textUnit -> getPhabricatorRecommendStringIdCheckResult(textUnit))
+        return getAddedTextUnits().stream().map(textUnit -> getRecommendStringIdCheckResult(textUnit))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(recommendation -> recommendation.isRecommendedUpdate())
@@ -79,8 +79,8 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
                 .collect(Collectors.toList());
     }
 
-    private Optional<PhabricatorRecommendStringIdCheckResult> getPhabricatorRecommendStringIdCheckResult(AssetExtractorTextUnit textUnit) {
-        PhabricatorRecommendStringIdCheckResult recommendation = new PhabricatorRecommendStringIdCheckResult();
+    private Optional<RecommendStringIdCheckResult> getRecommendStringIdCheckResult(AssetExtractorTextUnit textUnit) {
+        RecommendStringIdCheckResult recommendation = new RecommendStringIdCheckResult();
         recommendation.setSource(textUnit.getSource());
         recommendation.setRecommendedUpdate(false);
         return textUnit.getUsages().stream().findFirst().map(path -> generateRecommendation(textUnit, recommendation, removeLineNumberFromUsage(path)));
@@ -90,7 +90,7 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
         return usage.replaceAll(":\\d", "");
     }
 
-    private PhabricatorRecommendStringIdCheckResult generateRecommendation(AssetExtractorTextUnit textUnit, PhabricatorRecommendStringIdCheckResult recommendation, String path) {
+    private RecommendStringIdCheckResult generateRecommendation(AssetExtractorTextUnit textUnit, RecommendStringIdCheckResult recommendation, String path) {
         Path file = Paths.get(path);
         String fileName = file.getFileName().toString();
         Deque<String> dirNames = getDirectoryNames(file);

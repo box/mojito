@@ -53,7 +53,7 @@ public class GlossaryChecker extends AbstractCliChecker {
         failures.stream().forEach(failure -> {
             builder.append(System.lineSeparator());
             failure.getFailures().stream().forEach(failureText -> {
-                builder.append(String.format("\t* %s", failureText));
+                builder.append(String.format("* %s", failureText));
                 builder.append(System.lineSeparator());
             });
         });

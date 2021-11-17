@@ -2,11 +2,13 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.command.checks.CliChecker;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerExecutor;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerInstantiationException;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
+import com.box.l10n.mojito.cli.command.extraction.AbstractExtractionDiffStatistics;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
@@ -18,6 +20,8 @@ import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import com.google.common.base.Enums;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
+import com.ibm.icu.text.MessageFormat;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 /**
  * Command to execute checks against any new source strings
@@ -48,6 +55,12 @@ public class RunChecksCommand extends Command {
 
     @Autowired
     ConsoleWriter consoleWriter;
+
+    @Autowired(required = false)
+    DifferentialDiff differentialDiff;
+
+    @Autowired(required = false)
+    DifferentialRevision differentialRevision;
 
     @Parameter(names = {"--checker-list", "-cl"}, arity = 1, required = true, description = "List of checks to be run against new source strings")
     List<String> checkerList;
@@ -67,8 +80,11 @@ public class RunChecksCommand extends Command {
     @Parameter(names = {"--name", "-n"}, arity = 1, required = false, description = ExtractionDiffCommand.EXCTRACTION_DIFF_NAME_DESCRIPTION)
     String extractionDiffName = null;
 
-    @Parameter(names = {"--diff-id", "-did"}, arity = 1, required = false, description = "Phabricator diff id, required if using the 'PHAB_RECOMMEND_STRING_ID' checker.")
+    @Parameter(names = {"--phab-diff-id", "-pdid"}, arity = 1, required = false, description = "Phabricator diff id, required if adding a comment with check failures to a Phabricator diff.")
     String diffId = null;
+
+    @Parameter(names = {"--phab-message-template", "-pmt"}, arity = 1, required = false, description = "Optional message template to customize the Phabricator notification message. eg. '{baseMessage}. Check [[https://build.org/1234|build]].' ")
+    String messageTemplate = "{baseMessage}";
 
     @Parameter(names = {"--current", "-c"}, arity = 1, required = true, description = ExtractionDiffCommand.CURRENT_EXTRACTION_NAME_DESCRIPTION)
     String currentExtractionName;
@@ -85,6 +101,7 @@ public class RunChecksCommand extends Command {
     @Override
     protected void execute() throws CommandException {
 
+        checkPhabricatorPreconditions();
         ExtractionPaths baseExtractionPaths = new ExtractionPaths(inputDirectoryParam, baseExtractionName);
         ExtractionPaths currentExtractionPaths = new ExtractionPaths(inputDirectoryParam, currentExtractionName);
         ExtractionDiffPaths extractionDiffPaths = ExtractionDiffPaths.builder()
@@ -108,12 +125,84 @@ public class RunChecksCommand extends Command {
         }
 
         CliCheckerExecutor cliCheckerExecutor = getCliCheckerExecutor(assetExtractionDiffs);
-        List<String> failedCheckNames = cliCheckerExecutor.executeChecks();
-        if(failedCheckNames.size() > 0) {
-            outputFailuresToCommandLine(cliCheckerExecutor, failedCheckNames);
-            //TODO: (mallen) Checks failed, send notifications
+        List<CliCheckResult> cliCheckerFailures = getCheckerFailures(cliCheckerExecutor);
+        checkForHardFail(cliCheckerFailures);
+        if(!cliCheckerFailures.isEmpty()) {
+            outputFailuresToCommandLine(cliCheckerFailures);
+            if (diffId != null) {
+                String phabObjectId = "D" + differentialDiff.queryDiff(diffId).getRevisionId();
+                consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Adding comment to Phabricator revision " + phabObjectId).println();
+                differentialRevision.addComment(phabObjectId, getMessage(buildPhabricatorComment(cliCheckerFailures)));
+            }
         }
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
+    }
+
+    private void checkForHardFail(List<CliCheckResult> results) {
+        AtomicBoolean hardFail = new AtomicBoolean(false);
+        StringBuilder hardFailureListString = new StringBuilder();
+        hardFailureListString.append("The following checks had hard failures:" + System.lineSeparator());
+        results.stream().filter(result -> !result.isSuccessful() && result.isHardFail()).forEach(failure -> {
+            hardFail.set(true);
+            hardFailureListString.append(failure.getCheckName() + " failures: " + System.lineSeparator());
+            hardFailureListString.append(failure.getNotificationText());
+            hardFailureListString.append(System.lineSeparator());
+        });
+        if (hardFail.get()) {
+            logger.debug(hardFailureListString.toString());
+            throw new CommandException(hardFailureListString.toString());
+        }
+    }
+
+    private List<CliCheckResult> getCheckerFailures(CliCheckerExecutor cliCheckerExecutor) {
+        return cliCheckerExecutor.executeChecks().stream()
+                .filter(result -> !result.isSuccessful())
+                .collect(Collectors.toList());
+    }
+
+    private String getBaseMessage(ImmutableMap<String, Object> arguments) {
+        String header = "{icon} {header}" + System.lineSeparator() + System.lineSeparator() + "{notificationText}";
+        MessageFormat messageFormat = new MessageFormat(header);
+        String formatted = messageFormat.format(arguments);
+        return formatted;
+    }
+
+    String getMessage(String notificationText) {
+
+        ImmutableMap<String, Object> messageParamMap = ImmutableMap.<String, Object>builder()
+                .put("icon", PhabricatorIcon.WARNING.toString())
+                .put("header", "**i18n source string checks failed**")
+                .put("notificationText", notificationText)
+                .build();
+
+        MessageFormat messageFormatForTemplate = new MessageFormat(messageTemplate);
+        String formatted = messageFormatForTemplate.format(ImmutableMap.of("baseMessage", getBaseMessage(messageParamMap)));
+        return formatted;
+    }
+
+    private String buildPhabricatorComment(List<CliCheckResult> failedCheck) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("**Failed checks:**");
+        addDoubleNewLine(sb);
+        failedCheck.stream().forEach(check -> {
+            sb.append("//**" + check.getCheckName() + "**//");
+            addDoubleNewLine(sb);
+            sb.append(check.getNotificationText());
+        });
+        addDoubleNewLine(sb);
+        sb.append("**Please correct the above issues in a new commit.**");
+        return sb.toString();
+    }
+
+    private void addDoubleNewLine(StringBuilder sb) {
+        sb.append(System.lineSeparator() + System.lineSeparator());
+    }
+
+    private void checkPhabricatorPreconditions() {
+        if (diffId != null) {
+            PhabricatorPreconditions.checkNotNull(differentialDiff);
+            PhabricatorPreconditions.checkNotNull(differentialRevision);
+        }
     }
 
     private CliCheckerExecutor getCliCheckerExecutor(List<AssetExtractionDiff> assetExtractionDiffs) {
@@ -122,12 +211,16 @@ public class RunChecksCommand extends Command {
         return cliCheckerExecutor;
     }
 
-    private void outputFailuresToCommandLine(CliCheckerExecutor cliCheckerExecutor, List<String> failedCheckNames) {
+    private void outputFailuresToCommandLine(List<CliCheckResult> failedCheckNames) {
         consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failed checks: ").println();
-        failedCheckNames.stream().forEach(check -> consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("\t* " + check).println());
-        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failures:").println();
-        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(cliCheckerExecutor.getNotificationText()).println();
-        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Sending notifications.").println();
+        failedCheckNames.stream().forEach(check -> {
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("\t* " + check.getCheckName()).println();
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(indentAllLines(check.getNotificationText()).replaceAll("\\*", "\t\t*")).println();
+        });
+    }
+
+    private String indentAllLines(String text){
+        return text.replaceAll("(m?)^", "\t");
     }
 
     private CliCheckerOptions generateCheckerOptions() {

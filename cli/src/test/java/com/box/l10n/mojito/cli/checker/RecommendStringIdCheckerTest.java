@@ -53,7 +53,7 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "\t * Please update id for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -92,7 +92,7 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "\t * Please update id for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -112,7 +112,7 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "\t * Please update id for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -156,8 +156,8 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "\t * Please update id for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator()
-                + "\t * Please update id for string 'Another source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator()
+                + "* Please update id for string 'Another source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     private void setTextUnitId(String id) {

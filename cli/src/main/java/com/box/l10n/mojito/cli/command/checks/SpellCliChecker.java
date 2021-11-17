@@ -17,11 +17,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * {@link CliChecker} that uses hunspell native libraries to spell check words in source strings. The hunspell libraries
- * need to available on your system separately for this check to execute successfully.
+ * {@link CliChecker} that uses hunspell native libraries to spell check words in source strings.
+ * <br>
+ * <br>
+ * <b>NOTE:</b> The hunspell libraries must be available on your system separately for this check to execute successfully.
  *
  * @author mallen
  */
@@ -181,12 +184,10 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     private String buildNotificationText(Map<String, Map<String, List<String>>> failureMap) {
         StringBuilder notificationText = new StringBuilder();
-        notificationText.append("Spelling failures found: ");
-        notificationText.append(System.lineSeparator());
         failureMap.keySet().stream().forEach(sourceString -> {
             buildFailureText(failureMap, notificationText, sourceString);
         });
-        notificationText.append(System.lineSeparator() + "Please correct any spelling errors in a new commit. ");
+        notificationText.append(System.lineSeparator());
         addDictionaryUpdateInformation(notificationText);
 
         return notificationText.toString();
@@ -194,24 +195,33 @@ public class SpellCliChecker extends AbstractCliChecker {
 
     private void addDictionaryUpdateInformation(StringBuilder notificationText) {
         if(cliCheckerOptions.getDictionaryAdditionsFilePath() != null && !cliCheckerOptions.getDictionaryAdditionsFilePath().isEmpty()) {
-            notificationText.append("If the word is correctly spelt please add your spelling to " +
+            notificationText.append("If a word is correctly spelt please add your spelling to " +
                     cliCheckerOptions.getDictionaryAdditionsFilePath() +
                     " to avoid future false negatives.");
         }
     }
 
     private void buildFailureText(Map<String, Map<String, List<String>>> failureMap, StringBuilder notificationText, String sourceString) {
-        notificationText.append(System.lineSeparator());
         notificationText.append("The string '" + sourceString + "' contains misspelled words:" + System.lineSeparator());
         failureMap.get(sourceString).keySet().stream().forEach(misspelling -> {
             List<String> suggestions = failureMap.get(sourceString).get(misspelling);
-            notificationText.append("\t* '" + misspelling + "' ");
+            notificationText.append(" * '" + misspelling + "' ");
             if(!suggestions.isEmpty()){
                 notificationText.append("- Did you mean ");
-                notificationText.append(suggestions.stream().collect(Collectors.joining(" or ")).toString());
+                notificationText.append(suggestions.stream().collect(Collectors.collectingAndThen(Collectors.toList(), joinCommaSeparated(", ", " or "))));
                 notificationText.append("?");
             }
             notificationText.append(System.lineSeparator());
         });
+    }
+
+    private static Function<List<String>, String> joinCommaSeparated(String delimiter, String finalDelimiter) {
+        return result -> {
+            int last = result.size() - 1;
+            if(last < 1) {
+                return String.join(delimiter, result);
+            }
+            return String.join(finalDelimiter, String.join(delimiter, result.subList(0, last)), result.get(last));
+        };
     }
 }

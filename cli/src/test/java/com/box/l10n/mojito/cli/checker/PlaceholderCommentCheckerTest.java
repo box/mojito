@@ -104,7 +104,7 @@ public class PlaceholderCommentCheckerTest {
         Assert.assertEquals("Placeholder description in comment check failed." + System.lineSeparator()
                 + System.lineSeparator() +
                 "String 'A source string with a single {placeholder} and {another} and some {more}.' failed check:" + System.lineSeparator() +
-                "\t* Missing description for placeholder with name 'another' in comment." + System.lineSeparator(), result.getNotificationText());
+                "* Missing description for placeholder with name 'another' in comment." + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -141,7 +141,7 @@ public class PlaceholderCommentCheckerTest {
 
         CliCheckResult result = placeholderCommentChecker.run();
         Assert.assertFalse(result.isSuccessful());
-        Assert.assertTrue(result.getNotificationText().contains("\t* Missing description for placeholder with name 'placeholder2' in comment."));
-        Assert.assertTrue(result.getNotificationText().contains("\t* Missing description for placeholder with name '%d' in comment."));
+        Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name 'placeholder2' in comment."));
+        Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name '%d' in comment."));
     }
 }

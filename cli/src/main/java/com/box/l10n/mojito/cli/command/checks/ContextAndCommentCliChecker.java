@@ -53,12 +53,9 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
     public CliCheckResult run() {
         CliCheckResult cliCheckResult = new CliCheckResult(isHardFail(), CliCheckerType.CONTEXT_COMMENT_CHECKER.name());
         StringBuilder notificationText = new StringBuilder();
-        notificationText.append("Context and comment check found failures:");
-        notificationText.append(System.lineSeparator());
         runChecks(cliCheckResult, notificationText);
-
         if(!cliCheckResult.isSuccessful()) {
-            cliCheckResult.setNotificationText(notificationText.toString());
+            cliCheckResult.setNotificationText("Context and comment check found failures:" + System.lineSeparator() + notificationText);
         }
         return cliCheckResult;
     }
@@ -85,7 +82,7 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
     }
 
     private void appendFailureToNotificationText(StringBuilder notificationText, ContextAndCommentCliCheckerResult result) {
-        notificationText.append("\t* Source string '" + result.getSourceString() + "' failed check with error: " + result.getFailureMessage());
+        notificationText.append("* Source string '" + result.getSourceString() + "' failed check with error: " + result.getFailureMessage());
         notificationText.append(System.lineSeparator());
     }
 

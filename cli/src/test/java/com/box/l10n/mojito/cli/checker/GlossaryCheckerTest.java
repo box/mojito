@@ -83,8 +83,8 @@ public class GlossaryCheckerTest {
         CliCheckResult result = glossaryChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "\t* MAJOR: String 'A source string with pinterest and ads Manager in it.' contains glossary term 'Pinterest' which must match case exactly." + System.lineSeparator()
-                + "\t* WARN: String 'A source string with pinterest and ads Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term case."
+                + System.lineSeparator() + "* MAJOR: String 'A source string with pinterest and ads Manager in it.' contains glossary term 'Pinterest' which must match case exactly." + System.lineSeparator()
+                + "* WARN: String 'A source string with pinterest and ads Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term case."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -101,7 +101,7 @@ public class GlossaryCheckerTest {
         glossaryChecker.setAssetExtractionDiffs(assetExtractionDiffs);
         CliCheckResult result = glossaryChecker.run();
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "\t* WARN: String 'A source string with ads                Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term case."
+                + System.lineSeparator() + "* WARN: String 'A source string with ads                Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term case."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -134,7 +134,7 @@ public class GlossaryCheckerTest {
         CliCheckResult result = glossaryChecker.run();
         Assert.assertTrue(result.isSuccessful());
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "\t* WARN: String 'A source string with ads Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term case."
+                + System.lineSeparator() + "* WARN: String 'A source string with ads Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term case."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 

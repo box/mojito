@@ -60,9 +60,8 @@ public class EmptyPlaceholderCheckerTest {
         CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
-        Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
-                "\t* 'A source string with a empty placeholder {}.'" + System.lineSeparator() +
-                "Please remove or update placeholders to contain a descriptive name." + System.lineSeparator(), result.getNotificationText());
+        Assert.assertEquals("Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:" + System.lineSeparator() +
+                "* 'A source string with a empty placeholder {}.'" + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -82,9 +81,8 @@ public class EmptyPlaceholderCheckerTest {
         CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
-        Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
-                "\t* 'A source string with two {} empty placeholders {}.'" + System.lineSeparator() +
-                "Please remove or update placeholders to contain a descriptive name." + System.lineSeparator(), result.getNotificationText());
+        Assert.assertEquals("Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:" + System.lineSeparator() +
+                "* 'A source string with two {} empty placeholders {}.'" + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -109,9 +107,8 @@ public class EmptyPlaceholderCheckerTest {
         CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
-        Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
-                "\t* 'A source string with two {} empty placeholders {}.'" + System.lineSeparator() +
-                "Please remove or update placeholders to contain a descriptive name." + System.lineSeparator(), result.getNotificationText());
+        Assert.assertEquals("Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:" + System.lineSeparator() +
+                "* 'A source string with two {} empty placeholders {}.'" + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -131,9 +128,8 @@ public class EmptyPlaceholderCheckerTest {
         CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
-        Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
-                "\t* 'A source string with two {} placeholders {name}.'" + System.lineSeparator() +
-                "Please remove or update placeholders to contain a descriptive name." + System.lineSeparator(), result.getNotificationText());
+        Assert.assertEquals("Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:" + System.lineSeparator() +
+                "* 'A source string with two {} placeholders {name}.'" + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -158,10 +154,9 @@ public class EmptyPlaceholderCheckerTest {
         CliCheckResult result = emptyPlaceholderChecker.run();
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
-        Assert.assertEquals("Found empty placeholders in the following source strings:" + System.lineSeparator() +
-                "\t* 'A source string with two {} empty placeholders {}.'" + System.lineSeparator() +
-                "\t* 'Another source string with two {} empty placeholders {}.'" + System.lineSeparator() +
-                "Please remove or update placeholders to contain a descriptive name." + System.lineSeparator(), result.getNotificationText());
+        Assert.assertEquals("Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:" + System.lineSeparator() +
+                "* 'A source string with two {} empty placeholders {}.'" + System.lineSeparator() +
+                "* 'Another source string with two {} empty placeholders {}.'" + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test

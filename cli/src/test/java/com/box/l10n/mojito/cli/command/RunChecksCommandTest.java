@@ -66,11 +66,9 @@ public class RunChecksCommandTest extends CLITestBase {
 
         Assert.assertTrue(outputCapture.toString().contains("Running checks against new strings"));
         Assert.assertTrue(outputCapture.toString().contains("The following checks had hard failures:" + System.lineSeparator()));
-        Assert.assertTrue(outputCapture.toString().contains("\t * SPELL_CHECKER"));
-        Assert.assertTrue(outputCapture.toString().contains("Spelling failures found:"));
+        Assert.assertTrue(outputCapture.toString().contains("SPELL_CHECKER"));
         Assert.assertTrue(outputCapture.toString().contains("The string 'This is a new sorce string with spelling failure' contains misspelled words:"));
-        Assert.assertTrue(outputCapture.toString().contains("\t* 'sorce' - Did you mean "));
-        Assert.assertTrue(outputCapture.toString().contains("Please correct any spelling errors in a new commit."));
+        Assert.assertTrue(outputCapture.toString().contains("* 'sorce' - Did you mean "));
     }
 
     @Test
@@ -101,10 +99,8 @@ public class RunChecksCommandTest extends CLITestBase {
 
         Assert.assertTrue(outputCapture.toString().contains("Running checks against new strings"));
         Assert.assertTrue(outputCapture.toString().contains("Failed checks: "));
-        Assert.assertTrue(outputCapture.toString().contains("\t* SPELL_CHECKER"));
-        Assert.assertTrue(outputCapture.toString().contains("Sending notifications."));
+        Assert.assertTrue(outputCapture.toString().contains("* SPELL_CHECKER"));
         Assert.assertTrue(outputCapture.toString().contains("Checks completed"));
-
     }
 
     @Test
