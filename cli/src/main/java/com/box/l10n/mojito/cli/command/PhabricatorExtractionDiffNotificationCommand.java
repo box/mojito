@@ -11,6 +11,7 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
+import com.box.l10n.mojito.phabricator.PhabricatorMessageBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
@@ -43,6 +44,9 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
 
     @Autowired(required = false)
     DifferentialRevision differentialRevision;
+
+    @Autowired(required = false)
+    PhabricatorMessageBuilder phabricatorMessageBuilder;
 
     @Autowired
     ExtractionDiffService extractionDiffService;
@@ -116,51 +120,21 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
                 .put("totalCurrent", extractionDiffStatistics.getCurrent())
                 .put("objectId", nullToEmpty(objectId))
                 .build();
-
-        MessageFormat messageFormatForTemplate = new MessageFormat(messageTemplate);
-        String formatted = messageFormatForTemplate.format(ImmutableMap.of("baseMessage", getBaseMessage(messageParamMap)));
-        return formatted;
+        String msg = "{icon} {removedCount, plural, one{# string removed} other{# strings removed}} and {addedCount, plural, one{# string added} other{# strings added}} (from {totalBase} to {totalCurrent})";
+        return phabricatorMessageBuilder.getFormattedPhabricatorMessage(messageTemplate, "baseMessage", phabricatorMessageBuilder.getBaseMessage(messageParamMap, msg));
     }
 
-    private Icon getIcon(int addedCount, int removedCount) {
-        Icon icon = Icon.INFO;
+    private PhabricatorIcon getIcon(int addedCount, int removedCount) {
+        PhabricatorIcon icon = PhabricatorIcon.INFO;
 
         if (addedCount - removedCount < 0) {
-            icon = Icon.WARNING;
+            icon = PhabricatorIcon.WARNING;
         }
 
         if (removedCount > 20) {
-            icon = Icon.STOP;
+            icon = PhabricatorIcon.STOP;
         }
         return icon;
-    }
-
-    private String getBaseMessage(ImmutableMap<String, Object> arguments) {
-        String msg = "{icon} {removedCount, plural, one{# string removed} other{# strings removed}} and {addedCount, plural, one{# string added} other{# strings added}} (from {totalBase} to {totalCurrent})";
-        MessageFormat messageFormat = new MessageFormat(msg);
-        String formatted = messageFormat.format(arguments);
-        return formatted;
-    }
-
-
-    private enum Icon {
-        INFO("\u2139\uFE0F"),
-        WARNING("\u26A0\uFE0F"),
-        STOP("\uD83D\uDED1");
-        String str;
-
-        Icon(String str) {
-            this.str = str;
-        }
-
-        public String getStr() {
-            return str;
-        }
-
-        @Override
-        public String toString() {
-            return str;
-        }
     }
 
 }

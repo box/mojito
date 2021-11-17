@@ -36,4 +36,9 @@ public class PhabricatorConfiguration {
     Phabricator phabricator() {
         return new Phabricator(differentialDiff(), harbormaster(), differentialRevision());
     }
+
+    @Bean
+    PhabricatorMessageBuilder phabricatorMessageBuilder() {
+        return new PhabricatorMessageBuilder();
+    }
 }
