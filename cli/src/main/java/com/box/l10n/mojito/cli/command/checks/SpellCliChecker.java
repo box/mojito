@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command.checks;
 import com.box.l10n.mojito.cli.command.CommandException;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
+import com.ibm.icu.text.BreakIterator;
 import dumonts.hunspell.Hunspell;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -12,10 +13,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -110,7 +113,7 @@ public class SpellCliChecker extends AbstractCliChecker {
     }
 
     private SpellCliCheckerResult getSpellCliCheckerResult(String sourceString) {
-        SpellCliCheckerResult result = new SpellCliCheckerResult(sourceString, spellCheckSourceString(Arrays.asList(removePlaceholdersFromString(sourceString).split("\\W+"))));
+        SpellCliCheckerResult result = new SpellCliCheckerResult(sourceString, spellCheckSourceString(CheckerUtils.getWordsInString(removePlaceholdersFromString(sourceString))));
         if(!result.getSuggestionMap().isEmpty()) {
             result.setSuccessful(false);
         }

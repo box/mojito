@@ -51,4 +51,5 @@ public abstract class AbstractCliChecker {
     protected List<Pattern> getRegexPatterns() {
         return cliCheckerOptions.getParameterRegexSet().stream().map(regex -> Pattern.compile(regex.getRegex())).collect(Collectors.toList());
     }
+
 }
