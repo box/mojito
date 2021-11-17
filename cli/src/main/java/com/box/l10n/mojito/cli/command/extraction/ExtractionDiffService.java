@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 /**
  * Service to compute difference between local extractions
@@ -87,6 +88,19 @@ public class ExtractionDiffService {
                 .reduce(extractionDiffStatistics, (c1, c2) -> c1.withAdded(c1.getAdded() + c2.getAdded()).withRemoved(c1.getRemoved() + c2.getRemoved()));
 
         return extractionDiffStatistics;
+    }
+
+    public List<AssetExtractionDiff> findAssetExtractionDiffsWithAddedTextUnits(ExtractionDiffPaths extractionDiffPaths) throws MissingExtractionDirectoryExcpetion {
+
+        ExtractionPaths baseExtractionPaths = extractionDiffPaths.getBaseExtractorPaths();
+        ExtractionPaths currentExtractionPaths = extractionDiffPaths.getCurrentExtractorPaths();
+
+        checkExtractionDirectoryExists(baseExtractionPaths);
+        checkExtractionDirectoryExists(currentExtractionPaths);
+
+        return extractionDiffPaths.findAllAssetExtractionDiffPaths().map(path -> objectMapper.readValueUnchecked(path.toFile(), AssetExtractionDiff.class))
+                .filter(assetExtractionDiff -> !assetExtractionDiff.getAddedTextunits().isEmpty())
+                .collect(Collectors.toList());
     }
 
 

@@ -3,9 +3,12 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.ibm.icu.text.MessageFormat;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Base class for Commands, provides basic support for usage display.
@@ -116,4 +119,5 @@ public abstract class Command {
     public void setOriginalArgs(List<String> originalArgs) {
         this.originalArgs = originalArgs;
     }
+
 }
