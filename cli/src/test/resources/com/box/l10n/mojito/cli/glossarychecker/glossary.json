@@ -1,0 +1,18 @@
+[
+  {
+    "term": "Company",
+    "severity": "MAJOR"
+  },
+  {
+    "term": "Ads Manager",
+    "severity": "MINOR"
+  },
+  {
+    "term": "Event Manager",
+    "severity": "MINOR"
+  },
+  {
+    "term": "Event manager",
+    "severity": "MINOR"
+  }
+]
