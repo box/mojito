@@ -128,6 +128,7 @@ public class SpellCliChecker extends AbstractCliChecker {
         for (Character c : str.substring(startIndex).toCharArray()) {
             if (c.equals('{')) {
                 stack.push(c);
+                indexCount++;
                 continue;
             } else if (c.equals('}')) {
                 if(stack.isEmpty()){

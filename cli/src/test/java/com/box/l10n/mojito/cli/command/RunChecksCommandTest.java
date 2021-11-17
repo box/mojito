@@ -99,7 +99,7 @@ public class RunChecksCommandTest extends CLITestBase {
 
         Assert.assertTrue(outputCapture.toString().contains("Running checks against new strings"));
         Assert.assertTrue(outputCapture.toString().contains("Failed checks: "));
-        Assert.assertTrue(outputCapture.toString().contains("* SPELL_CHECKER"));
+        Assert.assertTrue(outputCapture.toString().contains("SPELL_CHECKER"));
         Assert.assertTrue(outputCapture.toString().contains("Checks completed"));
     }
 

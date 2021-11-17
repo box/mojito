@@ -130,12 +130,16 @@ public class RunChecksCommand extends Command {
         if(!cliCheckerFailures.isEmpty()) {
             outputFailuresToCommandLine(cliCheckerFailures);
             if (diffId != null) {
-                String phabObjectId = "D" + differentialDiff.queryDiff(diffId).getRevisionId();
-                consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Adding comment to Phabricator revision " + phabObjectId).println();
-                differentialRevision.addComment(phabObjectId, getMessage(buildPhabricatorComment(cliCheckerFailures)));
+                addCommentToPhabricatorRevision(cliCheckerFailures);
             }
         }
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
+    }
+
+    private void addCommentToPhabricatorRevision(List<CliCheckResult> cliCheckerFailures) {
+        String phabObjectId = "D" + differentialDiff.queryDiff(diffId).getRevisionId();
+        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Adding comment to Phabricator revision " + phabObjectId).println();
+        differentialRevision.addComment(phabObjectId, getMessage(buildPhabricatorComment(cliCheckerFailures)));
     }
 
     private void checkForHardFail(List<CliCheckResult> results) {
@@ -214,13 +218,9 @@ public class RunChecksCommand extends Command {
     private void outputFailuresToCommandLine(List<CliCheckResult> failedCheckNames) {
         consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failed checks: ").println();
         failedCheckNames.stream().forEach(check -> {
-            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("\t* " + check.getCheckName()).println();
-            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(indentAllLines(check.getNotificationText()).replaceAll("\\*", "\t\t*")).println();
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(check.getCheckName()).println();
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(check.getNotificationText().replaceAll("\\*", "\t*")).println();
         });
-    }
-
-    private String indentAllLines(String text){
-        return text.replaceAll("(m?)^", "\t");
     }
 
     private CliCheckerOptions generateCheckerOptions() {

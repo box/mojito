@@ -144,4 +144,23 @@ public class PlaceholderCommentCheckerTest {
         Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name 'placeholder2' in comment."));
         Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name '%d' in comment."));
     }
+
+    @Test
+    public void testNullComment() {
+        placeholderCommentChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(DOUBLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX, PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), "", ""));
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("A source string with different {placeholder} %(placeholder2)s {{placeholder3}} %d");
+        assetExtractorTextUnit.setComments(null);
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        placeholderCommentChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+
+        CliCheckResult result = placeholderCommentChecker.run();
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertTrue(result.getNotificationText().contains("Comment is empty."));
+    }
 }

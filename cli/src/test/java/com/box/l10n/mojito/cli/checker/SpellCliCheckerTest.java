@@ -106,7 +106,24 @@ public class SpellCliCheckerTest {
     public void testParametersAreNotSpellChecked() throws Exception {
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
-        assetExtractorTextUnit.setSource("A source string with {numbr} errors.");
+        assetExtractorTextUnit.setSource("A source string with {image_name} errors.");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+        spellCliChecker.setAssetExtractionDiffs(assetExtractionDiffs);
+        CliCheckResult result = spellCliChecker.run();
+        assertTrue(result.isSuccessful());
+        assertTrue(result.getNotificationText().isEmpty());
+        assertFalse(result.isHardFail());
+    }
+
+    @Test
+    public void testEmptyCurlyBracketsDoesNotCauseSubsequentPlaceholdersToBeIncludedInCheck() {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("Something went wrong {} saving the carousel images {imag_name} on our side. Please try again.");
         addedTUs.add(assetExtractorTextUnit);
         List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
         AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();

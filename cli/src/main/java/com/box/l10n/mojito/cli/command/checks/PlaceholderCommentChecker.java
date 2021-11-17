@@ -2,6 +2,8 @@ package com.box.l10n.mojito.cli.command.checks;
 
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,12 +62,19 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
     }
 
     private PlaceholderCommentCheckResult getPlaceholderCommentCheckResult(List<AbstractPlaceholderDescriptionCheck> placeholderDescriptionChecks, AssetExtractorTextUnit assetExtractorTextUnit) {
+        PlaceholderCommentCheckResult result;
         String source = assetExtractorTextUnit.getSource();
         String comment = assetExtractorTextUnit.getComments();
-        List<String> failures = placeholderDescriptionChecks.stream()
-                .flatMap(check -> check.checkCommentForDescriptions(source, comment).stream())
-                .collect(Collectors.toList());
-        return new PlaceholderCommentCheckResult(source, failures);
+        if(StringUtils.isBlank(comment)){
+            result = new PlaceholderCommentCheckResult(source, Lists.newArrayList("Comment is empty."));
+        }else {
+            List<String> failures = placeholderDescriptionChecks.stream()
+                    .flatMap(check -> check.checkCommentForDescriptions(source, comment).stream())
+                    .collect(Collectors.toList());
+            result = new PlaceholderCommentCheckResult(source, failures);
+        }
+
+        return result;
     }
 
     private List<AbstractPlaceholderDescriptionCheck> getPlaceholderCommentChecks() {
