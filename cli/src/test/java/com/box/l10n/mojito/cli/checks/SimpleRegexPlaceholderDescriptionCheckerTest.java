@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.cli.checker;
+package com.box.l10n.mojito.cli.checks;
 
 import com.box.l10n.mojito.cli.command.checks.SimpleRegexPlaceholderDescriptionChecker;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;

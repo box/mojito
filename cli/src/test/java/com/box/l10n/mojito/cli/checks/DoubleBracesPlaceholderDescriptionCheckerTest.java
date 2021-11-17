@@ -1,14 +1,10 @@
-package com.box.l10n.mojito.cli.checker;
+package com.box.l10n.mojito.cli.checks;
 
 import com.box.l10n.mojito.cli.command.checks.DoubleBracesPlaceholderDescriptionChecker;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
 import java.util.Set;
 
 public class DoubleBracesPlaceholderDescriptionCheckerTest {

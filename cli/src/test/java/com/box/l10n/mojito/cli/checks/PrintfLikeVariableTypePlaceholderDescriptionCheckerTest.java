@@ -1,11 +1,10 @@
-package com.box.l10n.mojito.cli.checker;
+package com.box.l10n.mojito.cli.checks;
 
 import com.box.l10n.mojito.cli.command.checks.PrintfLikeVariableTypePlaceholderDescriptionChecker;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
 import java.util.Set;
 
 public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
