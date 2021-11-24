@@ -25,6 +25,14 @@ class JsonObjectRemoverByValueTest {
     }
 
     @Test
+    void removeTextualFields() {
+        assertEquals("{ }", JsonObjectRemoverByValue.remove("{\n" +
+                "  \"value1\": \"##$UNTRANSLATED$##\",\n" +
+                "  \"value2\": \"##$UNTRANSLATED$##\"\n" +
+                "}", "##$UNTRANSLATED$##"));
+    }
+
+    @Test
     void removeInObject() {
         assertEquals("{\n" +
                 "  \"mykey2\" : {\n" +
