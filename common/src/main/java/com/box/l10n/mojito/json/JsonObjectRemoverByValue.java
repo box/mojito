@@ -14,7 +14,7 @@ public class JsonObjectRemoverByValue {
 
     /**
      * Removes the objects that contain the specified value from the input JSON and returns the indented result.
-     *
+     * <p>
      * - if the object: o1 that contains the specified value is in an array: a1 then o1 is removed from a1
      * - if the object: o1 that contains the specified value is in another object: o2 (for attribute name: an1) then
      * the field: "an1 : o1" is removed from o2
@@ -39,7 +39,8 @@ public class JsonObjectRemoverByValue {
     }
 
     static void removeInObject(ObjectNode objectNode, String valueToRemove) {
-        removeObjectsWithValueFromObject(objectNode, valueToRemove);
+        removeFieldsWithValueFromObject(objectNode, valueToRemove);
+
         // recurse on others
         objectNode.iterator().forEachRemaining(jsonNode -> remove(jsonNode, valueToRemove));
     }
@@ -50,24 +51,37 @@ public class JsonObjectRemoverByValue {
         arrayNode.elements().forEachRemaining(jsonNode -> remove(jsonNode, valueToRemove));
     }
 
+    static void removeFieldsWithValueFromObject(ObjectNode objectNode, String valueToRemove) {
+        List<String> toRemove = Streams.stream(objectNode.fields())
+                .filter(filed -> isTextutalFieldWithValue(valueToRemove, filed.getValue())
+                        || isObjectFieldWithNestValue(valueToRemove, filed.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+        toRemove.forEach(objectNode::remove);
+    }
+
+    private static boolean isObjectFieldWithNestValue(String valueToRemove, JsonNode jsonNode) {
+        return Streams.stream(jsonNode.fields())
+                .filter(sn -> sn.getValue().asText().equals(valueToRemove))
+                .findFirst()
+                .map(Map.Entry::getKey)
+                .isPresent();
+    }
+
+    private static boolean isTextutalFieldWithValue(String valueToRemove, JsonNode jsonNode) {
+        return jsonNode.isTextual() && jsonNode.asText().equals(valueToRemove);
+    }
+
     static void removeObjectsWithValueFromObject(ObjectNode objectNode, String valueToRemove) {
         List<String> toRemove = Streams.stream(objectNode.fieldNames())
-                .filter(n -> Streams.stream(objectNode.get(n).fields())
-                        .filter(sn -> sn.getValue().asText().equals(valueToRemove))
-                        .findFirst()
-                        .map(Map.Entry::getKey)
-                        .isPresent())
+                .filter(n -> isObjectFieldWithNestValue(valueToRemove, objectNode.get(n)))
                 .collect(Collectors.toList());
         toRemove.forEach(objectNode::remove);
     }
 
     static void removeObjectsWithValueFromArray(ArrayNode arrayNode, String valueToRemove) {
         List<Integer> toRemove = IntStream.range(0, arrayNode.size())
-                .filter(idx -> Streams.stream(arrayNode.get(idx).fields())
-                        .filter(sn -> sn.getValue().asText().equals(valueToRemove))
-                        .findFirst()
-                        .map(Map.Entry::getKey)
-                        .isPresent())
+                .filter(idx -> isObjectFieldWithNestValue(valueToRemove, arrayNode.get(idx)))
                 .boxed().collect(Collectors.toList());
         toRemove.forEach(arrayNode::remove);
     }
