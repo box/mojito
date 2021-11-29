@@ -1,24 +1,30 @@
 package com.box.l10n.mojito.rest.textunit;
 
+import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.asset.AssetPathNotFoundException;
+import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckException;
 import com.box.l10n.mojito.service.gitblame.GitBlameService;
 import com.box.l10n.mojito.service.gitblame.GitBlameWithUsage;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantService;
 import com.box.l10n.mojito.service.tm.TMTextUnitHistoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitIntegrityCheckService;
+import com.box.l10n.mojito.service.tm.TMTextUnitStatisticService;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
@@ -81,6 +87,9 @@ public class TextUnitWS {
     TMTextUnitIntegrityCheckService tmTextUnitIntegrityCheckService;
 
     @Autowired
+    TMTextUnitStatisticService tmTextUnitStatisticService;
+
+    @Autowired
     AssetTextUnitRepository assetTextUnitRepository;
 
     @Autowired
@@ -91,6 +100,9 @@ public class TextUnitWS {
 
     @Autowired
     LocaleService localeService;
+
+    @Autowired
+    AssetRepository assetRepository;
 
     /**
      * Gets the TextUnits that matches the search parameters.
@@ -367,6 +379,48 @@ public class TextUnitWS {
         }
 
         return result;
+    }
+
+    /**
+     * Bulk update of text unit statistics information.
+     *
+     * This creates or updates TMTextUnit Statistics entries with the latest data provided for a specific asset path in
+     * a specific repository.
+     *
+     * @param repositoryName                    The repository name for the text units in scope.
+     * @param assetPath                         The asset path for the text units in scope.
+     * @param textUnitStatistics                A list of objects containing information used in matching the statistics
+     *                                          with specific text units and the target information to update.
+     * @return                                  A pollable task.
+     * @throws RepositoryNameNotFoundException  If the name of the repository is not found in the database.
+     * @throws AssetPathNotFoundException       If the asset path is not found in the database.
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/statistics")
+    public PollableTask importStatistics(@RequestParam(value = "repositoryName") String repositoryName,
+                                         @RequestParam(value = "assetPath") String assetPath,
+                                         @RequestBody List<ImportTextUnitStatisticsBody> textUnitStatistics)
+            throws RepositoryNameNotFoundException, AssetPathNotFoundException {
+        logger.debug("Import TextUnit Statistics");
+
+        Repository repository = repositoryRepository.findByName(repositoryName);
+        if (repository == null) {
+            throw new RepositoryNameNotFoundException(
+                    String.format("Repository with name '%s' can not be found!", repositoryName)
+            );
+        }
+
+        Asset asset = assetRepository.findByPathAndRepositoryId(assetPath, repository.getId());
+        if (asset == null) {
+            throw new AssetPathNotFoundException(
+                    String.format("Asset with path '%s' can not be found!", assetPath)
+            );
+        }
+
+        PollableFuture pollableFuture = tmTextUnitStatisticService.importStatistics(
+                repository.getSourceLocale(), asset, textUnitStatistics
+        );
+
+        return pollableFuture.getPollableTask();
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/assetTextUnits/{assetTextUnitId}/usages")

@@ -8,9 +8,11 @@ import org.springframework.data.annotation.CreatedBy;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -84,6 +86,9 @@ public class TMTextUnit extends SettableAuditableEntity {
     
     @Column(name = "plural_form_other", length = Integer.MAX_VALUE)
     protected String pluralFormOther;
+
+    @OneToOne(mappedBy = "tmTextUnit", fetch = FetchType.LAZY)
+    protected TMTextUnitStatistic tmTextUnitStatistic;
 
     public User getCreatedByUser() {
         return createdByUser;
@@ -172,5 +177,13 @@ public class TMTextUnit extends SettableAuditableEntity {
     public void setPluralFormOther(String pluralFormOther) {
         this.pluralFormOther = pluralFormOther;
     }
-    
+
+    public TMTextUnitStatistic getStatistic() {
+        return tmTextUnitStatistic;
+    }
+
+    public void setStatistic(TMTextUnitStatistic tmTextUnitStatistic) {
+        this.tmTextUnitStatistic = tmTextUnitStatistic;
+    }
+
 }

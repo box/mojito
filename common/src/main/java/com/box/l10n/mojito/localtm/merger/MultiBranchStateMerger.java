@@ -109,7 +109,7 @@ public class MultiBranchStateMerger {
     ImmutableMap<String, BranchData> removeBranchByName(BranchStateTextUnit intoStateTextUnit, String branchName) {
         return intoStateTextUnit.getBranchNameToBranchDatas().entrySet().stream()
                 .filter(stringBranchDataEntry -> !branchName.equals(stringBranchDataEntry.getKey()))
-                .collect(ImmutableMapCollectors.MapEntriesToImmutableMap());
+                .collect(ImmutableMapCollectors.mapEntriesToImmutableMap());
     }
 
     /**
