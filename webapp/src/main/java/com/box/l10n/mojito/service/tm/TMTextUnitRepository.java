@@ -23,8 +23,11 @@ public interface TMTextUnitRepository extends JpaRepository<TMTextUnit, Long> {
     TMTextUnit findFirstByAssetAndName(Asset asset, String name);
 
     List<TMTextUnit> findByTm_id(Long tmId);
-        
+
     List<TMTextUnit> findByIdIn(Collection<Long> ids);
+
+    @Query("select tu from TMTextUnit tu left outer join fetch tu.tmTextUnitStatistic where tu.id IN ?1")
+    List<TMTextUnit> findByIdInAndEagerFetchStatistics(Collection<Long> ids);
 
     List<TMTextUnit> findByAsset(Asset asset);
     List<TMTextUnit> findByAssetId(Long assetId);

@@ -1,0 +1,73 @@
+package com.box.l10n.mojito.entity;
+
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+/**
+ * @author garion
+ */
+@Entity
+@Table(
+        name = "tm_text_unit_statistic",
+        indexes = {
+                @Index(name = "UK__TM_TEXT_UNIT_STATISTIC__BRANCH_ID", columnList = "tm_text_unit_id", unique = true),
+        }
+)
+@BatchSize(size = 1000)
+public class TMTextUnitStatistic extends AuditableEntity {
+
+    @OneToOne(optional = false)
+    @JoinColumn(name = "tm_text_unit_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_STATISTIC__BRANCH_ID"))
+    private TMTextUnit tmTextUnit;
+
+    @Column(name="last_day_usage_count")
+    private double lastDayUsageCount = 0;
+
+    @Column(name="last_period_usage_count")
+    private double lastPeriodUsageCount = 0;
+
+    @Column(name="last_seen_date")
+    @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
+    private DateTime lastSeenDate;
+
+    public TMTextUnit getTMTextUnit() {
+        return tmTextUnit;
+    }
+
+    public void setTMTextUnit(TMTextUnit tmTextUnit) {
+        this.tmTextUnit = tmTextUnit;
+    }
+
+    public double getLastDayUsageCount() {
+        return lastDayUsageCount;
+    }
+
+    public void setLastDayUsageCount(double lastDayUsageCount) {
+        this.lastDayUsageCount = lastDayUsageCount;
+    }
+
+    public double getLastPeriodUsageCount() {
+        return lastPeriodUsageCount;
+    }
+
+    public void setLastPeriodUsageCount(double lastPeriodUsageCount) {
+        this.lastPeriodUsageCount = lastPeriodUsageCount;
+    }
+
+    public DateTime getLastSeenDate() {
+        return lastSeenDate;
+    }
+
+    public void setLastSeenDate(DateTime lastSeenDate) {
+        this.lastSeenDate = lastSeenDate;
+    }
+}
