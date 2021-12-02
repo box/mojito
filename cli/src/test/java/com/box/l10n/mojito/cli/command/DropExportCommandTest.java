@@ -4,6 +4,7 @@ import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.DropClient;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.Drop;
 import com.box.l10n.mojito.rest.entity.Page;
@@ -31,6 +32,9 @@ public class DropExportCommandTest extends CLITestBase {
     @Autowired
     RepositoryRepository repositoryRepository;
 
+    @Autowired
+    RepositoryClient repositoryClient;
+
     @Test
     public void export() throws Exception {
 
@@ -39,7 +43,11 @@ public class DropExportCommandTest extends CLITestBase {
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath());
 
-        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+        RepositoryStatusChecker repositoryStatusChecker = new RepositoryStatusChecker();
+        waitForCondition("wait for repository stats to show forTranslationCount > 0 before exporting a drop",
+                () -> repositoryStatusChecker.hasStringsForTranslationsForExportableLocales(
+                        repositoryClient.getRepositoryById(repository.getId())
+                ));
 
         Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
 

@@ -6,8 +6,6 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
-import com.box.l10n.mojito.rest.entity.RepositoryLocaleStatistic;
-import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -195,20 +193,4 @@ public class CLITestBase extends IOTestBase {
             Thread.sleep(numberAttempt * 100);
         }
     }
-
-    protected void waitForRepositoryToHaveStringsForTranslations(Long repositoryId) throws InterruptedException {
-        waitForCondition("wait for repository stats to show forTranslationCount > 0 before exporting a drop", () -> {
-            com.box.l10n.mojito.rest.entity.Repository repository = repositoryClient.getRepositoryById(repositoryId);
-            RepositoryStatistic repositoryStat = repository.getRepositoryStatistic();
-            boolean forTranslation = false;
-            for (RepositoryLocaleStatistic repositoryLocaleStat : repositoryStat.getRepositoryLocaleStatistics()) {
-                if (repositoryLocaleStat.getForTranslationCount() > 0L) {
-                    forTranslation = true;
-                }
-                break;
-            }
-            return forTranslation;
-        });
-    }
-
 }

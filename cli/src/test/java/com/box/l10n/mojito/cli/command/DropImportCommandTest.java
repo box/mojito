@@ -7,6 +7,7 @@ import com.box.l10n.mojito.cli.console.Console;
 import com.box.l10n.mojito.entity.Drop;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.drop.DropRepository;
 import com.box.l10n.mojito.service.drop.DropService;
@@ -78,6 +79,9 @@ public class DropImportCommandTest extends CLITestBase {
     @Autowired
     DropRepository dropRepository;
 
+    @Autowired
+    private RepositoryClient repositoryClient;
+
     @Test
     public void dropImport() throws Exception {
 
@@ -94,7 +98,11 @@ public class DropImportCommandTest extends CLITestBase {
         importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
         importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
-        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+        RepositoryStatusChecker repositoryStatusChecker = new RepositoryStatusChecker();
+        waitForCondition("wait for repository stats to show forTranslationCount > 0 before exporting a drop",
+                () -> repositoryStatusChecker.hasStringsForTranslationsForExportableLocales(
+                        repositoryClient.getRepositoryById(repository.getId())
+                ));
 
         getL10nJCommander().run("drop-export", "-r", repository.getName());
 
@@ -149,7 +157,11 @@ public class DropImportCommandTest extends CLITestBase {
         importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
         importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
-        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+        RepositoryStatusChecker repositoryStatusChecker = new RepositoryStatusChecker();
+        waitForCondition("wait for repository stats to show forTranslationCount > 0 before exporting a drop",
+                () -> repositoryStatusChecker.hasStringsForTranslationsForExportableLocales(
+                        repositoryClient.getRepositoryById(repository.getId())
+                ));
 
         getL10nJCommander().run("drop-export", "-r", repository.getName());
 

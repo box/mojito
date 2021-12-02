@@ -6,6 +6,7 @@ import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.entity.Drop;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.service.drop.DropRepository;
 import com.box.l10n.mojito.service.drop.DropService;
@@ -70,6 +71,9 @@ public class DropXliffImportCommandTest extends CLITestBase {
     @Autowired
     DropImportCommand dropImportCommand;
 
+    @Autowired
+    RepositoryClient repositoryClient;
+
     @Test
     public void dropXliffImport() throws Exception {
 
@@ -86,7 +90,11 @@ public class DropXliffImportCommandTest extends CLITestBase {
         importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
         importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
-        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+        RepositoryStatusChecker repositoryStatusChecker = new RepositoryStatusChecker();
+        waitForCondition("wait for repository stats to show forTranslationCount > 0 before exporting a drop",
+                () -> repositoryStatusChecker.hasStringsForTranslationsForExportableLocales(
+                        repositoryClient.getRepositoryById(repository.getId())
+                ));
 
         getL10nJCommander().run("drop-export", "-r", repository.getName());
 
