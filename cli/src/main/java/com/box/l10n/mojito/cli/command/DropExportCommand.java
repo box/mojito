@@ -161,13 +161,13 @@ public class DropExportCommand extends Command {
         return bcp47tags;
     }
     
-    private boolean shouldCreateDrop(Repository repository) {
+    protected boolean shouldCreateDrop(Repository repository) {
         boolean createDrop = false;
-        Set<String> Bcp47TagsForTranslation = Sets.newHashSet(getBcp47TagsForExportFromRepository(repository));
+        Set<String> bcp47TagsForTranslation = Sets.newHashSet(getBcp47TagsForExportFromRepository(repository));
         RepositoryStatistic repoStat = repository.getRepositoryStatistic();
         if (repoStat != null) {
             for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
-                if (Bcp47TagsForTranslation.contains(repoLocaleStat.getLocale().getBcp47Tag()) && repoLocaleStat.getForTranslationCount() > 0L) {
+                if (bcp47TagsForTranslation.contains(repoLocaleStat.getLocale().getBcp47Tag()) && repoLocaleStat.getForTranslationCount() > 0L) {
                     createDrop = true;
                     break;
                 }
