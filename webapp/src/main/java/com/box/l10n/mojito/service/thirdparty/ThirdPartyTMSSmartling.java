@@ -97,7 +97,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     private final Set<String> supportedImageExtensions = Sets.newHashSet("png", "jpg", "jpeg", "gif", "tiff");
 
     protected static RetryBackoffSpec getRetryConfiguration(){
-        return Retry.backoff(3, Duration.ofSeconds(0)).maxBackoff(Duration.ofSeconds(1));
+        return Retry.backoff(10, Duration.ofSeconds(0)).maxBackoff(Duration.ofSeconds(60));
     }
 
     @Autowired
