@@ -289,9 +289,9 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
         RuntimeException exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.push(repository, "projectId", pluralSep, null, null, Collections.emptyList()));
-        assertTrue(exception.getMessage().contains("Retries exhausted: 3/3"));
+        assertTrue(exception.getMessage().contains("Retries exhausted: 10/10"));
         // Verify Smartling client called 4 times, original request and then 3 retries before failure
-        verify(smartlingClient, times(4)).uploadFile(any(), any(), any(), any(), any(), any());
+        verify(smartlingClient, times(11)).uploadFile(any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -580,9 +580,9 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher,
                 assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, mockThirdPartyTMSSmartlingWithJson);
         RuntimeException exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList()));
-        assertTrue(exception.getMessage().contains("Retries exhausted: 3/3"));
+        assertTrue(exception.getMessage().contains("Retries exhausted: 10/10"));
         // Verify 1 request and 3 retry attempts before exception thrown.
-        verify(smartlingClient, times(4)).downloadPublishedFile(anyString(), anyString(), anyString(), anyBoolean());
+        verify(smartlingClient, times(11)).downloadPublishedFile(anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -917,7 +917,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         Exception exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of()));
         assertTrue(exception.getMessage().contains("Error uploading localized file to Smartling"));
 
-        verify(smartlingClient, times(4)).uploadLocalizedFile(
+        verify(smartlingClient, times(11)).uploadLocalizedFile(
                 anyString(),
                 anyString(),
                 anyString(),
