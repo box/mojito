@@ -290,7 +290,6 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         RuntimeException exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.push(repository, "projectId", pluralSep, null, null, Collections.emptyList()));
         assertTrue(exception.getMessage().contains("Retries exhausted: 10/10"));
-        // Verify Smartling client called 4 times, original request and then 3 retries before failure
         verify(smartlingClient, times(11)).uploadFile(any(), any(), any(), any(), any(), any());
     }
 
@@ -581,7 +580,6 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 assetPathAndTextUnitNameKeys, mockTextUnitBatchImporterService, resultProcessor, mockThirdPartyTMSSmartlingWithJson);
         RuntimeException exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList()));
         assertTrue(exception.getMessage().contains("Retries exhausted: 10/10"));
-        // Verify 1 request and 3 retry attempts before exception thrown.
         verify(smartlingClient, times(11)).downloadPublishedFile(anyString(), anyString(), anyString(), anyBoolean());
     }
 
