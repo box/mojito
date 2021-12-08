@@ -144,6 +144,39 @@ public class TMTextUnitStatisticServiceTest extends ServiceTestBase {
     }
 
     @Test
+    public void importStatisticsMappingToSameTextUnitWorks() throws Exception {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        createTestTextUnitData(repository);
+
+        List<ImportTextUnitStatisticsBody> textUnitStatistics = new ArrayList<>();
+        ImportTextUnitStatisticsBody statistic = getImportTextUnitStatisticsBody();
+        statistic.setComment(null);
+        textUnitStatistics.add(statistic);
+
+        ImportTextUnitStatisticsBody statisticWithNameOnly = getImportTextUnitStatisticsBody();
+        statisticWithNameOnly.setContent(null);
+        statisticWithNameOnly.setComment(null);
+        statisticWithNameOnly.setLastSeenDate(new DateTime(2000, 1, 1, 0, 0));
+        textUnitStatistics.add(statisticWithNameOnly);
+
+        tmTextUnitStatisticService.importStatistics(repository.getSourceLocale(), asset, textUnitStatistics).get();
+
+        List<TMTextUnitStatistic> actualTMTextUnitStatistics = tmTextUnitStatisticRepository
+                .findAll()
+                .stream()
+                .filter(ts -> Objects.equals(ts.getTMTextUnit().getAsset().getRepository().getId(), repository.getId()))
+                .collect(Collectors.toList());
+        assertNotNull(actualTMTextUnitStatistics);
+        assertEquals(1, actualTMTextUnitStatistics.size());
+        TMTextUnitStatistic actualStatistic = actualTMTextUnitStatistics.stream().findFirst().orElse(null);
+        assertNotNull(actualStatistic);
+        assertEquals(statistic.getLastDayEstimatedVolume() * 2, actualStatistic.getLastDayUsageCount(), 0.0);
+        assertEquals(statistic.getLastPeriodEstimatedVolume() * 2, actualStatistic.getLastPeriodUsageCount(), 0.0);
+        assertEquals(statistic.getLastSeenDate(), actualStatistic.getLastSeenDate());
+        assertNotEquals(statisticWithNameOnly.getLastSeenDate(), actualStatistic.getLastSeenDate());
+    }
+
+    @Test
     public void importPartialStatisticForTextUnitsWithSameName() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         asset = assetService.createAssetWithContent(repository.getId(), "test-asset-path.xliff", "test asset content");

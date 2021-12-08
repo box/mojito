@@ -30,10 +30,10 @@ public class TMTextUnitStatistic extends AuditableEntity {
     private TMTextUnit tmTextUnit;
 
     @Column(name="last_day_usage_count")
-    private double lastDayUsageCount = 0;
+    private Double lastDayUsageCount = 0d;
 
     @Column(name="last_period_usage_count")
-    private double lastPeriodUsageCount = 0;
+    private Double lastPeriodUsageCount = 0d;
 
     @Column(name="last_seen_date")
     @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
@@ -47,19 +47,19 @@ public class TMTextUnitStatistic extends AuditableEntity {
         this.tmTextUnit = tmTextUnit;
     }
 
-    public double getLastDayUsageCount() {
+    public Double getLastDayUsageCount() {
         return lastDayUsageCount;
     }
 
-    public void setLastDayUsageCount(double lastDayUsageCount) {
+    public void setLastDayUsageCount(Double lastDayUsageCount) {
         this.lastDayUsageCount = lastDayUsageCount;
     }
 
-    public double getLastPeriodUsageCount() {
+    public Double getLastPeriodUsageCount() {
         return lastPeriodUsageCount;
     }
 
-    public void setLastPeriodUsageCount(double lastPeriodUsageCount) {
+    public void setLastPeriodUsageCount(Double lastPeriodUsageCount) {
         this.lastPeriodUsageCount = lastPeriodUsageCount;
     }
 
