@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +103,7 @@ public class TMTextUnitStatisticService {
         ImmutableList<Long> textUnitIds = statisticToTextUnitDTOMap.values().stream()
                 .flatMap(Collection::stream)
                 .map(TextUnitDTO::getTmTextUnitId)
+                .distinct()
                 .collect(ImmutableList.toImmutableList());
 
         Map<ImportTextUnitStatisticsBody, List<TMTextUnit>> statisticsToTextUnitsMap = getStatisticsToTextUnitMap(statisticToTextUnitDTOMap, textUnitIds);
@@ -198,7 +200,22 @@ public class TMTextUnitStatisticService {
                                 return statistic;
                             });
                 })
-                .collect(Collectors.toList());
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(TMTextUnitStatistic::getTMTextUnit, Function.identity(), (stat1, stat2) -> {
+                            stat1.setLastDayUsageCount(stat1.getLastDayUsageCount() + stat2.getLastDayUsageCount());
+                            stat1.setLastPeriodUsageCount(stat1.getLastPeriodUsageCount() + stat2.getLastPeriodUsageCount());
+                            DateTime stat1date = stat1.getLastSeenDate();
+                            DateTime stat2date = stat2.getLastSeenDate();
+                            DateTime maxDate = stat1date.compareTo(stat2date) >= 0 ? stat1date : stat2date;
+                            stat1.setLastSeenDate(maxDate);
+
+                            logger.warn("Merged statistics information for TextUnit with id: {} , name: {}",
+                                    stat1.getTMTextUnit().getId(),
+                                    stat1.getTMTextUnit().getName());
+
+                            return stat1;
+                        }),
+                        map -> new ArrayList<>(map.values())));
 
         Iterables.partition(updatedStatistics, batchSize).forEach(
                 updatedStatisticsBatch -> tmTextUnitStatisticRepository.saveAll(updatedStatisticsBatch)
