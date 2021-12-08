@@ -64,6 +64,9 @@ public class ThirdPartySyncCommand extends Command {
     @Parameter(names = {"--skip-assets-path-pattern", "-sa"}, arity = 1, required = false, description = "Do not process text units whose assets path match the SQL LIKE expression")
     String skipAssetsWithPathPattern;
 
+    @Parameter(names = {"--include-text-units-with-pattern", "-it"}, arity = 1, required = false, description = "Only process text units matching with the SQL LIKE expression. Only used in conjunction with the PUSH_TRANSLATION action")
+    String includeTextUnitsWithPattern;
+
     @Parameter(names = {"--options", "-o"}, variableArity = true, required = false, description = "Options to synchronize")
     List<String> options;
 
@@ -85,12 +88,13 @@ public class ThirdPartySyncCommand extends Command {
                 .a(" locale-mapping: ").fg(CYAN).a(localeMapping).reset()
                 .a(" skip-text-units-with-pattern: ").fg(CYAN).a(skipTextUnitsWithPattern).reset()
                 .a(" skip-assets-path-pattern: ").fg(CYAN).a(skipAssetsWithPathPattern).reset()
+                .a(" include-text-units-with-pattern" ).fg(CYAN).a(includeTextUnitsWithPattern).reset()
                 .a(" options: ").fg(CYAN).a(Objects.toString(options)).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
         PollableTask pollableTask = thirdPartyClient.sync(repository.getId(), thirdPartyProjectId, pluralSeparator, localeMapping,
-                actions, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+                actions, skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern, options);
 
         commandHelper.waitForPollableTask(pollableTask.getId());
 

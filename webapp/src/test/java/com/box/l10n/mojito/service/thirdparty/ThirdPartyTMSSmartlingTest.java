@@ -854,7 +854,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
-        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of());
+        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, null, ImmutableList.of());
         result = resultProcessor.pushTranslationFiles;
 
         assertThat(result).hasSize(2);
@@ -914,7 +914,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
-        Exception exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of()));
+        Exception exception = assertThrows(SmartlingClientException.class, () -> tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, null, ImmutableList.of()));
         assertTrue(exception.getMessage().contains("Error uploading localized file to Smartling"));
 
         verify(smartlingClient, times(11)).uploadLocalizedFile(
@@ -960,7 +960,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
-        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of());
+        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, null, ImmutableList.of());
         result = resultProcessor.pushTranslationFiles;
 
         assertThat(result).hasSize(2);
@@ -1022,7 +1022,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
         tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(),
-                null, null, ImmutableList.of("dry-run=true"));
+                null, null, null, ImmutableList.of("dry-run=true"));
         result = resultProcessor.pushTranslationFiles;
 
         assertThat(result).hasSize(2);
@@ -1098,7 +1098,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
-        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of());
+        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, null, ImmutableList.of());
         result = resultProcessor.pushTranslationFiles;
 
         assertThat(result).hasSize(4);
@@ -1200,7 +1200,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
         tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(),
-                null, null, ImmutableList.of("smartling-plural-fix=" + frCA.getBcp47Tag()));
+                null, null, null, ImmutableList.of("smartling-plural-fix=" + frCA.getBcp47Tag()));
         result = resultProcessor.pushTranslationFiles;
 
         assertThat(result).hasSize(locales.size());
@@ -1289,7 +1289,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
         prepareAssetAndTextUnits(assetExtraction, asset, tm);
 
-        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, ImmutableList.of());
+        tmsSmartling.pushTranslations(repository, "projectId", pluralSep, ImmutableMap.of(), null, null, null, ImmutableList.of());
         result = resultProcessor.pushTranslationFiles;
 
         assertThat(result).hasSize((singularBatches + pluralBatches) * locales.size());

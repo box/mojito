@@ -71,5 +71,6 @@ interface ThirdPartyTMS {
                           Map<String, String> localeMapping,
                           String skipTextUnitsWithPattern,
                           String skipAssetsWithPathPattern,
+                          String includeTextUnitsWithPattern,
                           List<String> optionList);
 }

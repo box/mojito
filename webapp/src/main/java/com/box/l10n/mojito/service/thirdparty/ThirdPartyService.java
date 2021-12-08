@@ -110,6 +110,7 @@ public class ThirdPartyService {
         thirdPartySyncJobInput.setLocaleMapping(thirdPartySync.getLocaleMapping());
         thirdPartySyncJobInput.setSkipTextUnitsWithPattern(thirdPartySync.getSkipTextUnitsWithPattern());
         thirdPartySyncJobInput.setSkipAssetsWithPathPattern(thirdPartySync.getSkipAssetsWithPathPattern());
+        thirdPartySyncJobInput.setIncludeTextUnitsWithPattern(thirdPartySync.getIncludeTextUnitsWithPattern());
         thirdPartySyncJobInput.setOptions(thirdPartySync.getOptions());
 
         return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
@@ -122,14 +123,15 @@ public class ThirdPartyService {
                                      String localeMapping,
                                      String skipTextUnitsWithPattern,
                                      String skipAssetsWithPathPattern,
+                                     String includeTextUnitsWithPattern,
                                      List<String> options,
                                      PollableTask currentTask) {
         logger.debug("Thirdparty TMS Sync: repositoryId={} thirdPartyProjectId={} " +
                         "actions={} pluralSeparator={} localeMapping={} " +
-                        "skipTextUnitsWithPattern={} skipAssetsWithPattern={} " +
+                        "skipTextUnitsWithPattern={} skipAssetsWithPattern={} includeTextUnitsWithPattern={}" +
                         "options={}", repositoryId, thirdPartyProjectId, actions,
                 pluralSeparator, localeMapping, skipTextUnitsWithPattern,
-                skipAssetsWithPathPattern, options);
+                skipAssetsWithPathPattern, includeTextUnitsWithPattern, options);
 
         Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
@@ -137,7 +139,7 @@ public class ThirdPartyService {
             push(thirdPartyProjectId, pluralSeparator, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options, repository, currentTask);
         }
         if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
-            pushTranslations(thirdPartyProjectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options, repository, currentTask);
+            pushTranslations(thirdPartyProjectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern, options, repository, currentTask);
         }
         if (actions.contains(ThirdPartySyncAction.PULL)) {
             pull(thirdPartyProjectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options, repository, currentTask);
@@ -157,10 +159,10 @@ public class ThirdPartyService {
     }
 
     @Pollable(message = "Push translations to third party service.")
-    private void pushTranslations(String thirdPartyProjectId, String pluralSeparator, String localeMapping, String skipTextUnitsWithPattern, String skipAssetsWithPathPattern, List<String> options, Repository repository, @ParentTask PollableTask currentTask) {
+    private void pushTranslations(String thirdPartyProjectId, String pluralSeparator, String localeMapping, String skipTextUnitsWithPattern, String skipAssetsWithPathPattern, String includeTextUnitsWithPattern, List<String> options, Repository repository, @ParentTask PollableTask currentTask) {
         thirdPartyTMS.pushTranslations(repository, thirdPartyProjectId, pluralSeparator,
                 parseLocaleMapping(localeMapping),
-                skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+                skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern, options);
     }
 
     @Pollable(message = "Pull translations from third party service.")

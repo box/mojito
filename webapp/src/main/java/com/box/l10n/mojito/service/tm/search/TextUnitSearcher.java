@@ -290,6 +290,10 @@ public class TextUnitSearcher {
             conjunction.add(new NativeNotILikeExp("tu.name", searchParameters.getSkipTextUnitWithPattern()));
         }
 
+        if (searchParameters.getIncludeTextUnitsWithPattern() != null) {
+            conjunction.add(new NativeILikeExp("tu.name", searchParameters.getIncludeTextUnitsWithPattern()));
+        }
+
         if (searchParameters.getSkipAssetPathWithPattern() != null) {
             conjunction.add(new NativeNotILikeExp("a.path", searchParameters.getSkipAssetPathWithPattern()));
         }

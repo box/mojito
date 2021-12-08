@@ -14,6 +14,7 @@ public class ThirdPartySync {
     String localeMapping;
     String skipTextUnitsWithPattern;
     String skipAssetsWithPathPattern;
+    String includeTextUnitsWithPattern;
     List<String> options = new ArrayList<>();
 
     public Long getRepositoryId() {
@@ -78,5 +79,13 @@ public class ThirdPartySync {
 
     public void setOptions(List<String> options) {
         this.options = options;
+    }
+
+    public String getIncludeTextUnitsWithPattern() {
+        return includeTextUnitsWithPattern;
+    }
+
+    public void setIncludeTextUnitsWithPattern(String includeTextUnitsWithPattern) {
+        this.includeTextUnitsWithPattern = includeTextUnitsWithPattern;
     }
 }

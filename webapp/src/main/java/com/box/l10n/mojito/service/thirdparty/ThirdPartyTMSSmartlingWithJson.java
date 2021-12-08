@@ -159,6 +159,7 @@ public class ThirdPartyTMSSmartlingWithJson {
                                  Map<String, String> localeMapping,
                                  String skipTextUnitsWithPattern,
                                  String skipAssetsWithPathPattern,
+                                 String includeTextUnitsWithPattern,
                                  SmartlingOptions smartlingOptions) {
 
         logger.info("Push translation from repository: {} into project: {}", repository.getName(), projectId);
@@ -166,7 +167,7 @@ public class ThirdPartyTMSSmartlingWithJson {
         getRepositoryLocaleWithoutRootStream(repository)
                 .forEach(repositoryLocale -> {
                     long partitionCount = Spliterators.partitionStreamWithIndex(
-                            getTargetTextUnitIterator(repository, repositoryLocale.getLocale().getId(), skipTextUnitsWithPattern, skipAssetsWithPathPattern),
+                            getTargetTextUnitIterator(repository, repositoryLocale.getLocale().getId(), skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern),
                             batchSize,
                             (textUnitDTOS, index) -> {
                                 String fileName = getSourceFileName(repository.getName(), index);
@@ -216,7 +217,8 @@ public class ThirdPartyTMSSmartlingWithJson {
             Repository repository,
             Long localeId,
             String skipTextUnitsWithPattern,
-            String skipAssetsWithPathPattern) {
+            String skipAssetsWithPathPattern,
+            String includeTextUnitsWithPattern) {
 
         PageFetcherOffsetAndLimitSplitIterator<TextUnitDTO> textUnitDTOPageFetcherOffsetAndLimitSplitIterator = new PageFetcherOffsetAndLimitSplitIterator<>(
                 (offset, limit) -> {
@@ -228,6 +230,7 @@ public class ThirdPartyTMSSmartlingWithJson {
                     parameters.setUsedFilter(UsedFilter.USED);
                     parameters.setSkipTextUnitWithPattern(skipTextUnitsWithPattern);
                     parameters.setSkipAssetPathWithPattern(skipAssetsWithPathPattern);
+                    parameters.setIncludeTextUnitsWithPattern(includeTextUnitsWithPattern);
                     parameters.setOffset(offset);
                     parameters.setLimit(limit);
                     parameters.setPluralFormsFiltered(true);
