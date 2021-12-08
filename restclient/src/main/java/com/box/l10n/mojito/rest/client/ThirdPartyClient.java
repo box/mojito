@@ -27,6 +27,7 @@ public class ThirdPartyClient extends BaseClient {
                              List<ThirdPartySyncAction> actions,
                              String skipTextUnitsWithPattern,
                              String skipAssetsWithPathPattern,
+                             String includeTextUnitsWithPattern,
                              List<String> options) {
 
         ThirdPartySync thirdPartySync = new ThirdPartySync();
@@ -38,6 +39,7 @@ public class ThirdPartyClient extends BaseClient {
         thirdPartySync.setLocaleMapping(localeMapping);
         thirdPartySync.setSkipTextUnitsWithPattern(skipTextUnitsWithPattern);
         thirdPartySync.setSkipAssetsWithPathPattern(skipAssetsWithPathPattern);
+        thirdPartySync.setIncludeTextUnitsWithPattern(includeTextUnitsWithPattern);
         thirdPartySync.setOptions(options);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromPath(getBasePathForEntity()).pathSegment("sync");

@@ -17,6 +17,7 @@ public class ThirdPartySyncJobInput {
     String localeMapping;
     String skipTextUnitsWithPattern;
     String skipAssetsWithPathPattern;
+    String includeTextUnitsWithPattern;
     List<String> options;
 
     public Long getRepositoryId() {
@@ -73,6 +74,14 @@ public class ThirdPartySyncJobInput {
 
     public void setSkipAssetsWithPathPattern(String skipAssetsWithPathPattern) {
         this.skipAssetsWithPathPattern = skipAssetsWithPathPattern;
+    }
+
+    public String getIncludeTextUnitsWithPattern() {
+        return includeTextUnitsWithPattern;
+    }
+
+    public void setIncludeTextUnitsWithPattern(String includeTextUnitsWithPattern) {
+        this.includeTextUnitsWithPattern = includeTextUnitsWithPattern;
     }
 
     public List<String> getOptions() {

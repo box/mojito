@@ -142,7 +142,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
         waitForCondition("eventually we should be able to push translation", () -> {
             logger.debug("Pushing translation...");
-            thirdPartyTMSSmartlingWithJson.pushTranslations(repository, testConfig.projectId, null, ImmutableMap.of(), null, null, smartlingOptions);
+            thirdPartyTMSSmartlingWithJson.pushTranslations(repository, testConfig.projectId, null, ImmutableMap.of(), null, null, null, smartlingOptions);
             return true;
         }, 3, 1000);
 

@@ -391,11 +391,12 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                  Map<String, String> localeMapping,
                                  String skipTextUnitsWithPattern,
                                  String skipAssetsWithPathPattern,
+                                 String includeTextUnitsWithPattern,
                                  List<String> optionList) {
 
         SmartlingOptions options = SmartlingOptions.parseList(optionList);
         if (options.isJsonSync()) {
-            thirdPartyTMSSmartlingWithJson.pushTranslations(repository, projectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+            thirdPartyTMSSmartlingWithJson.pushTranslations(repository, projectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern, options);
             return;
         }
 
@@ -409,11 +410,11 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                 .filter(localeTag -> !localeTag.equalsIgnoreCase(repository.getSourceLocale().getBcp47Tag()))
                 .flatMap(localeTag -> Stream.concat(
                         mapWithIndex(partitionSingulars(repository.getId(), localeTag,
-                                skipTextUnitsWithPattern, skipAssetsWithPathPattern),
+                                skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern),
                                 (list, batch) -> processTranslationBatch(list, batch, localeTag,
                                         mapper, repository, projectId, options, localeMapping, Prefix.SINGULAR)),
                         mapWithIndex(partitionPlurals(repository.getId(), localeTag,
-                                skipTextUnitsWithPattern, skipAssetsWithPathPattern, options.getPluralFixForLocales()),
+                                skipTextUnitsWithPattern, skipAssetsWithPathPattern, options.getPluralFixForLocales(), includeTextUnitsWithPattern),
                                 (list, batch) -> processTranslationBatch(list, batch, localeTag,
                                         mapper, repository, projectId, options, localeMapping, Prefix.PLURAL))
                 ))
@@ -476,6 +477,15 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                 skipAssetsWithPathPattern, true, true, null), textUnitSearcher::search);
     }
 
+    private Stream<List<TextUnitDTO>> partitionSingulars(Long repositoryId,
+                                                         String localeTag,
+                                                         String skipTextUnitsWithPattern,
+                                                         String skipAssetsWithPathPattern,
+                                                         String includeTextUnitWithPattern) {
+        return partitionedStream(baseParams(repositoryId, localeTag, skipTextUnitsWithPattern,
+                skipAssetsWithPathPattern, true, true, null, includeTextUnitWithPattern), textUnitSearcher::search);
+    }
+
     private Stream<List<TextUnitDTO>> partitionPlurals(Long repositoryId,
                                                        String localeTag,
                                                        String skipTextUnitsWithPattern,
@@ -488,7 +498,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                                        String localeTag,
                                                        String skipTextUnitsWithPattern,
                                                        String skipAssetsWithPathPattern,
-                                                       Set<String> pluralFixForLocales) {
+                                                       Set<String> pluralFixForLocales,
+                                                       String includeTextUnitsWithPattern) {
 
         Function<TextUnitSearcherParameters, List<TextUnitDTO>> searchFunction = textUnitSearcher::search;
 
@@ -499,7 +510,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         }
 
         return partitionedStream(baseParams(repositoryId, localeTag, skipTextUnitsWithPattern,
-                skipAssetsWithPathPattern, false, false, "%"), searchFunction);
+                skipAssetsWithPathPattern, false, false, "%", includeTextUnitsWithPattern), searchFunction);
     }
 
     private Stream<List<TextUnitDTO>> partitionedStream(TextUnitSearcherParameters params,
@@ -514,7 +525,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                String skipTextUnitsWithPattern,
                                String skipAssetsWithPathPattern) {
         return textUnitSearcher.countTextUnitAndWordCount(baseParams(repositoryId, localeTag,
-                skipTextUnitsWithPattern, skipAssetsWithPathPattern, true, true, null)).getTextUnitCount();
+                skipTextUnitsWithPattern, skipAssetsWithPathPattern,true, true, null)).getTextUnitCount();
     }
 
     private Long pluralCount(Long repositoryId,
@@ -549,6 +560,21 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             result.setPluralFormOther(pluralFormOther);
         }
 
+        return result;
+    }
+
+    private TextUnitSearcherParameters baseParams(Long repositoryId,
+                                                  String localeTag,
+                                                  String skipTextUnitsWithPattern,
+                                                  String skipAssetsWithPathPattern,
+                                                  boolean pluralFormsFiltered,
+                                                  boolean pluralFormsExcluded,
+                                                  String pluralFormOther,
+                                                  String includeTextUnitsWithPattern) {
+        TextUnitSearcherParameters result = baseParams(repositoryId, localeTag, skipTextUnitsWithPattern,
+                skipAssetsWithPathPattern,pluralFormsFiltered,
+                pluralFormsExcluded, pluralFormOther);
+        result.setIncludeTextUnitsWithPattern(includeTextUnitsWithPattern);
         return result;
     }
 

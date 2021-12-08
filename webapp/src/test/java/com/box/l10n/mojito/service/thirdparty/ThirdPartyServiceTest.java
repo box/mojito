@@ -475,6 +475,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         thirdPartySync.setLocaleMapping(localeMapping);
         thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
         thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setIncludeTextUnitsWithPattern("include_text_unit_pattern");
         thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
         ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
 
@@ -487,6 +488,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                 localeMappingArgumentCaptor.capture(),
                 eq("text_unit_pattern"),
                 eq("asset_path_pattern"),
+                eq("include_text_unit_pattern"),
                 optionsArgumentCaptor.capture());
 
         assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
@@ -507,6 +509,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
         thirdPartySync.setLocaleMapping(localeMapping);
         thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
         thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+        thirdPartySync.setIncludeTextUnitsWithPattern("include_text_unit_pattern");
         thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
         ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
 
@@ -519,6 +522,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                 localeMappingArgumentCaptor.capture(),
                 eq("text_unit_pattern"),
                 eq("asset_path_pattern"),
+                eq("include_text_unit_pattern"),
                 optionsArgumentCaptor.capture());
 
         assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());

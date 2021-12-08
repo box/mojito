@@ -46,6 +46,7 @@ public class TextUnitSearcherParameters {
     DateTime tmTextUnitCreatedAfter;
     Long branchId;
     String skipTextUnitWithPattern;
+    String includeTextUnitsWithPattern;
     String skipAssetPathWithPattern;
 
     public String getName() {
@@ -290,6 +291,14 @@ public class TextUnitSearcherParameters {
 
     public void setSkipTextUnitWithPattern(String skipTextUnitWithPattern) {
         this.skipTextUnitWithPattern = skipTextUnitWithPattern;
+    }
+
+    public String getIncludeTextUnitsWithPattern() {
+        return includeTextUnitsWithPattern;
+    }
+
+    public void setIncludeTextUnitsWithPattern(String includeTextUnitsWithPattern) {
+        this.includeTextUnitsWithPattern = includeTextUnitsWithPattern;
     }
 
     public String getSkipAssetPathWithPattern() {
