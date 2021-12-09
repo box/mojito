@@ -16,6 +16,7 @@ public class ResttemplateConfig {
     Integer port = 8080;
     String scheme = "http";
     String contextPath = "";
+    boolean csrfDisable = false;
 
     Authentication authentication = new Authentication();
 
@@ -95,5 +96,13 @@ public class ResttemplateConfig {
 
     public void setContextPath(String contextPath) {
         this.contextPath = contextPath;
+    }
+
+    public boolean isCsrfDisable() {
+        return csrfDisable;
+    }
+
+    public void setCsrfDisable(boolean csrfDisable) {
+        this.csrfDisable = csrfDisable;
     }
 }
