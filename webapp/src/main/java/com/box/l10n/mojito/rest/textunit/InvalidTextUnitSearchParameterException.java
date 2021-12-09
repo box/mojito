@@ -9,10 +9,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  *
  * @author jaurambault
  */
-@ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Invalid search parameter")
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
 public class InvalidTextUnitSearchParameterException extends Exception {
 
-    public InvalidTextUnitSearchParameterException(String string) {
+    public InvalidTextUnitSearchParameterException(String message) {
+        super(message);
     }
 
 }
