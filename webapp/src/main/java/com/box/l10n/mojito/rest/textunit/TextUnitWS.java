@@ -245,7 +245,7 @@ public class TextUnitWS {
         if (CollectionUtils.isEmpty(repositoryIds)
                 && CollectionUtils.isEmpty(repositoryNames)
                 && CollectionUtils.isEmpty(tmTextUnitIds)) {
-            throw new InvalidTextUnitSearchParameterException("Repository ids, repository names or tm text unit ids must be provided");
+            throw new InvalidTextUnitSearchParameterException("repositoryIds[], repositoryNames[] or tmTextUnitIds[] must be provided");
         }
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
@@ -466,7 +466,7 @@ public class TextUnitWS {
         logger.debug("getGitBlameWithUsages");
 
         if (CollectionUtils.isEmpty(repositoryIds) && CollectionUtils.isEmpty(repositoryNames) && tmTextUnitId == null) {
-            throw new InvalidTextUnitSearchParameterException("Repository ids, repository names or tmTextUnitId must be provided");
+            throw new InvalidTextUnitSearchParameterException("repositoryIds[], repositoryNames[] or tmTextUnitId must be provided");
         }
 
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
