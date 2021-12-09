@@ -14,18 +14,24 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.test.TestIdWatcher;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * @author wyau
@@ -69,21 +75,33 @@ public class RepositoryWSTest extends WSTestBase {
     }
 
     @Test
+    public void testGetRepositoryByIdMissing() {
+        try {
+            repositoryClient.getRepositoryById(123456789L);
+            fail("HTTP error 404 is expected");
+        } catch (HttpClientErrorException httpClientErrorException) {
+            assertEquals(404, httpClientErrorException.getRawStatusCode());
+            assertTrue("The error must have a body that contains a message with details",
+                    httpClientErrorException.getResponseBodyAsString().contains("\"message\":\"Repository with id: 123456789 not found\""));
+        }
+    }
+
+    @Test
     public void testDeleteRepositoryById() throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException {
         Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
         com.box.l10n.mojito.rest.entity.Repository actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
         assertRepositoriesAreEqual(expectedRepository, actualRepository);
-        
+
         repositoryClient.deleteRepositoryByName(expectedRepository.getName());
         actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
         assertTrue(actualRepository.getDeleted());
         assertTrue(actualRepository.getName().startsWith("deleted__"));
     }
-    
+
     @Test
     public void testUpdateRepositoryNameAndDescription() throws RepositoryNotFoundException, ResourceNotCreatedException, RepositoryNameAlreadyUsedException, ResourceNotUpdatedException {
         Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
-        
+
         String newName = expectedRepository.getName() + "_updated";
         repositoryClient.updateRepository(expectedRepository.getName(), newName, null, null, null, null);
         com.box.l10n.mojito.rest.entity.Repository actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
@@ -91,7 +109,7 @@ public class RepositoryWSTest extends WSTestBase {
         assertEquals("Name should have been updated", newName, actualRepository.getName());
         assertEquals("Description should not be updated yet", expectedRepository.getDescription(), actualRepository.getDescription());
         assertEquals("Repository locales should not have changed", expectedRepository.getRepositoryLocales().size(), actualRepository.getRepositoryLocales().size());
-        
+
         String newDescription = newName + "_description";
         repositoryClient.updateRepository(newName, null, newDescription, null, null, null);
         actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
@@ -99,13 +117,13 @@ public class RepositoryWSTest extends WSTestBase {
         assertEquals("Name should have been updated", newName, actualRepository.getName());
         assertEquals("Description should have updated", newDescription, actualRepository.getDescription());
         assertEquals("Repository locales should not have changed", expectedRepository.getRepositoryLocales().size(), actualRepository.getRepositoryLocales().size());
-        
+
     }
-    
+
     @Test
     public void testUpdateRepositoryLocales() throws RepositoryNotFoundException, RepositoryNameAlreadyUsedException, ResourceNotUpdatedException {
         Repository expectedRepository = wsTestDataFactory.createRepository(testIdWatcher);
-        
+
         Set<RepositoryLocale> repositoryLocales = new HashSet<>();
         repositoryLocales = getRepositoryLocales(Arrays.asList("de-DE"));
         repositoryClient.updateRepository(expectedRepository.getName(), null, null, null, repositoryLocales, null);
@@ -117,7 +135,7 @@ public class RepositoryWSTest extends WSTestBase {
         for (RepositoryLocale repositoryLocale : actualRepository.getRepositoryLocales()) {
             assertTrue("en".equals(repositoryLocale.getLocale().getBcp47Tag()) || "de-DE".equals(repositoryLocale.getLocale().getBcp47Tag()));
         }
-        
+
         repositoryLocales = getRepositoryLocales(Arrays.asList("fr-FR", "ko-KR", "ja-JP", "es-ES"));
         repositoryClient.updateRepository(expectedRepository.getName(), null, null, null, repositoryLocales, null);
         actualRepository = repositoryClient.getRepositoryById(expectedRepository.getId());
@@ -129,14 +147,14 @@ public class RepositoryWSTest extends WSTestBase {
             assertFalse("de-DE should have been deleted", "de-DE".equals(repositoryLocale.getLocale().getBcp47Tag()));
         }
     }
-    
+
     protected void assertRepositoriesAreEqual(Repository expectedRepository, com.box.l10n.mojito.rest.entity.Repository actualRepository) {
         logger.debug("Basic asserts");
         assertEquals(expectedRepository.getName(), actualRepository.getName());
         assertEquals(expectedRepository.getDescription(), actualRepository.getDescription());
         assertTrue(actualRepository.getRepositoryLocales().size() > 0);
         assertEquals(expectedRepository.getRepositoryLocales().size(), actualRepository.getRepositoryLocales().size());
-        
+
         ArrayList<Locale> actualLocales = new ArrayList<>();
         for (com.box.l10n.mojito.rest.entity.RepositoryLocale repositoryLocale : actualRepository.getRepositoryLocales()) {
             actualLocales.add(repositoryLocale.getLocale());
