@@ -17,6 +17,7 @@ import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.phabricator.PhabricatorMessageBuilder;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +37,14 @@ import java.util.stream.Stream;
  */
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"extraction-check"}, commandDescription = "Execute checks against new source strings")
-public class ExtractionCheckCommand extends Command {
+@Parameters(commandNames = {"phab-extraction-check"}, commandDescription = "Execute checks against new source strings")
+public class PhabricatorExtractionCheckCommand extends Command {
 
     static Logger logger = LoggerFactory.getLogger(ExtractionDiffCommand.class);
+
+    protected static final String SKIP_I18N_CHECKS_FLAG = "SKIP_I18N_CHECKS";
+    protected static final String PHAB_OVERRIDE_MESSAGE = PhabricatorIcon.WARNING + " **WARNING**" + System.lineSeparator() + System.lineSeparator() + "I18N source string checks have been disabled by override, " +
+            "if this was not intentional please remove the '**" + SKIP_I18N_CHECKS_FLAG + "**' string from your Phabricator differential test plan and re-trigger a build.";
 
     @Autowired
     ExtractionDiffService extractionDiffService;
@@ -99,37 +104,48 @@ public class ExtractionCheckCommand extends Command {
     protected void execute() throws CommandException {
 
         checkPhabricatorPreconditions();
-        ExtractionPaths baseExtractionPaths = new ExtractionPaths(inputDirectoryParam, baseExtractionName);
-        ExtractionPaths currentExtractionPaths = new ExtractionPaths(inputDirectoryParam, currentExtractionName);
-        ExtractionDiffPaths extractionDiffPaths = ExtractionDiffPaths.builder()
-                .outputDirectory(outputDirectoryParam)
-                .diffExtractionName(extractionDiffName)
-                .baseExtractorPaths(baseExtractionPaths)
-                .currentExtractorPaths(currentExtractionPaths)
-                .build();
 
-        List<AssetExtractionDiff> assetExtractionDiffs;
+        if (areChecksSkipped()) {
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Checks disabled as '" + SKIP_I18N_CHECKS_FLAG + "' string is present in Phabricator test plan.");
+            differentialRevision.addComment(phabObjectId, PHAB_OVERRIDE_MESSAGE);
+        } else {
+            ExtractionPaths baseExtractionPaths = new ExtractionPaths(inputDirectoryParam, baseExtractionName);
+            ExtractionPaths currentExtractionPaths = new ExtractionPaths(inputDirectoryParam, currentExtractionName);
+            ExtractionDiffPaths extractionDiffPaths = ExtractionDiffPaths.builder()
+                    .outputDirectory(outputDirectoryParam)
+                    .diffExtractionName(extractionDiffName)
+                    .baseExtractorPaths(baseExtractionPaths)
+                    .currentExtractorPaths(currentExtractionPaths)
+                    .build();
 
-        try {
-            if (extractionDiffService.hasAddedTextUnits(extractionDiffPaths)) {
-                assetExtractionDiffs = extractionDiffService.findAssetExtractionDiffsWithAddedTextUnits(extractionDiffPaths);
-                CliCheckerExecutor cliCheckerExecutor = getCliCheckerExecutor();
-                List<CliCheckResult> cliCheckerResults = executeChecks(cliCheckerExecutor, assetExtractionDiffs);
-                checkForHardFail(cliCheckerResults);
-                if(!cliCheckerResults.isEmpty()) {
-                    List<CliCheckResult> failures = getCheckerFailures(cliCheckerResults).collect(Collectors.toList());
-                    outputFailuresToCommandLine(failures);
-                    if (phabObjectId != null) {
-                        addCommentToPhabricatorRevision(failures);
+            List<AssetExtractionDiff> assetExtractionDiffs;
+
+            try {
+                if (extractionDiffService.hasAddedTextUnits(extractionDiffPaths)) {
+                    assetExtractionDiffs = extractionDiffService.findAssetExtractionDiffsWithAddedTextUnits(extractionDiffPaths);
+                    CliCheckerExecutor cliCheckerExecutor = getCliCheckerExecutor();
+                    List<CliCheckResult> cliCheckerResults = executeChecks(cliCheckerExecutor, assetExtractionDiffs);
+                    checkForHardFail(cliCheckerResults);
+                    if (!cliCheckerResults.isEmpty()) {
+                        List<CliCheckResult> failures = getCheckerFailures(cliCheckerResults).collect(Collectors.toList());
+                        outputFailuresToCommandLine(failures);
+                        if (StringUtils.isNotBlank(phabObjectId)) {
+                            addCommentToPhabricatorRevision(failures);
+                        }
                     }
+                } else {
+                    consoleWriter.newLine().a("No new strings in diff to be checked.").println();
                 }
-            } else {
-                consoleWriter.newLine().a("No new strings in diff to be checked.").println();
+            } catch (MissingExtractionDirectoryExcpetion missingExtractionDirectoryException) {
+                throw new CommandException("Can't compute extraction diffs", missingExtractionDirectoryException);
             }
-        } catch (MissingExtractionDirectoryExcpetion missingExtractionDirectoryException) {
-            throw new CommandException("Can't compute extraction diffs", missingExtractionDirectoryException);
+            consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
         }
-        consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
+
+    }
+
+    protected boolean areChecksSkipped() {
+        return StringUtils.isNotBlank(phabObjectId) && differentialRevision.getTestPlan(phabObjectId).contains(SKIP_I18N_CHECKS_FLAG);
     }
 
     private void addCommentToPhabricatorRevision(List<CliCheckResult> cliCheckerFailures) {
@@ -138,10 +154,10 @@ public class ExtractionCheckCommand extends Command {
     }
 
     private void checkForHardFail(List<CliCheckResult> results) {
-        if(getCheckerHardFailures(results).count() > 0) {
+        if (getCheckerHardFailures(results).count() > 0) {
             String hardFailureListString = "The following checks had hard failures:" + System.lineSeparator() +
-                    getCheckerHardFailures(results).map(failure -> failure.getCheckName() + " failures: " + System.lineSeparator() + failure.getNotificationText() +  System.lineSeparator())
-                        .collect(Collectors.joining(System.lineSeparator()));
+                    getCheckerHardFailures(results).map(failure -> failure.getCheckName() + " failures: " + System.lineSeparator() + failure.getNotificationText() + System.lineSeparator())
+                            .collect(Collectors.joining(System.lineSeparator()));
             logger.debug(hardFailureListString);
             throw new CommandException(hardFailureListString);
         }
@@ -207,7 +223,7 @@ public class ExtractionCheckCommand extends Command {
     }
 
     private Set<CliCheckerType> getClassNamesOfHardFailures() {
-        if(hardFailList.stream().anyMatch(checkName -> "ALL".equalsIgnoreCase(checkName))) {
+        if (hardFailList.stream().anyMatch(checkName -> "ALL".equalsIgnoreCase(checkName))) {
             return Stream.of(CliCheckerType.values()).collect(Collectors.toSet());
         } else {
             return hardFailList.stream().map(check -> {
@@ -249,7 +265,7 @@ public class ExtractionCheckCommand extends Command {
         CliCheckerType cliCheckerType = null;
         try {
             cliCheckerType = CliCheckerType.valueOf(checkName);
-        } catch (IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             logger.debug("Unknown checker type " + checkName);
         }
 

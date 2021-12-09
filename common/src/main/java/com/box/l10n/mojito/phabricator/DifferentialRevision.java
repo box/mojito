@@ -44,6 +44,23 @@ public class DifferentialRevision {
         }
     }
 
+    public String getTestPlan(String revisionId) {
+        try {
+            RevisionSearchResult revisionSearchResponse = phabricatorHttpClient.postEntityAndCheckResponse(
+                    Method.DIFFERENTIAL_REVISION_SEARCH,
+                    phabricatorHttpClient.getConstraintsForTestPlan(parseRevisionId(revisionId)),
+                    RevisionSearchResult.class);
+
+            return revisionSearchResponse.getResult().getData().get(0).getFields().getTestPlan();
+        } catch (Exception e) {
+            throw new PhabricatorException("Can't find revision", e);
+        }
+    }
+
+    private int parseRevisionId(String revisionId) {
+        return Integer.parseInt(revisionId.replaceAll("[^0-9]", ""));
+    }
+
     @SuppressWarnings("Duplicates")
     public void addComment(String objectIdentifier, String value) throws PhabricatorException {
         logger.debug("Add reviewer: {} from: {}", value, objectIdentifier);
