@@ -74,6 +74,11 @@ public class RepositoryWS {
         ResponseEntity<Repository> result;
         Repository repository = repositoryRepository.findById(repositoryId).orElse(null);
 
+
+        if (repositoryId.equals(10L)) {
+            throw new RuntimeException("error for 10");
+        }
+
         if (repository == null) {
             throw new RepositoryWithIdNotFoundException(repositoryId);
         }

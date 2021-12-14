@@ -45,7 +45,9 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
     public static final String CSRF_PARAM_NAME = "_csrf";
     public static final String CSRF_HEADER_NAME = "X-CSRF-TOKEN";
-    public static final String COOKIE_SESSION_NAME = "JSESSIONID";
+    // TODO(jean) the cookie name has changed overtime and we don't have test for that. There might be some influence
+    // with the proxy (envoy vs elb)
+    public static final String COOKIE_SESSION_NAME = "SESSION";
 
 
     @Autowired
@@ -65,6 +67,8 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
      * This is used for the authentication flow to keep things separate from the
      * restTemplate that this interceptor is intercepting
      */
+    // TODO(jean) using 2 different resttemplate requires to store the cookie store. not sure there is a point in
+    // doing that. or maybe if we re-execute the query?
     CookieStoreRestTemplate restTemplateForAuthenticationFlow;
 
     /**
@@ -132,9 +136,15 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
      */
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+        logger.error("intercept");
+        // TODO(jean) why do we care really worse case it will fail and we re-authenticate
         if (doesSessionIdInCookieStoreExistAndMatchLatestSessionId()) {
+            logger.error("we don't re-auth");
             injectCsrfTokenIntoHeader(request, latestCsrfToken);
         } else {
+            // TODO(jean) i guess that means we re-authenticate everything single request. wondering if that related
+            // to the 30x spike we saw a long time ago
+            logger.error("we re-authicate");
             startAuthenticationAndInjectCsrfToken(request);
         }
 
@@ -159,16 +169,20 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
      * @throws IOException
      */
     protected ClientHttpResponse handleResponse(HttpRequest request, byte[] body, ClientHttpRequestExecution execution, ClientHttpResponse clientHttpResponse) throws IOException {
-        if (isForbiddened(clientHttpResponse) || isUnauthenticated(clientHttpResponse)) {
+        if (isForbiddenOrUnauthenticated(clientHttpResponse)) {
             reauthenticate(request);
 
             clientHttpResponse = execution.execute(request, body);
 
-            if (isForbiddened(clientHttpResponse) || isUnauthenticated(clientHttpResponse)) {
+            if (isForbiddenOrUnauthenticated(clientHttpResponse)) {
                 throw new RestClientException("Tried to re-authenticate but the response remains to be unauthenticated");
             }
         }
         return clientHttpResponse;
+    }
+
+    private boolean isForbiddenOrUnauthenticated(ClientHttpResponse clientHttpResponse) throws IOException {
+        return isForbiddened(clientHttpResponse) || isUnauthenticated(clientHttpResponse);
     }
 
     /**
@@ -227,6 +241,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
     protected String getAuthenticationSessionIdFromCookieStore() {
         List<Cookie> cookies = cookieStore.getCookies();
         for (Cookie cookie : cookies) {
+            /////// TODO(jean) WAIT THIS IS NOT WORKING ANYMORE ---> COOKIE_SESSION_NAME
             if (cookie.getName().equals(COOKIE_SESSION_NAME)) {
                 String cookieValue = cookie.getValue();
                 logger.debug("Found session cookie: {}", cookieValue);
@@ -303,9 +318,9 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
      * to be authenticated first.
      *
      * @param loginHtml The login page HTML which contains the csrf token. It is
-     * assumed that the CSRF token is embedded on the page inside an input field
-     * with name matching
-     * {@link com.box.l10n.mojito.rest.resttemplate.FormLoginAuthenticationCsrfTokenInterceptor#CSRF_PARAM_NAME}
+     *                  assumed that the CSRF token is embedded on the page inside an input field
+     *                  with name matching
+     *                  {@link com.box.l10n.mojito.rest.resttemplate.FormLoginAuthenticationCsrfTokenInterceptor#CSRF_PARAM_NAME}
      * @return
      * @throws AuthenticationException
      */
@@ -349,6 +364,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
         this.credentialProvider = credentialProvider;
     }
 
+    // TODO(jean) do we want to explicit check or have a retry that is not 401 or 403
     /**
      * Checks if the response status is unauthenticated
      *

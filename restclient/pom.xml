@@ -18,6 +18,11 @@
     <dependencies>
 
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.box.l10n.mojito</groupId>
             <artifactId>mojito-common</artifactId>
             <version>0.111-SNAPSHOT</version>
