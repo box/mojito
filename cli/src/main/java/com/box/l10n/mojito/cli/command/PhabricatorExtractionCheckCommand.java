@@ -100,6 +100,9 @@ public class PhabricatorExtractionCheckCommand extends Command {
     @Parameter(names = {"--input-directory", "-i"}, arity = 1, required = false, description = ExtractionDiffCommand.INPUT_DIRECTORY_DESCRIPTION)
     String inputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
+    @Parameter(names = {"--context-comment-reject-pattern", "-ccrp"}, arity = 1, required = false, description = "Regex pattern that is used to identify context or comment strings that should be rejected.")
+    String contextCommentRejectPattern = null;
+
     @Override
     protected void execute() throws CommandException {
 
@@ -219,7 +222,7 @@ public class PhabricatorExtractionCheckCommand extends Command {
     private CliCheckerOptions generateCheckerOptions() {
         Set<PlaceholderRegularExpressions> regexSet = generateParameterRegexSet();
         Set<CliCheckerType> hardFailureSet = getClassNamesOfHardFailures();
-        return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath, dictionaryFilePath, dictionaryAffixFilePath);
+        return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath, dictionaryFilePath, dictionaryAffixFilePath, contextCommentRejectPattern);
     }
 
     private Set<CliCheckerType> getClassNamesOfHardFailures() {
