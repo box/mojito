@@ -14,6 +14,7 @@ public class CliCheckerOptions {
     private final String glossaryFilePath;
     private String dictionaryFilePath;
     private String dictionaryAffixFilePath;
+    private String contextCommentRejectPattern;
 
     public CliCheckerOptions(Set<PlaceholderRegularExpressions> parameterRegexSet, Set<CliCheckerType> hardFailureSet, String dictionaryAdditionsFilePath, String glossaryFilePath) {
         this.parameterRegexSet = parameterRegexSet;
@@ -23,10 +24,11 @@ public class CliCheckerOptions {
     }
 
     public CliCheckerOptions(Set<PlaceholderRegularExpressions> parameterRegexSet, Set<CliCheckerType> hardFailureSet, String dictionaryAdditionsFilePath,
-                             String glossaryFilePath, String dictionaryFilePath, String dictionaryAffixFilePath) {
+                             String glossaryFilePath, String dictionaryFilePath, String dictionaryAffixFilePath, String contextCommentRejectPattern) {
         this(parameterRegexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath);
         this.dictionaryFilePath = dictionaryFilePath;
         this.dictionaryAffixFilePath = dictionaryAffixFilePath;
+        this.contextCommentRejectPattern = contextCommentRejectPattern;
     }
     
     public Set<PlaceholderRegularExpressions> getParameterRegexSet() {
@@ -52,5 +54,10 @@ public class CliCheckerOptions {
     public String getDictionaryAffixFilePath() {
         return dictionaryAffixFilePath;
     }
+
+    public String getContextCommentRejectPattern() {
+        return contextCommentRejectPattern;
+    }
+
 
 }

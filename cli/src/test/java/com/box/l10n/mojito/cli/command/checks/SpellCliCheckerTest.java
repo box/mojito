@@ -53,7 +53,7 @@ public class SpellCliCheckerTest {
         when(hunspellMock.spell("erors")).thenReturn(false);
         when(hunspellMock.spell("falures")).thenReturn(false);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff"));
+                "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setSource("A source string with no errors.");
@@ -68,7 +68,7 @@ public class SpellCliCheckerTest {
     public void testHardFailureIsSet() throws Exception {
         Set<CliCheckerType> hardFailureSet = new HashSet<>();
         hardFailureSet.add(CliCheckerType.SPELL_CHECKER);
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), hardFailureSet, "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff"));
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), hardFailureSet, "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         assertTrue(result.isHardFail());
     }
@@ -115,7 +115,7 @@ public class SpellCliCheckerTest {
         when(hunspellMock.spell("strng")).thenReturn(true);
         when(hunspellMock.spell("erors")).thenReturn(true);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(),
-                "target/tests/resources/dictAddition.txt", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff"));
+                "target/tests/resources/dictAddition.txt", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         verify(hunspellMock, times(1)).add("strng");
         verify(hunspellMock, times(1)).add("erors");
@@ -170,7 +170,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiffs.add(assetExtractionDiff);
         createTempDictionaryAdditionsFile("");
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(),
-                "target/tests/resources/dictAddition.txt", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff"));
+                "target/tests/resources/dictAddition.txt", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         assertFalse(result.isSuccessful());
         assertFalse(result.getNotificationText().isEmpty());
@@ -279,7 +279,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff"));
+                "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         assertTrue(result.isSuccessful());
         assertTrue(result.getNotificationText().isEmpty());
@@ -296,7 +296,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", null, "target/test-classes/dictionaries/empty.aff"));
+                "", "", null, "target/test-classes/dictionaries/empty.aff", null));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
@@ -311,7 +311,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", null));
+                "", "", "target/test-classes/dictionaries/empty.dic", null, null));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
@@ -326,7 +326,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "fake_dir/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff"));
+                "", "", "fake_dir/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
@@ -341,7 +341,7 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", "fake_dir/dictionaries/empty.aff"));
+                "", "", "target/test-classes/dictionaries/empty.dic", "fake_dir/dictionaries/empty.aff", null));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
