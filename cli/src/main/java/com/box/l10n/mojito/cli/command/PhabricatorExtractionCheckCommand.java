@@ -3,10 +3,14 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.checks.AbstractCliChecker;
+import com.box.l10n.mojito.cli.command.checks.CheckerOptionsMapEntryConverter;
+import com.box.l10n.mojito.cli.command.checks.CheckerOptionsMapEntry;
 import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerExecutor;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
+import com.box.l10n.mojito.cli.command.checks.CliCheckerTypeConverter;
+import com.box.l10n.mojito.cli.command.checks.PlaceholderRegularExpressionConverter;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
@@ -17,6 +21,7 @@ import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.phabricator.PhabricatorMessageBuilder;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
@@ -27,7 +32,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -58,26 +62,14 @@ public class PhabricatorExtractionCheckCommand extends Command {
     @Autowired(required = false)
     DifferentialRevision differentialRevision;
 
-    @Parameter(names = {"--checker-list", "-cl"}, arity = 1, required = true, description = "List of checks to be run against new source strings")
-    List<String> checkerList;
+    @Parameter(names = {"--checker-list", "-cl"}, variableArity = true, required = true, converter = CliCheckerTypeConverter.class, description = "List of checks to be run against new source strings")
+    List<CliCheckerType> checkerList;
 
-    @Parameter(names = {"--hard-fail", "-hf"}, arity = 1, required = false, description = "List of checks that will cause a hard failure, use ALL if all checks should be hard failures")
+    @Parameter(names = {"--hard-fail", "-hf"}, variableArity = true, required = false, description = "List of checks that will cause a hard failure, use ALL if all checks should be hard failures")
     List<String> hardFailList = new ArrayList<>();
 
-    @Parameter(names = {"--parameter-regexes", "-pr"}, arity = 1, required = false, description = "Regex types used to identify parameters in source strings")
-    List<String> parameterRegexList = new ArrayList<>();
-
-    @Parameter(names = {"--dictionary-file", "-df"}, arity = 1, required = false, description = "Path to the dictionary file to be used by the spelling check. The file must be in .dic format")
-    String dictionaryFilePath = null;
-
-    @Parameter(names = {"--dictionary-affix-file", "-daff"}, arity = 1, required = false, description = "Path to the dictionary affix file to be used by the spelling check. The file must be in .aff format")
-    String dictionaryAffixFilePath = null;
-
-    @Parameter(names = {"--dictionary-additions-file", "-daf"}, arity = 1, required = false, description = "Path to the dictionary additions file used for the spelling check. The file format is a new spelling per line.")
-    String dictionaryAdditionsFilePath = "";
-
-    @Parameter(names = {"--glossary-file", "-gf"}, arity = 1, required = false, description = "Path to the glossary file used for the glossary check. The file is a json formatted file containing an array of glossary term objects, each object contains the 'term' and a 'severity' which is 'MAJOR' or 'MINOR'.")
-    String glossaryFilePath = "";
+    @Parameter(names = {"--parameter-regexes", "-pr"}, variableArity = true, required = false, converter = PlaceholderRegularExpressionConverter.class, description = "Regex types used to identify parameters in source strings")
+    List<PlaceholderRegularExpressions> parameterRegexList = new ArrayList<>();
 
     @Parameter(names = {"--name", "-n"}, arity = 1, required = false, description = ExtractionDiffCommand.EXCTRACTION_DIFF_NAME_DESCRIPTION)
     String extractionDiffName = null;
@@ -100,8 +92,8 @@ public class PhabricatorExtractionCheckCommand extends Command {
     @Parameter(names = {"--input-directory", "-i"}, arity = 1, required = false, description = ExtractionDiffCommand.INPUT_DIRECTORY_DESCRIPTION)
     String inputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
-    @Parameter(names = {"--context-comment-reject-pattern", "-ccrp"}, arity = 1, required = false, description = "Regex pattern that is used to identify context or comment strings that should be rejected.")
-    String contextCommentRejectPattern = null;
+    @Parameter(names = {"--checker-options", "-co"}, variableArity = true, required = false, converter = CheckerOptionsMapEntryConverter.class, description = "Map of options to be used in individual checkers. Options must be in the form 'name':'value'.")
+    List<CheckerOptionsMapEntry> checkerOptions = new ArrayList<>();
 
     @Override
     protected void execute() throws CommandException {
@@ -220,9 +212,15 @@ public class PhabricatorExtractionCheckCommand extends Command {
     }
 
     private CliCheckerOptions generateCheckerOptions() {
-        Set<PlaceholderRegularExpressions> regexSet = generateParameterRegexSet();
+        Set<PlaceholderRegularExpressions> regexSet = Sets.newHashSet(parameterRegexList);
         Set<CliCheckerType> hardFailureSet = getClassNamesOfHardFailures();
-        return new CliCheckerOptions(regexSet, hardFailureSet, dictionaryAdditionsFilePath, glossaryFilePath, dictionaryFilePath, dictionaryAffixFilePath, contextCommentRejectPattern);
+        return new CliCheckerOptions(regexSet, hardFailureSet, buildOptionsMap());
+    }
+
+    private ImmutableMap<String, String> buildOptionsMap() {
+        return ImmutableMap.<String, String>builder().putAll(checkerOptions.stream()
+                .collect(Collectors.toMap(CheckerOptionsMapEntry::getKey, CheckerOptionsMapEntry::getValue)))
+                .build();
     }
 
     private Set<CliCheckerType> getClassNamesOfHardFailures() {
@@ -239,39 +237,15 @@ public class PhabricatorExtractionCheckCommand extends Command {
         }
     }
 
-    private Set<PlaceholderRegularExpressions> generateParameterRegexSet() {
-        return parameterRegexList.stream().map(regexName -> {
-            try {
-                return PlaceholderRegularExpressions.valueOf(regexName);
-            } catch (IllegalArgumentException e) {
-                throw new CommandException("Unknown parameter regex name " + regexName);
-            }
-        }).collect(Collectors.toSet());
-    }
-
     private List<AbstractCliChecker> generateCheckerList(CliCheckerOptions checkerOptions) {
         List<AbstractCliChecker> checkers = new ArrayList<>();
-        for (String s : checkerList) {
-            try {
-                AbstractCliChecker checker = CliCheckerType.valueOf(s).getCliChecker();
-                checker.setCliCheckerOptions(checkerOptions);
-                checkers.add(checker);
-            } catch (IllegalArgumentException e) {
-                throw new CommandException("Unknown check '" + s + "'");
-            }
+        for (CliCheckerType checkerType : checkerList) {
+            AbstractCliChecker checker = checkerType.getCliChecker();
+            checker.setCliCheckerOptions(checkerOptions);
+            checkers.add(checker);
         }
 
         return checkers;
     }
 
-    private Optional<CliCheckerType> findByName(String checkName) {
-        CliCheckerType cliCheckerType = null;
-        try {
-            cliCheckerType = CliCheckerType.valueOf(checkName);
-        } catch (IllegalArgumentException e) {
-            logger.debug("Unknown checker type " + checkName);
-        }
-
-        return Optional.ofNullable(cliCheckerType);
-    }
 }

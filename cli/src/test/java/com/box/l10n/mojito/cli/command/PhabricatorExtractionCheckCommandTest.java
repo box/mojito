@@ -133,7 +133,7 @@ public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
                 "-b", "source1",
                 "-cl", "INVALID_CHECK_NAME");
 
-        Assert.assertTrue(outputCapture.toString().contains("Unknown check 'INVALID_CHECK_NAME'"));
+        Assert.assertTrue(outputCapture.toString().contains("Invalid type [INVALID_CHECK_NAME]"));
     }
 
     @Test

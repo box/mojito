@@ -3,6 +3,7 @@ package com.box.l10n.mojito.cli.command.checks;
 import com.box.l10n.mojito.cli.command.CommandException;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
@@ -11,6 +12,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_REJECT_PATTERN_KEY;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
 
 public class ContextCommentRejectPatternCheckerTest {
@@ -32,7 +34,7 @@ public class ContextCommentRejectPatternCheckerTest {
         AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
-        contextCommentRejectPatternChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), "", "", null, null,"^ *- *$|^ *-- *$"));
+        contextCommentRejectPatternChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder().put(CONTEXT_COMMENT_REJECT_PATTERN_KEY.getKey(), "^ *- *$|^ *-- *$").build()));
     }
 
     @Test
@@ -63,7 +65,7 @@ public class ContextCommentRejectPatternCheckerTest {
 
     @Test(expected = CommandException.class)
     public void testEmptyPattern() {
-        contextCommentRejectPatternChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), "", "", null, null,null));
+        contextCommentRejectPatternChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder().build()));
         contextCommentRejectPatternChecker.run(assetExtractionDiffs);
     }
 

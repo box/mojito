@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command.checks;
 
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
@@ -9,6 +10,8 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.GLOSSARY_FILE_PATH_KEY;
 
 public class GlossaryCaseCheckerTest {
 
@@ -19,7 +22,8 @@ public class GlossaryCaseCheckerTest {
     @Before
     public void setup() {
         glossaryCaseChecker = new GlossaryCaseChecker();
-        glossaryCaseChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(), Sets.newHashSet(), "", "target/test-classes/com/box/l10n/mojito/cli/glossarychecker/glossary.json"));
+        glossaryCaseChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(), Sets.newHashSet(),
+                ImmutableMap.<String, String>builder().put(GLOSSARY_FILE_PATH_KEY.getKey(), "target/test-classes/com/box/l10n/mojito/cli/glossarychecker/glossary.json").build()));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setSource("A source string with Company in it.");

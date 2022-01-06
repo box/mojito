@@ -5,6 +5,7 @@ import com.box.l10n.mojito.cli.command.CommandException;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.io.Files;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import dumonts.hunspell.Hunspell;
 import org.junit.Before;
@@ -21,6 +22,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_ADDITIONS_PATH_KEY;
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_AFFIX_FILE_PATH_KEY;
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_FILE_PATH_KEY;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_VARIABLE_TYPE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
@@ -52,8 +56,10 @@ public class SpellCliCheckerTest {
         when(hunspellMock.spell("strng")).thenReturn(false);
         when(hunspellMock.spell("erors")).thenReturn(false);
         when(hunspellMock.spell("falures")).thenReturn(false);
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder()
+                .put(DICTIONARY_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.dic")
+                .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.aff")
+                .build()));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setSource("A source string with no errors.");
@@ -68,7 +74,10 @@ public class SpellCliCheckerTest {
     public void testHardFailureIsSet() throws Exception {
         Set<CliCheckerType> hardFailureSet = new HashSet<>();
         hardFailureSet.add(CliCheckerType.SPELL_CHECKER);
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), hardFailureSet, "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), hardFailureSet, ImmutableMap.<String, String>builder()
+                .put(DICTIONARY_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.dic")
+                .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.aff")
+                .build()));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         assertTrue(result.isHardFail());
     }
@@ -114,8 +123,11 @@ public class SpellCliCheckerTest {
         createTempDictionaryAdditionsFile("strng" + System.lineSeparator() + "erors");
         when(hunspellMock.spell("strng")).thenReturn(true);
         when(hunspellMock.spell("erors")).thenReturn(true);
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(),
-                "target/tests/resources/dictAddition.txt", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder()
+                .put(DICTIONARY_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.dic")
+                .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.aff")
+                .put(DICTIONARY_ADDITIONS_PATH_KEY.getKey(), "target/tests/resources/dictAddition.txt")
+                .build()));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         verify(hunspellMock, times(1)).add("strng");
         verify(hunspellMock, times(1)).add("erors");
@@ -169,8 +181,11 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         createTempDictionaryAdditionsFile("");
-        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(),
-                "target/tests/resources/dictAddition.txt", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
+        spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder()
+                .put(DICTIONARY_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.dic")
+                .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.aff")
+                .put(DICTIONARY_ADDITIONS_PATH_KEY.getKey(), "target/tests/resources/dictAddition.txt")
+                .build()));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         assertFalse(result.isSuccessful());
         assertFalse(result.getNotificationText().isEmpty());
@@ -279,7 +294,10 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
+                ImmutableMap.<String, String>builder()
+                        .put(DICTIONARY_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.dic")
+                        .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.aff")
+                        .build()));
         CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
         assertTrue(result.isSuccessful());
         assertTrue(result.getNotificationText().isEmpty());
@@ -296,7 +314,9 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", null, "target/test-classes/dictionaries/empty.aff", null));
+                ImmutableMap.<String, String>builder()
+                        .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.aff")
+                        .build()));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
@@ -311,7 +331,9 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", null, null));
+                ImmutableMap.<String, String>builder()
+                        .put(DICTIONARY_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.dic")
+                        .build()));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
@@ -326,7 +348,10 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "fake_dir/dictionaries/empty.dic", "target/test-classes/dictionaries/empty.aff", null));
+                ImmutableMap.<String, String>builder()
+                        .put(DICTIONARY_FILE_PATH_KEY.getKey(), "fake_dir/dictionaries/empty.dic")
+                        .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.aff")
+                        .build()));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
@@ -341,7 +366,10 @@ public class SpellCliCheckerTest {
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
         spellCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX), Sets.newHashSet(),
-                "", "", "target/test-classes/dictionaries/empty.dic", "fake_dir/dictionaries/empty.aff", null));
+                ImmutableMap.<String, String>builder()
+                        .put(DICTIONARY_FILE_PATH_KEY.getKey(), "target/test-classes/dictionaries/empty.dic")
+                        .put(DICTIONARY_AFFIX_FILE_PATH_KEY.getKey(), "fake_dir/dictionaries/empty.aff")
+                        .build()));
         spellCliChecker.run(assetExtractionDiffs);
     }
 
