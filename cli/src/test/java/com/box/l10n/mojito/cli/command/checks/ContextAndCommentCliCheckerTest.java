@@ -6,6 +6,7 @@ import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
 import com.box.l10n.mojito.cli.command.checks.ContextAndCommentCliChecker;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,7 +25,7 @@ public class ContextAndCommentCliCheckerTest {
     @Before
     public void setup() {
         contextAndCommentCliChecker = new ContextAndCommentCliChecker();
-        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(), "", ""));
+        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder().build()));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setName("Some string id --- Test context");
@@ -141,7 +142,7 @@ public class ContextAndCommentCliCheckerTest {
         AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
         assetExtractionDiff.setAddedTextunits(addedTUs);
         assetExtractionDiffs.add(assetExtractionDiff);
-        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(CliCheckerType.CONTEXT_COMMENT_CHECKER), "", ""));
+        contextAndCommentCliChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(CliCheckerType.CONTEXT_COMMENT_CHECKER), ImmutableMap.<String, String>builder().build()));
 
         CliCheckResult result = contextAndCommentCliChecker.run(assetExtractionDiffs);
         Assert.assertFalse(result.isSuccessful());

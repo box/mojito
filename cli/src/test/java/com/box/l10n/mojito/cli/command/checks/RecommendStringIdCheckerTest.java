@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command.checks;
 
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.RECOMMEND_STRING_ID_LABEL_IGNORE_PATTERN_KEY;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
 
 public class RecommendStringIdCheckerTest {
@@ -26,7 +28,7 @@ public class RecommendStringIdCheckerTest {
         recommendStringIdChecker = new RecommendStringIdChecker();
         List<String> modifiedFiles = new ArrayList<>(Arrays.asList("someDir/someOtherDir/evenDeeperDir/test1.txt", "someDir/someOtherDir/test2.txt"));
         recommendStringIdChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(),
-                "", ""));
+                ImmutableMap.<String, String>builder().build()));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setName("A source string with no errors. --- someDir.someSubDir.someStringId");
@@ -52,7 +54,7 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run(setTextUnitId("incorrect.prefix.someStringId"));
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id 'incorrect.prefix.someStringId' for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -144,7 +146,7 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run(assetExtractionDiffs);
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id 'someStringId' for string 'A source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -163,7 +165,7 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run(assetExtractionDiffs);
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id 'someStringId' for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     @Test
@@ -205,8 +207,37 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run(assetExtractionDiffs);
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
-                + "* Please update id for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator()
-                + "* Please update id for string 'Another source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
+                + "* Please update id 'someStringId' for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator()
+                + "* Please update id 'someOtherStringId' for string 'Another source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
+    }
+
+    @Test
+    public void testLabelIsIgnored() {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("A source string with no errors. --- [aLabel] someStringId");
+        assetExtractorTextUnit.setSource("A source string with no errors.");
+        assetExtractorTextUnit.setUsages(Sets.newHashSet("someSourceFile.java"));
+        addedTUs.add(assetExtractorTextUnit);
+        AssetExtractorTextUnit assetExtractorTextUnit2 = new AssetExtractorTextUnit();
+        assetExtractorTextUnit2.setName("Another source string with no errors. --- [aLabel] someOtherStringId [aLabel]");
+        assetExtractorTextUnit2.setSource("Another source string with no errors.");
+        assetExtractorTextUnit2.setUsages(Sets.newHashSet("someDir/someSubDir/someOtherSourceFile.java:2"));
+        addedTUs.add(assetExtractorTextUnit2);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        recommendStringIdChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(),
+                ImmutableMap.<String, String>builder().put(RECOMMEND_STRING_ID_LABEL_IGNORE_PATTERN_KEY.getKey(), "\\[\\w+\\]").build()));
+
+        CliCheckResult result = recommendStringIdChecker.run(assetExtractionDiffs);
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertFalse(result.getNotificationText().contains("[aLabel]"));
+        Assert.assertEquals("Recommended id updates for the following strings:" + System.lineSeparator()
+                + "* Please update id 'someStringId' for string 'A source string with no errors.' to be prefixed with 'root.'" + System.lineSeparator()
+                + "* Please update id 'someOtherStringId' for string 'Another source string with no errors.' to be prefixed with 'someDir.someSubDir.'" + System.lineSeparator(), result.getNotificationText());
     }
 
     private List<AssetExtractionDiff> setTextUnitId(String id) {

@@ -15,14 +15,13 @@ import java.util.stream.Collectors;
 
 /**
  * {@link AbstractCliChecker} that generates a recommended string id based off the file path of the file that contains the new string.
- * <br>
- * <br>
- * <b>NOTE:</b> For an id to be recommended the text unit must contain an existing message context value in its name.
- * e.g. "Some string --- some.message.context"
  *
  * @author mallen
  */
 public class RecommendStringIdChecker extends AbstractCliChecker {
+
+
+    public static final String ID_SEPARATOR = "---";
 
     @Override
     public CliCheckResult run(List<AssetExtractionDiff> assetExtractionDiffs) {
@@ -49,7 +48,8 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
     private List<String> getRecommendedIdPrefixUpdates(List<AssetExtractionDiff> assetExtractionDiffs) {
         return getAddedTextUnits(assetExtractionDiffs).stream().map(textUnit -> getRecommendStringIdCheckResult(textUnit))
                 .filter(recommendation -> recommendation.isRecommendedUpdate())
-                .map(recommendation -> String.format("Please update id for string '%s' to be prefixed with '%s'", recommendation.getSource(), recommendation.getRecommendedIdPrefix()))
+                .map(recommendation -> String.format("Please update id '%s' for string '%s' to be prefixed with '%s'", recommendation.getStringId(),
+                        recommendation.getSource(), recommendation.getRecommendedIdPrefix()))
                 .collect(Collectors.toList());
     }
 
@@ -70,9 +70,8 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
 
     private RecommendStringIdCheckResult generateRecommendation(AssetExtractorTextUnit textUnit, RecommendStringIdCheckResult recommendation) {
         List<String> possiblePrefixes = new ArrayList<>();
-        String msgctxt = textUnit.getName().contains("---") ? textUnit.getName().split("---")[1].trim() : "";
+        String msgctxt = removeIgnoredLabelFromContext(textUnit.getName().contains(ID_SEPARATOR) ? textUnit.getName().split(ID_SEPARATOR)[1] : "");
         String cwd = Paths.get(".").toAbsolutePath() + FileSystems.getDefault().getSeparator();
-
         for (String filePath : textUnit.getUsages()) {
             if (Paths.get(filePath).isAbsolute()) {
                 filePath = filePath.replace(cwd, "");
@@ -93,15 +92,23 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
 
         if (!possiblePrefixes.isEmpty() && !possiblePrefixes.stream().anyMatch(prefix -> msgctxt.startsWith(prefix))) {
             recommendation.setRecommendedUpdate(true);
+            recommendation.setStringId(msgctxt);
             recommendation.setRecommendedIdPrefix(possiblePrefixes.get(0));
         }
 
         return recommendation;
     }
 
+    private String removeIgnoredLabelFromContext(String msgctxt) {
+        if (StringUtils.isNotBlank(cliCheckerOptions.getRecommendStringIdLabelIgnorePattern())) {
+            msgctxt = msgctxt.replaceAll(cliCheckerOptions.getRecommendStringIdLabelIgnorePattern(), "");
+        }
+        return msgctxt.trim();
+    }
+
     private Deque<String> getDirectoryNames(Path file) {
         Deque<String> dirNames = new ArrayDeque<>();
-        while (file.getParent() != null) {
+        while (file.getParent() != null && file.getParent().getFileName() != null) {
             dirNames.push(file.getParent().getFileName().toString());
             file = file.getParent();
         }
@@ -110,6 +117,7 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
 
     class RecommendStringIdCheckResult {
         String source;
+        String stringId;
         String recommendedIdPrefix;
         boolean isRecommendedUpdate;
 
@@ -135,6 +143,14 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
 
         public void setRecommendedUpdate(boolean recommendedUpdate) {
             isRecommendedUpdate = recommendedUpdate;
+        }
+
+        public String getStringId() {
+            return stringId;
+        }
+
+        public void setStringId(String stringId) {
+            this.stringId = stringId;
         }
     }
 }
