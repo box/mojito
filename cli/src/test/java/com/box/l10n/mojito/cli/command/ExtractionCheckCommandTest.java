@@ -1,15 +1,18 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
-import com.box.l10n.mojito.phabricator.DifferentialRevision;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import org.fusesource.jansi.Ansi;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
+public class ExtractionCheckCommandTest extends CLITestBase {
 
     @Test
     public void runSuccessfulChecks() throws Exception {
@@ -30,7 +33,7 @@ public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
                 "-c", "source2",
                 "-b", "source1");
 
-        getL10nJCommander().run("phab-extraction-check",
+        getL10nJCommander().run("extraction-check",
                 "-i", getTargetTestDir("extractions").getAbsolutePath(),
                 "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
                 "-c", "source2",
@@ -61,7 +64,7 @@ public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
                 "-c", "source2",
                 "-b", "source1");
 
-        getL10nJCommander().run("phab-extraction-check",
+        getL10nJCommander().run("extraction-check",
                 "-i", getTargetTestDir("extractions").getAbsolutePath(),
                 "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
                 "-c", "source2",
@@ -95,7 +98,7 @@ public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
                 "-c", "source2",
                 "-b", "source1");
 
-        getL10nJCommander().run("phab-extraction-check",
+        getL10nJCommander().run("extraction-check",
                 "-i", getTargetTestDir("extractions").getAbsolutePath(),
                 "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
                 "-c", "source2",
@@ -126,7 +129,7 @@ public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
                 "-c", "source2",
                 "-b", "source1");
 
-        getL10nJCommander().run("phab-extraction-check",
+        getL10nJCommander().run("extraction-check",
                 "-i", getTargetTestDir("extractions").getAbsolutePath(),
                 "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
                 "-c", "source2",
@@ -155,7 +158,7 @@ public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
                 "-c", "source2",
                 "-b", "source1");
 
-        getL10nJCommander().run("phab-extraction-check",
+        getL10nJCommander().run("extraction-check",
                 "-i", getTargetTestDir("extractions").getAbsolutePath(),
                 "-o", getTargetTestDir("extraction-diffs").getAbsolutePath(),
                 "-c", "source2",
@@ -167,23 +170,16 @@ public class PhabricatorExtractionCheckCommandTest extends CLITestBase {
     }
 
     @Test
-    public void runCheckWithPhabricatorOverride() {
-        PhabricatorExtractionCheckCommand phabricatorExtractionCheckCommand = new PhabricatorExtractionCheckCommand();
-        phabricatorExtractionCheckCommand.phabObjectId = "D123456";
-        DifferentialRevision differentialRevisionMock = Mockito.mock(DifferentialRevision.class);
-        when(differentialRevisionMock.getTestPlan(isA(String.class))).thenReturn("A string containing " + PhabricatorExtractionCheckCommand.SKIP_I18N_CHECKS_FLAG);
-        phabricatorExtractionCheckCommand.differentialRevision = differentialRevisionMock;
-        Assert.assertTrue(phabricatorExtractionCheckCommand.areChecksSkipped());
-    }
-
-    @Test
-    public void runCheckWithNoPhabricatorOverride() {
-        PhabricatorExtractionCheckCommand phabricatorExtractionCheckCommand = new PhabricatorExtractionCheckCommand();
-        phabricatorExtractionCheckCommand.phabObjectId = "D123456";
-        DifferentialRevision differentialRevisionMock = Mockito.mock(DifferentialRevision.class);
-        when(differentialRevisionMock.getTestPlan(isA(String.class))).thenReturn("A test plan string doing test plan string things.");
-        phabricatorExtractionCheckCommand.differentialRevision = differentialRevisionMock;
-        Assert.assertFalse(phabricatorExtractionCheckCommand.areChecksSkipped());
+    public void testChecksSkippedIfEnvVariableSet() {
+        ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
+        ExtractionCheckCommand extractionCheckCommand = Mockito.spy(new ExtractionCheckCommand());
+        extractionCheckCommand.consoleWriter = consoleWriter;
+        extractionCheckCommand.areChecksSkipped = true;
+        when(consoleWriter.fg(isA(Ansi.Color.class))).thenReturn(consoleWriter);
+        when(consoleWriter.newLine()).thenReturn(consoleWriter);
+        when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
+        extractionCheckCommand.execute();
+        verify(consoleWriter, times(1)).a("Checks disabled as --skip-checks is set to true.");
     }
 
 }
