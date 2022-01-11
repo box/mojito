@@ -1,6 +1,6 @@
-package com.box.l10n.mojito.cli.command;
+package com.box.l10n.mojito.thirdpartynotification.phabricator;
 
-enum PhabricatorIcon {
+public enum PhabricatorIcon {
     INFO("\u2139\uFE0F"),
     WARNING("\u26A0\uFE0F"),
     STOP("\uD83D\uDED1");

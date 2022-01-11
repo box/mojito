@@ -3,26 +3,30 @@ package com.box.l10n.mojito.cli.command;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.checks.AbstractCliChecker;
-import com.box.l10n.mojito.cli.command.checks.CheckerOptionsMapEntryConverter;
 import com.box.l10n.mojito.cli.command.checks.CheckerOptionsMapEntry;
+import com.box.l10n.mojito.cli.command.checks.CheckerOptionsMapEntryConverter;
 import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerExecutor;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerTypeConverter;
 import com.box.l10n.mojito.cli.command.checks.PlaceholderRegularExpressionConverter;
+import com.box.l10n.mojito.cli.command.checks.ExtractionCheckThirdPartyNotificationTypeConverter;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderException;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderPhabricator;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderSlack;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckThirdPartyNotificationService;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.phabricator.DifferentialRevision;
-import com.box.l10n.mojito.phabricator.PhabricatorMessageBuilder;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,26 +45,16 @@ import java.util.stream.Stream;
  */
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"phab-extraction-check"}, commandDescription = "Execute checks against new source strings")
-public class PhabricatorExtractionCheckCommand extends Command {
+@Parameters(commandNames = {"extraction-check"}, commandDescription = "Execute checks against new source strings")
+public class ExtractionCheckCommand extends Command {
 
     static Logger logger = LoggerFactory.getLogger(ExtractionDiffCommand.class);
-
-    protected static final String SKIP_I18N_CHECKS_FLAG = "SKIP_I18N_CHECKS";
-    protected static final String PHAB_OVERRIDE_MESSAGE = PhabricatorIcon.WARNING + " **WARNING**" + System.lineSeparator() + System.lineSeparator() + "I18N source string checks have been disabled by override, " +
-            "if this was not intentional please remove the '**" + SKIP_I18N_CHECKS_FLAG + "**' string from your Phabricator differential test plan and re-trigger a build.";
 
     @Autowired
     ExtractionDiffService extractionDiffService;
 
     @Autowired
     ConsoleWriter consoleWriter;
-
-    @Autowired(required = false)
-    PhabricatorMessageBuilder phabricatorMessageBuilder;
-
-    @Autowired(required = false)
-    DifferentialRevision differentialRevision;
 
     @Parameter(names = {"--checker-list", "-cl"}, variableArity = true, required = true, converter = CliCheckerTypeConverter.class, description = "List of checks to be run against new source strings")
     List<CliCheckerType> checkerList;
@@ -74,11 +68,14 @@ public class PhabricatorExtractionCheckCommand extends Command {
     @Parameter(names = {"--name", "-n"}, arity = 1, required = false, description = ExtractionDiffCommand.EXCTRACTION_DIFF_NAME_DESCRIPTION)
     String extractionDiffName = null;
 
-    @Parameter(names = {"--objectid", "-oid"}, arity = 1, required = false, description = "Phabricator object id, required if adding a comment with check failures to Phabricator.")
-    String phabObjectId = null;
-
     @Parameter(names = {"--phab-message-template", "-pmt"}, arity = 1, required = false, description = "Optional message template to customize the Phabricator notification message. eg. '{baseMessage}. Check [[https://build.org/1234|build]].' ")
-    String messageTemplate = "{baseMessage}";
+    String phabMessageTemplate = "{baseMessage}";
+
+    @Parameter(names = {"--slack-message-template", "-smt"}, arity = 1, required = false, description = "Optional message template to customize the Slack notification message. eg. '{baseMessage}. Check [[https://build.org/1234|build]].' ")
+    String slackMessageTemplate = "{baseMessage}";
+
+    @Parameter(names = {"--hard-fail-message", "-hfm"}, arity = 1, required = false, description = "Optional string appended to notification messages in the event of a hard failure.")
+    String hardFailureMessage = null;
 
     @Parameter(names = {"--current", "-c"}, arity = 1, required = true, description = ExtractionDiffCommand.CURRENT_EXTRACTION_NAME_DESCRIPTION)
     String currentExtractionName;
@@ -95,14 +92,39 @@ public class PhabricatorExtractionCheckCommand extends Command {
     @Parameter(names = {"--checker-options", "-co"}, variableArity = true, required = false, converter = CheckerOptionsMapEntryConverter.class, description = "Map of options to be used in individual checkers. Options must be in the form 'name':'value'.")
     List<CheckerOptionsMapEntry> checkerOptions = new ArrayList<>();
 
+    @Parameter(names = {"--notify-services", "-ns"}, variableArity = true, required = false, converter = ExtractionCheckThirdPartyNotificationTypeConverter.class, description = "List of services to send notification messages")
+    List<ExtractionCheckThirdPartyNotificationService> thirdPartyNotificationTypes = new ArrayList<>();
+
+    @Parameter(names = {"--username", "-u"}, arity = 1, required = false, description = "Mojito username, required if sending Slack notifications.")
+    String username;
+
+    @Parameter(names = {"--slack-email-pattern", "-sep"}, arity = 1, required = false, description = "Email pattern used for Slack notifications, required if sending notifications to Slack.")
+    String slackEmailPattern = "";
+
+    @Parameter(names = {"--slack-use-direct-message", "-sudm"}, arity = 1, required = false, description = "Use direct message for Slack notifications. Default is false.")
+    boolean slackUseDirectMessage = false;
+
+    @Parameter(names = {"--phab-object-id", "-poid"}, arity = 1, required = false, description = "Phabricator object id, required if sending Phabricator notifications.")
+    String phabObjectId;
+
+    @Parameter(names = {"--skip-checks", "-sc"}, arity = 1, required = false, description = "Skips all checks if set to true, useful for skipping checks in automated scripts.")
+    boolean areChecksSkipped = false;
+
+    @Parameter(names = {"--checks-skipped-message", "-csm"}, arity = 1, required = false, description = "Optional notification message to be sent when checks are skipped.")
+    String checksSkippedMessage;
+
+    List<ExtractionCheckNotificationSender> extractionCheckNotificationSenders = new ArrayList<>();
+
     @Override
     protected void execute() throws CommandException {
 
-        checkPhabricatorPreconditions();
+        initNotificationSenders();
 
-        if (areChecksSkipped()) {
-            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Checks disabled as '" + SKIP_I18N_CHECKS_FLAG + "' string is present in Phabricator test plan.");
-            differentialRevision.addComment(phabObjectId, PHAB_OVERRIDE_MESSAGE);
+        if (areChecksSkipped) {
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Checks disabled as --skip-checks is set to true.").println();
+            if (!Strings.isNullOrEmpty(checksSkippedMessage)) {
+                sendChecksSkippedNotifications();
+            }
         } else {
             ExtractionPaths baseExtractionPaths = new ExtractionPaths(inputDirectoryParam, baseExtractionName);
             ExtractionPaths currentExtractionPaths = new ExtractionPaths(inputDirectoryParam, currentExtractionName);
@@ -119,14 +141,12 @@ public class PhabricatorExtractionCheckCommand extends Command {
                 if (extractionDiffService.hasAddedTextUnits(extractionDiffPaths)) {
                     assetExtractionDiffs = extractionDiffService.findAssetExtractionDiffsWithAddedTextUnits(extractionDiffPaths);
                     CliCheckerExecutor cliCheckerExecutor = getCliCheckerExecutor();
-                    List<CliCheckResult> cliCheckerResults = executeChecks(cliCheckerExecutor, assetExtractionDiffs);
-                    checkForHardFail(cliCheckerResults);
-                    if (!cliCheckerResults.isEmpty()) {
-                        List<CliCheckResult> failures = getCheckerFailures(cliCheckerResults).collect(Collectors.toList());
+                    List<CliCheckResult> cliCheckerFailures = executeChecks(cliCheckerExecutor, assetExtractionDiffs);
+                    checkForHardFail(cliCheckerFailures);
+                    if (!cliCheckerFailures.isEmpty()) {
+                        List<CliCheckResult> failures = getCheckerFailures(cliCheckerFailures).collect(Collectors.toList());
                         outputFailuresToCommandLine(failures);
-                        if (StringUtils.isNotBlank(phabObjectId)) {
-                            addCommentToPhabricatorRevision(failures);
-                        }
+                        sendFailureNotifications(failures, false);
                     }
                 } else {
                     consoleWriter.newLine().a("No new strings in diff to be checked.").println();
@@ -136,25 +156,63 @@ public class PhabricatorExtractionCheckCommand extends Command {
             }
             consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
         }
-
     }
 
-    protected boolean areChecksSkipped() {
-        return StringUtils.isNotBlank(phabObjectId) && differentialRevision.getTestPlan(phabObjectId).contains(SKIP_I18N_CHECKS_FLAG);
+    private void initNotificationSenders() {
+        extractionCheckNotificationSenders = thirdPartyNotificationTypes.stream()
+                .map(thirdPartyNotificationType -> getExtractionCheckNotificationSender(thirdPartyNotificationType))
+                .collect(Collectors.toList());
     }
 
-    private void addCommentToPhabricatorRevision(List<CliCheckResult> cliCheckerFailures) {
-        consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Adding comment to Phabricator revision " + phabObjectId).println();
-        differentialRevision.addComment(phabObjectId, getPhabricatorMessage(buildPhabricatorComment(cliCheckerFailures)));
+    private ExtractionCheckNotificationSender getExtractionCheckNotificationSender(ExtractionCheckThirdPartyNotificationService thirdPartyNotificationType) {
+        ExtractionCheckNotificationSender extractionCheckNotificationSender;
+        switch (thirdPartyNotificationType) {
+            case PHABRICATOR:
+                extractionCheckNotificationSender = new ExtractionCheckNotificationSenderPhabricator(phabObjectId, phabMessageTemplate, hardFailureMessage, checksSkippedMessage);
+                break;
+            case SLACK:
+                extractionCheckNotificationSender = new ExtractionCheckNotificationSenderSlack(username, slackEmailPattern, slackMessageTemplate, hardFailureMessage, checksSkippedMessage, slackUseDirectMessage);
+                break;
+            default:
+                throw new CommandException("Unsupported notification type " + thirdPartyNotificationType.name());
+        }
+
+        return extractionCheckNotificationSender;
+    }
+
+    private void sendChecksSkippedNotifications() {
+        for (ExtractionCheckNotificationSender notificationSender : extractionCheckNotificationSenders) {
+            try {
+                notificationSender.sendChecksSkippedNotification();
+            } catch (ExtractionCheckNotificationSenderException e) {
+                logger.error("Error sending notification: " + e.getMessage());
+                consoleWriter.fg(Ansi.Color.RED).newLine().a("Error sending notification: " + e.getMessage()).println();
+            }
+        }
+    }
+
+    private void sendFailureNotifications(List<CliCheckResult> failures, boolean hardFail) {
+
+        consoleWriter.newLine().a("Sending notifications").println();
+        extractionCheckNotificationSenders.stream().forEach(notificationSender -> {
+            try {
+                notificationSender.sendFailureNotification(failures, hardFail);
+            } catch (ExtractionCheckNotificationSenderException e) {
+                logger.error("Error sending notification: " + e.getMessage());
+                consoleWriter.fg(Ansi.Color.RED).newLine().a("Error sending notification: " + e.getMessage()).println();
+            }
+        });
     }
 
     private void checkForHardFail(List<CliCheckResult> results) {
         if (getCheckerHardFailures(results).count() > 0) {
-            String hardFailureListString = "The following checks had hard failures:" + System.lineSeparator() +
+            String cliFailureString = "The following checks had hard failures:" + System.lineSeparator() +
                     getCheckerHardFailures(results).map(failure -> failure.getCheckName() + " failures: " + System.lineSeparator() + failure.getNotificationText() + System.lineSeparator())
                             .collect(Collectors.joining(System.lineSeparator()));
-            logger.debug(hardFailureListString);
-            throw new CommandException(hardFailureListString);
+
+            logger.debug(cliFailureString);
+            sendFailureNotifications(results.stream().filter(result -> !result.isSuccessful()).collect(Collectors.toList()), true);
+            throw new CommandException(cliFailureString);
         }
     }
 
@@ -171,32 +229,6 @@ public class PhabricatorExtractionCheckCommand extends Command {
 
     private Stream<CliCheckResult> getCheckerHardFailures(List<CliCheckResult> results) {
         return getCheckerFailures(results).filter(CliCheckResult::isHardFail);
-    }
-
-    String getPhabricatorMessage(String notificationText) {
-
-        ImmutableMap<String, Object> messageParamMap = ImmutableMap.<String, Object>builder()
-                .put("icon", PhabricatorIcon.WARNING.toString())
-                .put("header", "**i18n source string checks failed**")
-                .put("notificationText", notificationText)
-                .build();
-        String message = "{icon} {header}" + System.lineSeparator() + System.lineSeparator() + "{notificationText}";
-        return phabricatorMessageBuilder.getFormattedPhabricatorMessage(messageTemplate, "baseMessage", phabricatorMessageBuilder.getBaseMessage(messageParamMap, message));
-    }
-
-    private String buildPhabricatorComment(List<CliCheckResult> failedCheck) {
-        String notification = failedCheck.stream().map(check -> "//**" + check.getCheckName() + "**//" + System.lineSeparator()).collect(Collectors.joining(System.lineSeparator()));
-        return "**Failed checks:**" + addDoubleNewLine() + notification + addDoubleNewLine() + "**Please correct the above issues in a new commit.**";
-    }
-
-    private String addDoubleNewLine() {
-        return System.lineSeparator() + System.lineSeparator();
-    }
-
-    private void checkPhabricatorPreconditions() {
-        if (phabObjectId != null) {
-            PhabricatorPreconditions.checkNotNull(differentialRevision);
-        }
     }
 
     private CliCheckerExecutor getCliCheckerExecutor() {
@@ -219,7 +251,7 @@ public class PhabricatorExtractionCheckCommand extends Command {
 
     private ImmutableMap<String, String> buildOptionsMap() {
         return ImmutableMap.<String, String>builder().putAll(checkerOptions.stream()
-                .collect(Collectors.toMap(CheckerOptionsMapEntry::getKey, CheckerOptionsMapEntry::getValue)))
+                        .collect(Collectors.toMap(CheckerOptionsMapEntry::getKey, CheckerOptionsMapEntry::getValue)))
                 .build();
     }
 

@@ -12,6 +12,7 @@ import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcp
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.phabricator.PhabricatorMessageBuilder;
+import com.box.l10n.mojito.thirdpartynotification.phabricator.PhabricatorIcon;
 import com.google.common.collect.ImmutableMap;
 import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;

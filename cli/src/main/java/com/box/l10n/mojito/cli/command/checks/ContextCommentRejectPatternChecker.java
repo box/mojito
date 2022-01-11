@@ -31,6 +31,7 @@ public class ContextCommentRejectPatternChecker extends AbstractCliChecker {
         if (StringUtils.isNotBlank(failures)) {
             StringBuilder notificationTextBuilder = new StringBuilder();
             notificationTextBuilder.append("Context and Comment Pattern check failed for regex '" + cliCheckerOptions.getContextCommentRejectPattern() + "':");
+            notificationTextBuilder.append(System.lineSeparator());
             notificationTextBuilder.append(failures);
             cliCheckResult.setSuccessful(false);
             cliCheckResult.setNotificationText(notificationTextBuilder.toString());

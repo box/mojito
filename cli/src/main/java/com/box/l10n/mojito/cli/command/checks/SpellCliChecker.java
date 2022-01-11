@@ -204,7 +204,7 @@ public class SpellCliChecker extends AbstractCliChecker {
         notificationText.append(failureMap.keySet().stream()
                 .map(sourceString -> buildFailureText(failureMap, sourceString))
                 .collect(Collectors.joining(System.lineSeparator())));
-        notificationText.append(System.lineSeparator());
+        notificationText.append(System.lineSeparator() + System.lineSeparator());
         addDictionaryUpdateInformation(notificationText);
 
         return notificationText.toString();
