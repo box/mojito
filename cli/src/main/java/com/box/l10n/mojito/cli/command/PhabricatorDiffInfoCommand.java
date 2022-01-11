@@ -5,7 +5,11 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.phabricator.DifferentialDiff;
+import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.phabricator.payload.QueryDiffsFields;
+import com.box.l10n.mojito.thirdpartynotification.phabricator.PhabricatorIcon;
+import org.apache.commons.lang3.StringUtils;
+import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,12 +42,17 @@ public class PhabricatorDiffInfoCommand extends Command {
      */
     static Logger logger = LoggerFactory.getLogger(PhabricatorDiffInfoCommand.class);
 
+    protected static final String SKIP_I18N_CHECKS_FLAG = "SKIP_I18N_CHECKS";
+
     @Qualifier("ansiCodeEnabledFalse")
     @Autowired
     ConsoleWriter consoleWriterAnsiCodeEnabledFalse;
 
     @Autowired(required = false)
     DifferentialDiff differentialDiff;
+
+    @Autowired(required = false)
+    DifferentialRevision differentialRevision;
 
     @Parameter(names = {"--diff-id"}, arity = 1, required = true, description = "Diff id")
     String diffId = null;
@@ -56,12 +65,21 @@ public class PhabricatorDiffInfoCommand extends Command {
     @Override
     public void execute() throws CommandException {
         PhabricatorPreconditions.checkNotNull(differentialDiff);
+        PhabricatorPreconditions.checkNotNull(differentialRevision);
 
         QueryDiffsFields queryDiffsFields = differentialDiff.queryDiff(diffId);
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_PHAB_REVISION_ID=").a(queryDiffsFields.getRevisionId()).println();
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_PHAB_BASE_COMMIT=").a(queryDiffsFields.getSourceControlBaseRevision()).println();
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_PHAB_AUTHOR_EMAIL=").a(queryDiffsFields.getAuthorEmail()).println();
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_PHAB_AUTHOR_USERNAME=").a(getUsernameForAuthorEmail(queryDiffsFields.getAuthorEmail())).println();
+
+        if (StringUtils.isNotBlank(queryDiffsFields.getRevisionId()) && differentialRevision.getTestPlan(queryDiffsFields.getRevisionId()).contains(SKIP_I18N_CHECKS_FLAG)) {
+            // SKIP_I18N_CHECKS flag is present in revision test plan
+            consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_CHECKS=true").println();
+        } else {
+            consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_CHECKS=false").println();
+        }
+
     }
 
 

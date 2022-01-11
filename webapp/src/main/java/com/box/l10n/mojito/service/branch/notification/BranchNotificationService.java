@@ -52,6 +52,10 @@ public class BranchNotificationService {
     @Autowired
     BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
 
+    /**
+     * 'required = false' needed here to allow a successful Spring Boot startup as if no {@link BranchNotificationMessageSender} are configured
+     * then we will get a {@link org.springframework.beans.factory.NoSuchBeanDefinitionException} exception on startup
+     */
     @Autowired(required = false)
     List<BranchNotificationMessageSender> branchNotificationMessageSenders = new ArrayList<>();
 

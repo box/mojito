@@ -1,18 +1,16 @@
 package com.box.l10n.mojito.service.branch.notification.slack;
 
+import com.box.l10n.mojito.thirdpartynotification.slack.SlackChannels;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
 import com.box.l10n.mojito.slack.SlackClient;
 import com.box.l10n.mojito.slack.SlackClientException;
 import com.box.l10n.mojito.slack.request.Message;
 import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
-import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -32,6 +30,9 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     SlackClient slackClient;
 
     @Autowired
+    SlackChannels slackChannels;
+
+    @Autowired
     BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack;
 
     @Value("${l10n.branchNotification.slack.userEmailPattern}")
@@ -46,7 +47,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
 
         try {
             Message message = branchNotificationMessageBuilderSlack.getNewMessage(
-                    getSlackChannelForBranch(username),
+                    slackChannels.getSlackChannelForDirectOrBotMessage(useDirectMessage, username, userEmailPattern),
                     branchName,
                     sourceStrings);
 
@@ -63,7 +64,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
 
         try {
             Message message = branchNotificationMessageBuilderSlack.getUpdatedMessage(
-                    getSlackChannelForBranch(username),
+                    slackChannels.getSlackChannelForDirectOrBotMessage(useDirectMessage, username, userEmailPattern),
                     messageId,
                     branchName,
                     sourceStrings);
@@ -80,7 +81,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
         logger.debug("sendTranslatedMessage to: {}", username);
 
         try {
-            Message message = branchNotificationMessageBuilderSlack.getTranslatedMessage(getSlackChannelForBranch(username), messageId);
+            Message message = branchNotificationMessageBuilderSlack.getTranslatedMessage(slackChannels.getSlackChannelForDirectOrBotMessage(useDirectMessage, username, userEmailPattern), messageId);
 
             ChatPostMessageResponse chatPostMessageResponse = slackClient.sendInstantMessage(message);
         } catch (SlackClientException sce) {
@@ -93,7 +94,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
         logger.debug("sendScreenshotMissingMessage to: {}", username);
 
         try {
-            Message message = branchNotificationMessageBuilderSlack.getScreenshotMissingMessage(getSlackChannelForBranch(username), messageId);
+            Message message = branchNotificationMessageBuilderSlack.getScreenshotMissingMessage(slackChannels.getSlackChannelForDirectOrBotMessage(useDirectMessage, username, userEmailPattern), messageId);
 
             ChatPostMessageResponse chatPostMessageResponse = slackClient.sendInstantMessage(message);
         } catch (SlackClientException sce) {
@@ -101,23 +102,4 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
         }
     }
 
-    String getSlackChannelForBranch(String username) throws SlackClientException {
-        String channel;
-
-        if (useDirectMessage) {
-            channel = slackClient.getInstantMessageChannel(getEmail(username)).getId();
-        } else {
-            channel = getSlackbotChannel(username);
-        }
-
-        return channel;
-    }
-
-    String getSlackbotChannel(String username) {
-        return "@" + username;
-    }
-
-    String getEmail(String username) {
-        return MessageFormat.format(userEmailPattern, username);
-    }
 }

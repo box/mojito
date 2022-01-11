@@ -33,6 +33,8 @@ public class SlackClient {
     static final String API_CHAT_POST_MESSAGE = "chat.postMessage";
 
     public static final String COLOR_GOOD = "good";
+    public static final String COLOR_WARNING = "warning";
+    public static final String COLOR_DANGER = "danger";
 
     RestTemplate restTemplate = new RestTemplate();
     String authToken = null;
