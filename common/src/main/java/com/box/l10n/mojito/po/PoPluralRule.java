@@ -69,6 +69,10 @@ public enum PoPluralRule {
             "nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3;",
             PoFormToCLDRForm.THREE_FORMS_ONE_FEW_MANY,
             CldrFormsToCopyOnImport.FEW_TO_OTHER),
+    FOUR_FORMS_FRACTIONAL_DIGITS_OTHER(
+            "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: (n % 10 == 0 && n % 1 == 0 && n > 10) ? 2 : 3;",
+            PoFormToCLDRForm.FOUR_FORMS_ONE_TWO_MANY_OTHER,
+            CldrFormsToCopyOnImport.NONE), // diverges from https://www.gnu.org/savannah-checkouts/gnu/gettext/manual/html_node/Plural-forms.html to match CLDR
     SIX_FORMS(
             "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5;",
             PoFormToCLDRForm.SIX_FORMS,
@@ -97,6 +101,8 @@ public enum PoPluralRule {
         mappingForNonDefault.put("sk", PoPluralRule.THREE_FORMS_SPECIAL_FOR_1_2_3_4);
         mappingForNonDefault.put("pl", PoPluralRule.THREE_FORMS_SPECIAL_FOR_1_AND_ENDING_234);
         mappingForNonDefault.put("sl", PoPluralRule.THREE_FORMS_SPECIAL_ENDING_020310_AND_1199); // incompatible with CLDR?
+        mappingForNonDefault.put("he", PoPluralRule.FOUR_FORMS_FRACTIONAL_DIGITS_OTHER);
+        mappingForNonDefault.put("iw", PoPluralRule.FOUR_FORMS_FRACTIONAL_DIGITS_OTHER);
         mappingForNonDefault.put("ar", PoPluralRule.SIX_FORMS);
     }
     
@@ -190,6 +196,12 @@ public enum PoPluralRule {
                 "0", "one",
                 "1", "two",
                 "2", "few"
+        )),
+        FOUR_FORMS_ONE_TWO_MANY_OTHER(ImmutableBiMap.of(
+                "0", "one",
+                "1", "two",
+                "2", "many",
+                "3", "other"
         )),
         SIX_FORMS(ImmutableBiMap.<String, String>builder().
                 put("0", "zero").

@@ -254,6 +254,9 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
                 } else if (zero != null) {
                     logger.debug("Other and few are not defined but one is, means it is for a language where few can be copied like Arabic");
                     other = createCopyOf(zero, "zero", "other");
+                } else if (two != null) {
+                    logger.debug("Other, few and zero are not defined but one is, copy from two.");
+                    other = createCopyOf(two, "two", "other");
                 }
             }
 
