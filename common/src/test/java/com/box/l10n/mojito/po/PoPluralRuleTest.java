@@ -122,6 +122,12 @@ public class PoPluralRuleTest {
         Assert.assertEquals(PoPluralRule.TWO_FORMS_SINGULAR_FOR_ONE, rulesForBcp47Tag);
     }
 
+    @Test
+    public void testHebrew() {
+        PoPluralRule rulesForBcp47Tag = PoPluralRule.fromBcp47Tag("he");
+        Assert.assertEquals(PoPluralRule.FOUR_FORMS_FRACTIONAL_DIGITS_OTHER, rulesForBcp47Tag);
+    }
+
     @Test(expected = NullPointerException.class)
     public void testNull() {
         PoPluralRule.fromBcp47Tag(null);
