@@ -934,11 +934,9 @@ public class TMService {
      * still used to fetch the translations). This can be used to generate a
      * file with tag "fr" even if the translations are stored with fr-FR
      * repository locale.
-     * @param filterConfigIdOverride
      * @param filterOptions
      * @param status
      * @param inheritanceMode
-     * @param useParentUntranslatedPattern
      * @return the localized asset
      */
     public String generateLocalized(
@@ -950,7 +948,8 @@ public class TMService {
             List<String> filterOptions,
             Status status,
             InheritanceMode inheritanceMode,
-            String useParentUntranslatedPattern) throws UnsupportedAssetFilterTypeException {
+            Double usageThreshold,
+            String usageFormat) throws UnsupportedAssetFilterTypeException {
 
         String bcp47Tag;
 
@@ -963,7 +962,7 @@ public class TMService {
 
         logger.debug("Configuring pipeline for localized XLIFF generation");
 
-        BasePipelineStep translateStep = new TranslateStep(asset, repositoryLocale, inheritanceMode, status, useParentUntranslatedPattern);
+        BasePipelineStep translateStep = new TranslateStep(asset, repositoryLocale, inheritanceMode, status, usageThreshold, usageFormat);
         return generateLocalizedBase(asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
     }
 

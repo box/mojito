@@ -10,17 +10,16 @@ import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
+import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,18 +62,16 @@ public class TranslatorWithInheritance {
     Map<Long, Map<String, TextUnitDTO>> localeToTextUnitDTOsForLocaleMap = new HashMap<>();
 
     private StatusFilter statusFilter;
-    private String useParentUntranslatedPattern;
 
     public TranslatorWithInheritance(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode) {
-        this(asset, repositoryLocale, inheritanceMode, StatusFilter.TRANSLATED_AND_NOT_REJECTED, null);
+        this(asset, repositoryLocale, inheritanceMode, StatusFilter.TRANSLATED_AND_NOT_REJECTED);
     }
 
-    public TranslatorWithInheritance(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, StatusFilter statusFilter, String useParentUntranslatedPattern) {
+    public TranslatorWithInheritance(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, StatusFilter statusFilter) {
         this.asset = asset;
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
         this.statusFilter = statusFilter;
-        this.useParentUntranslatedPattern = useParentUntranslatedPattern;
     }
 
     public String getTranslation(
@@ -92,13 +89,7 @@ public class TranslatorWithInheritance {
             translation = textUnitDTO.getTarget();
         } else if (InheritanceMode.USE_PARENT.equals(inheritanceMode)) {
             logger.debug("No TextUnitDTO, fallback to source");
-
-            if (!Strings.isNullOrEmpty(useParentUntranslatedPattern)) {
-                MessageFormat messageFormat = new MessageFormat(useParentUntranslatedPattern);
-                translation = messageFormat.format(ImmutableMap.of("source", source));
-            } else {
-                translation = source;
-            }
+            translation = source;
         }
 
         return translation;
