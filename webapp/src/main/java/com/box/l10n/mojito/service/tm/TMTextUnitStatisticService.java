@@ -129,14 +129,15 @@ public class TMTextUnitStatisticService {
             }
         }
 
-        logUnmatchedStatistics(logAsset, textUnitStatistic);
+        logUnmatchedStatistics(logAsset, textUnitStatistic, statisticTextUnitMD5);
         return null;
     }
 
-    private void logUnmatchedStatistics(Asset asset, ImportTextUnitStatisticsBody textUnitStatistic) {
+    private void logUnmatchedStatistics(Asset asset, ImportTextUnitStatisticsBody textUnitStatistic, String statisticTextUnitMD5) {
         String message = String.format(
-                "No equivalent text unit found, skip import statistics for text unit with name: %1$s for asset with id: %2$s & path: %3$s",
-                textUnitStatistic.getName(),
+                "Statistics import skipped. No equivalent text unit found for text unit statistic with MD5: %1$s, import statistics data: %2$s for asset with id: %3$s & path: %4$s",
+                statisticTextUnitMD5,
+                textUnitStatistic,
                 asset.getId(),
                 asset.getPath());
 

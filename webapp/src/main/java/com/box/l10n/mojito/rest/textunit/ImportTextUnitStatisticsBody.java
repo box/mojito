@@ -61,4 +61,16 @@ public class ImportTextUnitStatisticsBody {
     public void setLastSeenDate(DateTime lastSeenDate) {
         this.lastSeenDate = lastSeenDate;
     }
+
+    @Override
+    public String toString() {
+        return "ImportTextUnitStatisticsBody{" +
+                "name='" + name + '\'' +
+                ", content='" + content + '\'' +
+                ", comment='" + comment + '\'' +
+                ", lastDayEstimatedVolume=" + lastDayEstimatedVolume +
+                ", lastPeriodEstimatedVolume=" + lastPeriodEstimatedVolume +
+                ", lastSeenDate=" + lastSeenDate +
+                '}';
+    }
 }
