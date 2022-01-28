@@ -77,8 +77,8 @@ public class TMTextUnitStatisticServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
-        TMTextUnit addTMTextUnit = tmService.addTMTextUnit(tmId, assetId, tmTextUnitName, tmTextContent, tmTextComment);
-        tmTextUnitId = addTMTextUnit.getId();
+        TMTextUnit addTMTextUnit1 = tmService.addTMTextUnit(tmId, assetId, tmTextUnitName, tmTextContent, tmTextComment);
+        tmTextUnitId = addTMTextUnit1.getId();
     }
 
     private ImportTextUnitStatisticsBody getImportTextUnitStatisticsBody() {
@@ -90,31 +90,6 @@ public class TMTextUnitStatisticServiceTest extends ServiceTestBase {
         statistic.setLastPeriodEstimatedVolume(lastPeriodEstimatedVolume);
         statistic.setLastSeenDate(lastSeenDate);
         return statistic;
-    }
-
-    @Test
-    public void importStatisticsByMD5Works() throws Exception {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
-        createTestTextUnitData(repository);
-
-        List<ImportTextUnitStatisticsBody> textUnitStatistics = new ArrayList<>();
-        ImportTextUnitStatisticsBody statistic = getImportTextUnitStatisticsBody();
-        textUnitStatistics.add(statistic);
-
-        tmTextUnitStatisticService.importStatistics(repository.getSourceLocale(), asset, textUnitStatistics).get();
-
-        List<TMTextUnitStatistic> actualTMTextUnitStatistics = tmTextUnitStatisticRepository
-                .findAll()
-                .stream()
-                .filter(ts -> Objects.equals(ts.getTMTextUnit().getAsset().getRepository().getId(), repository.getId()))
-                .collect(Collectors.toList());
-
-        assertNotNull(actualTMTextUnitStatistics);
-        TMTextUnitStatistic actualStatistic = actualTMTextUnitStatistics.stream().findFirst().orElse(null);
-        assertNotNull(actualStatistic);
-        assertEquals(statistic.getLastDayEstimatedVolume(), (Double) actualStatistic.getLastDayUsageCount());
-        assertEquals(statistic.getLastPeriodEstimatedVolume(), (Double) actualStatistic.getLastPeriodUsageCount());
-        assertEquals(statistic.getLastSeenDate(), actualStatistic.getLastSeenDate());
     }
 
     @Test
@@ -285,7 +260,32 @@ public class TMTextUnitStatisticServiceTest extends ServiceTestBase {
     }
 
     @Test
-    public void importStatisticsMismatchedContentFails() throws Exception {
+    public void importStatisticsSameNameSucceeds() throws Exception {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+        createTestTextUnitData(repository);
+        // Add a test TextUnit with the same name
+        tmService.addTMTextUnit(tmId, assetId, tmTextUnitName, tmTextContent + "2", tmTextComment + "2");
+
+        List<ImportTextUnitStatisticsBody> textUnitStatistics = new ArrayList<>();
+        ImportTextUnitStatisticsBody statistic = getImportTextUnitStatisticsBody();
+        ImportTextUnitStatisticsBody statistic2 = getImportTextUnitStatisticsBody();
+        statistic2.setContent("random content");
+        statistic2.setComment("random comment");
+        textUnitStatistics.add(statistic);
+        textUnitStatistics.add(statistic2);
+
+        tmTextUnitStatisticService.importStatistics(repository.getSourceLocale(), asset, textUnitStatistics).get();
+
+        List<TMTextUnitStatistic> actualTMTextUnitStatistics = tmTextUnitStatisticRepository
+                .findAll()
+                .stream()
+                .filter(ts -> Objects.equals(ts.getTMTextUnit().getAsset().getRepository().getId(), repository.getId()))
+                .collect(Collectors.toList());
+        assertEquals(2, actualTMTextUnitStatistics.size());
+    }
+
+    @Test
+    public void importStatisticsMismatchedContentSucceeds() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         createTestTextUnitData(repository);
 
@@ -301,11 +301,11 @@ public class TMTextUnitStatisticServiceTest extends ServiceTestBase {
                 .stream()
                 .filter(ts -> Objects.equals(ts.getTMTextUnit().getAsset().getRepository().getId(), repository.getId()))
                 .collect(Collectors.toList());
-        assertEquals(0, actualTMTextUnitStatistics.size());
+        assertEquals(1, actualTMTextUnitStatistics.size());
     }
 
     @Test
-    public void importStatisticsMismatchedCommentFails() throws Exception {
+    public void importStatisticsMismatchedCommentSucceeds() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         createTestTextUnitData(repository);
 
@@ -321,6 +321,6 @@ public class TMTextUnitStatisticServiceTest extends ServiceTestBase {
                 .stream()
                 .filter(ts -> Objects.equals(ts.getTMTextUnit().getAsset().getRepository().getId(), repository.getId()))
                 .collect(Collectors.toList());
-        assertEquals(0, actualTMTextUnitStatistics.size());
+        assertEquals(1, actualTMTextUnitStatistics.size());
     }
 }
