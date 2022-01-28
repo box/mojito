@@ -11,7 +11,6 @@ import com.box.l10n.mojito.rest.textunit.ImportTextUnitStatisticsBody;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
-import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
@@ -20,7 +19,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,19 +79,18 @@ public class TMTextUnitStatisticService {
             List<ImportTextUnitStatisticsBody> textUnitStatistics) {
         logger.debug("Import statistics for the text units for the given locale and asset.");
 
-        ImmutableMap<String, TextUnitDTO> textUnitDTOsByMD5 = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(
+        ImmutableList<TextUnitDTO> textUnitDTOs = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale(
                 asset.getId(),
                 locale.getId(),
-                StatusFilter.ALL,
                 true,
                 UpdateType.ALWAYS);
 
-        ImmutableMap<String, List<TextUnitDTO>> textUnitDTOsByName = textUnitDTOsByMD5.values().stream()
+        ImmutableMap<String, List<TextUnitDTO>> textUnitDTOsByName = textUnitDTOs.stream()
                 .collect(Collectors.collectingAndThen(Collectors.groupingBy(TextUnitDTO::getName), ImmutableMap::copyOf));
 
         ImmutableMap<ImportTextUnitStatisticsBody, ImmutableList<TextUnitDTO>> statisticToTextUnitDTOMap = textUnitStatistics.stream()
                 .map(textUnitStatistic -> new AbstractMap.SimpleEntry<>(
-                        textUnitStatistic, getMatchingTextUnitDTOs(textUnitStatistic, textUnitDTOsByMD5, textUnitDTOsByName, asset)
+                        textUnitStatistic, getMatchingTextUnitDTOs(textUnitStatistic, textUnitDTOsByName, asset)
                 ))
                 .filter(entry -> entry.getValue() != null)
                 .collect(ImmutableMapCollectors.mapEntriesToImmutableMap(
@@ -112,21 +109,11 @@ public class TMTextUnitStatisticService {
         return new PollableFutureTaskResult();
     }
 
-    private ImmutableList<TextUnitDTO> getMatchingTextUnitDTOs(ImportTextUnitStatisticsBody textUnitStatistic, ImmutableMap<String, TextUnitDTO> textUnitDTOsByMD5, ImmutableMap<String, List<TextUnitDTO>> textUnitDTOsByName, Asset logAsset) {
-        String statisticTextUnitMD5 = getTextUnitMd5(textUnitStatistic);
-        TextUnitDTO foundTextUnitDTOByMD5 = textUnitDTOsByMD5.get(statisticTextUnitMD5);
+    private ImmutableList<TextUnitDTO> getMatchingTextUnitDTOs(ImportTextUnitStatisticsBody textUnitStatistic, ImmutableMap<String, List<TextUnitDTO>> textUnitDTOsByName, Asset logAsset) {
+        List<TextUnitDTO> foundTextUnitDTOsByNameAndContent = textUnitDTOsByName.get(textUnitStatistic.getName());
 
-        if (foundTextUnitDTOByMD5 != null) {
-            return ImmutableList.of(foundTextUnitDTOByMD5);
-        }
-
-        // Only attempt a fallback match by name if the content or comment aren't available in the statistic object.
-        if (StringUtils.isEmpty(textUnitStatistic.getContent()) || StringUtils.isEmpty(textUnitStatistic.getComment())) {
-            List<TextUnitDTO> foundTextUnitDTOsByNameAndContent = textUnitDTOsByName.get(textUnitStatistic.getName());
-
-            if (foundTextUnitDTOsByNameAndContent != null && foundTextUnitDTOsByNameAndContent.size() > 0) {
-                return ImmutableList.copyOf(foundTextUnitDTOsByNameAndContent);
-            }
+        if (foundTextUnitDTOsByNameAndContent != null && foundTextUnitDTOsByNameAndContent.size() > 0) {
+            return ImmutableList.copyOf(foundTextUnitDTOsByNameAndContent);
         }
 
         logUnmatchedStatistics(logAsset, textUnitStatistic);
@@ -135,8 +122,8 @@ public class TMTextUnitStatisticService {
 
     private void logUnmatchedStatistics(Asset asset, ImportTextUnitStatisticsBody textUnitStatistic) {
         String message = String.format(
-                "No equivalent text unit found, skip import statistics for text unit with name: %1$s for asset with id: %2$s & path: %3$s",
-                textUnitStatistic.getName(),
+                "Statistics import skipped. No equivalent text unit found for text unit statistic with data: %1$s for asset with id: %2$s & path: %3$s",
+                textUnitStatistic,
                 asset.getId(),
                 asset.getPath());
 
