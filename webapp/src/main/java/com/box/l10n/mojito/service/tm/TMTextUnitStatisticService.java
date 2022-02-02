@@ -24,12 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -61,7 +63,7 @@ public class TMTextUnitStatisticService {
     @Autowired
     TextUnitUtils textUnitUtils;
 
-    int batchSize = 5000;
+    int batchSize = 1000;
 
     /**
      * Imports statistics information for a target text unit by matching it using name, content and comment information.
@@ -77,7 +79,10 @@ public class TMTextUnitStatisticService {
             Locale locale,
             Asset asset,
             List<ImportTextUnitStatisticsBody> textUnitStatistics) {
-        logger.debug("Import statistics for the text units for the given locale and asset.");
+        logger.info("Import {} statistics for the text units for locale: {} and asset: {}",
+                textUnitStatistics.size(),
+                locale.getBcp47Tag(),
+                asset.getPath());
 
         ImmutableList<TextUnitDTO> textUnitDTOs = textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocale(
                 asset.getId(),
@@ -97,73 +102,32 @@ public class TMTextUnitStatisticService {
                         (textUnitDTOsFirst, textUnitDTOsLast) -> textUnitDTOsLast)
                 );
 
-        ImmutableList<Long> textUnitIds = statisticToTextUnitDTOMap.values().stream()
-                .flatMap(Collection::stream)
-                .map(TextUnitDTO::getTmTextUnitId)
-                .distinct()
-                .collect(ImmutableList.toImmutableList());
+        AtomicInteger batchNumber = new AtomicInteger(1);
+        Iterables.partition(statisticToTextUnitDTOMap.entrySet(), batchSize).forEach(
+                statisticToTextUnitDTOBatch -> {
+                    logger.info("Processing Text Unit Statistics batch number: {}, size: {}",
+                            batchNumber.getAndIncrement(),
+                            statisticToTextUnitDTOBatch.size());
 
-        Map<ImportTextUnitStatisticsBody, List<TMTextUnit>> statisticsToTextUnitsMap = getStatisticsToTextUnitMap(statisticToTextUnitDTOMap, textUnitIds);
-        uploadStatistics(statisticsToTextUnitsMap);
+                    ImmutableMap<ImportTextUnitStatisticsBody, ImmutableList<TextUnitDTO>> statisticToTextUnitDTOBatchMap = ImmutableMap.copyOf(statisticToTextUnitDTOBatch);
+
+                    ImmutableList<Long> textUnitIds = statisticToTextUnitDTOBatchMap.values().stream()
+                            .flatMap(Collection::stream)
+                            .map(TextUnitDTO::getTmTextUnitId)
+                            .distinct()
+                            .collect(ImmutableList.toImmutableList());
+
+                    updateStatistics(statisticToTextUnitDTOBatchMap, textUnitIds);
+                }
+        );
 
         return new PollableFutureTaskResult();
     }
 
-    private ImmutableList<TextUnitDTO> getMatchingTextUnitDTOs(ImportTextUnitStatisticsBody textUnitStatistic, ImmutableMap<String, List<TextUnitDTO>> textUnitDTOsByName, Asset logAsset) {
-        List<TextUnitDTO> foundTextUnitDTOsByNameAndContent = textUnitDTOsByName.get(textUnitStatistic.getName());
+    @Transactional
+    private void updateStatistics(ImmutableMap<ImportTextUnitStatisticsBody, ImmutableList<TextUnitDTO>> statisticToTextUnitDTOMap, ImmutableList<Long> textUnitIds) {
+        Map<ImportTextUnitStatisticsBody, List<TMTextUnit>> statisticsToTextUnitsMap = getStatisticsToTextUnitMap(statisticToTextUnitDTOMap, textUnitIds);
 
-        if (foundTextUnitDTOsByNameAndContent != null && foundTextUnitDTOsByNameAndContent.size() > 0) {
-            return ImmutableList.copyOf(foundTextUnitDTOsByNameAndContent);
-        }
-
-        logUnmatchedStatistics(logAsset, textUnitStatistic);
-        return null;
-    }
-
-    private void logUnmatchedStatistics(Asset asset, ImportTextUnitStatisticsBody textUnitStatistic) {
-        String message = String.format(
-                "Statistics import skipped. No equivalent text unit found for text unit statistic with data: %1$s for asset with id: %2$s & path: %3$s",
-                textUnitStatistic,
-                asset.getId(),
-                asset.getPath());
-
-        logger.warn(message);
-
-        Tags tags = Tags.of("assetId", String.valueOf(asset.getId()),
-                "assetPath", asset.getPath());
-
-        meterRegistry.summary("services.TMTextUnitStatisticService.ImportUnmatchedStatistics", tags);
-    }
-
-    private ImmutableMap<ImportTextUnitStatisticsBody, List<TMTextUnit>> getStatisticsToTextUnitMap(ImmutableMap<ImportTextUnitStatisticsBody, ImmutableList<TextUnitDTO>> statisticToTextUnitDTOMap, ImmutableList<Long> textUnitIds) {
-        List<TMTextUnit> textUnits = new ArrayList<>();
-        Iterables.partition(textUnitIds, batchSize).forEach(
-                textUnitIdBatch -> textUnits.addAll(tmTextUnitRepository.findByIdInAndEagerFetchStatistics(textUnitIdBatch))
-        );
-
-        ImmutableMap<Long, TMTextUnit> idTextUnitMap = textUnits.stream().collect(
-                ImmutableMap.toImmutableMap(BaseEntity::getId, Function.identity())
-        );
-
-        return statisticToTextUnitDTOMap.entrySet()
-                .stream()
-                .map(statisticToTextUnitDTOEntry -> {
-                    ImportTextUnitStatisticsBody statistics = statisticToTextUnitDTOEntry.getKey();
-                    ImmutableList<TextUnitDTO> textUnitDTOs = statisticToTextUnitDTOEntry.getValue();
-
-                    List<TMTextUnit> matchedTextUnits = textUnitDTOs.stream()
-                            .map(textUnitDTO -> idTextUnitMap.get(textUnitDTO.getTmTextUnitId()))
-                            .collect(Collectors.toList());
-
-                    return new AbstractMap.SimpleEntry<>(
-                            statistics,
-                            matchedTextUnits
-                            );
-                })
-                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    private void uploadStatistics(Map <ImportTextUnitStatisticsBody, List<TMTextUnit>> statisticsToTextUnitsMap) {
         List<TMTextUnitStatistic> updatedStatistics = statisticsToTextUnitsMap.entrySet().stream()
                 .flatMap(statisticsToTextUnitEntry -> {
                     ImportTextUnitStatisticsBody textUnitStatistic = statisticsToTextUnitEntry.getKey();
@@ -204,9 +168,61 @@ public class TMTextUnitStatisticService {
                         }),
                         map -> new ArrayList<>(map.values())));
 
-        Iterables.partition(updatedStatistics, batchSize).forEach(
-                updatedStatisticsBatch -> tmTextUnitStatisticRepository.saveAll(updatedStatisticsBatch)
+        List<TMTextUnitStatistic> newStatistics = updatedStatistics.stream()
+                .filter(s -> s.getId() == null).collect(Collectors.toList());
+
+        tmTextUnitStatisticRepository.saveAll(newStatistics);
+    }
+
+    private ImmutableList<TextUnitDTO> getMatchingTextUnitDTOs(ImportTextUnitStatisticsBody textUnitStatistic, ImmutableMap<String, List<TextUnitDTO>> textUnitDTOsByName, Asset logAsset) {
+        List<TextUnitDTO> foundTextUnitDTOsByNameAndContent = textUnitDTOsByName.get(textUnitStatistic.getName());
+
+        if (foundTextUnitDTOsByNameAndContent != null && foundTextUnitDTOsByNameAndContent.size() > 0) {
+            return ImmutableList.copyOf(foundTextUnitDTOsByNameAndContent);
+        }
+
+        logUnmatchedStatistics(logAsset, textUnitStatistic);
+        return null;
+    }
+
+    private void logUnmatchedStatistics(Asset asset, ImportTextUnitStatisticsBody textUnitStatistic) {
+        String message = String.format(
+                "Statistics import skipped. No equivalent text unit found for text unit statistic with data: %1$s for asset with id: %2$s & path: %3$s",
+                textUnitStatistic,
+                asset.getId(),
+                asset.getPath());
+
+        logger.warn(message);
+
+        Tags tags = Tags.of("assetId", String.valueOf(asset.getId()),
+                "assetPath", asset.getPath());
+
+        meterRegistry.summary("services.TMTextUnitStatisticService.ImportUnmatchedStatistics", tags);
+    }
+
+    private ImmutableMap<ImportTextUnitStatisticsBody, List<TMTextUnit>> getStatisticsToTextUnitMap(ImmutableMap<ImportTextUnitStatisticsBody, ImmutableList<TextUnitDTO>> statisticToTextUnitDTOMap, ImmutableList<Long> textUnitIds) {
+        List<TMTextUnit> textUnits = new ArrayList<>(tmTextUnitRepository.findByIdInAndEagerFetchStatistics(textUnitIds));
+
+        ImmutableMap<Long, TMTextUnit> idTextUnitMap = textUnits.stream().collect(
+                ImmutableMap.toImmutableMap(BaseEntity::getId, Function.identity())
         );
+
+        return statisticToTextUnitDTOMap.entrySet()
+                .stream()
+                .map(statisticToTextUnitDTOEntry -> {
+                    ImportTextUnitStatisticsBody statistics = statisticToTextUnitDTOEntry.getKey();
+                    ImmutableList<TextUnitDTO> textUnitDTOs = statisticToTextUnitDTOEntry.getValue();
+
+                    List<TMTextUnit> matchedTextUnits = textUnitDTOs.stream()
+                            .map(textUnitDTO -> idTextUnitMap.get(textUnitDTO.getTmTextUnitId()))
+                            .collect(Collectors.toList());
+
+                    return new AbstractMap.SimpleEntry<>(
+                            statistics,
+                            matchedTextUnits
+                            );
+                })
+                .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private String getTextUnitMd5(ImportTextUnitStatisticsBody textUnitStatistic) {
