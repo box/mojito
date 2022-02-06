@@ -17,6 +17,9 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractorCheckNotificationSender;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractorCheckNotificationSenderException;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractorCheckNotificationSenderSlack;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.notifications.service.NotificationService;
 import com.box.l10n.mojito.notifications.service.NotificationServiceException;
@@ -33,6 +36,7 @@ import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -118,13 +122,16 @@ public class ExtractionCheckCommand extends Command {
     @Parameter(names = {"--checks-skipped-message", "-csm"}, arity = 1, required = false, description = "Optional notification message to be sent when checks are skipped.")
     String checksSkippedMessage;
 
+    List<ExtractorCheckNotificationSender> extractorCheckNotificationSenders;
+
     @Override
     protected void execute() throws CommandException {
+        initExtractorCheckNotificationSenders();
 
         if (areChecksSkipped) {
             consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Checks disabled as --skip-checks is set to true.").println();
             if (StringUtils.isNotBlank(checksSkippedMessage)) {
-                sendChecksSkippedNotifications();
+                 sendChecksSkippedNotifications();
             }
         } else {
             ExtractionPaths baseExtractionPaths = new ExtractionPaths(inputDirectoryParam, baseExtractionName);
@@ -159,25 +166,33 @@ public class ExtractionCheckCommand extends Command {
         }
     }
 
+    private void initExtractorCheckNotificationSenders() {
+        extractorCheckNotificationSenders = new ArrayList<>();
+
+        if (thirdPartyNotificationTypes.contains(SLACK)) {
+            extractorCheckNotificationSenders.add(new ExtractorCheckNotificationSenderSlack(slackMessageTemplate, username));
+        }
+        if (thirdPartyNotificationTypes.contains(PHABRICATOR)) {
+            extractorCheckNotificationSenders.add(new ExtractorCheckNotificationSenderPhabricator(phabMessageTemplate, phabObjectId));
+        }
+    }
+
     private void sendChecksSkippedNotifications() {
-        for (ThirdPartyNotificationType notificationType : thirdPartyNotificationTypes) {
-            notificationService.sendNotifications(buildChecksSkippedMessage(checksSkippedMessage, notificationType),
-                    ImmutableSet.of(notificationType), getNotificationParametersMap("warning"));
+        for (ExtractorCheckNotificationSender extractorCheckNotificationSender : extractorCheckNotificationSenders) {
+            try {
+                extractorCheckNotificationSender.sendChecksSkippedNotifications();
+            } catch (ExtractorCheckNotificationSenderException e) {
+                // TODO
+            }
         }
     }
 
     private void sendFailureNotifications(List<CliCheckResult> failures, boolean hardFail) {
-        ImmutableMap<String, String> notificationParams = getNotificationParametersMap("danger");
-
-        if (!thirdPartyNotificationTypes.isEmpty()) {
-            consoleWriter.newLine().a("Sending notifications").println();
-            for (ThirdPartyNotificationType notificationType : thirdPartyNotificationTypes) {
-                try {
-                    notificationService.sendNotifications(buildFailureNotificationMessage(failures, notificationType, hardFail), ImmutableSet.<ThirdPartyNotificationType>builder().add(notificationType).build(), notificationParams);
-                } catch (NotificationServiceException e) {
-                    logger.error("Error sending notifications to " + notificationType.name(), e);
-                    consoleWriter.fg(Ansi.Color.RED).a("Error sending notifications to " + notificationType.name() + ": " + e.getMessage()).newLine();
-                }
+        for (ExtractorCheckNotificationSender extractorCheckNotificationSender : extractorCheckNotificationSenders) {
+            try {
+                extractorCheckNotificationSender.sendFailureNotification(failures, false);
+            } catch (ExtractorCheckNotificationSenderException e) {
+                // TODO
             }
         }
     }
@@ -318,7 +333,7 @@ public class ExtractionCheckCommand extends Command {
 
     private ImmutableMap<String, String> buildOptionsMap() {
         return ImmutableMap.<String, String>builder().putAll(checkerOptions.stream()
-                        .collect(Collectors.toMap(CheckerOptionsMapEntry::getKey, CheckerOptionsMapEntry::getValue)))
+                .collect(Collectors.toMap(CheckerOptionsMapEntry::getKey, CheckerOptionsMapEntry::getValue)))
                 .build();
     }
 
@@ -347,4 +362,25 @@ public class ExtractionCheckCommand extends Command {
         return checkers;
     }
 
+    @Configurable
+    private static class ExtractorCheckNotificationSenderPhabricator implements ExtractorCheckNotificationSender {
+
+        String messageTemplate;
+        String objectId;
+
+        public ExtractorCheckNotificationSenderPhabricator(String messageTemplate, String objectId) {
+            this.messageTemplate = messageTemplate;
+            this.objectId = objectId;
+        }
+
+        @Override
+        public void sendFailureNotification(List<CliCheckResult> failures, boolean hardFail) {
+
+        }
+
+        @Override
+        public void sendChecksSkippedNotifications() {
+
+        }
+    }
 }
