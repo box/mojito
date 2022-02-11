@@ -7,6 +7,7 @@ import TemplateHelper from "../../utils/TemplateHelper";
 import {Link} from "react-router";
 import md5 from "md5";
 import LinkHelper from "../../utils/LinkHelper";
+import Locales from "../../utils/Locales";
 
 class GitBlameInfoModal extends React.Component {
     static propTypes() {
@@ -28,9 +29,10 @@ class GitBlameInfoModal extends React.Component {
     /**
      * @param label  The label for the data to display
      * @param data   The data to display
+     * @param direction The direction (ltr/rtl) of the data to display
      * @returns {*}  The row of label:data to display in the modal
      */
-    displayInfo = (label, data) => {
+    displayInfo = (label, data, direction="ltr") => {
         let gitBlameClass = "";
         if (data == null) {
             gitBlameClass = " git-blame-unused";
@@ -40,7 +42,7 @@ class GitBlameInfoModal extends React.Component {
         return (
             <div className={"row git-blame"}>
                 <label className={"col-sm-3 git-blame-label"}>{label}</label>
-                <div className={"col-sm-9 git-blame-info" + gitBlameClass}>{data}</div>
+                <div className={"col-sm-9 git-blame-info" + gitBlameClass} dir={direction}>{data}</div>
             </div>
         );
     };
@@ -70,10 +72,11 @@ class GitBlameInfoModal extends React.Component {
     /**
      * @param labelId  The labelId for the formatted message
      * @param data     The data to display
+     * @param direction The direction (ltr/rtl) of the data to display
      * @returns {*}    The row of label:data to display in the modal
      */
-    displayInfoWithId = (labelId, data) => {
-        return this.displayInfo(this.props.intl.formatMessage({id: labelId}), data);
+    displayInfoWithId = (labelId, data, direction="ltr") => {
+        return this.displayInfo(this.props.intl.formatMessage({id: labelId}), data, direction);
     };
 
     /**
@@ -87,7 +90,7 @@ class GitBlameInfoModal extends React.Component {
                     {this.displayInfoWithId("textUnit.gitBlameModal.assetPath", this.props.textUnit.getAssetPath())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.id", this.props.textUnit.getName())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.source", this.props.textUnit.getSource())}
-                    {this.displayInfoWithId("textUnit.gitBlameModal.target", this.props.textUnit.getTarget())}
+                    {this.displayInfoWithId("textUnit.gitBlameModal.target", this.props.textUnit.getTarget(), Locales.getLanguageDirection(this.props.textUnit.getTargetLocale()))}
                     {this.displayInfoWithId("textUnit.gitBlameModal.locale", this.props.textUnit.getTargetLocale())}
                     {this.displayInfoWithId("textUnit.gitBlameModal.created", this.convertDateTime(this.props.textUnit.getTmTextUnitCreatedDate()))}
                     {this.displayInfoWithId("textUnit.gitBlameModal.translated", this.getTranslatedDate())}
