@@ -118,7 +118,7 @@ public class RecommendStringIdCheckerTest {
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
         assetExtractorTextUnit.setName("A source string with no errors. --- someDir.someSubDir.someStringId");
         assetExtractorTextUnit.setSource("A source string with no errors.");
-        assetExtractorTextUnit.setUsages(Sets.newHashSet(cwd + FileSystems.getDefault().getSeparator() + "someDir/someSubDir/anotherLevel/evenDeeper/someSourceFile.java:1497"));
+        assetExtractorTextUnit.setUsages(Sets.newHashSet(cwd.replace(".", "") + "someDir/someSubDir/anotherLevel/evenDeeper/someSourceFile.java:1497"));
         addedTUs.add(assetExtractorTextUnit);
         List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
         AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
@@ -128,6 +128,25 @@ public class RecommendStringIdCheckerTest {
         CliCheckResult result = recommendStringIdChecker.run(assetExtractionDiffs);
         Assert.assertTrue(result.isSuccessful());
         Assert.assertTrue(result.getNotificationText().isEmpty());
+    }
+
+    @Test
+    public void testAbsolutePathAsUsageWithNoContext() {
+        String cwd = Paths.get(".").toAbsolutePath().toString();
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("A source string with no errors. ");
+        assetExtractorTextUnit.setSource("A source string with no errors.");
+        assetExtractorTextUnit.setUsages(Sets.newHashSet(cwd.replace(".", "") + "someDir/someSubDir/anotherLevel/evenDeeper/someSourceFile.java:1497"));
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        CliCheckResult result = recommendStringIdChecker.run(assetExtractionDiffs);
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertTrue(result.getNotificationText().contains("someDir.someSubDir."));
     }
 
     @Test
