@@ -71,10 +71,10 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
     private RecommendStringIdCheckResult generateRecommendation(AssetExtractorTextUnit textUnit, RecommendStringIdCheckResult recommendation) {
         List<String> possiblePrefixes = new ArrayList<>();
         String msgctxt = removeIgnoredLabelFromContext(textUnit.getName().contains(ID_SEPARATOR) ? textUnit.getName().split(ID_SEPARATOR)[1] : "");
-        String cwd = Paths.get(".").toAbsolutePath() + FileSystems.getDefault().getSeparator();
+        String cwd = Paths.get(".").toAbsolutePath().toString();
         for (String filePath : textUnit.getUsages()) {
             if (Paths.get(filePath).isAbsolute()) {
-                filePath = filePath.replace(cwd, "");
+                filePath = filePath.replace(cwd.replace(FileSystems.getDefault().getSeparator() + ".", FileSystems.getDefault().getSeparator()), "");
             }
             Path file = Paths.get(removeLineNumberFromUsage(filePath));
             String fileName = file.getFileName().toString();
