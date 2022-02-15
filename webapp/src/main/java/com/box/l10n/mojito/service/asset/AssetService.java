@@ -386,10 +386,8 @@ public class AssetService {
                 if (assetExtractionByBranch.getDeleted()) {
                     logger.debug("Asset extraction for asset: {} and branch: {} already deleted", asset.getPath(), branchId);
                 } else {
+                    logger.debug("Delete asset branch for asset: {} and branch: {} as deleted", asset.getPath(), branchId);
                     assetExtractionService.deleteAssetBranch(asset, branch.getName());
-                    logger.debug("Mark asset extraction for asset: {} and branch: {} as deleted", asset.getPath(), branchId);
-                    assetExtractionByBranch.setDeleted(true);
-                    assetExtractionByBranchRepository.save(assetExtractionByBranch);
                 }
             }
 

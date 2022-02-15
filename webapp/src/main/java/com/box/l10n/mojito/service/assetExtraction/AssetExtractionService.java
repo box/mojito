@@ -214,7 +214,7 @@ public class AssetExtractionService {
         CreateTextUnitsResult createdTextUnitsResult = createTextUnitsForNewContent(assetContent, stateForNewContent, currentTask);
 
         updateBranchAssetExtraction(assetContent, createdTextUnitsResult.getUpdatedState(), filterOptions, currentTask);
-        updateLastSuccessfulAsseteExtraction(asset, createdTextUnitsResult.getUpdatedState(), currentTask);
+        updateLastSuccessfulAssetExtraction(asset, createdTextUnitsResult.getUpdatedState(), currentTask);
         performLeveraging(createdTextUnitsResult.getLeveragingMatches(), currentTask);
 
         logger.info("Done processing asset content id: {}", assetContentId);
@@ -222,7 +222,7 @@ public class AssetExtractionService {
     }
 
     @Pollable(message = "Updating merged asset text units")
-    void updateLastSuccessfulAsseteExtraction(Asset asset, MultiBranchState currentState, @ParentTask PollableTask currentTask) {
+    void updateLastSuccessfulAssetExtraction(Asset asset, MultiBranchState currentState, @ParentTask PollableTask currentTask) {
         logger.trace("Make sure we have a last successful extraction in the Asset (legacy support edge case)");
         AssetExtraction lastSuccessfulAssetExtraction = getOrCreateLastSuccessfulAssetExtraction(asset);
         MultiBranchState lastSuccessfulMultiBranchState = updateAssetExtractionWithState(lastSuccessfulAssetExtraction.getId(), currentState, AssetContentMd5s.of());
@@ -230,7 +230,7 @@ public class AssetExtractionService {
 
     @Pollable(message = "Updating branch asset text units")
     void updateBranchAssetExtraction(AssetContent assetContent, MultiBranchState currentState, List<String> filterOptions, @ParentTask PollableTask currentTask) {
-        AssetExtractionByBranch assetExtractionByBranch = getOrCreateAssetExtractionByBranch(assetContent);
+        AssetExtractionByBranch assetExtractionByBranch = getUndeletedOrCreateAssetExtractionByBranch(assetContent);
         AssetContentMd5s assetContentMd5s = AssetContentMd5s.of().withContentMd5(assetContent.getContentMd5()).withFilterOptionsMd5(filterOptionsMd5Builder.md5(filterOptions));
         updateAssetExtractionWithState(assetExtractionByBranch.getAssetExtraction().getId(), currentState, assetContentMd5s);
     }
@@ -264,7 +264,7 @@ public class AssetExtractionService {
 
             // This is done outside the transaction because the delete can't be rollbacked when using S3 storage  and
             // (database storage would benefit of that logic to be in the transacation) hence it would corrupt the
-            // dataset. A drawback is that if the service fail, this may not be deleted while the DB is i]n final state.
+            // dataset. A drawback is that if the service fail, this may not be deleted while the DB is in final state.
             // We could have a cleanup job for those cases.
             multiBranchStateService.deleteMultiBranchStateForAssetExtractionId(assetExtractionId, assetExtractionVersionForDelete);
             return updatedMergedState;
@@ -838,10 +838,17 @@ public class AssetExtractionService {
                 .build();
     }
 
-    AssetExtractionByBranch getOrCreateAssetExtractionByBranch(AssetContent assetContent) {
-        logger.debug("getOrCreateAssetExtractionByBranch");
+    AssetExtractionByBranch getUndeletedOrCreateAssetExtractionByBranch(AssetContent assetContent) {
+        logger.debug("getUndeletedOrCreateAssetExtractionByBranch");
         return retryTemplate.execute(context -> {
             return getAssetExtractionByBranch(assetContent.getAsset(), assetContent.getBranch())
+                    .map(aebb -> {
+                        if (aebb.getDeleted()) {
+                            aebb.setDeleted(false);
+                            aebb = assetExtractionByBranchRepository.save(aebb);
+                        }
+                        return aebb;
+                    })
                     .orElseGet(() -> createAssetExtractionForBranch(assetContent));
         });
     }
