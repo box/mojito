@@ -11,6 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 /**
  * {@link AbstractCliChecker} that verifies a source string does not contain an empty placeholder e.g. '{}'.
  *
@@ -67,7 +69,7 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
         notificationText.append("Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:");
         notificationText.append(System.lineSeparator());
         notificationText.append(failures.stream()
-                .map(source -> "* '" + source + "'")
+                .map(source -> "* " + QUOTE_MARKER + source + QUOTE_MARKER)
                 .collect(Collectors.joining(System.lineSeparator())));
         notificationText.append(System.lineSeparator());
         return notificationText;

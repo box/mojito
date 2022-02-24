@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 /**
  * {@link AbstractCliChecker} that verifies that a description of a placeholder is present in the associated
  * comment in the form <placeholder name>:<description> or <placeholder position>:<description>
@@ -99,7 +101,7 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
         notificationText.append(failureMap.keySet().stream()
                 .map(source -> {
                     StringBuilder sb = new StringBuilder();
-                    sb.append("String '" + source + "' failed check:");
+                    sb.append("String " + QUOTE_MARKER + source + QUOTE_MARKER + " failed check:");
                     sb.append(System.lineSeparator());
                     return sb.append(failureMap.get(source).stream()
                                     .map(failure -> "* " + failure)

@@ -39,7 +39,7 @@ public class ExtractionCheckNotificationSenderPhabricator extends ExtractionChec
             sb.append("**" + "Failed checks:" + "**" + getDoubleNewLines());
             sb.append(results.stream().map(check -> "**" + check.getCheckName() + "**" + getDoubleNewLines() + check.getNotificationText()).collect(Collectors.joining(System.lineSeparator())));
             sb.append(getDoubleNewLines() + "**" + "Please correct the above issues in a new commit." + "**");
-            String message = getFormattedNotificationMessage(messageTemplate, "baseMessage", appendHardFailureMessage(hardFail, sb));
+            String message = getFormattedNotificationMessage(messageTemplate, "baseMessage", replaceQuoteMarkers(appendHardFailureMessage(hardFail, sb)));
             differentialRevision.addComment(objectId, PhabricatorIcon.WARNING + " " + message);
         }
     }
@@ -49,5 +49,10 @@ public class ExtractionCheckNotificationSenderPhabricator extends ExtractionChec
         if (!Strings.isNullOrEmpty(checksSkippedMessage)) {
             differentialRevision.addComment(objectId, PhabricatorIcon.WARNING + " " +checksSkippedMessage);
         }
+    }
+
+    @Override
+    public String replaceQuoteMarkers(String message) {
+        return message.replaceAll(QUOTE_MARKER, "`");
     }
 }

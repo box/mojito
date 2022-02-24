@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 public class GlossaryTermCaseCheckerTrie {
 
     private final Node rootNode = new Node();
@@ -71,16 +73,16 @@ public class GlossaryTermCaseCheckerTrie {
         result.isSuccess = false;
         if (current.glossaryTerms.stream().anyMatch(term -> term.getSeverity() == GlossaryTermSeverity.MAJOR)) {
             result.isMajorFailure = true;
-            failures.add(String.format("MAJOR: String '%s' contains glossary term '%s' which must match exactly.", source,
+            failures.add(String.format("MAJOR: String " + QUOTE_MARKER + "%s" + QUOTE_MARKER + " contains glossary term '%s' which must match exactly.", source,
                     current.glossaryTerms.stream().filter(term -> term.getSeverity() == GlossaryTermSeverity.MAJOR)
                             .map(GlossaryTerm::getTerm).findFirst().get()));
         } else {
             if (current.glossaryTerms.size() > 1) {
-                failures.add(String.format("WARN: String '%s' contains glossary terms %s but does not exactly match one of the terms.", source,
+                failures.add(String.format("WARN: String " + QUOTE_MARKER + "%s" + QUOTE_MARKER + " contains glossary terms %s but does not exactly match one of the terms.", source,
                         current.glossaryTerms.stream().map(term -> "'" + term.getTerm() + "'")
                                 .collect(Collectors.joining(" or "))));
             } else {
-                failures.add(String.format("WARN: String '%s' contains glossary term '%s' but does not exactly match the glossary term.", source, current.glossaryTerms.get(0).getTerm()));
+                failures.add(String.format("WARN: String " + QUOTE_MARKER + "%s" + QUOTE_MARKER + " contains glossary term '%s' but does not exactly match the glossary term.", source, current.glossaryTerms.get(0).getTerm()));
             }
         }
     }

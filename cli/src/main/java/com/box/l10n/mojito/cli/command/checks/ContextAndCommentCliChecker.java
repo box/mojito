@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 /**
  * {@link AbstractCliChecker} that verifies the comment and context parameters are provided and
  * are not identical.
@@ -57,7 +59,7 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
             cliCheckResult.setSuccessful(false);
             cliCheckResult.setNotificationText("Context and comment check found failures:" + System.lineSeparator() +
                     results.stream().filter(ContextAndCommentCliCheckerResult::isFailed)
-                        .map(result -> "* Source string '" + result.getSourceString() + "' failed check with error: "
+                        .map(result -> "* Source string " + QUOTE_MARKER + result.getSourceString() + QUOTE_MARKER + " failed check with error: "
                             + result.getFailureMessage())
                         .collect(Collectors.joining(System.lineSeparator())) + System.lineSeparator());
         }

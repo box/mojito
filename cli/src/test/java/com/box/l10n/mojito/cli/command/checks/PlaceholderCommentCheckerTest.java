@@ -11,6 +11,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.DOUBLE_BRACE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_VARIABLE_TYPE_REGEX;
@@ -99,8 +100,8 @@ public class PlaceholderCommentCheckerTest {
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Placeholder description in comment check failed." + System.lineSeparator()
                 + System.lineSeparator() +
-                "String 'A source string with a single {placeholder} and {another} and some {more}.' failed check:" + System.lineSeparator() +
-                "* Missing description for placeholder with name 'another' in comment. Please add a description in the string comment in the form another:<description>", result.getNotificationText());
+                "String " + QUOTE_MARKER + "A source string with a single {placeholder} and {another} and some {more}." + QUOTE_MARKER + " failed check:" + System.lineSeparator() +
+                "* Missing description for placeholder with name " + QUOTE_MARKER + "another" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form another:<description>", result.getNotificationText());
     }
 
     @Test
@@ -135,8 +136,8 @@ public class PlaceholderCommentCheckerTest {
 
         CliCheckResult result = placeholderCommentChecker.run(assetExtractionDiffs);
         Assert.assertFalse(result.isSuccessful());
-        Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name 'placeholder2' in comment."));
-        Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name '%d' in comment."));
+        Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name " + QUOTE_MARKER + "placeholder2" + QUOTE_MARKER + " in comment."));
+        Assert.assertTrue(result.getNotificationText().contains("* Missing description for placeholder with name " + QUOTE_MARKER + "%d" + QUOTE_MARKER + " in comment."));
     }
 
     @Test

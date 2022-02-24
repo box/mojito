@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 
 public abstract class ExtractionCheckNotificationSender {
 
+    public static String QUOTE_MARKER = "`";
+
     final String hardFailureMessage;
     final String messageTemplate;
     final String checksSkippedMessage;
@@ -23,6 +25,8 @@ public abstract class ExtractionCheckNotificationSender {
     public abstract void sendFailureNotification(List<CliCheckResult> failures, boolean hardFail);
 
     public abstract void sendChecksSkippedNotification();
+
+    public abstract String replaceQuoteMarkers(String message);
 
     protected String getDoubleNewLines() {
         return System.lineSeparator() + System.lineSeparator();

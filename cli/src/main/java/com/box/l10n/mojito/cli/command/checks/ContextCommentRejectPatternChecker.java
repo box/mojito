@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 /**
  * {@link AbstractCliChecker} that checks if a text units context or comment strings match a regex pattern.
  *
@@ -68,9 +70,9 @@ public class ContextCommentRejectPatternChecker extends AbstractCliChecker {
 
     private String buildFailureText(AssetExtractorTextUnit textUnit) {
         StringBuilder sb = new StringBuilder();
-        sb.append("* Source string '");
+        sb.append("* Source string " + QUOTE_MARKER);
         sb.append(textUnit.getSource());
-        sb.append("' has an invalid context or comment string.");
+        sb.append(QUOTE_MARKER + " has an invalid context or comment string.");
         return sb.toString();
     }
 

@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.util.Set;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
 
     private PrintfLikeVariableTypePlaceholderDescriptionChecker printfLikeVariableTypePlaceholderDescriptionChecker;
@@ -37,7 +39,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
         String comment = "Test comment";
         Set<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'count' in comment. Please add a description in the string comment in the form count:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "count" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form count:<description>"));
     }
 
     @Test
@@ -46,7 +48,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
         String comment = "Test comment";
         Set<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'count' in comment. Please add a description in the string comment in the form count:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "count" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form count:<description>"));
     }
 
     @Test
@@ -55,7 +57,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
         String comment = null;
         Set<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'count' in comment. Please add a description in the string comment in the form count:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "count" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form count:<description>"));
     }
 
     @Test
@@ -64,7 +66,7 @@ public class PrintfLikeVariableTypePlaceholderDescriptionCheckerTest {
         String comment = "Test comment count:The number of books";
         Set<String> failures = printfLikeVariableTypePlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'shelf_count' in comment. Please add a description in the string comment in the form shelf_count:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "shelf_count" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form shelf_count:<description>"));
     }
 
     @Test

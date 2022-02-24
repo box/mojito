@@ -1,9 +1,5 @@
 package com.box.l10n.mojito.cli.command.checks;
 
-import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
-import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
-import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
-import com.box.l10n.mojito.cli.command.checks.ContextAndCommentCliChecker;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.google.common.collect.ImmutableMap;
@@ -15,6 +11,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
 
 public class ContextAndCommentCliCheckerTest {
@@ -63,7 +60,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "* Source string 'A source string with no errors.' failed check with error: Comment string is empty."
+                "* Source string " + QUOTE_MARKER + "A source string with no errors." + QUOTE_MARKER + " failed check with error: Comment string is empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -84,7 +81,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "* Source string 'A source string with no errors.' failed check with error: Context string is empty."
+                "* Source string " + QUOTE_MARKER + "A source string with no errors." + QUOTE_MARKER + " failed check with error: Context string is empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -105,7 +102,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "* Source string 'A source string with no errors.' failed check with error: Context and comment strings are both empty."
+                "* Source string " + QUOTE_MARKER + "A source string with no errors." + QUOTE_MARKER + " failed check with error: Context and comment strings are both empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -126,7 +123,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "* Source string 'A source string with no errors.' failed check with error: Context & comment strings should not be identical."
+                "* Source string " + QUOTE_MARKER + "A source string with no errors." + QUOTE_MARKER + " failed check with error: Context & comment strings should not be identical."
                 + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -166,7 +163,7 @@ public class ContextAndCommentCliCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.isHardFail());
         Assert.assertEquals("Context and comment check found failures:" + System.lineSeparator() +
-                "* Source string 'A source string with no errors.' failed check with error: Context and comment strings are both empty."
+                "* Source string " + QUOTE_MARKER + "A source string with no errors." + QUOTE_MARKER + " failed check with error: Context and comment strings are both empty."
                 + System.lineSeparator(), result.getNotificationText());
     }
 }

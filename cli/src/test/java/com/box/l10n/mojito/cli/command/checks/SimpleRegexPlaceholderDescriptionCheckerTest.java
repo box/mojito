@@ -8,6 +8,8 @@ import org.junit.Test;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 public class SimpleRegexPlaceholderDescriptionCheckerTest {
 
     private SimpleRegexPlaceholderDescriptionChecker simpleRegexPlaceholderDescriptionChecker;
@@ -31,7 +33,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
         String comment = "Test comment";
         Set<String> failures = simpleRegexPlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name '%1' in comment. Please add a description in the string comment in the form %1:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "%1" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form %1:<description>"));
     }
 
     @Test
@@ -40,7 +42,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
         String comment = null;
         Set<String> failures = simpleRegexPlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name '%1' in comment. Please add a description in the string comment in the form %1:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "%1" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form %1:<description>"));
     }
 
     @Test
@@ -49,7 +51,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
         String comment = "Test comment %1:The number of books";
         Set<String> failures = simpleRegexPlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name '%2' in comment. Please add a description in the string comment in the form %2:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "%2" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form %2:<description>"));
     }
 
     @Test
@@ -68,7 +70,7 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
         simpleRegexPlaceholderDescriptionChecker.setPattern(Pattern.compile(PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex()));
         Set<String> failures = simpleRegexPlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name '%d' in comment. Please add a description in the string comment in the form %d:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "%d" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form %d:<description>"));
     }
 
 
@@ -79,6 +81,6 @@ public class SimpleRegexPlaceholderDescriptionCheckerTest {
         simpleRegexPlaceholderDescriptionChecker.setPattern(Pattern.compile(PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX.getRegex()));
         Set<String> failures = simpleRegexPlaceholderDescriptionChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name '%s' in comment. Please add a description in the string comment in the form %s:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "%s" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form %s:<description>"));
     }
 }
