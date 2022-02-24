@@ -8,6 +8,7 @@ import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
 import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
+import com.google.common.base.Strings;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
@@ -39,26 +40,28 @@ public class TranslateStep extends AbstractMd5ComputationStep {
     InheritanceMode inheritanceMode;
     RawDocument rawDocument;
     boolean rawDocumentProcessingEnabled = false;
+    String useParentUntranslatedPattern;
 
     /**
      * Creates the {@link TranslateStep} for a given asset.
-     *
-     * @param asset            {@link Asset} that will be used to lookup translations
+     *  @param asset            {@link Asset} that will be used to lookup translations
      * @param repositoryLocale used to fetch translations. It can be different
      *                         from the locale used in the Okapi pipeline ({@link #targetLocale}) in
      *                         case the file needs to be generated for a tag that is different from the
      *                         locale used for translation.
      * @param inheritanceMode
      * @param status
+     * @param useParentUntranslatedPattern
      */
-    public TranslateStep(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, Status status) {
+    public TranslateStep(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, Status status, String useParentUntranslatedPattern) {
         this.asset = asset;
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
+        this.useParentUntranslatedPattern = useParentUntranslatedPattern;
 
         StatusFilter statusFilter = getStatusFilter(status);
 
-        this.translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode, statusFilter);
+        this.translatorWithInheritance = new TranslatorWithInheritance(asset, repositoryLocale, inheritanceMode, statusFilter, useParentUntranslatedPattern);
     }
 
     private StatusFilter getStatusFilter(Status status) {
