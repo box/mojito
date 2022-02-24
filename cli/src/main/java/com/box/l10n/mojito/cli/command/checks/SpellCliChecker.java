@@ -20,6 +20,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 /**
  * {@link AbstractCliChecker} that uses hunspell native libraries to spell check words in source strings.
  * <br>
@@ -222,7 +224,7 @@ public class SpellCliChecker extends AbstractCliChecker {
         return failureMap.get(sourceString).keySet().stream()
                 .map(misspelling -> {
                     StringBuilder builder = new StringBuilder();
-                    builder.append("The string '" + sourceString + "' contains misspelled words:" + System.lineSeparator());
+                    builder.append("The string " + QUOTE_MARKER + sourceString + QUOTE_MARKER + " contains misspelled words:" + System.lineSeparator());
                     List<String> suggestions = failureMap.get(sourceString).get(misspelling);
                     builder.append(" * '" + misspelling + "' ");
                     if(!suggestions.isEmpty()){

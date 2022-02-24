@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.GLOSSARY_FILE_PATH_KEY;
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 
 public class GlossaryCaseCheckerTest {
 
@@ -85,8 +86,8 @@ public class GlossaryCaseCheckerTest {
         CliCheckResult result = glossaryCaseChecker.run(assetExtractionDiffs);
         Assert.assertFalse(result.isSuccessful());
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "* MAJOR: String 'A source string with company and ads Manager in it.' contains glossary term 'Company' which must match exactly." + System.lineSeparator()
-                + "* WARN: String 'A source string with company and ads Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term."
+                + System.lineSeparator() + "* MAJOR: String " + QUOTE_MARKER + "A source string with company and ads Manager in it." + QUOTE_MARKER + " contains glossary term 'Company' which must match exactly." + System.lineSeparator()
+                + "* WARN: String " + QUOTE_MARKER + "A source string with company and ads Manager in it." + QUOTE_MARKER + " contains glossary term 'Ads Manager' but does not exactly match the glossary term."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -103,7 +104,7 @@ public class GlossaryCaseCheckerTest {
 
         CliCheckResult result = glossaryCaseChecker.run(assetExtractionDiffs);
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "* WARN: String 'A source string with ads                Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term."
+                + System.lineSeparator() + "* WARN: String " + QUOTE_MARKER + "A source string with ads                Manager in it." + QUOTE_MARKER + " contains glossary term 'Ads Manager' but does not exactly match the glossary term."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -136,7 +137,7 @@ public class GlossaryCaseCheckerTest {
         CliCheckResult result = glossaryCaseChecker.run(assetExtractionDiffs);
         Assert.assertTrue(result.isSuccessful());
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "* WARN: String 'A source string with ads Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term."
+                + System.lineSeparator() + "* WARN: String " + QUOTE_MARKER + "A source string with ads Manager in it." + QUOTE_MARKER + " contains glossary term 'Ads Manager' but does not exactly match the glossary term."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -154,7 +155,7 @@ public class GlossaryCaseCheckerTest {
         CliCheckResult result = glossaryCaseChecker.run(assetExtractionDiffs);
         Assert.assertTrue(result.isSuccessful());
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "* WARN: String 'A source string with Ads-Manager in it.' contains glossary term 'Ads Manager' but does not exactly match the glossary term."
+                + System.lineSeparator() + "* WARN: String " + QUOTE_MARKER + "A source string with Ads-Manager in it." + QUOTE_MARKER + " contains glossary term 'Ads Manager' but does not exactly match the glossary term."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 
@@ -186,7 +187,7 @@ public class GlossaryCaseCheckerTest {
 
         CliCheckResult result = glossaryCaseChecker.run(assetExtractionDiffs);
         Assert.assertEquals("Glossary check failures:"
-                + System.lineSeparator() + "* WARN: String 'A source string with event Manager in it.' contains glossary terms 'Event Manager' or 'Event manager' but does not exactly match one of the terms."
+                + System.lineSeparator() + "* WARN: String " + QUOTE_MARKER + "A source string with event Manager in it." + QUOTE_MARKER + " contains glossary terms 'Event Manager' or 'Event manager' but does not exactly match one of the terms."
                 + System.lineSeparator() + System.lineSeparator(), result.getNotificationText());
     }
 

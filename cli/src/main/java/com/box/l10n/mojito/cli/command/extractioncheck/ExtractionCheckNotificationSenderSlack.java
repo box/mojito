@@ -63,7 +63,7 @@ public class ExtractionCheckNotificationSenderSlack extends ExtractionCheckNotif
         sb.append("*" + "Failed checks:" + "*" + getDoubleNewLines());
         sb.append(failures.stream().map(check -> "*" + check.getCheckName() + "*" + getDoubleNewLines() + check.getNotificationText() + getDoubleNewLines()).collect(Collectors.joining(System.lineSeparator())));
         sb.append(getDoubleNewLines() + "*" + "Please correct the above issues in a new commit." + "*");
-        String message = getFormattedNotificationMessage(messageTemplate, "baseMessage", appendHardFailureMessage(hardFail, sb));
+        String message = getFormattedNotificationMessage(messageTemplate, "baseMessage", replaceQuoteMarkers(appendHardFailureMessage(hardFail, sb)));
         return message;
     }
 
@@ -76,6 +76,11 @@ public class ExtractionCheckNotificationSenderSlack extends ExtractionCheckNotif
                 throw new ExtractionCheckNotificationSenderException("Error sending Slack notification: " + e.getMessage(), e);
             }
         }
+    }
+
+    @Override
+    public String replaceQuoteMarkers(String message) {
+        return message.replaceAll(QUOTE_MARKER, "`");
     }
 
     private Message buildSlackMessage(String message) throws SlackClientException {

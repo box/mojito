@@ -22,6 +22,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.slack.SlackClient.COLOR_WARNING;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
@@ -161,5 +162,25 @@ public class ExtractionCheckNotificationSenderSlackTest  {
         new ExtractionCheckNotificationSenderSlack("", "emailPattern",
                 "messageTemplate", "hardFail", "checksSkipped",
                 false);
+    }
+
+    @Test
+    public void testQuoteMarkersAreUpdated() throws SlackClientException {
+        List<CliCheckResult> results = new ArrayList<>();
+        CliCheckResult result = new CliCheckResult(false, true, "Test Check");
+        result.setNotificationText("Some notification text with " + QUOTE_MARKER + "some.text.id" + QUOTE_MARKER);
+        results.add(result);
+        extractionCheckNotificationSenderSlack.sendFailureNotification(results, true);
+        verify(slackClientMock, times(1)).sendInstantMessage(messageArgumentCaptor.capture());
+        verify(slackChannelsMock, times(1)).getSlackChannelForDirectOrBotMessage(false, "user", "{0}@somewhere.com");
+        Message slackMessage = messageArgumentCaptor.getValue();
+        Assert.assertTrue(slackMessage.getAttachments().size() == 1);
+        Attachment attachment = slackMessage.getAttachments().get(0);
+        Assert.assertTrue(attachment.getColor().equals(COLOR_WARNING));
+        Assert.assertTrue(attachment.getText().contains("*i18n source string checks failed*"));
+        Assert.assertTrue(attachment.getText().contains("Test Check"));
+        Assert.assertTrue(attachment.getText().contains("Some notification text"));
+        Assert.assertTrue(attachment.getText().contains("This is a hard failure message."));
+        Assert.assertTrue(attachment.getText().contains("`some.text.id`"));
     }
 }

@@ -13,6 +13,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 /**
  * {@link AbstractCliChecker} that generates a recommended string id based off the file path of the file that contains the new string.
  *
@@ -48,7 +50,7 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
     private List<String> getRecommendedIdPrefixUpdates(List<AssetExtractionDiff> assetExtractionDiffs) {
         return getAddedTextUnits(assetExtractionDiffs).stream().map(textUnit -> getRecommendStringIdCheckResult(textUnit))
                 .filter(recommendation -> recommendation.isRecommendedUpdate())
-                .map(recommendation -> String.format("Please update id '%s' for string '%s' to be prefixed with '%s'", recommendation.getStringId(),
+                .map(recommendation -> String.format("Please update id " + QUOTE_MARKER + "%s" + QUOTE_MARKER + " for string " + QUOTE_MARKER + "%s" + QUOTE_MARKER + " to be prefixed with '%s'", recommendation.getStringId(),
                         recommendation.getSource(), recommendation.getRecommendedIdPrefix()))
                 .collect(Collectors.toList());
     }

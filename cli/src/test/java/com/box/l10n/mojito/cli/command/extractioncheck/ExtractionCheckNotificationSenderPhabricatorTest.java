@@ -19,6 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -130,5 +131,21 @@ public class ExtractionCheckNotificationSenderPhabricatorTest {
     @Test(expected = ExtractionCheckNotificationSenderException.class)
     public void testExceptionThrownIfNoObjectIdProvided() {
         new ExtractionCheckNotificationSenderPhabricator("","some template", "", "" );
+    }
+
+    @Test
+    public void testQuoteMarkersAreReplaced() {
+        List<CliCheckResult> results = new ArrayList<>();
+        CliCheckResult result = new CliCheckResult(false, true, "Test Check");
+        result.setNotificationText("Some notification text for " + QUOTE_MARKER + "some.text.id" + QUOTE_MARKER);
+        results.add(result);
+        extractionCheckNotificationSenderPhabricator.sendFailureNotification(results, true);
+        verify(differentialRevisionMock, times(1)).addComment(objectIdCaptor.capture(), messageCaptor.capture());
+        Assert.assertTrue(objectIdCaptor.getValue().equals("D12345"));
+        Assert.assertTrue(messageCaptor.getValue().contains(PhabricatorIcon.WARNING+ " **i18n source string checks failed**"));
+        Assert.assertTrue(messageCaptor.getValue().contains("Test Check"));
+        Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
+        Assert.assertTrue(messageCaptor.getValue().contains("This is a hard failure message"));
+        Assert.assertTrue(messageCaptor.getValue().contains("`some.text.id`"));
     }
 }

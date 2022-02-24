@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.util.Set;
 
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
+
 public class DoubleBracesPlaceholderDescriptionCheckerTest {
 
     private DoubleBracesPlaceholderDescriptionChecker doubleBracesPlaceholderCommentChecker;
@@ -26,14 +28,14 @@ public class DoubleBracesPlaceholderDescriptionCheckerTest {
     public void testMissingPlaceholderDescriptionInComment() {
         Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}}.", "Test comment");
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'placeholder' in comment. Please add a description in the string comment in the form placeholder:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "placeholder" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form placeholder:<description>"));
     }
 
     @Test
     public void testNullComment() {
         Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}}.", null);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'placeholder' in comment. Please add a description in the string comment in the form placeholder:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "placeholder" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form placeholder:<description>"));
     }
 
     @Test
@@ -46,7 +48,7 @@ public class DoubleBracesPlaceholderDescriptionCheckerTest {
     public void testOneOfMultiplePlaceholderDescriptionsMissingInComment() {
         Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions("A source string with a single {{placeholder}} and {another} and some {more}.", "Test comment placeholder:description 1,more: description 3");
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'another' in comment. Please add a description in the string comment in the form another:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "another" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form another:<description>"));
     }
 
     @Test
@@ -55,7 +57,7 @@ public class DoubleBracesPlaceholderDescriptionCheckerTest {
         String comment = "Test comment";
         Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder with name 'numFiles' in comment. Please add a description in the string comment in the form numFiles:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder with name " + QUOTE_MARKER + "numFiles" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form numFiles:<description>"));
     }
 
     @Test
@@ -64,7 +66,7 @@ public class DoubleBracesPlaceholderDescriptionCheckerTest {
         String comment = "Test comment";
         Set<String> failures = doubleBracesPlaceholderCommentChecker.checkCommentForDescriptions(source, comment);
         Assert.assertTrue(failures.size() == 1);
-        Assert.assertTrue(failures.contains("Missing description for placeholder number '0' in comment. Please add a description in the string comment in the form 0:<description>"));
+        Assert.assertTrue(failures.contains("Missing description for placeholder number " + QUOTE_MARKER + "0" + QUOTE_MARKER + " in comment. Please add a description in the string comment in the form 0:<description>"));
     }
 
 }

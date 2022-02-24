@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_REJECT_PATTERN_KEY;
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
 
 public class ContextCommentRejectPatternCheckerTest {
@@ -60,7 +61,7 @@ public class ContextCommentRejectPatternCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertFalse(result.getNotificationText().isEmpty());
         Assert.assertTrue(result.getNotificationText().contains("Context and Comment Pattern check failed for regex '^ *- *$|^ *-- *$':"));
-        Assert.assertTrue(result.getNotificationText().contains("* Source string 'A source string with no errors.' has an invalid context or comment string."));
+        Assert.assertTrue(result.getNotificationText().contains("* Source string " + QUOTE_MARKER + "A source string with no errors." + QUOTE_MARKER + " has an invalid context or comment string."));
     }
 
     @Test(expected = CommandException.class)
