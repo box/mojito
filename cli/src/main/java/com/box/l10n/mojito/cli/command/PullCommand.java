@@ -87,7 +87,7 @@ public class PullCommand extends Command {
     @Parameter(names = {"--async-ws"}, required = false, description = "Use async WS, use for processing big files (should become default eventually)")
     Boolean asyncWS = false;
 
-    @Parameter(names = {"--untranslated-format"}, required = false, hidden = true, description = "Format for untranslated strings. The expected format for the pattern is: \"prefix{source}suffix\". In order to have the source string displayed, the string: {source} needs to be present in the pattern.")
+    @Parameter(names = {"--use-parent-untranslated-format"}, required = false, hidden = true, description = "Format for untranslated strings. The expected format for the pattern is: \"prefix{source}suffix\". In order to have the source string displayed, the string: {source} needs to be present in the pattern.")
     String useParentUntranslatedPatternParam = null;
 
     @Autowired
