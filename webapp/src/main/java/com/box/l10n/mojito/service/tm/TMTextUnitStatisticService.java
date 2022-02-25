@@ -175,10 +175,10 @@ public class TMTextUnitStatisticService {
     }
 
     private ImmutableList<TextUnitDTO> getMatchingTextUnitDTOs(ImportTextUnitStatisticsBody textUnitStatistic, ImmutableMap<String, List<TextUnitDTO>> textUnitDTOsByName, Asset logAsset) {
-        List<TextUnitDTO> foundTextUnitDTOsByNameAndContent = textUnitDTOsByName.get(textUnitStatistic.getName());
+        List<TextUnitDTO> matchingTextUnitDTOs = textUnitDTOsByName.get(textUnitStatistic.getName());
 
-        if (foundTextUnitDTOsByNameAndContent != null && foundTextUnitDTOsByNameAndContent.size() > 0) {
-            return ImmutableList.copyOf(foundTextUnitDTOsByNameAndContent);
+        if (matchingTextUnitDTOs != null && matchingTextUnitDTOs.size() > 0) {
+            return ImmutableList.copyOf(matchingTextUnitDTOs);
         }
 
         logUnmatchedStatistics(logAsset, textUnitStatistic);
