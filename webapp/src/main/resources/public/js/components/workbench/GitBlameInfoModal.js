@@ -220,6 +220,7 @@ class GitBlameInfoModal extends React.Component {
     getBaseParams = () => {
         return {
             textUnitName: this.props.textUnit.getName(),
+            textUnitContent: this.props.textUnit.getSource(),
             textUnitNameInSource: this.getTextUnitNameInSource(),
             assetPath: this.props.textUnit.getAssetPath(),
             thirdPartyTextUnitId: this.getThirdPartyTextUnitId(),

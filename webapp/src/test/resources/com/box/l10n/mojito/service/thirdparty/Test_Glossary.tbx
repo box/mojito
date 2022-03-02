@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE martif SYSTEM "TBXcoreStructV02.dtd">
+<martif type="TBX" xml:lang="en-US">
+	<martifHeader>
+		<fileDesc>
+			<sourceDesc>
+				<p>Smartling's TBX glossary export for Test Glossary</p>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<p type="XCSURI">http://www.ttt.org/oscarstandards/tbx/TBXXCS.xcs</p>
+		</encodingDesc>
+	</martifHeader>
+	<text>
+		<body>
+			<termEntry id="8300f245-5072-4918-a59b-4d1cdf5c8cf2">
+				<descrip type="definition">house comment</descrip>
+				<langSet xml:lang="en-US">
+					<tig>
+						<term>house</term>
+					</tig>
+				</langSet>
+				<langSet xml:lang="fr-FR">
+					<tig>
+						<term>maison</term>
+					</tig>
+				</langSet>
+			</termEntry>
+			<termEntry id="bd3a096a-ab4f-49ac-b033-099086cfe271">
+				<descrip type="definition">school comment</descrip>
+				<langSet xml:lang="en-US">
+					<tig>
+						<term>school</term>
+					</tig>
+				</langSet>
+				<langSet xml:lang="fr-FR">
+					<tig>
+						<term>l'école</term>
+					</tig>
+				</langSet>
+			</termEntry>
+			<termEntry id="b35b5435-16ca-4fa3-95cd-8527420c9240">
+				<descrip type="definition">field comment</descrip>
+				<descrip type="partOfSpeech">noun</descrip>
+				<langSet xml:lang="en-US">
+					<tig>
+						<term>field</term>
+						<termNote type="partOfSpeech">noun</termNote>
+					</tig>
+				</langSet>
+				<langSet xml:lang="fr-FR">
+					<tig>
+						<term>le champ</term>
+						<termNote type="partOfSpeech">noun</termNote>
+					</tig>
+				</langSet>
+			</termEntry>
+		</body>
+	</text>
+</martif>

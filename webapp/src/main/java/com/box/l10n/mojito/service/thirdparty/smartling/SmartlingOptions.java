@@ -18,6 +18,7 @@ public final class SmartlingOptions {
     public static final String DRY_RUN = "dry-run";
     public static final String REQUEST_ID = "request-id";
     public static final String JSON_SYNC = "json-sync";
+    public static final String GLOSSARY_SYNC = "glossary-sync";
 
     private final Set<String> pluralFixForLocales;
     private final String placeholderFormat;
@@ -25,19 +26,22 @@ public final class SmartlingOptions {
     private final boolean dryRun;
     private final String requestId;
     private final boolean isJsonSync;
+    private final boolean isGlossarySync;
 
     public SmartlingOptions(Set<String> pluralFixForLocales,
                             String placeholderFormat,
                             String customPlaceholderFormat,
                             boolean dryRun,
                             String requestId,
-                            boolean isJsonSync) {
+                            boolean isJsonSync,
+                            boolean isGlossarySync) {
         this.pluralFixForLocales = pluralFixForLocales;
         this.placeholderFormat = placeholderFormat;
         this.customPlaceholderFormat = customPlaceholderFormat;
         this.dryRun = dryRun;
         this.requestId = requestId;
         this.isJsonSync = isJsonSync;
+        this.isGlossarySync = isGlossarySync;
     }
 
     public static SmartlingOptions parseList(List<String> options) {
@@ -53,6 +57,7 @@ public final class SmartlingOptions {
         String customPlaceholderFormat = map.get(PLACEHOLDER_FORMAT_CUSTOM);
         String requestId = map.get(REQUEST_ID);
         String isJsonSync = map.get(JSON_SYNC);
+        String isGlossarySync = map.get(GLOSSARY_SYNC);
 
         return new SmartlingOptions(
                 pluralFixStr.isEmpty() ? Collections.emptySet() : ImmutableSet.copyOf(pluralFixStr.split(",")),
@@ -60,7 +65,8 @@ public final class SmartlingOptions {
                 customPlaceholderFormat,
                 parseBoolean(dryRunStr),
                 requestId,
-                parseBoolean(isJsonSync));
+                parseBoolean(isJsonSync),
+                parseBoolean(isGlossarySync));
     }
 
     public Set<String> getPluralFixForLocales() {
@@ -85,5 +91,9 @@ public final class SmartlingOptions {
 
     public boolean isJsonSync() {
         return isJsonSync;
+    }
+
+    public boolean isGlossarySync() {
+        return isGlossarySync;
     }
 }
