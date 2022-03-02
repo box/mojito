@@ -4,6 +4,7 @@ public enum ThirdPartySyncAction {
     PUSH,
     PUSH_TRANSLATION,
     PULL,
+    PULL_SOURCE,
     MAP_TEXTUNIT,
     PUSH_SCREENSHOT
 }

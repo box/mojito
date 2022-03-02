@@ -73,4 +73,6 @@ interface ThirdPartyTMS {
                           String skipAssetsWithPathPattern,
                           String includeTextUnitsWithPattern,
                           List<String> optionList);
+
+    void pullSource(Repository repository, String projectId, List<String> optionList, Map<String, String> localeMapping);
 }

@@ -8,11 +8,18 @@ import com.box.l10n.mojito.smartling.response.ContextUploadResponse;
 import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.FileUploadResponse;
 import com.box.l10n.mojito.smartling.response.FilesResponse;
+import com.box.l10n.mojito.smartling.response.GetGlossaryDetailsResponse;
+import com.box.l10n.mojito.smartling.response.GetGlossarySourceTermsResponse;
+import com.box.l10n.mojito.smartling.response.GetGlossaryTargetTermsResponse;
+import com.box.l10n.mojito.smartling.response.GlossaryDetails;
+import com.box.l10n.mojito.smartling.response.GlossarySourceTerm;
+import com.box.l10n.mojito.smartling.response.GlossaryTargetTerm;
 import com.box.l10n.mojito.smartling.response.Items;
 import com.box.l10n.mojito.smartling.response.Response;
 import com.box.l10n.mojito.smartling.response.SourceStringsResponse;
 import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -23,8 +30,9 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import reactor.core.publisher.Mono;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -60,6 +68,10 @@ public class SmartlingClient {
     static final String API_FILES_DELETE = "files-api/v2/projects/{projectId}/file/delete";
     static final String API_CONTEXTS = "context-api/v2/projects/{projectId}/contexts";
     static final String API_BINDINGS = "context-api/v2/projects/{projectId}/bindings";
+    static final String API_GLOSSARY_DETAILS = "glossary-api/v2/accounts/{accountId}/glossaries/{glossaryId}";
+    static final String API_GLOSSARY_SOURCE_TBX_DOWNLOAD = "glossary-api/v2/accounts/{accountId}/glossaries/{glossaryId}/download?format=tbx&localeIds={locale}";
+    static final String API_GLOSSARY_TRANSLATED_TBX_DOWNLOAD = "glossary-api/v2/accounts/{accountId}/glossaries/{glossaryId}/download?format=tbx&localeIds={locale},{sourceLocale}";
+    static final String API_GLOSSARY_DOWNLOAD_TBX = "glossary-api/v2/accounts/{accountId}/glossaries/{glossaryId}/download?format=tbx";
 
     static final String ERROR_CANT_GET_FILES = "Can't get files";
     static final String ERROR_CANT_GET_SOURCE_STRINGS = "Can't get source strings";
@@ -68,6 +80,11 @@ public class SmartlingClient {
     static final String ERROR_CANT_DELETE_FILE = "Can't delete file: %s";
     static final String ERROR_CANT_UPLOAD_CONTEXT = "Can't upload context: %s";
     static final String ERROR_CANT_CREATE_BINDINGS = "Can't create bindings: %s";
+    static final String ERROR_CANT_GET_GLOSSARY_DETAILS = "Can't retrieve glossary details accountId: %s, glossaryId: %s";
+    static final String ERROR_CANT_DOWNLOAD_GLOSSARY_FILE_WITH_LOCALE = "Can't download glossary file accountId: %s, glossaryId: %s, locale: %s";
+    static final String ERROR_CANT_DOWNLOAD_GLOSSARY_FILE = "Can't download glossary file accountId: %s, glossaryId: %s";
+    static final String ERROR_CANT_GET_GLOSSARY_SOURCE_TERMS = "Can't retrieve glossary source terms accountId: %s, glossaryId: %s";
+    static final String ERROR_CANT_GET_GLOSSARY_TARGET_TERMS = "Can't retrieve glossary target terms accountId: %s, glossaryId: %s, locale: %s";
 
     final ObjectMapper objectMapper;
 
@@ -114,6 +131,36 @@ public class SmartlingClient {
             return file;
         } catch(HttpClientErrorException e) {
             throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_FILE, fileUri, projectId, locale);
+        }
+    }
+
+    public String downloadGlossaryFile(String accountId, String glossaryId) {
+        try {
+            String file = oAuth2RestTemplate.getForObject(
+                    API_GLOSSARY_DOWNLOAD_TBX, String.class, accountId, glossaryId);
+            return file;
+        } catch (HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_GLOSSARY_FILE, accountId, glossaryId);
+        }
+    }
+
+    public String downloadSourceGlossaryFile(String accountId, String glossaryId, String locale) {
+        try {
+            String file = oAuth2RestTemplate.getForObject(
+                    API_GLOSSARY_SOURCE_TBX_DOWNLOAD, String.class, accountId, glossaryId, locale);
+            return file;
+        } catch (HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_GLOSSARY_FILE_WITH_LOCALE, accountId, glossaryId, locale);
+        }
+    }
+
+    public String downloadGlossaryFileWithTranslations(String accountId, String glossaryId, String locale, String sourceLocale) {
+        try {
+            String file = oAuth2RestTemplate.getForObject(
+                    API_GLOSSARY_TRANSLATED_TBX_DOWNLOAD, String.class, accountId, glossaryId, locale, sourceLocale);
+            return file;
+        } catch (HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_DOWNLOAD_GLOSSARY_FILE_WITH_LOCALE, accountId, glossaryId, locale);
         }
     }
 
@@ -239,6 +286,19 @@ public class SmartlingClient {
             logger.debug("create binding: {}", s);
         } catch(HttpClientErrorException e) {
             throw wrapIntoSmartlingException(e, ERROR_CANT_CREATE_BINDINGS, objectMapper.writeValueAsStringUnchecked(bindings));
+        }
+    }
+
+    public GlossaryDetails getGlossaryDetails(String accountId, String glossaryId) {
+        try {
+            GetGlossaryDetailsResponse getGlossaryDetailsResponse = oAuth2RestTemplate.getForObject(
+                    API_GLOSSARY_DETAILS,
+                    GetGlossaryDetailsResponse.class,
+                    accountId, glossaryId);
+            throwExceptionOnError(getGlossaryDetailsResponse, ERROR_CANT_GET_GLOSSARY_DETAILS, accountId, glossaryId);
+            return getGlossaryDetailsResponse.getData();
+        } catch(HttpClientErrorException e) {
+            throw wrapIntoSmartlingException(e, ERROR_CANT_GET_GLOSSARY_DETAILS, accountId, glossaryId);
         }
     }
 

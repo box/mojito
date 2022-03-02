@@ -91,4 +91,9 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
                                  List<String> optionList) {
 
     }
+
+    @Override
+    public void pullSource(Repository repository, String projectId, List<String> optionList, Map<String, String> localeMapping) {
+
+    }
 }

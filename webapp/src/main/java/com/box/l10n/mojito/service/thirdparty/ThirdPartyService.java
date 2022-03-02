@@ -141,6 +141,9 @@ public class ThirdPartyService {
         if (actions.contains(ThirdPartySyncAction.PUSH_TRANSLATION)) {
             pushTranslations(thirdPartyProjectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern, options, repository, currentTask);
         }
+        if (actions.contains(ThirdPartySyncAction.PULL_SOURCE)) {
+            pullSource(thirdPartyProjectId, options, repository, localeMapping, currentTask);
+        }
         if (actions.contains(ThirdPartySyncAction.PULL)) {
             pull(thirdPartyProjectId, pluralSeparator, localeMapping, skipTextUnitsWithPattern, skipAssetsWithPathPattern, options, repository, currentTask);
         }
@@ -170,6 +173,11 @@ public class ThirdPartyService {
         thirdPartyTMS.pull(repository, thirdPartyProjectId, pluralSeparator,
                 parseLocaleMapping(localeMapping),
                 skipTextUnitsWithPattern, skipAssetsWithPathPattern, options);
+    }
+
+    @Pollable(message = "Pull source text units from third party service.")
+    private void pullSource(String thirdPartyProjectId, List<String> options, Repository repository, String localeMapping, @ParentTask PollableTask currentTask) {
+        thirdPartyTMS.pullSource(repository, thirdPartyProjectId, options, parseLocaleMapping(localeMapping));
     }
 
     @Pollable(message = "Map Mojito and third party text units.")
