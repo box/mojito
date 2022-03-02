@@ -2,7 +2,10 @@ package com.box.l10n.mojito.android.strings;
 
 import com.box.l10n.mojito.service.tm.PluralNameParser;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +18,11 @@ import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.OTHER;
 
 public class AndroidStringDocumentMapper {
 
+    static Logger logger = LoggerFactory.getLogger(AndroidStringDocumentMapper.class);
+
     private static final String DEFAULT_ASSET_DELIMITER = "#@#";
+
+    private static final CharMatcher INVALID_CONTROL = CharMatcher.anyOf("\t\r\n").negate().and(CharMatcher.javaIsoControl());
 
     private final String pluralSeparator;
     private final String assetDelimiter;
@@ -99,15 +106,15 @@ public class AndroidStringDocumentMapper {
 
     TextUnitDTO addTextUnitDTOAttributes(TextUnitDTO textUnit) {
 
-        if (!Strings.isNullOrEmpty(locale)){
+        if (!Strings.isNullOrEmpty(locale)) {
             textUnit.setTargetLocale(locale);
         }
 
-        if (!Strings.isNullOrEmpty(repositoryName)){
+        if (!Strings.isNullOrEmpty(repositoryName)) {
             textUnit.setRepositoryName(repositoryName);
         }
 
-        if (textUnit.getName().contains(assetDelimiter)){
+        if (textUnit.getName().contains(assetDelimiter)) {
             String[] nameParts = textUnit.getName().split(assetDelimiter, 2);
 
             if (nameParts.length > 1) {
@@ -122,7 +129,7 @@ public class AndroidStringDocumentMapper {
     Stream<TextUnitDTO> stringToTextUnits(AbstractAndroidString androidString) {
         Stream<TextUnitDTO> result;
 
-        if (androidString.isSingular()){
+        if (androidString.isSingular()) {
             result = singularToTextUnit((AndroidSingular) androidString);
         } else {
             result = pluralToTextUnits((AndroidPlural) androidString);
@@ -161,7 +168,6 @@ public class AndroidStringDocumentMapper {
                     addTextUnitDTOAttributes(textUnit);
 
                     return textUnit;
-
                 });
     }
 
@@ -177,15 +183,22 @@ public class AndroidStringDocumentMapper {
         return new AndroidSingular(
                 textUnit.getTmTextUnitId(),
                 textUnit.getAssetPath() + assetDelimiter + textUnit.getName(),
-                removeBadCharacters(useSource ? textUnit.getSource() : textUnit.getTarget()),
-                textUnit.getComment());
+                removeInvalidControlCharacter(Strings.nullToEmpty(useSource ? textUnit.getSource() : textUnit.getTarget())),
+                removeInvalidControlCharacter(textUnit.getComment()));
     }
 
-    static String removeBadCharacters(String source) {
-        return Strings.nullToEmpty(source)
-                      .replaceAll("\u001d", "")
-                      .replaceAll("\u001c", "")
-                      .replaceAll("\u0000", "");
+    static String removeInvalidControlCharacter(String str) {
+        String withoutControlCharacters = null;
+
+        if (str != null) {
+            withoutControlCharacters = INVALID_CONTROL.removeFrom(str);
+            if (!str.equals(withoutControlCharacters)) {
+                logger.warn("Removing invalid control characters. It is likely they shouldn't be present in a first place" +
+                        " consider cleaning up. String: `" + str + "`");
+            }
+        }
+
+        return withoutControlCharacters;
     }
 
     static String unescape(String str) {
