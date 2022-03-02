@@ -14,7 +14,7 @@ import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.ONE;
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.OTHER;
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.TWO;
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.ZERO;
-import static com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper.removeBadCharacters;
+import static com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper.removeInvalidControlCharacter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -357,8 +357,8 @@ public class AndroidStringDocumentMapperTest {
         assertThat(textUnits).isNotEmpty();
         assertThat(textUnits).hasSize(2);
         assertThat(textUnits).extracting("tmTextUnitId", "name", "assetPath", "target")
-                             .contains(Tuple.tuple(10L, "name1", "string/path1", "content1"))
-                             .contains(Tuple.tuple(11L, "name2", "string/path2", "content2"));
+                .contains(Tuple.tuple(10L, "name1", "string/path1", "content1"))
+                .contains(Tuple.tuple(11L, "name2", "string/path2", "content2"));
     }
 
     @Test
@@ -450,22 +450,22 @@ public class AndroidStringDocumentMapperTest {
     }
 
     @Test
-    public void testRemoveBadCharacters() {
-
-        assertThat(removeBadCharacters(null)).isEqualTo("");
-        assertThat(removeBadCharacters("")).isEqualTo("");
-        assertThat(removeBadCharacters("String")).isEqualTo("String");
-        assertThat(removeBadCharacters("second" + '\u0000' + "String")).isEqualTo("secondString");
-        assertThat(removeBadCharacters("third" + '\u001c' + "String")).isEqualTo("thirdString");
-        assertThat(removeBadCharacters("fourth" + '\u001d' + "String")).isEqualTo("fourthString");
-        assertThat(removeBadCharacters("all" + '\u0000' + "Bad" + '\u001c' + "Characters" + '\u001d' + "Removed"))
+    public void testRemoveInvalidControlCharacter() {
+        assertThat(removeInvalidControlCharacter(null)).isEqualTo(null);
+        assertThat(removeInvalidControlCharacter("")).isEqualTo("");
+        assertThat(removeInvalidControlCharacter("String")).isEqualTo("String");
+        assertThat(removeInvalidControlCharacter("second" + '\u0000' + "String")).isEqualTo("secondString");
+        assertThat(removeInvalidControlCharacter("third" + '\u001c' + "String")).isEqualTo("thirdString");
+        assertThat(removeInvalidControlCharacter("fourth" + '\u001d' + "String")).isEqualTo("fourthString");
+        assertThat(removeInvalidControlCharacter("all" + '\u0000' + "Bad" + '\u001c' + "Characters" + '\u001d' + "Removed"))
                 .isEqualTo("allBadCharactersRemoved");
-
+        assertThat(removeInvalidControlCharacter("Some control accepted\u0009\n\r")).isEqualTo("Some control accepted\u0009\n\r");
+        assertThat(removeInvalidControlCharacter("ありがとう")).isEqualTo("ありがとう");
     }
 
     @Test
     public void testAddTextUnitDTOAttributesAssetPathAndName() {
-        mapper = new AndroidStringDocumentMapper("_",  null);
+        mapper = new AndroidStringDocumentMapper("_", null);
         TextUnitDTO textUnitDTO = new TextUnitDTO();
 
         textUnitDTO.setName("asset_path#@#name_part1");
@@ -480,15 +480,15 @@ public class AndroidStringDocumentMapperTest {
 
     }
 
-    private TextUnitDTO sourceTextUnitDTO(Long id, String name, String content, String comment, String assetPath, String pluralForm, String pluralFormOther){
+    private TextUnitDTO sourceTextUnitDTO(Long id, String name, String content, String comment, String assetPath, String pluralForm, String pluralFormOther) {
         return textUnitDTO(id, name, content, comment, assetPath, pluralForm, pluralFormOther, true);
     }
 
-    private TextUnitDTO targetTextUnitDTO(Long id, String name, String content, String comment, String assetPath, String pluralForm, String pluralFormOther){
+    private TextUnitDTO targetTextUnitDTO(Long id, String name, String content, String comment, String assetPath, String pluralForm, String pluralFormOther) {
         return textUnitDTO(id, name, content, comment, assetPath, pluralForm, pluralFormOther, false);
     }
 
-    private TextUnitDTO textUnitDTO(Long id, String name, String content, String comment, String assetPath, String pluralForm, String pluralFormOther, boolean toSource){
+    private TextUnitDTO textUnitDTO(Long id, String name, String content, String comment, String assetPath, String pluralForm, String pluralFormOther, boolean toSource) {
 
         TextUnitDTO textUnit = new TextUnitDTO();
         textUnit.setTmTextUnitId(id);
