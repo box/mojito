@@ -75,7 +75,9 @@ public class LocalizedAssetBody {
 
     Status status = Status.ALL;
 
-    String useParentUntranslatedPattern = null;
+    Double usageThreshold = null;
+
+    String usageFormat = null;
 
     public Long getAssetId() {
         return assetId;
@@ -149,11 +151,19 @@ public class LocalizedAssetBody {
         this.filterOptions = filterOptions;
     }
 
-    public String getuseParentUntranslatedPattern() {
-        return useParentUntranslatedPattern;
+    public Double getUsageThreshold() {
+        return usageThreshold;
     }
 
-    public void setuseParentUntranslatedPattern(String useParentUntranslatedPattern) {
-        this.useParentUntranslatedPattern = useParentUntranslatedPattern;
+    public void setUsageThreshold(Double usageThreshold) {
+        this.usageThreshold = usageThreshold;
+    }
+
+    public String getUsageFormat() {
+        return usageFormat;
+    }
+
+    public void setUsageFormat(String usageFormat) {
+        this.usageFormat = usageFormat;
     }
 }

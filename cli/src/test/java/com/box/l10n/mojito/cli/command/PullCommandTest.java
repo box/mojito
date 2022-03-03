@@ -898,7 +898,7 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
-    public void pullFormattedUntranslated() throws Exception {
+    public void pullFormattedUsageThreshold() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
 
         getL10nJCommander().run("push", "-r", repository.getName(),
@@ -911,7 +911,8 @@ public class PullCommandTest extends CLITestBase {
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir("target").getAbsolutePath(),
-                "--use-parent-untranslated-format", "\uD83D\uDE04{source}");
+                "--usage-format-threshold", "0D",
+                "--usage-format", "\uD83D\uDE04{translation}");
 
         checkExpectedGeneratedResources();
     }
