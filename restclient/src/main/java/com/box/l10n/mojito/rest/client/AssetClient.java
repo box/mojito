@@ -74,7 +74,6 @@ public class AssetClient extends BaseClient {
      * @param filterConfigIdOverride Optional, can be null. Allows to specify a
      * specific Okapi filter to use to process the asset
      * @param filterOptions
-     * @param useParentUntranslatedPattern
      * @return the localized asset content
      */
     public LocalizedAssetBody getLocalizedAssetForContent(
@@ -85,8 +84,7 @@ public class AssetClient extends BaseClient {
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
             LocalizedAssetBody.Status status,
-            LocalizedAssetBody.InheritanceMode inheritanceMode,
-            String useParentUntranslatedPattern) {
+            LocalizedAssetBody.InheritanceMode inheritanceMode) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -101,7 +99,6 @@ public class AssetClient extends BaseClient {
         localizedAssetBody.setFilterOptions(filterOptions);
         localizedAssetBody.setInheritanceMode(inheritanceMode);
         localizedAssetBody.setStatus(status);
-        localizedAssetBody.setuseParentUntranslatedPattern(useParentUntranslatedPattern);
 
         return authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 localizedAssetBody,
@@ -116,8 +113,7 @@ public class AssetClient extends BaseClient {
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
             LocalizedAssetBody.Status status,
-            LocalizedAssetBody.InheritanceMode inheritanceMode,
-            String useParentUntranslatedPattern) {
+            LocalizedAssetBody.InheritanceMode inheritanceMode) {
         logger.debug("Getting localized asset with asset id = {}, locale id = {}, outputBcp47tag: {}", assetId, localeId, outputBcp47tag);
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder
@@ -132,7 +128,6 @@ public class AssetClient extends BaseClient {
         localizedAssetBody.setFilterOptions(filterOptions);
         localizedAssetBody.setInheritanceMode(inheritanceMode);
         localizedAssetBody.setStatus(status);
-        localizedAssetBody.setuseParentUntranslatedPattern(useParentUntranslatedPattern);
 
         PollableTask pollableTask = authenticatedRestTemplate.postForObject(uriBuilder.toUriString(),
                 localizedAssetBody,

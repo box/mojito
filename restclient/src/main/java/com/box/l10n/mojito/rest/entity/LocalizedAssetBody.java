@@ -75,8 +75,6 @@ public class LocalizedAssetBody {
 
     Status status = Status.ALL;
 
-    String useParentUntranslatedPattern = null;
-
     public Long getAssetId() {
         return assetId;
     }
@@ -147,13 +145,5 @@ public class LocalizedAssetBody {
 
     public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
-    }
-
-    public String getuseParentUntranslatedPattern() {
-        return useParentUntranslatedPattern;
-    }
-
-    public void setuseParentUntranslatedPattern(String useParentUntranslatedPattern) {
-        this.useParentUntranslatedPattern = useParentUntranslatedPattern;
     }
 }

@@ -145,8 +145,7 @@ public class EvolveCommand extends Command {
                 null,
                 FILTER_OPTIONS,
                 LocalizedAssetBody.Status.ALL,
-                LocalizedAssetBody.InheritanceMode.USE_PARENT,
-                null);
+                LocalizedAssetBody.InheritanceMode.USE_PARENT);
 
         return localizedAssetForContent.getContent();
     }

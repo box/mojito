@@ -22,6 +22,7 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
@@ -37,8 +38,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author aloison
@@ -182,8 +185,7 @@ public class AssetWS {
                 localizedAssetBody.getFilterConfigIdOverride(),
                 localizedAssetBody.getFilterOptions(),
                 localizedAssetBody.getStatus(),
-                localizedAssetBody.getInheritanceMode(),
-                localizedAssetBody.getuseParentUntranslatedPattern()
+                localizedAssetBody.getInheritanceMode()
         );
 
         localizedAssetBody.setContent(generateLocalized);
