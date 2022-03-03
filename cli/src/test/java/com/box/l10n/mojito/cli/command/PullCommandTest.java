@@ -911,7 +911,7 @@ public class PullCommandTest extends CLITestBase {
         getL10nJCommander().run("pull", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source").getAbsolutePath(),
                 "-t", getTargetTestDir("target").getAbsolutePath(),
-                "--use-parent-untranslated-format", "\uD83D\uDE04{source}");
+                "--untranslated-format", "\uD83D\uDE04{source}");
 
         checkExpectedGeneratedResources();
     }
