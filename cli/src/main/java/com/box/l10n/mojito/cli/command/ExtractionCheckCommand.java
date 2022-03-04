@@ -209,7 +209,7 @@ public class ExtractionCheckCommand extends Command {
     private void checkForHardFail(List<CliCheckResult> results) {
         if (getCheckerHardFailures(results).count() > 0) {
             String cliFailureString = "The following checks had hard failures:" + System.lineSeparator() +
-                    getCheckerHardFailures(results).map(failure -> failure.getCheckName() + " failures: " + System.lineSeparator() + failure.getNotificationText().replaceAll(QUOTE_MARKER, "'") + System.lineSeparator())
+                    getCheckerHardFailures(results).map(failure -> failure.getCheckName() + " failures: " + System.lineSeparator() + failure.getNotificationText() + System.lineSeparator())
                             .collect(Collectors.joining(System.lineSeparator()));
 
             logger.debug(cliFailureString);
@@ -241,8 +241,7 @@ public class ExtractionCheckCommand extends Command {
         consoleWriter.fg(Ansi.Color.YELLOW).newLine().a("Failed checks: ").println();
         failedCheckNames.stream().forEach(check -> {
             consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(check.getCheckName()).println();
-            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(check.getNotificationText().replaceAll("\\*", "\t*")
-                    .replaceAll(QUOTE_MARKER, "'")).println();
+            consoleWriter.fg(Ansi.Color.YELLOW).newLine().a(check.getNotificationText().replaceAll("\\*", "\t*")).println();
         });
     }
 
