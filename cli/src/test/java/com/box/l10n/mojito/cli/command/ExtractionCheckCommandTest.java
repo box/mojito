@@ -76,7 +76,7 @@ public class ExtractionCheckCommandTest extends CLITestBase {
         Assert.assertTrue(outputCapture.toString().contains("The following checks had hard failures:" + System.lineSeparator()));
         Assert.assertTrue(outputCapture.toString().contains("CONTEXT_COMMENT_CHECKER"));
         Assert.assertTrue(outputCapture.toString().contains("Context and comment check found failures:"));
-        Assert.assertTrue(outputCapture.toString().contains("* Source string 'This is a new source string missing a context' failed check with error: Context string is empty."));
+        Assert.assertTrue(outputCapture.toString().contains("* Source string `This is a new source string missing a context` failed check with error: Context string is empty."));
     }
 
     @Test
