@@ -10,7 +10,8 @@ public enum CliCheckerType {
     PLACEHOLDER_COMMENT_CHECKER(PlaceholderCommentChecker.class),
     GLOSSARY_CASE_CHECKER(GlossaryCaseChecker.class),
     RECOMMEND_STRING_ID_CHECKER(RecommendStringIdChecker.class),
-    CONTEXT_COMMENT_REJECT_PATTERN_CHECKER(ContextCommentRejectPatternChecker.class);
+    CONTEXT_COMMENT_REJECT_PATTERN_CHECKER(ContextCommentRejectPatternChecker.class),
+    CONTROL_CHARACTER_CHECKER(ControlCharacterChecker.class);
 
     Class<? extends AbstractCliChecker> type;
 
