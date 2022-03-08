@@ -214,4 +214,22 @@ public class ThirdPartyTMSSmartlingGlossaryTest {
         doThrow(new RuntimeException("External Smartling error")).when(mockSmartlingClient).downloadGlossaryFileWithTranslations(anyString(), anyString(), anyString(), anyString());
         thirdPartyTMSSmartlingGlossary.pull(mockRepository, "someUid", localeMapping);
     }
+
+    @Test(expected = ThirdPartyTMSGlossarySyncException.class)
+    public void testNoAccountIdProvidedPullSource() {
+        thirdPartyTMSSmartlingGlossary.accountId = "";
+        thirdPartyTMSSmartlingGlossary.pullSourceTextUnits(mockRepository, "someUid", localeMapping);
+    }
+
+    @Test(expected = ThirdPartyTMSGlossarySyncException.class)
+    public void testNoAccountIdProvidedPull() {
+        thirdPartyTMSSmartlingGlossary.accountId = "";
+        thirdPartyTMSSmartlingGlossary.pull(mockRepository, "someUid", localeMapping);
+    }
+
+    @Test(expected = ThirdPartyTMSGlossarySyncException.class)
+    public void testNoAccountIdProvidedGetThirdPartyTextUnits() {
+        thirdPartyTMSSmartlingGlossary.accountId = "";
+        thirdPartyTMSSmartlingGlossary.getThirdPartyTextUnits( "someUid");
+    }
 }

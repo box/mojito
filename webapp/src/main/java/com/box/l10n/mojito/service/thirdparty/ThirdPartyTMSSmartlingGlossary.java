@@ -64,7 +64,7 @@ public class ThirdPartyTMSSmartlingGlossary {
     @Autowired
     AssetTextUnitRepository assetTextUnitRepository;
 
-    @Value("${l10n.smartling.accountId}")
+    @Value("${l10n.smartling.accountId:}")
     String accountId;
 
     public void pullSourceTextUnits(Repository repository, String glossaryUID, Map<String, String> localeMapping) {
@@ -95,7 +95,7 @@ public class ThirdPartyTMSSmartlingGlossary {
         SmartlingTBXReader tbxReader = new SmartlingTBXReader();
         tbxReader.open(new ByteArrayInputStream(glossaryFile.getBytes(StandardCharsets.UTF_8)));
         List<ThirdPartyTextUnit> thirdPartyTextUnits = new ArrayList<>();
-        while(tbxReader.hasNext()) {
+        while (tbxReader.hasNext()) {
             thirdPartyTextUnits.add(mapConceptEntryToThirdPartyTextUnit(glossaryName, tbxReader.next()));
         }
 
@@ -116,8 +116,9 @@ public class ThirdPartyTMSSmartlingGlossary {
     }
 
     private String downloadGlossaryFile(String glossaryId) {
+        checkForAccountId();
         return Mono.fromCallable(() -> smartlingClient.downloadGlossaryFile(accountId, glossaryId)).retryWhen(getRetryConfiguration()
-                .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download glossary file for glossary id: %s", glossaryId), e.failure())))
+                        .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download glossary file for glossary id: %s", glossaryId), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error downloading glossary file from Smartling for glossary id: %s", glossaryId);
                     logger.error(msg, e);
@@ -127,6 +128,7 @@ public class ThirdPartyTMSSmartlingGlossary {
     }
 
     private String getGlossaryName(String glossaryUID) {
+        checkForAccountId();
         return Mono.fromCallable(() -> smartlingClient.getGlossaryDetails(accountId, glossaryUID).getName())
                 .retryWhen(getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to retrieve glossary details from Smartling for glossary id: %s", glossaryUID), e.failure())))
@@ -192,7 +194,7 @@ public class ThirdPartyTMSSmartlingGlossary {
         SmartlingTBXReader tbxReader = new SmartlingTBXReader();
         tbxReader.open(new ByteArrayInputStream(glossaryFile.getBytes(StandardCharsets.UTF_8)));
         List<GlossarySourceTerm> glossarySourceTerms = new ArrayList<>();
-        while(tbxReader.hasNext()) {
+        while (tbxReader.hasNext()) {
             glossarySourceTerms.add(mapConceptEntryToGlossarySourceTerm(locale, tbxReader.next()));
         }
         return glossarySourceTerms.stream()
@@ -201,14 +203,21 @@ public class ThirdPartyTMSSmartlingGlossary {
     }
 
     private String downloadSourceGlossaryFile(String glossaryUID, String locale) {
+        checkForAccountId();
         return Mono.fromCallable(() -> smartlingClient.downloadSourceGlossaryFile(accountId, glossaryUID, locale)).retryWhen(getRetryConfiguration()
-                .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download source file for glossary id: %s", glossaryUID), e.failure())))
+                        .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download source file for glossary id: %s", glossaryUID), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error downloading source file for glossary id: %s", glossaryUID);
                     logger.error(msg, e);
                     throw new SmartlingClientException(msg, e);
                 }).blockOptional()
                 .orElseThrow(() -> new SmartlingClientException(String.format("Error downloading source file from Smartling for glossary id: %s, optional is not present", glossaryUID)));
+    }
+
+    private void checkForAccountId() {
+        if (Strings.isNullOrEmpty(accountId)) {
+            throw new ThirdPartyTMSGlossarySyncException("Smartling account id cannot be empty.");
+        }
     }
 
     private ThirdPartyTextUnit mapConceptEntryToThirdPartyTextUnit(String glossaryName, ConceptEntry conceptEntry) {
@@ -224,7 +233,7 @@ public class ThirdPartyTMSSmartlingGlossary {
         glossarySourceTerm.setTermUid(conceptEntry.getId());
         glossarySourceTerm.setDefinition(conceptEntry.getProperty("definition") != null ? conceptEntry.getProperty("definition").getValue() : "");
         glossarySourceTerm.setPartOfSpeechCode(conceptEntry.getProperty("partOfSpeech") != null ? conceptEntry.getProperty("partOfSpeech").getValue() : "");
-        glossarySourceTerm.setTermText(conceptEntry.getEntries(LocaleId.fromString(locale)) != null ? conceptEntry.getEntries(LocaleId.fromString(locale)).getTerm(0).getText(): null);
+        glossarySourceTerm.setTermText(conceptEntry.getEntries(LocaleId.fromString(locale)) != null ? conceptEntry.getEntries(LocaleId.fromString(locale)).getTerm(0).getText() : null);
         return glossarySourceTerm;
     }
 
@@ -233,7 +242,7 @@ public class ThirdPartyTMSSmartlingGlossary {
         SmartlingTBXReader tbxReader = new SmartlingTBXReader();
         tbxReader.open(new ByteArrayInputStream(glossaryFile.getBytes(StandardCharsets.UTF_8)));
         List<GlossaryTargetTerm> glossaryTargetTerms = new ArrayList<>();
-        while(tbxReader.hasNext()) {
+        while (tbxReader.hasNext()) {
             glossaryTargetTerms.add(mapConceptEntryToGlossaryTargetTerm(locale, sourceLocale, tbxReader.next()));
         }
         return glossaryTargetTerms.stream()
@@ -243,6 +252,7 @@ public class ThirdPartyTMSSmartlingGlossary {
     }
 
     private String downloadTranslatedGlossaryFile(String glossaryUID, String locale, String sourceLocale) {
+        checkForAccountId();
         return Mono.fromCallable(() -> smartlingClient.downloadGlossaryFileWithTranslations(accountId, glossaryUID, locale, sourceLocale))
                 .retryWhen(getRetryConfiguration().doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download translated file from Smartling for glossary id: %s", glossaryUID), e.failure())))
                 .doOnError(e -> {
