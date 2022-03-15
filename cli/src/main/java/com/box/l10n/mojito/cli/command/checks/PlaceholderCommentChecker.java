@@ -64,13 +64,11 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
     private List<AbstractPlaceholderDescriptionCheck> getPlaceholderCommentChecks() {
         return cliCheckerOptions.getParameterRegexSet().stream()
                 .map(placeholderRegularExpressions -> getPlaceholderDescriptionCheck(placeholderRegularExpressions))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
                 .collect(Collectors.toList());
     }
 
-    private Optional<AbstractPlaceholderDescriptionCheck> getPlaceholderDescriptionCheck(PlaceholderRegularExpressions placeholderRegularExpression) {
-        AbstractPlaceholderDescriptionCheck placeholderDescriptionCheck = null;
+    private AbstractPlaceholderDescriptionCheck getPlaceholderDescriptionCheck(PlaceholderRegularExpressions placeholderRegularExpression) {
+        AbstractPlaceholderDescriptionCheck placeholderDescriptionCheck;
         switch (placeholderRegularExpression) {
             case SINGLE_BRACE_REGEX:
                 placeholderDescriptionCheck = new SingleBracesPlaceholderDescriptionChecker();
@@ -81,16 +79,10 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
             case PRINTF_LIKE_VARIABLE_TYPE_REGEX:
                 placeholderDescriptionCheck = new PrintfLikeVariableTypePlaceholderDescriptionChecker();
                 break;
-            case PLACEHOLDER_NO_SPECIFIER_REGEX:
-            case SIMPLE_PRINTF_REGEX:
-            case PRINTF_LIKE_REGEX:
-            case PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS:
-                placeholderDescriptionCheck = new SimpleRegexPlaceholderDescriptionChecker(placeholderRegularExpression);
-                break;
             default:
-                logger.warn("Placeholder comment checker not implemented for regex {}", placeholderRegularExpression.name());
+                placeholderDescriptionCheck = new SimpleRegexPlaceholderDescriptionChecker(placeholderRegularExpression);
         }
-        return Optional.ofNullable(placeholderDescriptionCheck);
+        return placeholderDescriptionCheck;
     }
 
     private StringBuilder buildNotificationText(Map<String, List<String>> failureMap) {

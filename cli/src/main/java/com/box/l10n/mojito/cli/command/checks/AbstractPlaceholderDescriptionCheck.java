@@ -23,6 +23,6 @@ public abstract class AbstractPlaceholderDescriptionCheck {
     }
 
     protected boolean isPlaceholderDescriptionMissingInComment(String comment, String placeholder) {
-        return StringUtils.isBlank(comment) || !Pattern.compile(placeholder + ":.+").matcher(comment).find();
+        return StringUtils.isBlank(comment) || !Pattern.compile(Pattern.quote(placeholder) + ":.+").matcher(comment).find();
     }
 }

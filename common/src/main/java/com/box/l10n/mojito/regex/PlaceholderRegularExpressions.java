@@ -37,7 +37,12 @@ public enum PlaceholderRegularExpressions {
     /**
      * Ignores percentage symbols after a bracket as a token.
      */
-    PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS("(?<![}|)])%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n|@)");
+    PLACEHOLDER_IGNORE_PERCENTAGE_AFTER_BRACKETS("(?<![}|)])%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n|@)"),
+
+    /**
+     * Extension of PRINTF_LIKE_REGEX that handles placeholders with specifiers after '@' e.g. '%1$@ld'
+     */
+    PRINTF_LIKE_IOS_REGEX("%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n|@)(hh|h|l|ll|j|z|t|L|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n)*");
 
     private String regex;
 

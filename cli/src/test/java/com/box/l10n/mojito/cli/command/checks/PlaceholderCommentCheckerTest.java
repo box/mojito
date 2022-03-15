@@ -14,6 +14,7 @@ import java.util.List;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.DOUBLE_BRACE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
+import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_IOS_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_VARIABLE_TYPE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
 
@@ -141,6 +142,69 @@ public class PlaceholderCommentCheckerTest {
     }
 
     @Test
+    public void testIOSPlaceholder() {
+        placeholderCommentChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PRINTF_LIKE_IOS_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder().build()));
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("Some string id --- Test context");
+        assetExtractorTextUnit.setSource("A source string with a single %1$@");
+        assetExtractorTextUnit.setComments("Test comment ");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        CliCheckResult result = placeholderCommentChecker.run(assetExtractionDiffs);
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertFalse(result.isHardFail());
+    }
+
+    @Test
+    public void testMultipleIOSPlaceholderTypesFails() {
+        placeholderCommentChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PRINTF_LIKE_IOS_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder().build()));
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("Some string id --- Test context");
+        assetExtractorTextUnit.setSource("A source string with a single %1$@ %@ %2$@ld");
+        assetExtractorTextUnit.setComments("Test comment ");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        CliCheckResult result = placeholderCommentChecker.run(assetExtractionDiffs);
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertFalse(result.isHardFail());
+        Assert.assertTrue(result.getNotificationText().contains("Please add a description in the string comment in the form %1$@:<description>"));
+        Assert.assertTrue(result.getNotificationText().contains("Please add a description in the string comment in the form %@:<description>"));
+        Assert.assertTrue(result.getNotificationText().contains("Please add a description in the string comment in the form %2$@ld:<description>"));
+    }
+
+    @Test
+    public void testMultipleIOSPlaceholderTypes() {
+        placeholderCommentChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(PRINTF_LIKE_IOS_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder().build()));
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("Some string id --- Test context");
+        assetExtractorTextUnit.setSource("A source string with a single %1$@ %@ %2$@ld");
+        assetExtractorTextUnit.setComments("Test comment %1$@:A placeholder description, %@:Another placeholder description, %2$@ld: And another description");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        CliCheckResult result = placeholderCommentChecker.run(assetExtractionDiffs);
+        Assert.assertTrue(result.isSuccessful());
+        Assert.assertFalse(result.isHardFail());
+        Assert.assertFalse(result.getNotificationText().contains("Please add a description in the string comment in the form %1$@:<description>"));
+        Assert.assertFalse(result.getNotificationText().contains("Please add a description in the string comment in the form %@:<description>"));
+        Assert.assertFalse(result.getNotificationText().contains("Please add a description in the string comment in the form %2$@ld:<description>"));
+    }
+
+    @Test
     public void testNullComment() {
         placeholderCommentChecker.setCliCheckerOptions(new CliCheckerOptions(Sets.newHashSet(DOUBLE_BRACE_REGEX, PRINTF_LIKE_VARIABLE_TYPE_REGEX, PLACEHOLDER_NO_SPECIFIER_REGEX), Sets.newHashSet(), ImmutableMap.<String, String>builder().build()));
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
@@ -157,4 +221,5 @@ public class PlaceholderCommentCheckerTest {
         Assert.assertFalse(result.isSuccessful());
         Assert.assertTrue(result.getNotificationText().contains("Comment is empty."));
     }
+
 }
