@@ -37,6 +37,7 @@ import com.box.l10n.mojito.okapi.qualitycheck.Parameters;
 import com.box.l10n.mojito.okapi.qualitycheck.QualityCheckStep;
 import com.box.l10n.mojito.okapi.steps.CheckForDoNotTranslateStep;
 import com.box.l10n.mojito.okapi.steps.FilterEventsToInMemoryRawDocumentStep;
+import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
@@ -1082,8 +1083,11 @@ public class TMService {
         importLocalizedAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
         importLocalizedAssetJobInput.setFilterOptions(filterOptions);
 
-        PollableFuture<Void> pollableFuture = quartzPollableTaskScheduler.scheduleJob(ImportLocalizedAssetJob.class, importLocalizedAssetJobInput);
-        return pollableFuture;
+        QuartzJobInfo<ImportLocalizedAssetJobInput, Void> quartzJobInfo = QuartzJobInfo.newBuilder(ImportLocalizedAssetJob.class)
+                .withInlineInput(false)
+                .withInput(importLocalizedAssetJobInput).build();
+
+        return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 
     public void importLocalizedAsset(

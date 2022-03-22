@@ -62,7 +62,7 @@ public class QuartzJobInfo<I, O> {
     }
 
     public static <I, O> Builder<I, O> newBuilder(Class<? extends QuartzPollableJob<I, O>> clazz) {
-        Builder builder = new Builder();
+        Builder<I, O> builder = new Builder<I, O>();
         builder.clazz = clazz;
         return builder;
     }
@@ -81,48 +81,48 @@ public class QuartzJobInfo<I, O> {
         private Builder() {
         }
 
-        public Builder withInput(I val) {
+        public Builder<I, O> withInput(I val) {
             input = val;
             return this;
         }
 
-        public Builder withParentId(Long val) {
+        public Builder<I, O> withParentId(Long val) {
             parentId = val;
             return this;
         }
 
-        public Builder withMessage(String val) {
+        public Builder<I, O> withMessage(String val) {
             message = val;
             return this;
         }
 
-        public Builder withExpectedSubTaskNumber(int val) {
+        public Builder<I, O> withExpectedSubTaskNumber(int val) {
             expectedSubTaskNumber = val;
             return this;
         }
 
-        public Builder withTriggerStartDate(Date val) {
+        public Builder<I, O> withTriggerStartDate(Date val) {
             triggerStartDate = val;
             return this;
         }
 
-        public Builder withUniqueId(String val) {
+        public Builder<I, O> withUniqueId(String val) {
             uniqueId = val;
             return this;
         }
 
-        public Builder withInlineInput(boolean val) {
+        public Builder<I, O> withInlineInput(boolean val) {
             inlineInput = val;
             return this;
         }
 
-        public Builder withTimeout(long val) {
+        public Builder<I, O> withTimeout(long val) {
             timeout = val;
             return this;
         }
 
         public QuartzJobInfo<I, O> build() {
-            return new QuartzJobInfo(this);
+            return new QuartzJobInfo<I, O>(this);
         }
     }
 }
