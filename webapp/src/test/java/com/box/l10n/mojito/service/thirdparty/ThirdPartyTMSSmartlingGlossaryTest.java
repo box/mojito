@@ -28,11 +28,15 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -104,6 +108,9 @@ public class ThirdPartyTMSSmartlingGlossaryTest {
         Files.readLines(new File("src/test/resources/com/box/l10n/mojito/service/thirdparty/Test_Glossary.tbx"), StandardCharsets.UTF_8).stream().forEach(line -> {
             tbxStringBuilder.append(line);
         });
+        RetryBackoffSpec retryConfiguration = Retry.backoff(10, Duration.ofMillis(1))
+                .maxBackoff(Duration.ofMillis(10));
+        Mockito.when(mockSmartlingClient.getRetryConfiguration()).thenReturn(retryConfiguration);
         localeMapping.put("en", "en-US");
         testTBXFileString = tbxStringBuilder.toString();
         thirdPartyTMSSmartlingGlossary = new ThirdPartyTMSSmartlingGlossary();

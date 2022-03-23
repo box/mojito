@@ -36,13 +36,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
-import reactor.util.retry.RetryBackoffSpec;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -97,10 +94,6 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
     private final Set<String> supportedImageExtensions = Sets.newHashSet("png", "jpg", "jpeg", "gif", "tiff");
 
-    protected static RetryBackoffSpec getRetryConfiguration(){
-        return Retry.backoff(10, Duration.ofSeconds(0)).maxBackoff(Duration.ofSeconds(60));
-    }
-
     protected static String getSmartlingLocale(Map<String, String> localeMapping, String localeTag) {
         return localeMapping.getOrDefault(localeTag, localeTag);
     }
@@ -143,7 +136,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             throw new UnsupportedImageFormatException(Files.getFileExtension(name) + " is an unsupported file extension.");
         }
         return Mono.fromCallable(() -> smartlingClient.uploadContext(projectId, name, content))
-                .retryWhen(getRetryConfiguration()
+                .retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info("Retrying after image upload to Smartling failed, project id: {}, name: {}, error: {}", projectId, name, e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error uploading image to Smartling, project id: %s, name: %s", projectId, name);
@@ -179,7 +172,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         List<File> files = Mono.fromCallable(() -> smartlingClient.getFiles(projectId).getItems().stream()
                 .filter(file -> filePattern.matcher(file.getFileUri()).matches())
                 .collect(Collectors.toList()))
-                .retryWhen(getRetryConfiguration()
+                .retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to get files from Smartling for project id: %s", projectId), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error getting files from Smartling for project id: %s", projectId);
@@ -191,7 +184,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         List<ThirdPartyTextUnit> thirdPartyTextUnits = files.stream().flatMap(file -> {
             Stream<StringInfo> stringInfos = Mono.fromCallable(() -> smartlingClient.getStringInfos(projectId, file.getFileUri()))
-                    .retryWhen(getRetryConfiguration()
+                    .retryWhen(smartlingClient.getRetryConfiguration()
                             .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to get string information from Smartling for project id: %s, file: %s", projectId, file.getFileUri()), e.failure())))
                     .doOnError(e -> {
                         String msg = String.format("Error getting string information from Smartling for project id: %s, file: %s", projectId, file.getFileUri());
@@ -235,7 +228,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         bindings.setBindings(bindingList);
         Mono.fromRunnable(() -> smartlingClient.createBindings(bindings, projectId))
-                .retryWhen(getRetryConfiguration()
+                .retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying after failure in createBindings Smartling call for project: %s", projectId), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error attempting to create bindings in Smartling for project: %s", projectId);
@@ -300,7 +293,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         if (!options.isDryRun()) {
             Mono.fromCallable(() -> smartlingClient.uploadFile(projectId, file.getFileName(), "android",
                     file.getFileContent(), options.getPlaceholderFormat(), options.getCustomPlaceholderFormat()))
-                    .retryWhen(getRetryConfiguration()
+                    .retryWhen(smartlingClient.getRetryConfiguration()
                             .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to upload file %s", file.getFileName()), e.failure())))
                     .doOnError(e -> {
                         String msg = String.format("Error uploading file %s: %s", file.getFileName(), e.getMessage());
@@ -368,7 +361,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                     fileName, localeTag, smartlingLocale);
 
             String fileContent = Mono.fromCallable(() -> smartlingClient.downloadPublishedFile(projectId, smartlingLocale, fileName, false))
-                    .retryWhen(getRetryConfiguration()
+                    .retryWhen(smartlingClient.getRetryConfiguration()
                             .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download file %s", fileName), e.failure())))
                     .doOnError(e -> {
                         String msg = String.format("Error downloading file %s: %s", fileName, e.getMessage());
@@ -483,7 +476,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             Mono.fromCallable(() -> smartlingClient.uploadLocalizedFile(projectId, sourceFilename, "android",
                     getSmartlingLocale(localeMapping, localeTag), file.getFileContent(),
                     options.getPlaceholderFormat(), options.getCustomPlaceholderFormat()))
-                    .retryWhen(getRetryConfiguration()
+                    .retryWhen(smartlingClient.getRetryConfiguration()
                             .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to upload localized file: %s, project id: %s", sourceFilename, projectId), e.failure())))
                     .doOnError(e -> {
                         String msg = String.format("Error uploading localized file to Smartling for file %s in project %s", sourceFilename, projectId);

@@ -26,7 +26,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -84,7 +83,7 @@ public class ThirdPartyTMSSmartlingWithJson {
                     String fileName = getSourceFileName(repository.getName(), index);
                     String fileContent = smartlingJsonConverter.textUnitDTOsToJsonString(textUnitDTOS, TextUnitDTO::getSource);
                     Mono.fromCallable(() -> smartlingClient.uploadFile(projectId, fileName, "json", fileContent, smartlingOptions.getPlaceholderFormat(), smartlingOptions.getCustomPlaceholderFormat()))
-                            .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
+                            .retryWhen(smartlingClient.getRetryConfiguration()
                                     .doBeforeRetry(e -> logger.info(String.format("Retrying failed upload file request for file %s in project %s", fileName, projectId), e.failure())))
                             .doOnError(e -> {
                                 String msg = String.format("Upload file request failed for file %s in project %s", fileName, projectId);
@@ -109,7 +108,7 @@ public class ThirdPartyTMSSmartlingWithJson {
                 })
                 .peek(file -> logger.debug("removing file: {}", file.getFileUri()))
                 .forEach(file -> Mono.fromRunnable(() -> smartlingClient.deleteFile(projectId, file.getFileUri()))
-                        .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
+                        .retryWhen(smartlingClient.getRetryConfiguration()
                                 .doBeforeRetry(e -> logger.info(String.format("Retrying delete file request for file %s in project %s after failure", file.getFileUri(), projectId), e.failure())))
                         .doOnError(e -> {
                             String msg = String.format("Delete file request failed for file %s in project %s", file.getFileUri(), projectId);
@@ -174,7 +173,7 @@ public class ThirdPartyTMSSmartlingWithJson {
                                 String fileContent = smartlingJsonConverter.textUnitDTOsToJsonString(textUnitDTOS, TextUnitDTO::getTarget);
                                 String smartlingLocale = getSmartlingLocale(localeMapping, repositoryLocale);
                                 Mono.fromCallable(() -> smartlingClient.uploadLocalizedFile(projectId, fileName, "json", smartlingLocale, fileContent, null, null))
-                                        .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
+                                        .retryWhen(smartlingClient.getRetryConfiguration()
                                                 .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to upload localized file %s in project %s", fileName, projectId), e.failure())))
                                         .doOnError(e -> {
                                             String msg = String.format("Error uploading localized file %s in project %s", fileName, projectId);
@@ -284,7 +283,7 @@ public class ThirdPartyTMSSmartlingWithJson {
 
         List<ThirdPartyTextUnit> thirdPartyTextUnits = files.stream().flatMap(file -> {
             Stream<StringInfo> stringInfos = Mono.fromCallable(() -> smartlingClient.getStringInfos(projectId, file.getFileUri()))
-                    .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
+                    .retryWhen(smartlingClient.getRetryConfiguration()
                             .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to get string information from Smartling for project %s, file %s", projectId, file.getFileUri()))))
                     .doOnError(e -> {
                         String msg = String.format("Error getting string information for file %s in project %s", file.getFileUri(), projectId);
@@ -322,7 +321,7 @@ public class ThirdPartyTMSSmartlingWithJson {
 
     String getLocalizedFileContent(String projectId, File file, String smartlingLocale, boolean includeOriginalStrings) {
         return Mono.fromCallable(() -> smartlingClient.downloadPublishedFile(projectId, smartlingLocale, file.getFileUri(), includeOriginalStrings))
-                .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
+                .retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying download published file request for locale %s, file %s in project %s", smartlingLocale, file.getFileUri(), projectId), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error downloading published file for locale %s, file %s in project %s", smartlingLocale, file.getFileUri(), projectId);
@@ -356,7 +355,7 @@ public class ThirdPartyTMSSmartlingWithJson {
 
     private Items<File> getFilesListForProject(String projectId) {
         return Mono.fromCallable(() -> smartlingClient.getFiles(projectId))
-                .retryWhen(ThirdPartyTMSSmartling.getRetryConfiguration()
+                .retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying get files request after failure for project %s", projectId), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error getting files for project %s", projectId);

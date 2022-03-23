@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.box.l10n.mojito.service.thirdparty.ThirdPartyTMSSmartling.getRetryConfiguration;
 import static com.box.l10n.mojito.service.thirdparty.ThirdPartyTMSSmartling.getSmartlingLocale;
 
 /**
@@ -117,7 +116,7 @@ public class ThirdPartyTMSSmartlingGlossary {
 
     private String downloadGlossaryFile(String glossaryId) {
         checkForAccountId();
-        return Mono.fromCallable(() -> smartlingClient.downloadGlossaryFile(accountId, glossaryId)).retryWhen(getRetryConfiguration()
+        return Mono.fromCallable(() -> smartlingClient.downloadGlossaryFile(accountId, glossaryId)).retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download glossary file for glossary id: %s", glossaryId), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error downloading glossary file from Smartling for glossary id: %s", glossaryId);
@@ -130,7 +129,7 @@ public class ThirdPartyTMSSmartlingGlossary {
     private String getGlossaryName(String glossaryUID) {
         checkForAccountId();
         return Mono.fromCallable(() -> smartlingClient.getGlossaryDetails(accountId, glossaryUID).getName())
-                .retryWhen(getRetryConfiguration()
+                .retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to retrieve glossary details from Smartling for glossary id: %s", glossaryUID), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error retrieving glossary details from Smartling for glossary id: %s", glossaryUID);
@@ -204,7 +203,7 @@ public class ThirdPartyTMSSmartlingGlossary {
 
     private String downloadSourceGlossaryFile(String glossaryUID, String locale) {
         checkForAccountId();
-        return Mono.fromCallable(() -> smartlingClient.downloadSourceGlossaryFile(accountId, glossaryUID, locale)).retryWhen(getRetryConfiguration()
+        return Mono.fromCallable(() -> smartlingClient.downloadSourceGlossaryFile(accountId, glossaryUID, locale)).retryWhen(smartlingClient.getRetryConfiguration()
                         .doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download source file for glossary id: %s", glossaryUID), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error downloading source file for glossary id: %s", glossaryUID);
@@ -254,7 +253,7 @@ public class ThirdPartyTMSSmartlingGlossary {
     private String downloadTranslatedGlossaryFile(String glossaryUID, String locale, String sourceLocale) {
         checkForAccountId();
         return Mono.fromCallable(() -> smartlingClient.downloadGlossaryFileWithTranslations(accountId, glossaryUID, locale, sourceLocale))
-                .retryWhen(getRetryConfiguration().doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download translated file from Smartling for glossary id: %s", glossaryUID), e.failure())))
+                .retryWhen(smartlingClient.getRetryConfiguration().doBeforeRetry(e -> logger.info(String.format("Retrying after failure to download translated file from Smartling for glossary id: %s", glossaryUID), e.failure())))
                 .doOnError(e -> {
                     String msg = String.format("Error downloading translated glossary file from Smartling for glossary id: %s", glossaryUID);
                     logger.error(msg, e);

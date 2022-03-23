@@ -16,8 +16,11 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.web.client.DefaultResponseErrorHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import java.io.IOException;
+import java.time.Duration;
 
 /**
  * @author jaurambault
@@ -35,11 +38,17 @@ public class SmartlingClientConfiguration {
 
     String clientID;
     String clientSecret;
+    int retryMaxAttempts = 10;
+    int retryMinDurationSeconds = 1;
+    int retryMaxBackoffDurationSeconds = 60;
 
     @ConditionalOnProperty("l10n.smartling.clientID")
     @Bean
     public SmartlingClient getSmartlingClient() {
-        return new SmartlingClient(smartlingRestTemplate());
+        RetryBackoffSpec retryConfiguration = Retry.backoff(getRetryMaxAttempts(), Duration.ofSeconds(getRetryMinDurationSeconds()))
+                .maxBackoff(Duration.ofSeconds(getRetryMaxBackoffDurationSeconds()));
+
+        return new SmartlingClient(smartlingRestTemplate(), retryConfiguration);
     }
 
     @Bean
@@ -113,5 +122,29 @@ public class SmartlingClientConfiguration {
 
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
+    }
+
+    public int getRetryMaxAttempts() {
+        return retryMaxAttempts;
+    }
+
+    public void setRetryMaxAttempts(int retryMaxAttempts) {
+        this.retryMaxAttempts = retryMaxAttempts;
+    }
+
+    public int getRetryMinDurationSeconds() {
+        return retryMinDurationSeconds;
+    }
+
+    public void setRetryMinDurationSeconds(int retryMinDurationSeconds) {
+        this.retryMinDurationSeconds = retryMinDurationSeconds;
+    }
+
+    public int getRetryMaxBackoffDurationSeconds() {
+        return retryMaxBackoffDurationSeconds;
+    }
+
+    public void setRetryMaxBackoffDurationSeconds(int retryMaxBackoffDurationSeconds) {
+        this.retryMaxBackoffDurationSeconds = retryMaxBackoffDurationSeconds;
     }
 }

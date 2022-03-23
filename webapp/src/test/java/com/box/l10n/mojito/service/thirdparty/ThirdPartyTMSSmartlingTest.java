@@ -44,6 +44,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +52,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import org.xml.sax.SAXException;
+import reactor.util.retry.Retry;
+import reactor.util.retry.RetryBackoffSpec;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -166,6 +170,9 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         tmsSmartling = new ThirdPartyTMSSmartling(smartlingClient, textUnitSearcher, assetPathAndTextUnitNameKeys, textUnitBatchImporterService, resultProcessor, mockThirdPartyTMSSmartlingWithJson, mockThirdPartyTMSSmartlingGlossary);
 
         mapper = new AndroidStringDocumentMapper(pluralSep, null);
+        RetryBackoffSpec retryConfiguration = Retry.backoff(10, Duration.ofMillis(1))
+                .maxBackoff(Duration.ofMillis(10));
+        Mockito.when(smartlingClient.getRetryConfiguration()).thenReturn(retryConfiguration);
     }
 
     @Test
