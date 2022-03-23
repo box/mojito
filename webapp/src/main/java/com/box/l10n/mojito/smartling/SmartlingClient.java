@@ -9,17 +9,12 @@ import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.FileUploadResponse;
 import com.box.l10n.mojito.smartling.response.FilesResponse;
 import com.box.l10n.mojito.smartling.response.GetGlossaryDetailsResponse;
-import com.box.l10n.mojito.smartling.response.GetGlossarySourceTermsResponse;
-import com.box.l10n.mojito.smartling.response.GetGlossaryTargetTermsResponse;
 import com.box.l10n.mojito.smartling.response.GlossaryDetails;
-import com.box.l10n.mojito.smartling.response.GlossarySourceTerm;
-import com.box.l10n.mojito.smartling.response.GlossaryTargetTerm;
 import com.box.l10n.mojito.smartling.response.Items;
 import com.box.l10n.mojito.smartling.response.Response;
 import com.box.l10n.mojito.smartling.response.SourceStringsResponse;
 import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
@@ -30,9 +25,8 @@ import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import reactor.util.retry.RetryBackoffSpec;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -94,9 +88,18 @@ public class SmartlingClient {
 
     OAuth2RestTemplate oAuth2RestTemplate;
 
-    public SmartlingClient(OAuth2RestTemplate oAuth2RestTemplate) {
+    RetryBackoffSpec retryConfiguration;
+
+    public SmartlingClient(OAuth2RestTemplate oAuth2RestTemplate,
+                           RetryBackoffSpec retryConfiguration) {
         this.oAuth2RestTemplate = oAuth2RestTemplate;
         this.objectMapper = new ObjectMapper();
+
+        this.retryConfiguration = retryConfiguration;
+    }
+
+    public RetryBackoffSpec getRetryConfiguration() {
+        return this.retryConfiguration;
     }
 
     public Stream<StringInfo> getStringInfos(String projectId, String fileUri) {
