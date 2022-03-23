@@ -10,8 +10,8 @@ import com.box.l10n.mojito.cli.command.checks.CliCheckerExecutor;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerOptions;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerType;
 import com.box.l10n.mojito.cli.command.checks.CliCheckerTypeConverter;
-import com.box.l10n.mojito.cli.command.checks.PlaceholderRegularExpressionConverter;
 import com.box.l10n.mojito.cli.command.checks.ExtractionCheckThirdPartyNotificationTypeConverter;
+import com.box.l10n.mojito.cli.command.checks.PlaceholderRegularExpressionConverter;
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
@@ -24,23 +24,24 @@ import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificati
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckThirdPartyNotificationService;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
+import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import com.ibm.icu.text.MessageFormat;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 
 /**
  * Command to execute checks against any new source strings
@@ -115,6 +116,12 @@ public class ExtractionCheckCommand extends Command {
     @Parameter(names = {"--checks-skipped-message", "-csm"}, arity = 1, required = false, description = "Optional notification message to be sent when checks are skipped.")
     String checksSkippedMessage;
 
+    @Parameter(names = {"--http-stats-report", "-hsr"}, arity = 1, required = false, description = "URL template for reporting individual check statistics via HTTP PUT request. Parameterized options are 'check_name' and 'outcome' which can be used to report statistics on an individual check level.")
+    String statsUrlTemplate;
+
+    @Autowired
+    AuthenticatedRestTemplate restTemplate;
+
     List<ExtractionCheckNotificationSender> extractionCheckNotificationSenders = new ArrayList<>();
 
     @Override
@@ -143,12 +150,13 @@ public class ExtractionCheckCommand extends Command {
                 if (extractionDiffService.hasAddedTextUnits(extractionDiffPaths)) {
                     assetExtractionDiffs = extractionDiffService.findAssetExtractionDiffsWithAddedTextUnits(extractionDiffPaths);
                     CliCheckerExecutor cliCheckerExecutor = getCliCheckerExecutor();
-                    List<CliCheckResult> cliCheckerFailures = executeChecks(cliCheckerExecutor, assetExtractionDiffs);
+                    List<CliCheckResult> cliCheckerResults = executeChecks(cliCheckerExecutor, assetExtractionDiffs);
+                    List<CliCheckResult> cliCheckerFailures = getCheckerFailures(cliCheckerResults).collect(Collectors.toList());
+                    reportStatistics(cliCheckerResults);
                     checkForHardFail(cliCheckerFailures);
                     if (!cliCheckerFailures.isEmpty()) {
-                        List<CliCheckResult> failures = getCheckerFailures(cliCheckerFailures).collect(Collectors.toList());
-                        outputFailuresToCommandLine(failures);
-                        sendFailureNotifications(failures, false);
+                        outputFailuresToCommandLine(cliCheckerFailures);
+                        sendFailureNotifications(cliCheckerFailures, false);
                     }
                 } else {
                     consoleWriter.newLine().a("No new strings in diff to be checked.").println();
@@ -164,6 +172,28 @@ public class ExtractionCheckCommand extends Command {
         extractionCheckNotificationSenders = thirdPartyNotificationTypes.stream()
                 .map(thirdPartyNotificationType -> getExtractionCheckNotificationSender(thirdPartyNotificationType))
                 .collect(Collectors.toList());
+    }
+
+    protected void reportStatistics(List<CliCheckResult> results) {
+        if (!Strings.isNullOrEmpty(statsUrlTemplate)) {
+            consoleWriter.newLine().a("Reporting statistics").println();
+            results.stream().forEach(result -> reportStatistic(result));
+        }
+    }
+
+    private void reportStatistic(CliCheckResult result) {
+        try {
+            MessageFormat urlMessageFormat = new MessageFormat(statsUrlTemplate);
+            ImmutableMap<String, String> paramMap = ImmutableMap.<String, String>builder()
+                    .put("check_name", result.getCheckName())
+                    .put("outcome", result.isSuccessful() ? "success" : "failure")
+                    .build();
+            String url = urlMessageFormat.format(paramMap);
+            restTemplate.put(url, null);
+        } catch (RestClientException e) {
+            logger.error("Error reporting statistics to http endpoint " + e.getMessage(), e);
+            consoleWriter.fg(Ansi.Color.RED).newLine().a("Error reporting statistics to http endpoint: " + e.getMessage()).println();
+        }
     }
 
     private ExtractionCheckNotificationSender getExtractionCheckNotificationSender(ExtractionCheckThirdPartyNotificationService thirdPartyNotificationType) {
@@ -221,7 +251,6 @@ public class ExtractionCheckCommand extends Command {
     private List<CliCheckResult> executeChecks(CliCheckerExecutor cliCheckerExecutor, List<AssetExtractionDiff> assetExtractionDiffs) {
         consoleWriter.newLine().a("Running checks against new strings").println();
         return cliCheckerExecutor.executeChecks(assetExtractionDiffs).stream()
-                .filter(result -> !result.isSuccessful())
                 .collect(Collectors.toList());
     }
 

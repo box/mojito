@@ -1,13 +1,18 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
+import com.google.common.collect.Lists;
 import org.fusesource.jansi.Ansi;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.springframework.web.client.RestClientException;
 
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -180,6 +185,63 @@ public class ExtractionCheckCommandTest extends CLITestBase {
         when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
         extractionCheckCommand.execute();
         verify(consoleWriter, times(1)).a("Checks disabled as --skip-checks is set to true.");
+    }
+
+    @Test
+    public void testStatsAreReportedIfUrlTemplateSet() {
+        ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
+        AuthenticatedRestTemplate restTemplateMock = Mockito.mock(AuthenticatedRestTemplate.class);
+        when(consoleWriter.fg(isA(Ansi.Color.class))).thenReturn(consoleWriter);
+        when(consoleWriter.newLine()).thenReturn(consoleWriter);
+        when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
+
+        ExtractionCheckCommand extractionCheckCommand = new ExtractionCheckCommand();
+        extractionCheckCommand.consoleWriter = consoleWriter;
+        extractionCheckCommand.restTemplate = restTemplateMock;
+        extractionCheckCommand.statsUrlTemplate = "http://someUrl.com/my_test_stat_{check_name}_{outcome}?value=1";
+        CliCheckResult success = new CliCheckResult(true, false, "testCheck1");
+        CliCheckResult failure = new CliCheckResult(false, false, "testCheck2");
+        extractionCheckCommand.reportStatistics(Lists.newArrayList(success, failure));
+        verify(restTemplateMock, times(1)).put("http://someUrl.com/my_test_stat_testCheck1_success?value=1", null);
+        verify(restTemplateMock, times(1)).put("http://someUrl.com/my_test_stat_testCheck2_failure?value=1", null);
+    }
+
+    @Test
+    public void testStatsAreNotReportedIfUrlTemplateIsNull() {
+        ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
+        AuthenticatedRestTemplate restTemplateMock = Mockito.mock(AuthenticatedRestTemplate.class);
+        when(consoleWriter.fg(isA(Ansi.Color.class))).thenReturn(consoleWriter);
+        when(consoleWriter.newLine()).thenReturn(consoleWriter);
+        when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
+
+        ExtractionCheckCommand extractionCheckCommand = new ExtractionCheckCommand();
+        extractionCheckCommand.consoleWriter = consoleWriter;
+        extractionCheckCommand.restTemplate = restTemplateMock;
+        extractionCheckCommand.statsUrlTemplate = null;
+        CliCheckResult success = new CliCheckResult(true, false, "testCheck1");
+        CliCheckResult failure = new CliCheckResult(false, false, "testCheck2");
+        extractionCheckCommand.reportStatistics(Lists.newArrayList(success, failure));
+        verify(restTemplateMock, times(0)).put("http://someUrl.com/my_test_stat_testCheck1_success?value=1", null);
+        verify(restTemplateMock, times(0)).put("http://someUrl.com/my_test_stat_testCheck2_failure?value=1", null);
+    }
+
+    @Test
+    public void testErrorReportingStatistics() {
+        ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
+        AuthenticatedRestTemplate restTemplateMock = Mockito.mock(AuthenticatedRestTemplate.class);
+        when(consoleWriter.fg(isA(Ansi.Color.class))).thenReturn(consoleWriter);
+        when(consoleWriter.newLine()).thenReturn(consoleWriter);
+        when(consoleWriter.a(isA(String.class))).thenReturn(consoleWriter);
+        doThrow(new RestClientException("test exception")).when(restTemplateMock).put("http://someUrl.com/my_test_stat_testCheck1_success?value=1", null);
+
+        ExtractionCheckCommand extractionCheckCommand = new ExtractionCheckCommand();
+        extractionCheckCommand.consoleWriter = consoleWriter;
+        extractionCheckCommand.restTemplate = restTemplateMock;
+        extractionCheckCommand.statsUrlTemplate = "http://someUrl.com/my_test_stat_{check_name}_{outcome}?value=1";
+        CliCheckResult success = new CliCheckResult(true, false, "testCheck1");
+        CliCheckResult failure = new CliCheckResult(false, false, "testCheck2");
+        extractionCheckCommand.reportStatistics(Lists.newArrayList(success, failure));
+        verify(consoleWriter, times(1)).a("Error reporting statistics to http endpoint: test exception");
     }
 
 }
