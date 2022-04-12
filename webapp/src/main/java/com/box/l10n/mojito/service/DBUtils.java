@@ -13,4 +13,7 @@ public class DBUtils {
         return url.contains("mysql");
     }
 
+    public boolean isHsql() {
+        return url.contains("hsqldb");
+    }
 }

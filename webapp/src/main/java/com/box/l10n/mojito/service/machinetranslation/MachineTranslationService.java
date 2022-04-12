@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.machinetranslation;
 
 import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.service.leveraging.LeveragerByContent;
 import com.box.l10n.mojito.service.leveraging.LeveragerByContentAndRepository;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.google.common.collect.ImmutableList;
@@ -10,6 +9,7 @@ import io.micrometer.core.annotation.Timed;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.util.AbstractMap;
@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.box.l10n.mojito.CacheType.Names.MACHINE_TRANSLATION;
 
 /**
  * Service to apply leveraging and machine translation on a set of provided strings.
@@ -42,6 +44,8 @@ public class MachineTranslationService {
         this.translationMerger = translationMerger;
     }
 
+    @Timed("MachineTranslationService.getTranslations")
+    @Cacheable(MACHINE_TRANSLATION)
     public TranslationsResponseDTO getTranslations(
             List<String> textSources,
             String sourceBcp47Tag,
@@ -81,6 +85,7 @@ public class MachineTranslationService {
         return getSortedTranslationsResponse(textSources, targetBcp47Tags, translationsBySourceText);
     }
 
+    @Timed("MachineTranslationService.getSingleTranslation")
     public TranslationDTO getSingleTranslation(
             String textSource,
             String sourceBcp47Tag,
@@ -102,23 +107,30 @@ public class MachineTranslationService {
                 .getTranslations().get(0);
     }
 
+    @SuppressWarnings("SpringCacheableComponentsInspection")
     @Timed("MachineTranslationService.getMachineTranslatedResponse")
+    @Cacheable(MACHINE_TRANSLATION)
     ImmutableMap<String, ImmutableList<TranslationDTO>> getMachineTranslationBySourceText(String sourceBcp47Tag, List<String> targetBcp47Tags, List<String> textSources, Boolean skipFunctionalProtection) {
+
+        ImmutableMap<String, ImmutableList<TranslationDTO>> result;
+
         if (textSources.isEmpty()) {
-            return ImmutableMap.of();
+            result = ImmutableMap.of();
+        } else {
+            // TODO(garion): Implement functional protection / placeholder processing
+            if (skipFunctionalProtection != null && skipFunctionalProtection) {
+                logger.debug("function / placeholder protection");
+            }
+
+            result = machineTranslationEngine.getTranslationsBySourceText(
+                    textSources,
+                    sourceBcp47Tag,
+                    targetBcp47Tags,
+                    null,
+                    null);
         }
 
-        // TODO(garion): Implement functional protection / placeholder processing
-        if (skipFunctionalProtection != null && skipFunctionalProtection) {
-            logger.debug("function / placeholder protection");
-        }
-
-        return machineTranslationEngine.getTranslationsBySourceText(
-                textSources,
-                sourceBcp47Tag,
-                targetBcp47Tags,
-                null,
-                null);
+        return result;
     }
 
     public TranslationSource getConfiguredEngineSource() {
@@ -129,8 +141,10 @@ public class MachineTranslationService {
      * Leverages translations by source text from Mojito.
      * Note: it relies on the localeTag on being an exact match.
      */
+    @SuppressWarnings("SpringCacheableComponentsInspection")
     @Timed("MachineTranslationService.getLeveragedTranslationResponse")
-    private ImmutableMap<String, ImmutableList<TranslationDTO>> getLeveragedTranslationsBySourceText(
+    @Cacheable(MACHINE_TRANSLATION)
+    ImmutableMap<String, ImmutableList<TranslationDTO>> getLeveragedTranslationsBySourceText(
             List<String> textSources,
             List<String> targetBcp47Tags,
             List<Long> repositoryIds,

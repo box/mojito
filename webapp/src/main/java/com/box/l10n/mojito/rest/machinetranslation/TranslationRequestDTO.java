@@ -1,5 +1,8 @@
 package com.box.l10n.mojito.rest.machinetranslation;
 
+import com.google.common.base.Objects;
+
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -7,7 +10,7 @@ import java.util.List;
  *
  * @author garion
  */
-public class TranslationRequestDTO {
+public class TranslationRequestDTO implements Serializable {
     String textSource;
     String sourceBcp47Tag;
     String targetBcp47Tag;
@@ -71,4 +74,39 @@ public class TranslationRequestDTO {
     public void setRepositoryNames(List<String> repositoryNames) {
         this.repositoryNames = repositoryNames;
     }
+
+    @Override
+    public boolean equals(Object another) {
+        if (this == another) {
+            return true;
+        }
+
+        if (another == null || getClass() != another.getClass()) {
+            return false;
+        }
+
+        TranslationRequestDTO that = (TranslationRequestDTO) another;
+
+        return skipFunctionalProtection == that.skipFunctionalProtection
+                && skipLeveraging == that.skipLeveraging
+                && Objects.equal(textSource, that.textSource)
+                && Objects.equal(sourceBcp47Tag, that.sourceBcp47Tag)
+                && Objects.equal(targetBcp47Tag, that.targetBcp47Tag)
+                && Objects.equal(repositoryIds, that.repositoryIds)
+                && Objects.equal(repositoryNames, that.repositoryNames);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(
+                textSource,
+                sourceBcp47Tag,
+                targetBcp47Tag,
+                skipFunctionalProtection,
+                skipLeveraging,
+                repositoryIds,
+                repositoryNames
+        );
+    }
+
 }
