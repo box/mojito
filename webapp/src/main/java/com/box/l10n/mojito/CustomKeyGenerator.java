@@ -15,6 +15,8 @@ public class CustomKeyGenerator extends SimpleKeyGenerator {
      */
     @Override
     public Object generate(Object target, Method method, Object... params) {
-        return generateKey(method, params);
+        // Use the java.lang.reflect.Method's generic string description as part of the key, to enable a variety of
+        // serialization-based caches to work out of the box, as the Method class isn't serializable itself.
+        return generateKey(method.toGenericString(), params);
     }
 }

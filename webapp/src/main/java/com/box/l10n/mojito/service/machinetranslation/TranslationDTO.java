@@ -1,11 +1,13 @@
 package com.box.l10n.mojito.service.machinetranslation;
 
+import java.io.Serializable;
+
 /**
  * Represents an individual translation for one language for a specified source string.
  *
  * @author garion
  */
-public class TranslationDTO {
+public class TranslationDTO implements Serializable {
     private String text;
     private long matchedTextUnitId;
     private long matchedTextUnitVariantId;

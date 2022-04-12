@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.machinetranslation;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,7 +9,7 @@ import java.util.List;
  *
  * @author garion
  */
-public class TextUnitTranslationGroupDTO {
+public class TextUnitTranslationGroupDTO implements Serializable {
     private String sourceText;
     private List<TranslationDTO> translations = new ArrayList<>();
 

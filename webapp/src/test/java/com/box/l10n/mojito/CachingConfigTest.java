@@ -6,10 +6,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+
+import static com.box.l10n.mojito.CacheType.Names.DEFAULT;
 import static org.junit.Assert.assertEquals;
 
 /**
- *
  * @author jaurambault
  */
 public class CachingConfigTest extends ServiceTestBase {
@@ -23,7 +24,7 @@ public class CachingConfigTest extends ServiceTestBase {
      */
     @After
     @Before
-    @CacheEvict("default")
+    @CacheEvict(DEFAULT)
     public void post() {
 
     }
@@ -34,9 +35,8 @@ public class CachingConfigTest extends ServiceTestBase {
         assertEquals(1, getInt());
     }
 
-    @Cacheable("default")
+    @Cacheable(DEFAULT)
     public int getInt() {
         return ++i;
     }
-
 }

@@ -11,12 +11,15 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.box.l10n.mojito.CacheType.Names.MACHINE_TRANSLATION;
 
 
 /**
@@ -38,6 +41,7 @@ public class MachineTranslationWS {
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation-batch")
     @ResponseStatus(HttpStatus.OK)
+    @Cacheable(MACHINE_TRANSLATION)
     public PollableTask getTranslations(@RequestBody BatchTranslationRequestDTO translationRequest) {
         QuartzJobInfo<BatchTranslationRequestDTO, TranslationsResponseDTO> quartzJobInfo =
                 QuartzJobInfo.newBuilder(BatchMachineTranslationJob.class)
@@ -50,6 +54,7 @@ public class MachineTranslationWS {
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation")
     @ResponseStatus(HttpStatus.OK)
+    @Cacheable(MACHINE_TRANSLATION)
     public TranslationDTO getSingleTranslation(@RequestBody TranslationRequestDTO translationRequest) {
         return machineTranslationService.getSingleTranslation(
                 translationRequest.getTextSource(),
