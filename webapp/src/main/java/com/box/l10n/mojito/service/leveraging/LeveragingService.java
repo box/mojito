@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.leveraging;
 
 import com.box.l10n.mojito.entity.Asset;
+import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
@@ -8,6 +9,8 @@ import com.box.l10n.mojito.rest.asset.AssetWithIdNotFoundException;
 import com.box.l10n.mojito.rest.leveraging.CopyTmConfig;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.asset.AssetRepository;
+import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
+import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
@@ -69,10 +72,18 @@ public class LeveragingService {
 
     @Autowired
     AssetRepository assetRepository;
+
     @Autowired
     TextUnitSearcher textUnitSearcher;
+
     @Autowired
     TMService tmService;
+
+    @Autowired
+    BranchRepository branchRepository;
+
+    @Autowired
+    AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
     /**
      * Performs "source" leveraging for a list of {@link TMTextUnit}s.
@@ -150,7 +161,7 @@ public class LeveragingService {
         Repository sourceRepository = getRepositoryForCopy(copyTmConfig.getSourceRepositoryId(), copyTmConfig.getSourceAssetId());
         Repository targetRepository = getRepositoryForCopy(copyTmConfig.getTargetRepositoryId(), copyTmConfig.getTargetAssetId());
 
-        List<TMTextUnit> textUnitsForCopyTM = getTextUnitsForCopyTM(targetRepository, copyTmConfig.getTargetAssetId(), copyTmConfig.getNameRegex());
+        List<TMTextUnit> textUnitsForCopyTM = getTextUnitsForCopyTM(targetRepository, copyTmConfig.getTargetAssetId(), copyTmConfig.getNameRegex(), copyTmConfig.getTargetBranchName());
 
         if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
             copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
@@ -216,13 +227,18 @@ public class LeveragingService {
         return repository;
     }
 
-    List<TMTextUnit> getTextUnitsForCopyTM(Repository targetRepository, Long targetAssetId, String nameRegex) {
+    List<TMTextUnit> getTextUnitsForCopyTM(Repository targetRepository, Long targetAssetId, String nameRegex, String branchName) {
         logger.debug("Get TmTextUnit that must be processed");
         List<TMTextUnit> tmTextUnits;
 
         if (targetAssetId != null) {
             logger.debug("Process a single asset");
             tmTextUnits = tmTextUnitRepository.findByAssetId(targetAssetId);
+        } else if (branchName != null) {
+            logger.debug("Process a branch");
+            Branch branch = branchRepository.findByNameAndRepository(branchName, targetRepository);
+            List<Long> tmTextUnitIdsInBranch = assetTextUnitToTMTextUnitRepository.findByBranch(branch);
+            tmTextUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
         } else {
             logger.debug("Process the whole TM");
             tmTextUnits = tmTextUnitRepository.findByTm_id(targetRepository.getTm().getId());

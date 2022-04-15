@@ -53,6 +53,9 @@ public class LeveragingCommand extends Command {
     @Parameter(names = {"--source-asset-path", "-sa"}, arity = 1, required = false, description = "Use only translations from specified source asset")
     String sourceAssetPathParam;
 
+    @Parameter(names = {"--target-branch-name", "-tbn"}, arity = 1, required = false, description = "Leveraging will be performed only for the target branch name")
+    String targetBranchNameParam;
+
     @Parameter(names = {"--mode", "-m"}, arity = 1, required = false, description = "Matching mode. "
             + "MD5 will perform matching based on the ID, content and comment. "
             + "EXACT match is only using the content.", converter = CopyTmConfigModeConverter.class)
@@ -99,6 +102,7 @@ public class LeveragingCommand extends Command {
             copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
             copyTmConfig.setTargetRepositoryId(targetRepository.getId());
             copyTmConfig.setNameRegex(nameRegexParam);
+            copyTmConfig.setTargetBranchName(targetBranchNameParam);
 
             if (mode != null) {
                 copyTmConfig.setMode(mode);
