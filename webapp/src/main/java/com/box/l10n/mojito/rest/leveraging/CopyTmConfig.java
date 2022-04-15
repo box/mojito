@@ -19,6 +19,7 @@ public class CopyTmConfig {
     Long sourceAssetId;
     String nameRegex;
     Map<Long, Long> sourceToTargetTmTextUnitIds;
+    String targetBranchName;
 
     Mode mode = Mode.MD5;
 
@@ -94,6 +95,14 @@ public class CopyTmConfig {
 
     public void setSourceToTargetTmTextUnitIds(Map<Long, Long> sourceToTargetTmTextUnitIds) {
         this.sourceToTargetTmTextUnitIds = sourceToTargetTmTextUnitIds;
+    }
+
+    public String getTargetBranchName() {
+        return targetBranchName;
+    }
+
+    public void setTargetBranchName(String targetBranchName) {
+        this.targetBranchName = targetBranchName;
     }
 
     /**
