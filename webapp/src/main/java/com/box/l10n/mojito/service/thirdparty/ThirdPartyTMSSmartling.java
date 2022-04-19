@@ -421,7 +421,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
-        Set<Long> filterTmTextUnitIds = getFilterTmTextUnitIdsForPushTranslation(options);
+        Set<Long> filterTmTextUnitIds = getFilterTmTextUnitIdsForPushTranslation(repository.getId(), options);
 
         result = repository.getRepositoryLocales()
                 .stream()
@@ -442,10 +442,10 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         resultProcessor.processPushTranslations(result, options);
     }
 
-    private Set<Long> getFilterTmTextUnitIdsForPushTranslation(SmartlingOptions options) {
+    private Set<Long> getFilterTmTextUnitIdsForPushTranslation(Long repositoryId, SmartlingOptions options) {
         Set<Long> filterTmTextUnitIds = null;
         if (options.getPushTranslationBranchName() != null) {
-            filterTmTextUnitIds = assetTextUnitToTMTextUnitRepository.findByBranchName(options.getPushTranslationBranchName())
+            filterTmTextUnitIds = assetTextUnitToTMTextUnitRepository.findByBranchName(repositoryId, options.getPushTranslationBranchName())
                     .stream().collect(Collectors.toSet());
         }
         return filterTmTextUnitIds;

@@ -234,7 +234,7 @@ public class LeveragingService {
             tmTextUnits = tmTextUnitRepository.findByAssetId(targetAssetId);
         } else if (branchName != null) {
             logger.debug("Process a branch");
-            List<Long> tmTextUnitIdsInBranch = assetTextUnitToTMTextUnitRepository.findByBranchName(branchName);
+            List<Long> tmTextUnitIdsInBranch = assetTextUnitToTMTextUnitRepository.findByBranchName(targetRepository.getId(), branchName);
             tmTextUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
         } else {
             logger.debug("Process the whole TM");

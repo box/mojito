@@ -33,8 +33,10 @@ public interface AssetTextUnitToTMTextUnitRepository extends JpaRepository<Asset
     @Query("select atuttu.tmTextUnit.id from AssetTextUnitToTMTextUnit atuttu "
             + "inner join atuttu.assetExtraction ae "
             + "inner join ae.assetExtractionByBranches aec "
-            + "where aec.branch.name = ?1")
-    List<Long> findByBranchName(String branchName);
+            + "inner join ae.asset.repository r "
+            + "where r.id = ?2  and aec.branch.name = ?1")
+    List<Long> findByBranchName(Long repositoryId, String branchName);
+
 
     @Query("select atuttu.tmTextUnit.id " +
             "from AssetTextUnitToTMTextUnit atuttu " +
