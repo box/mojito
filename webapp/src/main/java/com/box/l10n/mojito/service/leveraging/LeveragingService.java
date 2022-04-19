@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -237,8 +238,13 @@ public class LeveragingService {
         } else if (branchName != null) {
             logger.debug("Process a branch");
             Branch branch = branchRepository.findByNameAndRepository(branchName, targetRepository);
-            List<Long> tmTextUnitIdsInBranch = assetTextUnitToTMTextUnitRepository.findByBranch(branch);
-            tmTextUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
+            if (branchName != null) {
+                List<Long> tmTextUnitIdsInBranch = assetTextUnitToTMTextUnitRepository.findByBranch(branch);
+                tmTextUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
+            } else {
+                logger.warn("Branch not found, set empty list to process");
+                tmTextUnits = new ArrayList<>();
+            }
         } else {
             logger.debug("Process the whole TM");
             tmTextUnits = tmTextUnitRepository.findByTm_id(targetRepository.getTm().getId());
