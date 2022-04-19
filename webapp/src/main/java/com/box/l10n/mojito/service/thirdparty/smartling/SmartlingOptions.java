@@ -19,6 +19,7 @@ public final class SmartlingOptions {
     public static final String REQUEST_ID = "request-id";
     public static final String JSON_SYNC = "json-sync";
     public static final String GLOSSARY_SYNC = "glossary-sync";
+    public static final String PUSH_TRANSALTION_BRANCH_NAME = "push-translation-branch-name";
 
     private final Set<String> pluralFixForLocales;
     private final String placeholderFormat;
@@ -27,6 +28,7 @@ public final class SmartlingOptions {
     private final String requestId;
     private final boolean isJsonSync;
     private final boolean isGlossarySync;
+    private final String pushTranslationBranchName;
 
     public SmartlingOptions(Set<String> pluralFixForLocales,
                             String placeholderFormat,
@@ -34,7 +36,8 @@ public final class SmartlingOptions {
                             boolean dryRun,
                             String requestId,
                             boolean isJsonSync,
-                            boolean isGlossarySync) {
+                            boolean isGlossarySync,
+                            String pushTranslationBranchName) {
         this.pluralFixForLocales = pluralFixForLocales;
         this.placeholderFormat = placeholderFormat;
         this.customPlaceholderFormat = customPlaceholderFormat;
@@ -42,6 +45,7 @@ public final class SmartlingOptions {
         this.requestId = requestId;
         this.isJsonSync = isJsonSync;
         this.isGlossarySync = isGlossarySync;
+        this.pushTranslationBranchName = pushTranslationBranchName;
     }
 
     public static SmartlingOptions parseList(List<String> options) {
@@ -58,6 +62,7 @@ public final class SmartlingOptions {
         String requestId = map.get(REQUEST_ID);
         String isJsonSync = map.get(JSON_SYNC);
         String isGlossarySync = map.get(GLOSSARY_SYNC);
+        String pushTranslationBranchName = map.get(PUSH_TRANSALTION_BRANCH_NAME);
 
         return new SmartlingOptions(
                 pluralFixStr.isEmpty() ? Collections.emptySet() : ImmutableSet.copyOf(pluralFixStr.split(",")),
@@ -66,7 +71,8 @@ public final class SmartlingOptions {
                 parseBoolean(dryRunStr),
                 requestId,
                 parseBoolean(isJsonSync),
-                parseBoolean(isGlossarySync));
+                parseBoolean(isGlossarySync),
+                pushTranslationBranchName);
     }
 
     public Set<String> getPluralFixForLocales() {
@@ -95,5 +101,9 @@ public final class SmartlingOptions {
 
     public boolean isGlossarySync() {
         return isGlossarySync;
+    }
+
+    public String getPushTranslationBranchName() {
+        return pushTranslationBranchName;
     }
 }

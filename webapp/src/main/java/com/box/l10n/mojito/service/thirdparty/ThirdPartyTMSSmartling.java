@@ -5,6 +5,7 @@ import com.box.l10n.mojito.android.strings.AndroidStringDocumentReader;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFile;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
@@ -59,12 +60,12 @@ import static com.google.common.collect.Streams.mapWithIndex;
 /**
  * tmTextUnitId are not preserved in Smartling plural localized files so we have to import based on name which
  * causes some challenges when there are ambiguities (eg. same name different comment).
- *
+ * <p>
  * In singular file, the id is preserved hence used during import.
- *
+ * <p>
  * Smartling accept android files with entries where the name is dupplicated. It maps to a single text unit in Smartling.
  * Both entries get the same translation in the localized files.
- *
+ * <p>
  * There is no constrain in mojito database that insure the plural text units are valid. This can cause issue with
  * the current implementation. we group by plural form other and the comment.
  */
@@ -91,6 +92,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     private final Integer batchSize;
     private final ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson;
     private final ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary;
+    private final AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
     private final Set<String> supportedImageExtensions = Sets.newHashSet("png", "jpg", "jpeg", "gif", "tiff");
 
@@ -105,9 +107,12 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                   TextUnitBatchImporterService textUnitBatchImporterService,
                                   SmartlingResultProcessor resultProcessor,
                                   ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson,
-                                  ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary) {
+                                  ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary,
+                                  AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository) {
         this(smartlingClient, textUnitSearcher, assetPathAndTextUnitNameKeys,
-                textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, thirdPartyTMSSmartlingGlossary, DEFAULT_BATCH_SIZE);
+                textUnitBatchImporterService, resultProcessor, thirdPartyTMSSmartlingWithJson, thirdPartyTMSSmartlingGlossary,
+                assetTextUnitToTMTextUnitRepository,
+                DEFAULT_BATCH_SIZE);
     }
 
     public ThirdPartyTMSSmartling(SmartlingClient smartlingClient,
@@ -117,6 +122,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                   SmartlingResultProcessor resultProcessor,
                                   ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson,
                                   ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary,
+                                  AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository,
                                   int batchSize) {
         this.smartlingClient = smartlingClient;
         this.assetPathAndTextUnitNameKeys = assetPathAndTextUnitNameKeys;
@@ -126,6 +132,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         this.batchSize = batchSize < 1 ? DEFAULT_BATCH_SIZE : batchSize;
         this.thirdPartyTMSSmartlingWithJson = thirdPartyTMSSmartlingWithJson;
         this.thirdPartyTMSSmartlingGlossary = thirdPartyTMSSmartlingGlossary;
+        this.assetTextUnitToTMTextUnitRepository = assetTextUnitToTMTextUnitRepository;
     }
 
     @Override
@@ -414,6 +421,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
         AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
+        Set<Long> filterTmTextUnitIds = getFilterTmTextUnitIdsForPushTranslation(options);
+
         result = repository.getRepositoryLocales()
                 .stream()
                 .map(l -> l.getLocale().getBcp47Tag())
@@ -422,15 +431,24 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                         mapWithIndex(partitionSingulars(repository.getId(), localeTag,
                                 skipTextUnitsWithPattern, skipAssetsWithPathPattern, includeTextUnitsWithPattern),
                                 (list, batch) -> processTranslationBatch(list, batch, localeTag,
-                                        mapper, repository, projectId, options, localeMapping, Prefix.SINGULAR)),
+                                        mapper, repository, projectId, options, localeMapping, Prefix.SINGULAR, filterTmTextUnitIds)),
                         mapWithIndex(partitionPlurals(repository.getId(), localeTag,
                                 skipTextUnitsWithPattern, skipAssetsWithPathPattern, options.getPluralFixForLocales(), includeTextUnitsWithPattern),
                                 (list, batch) -> processTranslationBatch(list, batch, localeTag,
-                                        mapper, repository, projectId, options, localeMapping, Prefix.PLURAL))
+                                        mapper, repository, projectId, options, localeMapping, Prefix.PLURAL, filterTmTextUnitIds))
                 ))
                 .collect(Collectors.toList());
 
         resultProcessor.processPushTranslations(result, options);
+    }
+
+    private Set<Long> getFilterTmTextUnitIdsForPushTranslation(SmartlingOptions options) {
+        Set<Long> filterTmTextUnitIds = null;
+        if (options.getPushTranslationBranchName() != null) {
+            filterTmTextUnitIds = assetTextUnitToTMTextUnitRepository.findByBranchName(options.getPushTranslationBranchName())
+                    .stream().collect(Collectors.toSet());
+        }
+        return filterTmTextUnitIds;
     }
 
     @Override
@@ -451,7 +469,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                                   String projectId,
                                                   SmartlingOptions options,
                                                   Map<String, String> localeMapping,
-                                                  Prefix filePrefix) {
+                                                  Prefix filePrefix,
+                                                  Set<Long> filterTmTextUnitIds) {
 
         logger.debug("Process {} batch: {}", localeTag, batchNumber);
         logger.debug("Convert text units to AndroidString for asset number: {}", batchNumber);
@@ -463,6 +482,12 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         try {
 
             logger.debug("Save target file to: {}", file.getFileName());
+
+            if (filterTmTextUnitIds != null) {
+                batch = batch.stream().filter(textUnitDTO -> filterTmTextUnitIds.contains(textUnitDTO.getTmTextUnitId()))
+                        .collect(Collectors.toList());
+            }
+
             AndroidStringDocumentWriter writer = new AndroidStringDocumentWriter(mapper.readFromTargetTextUnits(batch));
             file.setFileContent(writer.toText());
 
@@ -545,7 +570,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                String skipTextUnitsWithPattern,
                                String skipAssetsWithPathPattern) {
         return textUnitSearcher.countTextUnitAndWordCount(baseParams(repositoryId, localeTag,
-                skipTextUnitsWithPattern, skipAssetsWithPathPattern,true, true, null)).getTextUnitCount();
+                skipTextUnitsWithPattern, skipAssetsWithPathPattern, true, true, null)).getTextUnitCount();
     }
 
     private Long pluralCount(Long repositoryId,
@@ -592,7 +617,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                                                   String pluralFormOther,
                                                   String includeTextUnitsWithPattern) {
         TextUnitSearcherParameters result = baseParams(repositoryId, localeTag, skipTextUnitsWithPattern,
-                skipAssetsWithPathPattern,pluralFormsFiltered,
+                skipAssetsWithPathPattern, pluralFormsFiltered,
                 pluralFormsExcluded, pluralFormOther);
         result.setIncludeTextUnitsWithPattern(includeTextUnitsWithPattern);
         return result;
