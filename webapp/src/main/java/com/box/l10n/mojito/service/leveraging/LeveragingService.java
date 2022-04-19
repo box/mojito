@@ -81,9 +81,6 @@ public class LeveragingService {
     TMService tmService;
 
     @Autowired
-    BranchRepository branchRepository;
-
-    @Autowired
     AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
     /**
@@ -237,14 +234,8 @@ public class LeveragingService {
             tmTextUnits = tmTextUnitRepository.findByAssetId(targetAssetId);
         } else if (branchName != null) {
             logger.debug("Process a branch");
-            Branch branch = branchRepository.findByNameAndRepository(branchName, targetRepository);
-            if (branchName != null) {
-                List<Long> tmTextUnitIdsInBranch = assetTextUnitToTMTextUnitRepository.findByBranch(branch);
-                tmTextUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
-            } else {
-                logger.warn("Branch not found, set empty list to process");
-                tmTextUnits = new ArrayList<>();
-            }
+            List<Long> tmTextUnitIdsInBranch = assetTextUnitToTMTextUnitRepository.findByBranchName(branchName);
+            tmTextUnits = tmTextUnitRepository.findByIdIn(tmTextUnitIdsInBranch);
         } else {
             logger.debug("Process the whole TM");
             tmTextUnits = tmTextUnitRepository.findByTm_id(targetRepository.getTm().getId());
