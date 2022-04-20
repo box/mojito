@@ -436,6 +436,7 @@
                     <!-- Sets the VM argument line used when unit tests are run. -->
                     <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
+                        -Djdk.xml.xpathTotalOpLimit=10000 -Djdk.xml.xpathExprOpLimit=10000
                     </argLine>
 
                     <rerunFailingTestsCount>1</rerunFailingTestsCount>

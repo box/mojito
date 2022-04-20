@@ -4,6 +4,8 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,23 @@ public class LeveragerByContent extends AbstractLeverager {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setTmId(sourceTmId);
         textUnitSearcherParameters.setAssetId(sourceAssetId);
+        textUnitSearcherParameters.setSource(tmTextUnit.getContent());
+        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+        if (tmTextUnit.getPluralForm() != null) {
+            textUnitSearcherParameters.setPluralFormId(tmTextUnit.getPluralForm().getId());
+        } else {
+            textUnitSearcherParameters.setPluralFormsExcluded(true);
+        }
+        return textUnitSearcher.search(textUnitSearcherParameters);
+    }
+
+    public List<TextUnitDTO> getLeveragingMatchesForRepository(TMTextUnit tmTextUnit, Long sourceTmId, ArrayList<Long> repositoryIds, ArrayList<String> repositoryNames) {
+        logger.debug("Get TextUnitDTOs for leveraging by content");
+
+        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+        textUnitSearcherParameters.setTmId(sourceTmId);
+        textUnitSearcherParameters.setRepositoryIds(repositoryIds);
+        textUnitSearcherParameters.setRepositoryNames(repositoryNames);
         textUnitSearcherParameters.setSource(tmTextUnit.getContent());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
         if (tmTextUnit.getPluralForm() != null) {
