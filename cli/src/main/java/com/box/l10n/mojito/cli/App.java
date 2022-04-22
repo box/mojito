@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,8 @@ public class App implements CommandLineRunner {
      * @param args
      */
     public static void main(String[] args) {
+        XmlParsingConfiguration.disableXPathLimits();
+
         SpringApplication app = new SpringApplication(App.class);
         app.setBannerMode(Banner.Mode.OFF);
         app.setWebEnvironment(false);
