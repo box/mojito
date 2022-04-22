@@ -2,6 +2,7 @@ package com.box.l10n.mojito;
 
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -46,6 +47,8 @@ public class Application {
     boolean shouldIndentJacksonOutput;
 
     public static void main(String[] args) throws IOException {
+
+        XmlParsingConfiguration.disableXPathLimits();
 
         SpringApplication springApplication = new SpringApplication(Application.class);
         springApplication.addListeners(new ApplicationPidFileWriter("application.pid"));
