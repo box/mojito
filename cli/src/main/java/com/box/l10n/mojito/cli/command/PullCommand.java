@@ -263,13 +263,7 @@ public class PullCommand extends Command {
     LocalizedAssetBody getLocalizedAsset(Repository repository, FileMatch sourceFileMatch, RepositoryLocale repositoryLocale, String outputBcp47tag, List<String> filterOptions) throws CommandException {
         consoleWriter.a(" - Processing locale: ").fg(Color.CYAN).a(repositoryLocale.getLocale().getBcp47Tag()).print();
 
-        String sourcePath = sourceFileMatch.getSourcePath();
-
-        if (assetMapping != null && assetMapping.get(sourcePath) != null) {
-            String mapping = assetMapping.get(sourcePath);
-            logger.debug("Use asset mapping from: {} to {}", sourcePath, mapping);
-            sourcePath = mapping;
-        }
+        String sourcePath = commandHelper.getMappedSourcePath(assetMapping, sourceFileMatch.getSourcePath());
 
         Asset assetByPathAndRepositoryId;
 

@@ -329,4 +329,13 @@ public class CommandHelper {
         return assetContent;
     }
 
+    public String getMappedSourcePath(Map<String, String> assetMapping, String sourcePath) {
+        if (assetMapping != null && assetMapping.get(sourcePath) != null) {
+            String mapping = assetMapping.get(sourcePath);
+            logger.debug("Use asset mapping from: {} to {}", sourcePath, mapping);
+            sourcePath = mapping;
+        }
+        return sourcePath;
+    }
+
 }

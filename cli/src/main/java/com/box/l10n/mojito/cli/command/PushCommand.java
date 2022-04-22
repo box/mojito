@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -65,6 +66,9 @@ public class PushCommand extends Command {
     @Parameter(names = Param.PUSH_TYPE_LONG, arity = 1, required = false, description = Param.PUSH_TYPE_DESCRIPTION)
     PushService.PushType pushType = PushService.PushType.NORMAL;
 
+    @Parameter(names = {"--asset-mapping", "-am"}, required = false, description = "Asset mapping, format: \"local1:remote1;local2:remote2\"", converter = AssetMappingConverter.class)
+    Map<String, String> assetMapping;
+
     @Autowired
     RepositoryClient repositoryClient;
 
@@ -93,11 +97,10 @@ public class PushCommand extends Command {
                     String sourcePath = sourceFileMatch.getSourcePath();
 
                     String assetContent = commandHelper.getFileContentWithXcodePatch(sourceFileMatch);
-
                     SourceAsset sourceAsset = new SourceAsset();
                     sourceAsset.setBranch(branchName);
                     sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
-                    sourceAsset.setPath(sourcePath);
+                    sourceAsset.setPath(commandHelper.getMappedSourcePath(assetMapping, sourcePath));
                     sourceAsset.setContent(assetContent);
                     sourceAsset.setExtractedContent(false);
                     sourceAsset.setRepositoryId(repository.getId());
