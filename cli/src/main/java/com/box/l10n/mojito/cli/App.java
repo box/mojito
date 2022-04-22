@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli;
 
 import com.box.l10n.mojito.cli.command.L10nJCommander;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.Banner;
@@ -29,6 +30,9 @@ public class App implements CommandLineRunner {
      * @param args
      */
     public static void main(String[] args) {
+
+        XmlParsingConfiguration.disableXPathLimits();
+
         new SpringApplicationBuilder(App.class)
                 .web(WebApplicationType.NONE)
                 .bannerMode(Banner.Mode.OFF)

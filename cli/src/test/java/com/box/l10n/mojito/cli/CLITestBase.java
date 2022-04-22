@@ -17,6 +17,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.test.IOTestBase;
+import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -91,6 +92,8 @@ public class CLITestBase extends IOTestBase {
     public void setPort() {
         logger.debug("Saving port number = {}", port);
         resttemplateConfig.setPort(port);
+
+        XmlParsingConfiguration.disableXPathLimits();
     }
 
     public void resetHost() {

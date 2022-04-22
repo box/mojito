@@ -8,6 +8,7 @@ import com.box.l10n.mojito.rest.client.exception.LocaleNotFoundException;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
+import com.box.l10n.mojito.xml.XmlParsingConfiguration;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -61,6 +62,8 @@ public class WSTestBase {
     public void setPort() {
         logger.debug("Saving port number = {}", port);
         resttemplateConfig.setPort(port);
+
+        XmlParsingConfiguration.disableXPathLimits();
     }
 
     /**
