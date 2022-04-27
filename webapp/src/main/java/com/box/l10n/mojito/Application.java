@@ -46,6 +46,9 @@ public class Application {
     boolean shouldIndentJacksonOutput;
 
     public static void main(String[] args) throws IOException {
+        System.setProperty("jdk.xml.xpathExprGrpLimit", "0");
+        System.setProperty("jdk.xml.xpathTotalOpLimit", "0");
+        System.setProperty("jdk.xml.xpathExprOpLimit", "0");
 
         SpringApplication springApplication = new SpringApplication(Application.class);
         springApplication.addListeners(new ApplicationPidFileWriter("application.pid"));

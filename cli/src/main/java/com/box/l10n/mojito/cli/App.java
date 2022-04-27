@@ -29,6 +29,10 @@ public class App implements CommandLineRunner {
      * @param args
      */
     public static void main(String[] args) {
+        System.setProperty("jdk.xml.xpathExprGrpLimit", "0");
+        System.setProperty("jdk.xml.xpathTotalOpLimit", "0");
+        System.setProperty("jdk.xml.xpathExprOpLimit", "0");
+
         new SpringApplicationBuilder(App.class)
                 .web(WebApplicationType.NONE)
                 .bannerMode(Banner.Mode.OFF)

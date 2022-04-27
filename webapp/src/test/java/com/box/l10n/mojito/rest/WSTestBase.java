@@ -61,6 +61,10 @@ public class WSTestBase {
     public void setPort() {
         logger.debug("Saving port number = {}", port);
         resttemplateConfig.setPort(port);
+
+        System.setProperty("jdk.xml.xpathExprGrpLimit", "0");
+        System.setProperty("jdk.xml.xpathTotalOpLimit", "0");
+        System.setProperty("jdk.xml.xpathExprOpLimit", "0");
     }
 
     /**
