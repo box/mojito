@@ -1256,6 +1256,7 @@ public class TMServiceTest extends ServiceTestBase {
      * This test is to test AndroidStrings with REMOVE_UNTRANSLATED inheritance mode with a single item
      * We need a special case in {@link com.box.l10n.mojito.okapi.TranslateStep} to keep the part of the skeleton that
      * contains the begining of the document when skipping the text unit.
+     *
      * @throws Exception
      */
     @Test
@@ -1828,7 +1829,7 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\"MIME-Version: 1.0\\n\"\n"
                 + "\"Plural-Forms: nplurals=2; plural=(n != 1);\\n\"\n"
                 + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n\n\n"
                 + "#. Comments\n"
                 + "#: core/logic/week_in_review_email_logic.py:49\n"
                 + "msgid \"repin\"\n"
@@ -1839,18 +1840,20 @@ public class TMServiceTest extends ServiceTestBase {
                 + "msgstr \"\"\n";
 
 
-        String expectedLocalizedAsset = "msgid \"\"\n"
-                + "msgstr \"\"\n"
-                + "\"Project-Id-Version: PACKAGE VERSION\\n\"\n"
-                + "\"Report-Msgid-Bugs-To: \\n\"\n"
-                + "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n"
-                + "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n"
-                + "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n"
-                + "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n"
-                + "\"MIME-Version: 1.0\\n\"\n"
-                + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
-                + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-                + "\"Content-Transfer-Encoding: 8bit\\n\"\n";
+        String expectedLocalizedAsset = "msgid \"\"\n" +
+                "msgstr \"\"\n" +
+                "\"Project-Id-Version: PACKAGE VERSION\\n\"\n" +
+                "\"Report-Msgid-Bugs-To: \\n\"\n" +
+                "\"POT-Creation-Date: 2017-09-15 11:53-0500\\n\"\n" +
+                "\"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n\"\n" +
+                "\"Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n\"\n" +
+                "\"Language-Team: LANGUAGE <LL@li.org>\\n\"\n" +
+                "\"MIME-Version: 1.0\\n\"\n" +
+                "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n" +
+                "\"Content-Type: text/plain; charset=utf-8\\n\"\n" +
+                "\"Content-Transfer-Encoding: 8bit\\n\"\n" +
+                "\n" +
+                "\n";
 
         asset = assetService.createAssetWithContent(repo.getId(), "messages.pot", assetContent);
         asset = assetRepository.findById(asset.getId()).orElse(null);
@@ -1866,7 +1869,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetResult.get();
 
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
-        logger.debug("localized=\n{}", localizedAsset);
+        logger.debug("localized=\n{}\nEOL", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
 
         String forImport = "msgid \"\"\n"
@@ -1880,16 +1883,18 @@ public class TMServiceTest extends ServiceTestBase {
                 + "\"MIME-Version: 1.0\\n\"\n"
                 + "\"Plural-Forms: nplurals=1; plural=0;\\n\"\n"
                 + "\"Content-Type: text/plain; charset=utf-8\\n\"\n"
-                + "\"Content-Transfer-Encoding: 8bit\\n\"\n"
+                + "\"Content-Transfer-Encoding: 8bit\\n\"\n\n\n"
                 + "#. Comments\n"
                 + "#: core/logic/week_in_review_email_logic.py:49\n"
                 + "msgid \"repin\"\n"
                 + "msgstr \"repin-jp\"\n";
 
+        logger.debug("formimport=\n{}", forImport);
+
         tmService.importLocalizedAssetAsync(assetId, forImport, repoLocale.getLocale().getId(), StatusForEqualTarget.TRANSLATION_NEEDED, null, null).get();
 
         localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ja-JP", null, null, Status.ALL, InheritanceMode.REMOVE_UNTRANSLATED);
-        logger.debug("localized after import=\n{}", localizedAsset);
+        logger.info("localized after import=\n{}", localizedAsset);
         assertEquals(forImport, localizedAsset);
     }
 

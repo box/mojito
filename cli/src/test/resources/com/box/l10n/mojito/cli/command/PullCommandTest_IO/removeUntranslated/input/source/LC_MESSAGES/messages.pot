@@ -17,7 +17,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
- 
 
 #: file.js:2
 msgctxt "100_character_description_"
@@ -29,12 +28,18 @@ msgstr ""
 msgctxt "15_min_duration"
 msgid "15 min"
 msgstr ""
-  
+
 #. File lock dialog duration
 #: file.js:6
 msgctxt "1_day_duration"
 msgid "1 day"
 msgstr ""
+
+#. Test remove untranslated
+#: file.js:25
+msgctxt "test_remove_untranslated"
+msgid "Test remove"
+msgstr "untranslated"
 
 #. File lock dialog duration
 #: file.js:8
@@ -47,3 +52,11 @@ msgstr ""
 msgctxt "1_month_duration"
 msgid "1 month"
 msgstr ""
+
+#. Test remove untranslated
+#: file.js:20
+msgctxt "test_remove_plural_untranslated"
+msgid "Test remove plural"
+msgid_plural "Test remove plurals"
+msgstr[0] "untranslated"
+msgstr[1] "untranslated"

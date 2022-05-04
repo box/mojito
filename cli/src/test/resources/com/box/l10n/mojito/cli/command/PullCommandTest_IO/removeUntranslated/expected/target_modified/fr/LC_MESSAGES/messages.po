@@ -35,4 +35,4 @@ msgstr "1 heure"
 msgctxt "1_month_duration"
 msgid "1 month"
 msgstr "1 mois"
- 
+   
