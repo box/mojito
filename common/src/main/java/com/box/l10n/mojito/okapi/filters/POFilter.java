@@ -1,18 +1,10 @@
 package com.box.l10n.mojito.okapi.filters;
 
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.box.l10n.mojito.po.PoPluralRule;
+import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.MimeTypeMapper;
@@ -31,6 +23,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Extends {@link net.sf.okapi.filters.po.POFilter} to somehow support gettext
@@ -103,12 +105,17 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         targetLocale = input.getTargetLocale();
         hasCopyFormsOnImport = input.getAnnotation(CopyFormsOnImport.class) != null;
         poPluralRule = PoPluralRule.fromBcp47Tag(targetLocale.toBCP47());
+
+        input.setAnnotation(new RemoveUntranslatedStategyAnnotation(RemoveUntranslatedStrategy.PLACEHOLDER_AND_POST_PROCESSING));
+        // Post processing is disable for now, it will be enabled by the TranslsateStep if there are actual text unit to remove
+        input.setAnnotation(new OutputDocumentPostProcessingAnnotation(POFilter::removeUntranslated, false));
     }
 
     @Override
     public boolean hasNext() {
         return !eventQueue.isEmpty() || super.hasNext();
     }
+
 
     @Override
     public Event next() {
@@ -410,4 +417,42 @@ public class POFilter extends net.sf.okapi.filters.po.POFilter {
         return encoderManager;
     }
 
+    static String removeUntranslated(String poFile) {
+        StringBuilder poFileWithoutUntranslatedPlural = new StringBuilder();
+        Scanner scanner = new Scanner(poFile);
+
+        StringBuilder block = new StringBuilder();
+        boolean hasMsgId = false;
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+
+            String trimedLine = line.trim();
+            boolean lineStartWithMsgId = trimedLine.startsWith("msgid ");
+            boolean lineHasCommentOrMsgId = lineStartWithMsgId || trimedLine.startsWith("#");
+
+            if (lineHasCommentOrMsgId && hasMsgId) {
+                if (block.indexOf(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER) == -1) {
+                    poFileWithoutUntranslatedPlural.append(block);
+                }
+                block = new StringBuilder(line).append("\n");
+                hasMsgId = false;
+            } else {
+                hasMsgId = hasMsgId || lineStartWithMsgId;
+                block.append(line).append("\n");
+            }
+        }
+
+        if (block.indexOf(RemoveUntranslatedStrategy.UNTRANSLATED_PLACEHOLDER) == -1) {
+            poFileWithoutUntranslatedPlural.append(block);
+        }
+
+        boolean hasBuilderEndReturnLine = poFileWithoutUntranslatedPlural.length() > 0
+                && poFileWithoutUntranslatedPlural.charAt(poFileWithoutUntranslatedPlural.length() - 1) == '\n';
+
+        if (!poFile.endsWith("\n") && hasBuilderEndReturnLine) {
+            poFileWithoutUntranslatedPlural.deleteCharAt(poFileWithoutUntranslatedPlural.length() - 1 );
+        }
+
+        return poFileWithoutUntranslatedPlural.toString();
+    }
 }

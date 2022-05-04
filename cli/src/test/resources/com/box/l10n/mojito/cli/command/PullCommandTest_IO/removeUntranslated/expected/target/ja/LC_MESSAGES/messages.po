@@ -23,7 +23,7 @@ msgstr ""
 msgctxt "15_min_duration"
 msgid "15 min"
 msgstr "15分"
-  
+
 #. File lock dialog duration
 #: file.js:6
 msgctxt "1_day_duration"
@@ -41,3 +41,4 @@ msgstr "1時間"
 msgctxt "1_month_duration"
 msgid "1 month"
 msgstr "1か月"
+
