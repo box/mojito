@@ -74,7 +74,7 @@ public class PollableAspect {
                 pollableAspectParameters.getTimeout());
 
         logger.debug("Create the PollableFutureTask that will hold the method result and Pollable instance");
-        PollableFutureTask pollableFuture = PollableFutureTask.create(pollableTask, pjp);
+        PollableFutureTask<Object> pollableFuture = PollableFutureTask.create(pollableTask, pjp);
 
         if (pollableAspectParameters.isAsync()) {
             returnedValue = asyncExecute(pollableFuture, getFunctionReturnType(pjp));
@@ -111,7 +111,7 @@ public class PollableAspect {
      * @throws Throwable If the return type is not {@link PollableFuture}, the
      * error thrown by the instrumented function
      */
-    private Object syncExecute(PollableFutureTask pollableFuture, Class functionReturnType) throws Throwable {
+    private Object syncExecute(PollableFutureTask<?> pollableFuture, Class<?> functionReturnType) throws Throwable {
 
         Object returnedValue = null;
 
@@ -151,7 +151,7 @@ public class PollableAspect {
      * @throws RuntimeException if the instrumented function does return a
      * proper type
      */
-    private Object asyncExecute(PollableFutureTask pollableFuture, Class functionReturnType) throws RuntimeException {
+    private Object asyncExecute(PollableFutureTask<?> pollableFuture, Class<?> functionReturnType) throws RuntimeException {
 
         logger.debug("Check the return type for async execution");
 

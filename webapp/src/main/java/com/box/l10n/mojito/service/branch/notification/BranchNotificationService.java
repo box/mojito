@@ -149,7 +149,7 @@ public class BranchNotificationService {
         branchNotificationMissingScreenshotsJobInput.setBranchId(branch.getId());
         branchNotificationMissingScreenshotsJobInput.setSenderType(senderType);
 
-        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(BranchNotificationMissingScreenshotsJob.class)
+        QuartzJobInfo<BranchNotificationMissingScreenshotsJobInput, Void> quartzJobInfo = QuartzJobInfo.newBuilder(BranchNotificationMissingScreenshotsJob.class)
                 .withInput(branchNotificationMissingScreenshotsJobInput)
                 .withTriggerStartDate(date)
                 .withUniqueId(senderType + "_" + branch.getId())

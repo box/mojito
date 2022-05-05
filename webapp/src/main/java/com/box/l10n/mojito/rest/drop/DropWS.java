@@ -137,7 +137,7 @@ public class DropWS {
     public ImportDropConfig importDrop(@RequestBody ImportDropConfig importDropConfig) throws Exception {
 
         // TODO(P1) Check here that the repo exists (and the user has access to it)?
-        PollableFuture importDropFuture = dropService.importDrop(importDropConfig.getDropId(), importDropConfig.getStatus(), PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Void> importDropFuture = dropService.importDrop(importDropConfig.getDropId(), importDropConfig.getStatus(), PollableTask.INJECT_CURRENT_TASK);
 
         importDropConfig.setPollableTask(importDropFuture.getPollableTask());
 
@@ -157,7 +157,7 @@ public class DropWS {
     public CancelDropConfig cancelDrop(@RequestBody CancelDropConfig cancelDropConfig) throws Exception {
 
         // TODO(P1) Check here that the repo exists (and the user has access to it)?
-        PollableFuture cancelDropFuture = dropService.cancelDrop(cancelDropConfig.getDropId(), PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<Drop> cancelDropFuture = dropService.cancelDrop(cancelDropConfig.getDropId(), PollableTask.INJECT_CURRENT_TASK);
 
         cancelDropConfig.setPollableTask(cancelDropFuture.getPollableTask());
 

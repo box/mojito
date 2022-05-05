@@ -220,12 +220,12 @@ public class PollableAspectTest extends ServiceTestBase {
 
     @Test
     public void testParent() throws JsonProcessingException {
-        PollableFuture parent = parent(null);
+        PollableFuture<Void> parent = parent(null);
         logger.debug(objectMapper.writeValueAsString(parent.getPollableTask()));
     }
 
     @Pollable(message = "parent task, id: {parentId}", expectedSubTaskNumber = 2)
-    public PollableFuture parent(
+    public PollableFuture<Void> parent(
             @MsgArg(name = "parentId", accessor = "getId") @InjectCurrentTask PollableTask pollableTask) {
 
         sub(pollableTask, 1L);
@@ -245,7 +245,7 @@ public class PollableAspectTest extends ServiceTestBase {
 
     @Test
     public void testMsgArgInAnnotation() throws JsonProcessingException {
-        PollableFuture msgArgInAnnotation = msgArgInAnnotation();
+        PollableFuture<Void> msgArgInAnnotation = msgArgInAnnotation();
         assertEquals(msgArgInAnnotation.getPollableTask().getMessage(),
                 "Message with MsgArg in annotation uses 'this' to get message value");
     }
@@ -254,7 +254,7 @@ public class PollableAspectTest extends ServiceTestBase {
             msgArgs = {
                 @MsgArg(name = "inAnnotationName", accessor = "getInAnnotation")
             })
-    public PollableFuture msgArgInAnnotation() {
+    public PollableFuture<Void> msgArgInAnnotation() {
         return null;
     }
 

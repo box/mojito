@@ -43,7 +43,7 @@ public class SpliteratorsTest {
         int fetchSize = 5;
         int partitionSize = 3;
 
-        ArrayList checkCallOrders = new ArrayList();
+        ArrayList<String> checkCallOrders = new ArrayList<>();
 
         PageFetcherOffsetAndLimitSplitIterator<String> spliterator = new PageFetcherOffsetAndLimitSplitIterator<>(
                 (offset, limit) ->

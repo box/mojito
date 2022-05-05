@@ -125,7 +125,7 @@ public class TextUnitBatchImporterService {
         return quartzPollableTaskScheduler.scheduleJob(ImportTextUnitJob.class, importTextUnitJobInput);
     }
 
-    public PollableFuture importTextUnits(List<TextUnitDTO> textUnitDTOs,
+    public PollableFuture<Void> importTextUnits(List<TextUnitDTO> textUnitDTOs,
                                           boolean integrityCheckSkipped,
                                           boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 
@@ -147,7 +147,7 @@ public class TextUnitBatchImporterService {
             });
         });
 
-        return new PollableFutureTaskResult();
+        return new PollableFutureTaskResult<>();
     }
 
     /**

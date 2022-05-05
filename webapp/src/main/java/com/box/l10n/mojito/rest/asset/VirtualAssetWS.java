@@ -45,7 +45,7 @@ public class VirtualAssetWS {
             @PathVariable("assetId") long assetId,
             @RequestBody List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
 
-        PollableFuture addTextUnits = virtualAssetService.addTextUnits(assetId, virtualAssetTextUnits);
+        PollableFuture<Void> addTextUnits = virtualAssetService.addTextUnits(assetId, virtualAssetTextUnits);
         return addTextUnits.getPollableTask();
     }
 
@@ -54,7 +54,7 @@ public class VirtualAssetWS {
             @PathVariable("assetId") long assetId,
             @RequestBody List<VirtualAssetTextUnit> virtualAssetTextUnits) throws VirtualAssetRequiredException {
 
-        PollableFuture replaceTextUnitsTask = virtualAssetService.replaceTextUnits(assetId, virtualAssetTextUnits);
+        PollableFuture<Void> replaceTextUnitsTask = virtualAssetService.replaceTextUnits(assetId, virtualAssetTextUnits);
         return replaceTextUnitsTask.getPollableTask();
     }
 
@@ -71,7 +71,7 @@ public class VirtualAssetWS {
             @PathVariable("localeId") long localeId,
             @RequestBody List<VirtualAssetTextUnit> textUnitForVirtualAssets) throws VirtualAssetRequiredException, VirutalAssetMissingTextUnitException {
 
-        PollableFuture importLocalizedTextUnits = virtualAssetService.importLocalizedTextUnits(assetId, localeId, textUnitForVirtualAssets);
+        PollableFuture<Void> importLocalizedTextUnits = virtualAssetService.importLocalizedTextUnits(assetId, localeId, textUnitForVirtualAssets);
         return importLocalizedTextUnits.getPollableTask();
     }
 

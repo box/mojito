@@ -401,7 +401,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         virtualAssetTextUnit.setPluralFormOther("name3_other");
         localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
 
-        PollableFuture importLocalizedTextUnits = virtualAssetService.importLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, localizedVirtualAssetTextUnits);
+        PollableFuture<Void> importLocalizedTextUnits = virtualAssetService.importLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, localizedVirtualAssetTextUnits);
         importLocalizedTextUnits.get();
 
         List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);
@@ -479,7 +479,7 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         virtualAssetTextUnit.setPluralFormOther("name3_other");
         localizedVirtualAssetTextUnits.add(virtualAssetTextUnit);
 
-        PollableFuture importLocalizedTextUnits = virtualAssetService.importLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, localizedVirtualAssetTextUnits);
+        PollableFuture<Void> importLocalizedTextUnits = virtualAssetService.importLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, localizedVirtualAssetTextUnits);
         importLocalizedTextUnits.get();
 
         List<VirtualAssetTextUnit> loalizedTextUnits = virtualAssetService.getLocalizedTextUnits(virtualAsset.getId(), frFRLocaleId, InheritanceMode.REMOVE_UNTRANSLATED);

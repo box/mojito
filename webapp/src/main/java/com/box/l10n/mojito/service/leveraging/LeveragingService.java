@@ -137,7 +137,7 @@ public class LeveragingService {
      * @return
      */
     @Pollable(async = true, message = "Start copying translations between repository")
-    public PollableFuture copyTm(CopyTmConfig copyTmConfig) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+    public PollableFuture<Void> copyTm(CopyTmConfig copyTmConfig) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
 
         if (CopyTmConfig.Mode.TUIDS.equals(copyTmConfig.getMode())) {
             copyTranslationBetweenTextUnits(copyTmConfig.getSourceToTargetTmTextUnitIds());
@@ -145,7 +145,7 @@ public class LeveragingService {
             copyTmBetweenRepositories(copyTmConfig);
         }
 
-        return new PollableFutureTaskResult();
+        return new PollableFutureTaskResult<>();
     }
 
     void copyTmBetweenRepositories(CopyTmConfig copyTmConfig) throws RepositoryWithIdNotFoundException, AssetWithIdNotFoundException {

@@ -188,7 +188,7 @@ public class LanguageDetectionService {
      */
     private Detector getDetectorForLanguage(String language) throws LangDetectException {
         Detector detector = DetectorFactory.create();
-        HashMap<String, Double> priorityMap = new HashMap();
+        HashMap<String, Double> priorityMap = new HashMap<>();
 
         for (String supportedLanguage : getSupportedLanguages()) {
             if (supportedLanguage.equals(language)) {

@@ -108,7 +108,7 @@ public class AssetServiceConcurrentTest extends ServiceTestBase {
 
         Branch branch = branchRepository.findByNameAndRepository(null, repository);
 
-        Set<String> assetContentsFromDB = new HashSet();
+        Set<String> assetContentsFromDB = new HashSet<>();
 
         for (AssetContent assetContent : assetContentRepository.findByAssetRepositoryIdAndBranchName(repository.getId(), null)) {
             assetContentsFromDB.add(assetContent.getContent());

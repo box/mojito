@@ -209,12 +209,12 @@ public class DropService {
      * @throws ImportDropException
      */
     @Pollable(async = true, message = "Start importing drop", expectedSubTaskNumber = 1)
-    public PollableFuture importDrop(
+    public PollableFuture<Void> importDrop(
             Long dropId,
             TMTextUnitVariant.Status importStatus,
             @InjectCurrentTask PollableTask currentTask) throws DropImporterException, DropExporterException, ImportDropException {
 
-        PollableFutureTaskResult pollableFutureTaskResult = new PollableFutureTaskResult();
+        PollableFutureTaskResult<Void> pollableFutureTaskResult = new PollableFutureTaskResult<>();
 
         logger.debug("Start importing drop");
 

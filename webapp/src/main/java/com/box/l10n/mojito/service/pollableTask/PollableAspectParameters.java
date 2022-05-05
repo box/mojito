@@ -132,7 +132,7 @@ public class PollableAspectParameters {
             res = target;
         } else {
             try {
-                Method method = target.getClass().getMethod(accessor, (Class[]) null);
+                Method method = target.getClass().getMethod(accessor, (Class<?>[]) null);
                 res = method.invoke(target);
             } catch (NoSuchMethodException nsme) {
                 String msg = "@MsgArg must be set on an Object that has a public function: " + accessor;
