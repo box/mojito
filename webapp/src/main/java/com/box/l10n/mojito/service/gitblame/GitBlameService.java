@@ -186,7 +186,7 @@ public class GitBlameService {
      */
     @Transactional
     @Pollable(async = true, message = "Save git blame information")
-    public PollableFuture saveGitBlameWithUsages(List<GitBlameWithUsage> gitBlameWithUsages) {
+    public PollableFuture<Void> saveGitBlameWithUsages(List<GitBlameWithUsage> gitBlameWithUsages) {
 
         HashMap<Long, GitBlameWithUsage> gitBlameWithUsagesByTmTextUnitId = getGitBlameWithUsagesByTmTextUnitId(gitBlameWithUsages);
 
@@ -219,7 +219,7 @@ public class GitBlameService {
             gitBlameRepository.save(gitBlame);
         }
 
-        return new PollableFutureTaskResult();
+        return new PollableFutureTaskResult<>();
     }
 
     Map<Long, GitBlame> getCurrentGitBlameForTmTextUnitIds(Set<Long> tmTextUnitIds) {
@@ -252,7 +252,7 @@ public class GitBlameService {
      */
     HashMap<Long, GitBlameWithUsage> getGitBlameWithUsagesByTmTextUnitId(List<GitBlameWithUsage> gitBlameWithUsages) {
 
-        HashMap<Long, GitBlameWithUsage> tmTextUnitIdToGitBlameWithUsage = new HashMap();
+        HashMap<Long, GitBlameWithUsage> tmTextUnitIdToGitBlameWithUsage = new HashMap<>();
 
         for (GitBlameWithUsage gitBlameWithUsage : gitBlameWithUsages) {
             Long tmTextUnitId = gitBlameWithUsage.getTmTextUnitId();

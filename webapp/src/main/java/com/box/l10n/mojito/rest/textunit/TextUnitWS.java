@@ -340,7 +340,7 @@ public class TextUnitWS {
             }
         }
 
-        PollableFuture pollableFuture = textUnitBatchImporterService.asyncImportTextUnits(
+        PollableFuture<Void> pollableFuture = textUnitBatchImporterService.asyncImportTextUnits(
                 importTextUnitsBatch.getTextUnits(),
                 importTextUnitsBatch.isIntegrityCheckSkipped(),
                 importTextUnitsBatch.isIntegrityCheckKeepStatusIfFailedAndSameTarget());
@@ -416,7 +416,7 @@ public class TextUnitWS {
             );
         }
 
-        PollableFuture pollableFuture = tmTextUnitStatisticService.importStatistics(
+        PollableFuture<Void> pollableFuture = tmTextUnitStatisticService.importStatistics(
                 repository.getSourceLocale(), asset, textUnitStatistics
         );
 
@@ -495,7 +495,7 @@ public class TextUnitWS {
     @RequestMapping(method = RequestMethod.POST, value = "/api/textunits/gitBlameWithUsagesBatch")
     public PollableTask saveGitBlameWithUsages(@RequestBody List<GitBlameWithUsage> gitBlameWithUsages) {
         logger.debug("saveGitBlameWithUsages");
-        PollableFuture pollableFuture = gitBlameService.saveGitBlameWithUsages(gitBlameWithUsages);
+        PollableFuture<Void> pollableFuture = gitBlameService.saveGitBlameWithUsages(gitBlameWithUsages);
         return pollableFuture.getPollableTask();
     }
 }

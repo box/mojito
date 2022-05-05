@@ -10,11 +10,8 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.text.MessageFormat;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -82,7 +79,7 @@ public class BranchService {
         deleteBranchJobInput.setRepositoryId(repositoryId);
         deleteBranchJobInput.setBranchId(branchId);
         String pollableMessage = MessageFormat.format(" - Delete branch: {0} from repository: {1}", branchId, repositoryId);
-        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(DeleteBranchJob.class).withInput(deleteBranchJobInput).withMessage(pollableMessage).build();
+        QuartzJobInfo<DeleteBranchJobInput, Void> quartzJobInfo = QuartzJobInfo.newBuilder(DeleteBranchJob.class).withInput(deleteBranchJobInput).withMessage(pollableMessage).build();
         return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
     }
 

@@ -147,11 +147,11 @@ public class QuartzPollableTaskScheduler {
         return (Class<O>) outputType;
     }
 
-    String getKeyName(Class clazz, String id) {
+    String getKeyName(Class<?> clazz, String id) {
         return getPollableTaskName(clazz) + "_" + id;
     }
 
-    String getPollableTaskName(Class clazz) {
+    String getPollableTaskName(Class<?> clazz) {
         return clazz.getCanonicalName();
     }
 
@@ -161,7 +161,7 @@ public class QuartzPollableTaskScheduler {
      * I think I added this to fix a test that was failing but the class was renamed, so as it it is probably not
      * needed. Keep it for later. Also not the implementation would work to well with a very long class name..
      */
-    String getShortClassName(Class clazz) {
+    String getShortClassName(Class<?> clazz) {
         String result = clazz.getCanonicalName();
 
         if (result.length() > 170) {

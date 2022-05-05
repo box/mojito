@@ -40,7 +40,7 @@ public class LeveragingWS {
     @RequestMapping(value = "/api/leveraging/copyTM", method = RequestMethod.POST)
     public CopyTmConfig copyTM(@RequestBody CopyTmConfig copyTmConfig) throws AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
         logger.debug("Copy repository TM");
-        PollableFuture pollableFuture = leveragingService.copyTm(copyTmConfig);
+        PollableFuture<Void> pollableFuture = leveragingService.copyTm(copyTmConfig);
         copyTmConfig.setPollableTask(pollableFuture.getPollableTask());
         return copyTmConfig;
     }

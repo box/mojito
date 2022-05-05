@@ -144,13 +144,9 @@ public class BoxSDKServiceTest extends WSTestBase {
         List<Callable<Object>> callables = new ArrayList<>();
 
         for (int i = 0; i < nbThreads; i++) {
-            callables.add(new Callable() {
-
-                @Override
-                public Object call() throws Exception {
-                    boxSDKService.createFolder("testMultithreadedCreateFolder-" + UUID.randomUUID(), testFolder.getID());
-                    return null;
-                }
+            callables.add(() -> {
+                boxSDKService.createFolder("testMultithreadedCreateFolder-" + UUID.randomUUID(), testFolder.getID());
+                return null;
             });
         }
 

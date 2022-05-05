@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
@@ -20,7 +21,7 @@ public class ActiveDirectoryAuthenticationProviderConfigurerTest {
     @Test
     public void testBuilderFunctions() throws Exception {
 
-        ActiveDirectoryAuthenticationProviderConfigurer instance = new ActiveDirectoryAuthenticationProviderConfigurer();
+        ActiveDirectoryAuthenticationProviderConfigurer<AuthenticationManagerBuilder> instance = new ActiveDirectoryAuthenticationProviderConfigurer<>();
         
         UserDetailsContextMapper userDetailsContextMapper = new UserDetailsContextMapper() {
             @Override

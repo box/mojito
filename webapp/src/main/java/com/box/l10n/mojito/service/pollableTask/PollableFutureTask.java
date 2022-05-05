@@ -38,7 +38,7 @@ class PollableFutureTask<T> extends FutureTask<T> implements PollableFuture<T> {
      */
     public static <T> PollableFutureTask<T> create(final PollableTask pollableTask, final ProceedingJoinPoint pjp) {
         PollableCallable pollableCallable = new PollableCallable(pollableTask, pjp);
-        PollableFutureTask pollableFutureTask = new PollableFutureTask(pollableCallable, pollableTask);
+        PollableFutureTask<T> pollableFutureTask = new PollableFutureTask<>(pollableCallable, pollableTask);
         pollableCallable.setPollableFutureTask(pollableFutureTask);
         return pollableFutureTask;
     }

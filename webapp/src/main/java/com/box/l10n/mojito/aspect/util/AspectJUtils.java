@@ -1,10 +1,12 @@
 package com.box.l10n.mojito.aspect.util;
 
 import com.box.l10n.mojito.service.pollableTask.AnnotatedMethodParam;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
@@ -20,8 +22,8 @@ public class AspectJUtils {
     /**
      * Finds the first annotated parameter in the {@link ProceedingJoinPoint}.
      *
-     * @param <T> the annotation type
-     * @param pjp the join point
+     * @param <T>                the annotation type
+     * @param pjp                the join point
      * @param searchedAnnotation annotation class
      * @return the first annotated parameter else {@code null}
      */
@@ -40,8 +42,8 @@ public class AspectJUtils {
     /**
      * Finds all annotated parameters in the {@link ProceedingJoinPoint}.
      *
-     * @param <T> the annotation type
-     * @param pjp the join point
+     * @param <T>                the annotation type
+     * @param pjp                the join point
      * @param searchedAnnotation annotation class
      * @return list (not null) of annotated parameters
      */
@@ -69,9 +71,11 @@ public class AspectJUtils {
                 Annotation annotation = annotations[j];
 
                 if (searchedAnnotation.isInstance(annotation)) {
-                    list.add(new AnnotatedMethodParam(annotation, i, args[i]));
+                    @SuppressWarnings("unchecked")
+                    AnnotatedMethodParam<T> methodParam = new AnnotatedMethodParam(annotation, i, args[i]);
+                    list.add(methodParam);
 
-                    if(stopOnFirst) {
+                    if (stopOnFirst) {
                         notFoundFirst = false;
                     }
                 }

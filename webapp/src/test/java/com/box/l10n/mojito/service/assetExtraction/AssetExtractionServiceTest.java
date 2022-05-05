@@ -189,7 +189,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         Asset asset = assetService.createAsset(repository.getId(), "path/to/fake/file-with-unsupported.ext", false);
         AssetContent assetContent = assetContentService.createAssetContent(asset, "fake-content");
-        PollableFuture pollableTaskResult = assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null);
+        PollableFuture<Void> pollableTaskResult = assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null);
 
         // Wait for the processing to finish
         try {

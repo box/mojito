@@ -8,7 +8,7 @@ public class QuartzJobInfoTest {
     @Test
     public void testBuilder() {
         QuartzJobInfo.Builder<String, Void> builder = QuartzJobInfo.newBuilder(TestJob.class);
-        QuartzJobInfo quartzJobInfo = builder.withExpectedSubTaskNumber(0).withInlineInput(false).withMessage("coucou").build();
+        QuartzJobInfo<String, Void> quartzJobInfo = builder.withExpectedSubTaskNumber(0).withInlineInput(false).withMessage("coucou").build();
         Assert.assertEquals(TestJob.class, quartzJobInfo.getClazz());
     }
 

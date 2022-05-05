@@ -75,7 +75,7 @@ public class TMTextUnitStatisticService {
      * @return                      a PollableFuture
      */
     @Pollable(async = true, message = "Start importing text unit statistics.")
-    public PollableFuture importStatistics(
+    public PollableFuture<Void> importStatistics(
             Locale locale,
             Asset asset,
             List<ImportTextUnitStatisticsBody> textUnitStatistics) {
@@ -121,7 +121,7 @@ public class TMTextUnitStatisticService {
                 }
         );
 
-        return new PollableFutureTaskResult();
+        return new PollableFutureTaskResult<Void>();
     }
 
     @Transactional

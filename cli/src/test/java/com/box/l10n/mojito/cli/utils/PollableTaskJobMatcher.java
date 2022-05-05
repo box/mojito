@@ -6,7 +6,7 @@ import org.quartz.Matcher;
 
 import static com.box.l10n.mojito.quartz.QuartzConfig.DYNAMIC_GROUP_NAME;
 
-public class PollableTaskJobMatcher<T extends QuartzPollableJob> implements Matcher<JobKey> {
+public class PollableTaskJobMatcher<T extends QuartzPollableJob<?, ?>> implements Matcher<JobKey> {
 
     private final Class<T> target;
 

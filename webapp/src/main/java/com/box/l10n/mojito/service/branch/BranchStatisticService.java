@@ -311,7 +311,7 @@ public class BranchStatisticService {
         BranchNotificationJobInput branchNotificationJobInput = new BranchNotificationJobInput();
         branchNotificationJobInput.setBranchId(branch.getId());
 
-        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(BranchNotificationJob.class)
+        QuartzJobInfo<BranchNotificationJobInput, Void> quartzJobInfo = QuartzJobInfo.newBuilder(BranchNotificationJob.class)
                 .withUniqueId(String.valueOf(branch.getId()))
                 .withInput(branchNotificationJobInput).build();
         quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);

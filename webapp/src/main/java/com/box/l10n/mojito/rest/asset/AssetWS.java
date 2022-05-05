@@ -22,7 +22,6 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Strings;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
@@ -38,10 +37,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author aloison
@@ -213,7 +210,7 @@ public class AssetWS {
                 Tags.of("repositoryId", asset.getRepository().getId().toString())
         ).increment();
 
-        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(GenerateLocalizedAssetJob.class).withInlineInput(false).withInput(localizedAssetBody).build();
+        QuartzJobInfo<LocalizedAssetBody, LocalizedAssetBody> quartzJobInfo = QuartzJobInfo.newBuilder(GenerateLocalizedAssetJob.class).withInlineInput(false).withInput(localizedAssetBody).build();
         PollableFuture<LocalizedAssetBody> localizedAssetBodyPollableFuture = quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
         return localizedAssetBodyPollableFuture.getPollableTask();
     }
@@ -260,7 +257,7 @@ public class AssetWS {
         logger.debug("Import localized asset with id = {}, and locale id = {}", assetId, localeId);
         String normalizedContent = NormalizationUtils.normalize(importLocalizedAssetBody.getContent());
 
-        PollableFuture pollableFuture = tmService.importLocalizedAssetAsync(
+        PollableFuture<Void> pollableFuture = tmService.importLocalizedAssetAsync(
                 assetId,
                 normalizedContent,
                 localeId,
@@ -306,7 +303,7 @@ public class AssetWS {
                                             @RequestParam("bcp47tag") String bcp47tag,
                                             @RequestBody XliffExportBody xliffExportBody) {
         TMXliff tmXliff = tmService.createTMXliff(assetId, bcp47tag, null, null);
-        PollableFuture pollableFuture = tmService.exportAssetAsXLIFFAsync(tmXliff.getId(), assetId, bcp47tag, PollableTask.INJECT_CURRENT_TASK);
+        PollableFuture<String> pollableFuture = tmService.exportAssetAsXLIFFAsync(tmXliff.getId(), assetId, bcp47tag, PollableTask.INJECT_CURRENT_TASK);
         xliffExportBody.setTmXliffId(tmXliff.getId());
         xliffExportBody.setPollableTask(pollableFuture.getPollableTask());
         return xliffExportBody;
@@ -341,7 +338,7 @@ public class AssetWS {
     public PollableTask deleteAssetsOfBranches(@RequestParam(value = "branchId", required = false) Long branchId,
                                                @RequestBody Set<Long> ids) {
         logger.debug("Deleting assets: {} for branch id: {}", ids.toString(), branchId);
-        PollableFuture pollableFuture = assetService.asyncDeleteAssetsOfBranch(ids, branchId);
+        PollableFuture<Void> pollableFuture = assetService.asyncDeleteAssetsOfBranch(ids, branchId);
         return pollableFuture.getPollableTask();
     }
 

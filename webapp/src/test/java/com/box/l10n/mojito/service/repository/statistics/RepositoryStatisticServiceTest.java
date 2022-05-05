@@ -123,7 +123,7 @@ public class RepositoryStatisticServiceTest extends ServiceTestBase {
         virtualAssetTextUnit3.setDoNotTranslate(Boolean.FALSE);
 
         virtualAssetService.addTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2, virtualAssetTextUnit3)).get();
-        PollableFuture replaceTextUnits = virtualAssetService.replaceTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2));
+        PollableFuture<Void> replaceTextUnits = virtualAssetService.replaceTextUnits(virtualAsset.getId(), Arrays.asList(virtualAssetTextUnit, virtualAssetTextUnit2));
         replaceTextUnits.get();
 
         RepositoryStatistic repositoryStatistic = repositoryStatisticService.computeBaseStatistics(repository.getId());

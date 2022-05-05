@@ -188,8 +188,6 @@ public class VirtualAssetService {
     @Transactional
     List<AssetTextUnitDTO> findByAssetExtractionIdAndDoNotTranslateFilter(Long assetExtractionId, Boolean doNotTranslateFilter) {
 
-        Map<ParameterExpression, Object> parameters = new LinkedHashMap<>();
-
         CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
         CriteriaQuery<AssetTextUnitDTO> query = criteriaBuilder.createQuery(AssetTextUnitDTO.class);
 
@@ -198,13 +196,13 @@ public class VirtualAssetService {
         Predicate conjunction = criteriaBuilder.conjunction();
 
         ParameterExpression<Long> assetExtractionIdParameter = criteriaBuilder.parameter(Long.class);
-        parameters.put(assetExtractionIdParameter, assetExtractionId);
         conjunction.getExpressions().add(criteriaBuilder.equal(assetTextUnitRoot.get(AssetTextUnit_.assetExtraction).get(AssetExtraction_.id), assetExtractionIdParameter));
 
+        ParameterExpression<Boolean> doNotTranslateFilterParameter = null;
         if (doNotTranslateFilter != null) {
-            ParameterExpression<String> doNotTranslateFilterParameter = criteriaBuilder.parameter(String.class);
-            parameters.put(doNotTranslateFilterParameter, doNotTranslateFilter);
-            conjunction.getExpressions().add(criteriaBuilder.equal(assetTextUnitRoot.get(AssetTextUnit_.doNotTranslate), doNotTranslateFilterParameter));
+            doNotTranslateFilterParameter = criteriaBuilder.parameter(Boolean.class);
+            conjunction.getExpressions().add(criteriaBuilder.equal(
+                    assetTextUnitRoot.get(AssetTextUnit_.doNotTranslate), doNotTranslateFilterParameter));
         }
 
         query.select(criteriaBuilder.construct(AssetTextUnitDTO.class,
@@ -222,9 +220,10 @@ public class VirtualAssetService {
 
         TypedQuery<AssetTextUnitDTO> typedQuery = em.createQuery(query);
 
-        parameters.forEach((parameterExpression, o) -> {
-            typedQuery.setParameter(parameterExpression, o);
-        });
+        typedQuery.setParameter(assetExtractionIdParameter, assetExtractionId);
+        if (doNotTranslateFilterParameter != null) {
+            typedQuery.setParameter(doNotTranslateFilterParameter, doNotTranslateFilter);
+        }
 
         List<AssetTextUnitDTO> resultList = typedQuery.getResultList();
         return resultList;

@@ -921,7 +921,7 @@ public class AssetExtractionService {
 
         String pollableMessage = MessageFormat.format("Process asset content, id: {0}", assetContentId.toString());
 
-        QuartzJobInfo quartzJobInfo = QuartzJobInfo.newBuilder(ProcessAssetJob.class)
+        QuartzJobInfo<ProcessAssetJobInput, Void> quartzJobInfo = QuartzJobInfo.newBuilder(ProcessAssetJob.class)
                 .withInput(processAssetJobInput)
                 .withMessage(pollableMessage)
                 .withParentId(parentTaskId)

@@ -80,7 +80,7 @@ public class BranchStatisticWS {
         // 2. Hydrate BranchStatistic entities for JSON response using eager loading to avoid N+1 queries
         List<BranchStatistic> branchStatistics = branchStatisticRepository.findByIdIn(branchStatisticIds.getContent(), pageable.getSort());
 
-        PageImpl page = new PageImpl(branchStatistics, branchStatisticIds.getPageable(), branchStatisticIds.getTotalElements());
+        PageImpl<BranchStatistic> page = new PageImpl<>(branchStatistics, branchStatisticIds.getPageable(), branchStatisticIds.getTotalElements());
         return new PageView<>(page);
     }
 }
