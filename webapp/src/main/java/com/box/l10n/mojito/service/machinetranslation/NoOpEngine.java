@@ -25,7 +25,13 @@ public class NoOpEngine implements MachineTranslationEngine {
     }
 
     @Override
-    public ImmutableMap<String, ImmutableList<TranslationDTO>> getTranslationsBySourceText(List<String> textSources, String sourceBcp47Tag, List<String> targetBcp47Tags, String sourceMimeType, String customModel) {
+    public ImmutableMap<String, ImmutableList<TranslationDTO>> getTranslationsBySourceText(
+            List<String> textSources,
+            String sourceBcp47Tag,
+            List<String> targetBcp47Tags,
+            TextType sourceTextType,
+            String customModel,
+            boolean isFunctionalProtectionEnabled) {
         logger.debug("NoOpEngine translate() operation called.");
 
         return textSources.stream()

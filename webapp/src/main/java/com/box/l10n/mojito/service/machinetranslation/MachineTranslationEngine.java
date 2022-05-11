@@ -17,6 +17,7 @@ public interface MachineTranslationEngine {
             List<String> textSources,
             String sourceBcp47Tag,
             List<String> targetBcp47Tags,
-            String sourceMimeType,
-            String customModel);
+            TextType sourceTextType,
+            String customModel,
+            boolean isFunctionalProtectionEnabled);
 }
