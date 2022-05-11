@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.machinetranslation.microsoft;
 
 import com.box.l10n.mojito.service.machinetranslation.MachineTranslationEngine;
+import com.box.l10n.mojito.service.machinetranslation.TextType;
+import com.box.l10n.mojito.service.machinetranslation.PlaceholderEncoder;
 import com.box.l10n.mojito.service.machinetranslation.TranslationDTO;
 import com.box.l10n.mojito.service.machinetranslation.TranslationSource;
 import com.box.l10n.mojito.service.machinetranslation.microsoft.response.MicrosoftTextTranslationDTO;
@@ -37,6 +39,8 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
     public static final String OCP_APIM_SUBSCRIPTION_KEY = "Ocp-Apim-Subscription-Key";
     public static final String OCP_APIM_SUBSCRIPTION_REGION = "Ocp-Apim-Subscription-Region";
     public static final String X_CLIENT_TRACE_ID = "X-ClientTraceId";
+    public static final String TEXT_TYPE_PLAIN = "plain";
+    public static final String TEXT_TYPE_HTML = "html";
 
     static Logger logger = LoggerFactory.getLogger(MicrosoftMTEngine.class);
 
@@ -44,11 +48,14 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
 
     private final MicrosoftMTEngineConfiguration mtEngineConfiguration;
 
+    private final PlaceholderEncoder placeholderEncoder;
+
     static final String API_TRANSLATE = "translate";
     static final String API_VERSION = "3.0";
 
-    public MicrosoftMTEngine(MicrosoftMTEngineConfiguration mtEngineConfiguration) {
+    public MicrosoftMTEngine(MicrosoftMTEngineConfiguration mtEngineConfiguration, PlaceholderEncoder placeholderEncoder) {
         this.mtEngineConfiguration = mtEngineConfiguration;
+        this.placeholderEncoder = placeholderEncoder;
     }
 
     public RestTemplate restTemplate() {
@@ -70,7 +77,7 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
      *                       available to translate from by looking up supported languages using the translation
      *                       scope. If the from parameter is not specified, automatic language detection is applied to
      *                       determine the source language.
-     * @param sourceMimeType Optional parameter. Defines whether the text being translated is plain
+     * @param sourceTextType Optional parameter. Defines whether the text being translated is plain
      *                       text or HTML text. Any HTML needs to be a well-formed, complete element. Possible values
      *                       are: plain (default) or html.
      * @param customModel    Optional parameter. A string specifying the category (domain) of the
@@ -85,8 +92,25 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
             List<String> textSources,
             String sourceBcp47Tag,
             List<String> targetBcp47Tags,
-            String sourceMimeType,
-            String customModel) {
+            TextType sourceTextType,
+            String customModel,
+            boolean isFunctionalProtectionEnabled) {
+
+        // https://docs.microsoft.com/en-us/azure/cognitive-services/translator/request-limits
+        if (textSources.size() > 1000) {
+            throw new IllegalArgumentException("Text source limit of 1000 exceeded. Input text count: " + textSources.size());
+        }
+
+        int expectedInputCharacterLength = textSources.stream().mapToInt(String::length).sum() * targetBcp47Tags.size();
+        if (expectedInputCharacterLength > 50_000) {
+            throw new IllegalArgumentException("Translate request limit of 50000 characters exceeded. Calculated expected character count: " + expectedInputCharacterLength);
+        }
+
+        List<String> requestTextSources = textSources;
+
+        if (isFunctionalProtectionEnabled) {
+            requestTextSources = placeholderEncoder.encode(textSources);
+        }
 
         HttpHeaders headers = getHttpHeaders();
 
@@ -98,9 +122,10 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
             params.put("from", Collections.singletonList(sourceBcp47Tag));
         }
 
-        if (Strings.isNotBlank(sourceMimeType)) {
-            params.put("textType", Collections.singletonList(sourceMimeType));
-        }
+        // If applying functional protection for placeholders resulted in different text sources, force HTML text type
+        boolean placeholderProtectionAdded = !requestTextSources.equals(textSources);
+        String mimeType = placeholderProtectionAdded ? TEXT_TYPE_HTML : getTextType(sourceTextType);
+        params.put("textType", Collections.singletonList(mimeType));
 
         if (Strings.isNotBlank(customModel)) {
             params.put("domain", Collections.singletonList(customModel));
@@ -112,11 +137,8 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
                         .build()
                         .toUriString();
 
-        // TODO(garion) enforce API limits and implement batching when limits are exceeded
-        // https://docs.microsoft.com/en-us/azure/cognitive-services/translator/request-limits
-
         List<Map<String, String>> body =
-                textSources.stream()
+                requestTextSources.stream()
                         .map(text -> Collections.singletonMap("text", text))
                         .collect(Collectors.toList());
 
@@ -127,12 +149,14 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
                     restTemplate.postForObject(
                             finalUri, requestEntity, MicrosoftTextTranslationDTO[].class);
 
-            return getTranslationsBySourceTextFromResponse(textSources, response, targetBcp47Tags);
+            return getTranslationsBySourceTextFromResponse(
+                    textSources, response, targetBcp47Tags, isFunctionalProtectionEnabled);
+
         } catch (HttpClientErrorException e) {
             // Log only the request body, as the headers contain authentication information.
             String errorMessage =
                     String.format(
-                            "Could not Machine Translate posted to: %s with %s: %s and request body: %s",
+                            "Could not Machine Translate request posted to: %s with %s: %s and request body: %s",
                             finalUri,
                             X_CLIENT_TRACE_ID,
                             requestEntity.getHeaders().get(X_CLIENT_TRACE_ID),
@@ -142,18 +166,45 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
         }
     }
 
+    private String getTextType(TextType sourceTextType) {
+        String textType = TEXT_TYPE_PLAIN;
+
+        if (sourceTextType != null) {
+            switch (sourceTextType) {
+                case TEXT:
+                    textType = TEXT_TYPE_PLAIN;
+                    break;
+                case HTML:
+                    textType = TEXT_TYPE_HTML;
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported mime type for the Microsoft MT engine: " + sourceTextType);
+            }
+        }
+
+        return textType;
+    }
+
     private ImmutableMap<String, ImmutableList<TranslationDTO>> getTranslationsBySourceTextFromResponse(
-            List<String> textSources, MicrosoftTextTranslationDTO[] response, List<String> targetBcp47Tags) {
+            List<String> textSources,
+            MicrosoftTextTranslationDTO[] response,
+            List<String> targetBcp47Tags,
+            boolean isFunctionalProtectionEnabled) {
 
         // Translation objects in the output for each source string are returned in the same order as provided by the client.
         return Streams.zip(textSources.stream(), Arrays.stream(response),
                         (sourceText, microsoftTextTranslationDTO) -> new AbstractMap.SimpleEntry<>(
                                 sourceText,
-                                getTranslationDTOS(targetBcp47Tags, microsoftTextTranslationDTO)))
+                                getTranslationDTOS(
+                                        targetBcp47Tags, microsoftTextTranslationDTO, isFunctionalProtectionEnabled)))
                 .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private ImmutableList<TranslationDTO> getTranslationDTOS(List<String> targetBcp47Tags, MicrosoftTextTranslationDTO microsoftTextTranslationDTO) {
+    private ImmutableList<TranslationDTO> getTranslationDTOS(
+            List<String> targetBcp47Tags,
+            MicrosoftTextTranslationDTO microsoftTextTranslationDTO,
+            boolean isFunctionalProtectionEnabled) {
+
         // Within a set of translations for a specific source string, the languages are ordered in the same way as
         // the order of target languages provided to the API.
         return Streams.zip(targetBcp47Tags.stream(), microsoftTextTranslationDTO.getTranslations().stream(),
@@ -161,7 +212,12 @@ public class MicrosoftMTEngine implements MachineTranslationEngine {
                             TranslationDTO translation = new TranslationDTO();
                             translation.setTranslationSource(getSource());
                             translation.setBcp47Tag(requestTargetBcp47Tag);
-                            translation.setText(microsoftLanguageTranslationDTO.getText());
+
+                            String translationText = microsoftLanguageTranslationDTO.getText();
+                            String decodedTranslation = isFunctionalProtectionEnabled ?
+                                    placeholderEncoder.decode(translationText) : translationText;
+                            translation.setText(decodedTranslation);
+
                             return translation;
                         })
                 .collect(ImmutableList.toImmutableList());

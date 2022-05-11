@@ -25,15 +25,19 @@ public class MachineTranslationConfiguration {
     static class MicrosoftEngineConfiguration {
 
         final MicrosoftMTEngineConfiguration microsoftMTEngineConfiguration;
+        final PlaceholderEncoder placeholderEncoder;
 
-        public MicrosoftEngineConfiguration(MicrosoftMTEngineConfiguration microsoftMTEngineConfiguration) {
+        public MicrosoftEngineConfiguration(
+                MicrosoftMTEngineConfiguration microsoftMTEngineConfiguration,
+                PlaceholderEncoder placeholderEncoder) {
             this.microsoftMTEngineConfiguration = microsoftMTEngineConfiguration;
+            this.placeholderEncoder = placeholderEncoder;
         }
 
         @Bean
         public MicrosoftMTEngine microsoftMTEngine() {
             logger.info("Configure microsoftMTEngine");
-            return new MicrosoftMTEngine(microsoftMTEngineConfiguration);
+            return new MicrosoftMTEngine(microsoftMTEngineConfiguration, placeholderEncoder);
         }
     }
 

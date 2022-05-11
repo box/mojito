@@ -2,6 +2,8 @@ package com.box.l10n.mojito.service.machinetranslation.microsoft;
 
 import com.box.l10n.mojito.service.machinetranslation.MachineTranslationConfiguration;
 import com.box.l10n.mojito.service.machinetranslation.MachineTranslationEngine;
+import com.box.l10n.mojito.service.machinetranslation.TextType;
+import com.box.l10n.mojito.service.machinetranslation.PlaceholderEncoder;
 import com.box.l10n.mojito.service.machinetranslation.TranslationDTO;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -24,7 +26,8 @@ import java.util.stream.Collectors;
         MicrosoftMTEngineTest.class,
         MicrosoftMTEngineConfiguration.class,
         MachineTranslationConfiguration.class,
-        MachineTranslationEngine.class
+        MachineTranslationEngine.class,
+        PlaceholderEncoder.class
 })
 @EnableConfigurationProperties
 public class MicrosoftMTEngineTest {
@@ -42,8 +45,9 @@ public class MicrosoftMTEngineTest {
                 ImmutableList.of("hello world", "some new text"),
                 "en",
                 ImmutableList.of("fr-FR", "ja"),
+                TextType.TEXT,
                 null,
-                null);
+                true);
 
         List<String> allTranslatedStrings = translationsBySourceText.values().stream()
                 .flatMap(Collection::stream)
@@ -51,6 +55,29 @@ public class MicrosoftMTEngineTest {
                 .collect(Collectors.toList());
 
         Assert.assertEquals(4, allTranslatedStrings.size());
+    }
+
+    @Test
+    public void testTranslateProtectedPlaceholder() {
+        Assume.assumeNotNull(microsoftMTEngine);
+
+        String placeholderString = "{this is a very long placeholder}";
+        ImmutableMap<String, ImmutableList<TranslationDTO>> translationsBySourceText = microsoftMTEngine.getTranslationsBySourceText(
+                ImmutableList.of(placeholderString),
+                "en",
+                ImmutableList.of("fr-FR"),
+                TextType.TEXT,
+                null,
+                true);
+
+        List<String> allTranslatedStrings = translationsBySourceText.values().stream()
+                .flatMap(Collection::stream)
+                .map(TranslationDTO::getText)
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(1, allTranslatedStrings.size());
+        String translatedString = allTranslatedStrings.stream().findFirst().get();
+        Assert.assertEquals(placeholderString, translatedString);
     }
 
     @Test(expected = HttpClientErrorException.class)
@@ -61,8 +88,9 @@ public class MicrosoftMTEngineTest {
                 ImmutableList.of("hello world", "some new text"),
                 "sourceBadLocale",
                 ImmutableList.of("fr", "ja"),
+                TextType.TEXT,
                 null,
-                null);
+                true);
     }
 
     @Test(expected = HttpClientErrorException.class)
@@ -73,7 +101,8 @@ public class MicrosoftMTEngineTest {
                 ImmutableList.of("hello world", "some new text"),
                 "en",
                 ImmutableList.of("badTargetLocale"),
+                TextType.TEXT,
                 null,
-                null);
+                true);
     }
 }

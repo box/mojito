@@ -38,8 +38,8 @@ public class MachineTranslationService {
 
     final TranslationMerger translationMerger;
 
-    public MachineTranslationService(
-            MachineTranslationEngine machineTranslationEngine, TranslationMerger translationMerger) {
+    public MachineTranslationService(MachineTranslationEngine machineTranslationEngine,
+                                     TranslationMerger translationMerger) {
         this.machineTranslationEngine = machineTranslationEngine;
         this.translationMerger = translationMerger;
     }
@@ -112,22 +112,25 @@ public class MachineTranslationService {
     @Cacheable(MACHINE_TRANSLATION)
     ImmutableMap<String, ImmutableList<TranslationDTO>> getMachineTranslationBySourceText(String sourceBcp47Tag, List<String> targetBcp47Tags, List<String> textSources, Boolean skipFunctionalProtection) {
 
+        boolean isFunctionalProtectionEnabled = true;
+
+        if (skipFunctionalProtection != null && skipFunctionalProtection) {
+            logger.debug("Skipping placeholder protection/encoding!");
+            isFunctionalProtectionEnabled = false;
+        }
+
         ImmutableMap<String, ImmutableList<TranslationDTO>> result;
 
         if (textSources.isEmpty()) {
             result = ImmutableMap.of();
         } else {
-            // TODO(garion): Implement functional protection / placeholder processing
-            if (skipFunctionalProtection != null && skipFunctionalProtection) {
-                logger.debug("function / placeholder protection");
-            }
-
             result = machineTranslationEngine.getTranslationsBySourceText(
                     textSources,
                     sourceBcp47Tag,
                     targetBcp47Tags,
-                    null,
-                    null);
+                    TextType.HTML,
+                    CustomModelType.NONE.getValue(),
+                    isFunctionalProtectionEnabled);
         }
 
         return result;
