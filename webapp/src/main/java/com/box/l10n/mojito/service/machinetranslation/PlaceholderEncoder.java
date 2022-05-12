@@ -17,13 +17,21 @@ import java.util.stream.Collectors;
  */
 @Component
 public class PlaceholderEncoder {
+    Pattern placeholderPattern;
 
-    public Pattern getPlaceholderPattern() {
+    // Note: ensure that matching is enabled across lines as well by using (?s), for content containing end lines.
+    Pattern translateInstructionSpanPattern = Pattern.compile("<span translate=\"no\">(?s)(.*?)</span>");
+
+    public PlaceholderEncoder() {
         String placeholderRegex = Arrays.stream(PlaceholderPatternType.values())
                 .map(PlaceholderPatternType::getValue)
                 .collect(Collectors.joining("|"));
 
-        return Pattern.compile(placeholderRegex);
+        placeholderPattern = Pattern.compile(placeholderRegex);
+    }
+
+    public Pattern getPlaceholderPattern() {
+        return placeholderPattern;
     }
 
     public List<String> encode(List<String> textSources) {
@@ -33,7 +41,7 @@ public class PlaceholderEncoder {
     }
 
     public String encode(String textSource) {
-        Matcher matcher = getPlaceholderPattern().matcher(textSource);
+        Matcher matcher = placeholderPattern.matcher(textSource);
 
         StringBuffer stringBuffer = new StringBuffer();
         while (matcher.find()) {
@@ -54,7 +62,6 @@ public class PlaceholderEncoder {
     }
 
     public String decode(String textSource) {
-        // Note: ensure that matching is enabled across lines as well by using (?s), for content containing end lines.
-        return textSource.replaceAll("<span translate=\"no\">(?s)(.*?)</span>", "$1");
+        return translateInstructionSpanPattern.matcher(textSource).replaceAll("$1");
     }
 }
