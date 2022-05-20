@@ -284,6 +284,27 @@ public class SpellCliCheckerTest {
     }
 
     @Test
+    public void testMultipleIdenticalErrorsInMultipleIdenticalStrings() throws Exception {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit1 = new AssetExtractorTextUnit();
+        assetExtractorTextUnit1.setSource("A source string with identicl identicl identicl errors.");
+        AssetExtractorTextUnit assetExtractorTextUnit2 = new AssetExtractorTextUnit();
+        assetExtractorTextUnit2.setSource("A source string with identicl identicl identicl errors.");
+        addedTUs.add(assetExtractorTextUnit1);
+        addedTUs.add(assetExtractorTextUnit2);
+        when(hunspellMock.spell("identicl")).thenReturn(false);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
+        assertFalse(result.isSuccessful());
+        assertTrue(result.getNotificationText().contains("* 'identicl'"));
+        assertEquals(1, result.getNotificationText().chars().filter(c -> c == '*').count());
+    }
+
+    @Test
     public void testMultipleConfiguredPlaceholderRegexesAreNotSpellChecked() throws Exception {
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();

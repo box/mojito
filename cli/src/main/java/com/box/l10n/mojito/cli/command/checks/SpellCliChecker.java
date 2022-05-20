@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,6 +64,19 @@ public class SpellCliChecker extends AbstractCliChecker {
         public void setSuccessful(boolean successful) {
             this.isSuccessful = successful;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            SpellCliCheckerResult that = (SpellCliCheckerResult) o;
+            return isSuccessful == that.isSuccessful && Objects.equals(source, that.source) && Objects.equals(suggestionMap, that.suggestionMap);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(source, suggestionMap, isSuccessful);
+        }
     }
 
 
@@ -106,6 +120,7 @@ public class SpellCliChecker extends AbstractCliChecker {
         return sourceStrings.stream()
                 .map(sourceString -> getSpellCliCheckerResult(sourceString))
                 .filter(result -> !result.isSuccessful())
+                .distinct()
                 .collect(Collectors.toMap(SpellCliCheckerResult::getSource, SpellCliCheckerResult::getSuggestionMap));
 
     }

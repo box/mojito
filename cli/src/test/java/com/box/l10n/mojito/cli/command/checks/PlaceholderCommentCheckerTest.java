@@ -66,6 +66,29 @@ public class PlaceholderCommentCheckerTest {
     }
 
     @Test
+    public void testMissingIdenticalPlaceholderDescriptionInMultipleString() {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setName("Some string id --- Test context");
+        assetExtractorTextUnit.setSource("A source string with a single {placeholder}.");
+        assetExtractorTextUnit.setComments("Test comment ");
+        addedTUs.add(assetExtractorTextUnit);
+        AssetExtractorTextUnit assetExtractorTextUnit2 = new AssetExtractorTextUnit();
+        assetExtractorTextUnit2.setName("Some string id --- Test context");
+        assetExtractorTextUnit2.setSource("A source string with a single {placeholder}.");
+        assetExtractorTextUnit2.setComments("Test comment ");
+        addedTUs.add(assetExtractorTextUnit2);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        CliCheckResult result = placeholderCommentChecker.run(assetExtractionDiffs);
+        Assert.assertFalse(result.isSuccessful());
+        Assert.assertFalse(result.isHardFail());
+    }
+
+    @Test
     public void testMultiplePlaceholderDescriptionsInComment() {
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();

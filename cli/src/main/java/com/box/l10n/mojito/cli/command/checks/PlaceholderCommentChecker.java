@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,7 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
         return getAddedTextUnits(assetExtractionDiffs).stream()
                 .map(assetExtractorTextUnit -> getPlaceholderCommentCheckResult(placeholderDescriptionChecks, assetExtractorTextUnit))
                 .filter(result -> !result.getFailures().isEmpty())
+                .distinct()
                 .collect(Collectors.toMap(PlaceholderCommentCheckResult::getSource, PlaceholderCommentCheckResult::getFailures));
     }
 
@@ -120,6 +122,19 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
 
         public String getSource() {
             return source;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            PlaceholderCommentCheckResult result = (PlaceholderCommentCheckResult) o;
+            return Objects.equals(failures, result.failures) && Objects.equals(source, result.source);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(failures, source);
         }
     }
 }
