@@ -38,6 +38,18 @@ const BranchesDataSource = {
                 branchStatisticSearcherParameters.empty(false);
             }
 
+            if (branchesSearchParamState.createdBefore) {
+                branchStatisticSearcherParameters.createdBefore(
+                    branchesSearchParamState.createdBefore
+                )
+            }
+
+            if (branchesSearchParamState.createdAfter) {
+                branchStatisticSearcherParameters.createdAfter(
+                    branchesSearchParamState.createdAfter
+                )
+            }
+
             branchStatisticSearcherParameters.page(branchesPaginatorState.currentPageNumber - 1);
             branchStatisticSearcherParameters.size(branchesPaginatorState.limit);
 

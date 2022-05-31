@@ -45,6 +45,14 @@ class BranchesHistoryStore {
         this.openBranchStatistic = openBranchStatistic;
     }
 
+    changeCreatedBefore(createdBefore) {
+        this.createdBefore = createdBefore
+    }
+
+    changeCreatedAfter(createdAfter) {
+        this.createdAfter = createdAfter
+    }
+
     changeSearchText(searchText) {
         this.searchText = searchText;
     }
@@ -89,8 +97,9 @@ class BranchesHistoryStore {
 
     static initStoreFromLocationQuery(query) {
         let {
-            openBranchStatistic, currentPageNumber, searchText,
-            deleted = "false", undeleted = "true", empty = "true", notEmpty = "true", onlyMyBranches = "true"
+            openBranchStatistic, currentPageNumber = 1, searchText,
+            deleted = "false", undeleted = "true", empty = "true", notEmpty = "true", onlyMyBranches = "true",
+            createdBefore = null, createdAfter = null
         } = query;
 
         let selectedBranchTextUnitIds = query["selectedBranchTextUnitIds[]"];
@@ -112,13 +121,19 @@ class BranchesHistoryStore {
             searchText = "";
         }
 
-        BranchesPaginatorActions.changeCurrentPageNumber(currentPageNumber);
+        BranchesPaginatorActions.changeCurrentPageNumber(parseInt(currentPageNumber));
         BranchesSearchParamsActions.changeSearchText(searchText);
         BranchesSearchParamsActions.changeDeleted(deleted === "true");
         BranchesSearchParamsActions.changeUndeleted(undeleted === "true");
         BranchesSearchParamsActions.changeEmpty(empty === "true");
         BranchesSearchParamsActions.changeNotEmpty(notEmpty === "true");
         BranchesSearchParamsActions.changeOnlyMyBranches(onlyMyBranches === "true");
+        if (createdBefore !== null) {
+            BranchesSearchParamsActions.changeCreatedBefore(createdBefore)
+        }
+        if (createdAfter !== null) {
+            BranchesSearchParamsActions.changeCreatedAfter(createdAfter)
+        }
 
         if (openBranchStatistic) {
             BranchesPageActions.changeOpenBranchStatistic(parseInt(openBranchStatistic));

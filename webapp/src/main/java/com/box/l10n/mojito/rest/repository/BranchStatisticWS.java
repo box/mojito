@@ -8,6 +8,7 @@ import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
 import com.box.l10n.mojito.service.branch.SparseBranchStatisticRepository;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +30,8 @@ import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.c
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.empty;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.search;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.createdBefore;
+import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.createdAfter;
 import static com.box.l10n.mojito.rest.repository.BranchStatisticSpecification.totalCountLessThanOrEqualsTo;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -53,6 +57,7 @@ public class BranchStatisticWS {
     @Autowired
     SparseBranchStatisticRepository sparseBranchStatisticRepository;
 
+
     @JsonView(View.BranchStatistic.class)
     @RequestMapping(value = "/api/branchStatistics", method = RequestMethod.GET)
     @StopWatch
@@ -64,8 +69,9 @@ public class BranchStatisticWS {
             @RequestParam(value = "deleted", required = false) Boolean deleted,
             @RequestParam(value = "empty", required = false) Boolean empty,
             @RequestParam(value = "totalCountLte", required = false, defaultValue = "30000") Long totalCountLte,
+            @RequestParam(value = "createdBefore", required = false) DateTime createdBefore,
+            @RequestParam(value = "createdAfter", required = false) DateTime createdAfter,
             @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-
         // Two phase querying: 1. retrieve BranchStatistic IDs for pagination first
         Page<Long> branchStatisticIds = sparseBranchStatisticRepository.findAllWithIdOnly(where(
                         ifParamNotNull(createdByUserNameEquals(createdByUserName))).and(
@@ -74,6 +80,8 @@ public class BranchStatisticWS {
                         ifParamNotNull(search(search))).and(
                         ifParamNotNull(deletedEquals(deleted))).and(
                         ifParamNotNull(empty(empty))).and(
+                        ifParamNotNull(createdBefore(createdBefore))).and(
+                        ifParamNotNull(createdAfter(createdAfter))).and(
                         totalCountLessThanOrEqualsTo(totalCountLte))
                 , pageable);
 
