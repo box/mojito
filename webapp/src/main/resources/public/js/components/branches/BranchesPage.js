@@ -112,6 +112,22 @@ class BranchesPage extends React.Component {
                             BranchesDataSource.enableHistoryUpdate();
                             BranchesPageActions.getBranches();
                         }}
+
+                        onCreatedBeforeChanged={(createdBefore) => {
+                            BranchesDataSource.disableHistoryUpdate();
+                            BranchesSearchParamsActions.changeCreatedBefore(createdBefore)
+                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                            BranchesDataSource.enableHistoryUpdate();
+                            BranchesPageActions.getBranches();
+                        }}
+
+                        onCreatedAfterChanged={(createdAfter) => {
+                            BranchesDataSource.disableHistoryUpdate();
+                            BranchesSearchParamsActions.changeCreatedAfter(createdAfter)
+                            BranchesPageActions.changeSelectedBranchTextUnitIds([]);
+                            BranchesDataSource.enableHistoryUpdate();
+                            BranchesPageActions.getBranches();
+                        }}
                     />
                 </AltContainer>
 

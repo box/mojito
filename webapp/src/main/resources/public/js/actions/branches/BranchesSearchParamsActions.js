@@ -11,6 +11,8 @@ class BranchesSearchParamsActions {
             "changeOnlyMyBranches",
             "changeSearchText",
             "resetBranchesSearchParams",
+            "changeCreatedBefore",
+            "changeCreatedAfter",
         );
     }
 }

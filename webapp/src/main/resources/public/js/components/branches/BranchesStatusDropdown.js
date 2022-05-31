@@ -1,7 +1,10 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import {DropdownButton, MenuItem} from "react-bootstrap";
+import {Button, DropdownButton, FormControl, Glyphicon, InputGroup, MenuItem} from "react-bootstrap";
+import DateTime from "react-datetime";
+import moment from 'moment';
+import keycode from "keycode";
 
 
 class BranchesStatusDropdown extends React.Component {
@@ -17,10 +20,10 @@ class BranchesStatusDropdown extends React.Component {
         "onEmptyChanged": PropTypes.func.isRequired,
         "onNotEmptyChanged": PropTypes.func.isRequired,
         "onOnlyMyBranchesChanged": PropTypes.func.isRequired,
-    }
-
-    onFilterSelected(filter) {
-        this.props.onFilterSelected(filter)
+        "createdBefore": PropTypes.object,
+        "createdAfter": PropTypes.object,
+        "onCreatedBeforeChanged": PropTypes.func.isRequired,
+        "onCreatedAfterChanged": PropTypes.func.isRequired,
     }
 
     renderFilterMenuItem(filter, isYes, prop, callback) {
@@ -33,6 +36,32 @@ class BranchesStatusDropdown extends React.Component {
                           callback(!prop)
                       }}>
                 {msg}
+            </MenuItem>
+        );
+    }
+
+    renderFilterMenuDateItem(filter, callback) {
+        return (
+            <MenuItem header className="prs pls">
+                <InputGroup>
+                    <DateTime
+                        id={`branches-${filter}-filter`}
+                        value={this.props[filter]}
+                        onChange={callback}
+                        disableOnClickOutside={true}
+                        closeOnSelect={true}
+                        inputProps={{
+                            placeholder: this.props.intl.formatMessage({
+                                id: "search.statusDropdown.enterDate"
+                            })
+                        }}
+                    />
+                    <InputGroup.Button>
+                        <Button onClick={() => callback(null)} disabled={!this.props[filter]}>
+                            <Glyphicon glyph='glyphicon glyphicon-remove'/>
+                        </Button>
+                    </InputGroup.Button>
+                </InputGroup>
             </MenuItem>
         );
     }
@@ -59,6 +88,14 @@ class BranchesStatusDropdown extends React.Component {
                 <MenuItem header><FormattedMessage id="branches.searchstatusDropdown.empty"/></MenuItem>
                 {this.renderFilterMenuItem("empty", true, this.props.empty, this.props.onEmptyChanged)}
                 {this.renderFilterMenuItem("notEmpty", false, this.props.notEmpty, this.props.onNotEmptyChanged)}
+
+                <MenuItem divider/>
+
+                <MenuItem header><FormattedMessage id="search.statusDropdown.tmTextUnitCreatedBefore"/></MenuItem>
+                {this.renderFilterMenuDateItem("createdBefore", this.props.onCreatedBeforeChanged)}
+
+                <MenuItem header><FormattedMessage id="search.statusDropdown.tmTextUnitCreatedAfter"/></MenuItem>
+                {this.renderFilterMenuDateItem("createdAfter", this.props.onCreatedAfterChanged)}
 
             </DropdownButton>
         );

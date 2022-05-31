@@ -1,4 +1,5 @@
 import alt from "../../alt";
+import moment from 'moment';
 
 import BranchesSearchParamsActions from "../../actions/branches/BranchesSearchParamsActions";
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
@@ -19,6 +20,16 @@ class BranchesSearchParamStore {
         this.onlyMyBranches = true;
         this.searchText = "";
         this.isSpinnerShown = false;
+        this.createdBefore = null;
+        this.createdAfter = null;
+    }
+
+    changeCreatedBefore(createdBefore) {
+        this.createdBefore = createdBefore
+    }
+
+    changeCreatedAfter(createdAfter) {
+        this.createdAfter = createdAfter
     }
 
     changeDeleted(deleted) {
