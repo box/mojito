@@ -1,10 +1,9 @@
-
 class PaginatorStore {
 
     constructor(actions) {
         this.setDefaultState();
     }
-    
+
     setDefaultState() {
         this.currentPageNumber = 1;
         this.hasNextPage = true;
@@ -16,7 +15,7 @@ class PaginatorStore {
     resetSearchParams() {
         this.setDefaultState();
     }
-    
+
     goToNextPage() {
         if (this.hasNextPage) {
             this.currentPageNumber++;
@@ -51,7 +50,7 @@ class PaginatorStore {
         this.disabled = false;
         this.shown = false;
     }
-   
+
 }
 
 export default PaginatorStore;

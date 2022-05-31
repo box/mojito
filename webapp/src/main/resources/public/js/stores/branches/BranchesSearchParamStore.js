@@ -19,6 +19,16 @@ class BranchesSearchParamStore {
         this.onlyMyBranches = true;
         this.searchText = "";
         this.isSpinnerShown = false;
+        this.createdBefore = null;
+        this.createdAfter = null;
+    }
+
+    changeCreatedBefore(createdBefore) {
+        this.createdBefore = createdBefore
+    }
+
+    changeCreatedAfter(createdAfter) {
+        this.createdAfter = createdAfter
     }
 
     changeDeleted(deleted) {
