@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.Branch_;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.entity.security.user.User_;
 import com.box.l10n.mojito.specification.SingleParamSpecification;
+import org.joda.time.DateTime;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -14,7 +15,6 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.List;
 
 /**
  * @author jeanaurambault
@@ -78,8 +78,27 @@ public class BranchStatisticSpecification {
         };
     }
 
+    public static SingleParamSpecification<BranchStatistic> createdBefore(final DateTime createdBefore) {
+        return new SingleParamSpecification<BranchStatistic>(createdBefore) {
+            @Override
+            public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+                Join<BranchStatistic, Branch> branchJoin = root.join(BranchStatistic_.branch, JoinType.LEFT);
+                return builder.lessThanOrEqualTo(branchJoin.get(Branch_.createdDate), createdBefore);
+            }
+        };
+    }
+
+    public static SingleParamSpecification<BranchStatistic> createdAfter(final DateTime createdAfter) {
+        return new SingleParamSpecification<BranchStatistic>(createdAfter) {
+            @Override
+            public Predicate toPredicate(Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+                Join<BranchStatistic, Branch> branchJoin = root.join(BranchStatistic_.branch, JoinType.LEFT);
+                return builder.greaterThanOrEqualTo(branchJoin.get(Branch_.createdDate), createdAfter);
+            }
+        };
+    }
+
     /**
-     *
      * @param empty if {@code null}, will behave as {@link Boolean#FALSE}
      * @return
      */
