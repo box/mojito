@@ -93,6 +93,8 @@ class BranchesStatusDropdown extends React.Component {
                 {this.renderFilterMenuItem("empty", true, this.props.empty, this.props.onEmptyChanged)}
                 {this.renderFilterMenuItem("notEmpty", false, this.props.notEmpty, this.props.onNotEmptyChanged)}
 
+                <MenuItem divider/>
+
                 <MenuItem header><FormattedMessage id="search.statusDropdown.tmTextUnitCreatedBefore"/></MenuItem>
                 {this.renderFilterMenuDateItem("createdBefore", this.props.onCreatedBeforeChanged)}
 
