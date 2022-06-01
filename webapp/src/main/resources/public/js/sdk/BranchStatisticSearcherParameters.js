@@ -1,5 +1,4 @@
-export default
-class BranchStatisticSearcherParameters {
+export default class BranchStatisticSearcherParameters {
     constructor() {
         this.params = {};
     }
@@ -28,6 +27,14 @@ class BranchStatisticSearcherParameters {
         this.params.deleted = deleted;
     }
 
+    createdBefore(createdBefore) {
+        this.params.createdBefore = createdBefore
+    }
+
+    createdAfter(createdAfter) {
+        this.params.createdAfter = createdAfter
+    }
+
     empty(empty) {
         this.params.empty = empty;
     }
@@ -40,7 +47,7 @@ class BranchStatisticSearcherParameters {
         this.params.size = size;
     }
 
-    getParams(){
+    getParams() {
         return this.params;
     }
 }

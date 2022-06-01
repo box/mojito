@@ -3,6 +3,7 @@ import BranchesPageActions from "./BranchesPageActions";
 import BranchStatisticSearcherParameters from "../../sdk/BranchStatisticSearcherParameters";
 import BranchesSearchParamStore from "../../stores/branches/BranchesSearchParamStore";
 import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore";
+import moment from "moment";
 
 const BranchesDataSource = {
     performBranchesSearch: {
@@ -36,6 +37,20 @@ const BranchesDataSource = {
                 branchStatisticSearcherParameters.empty(true);
             } else if (!branchesSearchParamState.empty && branchesSearchParamState.notEmpty) {
                 branchStatisticSearcherParameters.empty(false);
+            }
+
+            if (branchesSearchParamState.createdBefore) {
+                branchStatisticSearcherParameters.createdBefore(
+                    moment(branchesSearchParamState.createdBefore)
+                        .format('YYYY-MM-DDTHH:mm')
+                )
+            }
+
+            if (branchesSearchParamState.createdAfter) {
+                branchStatisticSearcherParameters.createdAfter(
+                    moment(branchesSearchParamState.createdAfter)
+                        .format('YYYY-MM-DDTHH:mm')
+                )
             }
 
             branchStatisticSearcherParameters.page(branchesPaginatorState.currentPageNumber - 1);
