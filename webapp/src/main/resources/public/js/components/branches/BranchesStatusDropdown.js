@@ -21,6 +21,7 @@ class BranchesStatusDropdown extends React.Component {
         "onNotEmptyChanged": PropTypes.func.isRequired,
         "onOnlyMyBranchesChanged": PropTypes.func.isRequired,
         "createdBefore": PropTypes.object,
+        "createdAfter": PropTypes.object,
         "onCreatedBeforeChanged": PropTypes.func.isRequired,
         "onCreatedAfterChanged": PropTypes.func.isRequired,
     }
