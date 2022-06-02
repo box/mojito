@@ -1,4 +1,5 @@
 import alt from "../../alt";
+import moment from 'moment';
 import BranchesDataSource from "../../actions/branches/BranchesHistoryActions";
 import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore";
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
@@ -43,6 +44,20 @@ class BranchesHistoryStore {
 
     changeOpenBranchStatistic(openBranchStatistic) {
         this.openBranchStatistic = openBranchStatistic;
+    }
+
+    changeCreatedBefore(createdBefore) {
+        this.createdBefore = createdBefore
+            ? moment(createdBefore)
+                .format("YYYY-MM-DDTHH:mm")
+            : null
+    }
+
+    changeCreatedAfter(createdAfter) {
+        this.createdAfter = createdAfter
+            ? moment(createdAfter)
+                .format("YYYY-MM-DDTHH:mm")
+            : null
     }
 
     changeSearchText(searchText) {
@@ -90,7 +105,8 @@ class BranchesHistoryStore {
     static initStoreFromLocationQuery(query) {
         let {
             openBranchStatistic, currentPageNumber, searchText,
-            deleted = "false", undeleted = "true", empty = "true", notEmpty = "true", onlyMyBranches = "true"
+            deleted = "false", undeleted = "true", empty = "true", notEmpty = "true", onlyMyBranches = "true",
+            createdBefore = null, createdAfter = null
         } = query;
 
         let selectedBranchTextUnitIds = query["selectedBranchTextUnitIds[]"];
@@ -119,6 +135,12 @@ class BranchesHistoryStore {
         BranchesSearchParamsActions.changeEmpty(empty === "true");
         BranchesSearchParamsActions.changeNotEmpty(notEmpty === "true");
         BranchesSearchParamsActions.changeOnlyMyBranches(onlyMyBranches === "true");
+        if (createdBefore !== null) {
+            BranchesSearchParamsActions.changeCreatedBefore(moment(createdBefore))
+        }
+        if (createdAfter !== null) {
+            BranchesSearchParamsActions.changeCreatedAfter(moment(createdAfter))
+        }
 
         if (openBranchStatistic) {
             BranchesPageActions.changeOpenBranchStatistic(parseInt(openBranchStatistic));

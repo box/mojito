@@ -26,10 +26,6 @@ class BranchesStatusDropdown extends React.Component {
         "onCreatedAfterChanged": PropTypes.func.isRequired,
     }
 
-    onFilterSelected(filter) {
-        this.props.onFilterSelected(filter)
-    }
-
     renderFilterMenuItem(filter, isYes, prop, callback) {
 
         let msg = isYes ? this.props.intl.formatMessage({id: "search.statusDropdown.yes"}) : this.props.intl.formatMessage({id: "search.statusDropdown.no"});
