@@ -34,7 +34,9 @@ class PaginatorStore {
     }
 
     changeCurrentPageNumber(currentPageNumber) {
-        this.currentPageNumber = currentPageNumber;
+        this.currentPageNumber = currentPageNumber
+            ? parseInt(currentPageNumber)
+            : 1;
     }
 
     performSearch() {

@@ -202,9 +202,9 @@ class BranchesSearchResults extends React.Component {
 
         let className = ClassNames("branches-branchstatistic-textunit", {"branches-branchstatistic-textunit-open": this.isBranchStatisticOpen(branchStatistic)});
 
-        return (<Collapse in={this.isBranchStatisticOpen(branchStatistic)}>
+        return (<Collapse in={this.isBranchStatisticOpen(branchStatistic)} key={"branchStatisticTextUnit-" + branchTextUnitStatistic.id}>
             <div>
-                <Row key={"branchStatisticTextUnit-" + branchTextUnitStatistic.id} className={className}>
+                <Row className={className}>
 
                     <Col md={4} className="branches-branchstatistic-col1">
                         <div>
@@ -265,7 +265,7 @@ class BranchesSearchResults extends React.Component {
 
     renderBranchStatisticSeparator(branchStatistic) {
         return (
-            <Collapse in={this.isBranchStatisticOpen(branchStatistic)}>
+            <Collapse key={`renderBranchStatisticSeparator-${branchStatistic.id}`} in={this.isBranchStatisticOpen(branchStatistic)}>
                 <Row className="mbl"></Row>
             </Collapse>
         );
