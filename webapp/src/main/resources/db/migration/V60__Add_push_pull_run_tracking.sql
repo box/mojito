@@ -14,7 +14,7 @@ CREATE TABLE commit
     PRIMARY KEY (id)
 );
 ALTER TABLE commit
-    ADD CONSTRAINT UK__COMMIT__NAME unique (name);
+    ADD CONSTRAINT UK__COMMIT__NAME_REPOSITORY_ID unique (name, repository_id);
 ALTER TABLE commit
     ADD CONSTRAINT FK__COMMIT__NAME__REPOSITORY_ID FOREIGN KEY (repository_id) REFERENCES repository (id);
 
