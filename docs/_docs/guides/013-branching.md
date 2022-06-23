@@ -92,11 +92,6 @@ mojito push -r MyRepo -b master
  `bye` will then be linked to the `master` branch regardless if the 
 `feature1` branch is deleted or still open. 
 
-As a side effect, the strings won't show up anymore in the branch they are originating from in the 
-[dashboard](#branch-dashboard). This might be confusing at first, but ideally branches should be short lived to avoid
-performance degradation as they will be processed each time the `push`command is ran.
-They should be deleted after they are merged or after a time of inactivity.
-
 Note that the primary branch doesn't show in the branch dashboard since it is not meant to be a temporary branch. The
 name of the primary branch could be made configurable later but at the moment it must be `master`.
 
