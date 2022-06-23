@@ -21,7 +21,7 @@ import javax.persistence.Table;
 @Table(
         name = "commit",
         indexes = {
-                @Index(name = "UK__COMMIT__NAME", columnList = "name", unique = true)
+                @Index(name = "UK__COMMIT__NAME_REPOSITORY_ID", columnList = "name, repository_id", unique = true)
         }
 )
 public class Commit extends AuditableEntity {
