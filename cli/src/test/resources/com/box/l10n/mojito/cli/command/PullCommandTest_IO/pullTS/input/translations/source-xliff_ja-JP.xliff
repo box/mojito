@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions" version="1.2">
     <file original=""  source-language="en" target-language="ja-JP" datatype="x-undefined" xml:space="preserve">
         <body>
             <trans-unit id="" resname="100_character_description_" datatype="php">
