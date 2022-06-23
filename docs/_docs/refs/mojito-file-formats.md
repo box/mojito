@@ -320,7 +320,7 @@ Source Resource File (English): `resource.xliff`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions" version="1.2">
   <file original="" source-language="en" datatype="x-undefined">
     <body>
       <trans-unit id="1" resname="hello" datatype="php">
@@ -329,7 +329,7 @@ Source Resource File (English): `resource.xliff`
       </trans-unit>
     </body>
   </file>
-</xliff>   
+</xliff>  
 ```
 
 Localized Resource File (Spanish): `resource_es-ES.xliff`
@@ -337,8 +337,8 @@ Localized Resource File (Spanish): `resource_es-ES.xliff`
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0">
-  <file original="" source-language="en" datatype="x-undefined" target-language="es-es">
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions" version="1.2">
+  <file original="" source-language="en" target-language="es-es" datatype="plaintext">
     <body>
       <trans-unit id="1" resname="hello" datatype="php">
         <source>Hello!</source>
@@ -347,7 +347,7 @@ Localized Resource File (Spanish): `resource_es-ES.xliff`
       </trans-unit>
     </body>
   </file>
-</xliff>   
+</xliff>
 ```
 
 
