@@ -11,6 +11,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
+ * Maps an {@link Asset} from a {@link PullRun} to a list of {@link TMTextUnitVariant} entities.
+ *
+ * The collection of all the Assets of a PullRun together with all of their
+ * Text Unit Variants represents all the translations that were used as part
+ * of running that pull command instance - and that were exported to the
+ * consumer/client/external repo.
+ *
  * @author garion
  */
 @Entity

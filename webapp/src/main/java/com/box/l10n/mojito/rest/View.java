@@ -71,4 +71,17 @@ public class View {
      * This is used to restrict the fields returned from a translation history query
      */
     public interface TranslationHistorySummary extends IdAndNameAndCreated, LocaleSummary {};
+    /**
+     * This is used to show the LastModifiedDate from Auditable entities
+     */
+    public interface Modified {};
+    /**
+     * This is used to restrict Commit information returned
+     */
+    public interface Commit extends IdAndNameAndCreated, Modified, Pageable {};
+
+    /**
+     * This is used to provide more detailed information about a commit
+     */
+    public interface CommitDetailed extends Commit {};
 }

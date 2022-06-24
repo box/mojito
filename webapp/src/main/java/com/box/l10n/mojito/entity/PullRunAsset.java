@@ -13,6 +13,7 @@ import javax.persistence.Table;
 import java.util.Set;
 
 /**
+ * Maps a {@link PullRun} to a set of {@link Asset} entities.
  * @author garion
  */
 @Entity

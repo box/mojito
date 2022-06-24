@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonView;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,6 +15,8 @@ import javax.persistence.Table;
 import java.util.Set;
 
 /**
+ *  Represents a single instance/run of the pull command against a repository.
+ *
  * @author garion
  */
 @Entity
@@ -28,6 +32,10 @@ public class PullRun extends SettableAuditableEntity {
             foreignKey = @ForeignKey(name = "FK__PULL_RUN__REPOSITORY_ID"))
     private Repository repository;
 
+    /**
+     * A unique identifier that is provided for the pull run, generally a UUID.
+     */
+    @JsonView(View.CommitDetailed.class)
     @Column(name = "name")
     private String name;
 

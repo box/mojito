@@ -1,12 +1,16 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.ForeignKey;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
@@ -25,30 +29,56 @@ import javax.persistence.Table;
         }
 )
 public class Commit extends AuditableEntity {
+
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "repository_id",
             foreignKey = @ForeignKey(name = "FK__COMMIT__NAME__REPOSITORY_ID"))
     private Repository repository;
 
-    @Column(name = "author_email")
-    private String authorEmail;
+    /**
+     * Avoid serialization of the full Repository object, include only the IDs.
+     */
+    @JsonView(View.Commit.class)
+    @JsonProperty("repository_id")
+    private Long getRepositoryId() {
+        return repository.getId();
+    }
 
-    @Column(name = "author_name")
-    private String authorName;
-
+    /**
+     * The name (or logical ID) of the commit. This is expected to be unique
+     * within a Repository and generally would be the commit hash.
+     */
+    @JsonView(View.IdAndName.class)
     @Column(name = "name")
     private String name;
 
+    @JsonView(View.Commit.class)
+    @Column(name = "author_email")
+    private String authorEmail;
+
+    @JsonView(View.Commit.class)
+    @Column(name = "author_name")
+    private String authorName;
+
+    /**
+     * The date when the commit was actually commited / merged to the target
+     * final branch, i.e.: commit date instead of author date.
+     */
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
+    @JsonView(View.Commit.class)
     @Column(name = "source_creation_date")
     @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
     private DateTime sourceCreationDate;
 
-    @OneToOne(mappedBy = "commit")
+    @JsonView(View.CommitDetailed.class)
     @JsonManagedReference
+    @OneToOne(mappedBy = "commit")
     private CommitToPushRun commitToPushRun;
 
-    @OneToOne(mappedBy = "commit")
+    @JsonView(View.CommitDetailed.class)
     @JsonManagedReference
+    @OneToOne(mappedBy = "commit")
     private CommitToPullRun commitToPullRun;
 
     public Repository getRepository() {

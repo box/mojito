@@ -1,10 +1,10 @@
 package com.box.l10n.mojito.entity;
 
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonView;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.Index;
@@ -13,6 +13,8 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 /**
+ * Maps a commit to a single {@link PullRun}.
+ *
  * @author garion
  */
 @Entity
@@ -29,8 +31,9 @@ public class CommitToPullRun extends SettableAuditableEntity {
             foreignKey = @ForeignKey(name = "FK__COMMIT_TO_PULL_RUN__COMMIT_ID"))
     private Commit commit;
 
+    @JsonView(View.CommitDetailed.class)
+    @JsonManagedReference
     @OneToOne
-    @JsonBackReference
     @JoinColumn(name = "pull_run_id",
             foreignKey = @ForeignKey(name = "FK__COMMIT_TO_PULL_RUN__PULL_RUN_ID"))
     private PullRun pullRun;

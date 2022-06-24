@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Maps a {@link PushRun} to a set of {@link Asset} entities.
+ *
  * @author garion
  */
 @Entity
