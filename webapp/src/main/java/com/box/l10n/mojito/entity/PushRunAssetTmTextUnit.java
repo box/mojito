@@ -9,6 +9,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
+ * Maps an {@link Asset} from a {@link PushRun} to a list of {@link TMTextUnit} entities.
+ *
+ * The collection of all the Assets of a PushRun together with all of their
+ * Text Units represents the full set of strings that were extracted by running
+ * that Push command.
+ *
  * @author garion
  */
 @Entity

@@ -33,6 +33,7 @@ public abstract class AuditableEntity extends BaseEntity implements Serializable
     @LastModifiedDate
     @Column(name = "last_modified_date")
     @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
+    @JsonView(View.Modified.class)
     protected DateTime lastModifiedDate;
 
     public DateTime getCreatedDate() {
