@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -12,18 +13,22 @@ import javax.persistence.Table;
  * @author garion
  */
 @Entity
-@Table(name = "push_run_asset_tm_text_unit")
+@Table(name = "push_run_asset_tm_text_unit",
+        indexes = {
+                @Index(name = "UK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID__TM_TEXT_UNIT_ID",
+                        columnList = "push_run_asset_id, tm_text_unit_id", unique = true)
+        })
 public class PushRunAssetTmTextUnit extends SettableAuditableEntity {
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "push_run_asset_id",
-            foreignKey = @ForeignKey(name = "FK__PUSH_RUN_ASSET_ID"))
+            foreignKey = @ForeignKey(name = "FK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID"))
     private PushRunAsset pushRunAsset;
 
     @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "tm_text_unit_id",
-            foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_ID"))
+            foreignKey = @ForeignKey(name = "FK__PUSH_RUN_ASSET_TM_TEXT_UNIT__TM_TEXT_UNIT_ID"))
     private TMTextUnit tmTextUnit;
 
     public PushRunAsset getPushRunAsset() {

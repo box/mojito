@@ -109,10 +109,13 @@ CREATE TABLE push_run_asset_tm_text_unit
     PRIMARY KEY (id)
 );
 ALTER TABLE push_run_asset_tm_text_unit
-    ADD CONSTRAINT FK__PUSH_RUN_ASSET_ID FOREIGN KEY (push_run_asset_id) REFERENCES push_run_asset (id);
+    ADD CONSTRAINT UK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID__TM_TEXT_UNIT_ID unique (push_run_asset_id, tm_text_unit_id);
 ALTER TABLE push_run_asset_tm_text_unit
-    ADD CONSTRAINT FK__TM_TEXT_UNIT_ID FOREIGN KEY (tm_text_unit_id) REFERENCES tm_text_unit (id);
-
+    ADD CONSTRAINT FK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID FOREIGN KEY (push_run_asset_id) REFERENCES
+        push_run_asset (id);
+ALTER TABLE push_run_asset_tm_text_unit
+    ADD CONSTRAINT FK__PUSH_RUN_ASSET_TM_TEXT_UNIT__TM_TEXT_UNIT_ID FOREIGN KEY (tm_text_unit_id) REFERENCES
+        tm_text_unit (id);
 
 -- Map an pull instance to a specific asset
 CREATE TABLE pull_run_asset
@@ -141,7 +144,7 @@ CREATE TABLE pull_run_text_unit_variant
     PRIMARY KEY (id)
 );
 ALTER TABLE pull_run_text_unit_variant
-    ADD CONSTRAINT UK__PULL_RUN_TEXT_UNIT_VARIANT__EVA_ID__TM_TUV_ID UNIQUE (pull_run_asset_id, tm_text_unit_variant_id);
+        ADD CONSTRAINT UK__PULL_RUN_TEXT_UNIT_VARIANT__EVA_ID__TM_TUV_ID UNIQUE (pull_run_asset_id, tm_text_unit_variant_id);
 ALTER TABLE pull_run_text_unit_variant
     ADD CONSTRAINT FK__PULL_RUN_TEXT_UNIT_VARIANT__PULL_RUN_ASSET_ID FOREIGN KEY (pull_run_asset_id) REFERENCES pull_run_asset (id);
 ALTER TABLE pull_run_text_unit_variant
