@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.rest.View;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -65,7 +64,6 @@ public class Commit extends AuditableEntity {
      * The date when the commit was actually commited / merged to the target
      * final branch, i.e.: commit date instead of author date.
      */
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
     @JsonView(View.Commit.class)
     @Column(name = "source_creation_date")
     @Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
