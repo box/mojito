@@ -44,22 +44,33 @@ public class CommitWS {
     CommitService commitService;
 
     /**
-     * Gets a single commit based on the name and repository ID with its associated PushRun and PullRun data.
-     * Returns null if nothing is found.
+     * Gets information about commits based on the specified search criteria
+     * and also includes data about their associated PushRun and PullRun runs.
      *
-     * @param commitName   The name of the commit.
-     * @param repositoryId {@link Repository#id}
      * @return {@link com.box.l10n.mojito.rest.View.Commit}
      */
     @JsonView(View.CommitDetailed.class)
     @RequestMapping(value = "/api/commits/detailed", method = RequestMethod.GET)
-    public Commit getCommit(@RequestParam String commitName, @RequestParam Long repositoryId) {
-        return commitService.getCommitWithNameAndRepository(commitName, repositoryId).orElse(null);
+    public Page<Commit> getCommitsDetailed(
+            @RequestParam(value = "repositoryId") Long repositoryId,
+            @RequestParam(value = "commitNames", required = false) List<String> commitNames,
+            @RequestParam(value = "pushRunName", required = false) String pushRunName,
+            @RequestParam(value = "pullRunName", required = false) String pullRunName,
+            @RequestParam(value = "hasPushRun", required = false) Boolean hasPushRun,
+            @RequestParam(value = "hasPullRun", required = false) Boolean hasPullRun,
+            @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        return getCommits(repositoryId,
+                          commitNames,
+                          pushRunName,
+                          pullRunName,
+                          hasPushRun,
+                          hasPullRun,
+                          pageable);
     }
 
     /**
-     * Gets a single commit based on the name and repository ID.
-     * Returns null if nothing is found.
+     * Gets information about commits based on the specified search criteria.
      *
      * @return {@link Commit}
      */
@@ -74,12 +85,12 @@ public class CommitWS {
                                    @PageableDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
 
         Page<Commit> commits = commitService.getCommits(repositoryId,
-                                        commitNames,
-                                        pushRunName,
-                                        pullRunName,
-                                        hasPushRun,
-                                        hasPullRun,
-                                        pageable);
+                                                        commitNames,
+                                                        pushRunName,
+                                                        pullRunName,
+                                                        hasPushRun,
+                                                        hasPullRun,
+                                                        pageable);
 
         return new PageView<>(commits);
     }
