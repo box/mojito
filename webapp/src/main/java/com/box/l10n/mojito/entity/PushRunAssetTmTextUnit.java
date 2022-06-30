@@ -21,7 +21,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "push_run_asset_tm_text_unit",
         indexes = {
-                @Index(name = "UK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID__TM_TEXT_UNIT_ID",
+                @Index(name = "UK__PRATTU__PUSH_RUN_ASSET_ID__TM_TEXT_UNIT_ID",
                         columnList = "push_run_asset_id, tm_text_unit_id", unique = true)
         })
 public class PushRunAssetTmTextUnit extends SettableAuditableEntity {
