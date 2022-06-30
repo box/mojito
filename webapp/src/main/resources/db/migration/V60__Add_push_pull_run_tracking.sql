@@ -79,7 +79,7 @@ ALTER TABLE commit_to_pull_run
 ALTER TABLE commit_to_pull_run
     ADD CONSTRAINT FK__COMMIT_TO_PULL_RUN__COMMIT_ID FOREIGN KEY (commit_id) REFERENCES commit (id);
 ALTER TABLE commit_to_pull_run
-    ADD CONSTRAINT FK__COMMIT_TO_PULL_RUN__PULL_RUN_ID FOREIGN KEY (pull_run_id) REFERENCES push_run (id);
+    ADD CONSTRAINT FK__COMMIT_TO_PULL_RUN__PULL_RUN_ID FOREIGN KEY (pull_run_id) REFERENCES pull_run (id);
 
 
 -- Map an push instance to a specific asset
