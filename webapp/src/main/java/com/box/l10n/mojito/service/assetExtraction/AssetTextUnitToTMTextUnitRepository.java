@@ -43,6 +43,11 @@ public interface AssetTextUnitToTMTextUnitRepository extends JpaRepository<Asset
 
     @Query("select atuttu.tmTextUnit.id " +
             "from AssetTextUnitToTMTextUnit atuttu " +
+            "where atuttu.assetExtraction.id = ?1 and atuttu.assetTextUnit.doNotTranslate = true")
+    Set<Long> getTmTextUnitIdsOfDoNotTranslateUnitsByAssetExtractionId(Long assetExtractionId);
+
+    @Query("select atuttu.tmTextUnit.id " +
+            "from AssetTextUnitToTMTextUnit atuttu " +
             "where atuttu.assetExtraction.id = ?1 and atuttu.assetTextUnit.id = ?2")
     Optional<Long> findTmTextUnitId(long assetExtractionId, long assetTextUnitId);
 

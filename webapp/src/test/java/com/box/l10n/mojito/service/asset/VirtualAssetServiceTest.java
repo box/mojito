@@ -207,6 +207,54 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertFalse(translateTextUnits.get(i).getDoNotTranslate());
     }
 
+    @Test
+    public void testResetOfDoNoTranslateFilter() throws Exception {
+        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testResetOfDoNoTranslateFilter"));
+        VirtualAsset virtualAsset = new VirtualAsset();
+        virtualAsset.setRepositoryId(repository.getId());
+        virtualAsset.setPath("default");
+        virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name",
+                "content",
+                "comment",
+                null,
+                null,
+                false);
+
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        assertEquals(1, textUnits.size());
+
+        int i = 0;
+        assertEquals("name", textUnits.get(i).getName());
+        assertEquals("content", textUnits.get(i).getContent());
+        assertEquals("comment", textUnits.get(i).getComment());
+        assertNull(textUnits.get(i).getPluralForm());
+        assertNull(textUnits.get(i).getPluralFormOther());
+        assertFalse(textUnits.get(i).getDoNotTranslate());
+
+        virtualAssetService.addTextUnit(
+                virtualAsset.getId(),
+                "name",
+                "content",
+                "comment",
+                null,
+                null,
+                true);
+
+        List<VirtualAssetTextUnit> translateTextUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        assertEquals(1, translateTextUnits.size());
+
+        assertEquals("name", translateTextUnits.get(i).getName());
+        assertEquals("content", translateTextUnits.get(i).getContent());
+        assertEquals("comment", translateTextUnits.get(i).getComment());
+        assertNull(translateTextUnits.get(i).getPluralForm());
+        assertNull(translateTextUnits.get(i).getPluralFormOther());
+        assertTrue(translateTextUnits.get(i).getDoNotTranslate());
+    }
+
     @Test(expected = VirtualAssetRequiredException.class)
     public void testCantAddTextUnitToNoVirtual() throws Exception {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("testCantAddTextUnitToNoVirtual"));
