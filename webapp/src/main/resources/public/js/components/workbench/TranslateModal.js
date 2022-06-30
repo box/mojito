@@ -7,15 +7,34 @@ class TranslateModal extends React.Component {
     static propTypes = {
         "showModal": PropTypes.bool.isRequired,
         "onCancel": PropTypes.func.isRequired,
-        "onSave": PropTypes.func.isRequired
+        "onSave": PropTypes.func.isRequired,
+        "selectedTextArray" : PropTypes.array.isRequired,
     };
 
     static defaultProps = {
         "showModal": false
     };
 
-    state = {
-        "translate": true
+    constructor(props, context) {
+        super(props, context);
+
+        this.state = {
+            "translate": this.getInitialTranslateStateOfTextUnits()
+        };
+    }
+
+    /**
+     * @returns {boolean} returns whether selected index is set to translate/do not translate.
+     * Gets the current translate field of the selected index
+     */
+    getInitialTranslateStateOfTextUnits = () => {
+        let selectedTextUnits = this.props.selectedTextArray;
+        let currentTranslateState = false;
+        if (selectedTextUnits.length > 0) {
+            currentTranslateState = !selectedTextUnits[0].getDoNotTranslate();
+        }
+
+        return currentTranslateState;
     };
 
     render() {

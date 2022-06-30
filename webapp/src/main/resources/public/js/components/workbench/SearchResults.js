@@ -325,6 +325,7 @@ let SearchResults = createReactClass({
     },
 
     onTranslateModalCancel() {
+        WorkbenchActions.resetAllSelectedTextUnits();
         this.hideDoNotTranslateModal();
     },
 
@@ -621,6 +622,22 @@ let SearchResults = createReactClass({
     },
 
     /**
+     * @returns {JSX} The JSX for the TranslateModal if showTranslateModal is true, empty string otherwise.
+     */
+    getTextUnitsTranslateModal() {
+        let ui = "";
+        if (this.state.showTranslateModal) {
+            ui = (
+                <TranslateModal showModal={this.state.showTranslateModal}
+                                selectedTextArray={this.getSelectedTextUnits()}
+                                onSave={this.onTranslateModalSave}
+                                onCancel={this.onTranslateModalCancel}/>
+            );
+        }
+        return ui;
+    },
+
+    /**
      * @returns {JSX} The progress spinner if server action is pending. Otherwise, return the currentPageNumber.
      */
     displayCurrentPageNumber() {
@@ -668,9 +685,7 @@ let SearchResults = createReactClass({
                 <ErrorModal showModal={this.state.isErrorOccurred}
                             errorMessage={this.getErrorMessage()}
                             onErrorModalClosed={this.onErrorModalClosed}/>
-                <TranslateModal showModal={this.state.showTranslateModal}
-                                onSave={this.onTranslateModalSave}
-                                onCancel={this.onTranslateModalCancel}/>
+                {this.getTextUnitsTranslateModal()}
                 {this.getEmptyStateContainer()}
                 {this.getTextUnitsReviewModal()}
             </div>

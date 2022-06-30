@@ -113,6 +113,7 @@ public class TextUnitDTOsCacheService {
         ImmutableList<TMTextUnitCurrentVariantDTO> currentTranslations = getCurrentTranslationsOfAllTextUnits(assetId, localeId);
         ImmutableList<Long> idsOfAllTextUnits = getIdsOfAllTextUnits(assetId);
         ImmutableSet<Long> idsOfUsedTextUnits = getIdsOfUsedTextUnits(asset);
+        ImmutableSet<Long> tmTextUnitIdsOfDoNotTranslateTextUnits = getTmTextUnitIdsOfDoNotTranslateUnits(asset);
 
         ImmutableMap<Long, TextUnitDTO> toUpdateByTmTextUnitIds = toUpdate.stream()
                 .collect(ImmutableMap.toImmutableMap(TextUnitDTO::getTmTextUnitId, Function.identity()));
@@ -120,7 +121,8 @@ public class TextUnitDTOsCacheService {
         ImmutableSet<Long> textUnitIdsToFetch = Streams.concat(
                 getTmTextUnitIdsForNewTranslations(currentTranslations, toUpdateByTmTextUnitIds),
                 getTmTextUnitIdsOfMissingTextUnits(idsOfAllTextUnits, toUpdateByTmTextUnitIds),
-                getTmTextUnitIdsForChangedUsedStatus(idsOfUsedTextUnits, toUpdate))
+                getTmTextUnitIdsForChangedUsedStatus(idsOfUsedTextUnits, toUpdate),
+                getTmTextUnitIdsForChangedTranslateStatus(tmTextUnitIdsOfDoNotTranslateTextUnits, toUpdate))
                 .collect(ImmutableSet.toImmutableSet());
 
         logger.debug("Number of text units to fetch: {} (of total: {})", textUnitIdsToFetch.size(), idsOfAllTextUnits.size());
@@ -211,6 +213,17 @@ public class TextUnitDTOsCacheService {
                 .map(TMTextUnitCurrentVariantDTO::getTmTextUnitId);
     }
 
+    Stream<Long> getTmTextUnitIdsForChangedTranslateStatus(ImmutableSet<Long> idsOfDoNotTranslateTextUnits, ImmutableList<TextUnitDTO> textUnitDTOsToUpdate) {
+        return textUnitDTOsToUpdate.stream()
+                .filter(t -> {
+                    boolean doNotTranslateCurrent = idsOfDoNotTranslateTextUnits.contains(t.getTmTextUnitId());
+                    boolean doNotTranslateInNew = t.isDoNotTranslate();
+
+                    return (doNotTranslateCurrent && !doNotTranslateInNew || (!doNotTranslateCurrent && doNotTranslateInNew));
+                })
+                .map(TextUnitDTO::getTmTextUnitId);
+    }
+
     Asset getAssetById(Long assetId) {
         return assetRepository.findById(assetId).orElseThrow(() -> new IllegalArgumentException("Asset missing for given id: " + assetId));
     }
@@ -221,6 +234,14 @@ public class TextUnitDTOsCacheService {
             ids = ImmutableSet.copyOf(assetTextUnitToTMTextUnitRepository.findTmTextUnitIdsByAssetExtractionId(asset.getLastSuccessfulAssetExtraction().getId()));
         }
         return ids;
+    }
+
+    ImmutableSet<Long> getTmTextUnitIdsOfDoNotTranslateUnits(Asset asset) {
+        ImmutableSet<Long> idsOfDoNotTranslateTextUnits = ImmutableSet.of();
+        if (asset.getLastSuccessfulAssetExtraction() != null) {
+            idsOfDoNotTranslateTextUnits = ImmutableSet.copyOf(assetTextUnitToTMTextUnitRepository.getTmTextUnitIdsOfDoNotTranslateUnitsByAssetExtractionId(asset.getLastSuccessfulAssetExtraction().getId()));
+        }
+        return idsOfDoNotTranslateTextUnits;
     }
 
     /**
