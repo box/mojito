@@ -109,7 +109,7 @@ CREATE TABLE push_run_asset_tm_text_unit
     PRIMARY KEY (id)
 );
 ALTER TABLE push_run_asset_tm_text_unit
-    ADD CONSTRAINT UK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID__TM_TEXT_UNIT_ID unique (push_run_asset_id, tm_text_unit_id);
+    ADD CONSTRAINT UK__PRATTU__PUSH_RUN_ASSET_ID__TM_TEXT_UNIT_ID unique (push_run_asset_id, tm_text_unit_id);
 ALTER TABLE push_run_asset_tm_text_unit
     ADD CONSTRAINT FK__PUSH_RUN_ASSET_TM_TEXT_UNIT__PUSH_RUN_ASSET_ID FOREIGN KEY (push_run_asset_id) REFERENCES
         push_run_asset (id);
