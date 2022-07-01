@@ -2,6 +2,7 @@ package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -23,6 +24,7 @@ import java.util.Set;
                 @Index(name = "UK__PULL_RUN_ASSET__PULL_RUN_ID__ASSET_ID", columnList = "pull_run_id, asset_id", unique = true)
         }
 )
+@BatchSize(size = 1000)
 public class PullRunAsset extends SettableAuditableEntity {
     @ManyToOne
     @JsonBackReference
@@ -54,5 +56,12 @@ public class PullRunAsset extends SettableAuditableEntity {
 
     public void setAsset(Asset asset) {
         this.asset = asset;
+    }
+
+    public Set<PullRunTextUnitVariant> getPullRunTextUnitVariants() {
+        return pullRunTextUnitVariants;
+    }
+    public void setPullRunTextUnitVariants(Set<PullRunTextUnitVariant> pullRunTextUnitVariants) {
+        this.pullRunTextUnitVariants = pullRunTextUnitVariants;
     }
 }

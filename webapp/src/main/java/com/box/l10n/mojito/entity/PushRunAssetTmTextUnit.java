@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -24,6 +25,7 @@ import javax.persistence.Table;
                 @Index(name = "UK__PRATTU__PUSH_RUN_ASSET_ID__TM_TEXT_UNIT_ID",
                         columnList = "push_run_asset_id, tm_text_unit_id", unique = true)
         })
+@BatchSize(size = 1000)
 public class PushRunAssetTmTextUnit extends SettableAuditableEntity {
     @ManyToOne
     @JsonBackReference

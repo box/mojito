@@ -12,5 +12,5 @@ import java.util.Optional;
  */
 @RepositoryRestResource(exported = false)
 public interface PushRunRepository extends JpaRepository<PushRun, Long> {
-    Optional<PushRun> findByName(@Param("name") String name);
+    Optional<PushRun> findByName(String name);
 }

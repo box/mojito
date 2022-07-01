@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
@@ -27,6 +28,7 @@ import javax.persistence.Table;
                 @Index(name = "UK__COMMIT__NAME_REPOSITORY_ID", columnList = "name, repository_id", unique = true)
         }
 )
+@BatchSize(size = 1000)
 public class Commit extends AuditableEntity {
 
     @JsonIgnore

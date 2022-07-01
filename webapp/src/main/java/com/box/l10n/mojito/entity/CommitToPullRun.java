@@ -4,6 +4,7 @@ import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
@@ -24,6 +25,7 @@ import javax.persistence.Table;
                 @Index(name = "UK__COMMIT_TO_PULL_RUN__COMMIT_ID", columnList = "commit_id", unique = true)
         }
 )
+@BatchSize(size = 1000)
 public class CommitToPullRun extends SettableAuditableEntity {
     @OneToOne
     @JsonBackReference
