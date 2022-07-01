@@ -37,9 +37,6 @@ public class PushRunServiceTest extends ServiceTestBase {
     AssetService assetService;
 
     @Autowired
-    LocaleService localeService;
-
-    @Autowired
     PushRunService pushRunService;
 
     @Autowired
@@ -66,6 +63,7 @@ public class PushRunServiceTest extends ServiceTestBase {
     TM tm;
 
     Repository repository;
+
     Asset asset;
 
     @Before
@@ -83,10 +81,12 @@ public class PushRunServiceTest extends ServiceTestBase {
 
     @Test
     public void testCreatePushRun() {
-        PushRun pushRun = pushRunService.createPushRun(repository, "testCreatePushRun");
+        String pushRunName = "testCreatePushRun";
+
+        PushRun pushRun = pushRunService.createPushRun(repository, pushRunName);
+
         Assert.assertNotNull(pushRun);
-        Assert.assertNotNull(pushRun.getName());
-        Assert.assertTrue(pushRun.getName().length() > 0);
+        Assert.assertEquals(pushRunName, pushRun.getName());
     }
 
     @Test

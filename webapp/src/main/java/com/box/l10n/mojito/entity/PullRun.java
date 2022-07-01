@@ -3,6 +3,7 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.hibernate.annotations.BatchSize;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,6 +27,7 @@ import java.util.Set;
                 @Index(name = "UK__PULL_RUN__NAME", columnList = "name", unique = true)
         }
 )
+@BatchSize(size = 1000)
 public class PullRun extends SettableAuditableEntity {
     @ManyToOne
     @JoinColumn(name = "repository_id",
