@@ -217,9 +217,7 @@ public class TextUnitDTOsCacheService {
         return textUnitDTOsToUpdate.stream()
                 .filter(t -> {
                     boolean doNotTranslateCurrent = idsOfDoNotTranslateTextUnits.contains(t.getTmTextUnitId());
-                    boolean doNotTranslateInNew = t.isDoNotTranslate();
-
-                    return (doNotTranslateCurrent && !doNotTranslateInNew || (!doNotTranslateCurrent && doNotTranslateInNew));
+                    return doNotTranslateCurrent != t.isDoNotTranslate();
                 })
                 .map(TextUnitDTO::getTmTextUnitId);
     }
