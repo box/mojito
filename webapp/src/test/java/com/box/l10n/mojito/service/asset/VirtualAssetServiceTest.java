@@ -214,17 +214,18 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         virtualAsset.setRepositoryId(repository.getId());
         virtualAsset.setPath("default");
         virtualAsset = virtualAssetService.createOrUpdateVirtualAsset(virtualAsset);
+        Long virtualAssetId = virtualAsset.getId();
 
         virtualAssetService.addTextUnit(
-                virtualAsset.getId(),
+                virtualAssetId,
                 "name",
                 "content",
                 "comment",
                 null,
                 null,
-                false);
+                true);
 
-        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAsset.getId(), null);
+        List<VirtualAssetTextUnit> textUnits = virtualAssetService.getTextUnits(virtualAssetId, null);
         assertEquals(1, textUnits.size());
 
         int i = 0;
@@ -233,10 +234,29 @@ public class VirtualAssetServiceTest extends ServiceTestBase {
         assertEquals("comment", textUnits.get(i).getComment());
         assertNull(textUnits.get(i).getPluralForm());
         assertNull(textUnits.get(i).getPluralFormOther());
-        assertFalse(textUnits.get(i).getDoNotTranslate());
+        assertTrue(textUnits.get(i).getDoNotTranslate());
 
         virtualAssetService.addTextUnit(
-                virtualAsset.getId(),
+                virtualAssetId,
+                "name",
+                "content",
+                "comment",
+                null,
+                null,
+                false);
+
+        List<VirtualAssetTextUnit> textUnits1 = virtualAssetService.getTextUnits(virtualAssetId, null);
+        assertEquals(1, textUnits1.size());
+
+        assertEquals("name", textUnits1.get(i).getName());
+        assertEquals("content", textUnits1.get(i).getContent());
+        assertEquals("comment", textUnits1.get(i).getComment());
+        assertNull(textUnits1.get(i).getPluralForm());
+        assertNull(textUnits1.get(i).getPluralFormOther());
+        assertFalse(textUnits1.get(i).getDoNotTranslate());
+
+        virtualAssetService.addTextUnit(
+                virtualAssetId,
                 "name",
                 "content",
                 "comment",
