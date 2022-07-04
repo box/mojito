@@ -1,10 +1,31 @@
 package com.box.l10n.mojito.service.pushrun;
 
+import com.box.l10n.mojito.entity.PushRun;
+import com.box.l10n.mojito.entity.PushRunAsset;
+import com.box.l10n.mojito.entity.PushRunAssetTmTextUnit;
+import com.box.l10n.mojito.entity.TMTextUnit;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author garion
  */
 @RepositoryRestResource(exported = false)
-public class PushRunAssetTmTextUnitRepository {
+public interface PushRunAssetTmTextUnitRepository extends JpaRepository<PushRunAssetTmTextUnit, Long> {
+
+    @Transactional
+    void deleteByPushRunAsset(PushRunAsset pushRunAsset);
+
+    List<PushRunAssetTmTextUnit> findByPushRunAsset(PushRunAsset pushRunAsset, Pageable pageable);
+
+    @Query("select prattu.tmTextUnit from PushRunAssetTmTextUnit prattu " +
+            "inner join prattu.pushRunAsset pra " +
+            "inner join pra.pushRun pr where pr = :pushRun")
+    List<TMTextUnit> findByPushRun(@Param("pushRun")PushRun pushRun, Pageable pageable);
 }
