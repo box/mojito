@@ -242,7 +242,20 @@ For example to create Demo data, you can now run: `mojito demo-create -n DemoCLI
 Alternatively, install the CLI using the [install scripts]({{ site.url }}/docs/guides/install/#cli-install-script).
 
 ## Run Unit Tests
-   
+
+
+### Testcontainers
+By default, if no datasource is configured in the application.properties file, integration tests rely on 
+[Testcontainers](https://www.testcontainers.org/)
+to 
+provide a configured
+MySql instance in a test-scoped container.
+
+For that to work,  you will need Docker installed and running on the local machine. 
+
+See [general Docker requirements](https://www.testcontainers.org/supported_docker_environment/) for Testcontainers.
+
+### Test command
 ```sh
 cd ${PROJECT_DIR}
 mvn test
