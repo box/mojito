@@ -216,8 +216,8 @@ public class TextUnitDTOsCacheService {
     Stream<Long> getTmTextUnitIdsForChangedTranslateStatus(ImmutableSet<Long> idsOfDoNotTranslateTextUnits, ImmutableList<TextUnitDTO> textUnitDTOsToUpdate) {
         return textUnitDTOsToUpdate.stream()
                 .filter(t -> {
-                    boolean doNotTranslateCurrent = idsOfDoNotTranslateTextUnits.contains(t.getTmTextUnitId());
-                    return doNotTranslateCurrent != t.isDoNotTranslate();
+                    boolean newDoNotTranslate = idsOfDoNotTranslateTextUnits.contains(t.getTmTextUnitId());
+                    return newDoNotTranslate != t.isDoNotTranslate();
                 })
                 .map(TextUnitDTO::getTmTextUnitId);
     }
