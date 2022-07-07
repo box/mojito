@@ -347,7 +347,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
-                    <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/common/
+                    <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/common/
                         -Dspring.profiles.active=${user.name},test -Duser.timezone=UTC
                     </argLine>
                 </configuration>
