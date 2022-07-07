@@ -225,12 +225,6 @@
         </dependency>
 
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>com.box.l10n.mojito</groupId>
             <artifactId>mojito-common</artifactId>
             <version>0.111-SNAPSHOT</version>
@@ -439,7 +433,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <!-- Sets the VM argument line used when unit tests are run. -->
-                    <argLine>-Dspring.config.additional-location=file://${user.home}/.l10n/config/webapp/
+                    <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
 
