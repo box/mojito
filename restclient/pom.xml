@@ -24,6 +24,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.box.l10n.mojito</groupId>
+            <artifactId>mojito-test-common</artifactId>
+            <version>0.111-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
