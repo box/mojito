@@ -157,6 +157,7 @@ Then create the first file: `.l10n/config/webapp/application.properties` with fo
 
 ```properties
 spring.flyway.enabled=true
+spring.jpa.defer-datasource-initialization=false
 l10n.flyway.clean=true
 spring.datasource.url=jdbc:mysql://localhost:3306/mojito?characterEncoding=UTF-8&useUnicode=true
 spring.datasource.username=mojito
@@ -251,7 +252,8 @@ mvn test
 ## DB migration
 DB migration is done with Flyway, and Default DB setup with MySql. The default app configuration uses HSQL hence Flyway is disabled.
 
-When using MySql Flyway must be turned on with `spring.flyway.enabled=true` (for dev or in production).
+When using MySql, Flyway must be turned on with `spring.flyway.enabled=true` (for dev or in production). and it also 
+requires `spring.jpa.defer-datasource-initialization=false` to override an HSQL setting
 
 ### Clean the DB
 Set the properties `l10n.flyway.clean=true` (and have `spring.flyway.clean-disabled=false`) to have Flyway clean the schema first 
