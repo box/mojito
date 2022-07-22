@@ -106,6 +106,7 @@ recommended to explicitly disable the "database clean" features ([more info](#da
 
 ```properties
 spring.flyway.enabled=true
+spring.jpa.defer-datasource-initialization=false
 spring.flyway.clean-disabled=true 
 l10n.flyway.clean=false
 spring.datasource.url=jdbc:mysql://localhost:3306/${DB_NAME}?characterEncoding=UTF-8&useUnicode=true
