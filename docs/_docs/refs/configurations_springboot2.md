@@ -20,7 +20,7 @@ To override default configurations of {{ site.mojito_green }}, add them in
 
 If you want to use different path to store the override configuration, you can specify the following extra parameter when you start {{ site.mojito_green }} server and when you run {{ site.mojito_green }} CLI.  For example,
 
-    -Dspring.config.additional-location=file:/${YOUR_PATH}/application.properties
+    -Dspring.config.additional-location=optional:file:/${YOUR_PATH}/application.properties
 
 
 ## Database Configuration
