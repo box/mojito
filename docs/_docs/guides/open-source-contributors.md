@@ -234,7 +234,7 @@ This creates `Demo` repository in {{ site.mojito_green }} with 21 languages.  17
 To easily run `CLI` commands using the latest code, you can create an alias that point to the `jar` that was previously built. 
 
 ```sh
-alias mojito='java -Dspring.config.additional-location=~/.l10n/config/cli/application.properties -jar ${PROJECT_DIR}/cli/target/mojito-cli-*-SNAPSHOT-exec.jar '
+alias mojito='java -Dspring.config.additional-location=optional:~/.l10n/config/cli/application.properties -jar ${PROJECT_DIR}/cli/target/mojito-cli-*-SNAPSHOT-exec.jar '
 ```
 
 For example to create Demo data, you can now run: `mojito demo-create -n DemoCLI`.
