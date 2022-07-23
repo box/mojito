@@ -43,10 +43,8 @@ public class CustomCreateSessionAttributeInsertQueryConfigurationTest {
     @Autowired
     JdbcIndexedSessionRepository jdbcIndexedSessionRepository;
 
-    String requiredString = "INSERT INTO test_table_ATTRIBUTES(SESSION_PRIMARY_ID, ATTRIBUTE_NAME,  ATTRIBUTE_BYTES) "
-            + "SELECT PRIMARY_ID, ?, ? "
-            + "FROM test_table "
-            + "WHERE SESSION_ID = ? ON DUPLICATE KEY UPDATE ATTRIBUTE_BYTES=VALUES(ATTRIBUTE_BYTES)";
+    String requiredString = "INSERT INTO test_table_ATTRIBUTES (SESSION_PRIMARY_ID, ATTRIBUTE_NAME, ATTRIBUTE_BYTES) "
+            + "VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE ATTRIBUTE_BYTES=VALUES(ATTRIBUTE_BYTES)";
 
     @Test
     public void testCustomSessionAttributeQueryIsSetOnSessionRepository() throws IllegalAccessException {
