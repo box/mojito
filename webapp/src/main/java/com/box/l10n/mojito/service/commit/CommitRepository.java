@@ -24,4 +24,11 @@ public interface CommitRepository extends JpaRepository<Commit, Long>, JpaSpecif
     List<Commit> findLatestPushedCommits(@Param("commitNames") List<String> commitNames,
                                          @Param("repositoryId") Long repositoryId,
                                          Pageable pageable);
+
+    @Query(value = "select c from Commit c " +
+            "where c.name in :commitNames and c.repository.id = :repositoryId " +
+            "and c.commitToPullRun.pullRun.repository.id = :repositoryId order by c.commitToPullRun.createdDate desc ")
+    List<Commit> findLatestPulledCommits(@Param("commitNames") List<String> commitNames,
+                                         @Param("repositoryId") Long repositoryId,
+                                         Pageable pageable);
 }

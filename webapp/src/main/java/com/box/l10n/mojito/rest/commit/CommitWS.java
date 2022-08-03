@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.rest.commit;
 
 import com.box.l10n.mojito.entity.Commit;
+import com.box.l10n.mojito.entity.PullRun;
+import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
@@ -13,7 +15,6 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -37,11 +38,14 @@ public class CommitWS {
      */
     static Logger logger = LoggerFactory.getLogger(CommitWS.class);
 
-    @Autowired
     RepositoryRepository repositoryRepository;
 
-    @Autowired
     CommitService commitService;
+
+    public CommitWS(RepositoryRepository repositoryRepository, CommitService commitService) {
+        this.repositoryRepository = repositoryRepository;
+        this.commitService = commitService;
+    }
 
     /**
      * Gets information about commits based on the specified search criteria
@@ -98,17 +102,72 @@ public class CommitWS {
     /**
      * Gets the last known commit that we have processed and recorded a
      * PushRun for from the list of commit names provided.
+     * <p>
      * Returns null if no commit is found for that repository with a
      * corresponding push run.
      *
-     * @param lastPushedCommitBody The commit names to search for together with the repositoryID.
+     * @param commitListWithRepositoryIdBody The commit names to search for together with the repositoryID.
      * @return {@link View.Commit}
      */
     @JsonView(View.Commit.class)
     @RequestMapping(value = "/api/commits/lastPushed/", method = RequestMethod.POST)
-    public Commit getLastPushedCommit(@RequestBody LastPushedCommitBody lastPushedCommitBody) {
-        return commitService.getLastPushedCommit(lastPushedCommitBody.getCommitNames(),
-                                                 lastPushedCommitBody.getRepositoryId())
+    public Commit getLastPushedCommit(@RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
+        return commitService.getLastPushedCommit(commitListWithRepositoryIdBody.getCommitNames(),
+                                                 commitListWithRepositoryIdBody.getRepositoryId())
+                .orElse(null);
+    }
+
+    /**
+     * Gets the last known PushRun that we have processed and recorded against a
+     * commit from the list of commit names provided.
+     * <p>
+     * Returns null if no commit is found for that repository with a
+     * corresponding push run.
+     *
+     * @param commitListWithRepositoryIdBody The commit names to search for together with the repositoryID.
+     * @return {@link View.Commit}
+     */
+    @JsonView(View.CommitDetailed.class)
+    @RequestMapping(value = "/api/commits/lastPushRun/", method = RequestMethod.POST)
+    public PushRun getLastPushRun(@RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
+        return commitService.getLastPushRun(commitListWithRepositoryIdBody.getCommitNames(),
+                                                 commitListWithRepositoryIdBody.getRepositoryId())
+                .orElse(null);
+    }
+
+    /**
+     * Gets the last known commit that we have processed and recorded a
+     * PullRun for from the list of commit names provided.
+     * <p>
+     * Returns null if no commit is found for that repository with a
+     * corresponding pull run.
+     *
+     * @param commitListWithRepositoryIdBody The commit names to search for together with the repositoryID.
+     * @return {@link View.Commit}
+     */
+    @JsonView(View.Commit.class)
+    @RequestMapping(value = "/api/commits/lastPulled/", method = RequestMethod.POST)
+    public Commit getLastPulledCommit(@RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
+        return commitService.getLastPulledCommit(commitListWithRepositoryIdBody.getCommitNames(),
+                                                 commitListWithRepositoryIdBody.getRepositoryId())
+                .orElse(null);
+    }
+
+    /**
+     * Gets the last known PullRun that we have processed and recorded against a
+     * commit from the list of commit names provided.
+     * <p>
+     * Returns null if no commit is found for that repository with a
+     * corresponding pull run.
+     *
+     * @param commitListWithRepositoryIdBody The commit names to search for together with the repositoryID.
+     * @return {@link View.Commit}
+     */
+    @JsonView(View.CommitDetailed.class)
+    @RequestMapping(value = "/api/commits/lastPullRun/", method = RequestMethod.POST)
+    public PullRun getLastPullRun(@RequestBody CommitListWithRepositoryIdBody commitListWithRepositoryIdBody) {
+        return commitService.getLastPullRun(commitListWithRepositoryIdBody.getCommitNames(),
+                                            commitListWithRepositoryIdBody.getRepositoryId())
                 .orElse(null);
     }
 

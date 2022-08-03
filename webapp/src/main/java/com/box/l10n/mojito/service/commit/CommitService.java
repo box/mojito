@@ -30,6 +30,8 @@ import static com.box.l10n.mojito.specification.Specifications.distinct;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 
 /**
+ * Service to manage commits.
+ *
  * @author garion
  */
 @Service
@@ -114,11 +116,36 @@ public class CommitService {
     /**
      * Gets the last known commit that we have processed and recorded a
      * PushRun for from the list of commit names provided.
-     * Returns null if no commit is found for that repository with a
-     * corresponding push run.
      */
     public Optional<Commit> getLastPushedCommit(List<String> commitNames, Long repositoryId) {
         return commitRepository.findLatestPushedCommits(commitNames, repositoryId, PageRequest.of(0, 1))
+                .stream().findFirst();
+    }
+
+    /**
+     * Gets the last known PushRun that we have processed and recorded against
+     * a commit for from the list of commit names provided.
+     */
+    public Optional<PushRun> getLastPushRun(List<String> commitNames, Long repositoryId) {
+        return pushRunRepository.findLatestByCommitNames(commitNames, repositoryId, PageRequest.of(0, 1))
+                .stream().findFirst();
+    }
+
+    /**
+     * Gets the last known commit that we have processed and recorded a
+     * PullRun for from the list of commit names provided.
+     */
+    public Optional<Commit> getLastPulledCommit(List<String> commitNames, Long repositoryId) {
+        return commitRepository.findLatestPulledCommits(commitNames, repositoryId, PageRequest.of(0, 1))
+                .stream().findFirst();
+    }
+
+    /**
+     * Gets the last known PullRun that we have processed and recorded against
+     * a commit for from the list of commit names provided.
+     */
+    public Optional<PullRun> getLastPullRun(List<String> commitNames, Long repositoryId) {
+        return pullRunRepository.findLatestByCommitNames(commitNames, repositoryId, PageRequest.of(0, 1))
                 .stream().findFirst();
     }
 
@@ -137,7 +164,6 @@ public class CommitService {
         Optional<CommitToPullRun> commitToPullRun = commitToPullRunRepository.findByCommitId(commitId);
         return commitToPullRun.map(CommitToPullRun::getPullRun);
     }
-
 
     /**
      * See {@link CommitService#associateCommitToPushRun(Commit, PushRun)}.

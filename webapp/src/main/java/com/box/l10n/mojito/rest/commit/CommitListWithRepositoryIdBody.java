@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * @author garion
  */
-public class LastPushedCommitBody {
+public class CommitListWithRepositoryIdBody {
 
     /**
      * The candidate commit names to search.
