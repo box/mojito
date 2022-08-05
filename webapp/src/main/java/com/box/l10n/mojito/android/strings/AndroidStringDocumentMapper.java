@@ -55,7 +55,7 @@ public class AndroidStringDocumentMapper {
             if (isSingularTextUnit(textUnit)) {
                 document.addSingular(textUnitToAndroidSingular(textUnit, useSource));
             } else {
-                pluralByOther.compute(getKeyToGroupByPluralOtherAndComment(textUnit), (key, builder) -> {
+                pluralByOther.compute(getKeyToGroupByPluralOtherAndCommentAndTimestamp(textUnit), (key, builder) -> {
                     if (builder == null) {
                         builder = AndroidPlural.builder();
                     }
@@ -158,9 +158,10 @@ public class AndroidStringDocumentMapper {
                     String quantity = item.getQuantity().toString();
                     String name = pluralNameParser.toPluralName(plural.getName(), quantity, pluralSeparator);
                     String pluralFormOther = pluralNameParser.toPluralName(plural.getName(), OTHER.toString(), pluralSeparator);
-
                     textUnit.setName(name);
                     textUnit.setComment(plural.getComment());
+                    // tmTextUnitId are stripped in Smartling we can't rely on them for re-import; timestamp are not available either
+                    // like push to distinguish the plural group
                     textUnit.setTmTextUnitId(item.getId());
                     textUnit.setPluralForm(quantity);
                     textUnit.setPluralFormOther(pluralFormOther);
@@ -175,8 +176,17 @@ public class AndroidStringDocumentMapper {
         return Strings.isNullOrEmpty(textUnit.getPluralForm());
     }
 
-    String getKeyToGroupByPluralOtherAndComment(TextUnitDTO textUnit) {
-        return textUnit.getAssetPath() + DEFAULT_ASSET_DELIMITER + textUnit.getPluralFormOther() + "_" + textUnit.getComment();
+    String getKeyToGroupByPluralOtherAndCommentAndTimestamp(TextUnitDTO textUnit) {
+        // Use the timestamp to group by plural to avoid dupplicates when working with branches.
+        // For a repository that uses "resource ids" like Android and when using a single branch, changing the source
+        // of a plural string will lead to 1) create a new set of strings 2) mark the old set of strings as unused.
+        // But when working with branches, "2) mark the old set of strings as unused" won't happen. This leads to
+        // dupplicated keys when building the Android content.
+        // The only way to distinguish duplicated strings is to look at the timxestamp. we assume that plural strings
+        // that are related have the same timestamp. This should work in most cases but it is not enforced at the
+        // DB level and may still lead to some issues.
+        return textUnit.getAssetPath() + DEFAULT_ASSET_DELIMITER + textUnit.getPluralFormOther() + "_"
+                + textUnit.getComment() + "_" + textUnit.getCreatedDate();
     }
 
     AndroidSingular textUnitToAndroidSingular(TextUnitDTO textUnit, boolean useSource) {
