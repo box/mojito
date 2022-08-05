@@ -1,12 +1,15 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.ParameterException;
+import com.box.l10n.mojito.cli.command.param.Param;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 
 public class TmTextUnitMappingConverterTest {
@@ -25,6 +28,14 @@ public class TmTextUnitMappingConverterTest {
         assertEquals(2001L, convert.get(1001L).longValue());
         assertEquals(2002L, convert.get(1002L).longValue());
         assertEquals(2, convert.size());
+    }
+
+    @Test
+    public void multimapUnsupported() {
+        TmTextUnitMappingConverter tmTextUnitMappingConverter = new TmTextUnitMappingConverter();
+        Assertions.assertThatThrownBy(() -> tmTextUnitMappingConverter.convert("1001:2001;1001:2002"))
+                .isInstanceOf(ParameterException.class)
+                .hasMessage("Invalid source to target textunit id mapping [1001:2001;1001:2002]");
     }
 
     @Test(expected = ParameterException.class)
