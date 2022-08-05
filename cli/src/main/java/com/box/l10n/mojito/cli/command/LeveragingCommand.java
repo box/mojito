@@ -62,7 +62,9 @@ public class LeveragingCommand extends Command {
     CopyTmConfig.Mode mode = CopyTmConfig.Mode.MD5;
 
     @Parameter(names = {"--tuids-mapping"}, required = false,
-            description = "Text unit mapping for TUIDS mode (source to target tmTextUnit id), format: \"1001:2001;1002:2002\"",
+            description = "Text unit mapping (by tmTextUnitId) for TUIDS mode, format: \"1001:2001;1002:2002\" " +
+                    "(\"source_tm_text_unit_id:target_tm_text_unit_id;...\" with source_tm_text_unit_id unique. " +
+                    "Use multiple calls to copy the same source to multiple targets)",
             converter = TmTextUnitMappingConverter.class)
     Map<Long, Long> sourceToTargetTmTextUnitMapping;
 
