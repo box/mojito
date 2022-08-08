@@ -13,6 +13,7 @@ class Ict {
         this.messages = messages;
         this.locale = locale;
         this.actionButtons = [];
+        this.mtEnabled = false;
     }
 
     activate() {
@@ -33,6 +34,10 @@ class Ict {
         if (this.ictModalContainer) {
             this.ictModalContainer.setActionButtons(actionButtons);
         }
+    }
+
+    setMTEnabled(mtEnabled) {
+        this.mtEnabled = mtEnabled;
     }
 
     getNodesChildOf(node) {
@@ -87,19 +92,44 @@ class Ict {
             node = node.parentNode;
         }
 
-        if (!node.classList.contains("mojito-ict-string")) {
-           try {
-                node.className += " mojito-ict-string";
-            } catch (e) {
+        var mtRequired = textUnits[0]['isTranslated'] === 'false';
+        if (this.mtEnabled && mtRequired){
+            if (!node.classList.contains("mojito-ict-string")) {
+                try {
+                    node.className += " mojito-ict-string";
+                } catch (e) {
+                }
+
+                node.addEventListener("mouseenter", (e) => {
+                    e.target.classList.add("mojito-ict-string-mt");
+                });
+
+                node.addEventListener("mouseleave", (e) => {
+                    e.target.classList.remove("mojito-ict-string-mt");
+                });
             }
 
-            node.addEventListener("mouseenter", (e) => {
-                e.target.classList.add("mojito-ict-string-active");
-            });
+            chrome.runtime.sendMessage(textUnits[0], function (response){
+                if (response.data && node.textContent !== response.data) {
+                    textUnits[0]['isMachineTranslated'] = true
+                    node.textContent = response.data;
+                }
+            })
+        } else {
+            if (!node.classList.contains("mojito-ict-string")) {
+                try {
+                    node.className += " mojito-ict-string";
+                } catch (e) {
+                }
 
-            node.addEventListener("mouseleave", (e) => {
-                e.target.classList.remove("mojito-ict-string-active");
-            });
+                node.addEventListener("mouseenter", (e) => {
+                    e.target.classList.add("mojito-ict-string-active");
+                });
+
+                node.addEventListener("mouseleave", (e) => {
+                    e.target.classList.remove("mojito-ict-string-active");
+                });
+            }
         }
 
         node.addEventListener("click", (e) => onClick(e, textUnits));
@@ -137,7 +167,6 @@ class Ict {
 
     processNode(node) {
         var hasMetaData = IctMetadataExtractor.hasMetadata(this.getStringFromNode(node));
-
         if (hasMetaData) {
             this.wrapNode(node, this.onClickBehavior.bind(this));
             this.removeTagsBlockFromNode(node);

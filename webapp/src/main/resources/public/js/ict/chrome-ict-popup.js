@@ -42,6 +42,17 @@ const IctPopup = function (props) {
                 <FormControl type="text" value={props.headerValue} onChange={(e) => props.onHeaderValueChanged(e.target.value)} />
               </Col>
             </FormGroup>
+
+            <FormGroup controlId="formHorizontalMTEnabled">
+                <Col componentClass={ControlLabel} sm={2}>
+                    Machine Translation
+                </Col>
+                <ToggleButtonGroup className="mtm mbm" name="state" type="radio" value={props.mtEnabled}
+                                   onChange={props.onMTEnabledChanged} >
+                    <ToggleButton name="state" value={true}>On</ToggleButton>
+                    <ToggleButton name="state" value={false}>Off</ToggleButton>
+                </ToggleButtonGroup>
+            </FormGroup>
         </Form>
     </div>;
 }
@@ -56,6 +67,7 @@ class IctPopupContainer extends React.Component {
             enabled: false,
             headerName: '',
             headerValue: '',
+            mtEnabled: false,
         };
         
         this.loadStateFromStorage();
@@ -107,16 +119,28 @@ class IctPopupContainer extends React.Component {
         });
     }
 
+    onMTEnabledChanged(mtEnabled) {
+        this.setState({
+            mtEnabled: mtEnabled
+        });
+
+        chrome.storage.sync.set({
+            mtEnabled: mtEnabled
+        });
+    }
+
     render() {
         return <IctPopup
                     mojitoBaseUrl={this.state.mojitoBaseUrl}
                     enabled={this.state.enabled}
                     headerName={this.state.headerName}
                     headerValue={this.state.headerValue}
+                    mtEnabled={this.state.mtEnabled}
                     onMojitoBaseUrlChanged={url => this.onMojitoBaseUrlChanged(url)}
                     onHeaderNameChanged={name => this.onHeaderNameChanged(name)}
                     onHeaderValueChanged={value => this.onHeaderValueChanged(value)}
                     onEnabledChanged={enabled => this.onEnabledChanged(enabled)}
+                    onMTEnabledChanged={mtEnabled => this.onMTEnabledChanged(mtEnabled)}
                 />;
                     
     }

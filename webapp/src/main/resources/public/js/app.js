@@ -85,7 +85,7 @@ function instrumentMessagesForIct(messages, locale) {
 
     Object.keys(messages).map((key) => {
         let stack = new Error().stack; // stack is useless here but for tests
-        messages[key] = IctMetadataBuilder.getTranslationWithMetadata("mojito", null, key, locale, stack, messages[key]);
+        messages[key] = IctMetadataBuilder.getTranslationWithMetadata("mojito", null, key, locale, stack, messages[key], true);
     });
 }
 
