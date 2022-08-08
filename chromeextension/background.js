@@ -3,7 +3,8 @@ var backgroundConfig = {
     enabled: false,
     headerName: 'X-Mojito-Ict',
     headerValue: 'on',
-    actionButtons: []
+    actionButtons: [],
+    mtEndpointUrlFormat: ''
 };
 
 chrome.storage.sync.get(backgroundConfig, (items) => {
@@ -23,6 +24,36 @@ function addMojitoIctHeader(details) {
     }
     return {requestHeaders: details.requestHeaders};
 }
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (backgroundConfig.mtEndpointUrlFormat) {
+        var message = request['textUnitVariant']
+        var locale = request['locale']
+        var storageKey = "I18N_MT_" + locale + "_" + message
+        chrome.storage.local.get([storageKey], function (result){
+            if (result[storageKey]) {
+                // Retrieve translation from local storage
+                sendResponse({data: result[storageKey]})
+            } else {
+                var requestUrl = backgroundConfig.mtEndpointUrlFormat.replace("{mt_locale}", locale).replace("{mt_message}", message);
+                fetch(requestUrl)
+                    .then(response => response.json())
+                    .then(json => {
+                        chrome.storage.local.set({[storageKey]: json.data}, function (){
+                            // Store translation in local storage for future retrieval
+                            sendResponse(json)
+                        })
+                    })
+                    .catch(err => sendResponse({data: ''}));
+            }
+        })
+
+        return true;
+    } else {
+        sendResponse({data: ''});
+    }
+
+});
 
 chrome.webRequest.onBeforeSendHeaders.addListener(
     addMojitoIctHeader,
