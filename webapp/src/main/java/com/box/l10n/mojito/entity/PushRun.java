@@ -1,7 +1,9 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.rest.View;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.hibernate.annotations.BatchSize;
 import org.joda.time.DateTime;
@@ -30,18 +32,30 @@ import java.util.Set;
 )
 @BatchSize(size = 1000)
 public class PushRun extends SettableAuditableEntity {
+
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "repository_id",
             foreignKey = @ForeignKey(name = "FK__PUSH_RUN__REPOSITORY_ID"))
     private Repository repository;
 
     /**
+     * Avoid serialization of the full Repository object, include only the IDs.
+     */
+    @JsonView(View.PushRun.class)
+    @JsonProperty("repository_id")
+    private Long getRepositoryId() {
+        return repository.getId();
+    }
+
+    /**
      * A unique identifier that is provided for the push run, generally a UUID.
      */
-    @JsonView(View.CommitDetailed.class)
+    @JsonView({View.CommitDetailed.class, View.PushRun.class})
     @Column(name = "name")
     private String name;
 
+    @JsonView(View.PushRun.class)
     @OneToMany(mappedBy = "pushRun")
     @JsonManagedReference
     private Set<PushRunAsset> pushRunAssets;

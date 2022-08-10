@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.pushrun;
 
 import com.box.l10n.mojito.entity.PushRun;
+import com.box.l10n.mojito.entity.Repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +16,7 @@ import java.util.Optional;
  */
 @RepositoryRestResource(exported = false)
 public interface PushRunRepository extends JpaRepository<PushRun, Long> {
-    Optional<PushRun> findByName(String name);
+    Optional<PushRun> findByNameAndRepository(String name, Repository repository);
 
     @Query(value = "select p from PushRun p " +
             "join CommitToPushRun cpr on cpr.pushRun = p " +

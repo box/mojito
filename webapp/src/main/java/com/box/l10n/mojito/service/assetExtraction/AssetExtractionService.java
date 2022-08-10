@@ -1,8 +1,5 @@
 package com.box.l10n.mojito.service.assetExtraction;
 
-import static com.box.l10n.mojito.service.assetExtraction.LocalBranchToEntityBranchConverter.NULL_BRANCH_TEXT_PLACEHOLDER;
-import static java.util.function.Function.identity;
-
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.AssetExtraction;
@@ -12,6 +9,7 @@ import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.Branch;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.json.ObjectMapper;
@@ -41,6 +39,7 @@ import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
+import com.box.l10n.mojito.service.pushrun.PushRunService;
 import com.box.l10n.mojito.service.tm.TMRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -62,7 +61,19 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.ibm.icu.text.MessageFormat;
 import io.micrometer.core.annotation.Timed;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -76,19 +87,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.persistence.EntityManager;
 
-import org.apache.commons.codec.digest.DigestUtils;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.retry.RetryContext;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.retry.support.RetryTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.box.l10n.mojito.service.assetExtraction.LocalBranchToEntityBranchConverter.NULL_BRANCH_TEXT_PLACEHOLDER;
+import static java.util.function.Function.identity;
 
 /**
  * Service to manage asset extraction. It processes assets to extract {@link AssetTextUnit}s.
@@ -182,6 +183,9 @@ public class AssetExtractionService {
     PollableTaskService pollableTaskService;
 
     @Autowired
+    PushRunService pushRunService;
+
+    @Autowired
     EntityManager entityManager;
 
     @Autowired
@@ -196,15 +200,15 @@ public class AssetExtractionService {
      * @param filterOptions
      * @param currentTask            The current task, injected
      * @return A {@link Future}
-     * @throws UnsupportedAssetFilterTypeException                                          If asset type not supported
-     * @throws java.lang.InterruptedException
-     * @throws com.box.l10n.mojito.service.assetExtraction.AssetExtractionConflictException
+     * @throws UnsupportedAssetFilterTypeException If asset type not supported
+     * @throws AssetExtractionConflictException
      */
     public PollableFuture<Asset> processAsset(
             Long assetContentId,
+            Long pushRunId,
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
-            PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
+            PollableTask currentTask) throws UnsupportedAssetFilterTypeException, AssetExtractionConflictException {
 
         logger.info("Start processing asset content, id: {}", assetContentId);
         AssetContent assetContent = assetContentService.findOne(assetContentId);
@@ -215,6 +219,7 @@ public class AssetExtractionService {
 
         updateBranchAssetExtraction(assetContent, createdTextUnitsResult.getUpdatedState(), filterOptions, currentTask);
         updateLastSuccessfulAssetExtraction(asset, createdTextUnitsResult.getUpdatedState(), currentTask);
+        updatePushRun(asset, createdTextUnitsResult.getUpdatedState(), pushRunId, currentTask);
         performLeveraging(createdTextUnitsResult.getLeveragingMatches(), currentTask);
 
         logger.info("Done processing asset content id: {}", assetContentId);
@@ -233,6 +238,29 @@ public class AssetExtractionService {
         AssetExtractionByBranch assetExtractionByBranch = getUndeletedOrCreateAssetExtractionByBranch(assetContent);
         AssetContentMd5s assetContentMd5s = AssetContentMd5s.of().withContentMd5(assetContent.getContentMd5()).withFilterOptionsMd5(filterOptionsMd5Builder.md5(filterOptions));
         updateAssetExtractionWithState(assetExtractionByBranch.getAssetExtraction().getId(), currentState, assetContentMd5s);
+    }
+
+    @Pollable(message = "Updating push run")
+    void updatePushRun(Asset asset,
+                       MultiBranchState multiBranchState,
+                       Long pushRunId,
+                       @ParentTask PollableTask parentTask) {
+
+        if (pushRunId == null || pushRunId == 0) {
+            logger.debug("Skipping associating text units to PushRun as no PushRun was provided!");
+            return;
+        }
+
+        PushRun pushRun = pushRunService.getPushRunById(pushRunId);
+
+        List<Long> textUnitIds = multiBranchState.getBranchStateTextUnits()
+                .stream()
+                .map(BranchStateTextUnit::getTmTextUnitId)
+                .collect(Collectors.toList());
+
+        pushRunService.associatePushRunToTextUnitIds(pushRun,
+                                                     asset,
+                                                     textUnitIds);
     }
 
     MultiBranchState updateAssetExtractionWithState(Long assetExtractionId, MultiBranchState currentState, AssetContentMd5s assetContentMd5s) {
@@ -466,7 +494,8 @@ public class AssetExtractionService {
 
         // we look into entries that are used in both, and we try to update it
 
-        ImmutableMap<String, Map.Entry<String, BranchData>> baseBothUsedBranchDataByMd5 = base.getBranchStateTextUnits().stream()
+        ImmutableMap<String, Map.Entry<String, BranchData>> baseBothUsedBranchDataByMd5 = base.getBranchStateTextUnits()
+                .stream()
                 .filter(bstu -> usedInBoth.contains(bstu.getMd5()))
                 .collect(ImmutableMap.toImmutableMap(BranchStateTextUnit::getMd5, this::getFirstBranchDataEntry));
 
@@ -910,12 +939,15 @@ public class AssetExtractionService {
 
     public PollableFuture<Void> processAssetAsync(
             Long assetContentId,
+            Long pushRunId,
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
-            Long parentTaskId) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
+            Long parentTaskId)
+            throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
 
         ProcessAssetJobInput processAssetJobInput = new ProcessAssetJobInput();
         processAssetJobInput.setAssetContentId(assetContentId);
+        processAssetJobInput.setPushRunId(pushRunId);
         processAssetJobInput.setFilterConfigIdOverride(filterConfigIdOverride);
         processAssetJobInput.setFilterOptions(filterOptions);
 
@@ -925,7 +957,7 @@ public class AssetExtractionService {
                 .withInput(processAssetJobInput)
                 .withMessage(pollableMessage)
                 .withParentId(parentTaskId)
-                .withExpectedSubTaskNumber(4)
+                .withExpectedSubTaskNumber(5)
                 .build();
 
         return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);

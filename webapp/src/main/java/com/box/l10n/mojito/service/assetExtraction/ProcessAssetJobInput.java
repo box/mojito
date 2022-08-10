@@ -6,6 +6,7 @@ import java.util.List;
 
 public class ProcessAssetJobInput {
     Long assetContentId;
+    Long pushRunId;
     FilterConfigIdOverride filterConfigIdOverride;
     List<String> filterOptions;
 
@@ -15,6 +16,14 @@ public class ProcessAssetJobInput {
 
     public void setAssetContentId(Long assetContentId) {
         this.assetContentId = assetContentId;
+    }
+
+    public Long getPushRunId() {
+        return pushRunId;
+    }
+
+    public void setPushRunId(Long pushRunId) {
+        this.pushRunId = pushRunId;
     }
 
     public FilterConfigIdOverride getFilterConfigIdOverride() {

@@ -244,7 +244,7 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
                 "</resources>";
 
         AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent);
-        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null, null).get();
 
         TMTextUnit tmTextUnitHelloCommentUpdated = tmTextUnitRepository.findFirstByTmAndMd5(asset.getRepository().getTm(),
                 new TextUnitUtils().computeTextUnitMD5("hello", "Hello", "comment 1 updated"));
