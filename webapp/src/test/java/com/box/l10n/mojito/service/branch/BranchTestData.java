@@ -116,7 +116,7 @@ public class BranchTestData {
 
         master = branchService.createBranch(asset.getRepository(), "master", null);
         AssetContent assetContentMaster = assetContentService.createAssetContent(asset, masterContent, false, master);
-        assetExtractionService.processAssetAsync(assetContentMaster.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentMaster.getId(), null, null, null, null).get();
 
         String branch1Content = "# string1 description\n"
                 + "string1=content1\n"
@@ -124,7 +124,7 @@ public class BranchTestData {
 
         branch1 = branchService.createBranch(asset.getRepository(), "branch1", null);
         AssetContent assetContentBranch1 = assetContentService.createAssetContent(asset, branch1Content, false, branch1);
-        assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null, null, null).get();
 
         String branch2Content = "# string1 description\n"
                 + "string1=content1\n"
@@ -134,7 +134,7 @@ public class BranchTestData {
 
         branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
         AssetContent assetContentBranch2 = assetContentService.createAssetContent(asset, branch2Content, false, branch2);
-        assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null, null).get();
 
         string1Branch1 = tmTextUnitRepository.findFirstByAssetAndName(assetContentBranch1.getAsset(), "string1");
         string2Branch1 = tmTextUnitRepository.findFirstByAssetAndName(assetContentBranch1.getAsset(), "string2");

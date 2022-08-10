@@ -79,7 +79,7 @@ public class CommitWS {
      * @return {@link Commit}
      */
     @JsonView(View.Commit.class)
-    @RequestMapping(value = "/api/commits/", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/commits", method = RequestMethod.GET)
     public Page<Commit> getCommits(@RequestParam(value = "repositoryId") Long repositoryId,
                                    @RequestParam(value = "commitNames", required = false) List<String> commitNames,
                                    @RequestParam(value = "pushRunName", required = false) String pushRunName,
@@ -179,7 +179,7 @@ public class CommitWS {
      * @throws RepositoryWithIdNotFoundException if the repository ID is not found.
      */
     @JsonView(View.Commit.class)
-    @RequestMapping(value = "/api/commits/", method = RequestMethod.POST)
+    @RequestMapping(value = "/api/commits", method = RequestMethod.POST)
     public Commit createCommit(@RequestBody CommitBody commitBody) throws RepositoryWithIdNotFoundException {
         Repository repository = repositoryRepository.findById(commitBody.getRepositoryId())
                 .orElseThrow(() -> new RepositoryWithIdNotFoundException(commitBody.getRepositoryId()));
@@ -205,7 +205,7 @@ public class CommitWS {
      */
     @RequestMapping(value = "/api/commits/pushRun", method = RequestMethod.POST)
     public void associateCommitToPushRun(@RequestBody CommitToPushRunBody commitToPushRunBody)
-            throws RepositoryNameNotFoundException, PushRunWithNameNotFoundException, CommitWithNameNotFoundException {
+            throws RepositoryWithIdNotFoundException, PushRunWithNameNotFoundException, CommitWithNameNotFoundException {
         commitService.associateCommitToPushRun(
                 commitToPushRunBody.getRepositoryId(),
                 commitToPushRunBody.getCommitName(),

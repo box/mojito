@@ -2,7 +2,6 @@ package com.box.l10n.mojito.service.assetExtraction;
 
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetExtraction;
-import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.asset.AssetRepository;
@@ -18,15 +17,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Those tests don't make sense for the new implementation but test the behavior for rollout of the new feature if
@@ -128,7 +122,9 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
                     xliffDataFactory.createTextUnit(1L, "2_factor_challenge_buttom", "Submit" + assetVersion, null)
             ));
 
-            PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetPath, xliff, false, branch, null, null, null);
+            PollableFuture<Asset> assetPollableFuture =
+                    assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), assetPath, xliff, false,
+                                                                    branch, null, null, null, null);
             pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
             return assetPollableFuture.get();
         } catch (Exception e) {

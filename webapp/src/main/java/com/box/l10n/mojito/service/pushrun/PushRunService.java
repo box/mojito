@@ -126,4 +126,10 @@ public class PushRunService {
 
         pushRunAssetTmTextUnitRepository.saveAll(pushRunAssetTmTextUnits);
     }
+
+    public PushRun getPushRunById(long id) {
+        return pushRunRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(String.format(
+                        "Could not find a PushRun for id: %s", id)));
+    }
 }

@@ -57,6 +57,7 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
             "where a.repository = :repository " +
             "and a.deleted = false " +
             "and tuv.locale in :locales " +
+            "and tuv.includedInLocalizedFile = true " +
             "and tuv.createdDate >= :fromDate " +
             "and tuv.createdDate < :toDate " +
             "order by tuv.id asc ")
@@ -97,6 +98,7 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
             "inner join Asset a on a = tu.asset " +
             "where a.repository = :repository " +
             "and tuv.locale in :locales " +
+            "and tuv.includedInLocalizedFile = true " + // Exclude rejected translations
             "and pra.pushRun in :pushRuns")
     Page<TMTextUnitVariant> findAllVariantsForPushRuns(
             @Param("repository") Repository repository,
@@ -151,8 +153,9 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
                     "                   and previous_tuv.locale_id = l.id " +
                     "                   and previous_tuv.text_unit_id = base_tu.id " +
                     "where " +
-                    "   previous_tuv.id is null " +
-                    "   or (latest_tuv.id != previous_tuv.id and latest_tuv.content_md5 != previous_tuv.content_md5) "
+                    "   latest_tuv.included_in_localized_file = true and " + // Exclude rejected translations
+                    "   (previous_tuv.id is null " +
+                    "   or (latest_tuv.id != previous_tuv.id and latest_tuv.content_md5 != previous_tuv.content_md5)) "
     )
     List<TextUnitVariantDelta> findDeltasForRuns(
             @Param("repositoryId") Long repositoryId,

@@ -124,7 +124,6 @@ public class TMServiceTest extends ServiceTestBase {
 
     @Autowired
     TMXliffRepository tmXliffRepository;
-
     @Autowired
     TextUnitUtils textUnitUtils;
 
@@ -892,7 +891,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, filterOptionOldEscaping);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, filterOptionOldEscaping);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -943,7 +942,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1013,7 +1012,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1099,7 +1098,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1149,7 +1148,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1190,7 +1189,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1232,7 +1231,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1275,7 +1274,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1317,7 +1316,15 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(),
+                                                                                            asset.getPath(),
+                                                                                            assetContent,
+                                                                                            false,
+                                                                                            null,
+                                                                                            null,
+                                                                                            null,
+                                                                                            null,
+                                                                                            null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1462,7 +1469,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1545,7 +1552,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1655,7 +1662,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1761,7 +1768,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1860,7 +1867,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -1946,7 +1953,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2058,7 +2065,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2075,7 +2082,7 @@ public class TMServiceTest extends ServiceTestBase {
             logger.debug("source=[{}]", textUnitDTO.getSource());
         }
 
-//        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
+        //        assertEquals("Hello, %1$s! You have <b>%2$d new messages</b>.", textUnitDTO.getSource());
         String localizedAsset = tmService.generateLocalized(asset, assetContent, repoLocale, "ru-RU", null, null, Status.ALL, InheritanceMode.USE_PARENT);
         logger.debug("localized=\n{}", localizedAsset);
         assertEquals(expectedLocalizedAsset, localizedAsset);
@@ -2163,7 +2170,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2270,7 +2277,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2334,7 +2341,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2379,7 +2386,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2422,7 +2429,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2468,7 +2475,7 @@ public class TMServiceTest extends ServiceTestBase {
         tmId = repo.getTm().getId();
 
         PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent,
-                false, null, null, null, null);
+                false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2521,7 +2528,7 @@ public class TMServiceTest extends ServiceTestBase {
         tmId = repo.getTm().getId();
 
         PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent,
-                false, null, null, null, jsonFilterOptions);
+                false, null, null, null, null, jsonFilterOptions);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2718,7 +2725,7 @@ public class TMServiceTest extends ServiceTestBase {
         tmId = repository.getTm().getId();
 
         try {
-            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+            PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
             assetResult.get();
         } catch (PollableTaskException | InterruptedException | UnsupportedAssetFilterTypeException e) {
@@ -2779,7 +2786,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2843,7 +2850,7 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repository.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), asset.getPath(), assetContent, false, null, null, null, null, null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
@@ -2935,7 +2942,14 @@ public class TMServiceTest extends ServiceTestBase {
         assetId = asset.getId();
         tmId = repo.getTm().getId();
 
-        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(), asset.getPath(), assetContent, false, null, null, null, null);
+        PollableFuture<Asset> assetResult = assetService.addOrUpdateAssetAndProcessIfNeeded(repo.getId(),
+                                                                                            asset.getPath(),
+                                                                                            assetContent, false,
+                                                                                            null,
+                                                                                            null,
+                                                                                            null,
+                                                                                            null,
+                                                                                            null);
         try {
             pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
         } catch (PollableTaskException | InterruptedException e) {
