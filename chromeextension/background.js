@@ -7,6 +7,32 @@ var backgroundConfig = {
     mtEndpointUrlFormat: ''
 };
 
+function addMojitoIctHeader() {
+    // First removes any pre-existing rule with id 1, then adds a new one with same id. The remove
+    // occurs before the addition operation as documented at
+    // https://developer.chrome.com/docs/extensions/reference/declarativeNetRequest/#method-updateDynamicRules
+    chrome.declarativeNetRequest.updateDynamicRules({
+        addRules:[{
+            "id": 1,
+            "priority": 1,
+            "action":  {
+                "type": "modifyHeaders",
+                "requestHeaders": [
+                    {"header": backgroundConfig.headerName, "operation": "set", "value": backgroundConfig.headerValue}
+                ]
+            },
+            "condition": {"urlFilter":  "*", "resourceTypes":  ["main_frame"]}
+        }],
+        removeRuleIds: [1]
+    });
+}
+
+function removeMojitoIctHeader() {
+    chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [1]
+    });
+}
+
 chrome.storage.sync.get(backgroundConfig, (items) => {
     backgroundConfig = items;
     chrome.storage.sync.set(backgroundConfig);
@@ -15,15 +41,20 @@ chrome.storage.sync.get(backgroundConfig, (items) => {
 chrome.storage.onChanged.addListener((changes) => {
     for (var key in changes) {
         backgroundConfig[key] = changes[key].newValue;
+        if (key === "enabled") {
+            if (backgroundConfig.enabled) {
+                addMojitoIctHeader();
+            } else {
+                removeMojitoIctHeader();
+            }
+        }
+        else if (key === "headerName" || key === "headerValue") {
+            if (backgroundConfig.enabled) {
+                addMojitoIctHeader();
+            }
+        }
     }
 });
-
-function addMojitoIctHeader(details) {
-    if (backgroundConfig.enabled && backgroundConfig.headerName && backgroundConfig.headerName !== '') {
-        details.requestHeaders.push({name: backgroundConfig.headerName, value: backgroundConfig.headerValue});
-    }
-    return {requestHeaders: details.requestHeaders};
-}
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (backgroundConfig.mtEndpointUrlFormat) {
@@ -55,8 +86,3 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 });
 
-chrome.webRequest.onBeforeSendHeaders.addListener(
-    addMojitoIctHeader,
-    {urls: ['<all_urls>']},
-    ['requestHeaders', 'blocking','extraHeaders']
-);
