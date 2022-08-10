@@ -120,7 +120,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
         Asset asset = assetService.createAssetWithContent(repository.getId(), "src/main/res/values/strings.xml", assetContent);
 
         AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent);
-        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null, null).get();
 
         thirdPartyTMSSmartlingWithJson.getRepositoryLocaleWithoutRootStream(repository)
                 .forEach(repositoryLocale -> {

@@ -91,7 +91,7 @@ public class ThirdPartyServiceTestData {
 
         asset = assetService.createAssetWithContent(repository.getId(), "src/main/res/values/strings.xml", assetContent);
         AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent);
-        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null, null).get();
 
         byte[] content1 = ByteStreams.toByteArray(new ClassPathResource("/com/box/l10n/mojito/img/1.png").getInputStream());
         byte[] content2 = ByteStreams.toByteArray(new ClassPathResource("/com/box/l10n/mojito/img/2.png").getInputStream());

@@ -132,10 +132,11 @@ public class AssetService {
             boolean extractedContent,
             String branch,
             String branchCreatedByUsername,
+            Long pushRunId,
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions) throws ExecutionException, InterruptedException, UnsupportedAssetFilterTypeException {
         return addOrUpdateAssetAndProcessIfNeeded(repositoryId, assetPath, assetContent, extractedContent, branch,
-                branchCreatedByUsername, filterConfigIdOverride, filterOptions,
+                branchCreatedByUsername, pushRunId, filterConfigIdOverride, filterOptions,
                 PollableTask.INJECT_CURRENT_TASK);
     }
 
@@ -162,6 +163,7 @@ public class AssetService {
             boolean extractedContent,
             String branchName,
             String branchCreatedByUsername,
+            Long pushRunId,
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
             @InjectCurrentTask PollableTask currentTask) throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
@@ -191,9 +193,10 @@ public class AssetService {
 
         AssetExtractionByBranch assetExtractionByBranch = assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch).orElse(null);
 
-        if (isAssetProcessingNeeded(assetExtractionByBranch, assetContent, filterOptions)) {
+        if (isAssetProcessingNeeded(assetExtractionByBranch, assetContent, filterOptions, pushRunId)) {
             AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent, extractedContent, branch);
-            assetExtractionService.processAssetAsync(assetContentEntity.getId(), filterConfigIdOverride, filterOptions, currentTask.getId());
+            assetExtractionService.processAssetAsync(assetContentEntity.getId(), pushRunId, filterConfigIdOverride,
+                                                     filterOptions, currentTask.getId());
         } else {
             logger.debug("Asset ({}) processing not needed. Reset number of expected sub task to 0", assetPath);
             pollableFutureTaskResult.setExpectedSubTaskNumberOverride(0);
@@ -282,12 +285,15 @@ public class AssetService {
      * and reprocessed.
      *
      * @param assetContent    The asset to be compared
-     * @param newAssetContent The content to be compared
      * @param optionsMd5
+     * @param newAssetContent The content to be compared
+     * @param pushRunId
      * @return true if the content of the asset is different from the new
      * content, false otherwise
      */
-    private boolean isAssetProcessingNeeded(AssetExtractionByBranch assetExtractionByBranch, String newAssetContent, List<String> newFilterOptions) {
+    private boolean isAssetProcessingNeeded(AssetExtractionByBranch assetExtractionByBranch,
+                                            String newAssetContent, List<String> newFilterOptions,
+                                            Long pushRunId) {
 
         boolean assetProcessingNeeded = false;
 
@@ -297,11 +303,16 @@ public class AssetService {
         } else if (assetExtractionByBranch.getDeleted()) {
             logger.debug("Asset extraction deleted, processing needed");
             assetProcessingNeeded = true;
-        } else if (!DigestUtils.md5Hex(newAssetContent).equals(assetExtractionByBranch.getAssetExtraction().getContentMd5())) {
+        } else if (!DigestUtils.md5Hex(newAssetContent)
+                .equals(assetExtractionByBranch.getAssetExtraction().getContentMd5())) {
             logger.debug("Content has changed, processing needed");
             assetProcessingNeeded = true;
-        } else if (!filterOptionsMd5Builder.md5(newFilterOptions).equals(assetExtractionByBranch.getAssetExtraction().getFilterOptionsMd5())) {
+        } else if (!filterOptionsMd5Builder.md5(newFilterOptions)
+                .equals(assetExtractionByBranch.getAssetExtraction().getFilterOptionsMd5())) {
             logger.debug("filter options have changed, processing needed");
+            assetProcessingNeeded = true;
+        } else if (pushRunId != null) {
+            logger.debug("PushRun capture is enabled, processing needed.");
             assetProcessingNeeded = true;
         } else {
             logger.debug("Asset processing not needed");

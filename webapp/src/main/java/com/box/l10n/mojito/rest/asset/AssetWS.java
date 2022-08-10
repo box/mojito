@@ -3,6 +3,7 @@ package com.box.l10n.mojito.rest.asset;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TMXliff;
@@ -10,17 +11,20 @@ import com.box.l10n.mojito.okapi.asset.UnsupportedAssetFilterTypeException;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.View;
+import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
+import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.tm.GenerateLocalizedAssetJob;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMXliffRepository;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.github.pnowy.nc.utils.Strings;
 import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
@@ -37,6 +41,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -71,6 +76,9 @@ public class AssetWS {
 
     @Autowired
     LocaleService localeService;
+
+    @Autowired
+    PushRunRepository pushRunRepository;
 
     @Autowired
     QuartzPollableTaskScheduler quartzPollableTaskScheduler;
@@ -116,6 +124,12 @@ public class AssetWS {
                         "branch", MoreObjects.firstNonNull(sourceAsset.getBranch(), " - ")))
                         .increment();
 
+        Repository repository = repositoryRepository.findById(sourceAsset.getRepositoryId())
+                .orElseThrow(() -> new RepositoryWithIdNotFoundException(sourceAsset.getRepositoryId()));
+
+        PushRun pushRun = !Strings.isBlank(sourceAsset.getPushRunName()) ?
+                getOrCreatePushRun(sourceAsset.getPushRunName(), repository) : null;
+
         // ********************************************
         // TODO(P1) check permission to update the repo
         // ********************************************
@@ -127,6 +141,7 @@ public class AssetWS {
                 sourceAsset.isExtractedContent(),
                 sourceAsset.getBranch(),
                 sourceAsset.getBranchCreatedByUsername(),
+                pushRun != null ? pushRun.getId() : null,
                 sourceAsset.getFilterConfigIdOverride(),
                 sourceAsset.getFilterOptions()
         );
@@ -359,5 +374,21 @@ public class AssetWS {
         // will change. Wanted to use spring project but it is not working for some reason. Since soon asset won't have
         // content anymore this actually ok.
         return assetService.findAllAssetIds(repositoryId, null, deleted, virtual, branchId);
+    }
+
+    private PushRun getOrCreatePushRun(String pushRunName, Repository repository) {
+        PushRun pushRun;
+
+        Optional<PushRun> existingPushRun = pushRunRepository.findByNameAndRepository(pushRunName, repository);
+        if (existingPushRun.isPresent()) {
+            pushRun = existingPushRun.get();
+        } else {
+            PushRun newPushRun = new PushRun();
+            newPushRun.setName(pushRunName);
+            newPushRun.setRepository(repository);
+            pushRun = pushRunRepository.save(newPushRun);
+        }
+
+        return pushRun;
     }
 }

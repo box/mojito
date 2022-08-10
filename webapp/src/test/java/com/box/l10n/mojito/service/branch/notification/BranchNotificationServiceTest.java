@@ -72,7 +72,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
                 + "string6=content6\n";
 
         AssetContent assetContentBranch2 = assetContentService.createAssetContent(branchTestData.getAsset(), branch2ContentUpdated, false, branchTestData.getBranch2());
-        assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null, null).get();
 
         waitForCondition("Branch1 new notification must be sent",
                 () -> {

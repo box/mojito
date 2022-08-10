@@ -84,4 +84,10 @@ public class View {
      * This is used to provide more detailed information about a commit
      */
     public interface CommitDetailed extends Commit {};
+
+
+    /**
+     * This is used to provide information about a PushRun
+     */
+    public interface PushRun extends IdAndNameAndCreated {};
 }

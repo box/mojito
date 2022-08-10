@@ -4,7 +4,6 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.commit.CommitWS;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.delta.DeltaService;
 import com.box.l10n.mojito.service.delta.dtos.DeltaResponseDTO;
@@ -26,7 +25,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.rest.locale.LocaleSpecification.bcp47TagIn;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
@@ -41,7 +39,7 @@ public class DeltaWS {
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(CommitWS.class);
+    static Logger logger = LoggerFactory.getLogger(DeltaWS.class);
 
     EntityManager entityManager;
 

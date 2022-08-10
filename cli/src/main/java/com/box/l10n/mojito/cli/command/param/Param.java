@@ -147,4 +147,13 @@ public class Param {
 
     public static final String PUSH_TYPE_LONG = "--push-type";
     public static final String PUSH_TYPE_DESCRIPTION = "To choose the push type. Don't change unless you know exactly what it does";
+
+    public static final String COMMIT_HASH_LONG = "--commit-hash";
+    public static final String COMMIT_HASH_SHORT = "-c";
+    public static final String COMMIT_HASH_DESCRIPTION = "The commit hash that will be used when recording a push-run. Used together with --record-push-run.";
+
+
+    public static final String RECORD_PUSH_RUN_LONG = "--record-push-run";
+    public static final String RECORD_PUSH_RUN_SHORT = "-rp";
+    public static final String RECORD_PUSH_RUN_DESCRIPTION = "If passed in, it stores a full list of text units that were processed by the specified commit, through an abstraction called `push run`";
 }

@@ -8,10 +8,12 @@ import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.rest.commit.CommitWithNameNotFoundException;
+import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pullrun.PullRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunWithNameNotFoundException;
+import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,16 +50,20 @@ public class CommitService {
     final PushRunRepository pushRunRepository;
     final PullRunRepository pullRunRepository;
 
+    final RepositoryRepository repositoryRepository;
+
     public CommitService(CommitRepository commitRepository,
                          CommitToPushRunRepository commitToPushRunRepository,
                          CommitToPullRunRepository commitToPullRunRepository,
                          PushRunRepository pushRunRepository,
-                         PullRunRepository pullRunRepository) {
+                         PullRunRepository pullRunRepository,
+                         RepositoryRepository repositoryRepository) {
         this.commitRepository = commitRepository;
         this.commitToPushRunRepository = commitToPushRunRepository;
         this.commitToPullRunRepository = commitToPullRunRepository;
         this.pushRunRepository = pushRunRepository;
         this.pullRunRepository = pullRunRepository;
+        this.repositoryRepository = repositoryRepository;
     }
 
     /**
@@ -170,11 +176,14 @@ public class CommitService {
      */
     @Transactional
     public void associateCommitToPushRun(Long repositoryId, String commitName, String pushRunName)
-            throws CommitWithNameNotFoundException, PushRunWithNameNotFoundException {
+            throws CommitWithNameNotFoundException, RepositoryWithIdNotFoundException, PushRunWithNameNotFoundException {
         Commit commit = commitRepository.findByNameAndRepositoryId(commitName, repositoryId)
                 .orElseThrow(() -> new CommitWithNameNotFoundException(commitName));
 
-        PushRun pushRun = pushRunRepository.findByName(pushRunName)
+        Repository repository = repositoryRepository.findById(repositoryId)
+                .orElseThrow(() -> new RepositoryWithIdNotFoundException(repositoryId));
+
+        PushRun pushRun = pushRunRepository.findByNameAndRepository(pushRunName, repository)
                 .orElseThrow(() -> new PushRunWithNameNotFoundException(pushRunName));
 
         associateCommitToPushRun(commit, pushRun);
