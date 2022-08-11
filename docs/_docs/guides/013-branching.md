@@ -115,8 +115,8 @@ In any case, having strings processed early in the development process also allo
 
 #### Trigger a localization job
 
-This is part is independent of {{ site.mojito_green }} but the general idea is to kick off a localization job 
-automatically when new strings needs to be processed. 
+This part is independent of {{ site.mojito_green }} but the general idea is to kick off a localization job 
+automatically when new strings need to be processed. 
 
 A developer can add a special tag in the commit message like `#translate` to have the CI pipeline react and 
 trigger a job that will run the following command:
@@ -149,9 +149,9 @@ running instance.
 `userEmailPattern` is used to lookup the users. Provide the pattern corresponding to your Slack account. `{0}` is the 
 username associated with the branch owner (`-bc` option). 
 
-#### Notifcaitions
+#### Notifications
 
-After a new branch is processed, a Slack notification is sent to the branch owner to inform him that his strings were
+After a new branch is processed, a Slack notification is sent to the branch owner to inform them that their strings were
 received and are being processed.
 
 ![Slack notification received](./images/slack-notification-received.png)
@@ -183,7 +183,7 @@ the actual strings.
  
 #### Collecting screenshots
 
-Providing context to translators is key for having quality translations. In addition to adding comments in the code base
+Providing context to translators is key for having quality translations. In addition to adding comments in the code base, 
 {{ site.mojito_green }} provides a simple way to collect screenshots for strings in a branch.
 
 Once in the dashboard, it is possible to select one or multiple text units and then click on the `Add screenshot` button.
