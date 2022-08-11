@@ -21,7 +21,7 @@ class ModalTextUnit extends React.Component {
         return (
             <div className={className} 
                  onClick={() => this.props.onSelect(textUnit)}>
-                {textUnit.isMachineTranslated && <div className="mbs">This text unit has been machine translated. Please wait for final translations before committing your changes!</div> }
+                {textUnit.isMachineTranslated && <div className="mbs">This text unit has been machine translated.</div> }
                 <div className="mbs">
                     <Label className="mbs clickable label label-primary mrs">
                         {textUnit.locale}            
