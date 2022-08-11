@@ -92,44 +92,40 @@ class Ict {
             node = node.parentNode;
         }
 
-        var mtRequired = textUnits[0]['isTranslated'] === 'false';
-        if (this.mtEnabled && mtRequired){
-            if (!node.classList.contains("mojito-ict-string")) {
-                try {
-                    node.className += " mojito-ict-string";
-                } catch (e) {
-                }
 
-                node.addEventListener("mouseenter", (e) => {
-                    e.target.classList.add("mojito-ict-string-mt");
-                });
+        var mtRequired = this.mtEnabled && textUnits[0]['isTranslated'] === 'false';
+        var eventListenerClassName = mtRequired ? "mojito-ict-string-mt" : "mojito-ict-string-active"
 
-                node.addEventListener("mouseleave", (e) => {
-                    e.target.classList.remove("mojito-ict-string-mt");
-                });
+        if (!node.classList.contains("mojito-ict-string")) {
+            try {
+                node.className += " mojito-ict-string";
+            } catch (e) {
             }
 
-            chrome.runtime.sendMessage(textUnits[0], function (response){
+            node.addEventListener("mouseenter", (e) => {
+                e.target.classList.add(eventListenerClassName);
+            });
+
+            node.addEventListener("mouseleave", (e) => {
+                e.target.classList.remove(eventListenerClassName);
+            });
+        }
+
+        if (mtRequired) {
+            chrome.runtime.sendMessage(textUnits[0], function (response) {
                 if (response.data && node.textContent !== response.data) {
-                    textUnits[0]['isMachineTranslated'] = true
-                    node.textContent = response.data;
+                    if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute('placeholder')) {
+                        node.setAttribute('placeholder', response.data)
+                    } else {
+                        var spanMT = document.createElement('span');
+                        spanMT.innerHTML = "<span style=\"color:#FF9966\">*</span>"
+                        spanMT.setAttribute('id', 'mojito-mt')
+                        textUnits[0]['isMachineTranslated'] = true
+                        node.textContent = response.data;
+                        node.appendChild(spanMT)
+                    }
                 }
-            })
-        } else {
-            if (!node.classList.contains("mojito-ict-string")) {
-                try {
-                    node.className += " mojito-ict-string";
-                } catch (e) {
-                }
-
-                node.addEventListener("mouseenter", (e) => {
-                    e.target.classList.add("mojito-ict-string-active");
-                });
-
-                node.addEventListener("mouseleave", (e) => {
-                    e.target.classList.remove("mojito-ict-string-active");
-                });
-            }
+            });
         }
 
         node.addEventListener("click", (e) => onClick(e, textUnits));
