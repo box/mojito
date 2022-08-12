@@ -30,6 +30,7 @@ import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.asset.FilterOptionsMd5Builder;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
+import com.box.l10n.mojito.service.assetcontent.AssetContentRepository;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.branch.BranchRepository;
@@ -113,7 +114,7 @@ public class AssetExtractionService {
     AssetRepository assetRepository;
 
     @Autowired
-    AssetContentService assetContentService;
+    AssetContentRepository assetContentRepository;
 
     @Autowired
     AssetExtractionRepository assetExtractionRepository;
@@ -207,7 +208,7 @@ public class AssetExtractionService {
             PollableTask currentTask) throws UnsupportedAssetFilterTypeException, InterruptedException, AssetExtractionConflictException {
 
         logger.info("Start processing asset content, id: {}", assetContentId);
-        AssetContent assetContent = assetContentService.findOne(assetContentId);
+        AssetContent assetContent = assetContentRepository.findById(assetContentId).orElse(null);;
         Asset asset = getUndeletedAsset(assetContent.getAsset());
 
         MultiBranchState stateForNewContent = convertAssetContentToMultiBranchState(assetContent, filterConfigIdOverride, filterOptions, currentTask);

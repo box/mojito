@@ -10,7 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -31,8 +31,8 @@ import static com.box.l10n.mojito.service.sla.email.SlaCheckerEmailService.OPEN_
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -70,7 +70,7 @@ public class SlaCheckerEmailServiceTest {
         slaCheckerEmailConfig.from = "from@test.com";
         slaCheckerEmailConfig.to = new String[]{"to@test.com"};
 
-        doNothing().when(emailSender).send(Matchers.any(MimeMessage.class));
+        doNothing().when(emailSender).send(ArgumentMatchers.any(MimeMessage.class));
     }
 
     @Test

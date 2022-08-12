@@ -126,6 +126,10 @@
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-simple</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.stream</groupId>
+                    <artifactId>stax-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -325,13 +329,18 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <showWeaveInfo>false</showWeaveInfo>
+                    <showWeaveInfo>true</showWeaveInfo>
+                    <verbose>true</verbose>
                     <deprecation>false</deprecation>
                     <complianceLevel>${java.version}</complianceLevel>
                     <proc>none</proc>
+                    <forceAjcCompile>true</forceAjcCompile>
                     <weaveDependencies>
-
                     </weaveDependencies>
+<!--                    <includes><include>**/**.java</include></includes>-->
+<!--                    <excludes>-->
+<!--                        <exclude>**/**POFilter.java</exclude>-->
+<!--                    </excludes>-->
                     <aspectLibraries>
                         <aspectLibrary>
                             <groupId>org.springframework</groupId>

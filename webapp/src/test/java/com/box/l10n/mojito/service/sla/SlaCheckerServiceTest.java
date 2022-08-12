@@ -10,7 +10,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -131,7 +131,7 @@ public class SlaCheckerServiceTest {
 
         slaCheckerService.checkWithNoOpenIncident();
 
-        verify(slaCheckerEmailService, never()).sendOpenIncidentEmail(anyLong(), Matchers.anyList());
+        verify(slaCheckerEmailService, never()).sendOpenIncidentEmail(anyLong(), ArgumentMatchers.anyList());
     }
 
     @Test
