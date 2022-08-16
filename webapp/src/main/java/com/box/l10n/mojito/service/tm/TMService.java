@@ -53,6 +53,9 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.filters.IFilterConfigurationMapper;
@@ -76,6 +79,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Service to manage {@link TM}s (translation memories).
@@ -147,6 +151,9 @@ public class TMService {
 
     @Autowired
     AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
+
+    @Autowired
+    MeterRegistry meterRegistry;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -1005,45 +1012,50 @@ public class TMService {
     private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride,
                                          List<String> filterOptions, BasePipelineStep step, String outputBcp47tag) throws UnsupportedAssetFilterTypeException {
 
-        IPipelineDriver driver = new PipelineDriver();
 
-        driver.addStep(new RawDocumentToFilterEventsStep());
-        driver.addStep(new CheckForDoNotTranslateStep());
-        driver.addStep(step);
+        try (Timer.ResourceSample timer = Timer.resource(meterRegistry, "TMService.generateLocalizedBase")
+                .tags(Tags.of("repositoryId", Objects.toString(asset.getRepository().getId())))) {
 
-        //TODO(P1) see assetExtractor comments
-        logger.debug("Adding all supported filters to the pipeline driver");
-        driver.setFilterConfigurationMapper(filterConfigurationMapper);
+            IPipelineDriver driver = new PipelineDriver();
 
-        FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
-        driver.addStep(filterEventsToInMemoryRawDocumentStep);
+            driver.addStep(new RawDocumentToFilterEventsStep());
+            driver.addStep(new CheckForDoNotTranslateStep());
+            driver.addStep(step);
 
-        LocaleId targetLocaleId = LocaleId.fromBCP47(outputBcp47tag);
-        RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
+            //TODO(P1) see assetExtractor comments
+            logger.debug("Adding all supported filters to the pipeline driver");
+            driver.setFilterConfigurationMapper(filterConfigurationMapper);
 
-        //TODO(P1) see assetExtractor comments
-        String filterConfigId;
+            FilterEventsToInMemoryRawDocumentStep filterEventsToInMemoryRawDocumentStep = new FilterEventsToInMemoryRawDocumentStep();
+            driver.addStep(filterEventsToInMemoryRawDocumentStep);
 
-        if (filterConfigIdOverride != null) {
-            filterConfigId = filterConfigIdOverride.getOkapiFilterId();
-        } else {
-            filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath(asset.getPath());
+            LocaleId targetLocaleId = LocaleId.fromBCP47(outputBcp47tag);
+            RawDocument rawDocument = new RawDocument(content, LocaleId.ENGLISH, targetLocaleId);
+
+            //TODO(P1) see assetExtractor comments
+            String filterConfigId;
+
+            if (filterConfigIdOverride != null) {
+                filterConfigId = filterConfigIdOverride.getOkapiFilterId();
+            } else {
+                filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath(asset.getPath());
+            }
+
+            rawDocument.setFilterConfigId(filterConfigId);
+            logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
+
+            logger.debug("Filter options: {}", filterOptions);
+            rawDocument.setAnnotation(new FilterOptions(filterOptions));
+
+            driver.addBatchItem(rawDocument);
+
+            logger.debug("Start processing batch");
+            driver.processBatch();
+
+            String localizedContent = filterEventsToInMemoryRawDocumentStep.getOutput(rawDocument);
+
+            return localizedContent;
         }
-
-        rawDocument.setFilterConfigId(filterConfigId);
-        logger.debug("Set filter config {} for asset {}", filterConfigId, asset.getPath());
-
-        logger.debug("Filter options: {}", filterOptions);
-        rawDocument.setAnnotation(new FilterOptions(filterOptions));
-
-        driver.addBatchItem(rawDocument);
-
-        logger.debug("Start processing batch");
-        driver.processBatch();
-
-        String localizedContent = filterEventsToInMemoryRawDocumentStep.getOutput(rawDocument);
-
-        return localizedContent;
     }
 
     /**
