@@ -1078,7 +1078,7 @@ public class TMService {
      * repository locale.
      * @return the localized asset
      */
-    @Timed
+    @Timed("TMService.generateLocalizedBase")
     private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride,
                                          List<String> filterOptions, BasePipelineStep step, String outputBcp47tag) throws UnsupportedAssetFilterTypeException {
 
