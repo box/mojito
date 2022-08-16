@@ -74,6 +74,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -84,6 +85,8 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+
+import static org.slf4j.event.Level.INFO;
 
 /**
  * Service to manage {@link TM}s (translation memories).
@@ -960,7 +963,7 @@ public class TMService {
      * @param inheritanceMode
      * @return the localized asset
      */
-    @StopWatch
+    @StopWatch(level = INFO)
     public String generateLocalized(
             Asset asset,
             String content,

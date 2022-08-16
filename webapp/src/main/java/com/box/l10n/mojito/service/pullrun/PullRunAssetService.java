@@ -10,6 +10,8 @@ import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.google.common.collect.Lists;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
+import org.slf4j.Logger;
+import org.slf4j.event.Level;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,6 +32,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static org.slf4j.event.Level.INFO;
 
 /**
  * Service to manage PullRunAsset entities.
@@ -62,7 +66,7 @@ public class PullRunAssetService {
         return pullRunAssetRepository.save(pullRunAsset);
     }
 
-    @StopWatch
+    @StopWatch(level = INFO)
     @Transactional
     public void saveTextUnitVariants(PullRunAsset pullRunAsset, List<Long> tuvIds) {
         Repository repository = pullRunAsset.getPullRun().getRepository();
@@ -72,7 +76,7 @@ public class PullRunAssetService {
                 });
     }
 
-    @StopWatch
+    @StopWatch(level = INFO)
     @Transactional
     public void saveTextUnitVariantsPreparedStatement(PullRunAsset pullRunAsset, List<Long> tuvIds) {
         Repository repository = pullRunAsset.getPullRun().getRepository();
@@ -84,7 +88,7 @@ public class PullRunAssetService {
                 });
     }
 
-    @StopWatch
+    @StopWatch(level = INFO)
     @Transactional
     public void saveTextUnitVariantsMultiRow(PullRunAsset pullRunAsset, List<Long> tuvIds) {
         Repository repository = pullRunAsset.getPullRun().getRepository();
@@ -103,7 +107,7 @@ public class PullRunAssetService {
      * <p>
      * Ran locally this was very slow.. while we expected it to be the faster option
      */
-    @StopWatch
+    @StopWatch(level = INFO)
     @Transactional
     public void saveTextUnitVariantsServer(PullRunAsset pullRunAsset, List<Long> tuvIds, Long localeId) {
         Repository repository = pullRunAsset.getPullRun().getRepository();
