@@ -1,10 +1,13 @@
 package com.box.l10n.mojito.service.tm;
 
+import com.box.l10n.mojito.aspect.StopWatch;
 import com.box.l10n.mojito.common.StreamUtil;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.PullRun;
+import com.box.l10n.mojito.entity.PullRunAsset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TM;
@@ -13,6 +16,7 @@ import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.entity.TMXliff;
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.okapi.AbstractImportTranslationsStep;
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.ImportTranslationsByIdStep;
@@ -43,11 +47,15 @@ import com.box.l10n.mojito.security.AuditorAwareImpl;
 import com.box.l10n.mojito.service.WordCountService;
 import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetintegritychecker.integritychecker.IntegrityCheckStep;
+import com.box.l10n.mojito.service.blobstorage.Retention;
+import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.pullrun.PullRunAssetService;
+import com.box.l10n.mojito.service.pullrun.PullRunService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
@@ -147,6 +155,18 @@ public class TMService {
 
     @Autowired
     AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
+
+    @Autowired
+    PullRunAssetService pullRunAssetService;
+
+    @Autowired
+    PullRunService pullRunService;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
+    @Autowired
+    StructuredBlobStorage structuredBlobStorage;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -940,6 +960,7 @@ public class TMService {
      * @param inheritanceMode
      * @return the localized asset
      */
+    @StopWatch
     public String generateLocalized(
             Asset asset,
             String content,
@@ -961,15 +982,65 @@ public class TMService {
 
         logger.debug("Configuring pipeline for localized XLIFF generation");
 
-        BasePipelineStep translateStep = (BasePipelineStep) new TranslateStep(asset, repositoryLocale, inheritanceMode, status);
-        return generateLocalizedBase(asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
+        // TODO(jean) use the filter option right now to test e2e flow, eventually we need the CLI param to be added
+        FilterOptions filterOptionsObj = new FilterOptions(filterOptions);
+        String pullRunName = filterOptionsObj.getOptions().get("reccord-pull-run");
+        String reccordPullRunType = filterOptionsObj.getOptions().get("reccord-pull-run-type");
+
+        TranslateStep translateStep = new TranslateStep(asset, repositoryLocale, inheritanceMode, status, pullRunName != null);
+        String generateLocalizedBase = generateLocalizedBase(asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
+
+        if (pullRunName != null) {
+            // TODO(jean) what do we do if it already exists?
+            // binding commit to pull
+            PullRun pullRun = pullRunService.getOrCreate(pullRunName, asset.getRepository());
+            PullRunAsset pullRunAsset = pullRunAssetService.getOrCreate(pullRun, asset);
+
+            // TODO(jean) because of inheritance, we can get multiple time the same TmTextUnitVariantId in a pullRunAsset
+            // since we don't have information from other local run, we'll dupplicate the entry.
+            // there used to be a UK that would prevent code to work accross locales, unless re-fetching the existing
+            // set which we don't want. We removed the locale. We may consider adding the locale (i've been going back
+            // and forth on the topic...). But maybe it makes sense to move toward something like tm_text_unit
+
+            switch (reccordPullRunType) {
+                case "prepared-statement":
+                    logger.info("Use saveTextUnitVariantsPreparedStatement");
+                    pullRunAssetService.saveTextUnitVariantsPreparedStatement(pullRunAsset, translateStep.getUsedTextUnitVariantIds());
+                    break;
+                case "blob-storage":
+                    logger.info("Use saveTextUnitVariantsWithBlobStorage");
+                    saveTextUnitVariantsWithBlobStorage(pullRunName, translateStep);
+                    break;
+                case "multi-row":
+                    logger.info("Use saveTextUnitVariantsMultiRow");
+                    pullRunAssetService.saveTextUnitVariantsMultiRow(pullRunAsset, translateStep.getUsedTextUnitVariantIds());
+                    break;
+                case "server":
+                    logger.info("Use saveTextUnitVariantsServer");
+                    pullRunAssetService.saveTextUnitVariantsServer(pullRunAsset, translateStep.getUsedTextUnitVariantIds(), repositoryLocale.getLocale().getId());
+                    break;
+                default:
+                    logger.info("Use saveTextUnitVariants");
+                    pullRunAssetService.saveTextUnitVariants(pullRunAsset, translateStep.getUsedTextUnitVariantIds());
+                    break;
+            }
+        }
+
+        return generateLocalizedBase;
+    }
+
+    @StopWatch
+    void saveTextUnitVariantsWithBlobStorage(String pullRunName, TranslateStep translateStep) {
+        structuredBlobStorage.put(StructuredBlobStorage.Prefix.RECCORD_PULL_RUN, pullRunName,
+                objectMapper.writeValueAsStringUnchecked(translateStep.getUsedTextUnitVariantIds()),
+                Retention.PERMANENT);
     }
 
     /**
      * Parses the given content and adds the pseudo localization for every text
      * unit. Returns the pseudolocalized content.
      *
-     * @param asset The {@link Asset} used to get translations
+     * @param asset   The {@link Asset} used to get translations
      * @param content The content to be pseudolocalized
      * @return the pseudolocalized asset
      */

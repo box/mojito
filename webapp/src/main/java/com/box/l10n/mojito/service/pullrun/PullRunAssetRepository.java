@@ -15,7 +15,11 @@ import java.util.Optional;
  */
 @RepositoryRestResource(exported = false)
 public interface PullRunAssetRepository extends JpaRepository<PullRunAsset, Long> {
+    /**
+     * TODO(jean) should this be rename as findAllBy
+     */
     List<PullRunAsset> findByPullRun(PullRun pullRun);
+
 
     Optional<PullRunAsset> findByPullRunAndAsset(PullRun pullRun, Asset asset);
 

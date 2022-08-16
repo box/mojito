@@ -74,6 +74,7 @@ public class PullRunServiceTest extends ServiceTestBase {
 
     @Test
     public void testClearPullRunLinkedData() {
+        // TODO(jean) how is this not colliding between test run? usually we need getEntity
         PullRun pullRun = pullRunService.createPullRun(repository, "testClearPullRunLinkedData");
 
         PullRunAsset pullRunAsset = pullRunAssetService.createPullRunAsset(pullRun, asset);

@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.PullRunTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -28,4 +29,8 @@ public interface PullRunTextUnitVariantRepository extends JpaRepository<PullRunT
 
     @Transactional
     void deleteByPullRunAsset(PullRunAsset pullRunAsset);
+
+    @Modifying
+    @Query(value = "insert into pull_run_text_unit_variant (pull_run_asset_id, tm_text_unit_variant_id) values (?1, ?2)", nativeQuery = true)
+    void saveAllNative(List<Object> tuvIds);
 }

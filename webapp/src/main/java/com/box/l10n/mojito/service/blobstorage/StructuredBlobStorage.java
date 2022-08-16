@@ -40,6 +40,7 @@ public class StructuredBlobStorage {
         POLLABLE_TASK,
         IMAGE,
         MULTI_BRANCH_STATE,
-        TEXT_UNIT_DTOS_CACHE
+        TEXT_UNIT_DTOS_CACHE,
+        RECCORD_PULL_RUN
     }
 }

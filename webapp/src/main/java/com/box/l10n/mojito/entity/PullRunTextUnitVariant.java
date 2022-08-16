@@ -22,12 +22,7 @@ import javax.persistence.Table;
  * @author garion
  */
 @Entity
-@Table(
-        name = "pull_run_text_unit_variant",
-        indexes = {
-                @Index(name = "UK__PULL_RUN_TEXT_UNIT_VARIANT__EVA_ID__TM_TUV_ID", columnList = "pull_run_asset_id, tm_text_unit_variant_id", unique = true)
-        }
-)
+@Table(name = "pull_run_text_unit_variant")
 @BatchSize(size = 1000)
 public class PullRunTextUnitVariant extends SettableAuditableEntity {
     @ManyToOne

@@ -34,4 +34,8 @@ public class FilterOptions implements IAnnotation {
             consumer.accept(Boolean.valueOf(this.options.get(key)));
         }
     }
+
+    public Map<String, String> getOptions() {
+        return options;
+    }
 }
