@@ -61,6 +61,7 @@ import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
 import com.google.common.base.Preconditions;
 import com.ibm.icu.text.MessageFormat;
+import io.micrometer.core.annotation.Timed;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.exceptions.OkapiBadFilterInputException;
 import net.sf.okapi.common.filters.IFilterConfigurationMapper;
@@ -991,6 +992,7 @@ public class TMService {
         String reccordPullRunType = filterOptionsObj.getOptions().get("reccord-pull-run-type");
 
         TranslateStep translateStep = new TranslateStep(asset, repositoryLocale, inheritanceMode, status, pullRunName != null);
+
         String generateLocalizedBase = generateLocalizedBase(asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
 
         if (pullRunName != null) {
@@ -1076,6 +1078,7 @@ public class TMService {
      * repository locale.
      * @return the localized asset
      */
+    @Timed
     private String generateLocalizedBase(Asset asset, String content, FilterConfigIdOverride filterConfigIdOverride,
                                          List<String> filterOptions, BasePipelineStep step, String outputBcp47tag) throws UnsupportedAssetFilterTypeException {
 

@@ -112,7 +112,7 @@ public class PullRunAssetService {
     public void saveTextUnitVariantsServer(PullRunAsset pullRunAsset, List<Long> tuvIds, Long localeId) {
         Repository repository = pullRunAsset.getPullRun().getRepository();
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-        meterRegistry.timer("PullRunAssetService.saveTextUnitVariantsMultiRow", Tags.of("repositoryId", Objects.toString(repository.getId())))
+        meterRegistry.timer("PullRunAssetService.saveTextUnitVariantsServer", Tags.of("repositoryId", Objects.toString(repository.getId())))
                 .record(() -> {
                     // TODO(jean) might be the fastest option (if data is clean on the server side),
                     //  inconvinient is that we over copy typically unused string
