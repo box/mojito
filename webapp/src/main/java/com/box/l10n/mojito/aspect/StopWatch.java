@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.aspect;
 
+import org.slf4j.event.Level;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -14,4 +16,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface StopWatch {
 
+    Level level() default Level.DEBUG;
 }
