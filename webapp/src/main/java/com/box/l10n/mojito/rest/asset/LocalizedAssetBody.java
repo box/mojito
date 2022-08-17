@@ -52,6 +52,11 @@ public class LocalizedAssetBody {
      */
     List<String> filterOptions;
 
+    /**
+     * Optional, can be null. If a name is provided, a pull run will be recored when the file is generated
+     */
+    String pullRunName;
+
     InheritanceMode inheritanceMode = InheritanceMode.USE_PARENT;
 
     Status status = Status.ALL;
@@ -134,5 +139,13 @@ public class LocalizedAssetBody {
 
     public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
+    }
+
+    public String getPullRunName() {
+        return pullRunName;
+    }
+
+    public void setPullRunName(String pullRunName) {
+        this.pullRunName = pullRunName;
     }
 }
