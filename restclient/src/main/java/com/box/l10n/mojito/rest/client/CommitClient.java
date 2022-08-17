@@ -2,6 +2,7 @@ package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.entity.Commit;
 import com.box.l10n.mojito.rest.entity.CommitBody;
+import com.box.l10n.mojito.rest.entity.CommitToPullRunBody;
 import com.box.l10n.mojito.rest.entity.CommitToPushRunBody;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Component;
@@ -46,6 +47,18 @@ public class CommitClient extends BaseClient {
 
         authenticatedRestTemplate.postForObject(
                 getBasePathForEntity() + "/pushRun",
+                commitToPushRunBody,
+                Void.class);
+    }
+
+    public void associateCommitToPullRun(String commitHash, Long repositoryId, String pullRunName) {
+        CommitToPullRunBody commitToPushRunBody = new CommitToPullRunBody();
+        commitToPushRunBody.setCommitName(commitHash);
+        commitToPushRunBody.setRepositoryId(repositoryId);
+        commitToPushRunBody.setPullRunName(pullRunName);
+
+        authenticatedRestTemplate.postForObject(
+                getBasePathForEntity() + "/pullRun",
                 commitToPushRunBody,
                 Void.class);
     }
