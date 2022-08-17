@@ -896,4 +896,33 @@ public class PullCommandTest extends CLITestBase {
 
         checkExpectedGeneratedResources();
     }
+
+    @Test
+    public void recordPullRun() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target").getAbsolutePath(),
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        modifyFilesInTargetTestDirectory(input -> {
+            return input.replaceAll("\\d", "1").replaceAll("[a-z]", "1");
+        }, "pull-run-name.txt");
+        checkExpectedGeneratedResources();
+    }
 }

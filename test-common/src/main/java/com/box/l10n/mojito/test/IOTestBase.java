@@ -186,10 +186,17 @@ public class IOTestBase {
      * @throws IOException
      */
     public void modifyFilesInTargetTestDirectory(Function<String, String> fileContentModifier) throws IOException {
+        modifyFilesInTargetTestDirectory(fileContentModifier, null);
+    }
+
+    public void modifyFilesInTargetTestDirectory(Function<String, String> fileContentModifier, String regex) throws IOException {
 
         Collection<File> files = FileUtils.listFiles(getTargetTestDir(), null, true);
 
         for (File file : files) {
+            if (regex != null && !file.getName().matches(regex)) {
+                continue;
+            }
             String fileContent = Files.toString(file, StandardCharsets.UTF_8);
             String modifiedFileContent = fileContentModifier.apply(fileContent);
             Files.write(modifiedFileContent, file, StandardCharsets.UTF_8);
