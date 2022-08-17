@@ -197,7 +197,8 @@ public class AssetWS {
                 localizedAssetBody.getFilterConfigIdOverride(),
                 localizedAssetBody.getFilterOptions(),
                 localizedAssetBody.getStatus(),
-                localizedAssetBody.getInheritanceMode()
+                localizedAssetBody.getInheritanceMode(),
+                localizedAssetBody.getPullRunName()
         );
 
         localizedAssetBody.setContent(generateLocalized);

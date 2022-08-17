@@ -5,6 +5,8 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PluralForm;
 import com.box.l10n.mojito.entity.PollableTask;
+import com.box.l10n.mojito.entity.PullRun;
+import com.box.l10n.mojito.entity.PullRunAsset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.entity.TM;
@@ -48,6 +50,8 @@ import com.box.l10n.mojito.service.pollableTask.InjectCurrentTask;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
+import com.box.l10n.mojito.service.pullrun.PullRunAssetService;
+import com.box.l10n.mojito.service.pullrun.PullRunService;
 import com.box.l10n.mojito.service.repository.RepositoryLocaleRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.xliff.XliffUtils;
@@ -79,7 +83,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Service to manage {@link TM}s (translation memories).
@@ -154,6 +158,12 @@ public class TMService {
 
     @Autowired
     MeterRegistry meterRegistry;
+
+    @Autowired
+    PullRunService pullRunService;
+
+    @Autowired
+    PullRunAssetService pullRunAssetService;
 
     /**
      * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -945,6 +955,7 @@ public class TMService {
      * @param filterOptions
      * @param status
      * @param inheritanceMode
+     * @param pullRunName
      * @return the localized asset
      */
     public String generateLocalized(
@@ -955,7 +966,8 @@ public class TMService {
             FilterConfigIdOverride filterConfigIdOverride,
             List<String> filterOptions,
             Status status,
-            InheritanceMode inheritanceMode) throws UnsupportedAssetFilterTypeException {
+            InheritanceMode inheritanceMode,
+            String pullRunName) throws UnsupportedAssetFilterTypeException {
 
         String bcp47Tag;
 
@@ -968,15 +980,30 @@ public class TMService {
 
         logger.debug("Configuring pipeline for localized XLIFF generation");
 
-        BasePipelineStep translateStep = (BasePipelineStep) new TranslateStep(asset, repositoryLocale, inheritanceMode, status);
-        return generateLocalizedBase(asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
+        boolean replaceUsedTmTextUnitVariantIds = pullRunName != null;
+        TranslateStep translateStep = new TranslateStep(asset, repositoryLocale, inheritanceMode, status, replaceUsedTmTextUnitVariantIds);
+        String generateLocalizedBase = generateLocalizedBase(asset, content, filterConfigIdOverride, filterOptions, translateStep, bcp47Tag);
+
+        if (replaceUsedTmTextUnitVariantIds) {
+            replaceUsedTmTextUnitVariantIds(asset, pullRunName, repositoryLocale.getLocale(), translateStep.getUsedTmTextUnitVariantIds());
+        }
+
+        return generateLocalizedBase;
+    }
+
+    void replaceUsedTmTextUnitVariantIds(Asset asset, String pullRunName, Locale locale, List<Long> usedTmTextUnitVariantIds) {
+        logger.debug("Replace used TmTextUnitVariantIds for pull run name: {} and locale: {}", pullRunName, locale.getBcp47Tag());
+        PullRun pullRun = pullRunService.getOrCreate(pullRunName, asset.getRepository());
+        PullRunAsset pullRunAsset = pullRunAssetService.getOrCreate(pullRun, asset);
+        List<Long> uniqueUsedTmTextUnitVariantIds = usedTmTextUnitVariantIds.stream().distinct().collect(Collectors.toList());
+        pullRunAssetService.replaceTextUnitVariants(pullRunAsset, locale.getId(), uniqueUsedTmTextUnitVariantIds);
     }
 
     /**
      * Parses the given content and adds the pseudo localization for every text
      * unit. Returns the pseudolocalized content.
      *
-     * @param asset The {@link Asset} used to get translations
+     * @param asset   The {@link Asset} used to get translations
      * @param content The content to be pseudolocalized
      * @return the pseudolocalized asset
      */

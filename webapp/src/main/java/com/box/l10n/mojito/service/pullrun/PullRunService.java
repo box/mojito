@@ -118,4 +118,14 @@ public class PullRunService {
 
         pullRunTextUnitVariantRepository.saveAll(pullRunTextUnitVariants);
     }
+
+    public PullRun getOrCreate(String pullRunName, Repository repository) {
+        return pullRunRepository.findByName(pullRunName).orElseGet(() -> {
+            PullRun pullRun = new PullRun();
+            pullRun.setName(pullRunName);
+            pullRun.setRepository(repository);
+            pullRunRepository.saveAndFlush(pullRun);
+            return pullRun;
+        });
+    }
 }
