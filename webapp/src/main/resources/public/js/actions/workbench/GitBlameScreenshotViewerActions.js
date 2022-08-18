@@ -7,7 +7,10 @@ class GitBlameScreenshotViewerActions {
             "open",
             "close",
             "goToPrevious",
-            "goToNext"
+            "goToNext",
+            "deleteFromWorkbench",
+            "onDeleteSuccess",
+            "onDeleteFailure"
         );
     }
 }

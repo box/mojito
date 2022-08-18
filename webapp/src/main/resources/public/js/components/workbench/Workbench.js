@@ -87,15 +87,15 @@ let Workbench = createReactClass({
         return (
             <div>
                 <div className="pull-left">
-                    <RepositoryDropDown />
-                    <LocalesDropdown />
+                    <RepositoryDropDown/>
+                    <LocalesDropdown/>
                 </div>
 
-                <SearchText />
-                <StatusDropdown />
+                <SearchText/>
+                <StatusDropdown/>
 
                 <div className="mtl mbl">
-                    <SearchResults />
+                    <SearchResults/>
                 </div>
                 <AltContainer store={GitBlameStore}>
                     <GitBlameInfoModal
@@ -106,15 +106,10 @@ let Workbench = createReactClass({
                 </AltContainer>
                 <AltContainer store={GitBlameScreenshotViewerStore}>
                     <BranchesScreenshotViewerModal
-                        onGoToPrevious={() => {
-                            GitBlameScreenshotViewerActions.goToPrevious();
-                        }}
-                        onGoToNext={() => {
-                            GitBlameScreenshotViewerActions.goToNext();
-                        }}
-                        onClose={() => {
-                            GitBlameScreenshotViewerActions.close();
-                        }}
+                        onGoToPrevious={GitBlameScreenshotViewerActions.goToPrevious}
+                        onGoToNext={GitBlameScreenshotViewerActions.goToNext}
+                        onClose={GitBlameScreenshotViewerActions.close}
+                        onDelete={GitBlameScreenshotViewerActions.deleteFromWorkbench}
                     />
                 </AltContainer>
                 <AltContainer store={TranslationHistoryStore}>

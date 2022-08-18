@@ -1,7 +1,10 @@
+import ScreenshotsDataSource from "../actions/screenshots/ScreenshotsDataSource";
+
 class ScreenshotViewerStore {
 
     constructor() {
         this.setDefaultState();
+        this.registerAsync(ScreenshotsDataSource);
     }
 
     setDefaultState() {
@@ -11,6 +14,7 @@ class ScreenshotViewerStore {
         this.total = 0;
         this.branchStatisticScreenshots = [];
         this.textUnits = [];
+        this.isDeleting = false;
     }
 
     open(branchStatisticsScreenshots) {
@@ -43,6 +47,30 @@ class ScreenshotViewerStore {
         if (this.number < this.total) {
             this.loadScreenshot(this.number + 1);
         }
+    }
+
+    deleteFromWorkbench() {
+        this.isDeleting = true;
+        this.getInstance().deleteScreenshotFromWorkbench()
+    }
+
+    deleteFromBranches() {
+        this.isDeleting = true;
+        this.getInstance().deleteScreenshotFromBranches()
+    }
+
+    onDeleteSuccess(screenshots) {
+        if (screenshots.length) {
+            this.branchStatisticScreenshots = screenshots
+            this.loadScreenshot(1);
+        } else {
+            this.close()
+        }
+        this.isDeleting = false
+    }
+
+    onDeleteFailure() {
+        this.isDeleting = false
     }
 }
 

@@ -24,6 +24,7 @@ import Paginator from "../widgets/Paginator";
 import RepositoryStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
+import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
 
 
 class BranchesPage extends React.Component {
@@ -220,15 +221,10 @@ class BranchesPage extends React.Component {
 
                 <AltContainer store={BranchesScreenshotViewerStore}>
                     <BranchesScreenshotViewerModal
-                        onGoToPrevious={() => {
-                            BranchesScreenshotViewerActions.goToPrevious();
-                        }}
-                        onGoToNext={() => {
-                            BranchesScreenshotViewerActions.goToNext();
-                        }}
-                        onClose={() => {
-                            BranchesScreenshotViewerActions.close();
-                        }}
+                        onGoToPrevious={BranchesScreenshotViewerActions.goToPrevious}
+                        onGoToNext={BranchesScreenshotViewerActions.goToNext}
+                        onClose={BranchesScreenshotViewerActions.close}
+                        onDelete={BranchesScreenshotViewerActions.deleteFromBranches}
                     />
                 </AltContainer>
 

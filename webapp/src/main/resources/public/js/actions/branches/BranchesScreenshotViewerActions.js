@@ -7,7 +7,10 @@ class BranchesScreenshotViewerActions {
             "open",
             "close",
             "goToPrevious",
-            "goToNext"
+            "goToNext",
+            "deleteFromBranches",
+            "onDeleteSuccess",
+            "onDeleteFailure"
         );
     }
 }
