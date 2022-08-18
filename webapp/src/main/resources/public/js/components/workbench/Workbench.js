@@ -101,7 +101,7 @@ let Workbench = createReactClass({
                     <GitBlameInfoModal
                         onCloseModal={GitBlameActions.close}
                         onViewScreenshotClick={(branchScreenshots) => {
-                            GitBlameScreenshotViewerActions.open(branchScreenshots);
+                            GitBlameScreenshotViewerActions.openScreenshotsViewer(branchScreenshots);
                         }}/>
                 </AltContainer>
                 <AltContainer store={GitBlameScreenshotViewerStore}>
@@ -113,7 +113,10 @@ let Workbench = createReactClass({
                             GitBlameScreenshotViewerActions.goToNext();
                         }}
                         onClose={() => {
-                            GitBlameScreenshotViewerActions.close();
+                            GitBlameScreenshotViewerActions.closeScreenshotsViewer();
+                        }}
+                        onDelete={() => {
+                            GitBlameScreenshotViewerActions.delete();
                         }}
                     />
                 </AltContainer>
