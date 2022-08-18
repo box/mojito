@@ -1,4 +1,4 @@
-import ScreenshotsPageActions from "./ScreenshotsPageActions";
+import ScreenshotsPageActions from "../screenshots/ScreenshotsPageActions";
 import ScreenshotsRepositoryStore from "../../stores/screenshots/ScreenshotsRepositoryStore";
 import ScreenshotsLocaleStore from "../../stores/screenshots/ScreenshotsLocaleStore";
 import ScreenshotsSearchTextStore from "../../stores/screenshots/ScreenshotsSearchTextStore";
@@ -7,7 +7,7 @@ import ScreenshotClient from "../../sdk/ScreenshotClient";
 import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 
-const ScreenshotsDataSource = {
+const ScreenshotsPageDataSource = {
     performScreenshotSearch: {
         remote(state) {
             let screenshotsRepositoryStoreState = ScreenshotsRepositoryStore.getState();
@@ -18,7 +18,7 @@ const ScreenshotsDataSource = {
             let promise;
 
             if (screenshotsRepositoryStoreState.selectedRepositoryIds.length === 0
-                    || screenshotsLocaleStoreState.selectedBcp47Tags.length === 0) {
+                || screenshotsLocaleStoreState.selectedBcp47Tags.length === 0) {
 
                 promise = new Promise((resolve) => {
                     setTimeout(function () {
@@ -68,6 +68,6 @@ const ScreenshotsDataSource = {
         success: ScreenshotsPageActions.screenshotsSearchResultsReceivedSuccess,
         error: ScreenshotsPageActions.screenshotsSearchResultsReceivedError
     },
-};
+}
 
-export default ScreenshotsDataSource;
+export default ScreenshotsPageDataSource;

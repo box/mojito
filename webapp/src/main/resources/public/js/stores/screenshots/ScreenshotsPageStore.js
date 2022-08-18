@@ -1,5 +1,5 @@
 import alt from "../../alt";
-import ScreenshotsDataSource from "../../actions/screenshots/ScreenshotsDataSource";
+import ScreenshotsPageDataSource from "../../actions/screenshots/ScreenshotsPageDataSource";
 import ScreenshotsPageActions from "../../actions/screenshots/ScreenshotsPageActions";
 import ScreenshotActions from "../../actions/screenshots/ScreenshotActions";
 
@@ -9,7 +9,8 @@ class ScreenshotsPageStore {
         this.setDefaultState();
         this.bindActions(ScreenshotsPageActions);
         this.bindActions(ScreenshotActions);
-        this.registerAsync(ScreenshotsDataSource);
+
+        this.registerAsync(ScreenshotsPageDataSource);
     }
     
     setDefaultState() {
