@@ -1,6 +1,6 @@
 package com.box.l10n.mojito.smartling.response;
 
-public class ContextUpload {
+public class Context {
 
   String contextType;
   String contextUid;

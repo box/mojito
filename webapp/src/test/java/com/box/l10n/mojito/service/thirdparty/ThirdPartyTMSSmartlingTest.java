@@ -180,6 +180,16 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
   }
 
   @Test
+  public void testRemoveImage() {
+    String projectId = "projectId";
+    String contextId = "contextId";
+
+    tmsSmartling.removeImage(projectId, contextId);
+
+    verify(smartlingClient, times(1)).deleteContext(projectId, contextId);
+  }
+
+  @Test
   public void testPushWithoutSingularsNorPlurals() throws RepositoryNameAlreadyUsedException {
 
     List<SmartlingFile> result;

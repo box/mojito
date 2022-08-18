@@ -5,13 +5,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import com.box.l10n.mojito.LocaleMappingHelper;
-import com.box.l10n.mojito.entity.Asset;
-import com.box.l10n.mojito.entity.Image;
-import com.box.l10n.mojito.entity.PollableTask;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.TMTextUnit;
-import com.box.l10n.mojito.entity.ThirdPartyScreenshot;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySync;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
@@ -35,14 +29,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,6 +69,14 @@ public class ThirdPartyService {
   @Autowired ImageService imageService;
 
   @Autowired ThirdPartyTMS thirdPartyTMS;
+
+  public void removeImage(String projectId, String imageId) {
+    logger.debug(
+        "remove image (screenshot) from Smartling, project id: {}, imageId: {}",
+        projectId,
+        imageId);
+    thirdPartyTMS.removeImage(projectId, imageId);
+  }
 
   public PollableFuture<Void> asyncSyncMojitoWithThirdPartyTMS(ThirdPartySync thirdPartySync) {
     ThirdPartySyncJobInput thirdPartySyncJobInput = new ThirdPartySyncJobInput();
