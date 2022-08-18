@@ -13,7 +13,7 @@ import BranchesSearchResults from "./BranchesSearchResults";
 import BranchesScreenshotUploadModal from "./BranchesScreenshotUploadModal";
 import BranchesScreenshotUploadModalStore from "../../stores/branches/BranchesScreenshotUploadModalStore";
 import BranchesScreenshotUploadActions from "../../actions/branches/BranchesScreenshotUploadActions";
-import BranchesScreenshotViewerModal from "./BranchesScreenshotViewerModal";
+import ScreenshotViewerModal from "../screenshots/ScreenshotViewerModal";
 import BranchesScreenshotViewerStore from "../../stores/branches/BranchesScreenshotViewerStore";
 import BranchesScreenshotViewerActions from "../../actions/branches/BranchesScreenshotViewerActions";
 import BranchesPaginatorStore from "../../stores/branches/BranchesPaginatorStore";
@@ -161,7 +161,8 @@ class BranchesPage extends React.Component {
                         }}
 
                         onShowBranchScreenshotsClick={(branchStatisticId) => {
-                            BranchesScreenshotViewerActions.open(branchStatisticId);
+                            BranchesPageActions.changeOpenBranchStatistic(branchStatisticId);
+                            BranchesScreenshotViewerActions.openScreenshotsViewer(branchStatisticId);
                         }}
 
                         onNeedTranslationClick={(branchStatistic, tmTextUnitId, forTranslation) => {
@@ -219,7 +220,7 @@ class BranchesPage extends React.Component {
                 </AltContainer>
 
                 <AltContainer store={BranchesScreenshotViewerStore}>
-                    <BranchesScreenshotViewerModal
+                    <ScreenshotViewerModal
                         onGoToPrevious={() => {
                             BranchesScreenshotViewerActions.goToPrevious();
                         }}
@@ -227,7 +228,10 @@ class BranchesPage extends React.Component {
                             BranchesScreenshotViewerActions.goToNext();
                         }}
                         onClose={() => {
-                            BranchesScreenshotViewerActions.close();
+                            BranchesScreenshotViewerActions.closeScreenshotsViewer();
+                        }}
+                        onDelete={() => {
+                            BranchesScreenshotViewerActions.delete();
                         }}
                     />
                 </AltContainer>

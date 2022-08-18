@@ -4,11 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
-import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
-import com.box.l10n.mojito.smartling.response.File;
-import com.box.l10n.mojito.smartling.response.FileUploadResponse;
-import com.box.l10n.mojito.smartling.response.Items;
-import com.box.l10n.mojito.smartling.response.StringInfo;
+import com.box.l10n.mojito.smartling.response.*;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -16,19 +12,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import java.util.stream.Stream;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.oauth2.client.OAuth2RestTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
@@ -50,6 +43,8 @@ public class SmartlingClientTest {
   SmartlingClient smartlingClient;
 
   @Autowired SmartlingTestConfig smartlingTestConfig;
+
+  @Mock OAuth2RestTemplate mockedOAuth2RestTemplate;
 
   @Before
   public void init() {
@@ -230,19 +225,49 @@ public class SmartlingClientTest {
   }
 
   @Test
-  public void testUploadContext() throws IOException {
-    Assume.assumeNotNull(smartlingTestConfig.projectId);
-    ClassPathResource classPathResource = new ClassPathResource("/com/box/l10n/mojito/img/1.png");
-    byte[] content = ByteStreams.toByteArray(classPathResource.getInputStream());
-    smartlingClient.uploadContext(smartlingTestConfig.projectId, "image1.png", content);
-  }
-
-  @Test
   public void testUploadContextPNGUpperCase() throws IOException {
     Assume.assumeNotNull(smartlingTestConfig.projectId);
     ClassPathResource classPathResource = new ClassPathResource("/com/box/l10n/mojito/img/1.png");
     byte[] content = ByteStreams.toByteArray(classPathResource.getInputStream());
-    smartlingClient.uploadContext(smartlingTestConfig.projectId, "caseissuewithpng.PNG", content);
+    Context createdContext =
+        smartlingClient.uploadContext(
+            smartlingTestConfig.projectId, "caseissuewithpng.PNG", content);
+
+    Context context =
+        smartlingClient.getContext(smartlingTestConfig.projectId, createdContext.getContextUid());
+
+    Assert.assertNotNull(context.getContextUid());
+    Assert.assertEquals(createdContext.getContextUid(), context.getContextUid());
+  }
+
+  @Test
+  public void testCRUDContext() throws IOException {
+    Assume.assumeNotNull(smartlingTestConfig.projectId);
+
+    ClassPathResource classPathResource = new ClassPathResource("/com/box/l10n/mojito/img/1.png");
+    byte[] content = ByteStreams.toByteArray(classPathResource.getInputStream());
+    Context createdContext =
+        smartlingClient.uploadContext(smartlingTestConfig.projectId, "image1.png", content);
+
+    Assert.assertNotNull(createdContext.getContextUid());
+
+    Context context =
+        smartlingClient.getContext(smartlingTestConfig.projectId, createdContext.getContextUid());
+
+    Assert.assertNotNull(context.getContextUid());
+    Assert.assertEquals(createdContext.getContextUid(), context.getContextUid());
+
+    smartlingClient.deleteContext(smartlingTestConfig.projectId, context.getContextUid());
+
+    SmartlingClientException contextNotFoundException =
+        Assert.assertThrows(
+            SmartlingClientException.class,
+            () ->
+                smartlingClient.getContext(smartlingTestConfig.projectId, context.getContextUid()));
+    Assert.assertTrue(
+        contextNotFoundException
+            .getMessage()
+            .contains(String.format("Can't get context: %s", context.getContextUid())));
   }
 
   @Test

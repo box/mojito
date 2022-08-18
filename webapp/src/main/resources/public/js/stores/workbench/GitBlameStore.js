@@ -1,17 +1,16 @@
 import alt from "../../alt";
-import Error from "../../utils/Error";
-import TextUnit from "../../sdk/TextUnit";
 import TextUnitDataSource from "../../actions/workbench/TextUnitDataSource";
-import WorkbenchActions from "../../actions/workbench/WorkbenchActions";
-import SearchParamsStore from "./SearchParamsStore";
-import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
+import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
+import GitBlameScreenshotViewerStore from "./GitBlameScreenshotViewerStore";
 
 class GitBlameStore {
 
     constructor() {
         this.setDefaultState();
         this.bindActions(GitBlameActions);
+        this.bindActions(GitBlameScreenshotViewerActions);
+
         this.registerAsync(TextUnitDataSource);
     }
 
@@ -34,6 +33,10 @@ class GitBlameStore {
         this.gitBlameWithUsage = null;
         this.loading = true;
         this.getInstance().getGitBlameInfo(textUnit);
+    }
+
+    onDeleteScreenshotSuccess() {
+        this.gitBlameWithUsage.screenshots = GitBlameScreenshotViewerStore.state.branchStatisticScreenshots
     }
 
     onGetGitBlameInfoSuccess(gitBlameWithUsage) {

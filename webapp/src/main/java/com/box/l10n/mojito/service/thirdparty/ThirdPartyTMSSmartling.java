@@ -1,9 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.MANY;
-import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.getOutputSourceFile;
-import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.getOutputTargetFile;
-import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.isPluralFile;
+import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.*;
 import static com.google.common.collect.Streams.mapWithIndex;
 
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
@@ -12,18 +10,9 @@ import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFile;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingPluralFix;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingResultProcessor;
+import com.box.l10n.mojito.service.thirdparty.smartling.*;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
-import com.box.l10n.mojito.service.tm.search.SearchType;
-import com.box.l10n.mojito.service.tm.search.StatusFilter;
-import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.box.l10n.mojito.service.tm.search.*;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingClientException;
@@ -142,6 +131,36 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     this.thirdPartyTMSSmartlingWithJson = thirdPartyTMSSmartlingWithJson;
     this.thirdPartyTMSSmartlingGlossary = thirdPartyTMSSmartlingGlossary;
     this.assetTextUnitToTMTextUnitRepository = assetTextUnitToTMTextUnitRepository;
+  }
+
+  @Override
+  public void removeImage(String projectId, String imageId) {
+    logger.debug(
+        "remove image (screenshot) from Smartling, project id: {}, imageId: {}",
+        projectId,
+        imageId);
+
+    Mono.fromRunnable(() -> smartlingClient.deleteContext(projectId, imageId))
+        .retryWhen(
+            smartlingClient
+                .getRetryConfiguration()
+                .doBeforeRetry(
+                    e ->
+                        logger.info(
+                            String.format(
+                                "Retrying remove image (screenshot) from Smartling; projectId %s, imageId %s",
+                                projectId, imageId),
+                            e.failure())))
+        .doOnError(
+            e -> {
+              String msg =
+                  String.format(
+                      "Error removing image (screenshot) from Smartling; projectId %s, imageId %s",
+                      projectId, imageId);
+              logger.error(msg, e);
+              throw new SmartlingClientException(msg, e);
+            })
+        .block();
   }
 
   @Override

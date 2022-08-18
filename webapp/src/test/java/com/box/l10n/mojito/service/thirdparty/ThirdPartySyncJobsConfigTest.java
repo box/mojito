@@ -42,7 +42,11 @@ public class ThirdPartySyncJobsConfigTest {
   public void testConfig() {
     final Map<String, ThirdPartySyncJobConfig> thirdPartySyncJobs =
         thirdPartySyncJobsConfig.getThirdPartySyncJobs();
-    Assertions.assertThat(thirdPartySyncJobs).containsOnlyKeys("repo1-a", "repo1-b");
+    Assertions.assertThat(thirdPartySyncJobs)
+        .containsOnlyKeys(
+            "repo1-a",
+            "repo1-b",
+            "testRepository"); // testRepository comes from application-test.properties
     Assertions.assertThat(thirdPartySyncJobs)
         .extractingByKeys("repo1-a", "repo1-b")
         .extracting("repository", "thirdPartyProjectId", "actions", "options")

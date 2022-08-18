@@ -14,7 +14,7 @@ import AltContainer from "alt-container";
 import GitBlameStore from "../../stores/workbench/GitBlameStore";
 import GitBlameInfoModal from "./GitBlameInfoModal";
 import GitBlameActions from "../../actions/workbench/GitBlameActions";
-import BranchesScreenshotViewerModal from "../branches/BranchesScreenshotViewerModal";
+import ScreenshotViewerModal from "../screenshots/ScreenshotViewerModal";
 import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
 import GitBlameScreenshotViewerStore from "../../stores/workbench/GitBlameScreenshotViewerStore";
 import UrlHelper from "../../utils/UrlHelper";
@@ -101,11 +101,11 @@ let Workbench = createReactClass({
                     <GitBlameInfoModal
                         onCloseModal={GitBlameActions.close}
                         onViewScreenshotClick={(branchScreenshots) => {
-                            GitBlameScreenshotViewerActions.open(branchScreenshots);
+                            GitBlameScreenshotViewerActions.openScreenshotsViewer(branchScreenshots);
                         }}/>
                 </AltContainer>
                 <AltContainer store={GitBlameScreenshotViewerStore}>
-                    <BranchesScreenshotViewerModal
+                    <ScreenshotViewerModal
                         onGoToPrevious={() => {
                             GitBlameScreenshotViewerActions.goToPrevious();
                         }}
@@ -113,7 +113,10 @@ let Workbench = createReactClass({
                             GitBlameScreenshotViewerActions.goToNext();
                         }}
                         onClose={() => {
-                            GitBlameScreenshotViewerActions.close();
+                            GitBlameScreenshotViewerActions.closeScreenshotsViewer();
+                        }}
+                        onDelete={() => {
+                            GitBlameScreenshotViewerActions.delete();
                         }}
                     />
                 </AltContainer>
