@@ -136,8 +136,8 @@ public class BranchTestData {
         AssetContent assetContentBranch2 = assetContentService.createAssetContent(asset, branch2Content, false, branch2);
         assetExtractionService.processAssetAsync(assetContentBranch2.getId(), null, null, null, null).get();
 
-        string1Branch1 = tmTextUnitRepository.findFirstByAssetAndName(assetContentBranch1.getAsset(), "string1");
-        string2Branch1 = tmTextUnitRepository.findFirstByAssetAndName(assetContentBranch1.getAsset(), "string2");
+        string1Branch1 = tmTextUnitRepository.findFirstByAssetIdAndName(assetContentBranch1.getAsset().getId(), "string1");
+        string2Branch1 = tmTextUnitRepository.findFirstByAssetIdAndName(assetContentBranch1.getAsset().getId(), "string2");
 
         return this;
     }
