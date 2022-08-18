@@ -16,6 +16,7 @@ import com.box.l10n.mojito.service.delta.DeltaService;
 import com.box.l10n.mojito.service.delta.DeltaType;
 import com.box.l10n.mojito.service.delta.dtos.DeltaResponseDTO;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pullrun.PullRunTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantService;
@@ -28,9 +29,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 /**
@@ -72,6 +80,9 @@ public class PullCommandTest extends CLITestBase {
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
+
+    @Autowired
+    PullRunTextUnitVariantRepository pullRunTextUnitVariantRepository;
 
     @Test
     public void pull() throws Exception {
@@ -936,6 +947,99 @@ public class PullCommandTest extends CLITestBase {
     }
 
     @Test
+    public void recordPullPoPlural() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+        repositoryService.addRepositoryLocale(repository, "ru-RU", null, true);
+
+        String pushCommitHash = "ccaa11";
+
+        logger.debug("Create the base commit that correspond to the initial push");
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pushCommitHash,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+
+        logger.debug("Initial push");
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "--record-push-run",
+                "--commit-hash", pushCommitHash);
+
+        logger.debug("Get pushRun for the initial push to test delta later on");
+        PushRun pushRun = commitService.getLastPushRun(ImmutableList.of(pushCommitHash), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a push run"));
+
+        logger.debug("Record a first pull run to generate the baseline");
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_baseline").getAbsolutePath(),
+                "-lm", "ru-RU:ru-RU",
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-lm", "ru-RU:ru-RU"
+        );
+
+        logger.debug("Record a second pull run after translation import");
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_translated").getAbsolutePath(),
+                "-lm", "ru-RU:ru-RU",
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        logger.debug("Simulate commit and linked to pull-run");
+        String pullRunHash1 = "ddaa11";
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pullRunHash1,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+        getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
+                "-i", getTargetTestDir("target_translated").getAbsolutePath(),
+                "--commit-hash", pullRunHash1);
+
+        // For language like cs-CZ or ru-RU, PO file use only 3 plural forms while Mojito store 4 form (CLDR).
+        // This leads to the number of recorded entry in the pull run to lower that the number of current translations.
+        // This might look strange but is expected
+        Locale ruRU = localeService.findByBcp47Tag("ru-RU");
+        List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(repository.getTm().getId());
+
+        long countOfCurrentTranslationForRuRU = tmTextUnits.stream()
+                .map(tmTextUnit -> tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(ruRU.getId(), tmTextUnit.getId()))
+                .filter(Objects::nonNull)
+                .count();
+        Assertions.assertThat(countOfCurrentTranslationForRuRU).isEqualTo(4);
+
+        long countOfPullRunTextUnitVariantForRuRU = tmTextUnits.stream()
+                .flatMap(tmTextUnit -> pullRunTextUnitVariantRepository.findByTmTextUnitVariant_TmTextUnitIdAndLocaleId(tmTextUnit.getId(), ruRU.getId()).stream())
+                .count();
+        Assertions.assertThat(countOfPullRunTextUnitVariantForRuRU).isEqualTo(3);
+
+        PullRun pullRun = commitService.getLastPullRun(ImmutableList.of(pullRunHash1), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a pull run"));
+
+        DeltaResponseDTO deltas = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRun),
+                ImmutableList.of(pullRun));
+
+        // Implication on deltas is that we're getting a diff even though we'd like not to
+        // Assertions.assertThat(deltas.getTranslationsPerLocale()).isEmpty();
+        Assertions.assertThat(deltas.getTranslationsPerLocale().get("ru-RU")
+                .getTranslationsByTextUnitName().keySet())
+                .containsExactly("There is {number} car --- car _other");
+
+        pullRunNamesToNormalizedValueForTests();
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
     public void recordPullRunAndOTA() throws Exception {
         Repository repository = createTestRepoUsingRepoService();
 
@@ -970,7 +1074,7 @@ public class PullCommandTest extends CLITestBase {
                 "--commit-hash", pullRunHash1,
                 "--author-email", "coder@mail.com",
                 "--author-name", "coder",
-                "--created-date", DateTime.now().toString());
+                "--creation-date", DateTime.now().toString());
 
         getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
                 "-i", getTargetTestDir("target_baseline").getAbsolutePath(),
@@ -1016,7 +1120,7 @@ public class PullCommandTest extends CLITestBase {
                 "--commit-hash", pullRunHash2,
                 "--author-email", "coder@mail.com",
                 "--author-name", "coder",
-                "--created-date", DateTime.now().toString());
+                "--creation-date", DateTime.now().toString());
         getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
                 "-i", getTargetTestDir("target_after_french_import").getAbsolutePath(),
                 "--commit-hash", pullRunHash2);
@@ -1061,7 +1165,7 @@ public class PullCommandTest extends CLITestBase {
                 "--commit-hash", pullRunHash3,
                 "--author-email", "coder@mail.com",
                 "--author-name", "coder",
-                "--created-date", DateTime.now().toString());
+                "--creation-date", DateTime.now().toString());
         getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
                 "-i", getTargetTestDir("target_after_french_and_japanese_imports").getAbsolutePath(),
                 "--commit-hash", pullRunHash3);
@@ -1096,7 +1200,7 @@ public class PullCommandTest extends CLITestBase {
                 "--commit-hash", pushCommitHashModified,
                 "--author-email", "coder@mail.com",
                 "--author-name", "coder",
-                "--created-date", DateTime.now().toString());
+                "--creation-date", DateTime.now().toString());
 
         getL10nJCommander().run("push", "-r", repository.getName(),
                 "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
@@ -1132,7 +1236,7 @@ public class PullCommandTest extends CLITestBase {
                 "--commit-hash", pullRunHash4,
                 "--author-email", "coder@mail.com",
                 "--author-name", "coder",
-                "--created-date", DateTime.now().toString());
+                "--creation-date", DateTime.now().toString());
         getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
                 "-i", getTargetTestDir("target_modified").getAbsolutePath(),
                 "--commit-hash", pullRunHash4);
@@ -1148,10 +1252,14 @@ public class PullCommandTest extends CLITestBase {
 
         Assertions.assertThat(deltaWithPushModifiedForPullModified.getTranslationsPerLocale()).hasSize(0);
 
+        pullRunNamesToNormalizedValueForTests();
+        checkExpectedGeneratedResources();
+    }
+
+    private void pullRunNamesToNormalizedValueForTests() throws IOException {
         modifyFilesInTargetTestDirectory(input -> {
             return input.replaceAll("\\d", "1").replaceAll("[a-z]", "1");
         }, "pull-run-name.txt");
-        checkExpectedGeneratedResources();
     }
 
     private void printDelta(DeltaResponseDTO delta) {
