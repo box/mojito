@@ -20,7 +20,7 @@ public interface TMTextUnitRepository extends JpaRepository<TMTextUnit, Long> {
 
     TMTextUnit findFirstByAssetAndMd5(Asset asset, String md5);
  
-    TMTextUnit findFirstByAssetAndName(Asset asset, String name);
+    TMTextUnit findFirstByAssetIdAndName(Long assetId, String name);
 
     List<TMTextUnit> findByTm_id(Long tmId);
 
