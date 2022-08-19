@@ -80,7 +80,7 @@ public class CommitToPullRunCommand extends Command {
     }
 
     String readPullRunNameFromFile() {
-        Path pullRunNameFile = Paths.get(inputDirectoryParam).resolve("pull-run-name.txt");
+        Path pullRunNameFile = Paths.get(inputDirectoryParam).resolve(PullRunHelper.PULL_RUN_NAME_FILE);
         return commandHelper.getFileContent(pullRunNameFile);
     }
 

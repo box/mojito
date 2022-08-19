@@ -169,7 +169,7 @@ public class PullCommand extends Command {
 
     void writePullRunFileIfNeeded() {
         if (recordPullRun) {
-            Path pullRunOuputFile = commandDirectories.getTargetDirectoryPath().resolve("pull-run-name.txt");
+            Path pullRunOuputFile = commandDirectories.getTargetDirectoryPath().resolve(PullRunHelper.PULL_RUN_NAME_FILE);
             consoleWriter.a("Writing pull run name to file: ").fg(Color.CYAN)
                     .a(commandDirectories.relativizeWithUserDirectory(pullRunOuputFile).toString()).println();
             commandHelper.writeFileContent(pullRunName, pullRunOuputFile);
