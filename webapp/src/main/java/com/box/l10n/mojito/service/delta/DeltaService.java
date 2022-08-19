@@ -18,8 +18,10 @@ import org.joda.time.DateTime;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.Date;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -128,11 +130,22 @@ public class DeltaService {
         List<Long> pushRunIds = getIds(pushRuns);
         List<Long> pullRunIds = getIds(pullRuns);
 
+        DateTime translationsFromDate = Optional.ofNullable(pullRuns)
+                .orElse(Collections.emptyList())
+                .stream()
+                .min(Comparator.comparing(PullRun::getCreatedDate))
+                .map(PullRun::getCreatedDate)
+                // Remove milliseconds as the Mojito DB does not store dates with sub-second precision.
+                .map(dateTime -> dateTime.withMillisOfSecond(0))
+                .orElse(new DateTime(0));
+        Date sqlTranslationsFromDate = new Date(translationsFromDate.toDate().getTime());
+
         List<TextUnitVariantDelta> variants = tmTextUnitVariantRepository.findDeltasForRuns(
                 repository.getId(),
                 localeIds,
                 pushRunIds,
-                pullRunIds);
+                pullRunIds,
+                sqlTranslationsFromDate);
 
         Map<String, DeltaLocaleDataDTO> deltaLocaleDataByBcp47Tags = getStringDeltaLocaleDataDTOMap(variants);
 
