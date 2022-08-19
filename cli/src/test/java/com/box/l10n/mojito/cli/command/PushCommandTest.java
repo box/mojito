@@ -1,31 +1,43 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.cli.command.param.Param;
+import com.box.l10n.mojito.entity.Commit;
 import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PushRun;
+import com.box.l10n.mojito.entity.PushRunAsset;
+import com.box.l10n.mojito.entity.PushRunAssetTmTextUnit;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.rest.client.AssetClient;
+import com.box.l10n.mojito.rest.client.CommitClient;
 import com.box.l10n.mojito.rest.entity.Asset;
+import com.box.l10n.mojito.service.commit.CommitRepository;
+import com.box.l10n.mojito.service.commit.CommitService;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author wyau
@@ -41,10 +53,22 @@ public class PushCommandTest extends CLITestBase {
     AssetClient assetClient;
 
     @Autowired
+    CommitClient commitClient;
+
+    @Autowired
     TextUnitSearcher textUnitSearcher;
 
     @Autowired
     LocaleService localeService;
+
+    @Autowired
+    CommitRepository commitRepository;
+
+    @Autowired
+    CommitService commitService;
+
+    @Autowired
+    PushRunRepository pushRunRepository;
 
     @Test
     public void testCommandName() throws Exception {
@@ -76,7 +100,7 @@ public class PushCommandTest extends CLITestBase {
         List<String> locales = Arrays.asList("fr-FR");
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", parentSourceDirectory.getAbsolutePath());
+                                "-s", parentSourceDirectory.getAbsolutePath());
         String outputString = outputCapture.toString();
         assertTrue(outputString.contains("--> asset id"));
 
@@ -86,7 +110,7 @@ public class PushCommandTest extends CLITestBase {
         checkNumberOfUnusedUntranslatedTextUnit(repository, locales, 0);
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", childSourceDirectory.getAbsolutePath());
+                                "-s", childSourceDirectory.getAbsolutePath());
         outputString = outputCapture.toString();
         assertTrue(outputString.contains("--> asset id"));
 
@@ -106,7 +130,7 @@ public class PushCommandTest extends CLITestBase {
         List<String> locales = Arrays.asList("fr-FR");
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", originalSourceDirectory.getAbsolutePath());
+                                "-s", originalSourceDirectory.getAbsolutePath());
         String outputString = outputCapture.toString();
         assertTrue(outputString.contains("--> asset id"));
 
@@ -115,7 +139,7 @@ public class PushCommandTest extends CLITestBase {
         checkNumberOfUnusedUntranslatedTextUnit(repository, locales, 0);
 
         getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", renamedSourceDirectory.getAbsolutePath());
+                                "-s", renamedSourceDirectory.getAbsolutePath());
         outputString = outputCapture.toString();
         assertTrue(outputString.contains("--> asset id"));
 
@@ -139,14 +163,18 @@ public class PushCommandTest extends CLITestBase {
         logger.debug("Push one string to the master branch");
 
         File masterDirectory = getInputResourcesTestDir("master");
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", masterDirectory.getAbsolutePath(), "-b", "master");
+        getL10nJCommander().run("push",
+                                "-r", repository.getName(),
+                                "-s", masterDirectory.getAbsolutePath(),
+                                "-b", "master");
 
         List<TextUnitDTO> textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
         assertEquals(1L, textUnitDTOS.size());
         assertEquals("from.master", textUnitDTOS.get(0).getName());
         assertEquals("value from master", textUnitDTOS.get(0).getSource());
 
-        logger.debug("Push 2 strings to branch 1. One string has same key but different english as the master branch, the other is a new string");
+        logger.debug(
+                "Push 2 strings to branch 1. One string has same key but different english as the master branch, the other is a new string");
 
         File branch1 = getInputResourcesTestDir("branch1");
         getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch1.getAbsolutePath(), "-b", "branch1");
@@ -182,7 +210,10 @@ public class PushCommandTest extends CLITestBase {
 
         logger.debug("Push a new string to branch 2");
         File branch2Update = getInputResourcesTestDir("branch2Update");
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch2Update.getAbsolutePath(), "-b", "branch2");
+        getL10nJCommander().run("push",
+                                "-r", repository.getName(),
+                                "-s", branch2Update.getAbsolutePath(),
+                                "-b", "branch2");
 
         textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
 
@@ -202,7 +233,10 @@ public class PushCommandTest extends CLITestBase {
         logger.debug("Add new file in branch 1");
 
         File branch1Update = getInputResourcesTestDir("branch1Update");
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch1Update.getAbsolutePath(), "-b", "branch1");
+        getL10nJCommander().run("push",
+                                "-r", repository.getName(),
+                                "-s", branch1Update.getAbsolutePath(),
+                                "-b", "branch1");
 
         textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
 
@@ -226,7 +260,10 @@ public class PushCommandTest extends CLITestBase {
         logger.debug("Remove file in branch 2");
 
         File branch2Update2 = getInputResourcesTestDir("branch2Update2");
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch2Update2.getAbsolutePath(), "-b", "branch2");
+        getL10nJCommander().run("push",
+                                "-r", repository.getName(),
+                                "-s", branch2Update2.getAbsolutePath(),
+                                "-b", "branch2");
 
         textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
 
@@ -254,7 +291,10 @@ public class PushCommandTest extends CLITestBase {
         assertEquals("value from master", textUnitDTOS.get(0).getSource());
 
         logger.debug("Re-push branch 1");
-        getL10nJCommander().run("push", "-r", repository.getName(), "-s", branch1Update.getAbsolutePath(), "-b", "branch1");
+        getL10nJCommander().run("push",
+                                "-r", repository.getName(),
+                                "-s", branch1Update.getAbsolutePath(),
+                                "-b", "branch1");
 
         textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
 
@@ -308,7 +348,7 @@ public class PushCommandTest extends CLITestBase {
         assertEquals("value from master", textUnitDTOS.get(1).getSource());
 
         logger.debug("Remove null branch");
-        getL10nJCommander().run("branch-delete", "-r", repository.getName(), "-nr" , "(?!^master$)", "-nb");
+        getL10nJCommander().run("branch-delete", "-r", repository.getName(), "-nr", "(?!^master$)", "-nb");
 
         textUnitDTOS = getTextUnitDTOsSortedById(textUnitSearcherParameters);
 
@@ -337,7 +377,11 @@ public class PushCommandTest extends CLITestBase {
 
         Locale frFRLocale = localeService.findByBcp47Tag("fr-FR");
 
-        Repository repository = repositoryService.createRepository(repoName, repoName + " description", frFRLocale, false);
+        Repository repository = repositoryService.createRepository(
+                repoName,
+                repoName + " description",
+                frFRLocale,
+                false);
 
         repositoryService.addRepositoryLocale(repository, "en", "fr-FR", true);
         repositoryService.addRepositoryLocale(repository, "fr-CA", "fr-FR", false);
@@ -384,15 +428,64 @@ public class PushCommandTest extends CLITestBase {
         assertEquals(0, l10nJCommander.getExitCode());
     }
 
-    private void checkNumberOfUsedUntranslatedTextUnit(Repository repository, List<String> locales, int expectedNumberOfUnstranslated) {
+    @Test
+    public void testPushRunRecording() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+        File originalSourceDirectory = getInputResourcesTestDir("source");
+
+        String commitHash = "ABC123";
+        Commit commit = commitService.saveCommit(repository,
+                                                 commitHash,
+                                                 "authorEmail",
+                                                 "authorName",
+                                                 DateTime.now());
+        assertNull(commitRepository.findById(commit.getId())
+                           .orElseThrow(() -> new RuntimeException("The commit was not created"))
+                           .getCommitToPushRun());
+
+        L10nJCommander l10nJCommander = getL10nJCommander();
+        l10nJCommander.run("push", "-r", repository.getName(),
+                           "-s", originalSourceDirectory.getAbsolutePath(),
+                           Param.COMMIT_HASH_LONG, commitHash,
+                           Param.RECORD_PUSH_RUN_LONG);
+        assertEquals(0, l10nJCommander.getExitCode());
+
+        List<TMTextUnit> textUnitsFromCommit = getTextUnits(commit.getId());
+        assertEquals(5, textUnitsFromCommit.size());
+    }
+
+    @Transactional
+    private List<TMTextUnit> getTextUnits(Long commitId) {
+        PushRun pushRun = commitRepository.findById(commitId)
+                .orElseThrow(RuntimeException::new)
+                .getCommitToPushRun()
+                .getPushRun();
+
+        return pushRun.getPushRunAssets().stream()
+                .map(PushRunAsset::getPushRunAssetTmTextUnits)
+                .flatMap(Collection::stream)
+                .map(PushRunAssetTmTextUnit::getTmTextUnit)
+                .collect(Collectors.toList());
+    }
+
+
+    private void checkNumberOfUsedUntranslatedTextUnit(Repository repository,
+                                                       List<String> locales,
+                                                       int expectedNumberOfUnstranslated) {
         checkNumberOfUntranslatedTextUnit(repository, locales, true, expectedNumberOfUnstranslated);
     }
 
-    private void checkNumberOfUnusedUntranslatedTextUnit(Repository repository, List<String> locales, int expectedNumberOfUnstranslated) {
+    private void checkNumberOfUnusedUntranslatedTextUnit(Repository repository,
+                                                         List<String> locales,
+                                                         int expectedNumberOfUnstranslated) {
         checkNumberOfUntranslatedTextUnit(repository, locales, false, expectedNumberOfUnstranslated);
     }
 
-    private void checkNumberOfUntranslatedTextUnit(Repository repository, List<String> locales, boolean used, int expectedNumberOfUnstranslated) {
+    private void checkNumberOfUntranslatedTextUnit(Repository repository,
+                                                   List<String> locales,
+                                                   boolean used,
+                                                   int expectedNumberOfUnstranslated) {
         TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
         textUnitSearcherParameters.setRepositoryIds(repository.getId());
         textUnitSearcherParameters.setStatusFilter(StatusFilter.UNTRANSLATED);
@@ -411,10 +504,12 @@ public class PushCommandTest extends CLITestBase {
         }
     }
 
-    private List<TextUnitDTO> getTextUnitDTOsSortedById(TextUnitSearcherParameters textUnitSearcherParameters){
+    private List<TextUnitDTO> getTextUnitDTOsSortedById(TextUnitSearcherParameters textUnitSearcherParameters) {
         return textUnitSearcher.search(textUnitSearcherParameters).stream()
                 .sorted(Comparator.comparingLong(TextUnitDTO::getTmTextUnitId))
-                .peek(textUnitDTO -> logger.debug("name: {}, source: {}", textUnitDTO.getName(), textUnitDTO.getSource()))
+                .peek(textUnitDTO -> logger.debug("name: {}, source: {}",
+                                                  textUnitDTO.getName(),
+                                                  textUnitDTO.getSource()))
                 .collect(Collectors.toList());
     }
 }

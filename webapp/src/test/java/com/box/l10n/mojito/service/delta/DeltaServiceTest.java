@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.AssetTextUnit;
 import com.box.l10n.mojito.entity.AssetTextUnitToTMTextUnit;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PullRun;
+import com.box.l10n.mojito.entity.PullRunAsset;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
@@ -17,10 +18,11 @@ import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionService;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.delta.dtos.DeltaResponseDTO;
 import com.box.l10n.mojito.service.delta.dtos.DeltaLocaleDataDTO;
+import com.box.l10n.mojito.service.delta.dtos.DeltaResponseDTO;
 import com.box.l10n.mojito.service.delta.dtos.DeltaTranslationDTO;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pullrun.PullRunAssetService;
 import com.box.l10n.mojito.service.pullrun.PullRunService;
 import com.box.l10n.mojito.service.pushrun.PushRunService;
 import com.box.l10n.mojito.service.repository.RepositoryService;
@@ -41,12 +43,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class DeltaServiceTest extends ServiceTestBase {
@@ -55,7 +58,7 @@ public class DeltaServiceTest extends ServiceTestBase {
     public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
     @Autowired
-    EntityManager entityManager;
+    PullRunAssetService pullRunAssetService;
 
     @Autowired
     DeltaService deltaService;
@@ -225,6 +228,69 @@ public class DeltaServiceTest extends ServiceTestBase {
         Assert.assertEquals(2, getDeltaTranslationsFromDeltaFile(deltasFromBeggining).size());
     }
 
+
+    @Test
+    public void testGetDeltasNoRejectedTextUnits() throws Exception {
+        Locale koKR = localeService.findByBcp47Tag("ko-KR");
+        Locale frFR = localeService.findByBcp47Tag("fr-FR");
+        Repository repository = repositoryService.createRepository("testGetDeltasNoRejectedTextUnits");
+        RepositoryLocale repoLocaleKoKR = repositoryService.addRepositoryLocale(repository, koKR.getBcp47Tag());
+        RepositoryLocale repoLocaleFrFR = repositoryService.addRepositoryLocale(repository, frFR.getBcp47Tag());
+        TM tm = repository.getTm();
+        Asset asset = assetService.createAssetWithContent(repository.getId(),
+                                                          "fake_for_test",
+                                                          "fake for test");
+        Long assetId = asset.getId();
+
+        TMTextUnit usedTextUnit = tmService.addTMTextUnit(
+                tm.getId(),
+                assetId,
+                "used_text_unit",
+                "active string",
+                "Comment1");
+
+        AssetExtraction assetExtraction = new AssetExtraction();
+        assetExtraction.setAsset(asset);
+        assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+        AssetTextUnit usedAssetTextUnit = assetExtractionService.createAssetTextUnit(
+                assetExtraction,
+                usedTextUnit.getName(),
+                usedTextUnit.getContent(),
+                usedTextUnit.getComment());
+
+        // Only mark one TextUnit as used
+        AssetTextUnitToTMTextUnit assetTextUnitToTMTextUnit = new AssetTextUnitToTMTextUnit();
+        assetTextUnitToTMTextUnit.setAssetExtraction(assetExtraction);
+        assetTextUnitToTMTextUnit.setAssetTextUnit(usedAssetTextUnit);
+        assetTextUnitToTMTextUnit.setTmTextUnit(usedTextUnit);
+        assetTextUnitToTMTextUnitRepository.save(assetTextUnitToTMTextUnit);
+
+        assetExtractionService.markAssetExtractionAsLastSuccessful(asset, assetExtraction);
+
+        TMTextUnitVariant rejectedVariant = tmService.addCurrentTMTextUnitVariant(
+                usedTextUnit.getId(),
+                koKR.getId(),
+                "활성 문자열");
+        rejectedVariant.setIncludedInLocalizedFile(false);
+        tmTextUnitVariantRepository.save(rejectedVariant);
+
+        tmService.addCurrentTMTextUnitVariant(
+                usedTextUnit.getId(),
+                frFR.getId(),
+                "chaîne active");
+
+        DeltaResponseDTO deltasFromBeggining = deltaService.getDeltasForDates(
+                repository,
+                null,
+                new DateTime(0),
+                DateTime.now().plusHours(1),
+                Pageable.unpaged());
+
+        Assert.assertEquals(1, deltasFromBeggining.getTranslationsPerLocale().size());
+        Assert.assertEquals(1, getDeltaTranslationsFromDeltaFile(deltasFromBeggining).size());
+    }
+
     @Test
     public void testGetDeltasSpecificLocales() throws Exception {
         Locale koKR = localeService.findByBcp47Tag("ko-KR");
@@ -346,9 +412,11 @@ public class DeltaServiceTest extends ServiceTestBase {
     public void testGetDeltasForRunsWorks() throws Exception {
         Locale koKR = localeService.findByBcp47Tag("ko-KR");
         Locale frFR = localeService.findByBcp47Tag("fr-FR");
+        Locale roRO = localeService.findByBcp47Tag("ro-RO");
         Repository repository = repositoryService.createRepository("getDeltasForRunsWorks");
         RepositoryLocale repoLocaleKoKR = repositoryService.addRepositoryLocale(repository, koKR.getBcp47Tag());
         RepositoryLocale repoLocaleFrFR = repositoryService.addRepositoryLocale(repository, frFR.getBcp47Tag());
+        RepositoryLocale repoLocaleRoRO = repositoryService.addRepositoryLocale(repository, roRO.getBcp47Tag());
         TM tm = repository.getTm();
         Asset asset = assetService.createAssetWithContent(repository.getId(),
                                                           "fake_for_test",
@@ -391,7 +459,7 @@ public class DeltaServiceTest extends ServiceTestBase {
                                                                                         unusedTextUnit.getId()));
 
         PushRun emptyPushRun = pushRunService.createPushRun(repository);
-        PullRun emptyPullRun = pullRunService.createPullRun(repository);
+        PullRun emptyPullRun = createPullRunForTest(repository);
 
         TMTextUnitVariant koKrUsedTuv = tmService.addCurrentTMTextUnitVariant(
                 usedTextUnit.getId(),
@@ -405,30 +473,36 @@ public class DeltaServiceTest extends ServiceTestBase {
                 unusedTextUnit.getId(),
                 frFR.getId(),
                 "inutilisé");
+        TMTextUnitVariant rejectedTuv = tmService.addCurrentTMTextUnitVariant(
+                usedTextUnit.getId(),
+                roRO.getId(),
+                "Rejected");
+        rejectedTuv.setIncludedInLocalizedFile(false);
+        tmTextUnitVariantRepository.save(rejectedTuv);
 
         DeltaResponseDTO deltas = deltaService.getDeltasForRuns(repository,
-                                                                Arrays.asList(frFR, koKR),
-                                                                Collections.singletonList(emptyPushRun),
-                                                                null);
+                Arrays.asList(frFR, koKR, roRO),
+                Collections.singletonList(emptyPushRun),
+                null);
         Assert.assertEquals(0, deltas.getTranslationsPerLocale().size());
 
         deltas = deltaService.getDeltasForRuns(repository,
-                                               Arrays.asList(frFR, koKR),
-                                               Collections.singletonList(firstPushRun),
-                                               Collections.singletonList(emptyPullRun));
+                Arrays.asList(frFR, koKR, roRO),
+                Collections.singletonList(firstPushRun),
+                Collections.singletonList(emptyPullRun));
         Assert.assertEquals(2, deltas.getTranslationsPerLocale().size());
         Assert.assertEquals(3, getDeltaTranslationsFromDeltaFile(deltas).size());
 
-        PullRun pullRunWithInitialTranslations = pullRunService.createPullRun(repository);
-        pullRunService.associatePullRunToTextUnitIds(
+        PullRun pullRunWithInitialTranslations = createPullRunForTest(repository);
+        associatePullRunToTextUnitIds(
                 pullRunWithInitialTranslations,
                 asset,
-                Arrays.asList(frFrUsedTuv.getId(), koKrUsedTuv.getId(), frFrUnusedTuv.getId()));
+                Arrays.asList(frFrUsedTuv, koKrUsedTuv, frFrUnusedTuv, rejectedTuv));
 
         deltas = deltaService.getDeltasForRuns(repository,
-                                               Arrays.asList(frFR, koKR),
-                                               Collections.singletonList(firstPushRun),
-                                               Collections.singletonList(pullRunWithInitialTranslations));
+                Arrays.asList(frFR, koKR, roRO),
+                Collections.singletonList(firstPushRun),
+                Collections.singletonList(pullRunWithInitialTranslations));
         Assert.assertEquals(0, deltas.getTranslationsPerLocale().size());
 
         tmService.addCurrentTMTextUnitVariant(
@@ -440,16 +514,16 @@ public class DeltaServiceTest extends ServiceTestBase {
                 frFR.getId(),
                 "chaîne active");
 
-        PullRun pullRunWithRevertedTranslations = pullRunService.createPullRun(repository);
-        pullRunService.associatePullRunToTextUnitIds(
+        PullRun pullRunWithRevertedTranslations = createPullRunForTest(repository);
+        associatePullRunToTextUnitIds(
                 pullRunWithRevertedTranslations,
                 asset,
-                Arrays.asList(frFrUsedTuvOriginalValue.getId(), koKrUsedTuv.getId(), frFrUnusedTuv.getId()));
+                Arrays.asList(frFrUsedTuvOriginalValue, koKrUsedTuv, frFrUnusedTuv, rejectedTuv));
 
         deltas = deltaService.getDeltasForRuns(repository,
-                                               Arrays.asList(frFR, koKR),
-                                               Collections.singletonList(firstPushRun),
-                                               Collections.singletonList(pullRunWithRevertedTranslations));
+                Arrays.asList(frFR, koKR, roRO),
+                Collections.singletonList(firstPushRun),
+                Collections.singletonList(pullRunWithRevertedTranslations));
         Assert.assertEquals(0, deltas.getTranslationsPerLocale().size());
     }
 
@@ -494,18 +568,18 @@ public class DeltaServiceTest extends ServiceTestBase {
 
         PushRun firstPushRun = pushRunService.createPushRun(repository);
         pushRunService.associatePushRunToTextUnitIds(firstPushRun, asset,
-                                                     Collections.singletonList(usedTextUnit.getId()));
+                Collections.singletonList(usedTextUnit.getId()));
 
         TMTextUnitVariant frFrUsedTuv = tmService.addCurrentTMTextUnitVariant(
                 usedTextUnit.getId(),
                 frFR.getId(),
                 "chaîne active");
 
-        PullRun pullRunWithInitialTranslations = pullRunService.createPullRun(repository);
-        pullRunService.associatePullRunToTextUnitIds(
+        PullRun pullRunWithInitialTranslations = createPullRunForTest(repository);
+        associatePullRunToTextUnitIds(
                 pullRunWithInitialTranslations,
                 asset,
-                Collections.singletonList(frFrUsedTuv.getId()));
+                Collections.singletonList(frFrUsedTuv));
 
         TMTextUnitVariant koKrUsedTuv = tmService.addCurrentTMTextUnitVariant(
                 usedTextUnit.getId(),
@@ -552,5 +626,21 @@ public class DeltaServiceTest extends ServiceTestBase {
                 .map(DeltaLocaleDataDTO::getTranslationsByTextUnitName)
                 .flatMap(stringDeltaTranslationDTOMap -> stringDeltaTranslationDTOMap.values().stream())
                 .collect(Collectors.toList());
+    }
+
+    private PullRun createPullRunForTest(Repository repository) {
+        return pullRunService.getOrCreate(UUID.randomUUID().toString(), repository);
+    }
+
+    private void associatePullRunToTextUnitIds(PullRun pullRun, Asset asset, List<TMTextUnitVariant> tmTextUnitVariants) {
+        PullRunAsset pullRunAsset = pullRunAssetService.getOrCreate(pullRun, asset);
+        tmTextUnitVariants.stream().collect(
+                Collectors.groupingBy(
+                        tmTextUnitVariant -> tmTextUnitVariant.getLocale().getId(),
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                TMTextUnitVariant::getId,
+                                Collectors.toList())))
+                .forEach((localeId, perLocale) -> pullRunAssetService.replaceTextUnitVariants(pullRunAsset, localeId, perLocale));
     }
 }

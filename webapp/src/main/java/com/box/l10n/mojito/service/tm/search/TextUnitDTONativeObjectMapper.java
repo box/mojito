@@ -55,6 +55,7 @@ public class TextUnitDTONativeObjectMapper implements NativeObjectMapper<TextUni
         String doNotTranslate = cr.getString(idx++);
         t.setDoNotTranslate(Boolean.valueOf(doNotTranslate));
 
+
         return t;
     }
 

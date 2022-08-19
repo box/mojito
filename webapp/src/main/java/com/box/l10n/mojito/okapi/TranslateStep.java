@@ -8,6 +8,7 @@ import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
 import com.box.l10n.mojito.okapi.steps.OutputDocumentPostProcessingAnnotation;
 import com.box.l10n.mojito.service.tm.TranslatorWithInheritance;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
+import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.LocaleId;
@@ -20,6 +21,9 @@ import net.sf.okapi.common.skeleton.GenericSkeleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Configurable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author aloison
@@ -39,22 +43,31 @@ public class TranslateStep extends AbstractMd5ComputationStep {
     InheritanceMode inheritanceMode;
     RawDocument rawDocument;
     boolean rawDocumentProcessingEnabled = false;
+    boolean saveUsedTmTextUnitVariantIds = false;
+
+    /**
+     * This is the list of ids that have been used to generate the localized file and it can contain duplicates.
+     * (for file that contain dupliacted entries)
+     */
+    List<Long> usedTmTextUnitVariantIds = new ArrayList<>();
 
     /**
      * Creates the {@link TranslateStep} for a given asset.
      *
-     * @param asset            {@link Asset} that will be used to lookup translations
-     * @param repositoryLocale used to fetch translations. It can be different
-     *                         from the locale used in the Okapi pipeline ({@link #targetLocale}) in
-     *                         case the file needs to be generated for a tag that is different from the
-     *                         locale used for translation.
+     * @param asset                        {@link Asset} that will be used to lookup translations
+     * @param repositoryLocale             used to fetch translations. It can be different
+     *                                     from the locale used in the Okapi pipeline ({@link #targetLocale}) in
+     *                                     case the file needs to be generated for a tag that is different from the
+     *                                     locale used for translation.
      * @param inheritanceMode
      * @param status
+     * @param saveUsedTmTextUnitVariantIds
      */
-    public TranslateStep(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, Status status) {
+    public TranslateStep(Asset asset, RepositoryLocale repositoryLocale, InheritanceMode inheritanceMode, Status status, boolean saveUsedTmTextUnitVariantIds) {
         this.asset = asset;
         this.inheritanceMode = inheritanceMode;
         this.repositoryLocale = repositoryLocale;
+        this.saveUsedTmTextUnitVariantIds = saveUsedTmTextUnitVariantIds;
 
         StatusFilter statusFilter = getStatusFilter(status);
 
@@ -107,7 +120,13 @@ public class TranslateStep extends AbstractMd5ComputationStep {
 
         if (textUnit.isTranslatable()) {
 
-            String translation = translatorWithInheritance.getTranslation(source, md5);
+            TextUnitDTO textUnitDTO = translatorWithInheritance.getTextUnitDTO(md5);
+
+            if (saveUsedTmTextUnitVariantIds && textUnitDTO != null) {
+                usedTmTextUnitVariantIds.add(textUnitDTO.getTmTextUnitVariantId());
+            }
+
+            String translation = translatorWithInheritance.getTranslationFromTextUnitDTO(textUnitDTO, source);
 
             if (translation == null && InheritanceMode.REMOVE_UNTRANSLATED.equals(inheritanceMode)) {
                 logger.debug("Remove untranslated text unit");
@@ -157,5 +176,9 @@ public class TranslateStep extends AbstractMd5ComputationStep {
             event = new Event(EventType.TEXT_UNIT, textUnit);
         }
         return event;
+    }
+
+    public List<Long> getUsedTmTextUnitVariantIds() {
+        return usedTmTextUnitVariantIds;
     }
 }

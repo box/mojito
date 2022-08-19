@@ -34,6 +34,7 @@ public class TextUnitDTO {
     private Long assetTextUnitId;
     private DateTime tmTextUnitCreatedDate;
     private boolean doNotTranslate;
+    private boolean isVirtual;
 
     public Long getTmTextUnitId() {
         return tmTextUnitId;

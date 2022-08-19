@@ -114,7 +114,7 @@ public class DeltaService {
     public DeltaResponseDTO getDeltasForRuns(Repository repository,
                                              List<Locale> locales,
                                              List<PushRun> pushRuns,
-                                             List<PullRun> pullRuns) {
+                                             List<PullRun> pullRuns) throws PushRunsMissingException {
 
         if (locales == null || locales.size() == 0) {
             locales = repositoryService.getRepositoryLocalesWithoutRootLocale(repository)
@@ -123,7 +123,7 @@ public class DeltaService {
         List<Long> localeIds = getIds(locales);
 
         if (pushRuns == null || pushRuns.size() == 0) {
-            throw new IllegalArgumentException("Missing value for pushRuns!");
+            throw new PushRunsMissingException("Missing value for pushRuns!");
         }
         List<Long> pushRunIds = getIds(pushRuns);
         List<Long> pullRunIds = getIds(pullRuns);

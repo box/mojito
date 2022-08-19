@@ -5,6 +5,7 @@ import com.box.l10n.mojito.entity.GitBlame;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ThirdPartyTextUnit;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
+import com.box.l10n.mojito.service.asset.AssetRepository;
 import com.box.l10n.mojito.service.assetTextUnit.AssetTextUnitRepository;
 import com.box.l10n.mojito.service.pollableTask.Pollable;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -22,12 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +39,9 @@ public class GitBlameService {
 
     @Autowired
     TextUnitSearcher textUnitSearcher;
+
+    @Autowired
+    AssetRepository assetRepository;
 
     @Autowired
     AssetTextUnitRepository assetTextUnitRepository;
@@ -89,8 +88,8 @@ public class GitBlameService {
             enrichTextUnitsWithGitBlame(gitBlameWithUsages);
             enrichTextUnitsWithScreenshots(gitBlameWithUsages);
             enrichTextUnitsWithThirdPartyTextUnitId(gitBlameWithUsages);
+            enrichTextUnitsWithAssetVirtualTag(gitBlameWithUsages);
         }
-
         return gitBlameWithUsages;
     }
 
@@ -105,6 +104,7 @@ public class GitBlameService {
 
         for (TextUnitDTO textUnitDTO : textUnitDTOS) {
             GitBlameWithUsage gitBlameWithUsage = new GitBlameWithUsage();
+            gitBlameWithUsage.setAssetId(textUnitDTO.getAssetId());
             gitBlameWithUsage.setTmTextUnitId(textUnitDTO.getTmTextUnitId());
             gitBlameWithUsage.setAssetTextUnitId(textUnitDTO.getAssetTextUnitId());
             gitBlameWithUsage.setTextUnitName(textUnitDTO.getName());
@@ -174,6 +174,21 @@ public class GitBlameService {
             GitBlameWithUsage gitBlameWithUsage = gitBlameWithUsagesByTmTextUnitId.get(thirdPartyTextUnit.getTmTextUnit().getId());
             gitBlameWithUsage.setThirdPartyTextUnitId(thirdPartyTextUnit.getThirdPartyId());
         }
+    }
+
+    void enrichTextUnitsWithAssetVirtualTag(List<GitBlameWithUsage> gitBlameWithUsages) {
+        Set<Long> assetIds = getAssetIds(gitBlameWithUsages);
+        Set<Long> virtualAssetIds = assetRepository.getVirtualAssetIds(assetIds);
+
+        gitBlameWithUsages.forEach(gitBlameWithUsage -> {
+            gitBlameWithUsage.setVirtual(
+                    virtualAssetIds.contains(gitBlameWithUsage.getAssetId())
+            );
+        });
+    }
+
+    private Set<Long> getAssetIds(List<GitBlameWithUsage> gitBlameWithUsages) {
+        return gitBlameWithUsages.stream().map(GitBlameWithUsage::getAssetId).collect(Collectors.toSet());
     }
 
     /**

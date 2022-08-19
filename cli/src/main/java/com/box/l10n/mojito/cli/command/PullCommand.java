@@ -28,6 +28,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * @author jaurambault
@@ -87,6 +88,10 @@ public class PullCommand extends Command {
     @Parameter(names = {"--async-ws"}, required = false, description = "Use async WS, use for processing big files (should become default eventually)")
     Boolean asyncWS = false;
 
+    @Parameter(names = {"--record-pull-run"}, required = false, description = "To record the list of text unit variants that are used to generate the files, through an abstraction called `pull run`. " +
+            "A file will be generated with the pull run name.")
+    Boolean recordPullRun = false;
+
     @Autowired
     AssetClient assetClient;
 
@@ -119,6 +124,8 @@ public class PullCommand extends Command {
      */
     Map<String, Boolean> localeFullyTranslated = new HashMap<>();
 
+    String pullRunName;
+
     @Override
     public void execute() throws CommandException {
 
@@ -132,6 +139,7 @@ public class PullCommand extends Command {
 
         commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
+        initPullRunName();
         initRepositoryLocalesMapAndRootRepositoryLocale(repository);
         localeMappings = localeMappingHelper.getLocaleMapping(localeMappingParam);
 
@@ -148,7 +156,24 @@ public class PullCommand extends Command {
             }
         }
 
+        writePullRunFileIfNeeded();
+
         consoleWriter.fg(Color.GREEN).newLine().a("Finished").println(2);
+    }
+
+    void initPullRunName() {
+        if (recordPullRun) {
+            pullRunName = UUID.randomUUID().toString();
+        }
+    }
+
+    void writePullRunFileIfNeeded() {
+        if (recordPullRun) {
+            Path pullRunOuputFile = commandDirectories.getTargetDirectoryPath().resolve(PullRunHelper.PULL_RUN_NAME_FILE);
+            consoleWriter.a("Writing pull run name to file: ").fg(Color.CYAN)
+                    .a(commandDirectories.relativizeWithUserDirectory(pullRunOuputFile).toString()).println();
+            commandHelper.writeFileContent(pullRunName, pullRunOuputFile);
+        }
     }
 
     /**
@@ -303,8 +328,8 @@ public class PullCommand extends Command {
                         sourceFileMatch.getFileType().getFilterConfigIdOverride(),
                         filterOptions,
                         status,
-                        inheritanceMode
-                );
+                        inheritanceMode,
+                        pullRunName);
             } catch (Exception e) {
                 count++;
                 consoleWriter.fg(Color.RED).a("Attempt ").a(count).a("/").a(maxCount).a(" for locale: ").a(repositoryLocale.getLocale().getBcp47Tag()).a(" failed. Retrying...").println();
@@ -328,7 +353,8 @@ public class PullCommand extends Command {
                 sourceFileMatch.getFileType().getFilterConfigIdOverride(),
                 filterOptions,
                 status,
-                inheritanceMode);
+                inheritanceMode,
+                pullRunName);
         commandHelper.waitForPollableTask(localizedAssetForContentAsync.getId());
         String jsonOutput = commandHelper.pollableTaskClient.getPollableTaskOutput(localizedAssetForContentAsync.getId());
         localizedAsset = objectMapper.readValueUnchecked(jsonOutput, LocalizedAssetBody.class);

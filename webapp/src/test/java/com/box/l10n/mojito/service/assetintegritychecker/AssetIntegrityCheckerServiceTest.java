@@ -79,7 +79,9 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
             xliffDataFactory.createTextUnit(1L, "tu1", sourceTextUnit, null)
         ));
 
-        PollableFuture<Asset> assetPollableFuture = assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), "source-asset-path.xliff", sourceXliff, false, null, null, null, null);
+        PollableFuture<Asset> assetPollableFuture =
+                assetService.addOrUpdateAssetAndProcessIfNeeded(repository.getId(), "source-asset-path.xliff",
+                                                                sourceXliff, false, null, null, null, null, null);
         pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
 
         Long tmId = repository.getTm().getId();
