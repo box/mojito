@@ -7,6 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 /** @author jeanaurambault */
@@ -16,6 +17,12 @@ public interface BranchStatisticRepository
 
   @EntityGraph(value = "BranchStatisticGraph", type = EntityGraph.EntityGraphType.LOAD)
   List<BranchStatistic> findByIdIn(List<Long> branchStatisticIds, Sort sort);
+
+  @EntityGraph(
+      value = "BranchStatisticGraphWithoutTextUnits",
+      type = EntityGraph.EntityGraphType.LOAD)
+  @Query("select bs " + "from BranchStatistic bs " + "where bs.id in ?1 and bs.totalCount > ?2")
+  List<BranchStatistic> findAllGreaterThanById(List<Long> branchStatisticIds, Long totalCountLte);
 
   BranchStatistic findByBranch(Branch branch);
 }

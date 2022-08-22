@@ -1,5 +1,6 @@
 import Branch from "./Branch"
 import BranchTextUnitStatistics from "./BranchTextUnitStatistics";
+const totalCountLte = 30000;
 
 export default class BranchStatisticsContent {
     constructor() {
@@ -18,7 +19,7 @@ export default class BranchStatisticsContent {
 
         /**
          *
-         * @type {branchStatisticsContent[]}
+         * @type {BranchTextUnitStatistics[]}
          */
         this.branchTextUnitStatistics = [];
 
@@ -34,19 +35,29 @@ export default class BranchStatisticsContent {
          */
         this.totalCount = null;
 
+        /**
+         *
+         * @type {boolean}
+         */
+        this.isTruncated = false;
+
     }
 
     static toContent(json) {
         let result = new BranchStatisticsContent();
-
         if (json) {
             result.id = json.id;
             result.branch = Branch.toBranch(json.branch);
-            result.branchTextUnitStatistics = BranchTextUnitStatistics.toBranchTextUnitStatisticsList(json.branchTextUnitStatistics);
             result.forTranslationCount = json.forTranslationCount;
             result.totalCount = json.totalCount;
-        }
 
+            if (result.totalCount > totalCountLte){
+                result.isTruncated = true;
+            }
+            else {
+                result.branchTextUnitStatistics = BranchTextUnitStatistics.toBranchTextUnitStatisticsList(json.branchTextUnitStatistics);
+            }
+        }
 
         return result;
     }

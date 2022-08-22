@@ -27,6 +27,19 @@ import javax.persistence.*;
               @NamedAttributeNode(value = "screenshots"),
               @NamedAttributeNode(value = "repository"),
             }))
+@NamedEntityGraph(
+    name = "BranchStatisticGraphWithoutTextUnits",
+    attributeNodes = {
+      @NamedAttributeNode(value = "branch", subgraph = "branchGraph"),
+    },
+    subgraphs = {
+      @NamedSubgraph(
+          name = "branchGraph",
+          attributeNodes = {
+            @NamedAttributeNode(value = "screenshots"),
+            @NamedAttributeNode(value = "repository"),
+          })
+    })
 public class BranchStatistic extends BaseEntity {
 
   @JsonView(View.BranchStatistic.class)

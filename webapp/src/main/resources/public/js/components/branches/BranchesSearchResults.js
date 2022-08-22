@@ -71,9 +71,14 @@ class BranchesSearchResults extends React.Component {
 
         rows.push(this.renderBranchStatisticSummary(branchStatistic));
 
-        branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic) => {
-            rows.push(this.renderBranchTextUnitStatistic(branchStatistic, branchTextUnitStatistic));
-        });
+        if (branchStatistic.isTruncated === false){
+            branchStatistic.branchTextUnitStatistics.map((branchTextUnitStatistic) => {
+                rows.push(this.renderBranchTextUnitStatistic(branchStatistic, branchTextUnitStatistic));
+            });
+        }
+        else {
+            rows.push(this.renderBranchTruncatedNotification(branchStatistic));
+        }
 
         rows.push(this.renderBranchStatisticSeparator(branchStatistic));
 
@@ -267,6 +272,14 @@ class BranchesSearchResults extends React.Component {
         return (
             <Collapse key={`renderBranchStatisticSeparator-${branchStatistic.id}`} in={this.isBranchStatisticOpen(branchStatistic)}>
                 <Row className="mbl"></Row>
+            </Collapse>
+        );
+    }
+
+    renderBranchTruncatedNotification(branchStatistic) {
+        return (
+            <Collapse key={`renderBranchStatisticSeparator-${branchStatistic.id}`} in={this.isBranchStatisticOpen(branchStatistic)}>
+                <Row className="mbl"><FormattedMessage id="branches.searchResults.truncated"></FormattedMessage></Row>
             </Collapse>
         );
     }
