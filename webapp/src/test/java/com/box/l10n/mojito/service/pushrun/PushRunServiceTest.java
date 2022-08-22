@@ -8,7 +8,6 @@ import com.box.l10n.mojito.entity.TM;
 import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
-import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMRepository;
@@ -123,7 +122,7 @@ public class PushRunServiceTest extends ServiceTestBase {
         TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tm.getId(), asset.getId(), "hello_world 2", "Hello World!",
                                                          "Comments about hello world");
 
-        pushRunService.associatePushRunToTextUnits(pushRun, asset, Arrays.asList(tmTextUnit1, tmTextUnit2));
+        pushRunService.associatePushRunToTextUnitIds(pushRun, asset, Arrays.asList(tmTextUnit1.getId(), tmTextUnit2.getId()));
         List<TMTextUnit> textUnits = pushRunService.getPushRunTextUnits(pushRun, PageRequest.of(0, Integer.MAX_VALUE));
         Assert.assertEquals(2, textUnits.size());
     }
@@ -138,13 +137,13 @@ public class PushRunServiceTest extends ServiceTestBase {
         TMTextUnit tmTextUnit2 = tmService.addTMTextUnit(tm.getId(), asset.getId(), "hello_world 2", "Hello World!",
                                                          "Comments about hello world");
 
-        pushRunService.associatePushRunToTextUnits(pushRun, asset, Arrays.asList(tmTextUnit1, tmTextUnit2));
+        pushRunService.associatePushRunToTextUnitIds(pushRun, asset, Arrays.asList(tmTextUnit1.getId(), tmTextUnit2.getId()));
         List<TMTextUnit> textUnits = pushRunService.getPushRunTextUnits(pushRun, PageRequest.of(0, Integer.MAX_VALUE));
         Assert.assertEquals(2, textUnits.size());
 
         TMTextUnit tmTextUnit3 = tmService.addTMTextUnit(tm.getId(), asset.getId(), "hello_world 3", "Hello World!",
                                                          "Comments about hello world");
-        pushRunService.associatePushRunToTextUnits(pushRun, asset, Collections.singletonList(tmTextUnit3));
+        pushRunService.associatePushRunToTextUnitIds(pushRun, asset, Collections.singletonList(tmTextUnit3.getId()));
         textUnits = pushRunService.getPushRunTextUnits(pushRun, PageRequest.of(0, Integer.MAX_VALUE));
         Assert.assertEquals(1, textUnits.size());
         Assert.assertTrue(textUnits.stream().findFirst().isPresent());
