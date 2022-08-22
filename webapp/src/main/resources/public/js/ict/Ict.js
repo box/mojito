@@ -85,7 +85,7 @@ class Ict {
         return string;
     }
 
-    wrapNode(node, onClick) {
+    wrapNode(node, onClick, addMTCSS) {
         var textUnits = IctMetadataExtractor.getTextUnits(this.getStringFromNode(node));
 
         if (node.nodeType === Node.TEXT_NODE) {
@@ -117,12 +117,12 @@ class Ict {
                     if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute('placeholder')) {
                         node.setAttribute('placeholder', response.data)
                     } else {
-                        var spanMT = document.createElement('span');
-                        spanMT.innerHTML = "<span style=\"color:#FF9966\">*</span>"
-                        spanMT.setAttribute('id', 'mojito-mt')
                         textUnits[0]['isMachineTranslated'] = true
                         node.textContent = response.data;
-                        node.appendChild(spanMT)
+                        node.classList.add("mojito-mt-ict-string-static");
+                        node.addEventListener("click", (e) => addMTCSS(e, node))
+                        node.addEventListener("mouseenter", (e) => addMTCSS(e, node))
+                        node.addEventListener("mouseleave", (e) => addMTCSS(e, node))
                     }
                 }
             });
@@ -161,10 +161,14 @@ class Ict {
         }
     }
 
+    addMTCSS(e, node) {
+        node.classList.add("mojito-mt-ict-string-static");
+    }
+
     processNode(node) {
         var hasMetaData = IctMetadataExtractor.hasMetadata(this.getStringFromNode(node));
         if (hasMetaData) {
-            this.wrapNode(node, this.onClickBehavior.bind(this));
+            this.wrapNode(node, this.onClickBehavior.bind(this), this.addMTCSS.bind(this));
             this.removeTagsBlockFromNode(node);
         }
     }
