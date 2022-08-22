@@ -127,16 +127,4 @@ public class BranchStatisticSpecification {
       }
     };
   }
-
-  public static SingleParamSpecification<BranchStatistic> totalCountLessThanOrEqualsTo(
-      final long count) {
-
-    return new SingleParamSpecification<BranchStatistic>(count) {
-      @Override
-      public Predicate toPredicate(
-          Root<BranchStatistic> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
-        return builder.lessThanOrEqualTo(root.get(BranchStatistic_.totalCount), count);
-      }
-    };
-  }
 }
