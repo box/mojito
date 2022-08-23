@@ -126,6 +126,7 @@ class GitBlameInfoModal extends React.Component {
         return this.props.textUnit === null ? "" :
             (
                 <div className="panel-body">
+                    {this.displayInfoWithId("textUnit.gitBlameModal.isVirtual", this.getVirtual())}
                     {this.displayInfo("TmTextUnitId", this.props.textUnit.getTmTextUnitId())}
                     {this.displayInfo("TmTextUnitVariantId", this.props.textUnit.getTmTextUnitVariantId())}
                     {this.displayInfo("TmTextUnitCurrentVariantId", this.props.textUnit.getTmTextUnitCurrentVariantId())}
@@ -207,6 +208,14 @@ class GitBlameInfoModal extends React.Component {
     getThirdPartyTextUnitId = () => {
         try {
             return this.props.gitBlameWithUsage.thirdPartyTextUnitId;
+        } catch (e) {
+            return " - ";
+        }
+    };
+
+    getVirtual = () => {
+        try {
+            return this.props.gitBlameWithUsage.isVirtual.toString();
         } catch (e) {
             return " - ";
         }
