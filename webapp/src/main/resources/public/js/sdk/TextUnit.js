@@ -97,6 +97,14 @@ class TextUnit {
         this.data.assetPath = assetPath;
     }
 
+    getVirtual() {
+        return this.data.isVirtual;
+    }
+
+    setVirtual(virtual) {
+        this.data.isVirtual = virtual;
+    }
+
     getSource() {
         return this.data.source;
     }
