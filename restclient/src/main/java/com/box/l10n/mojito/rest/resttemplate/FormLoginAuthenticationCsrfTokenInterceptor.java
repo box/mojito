@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
+
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URI;
@@ -46,7 +47,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
     public static final String CSRF_HEADER_NAME = "X-CSRF-TOKEN";
     public static final String COOKIE_SESSION_NAME = "JSESSIONID";
 
-    
+
     @Autowired
     FormLoginConfig formLoginConfig;
 
@@ -56,7 +57,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
      */
     @Autowired
     AuthenticatedRestTemplate authRestTemplate;
-    
+
     @Autowired
     ResttemplateConfig resttemplateConfig;
 
@@ -237,16 +238,18 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
     }
 
     /**
-     * @param request the request, containing method, URI, and headers
+     * @param request   the request, containing method, URI, and headers
      * @param csrfToken the CSRF token to be injected into the request header
      */
     protected void injectCsrfTokenIntoHeader(HttpRequest request, CsrfToken csrfToken) {
-        if (csrfToken == null) {
-            throw new SessionAuthenticationException("There is no CSRF token to inject");
-        }
+        if (!resttemplateConfig.isCsrfDisable()) {
+            if (csrfToken == null) {
+                throw new SessionAuthenticationException("There is no CSRF token to inject");
+            }
 
-        logger.debug("Injecting CSRF token into request {} header: {}", request.getURI(), csrfToken.getToken());
-        request.getHeaders().add(csrfToken.getHeaderName(), csrfToken.getToken());
+            logger.debug("Injecting CSRF token into request {} header: {}", request.getURI(), csrfToken.getToken());
+            request.getHeaders().add(csrfToken.getHeaderName(), csrfToken.getToken());
+        }
     }
 
     /**
@@ -262,9 +265,11 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
         logger.debug("Start by loading up the login form to get a valid unauthenticated session and CSRF token");
         ResponseEntity<String> loginResponseEntity = restTemplateForAuthenticationFlow.getForEntity(authRestTemplate.getURIForResource(formLoginConfig.getLoginFormPath()), String.class);
 
-        latestCsrfToken = getCsrfTokenFromLoginHtml(loginResponseEntity.getBody());
+        if (!resttemplateConfig.isCsrfDisable()) {
+            latestCsrfToken = getCsrfTokenFromLoginHtml(loginResponseEntity.getBody());
+            logger.debug("Update CSRF token for interceptor ({}) from login form", latestCsrfToken.getToken());
+        }
         latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
-        logger.debug("Update CSRF token for interceptor ({}) from login form", latestCsrfToken.getToken());
 
         MultiValueMap<String, Object> loginPostParams = new LinkedMultiValueMap<>();
         loginPostParams.add("username", credentialProvider.getUsername());
@@ -278,15 +283,15 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
         // and the redirect (from location header) maps to the login redirect path from the config. 
         URI locationURI = URI.create(postLoginResponseEntity.getHeaders().get("Location").get(0));
         String expectedLocation = resttemplateConfig.getContextPath() + "/" + formLoginConfig.getLoginRedirectPath();
-        
+
         if (postLoginResponseEntity.getStatusCode().equals(HttpStatus.FOUND)
                 && expectedLocation.equals(locationURI.getPath())) {
 
-            latestCsrfToken = getCsrfTokenFromEndpoint(authRestTemplate.getURIForResource(formLoginConfig.getCsrfTokenPath()));
+            if (!resttemplateConfig.isCsrfDisable()) {
+                latestCsrfToken = getCsrfTokenFromEndpoint(authRestTemplate.getURIForResource(formLoginConfig.getCsrfTokenPath()));
+                logger.debug("Update CSRF token interceptor in AuthRestTempplate ({})", latestCsrfToken.getToken());
+            }
             latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
-
-            logger.debug("Update CSRF token interceptor in AuthRestTempplate ({})", latestCsrfToken.getToken());
-
         } else {
             throw new SessionAuthenticationException("Authentication failed.  Post login status code = " + postLoginResponseEntity.getStatusCode()
                     + ", location = [" + locationURI.getPath() + "], expected location = [" + expectedLocation + "]");
