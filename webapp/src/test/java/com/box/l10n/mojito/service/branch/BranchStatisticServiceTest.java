@@ -290,7 +290,7 @@ public class BranchStatisticServiceTest extends ServiceTestBase {
         assertFalse(itBranch1.hasNext());
 
         AssetContent assetContentBranch1 = assetContentService.createAssetContent(branchTestData.getAsset(), "", false, branch1);
-        assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContentBranch1.getId(), null, null, null, null).get();
         branchStatisticService.computeAndSaveBranchStatistics(branch1);
 
         BranchStatistic branchStatisticForBranch1AfterDelete = getByBranchWithBranchTextUnitStatistics(branch1);

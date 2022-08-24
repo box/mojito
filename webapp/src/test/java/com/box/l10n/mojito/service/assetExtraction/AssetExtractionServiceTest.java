@@ -100,7 +100,8 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Asset asset = assetService.createAsset(repository.getId(), assetPath, false);
         AssetContent assetContent = assetContentService.createAssetContent(asset, content);
 
-        assetExtractionService.processAssetAsync(assetContent.getId(), filterConfigIdOverride, filterOptions, null).get();
+        assetExtractionService.processAssetAsync(assetContent.getId(), null, filterConfigIdOverride, filterOptions,
+                                                 null).get();
 
         Asset processedAsset = assetRepository.findById(asset.getId()).orElse(null);
 
@@ -189,7 +190,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
         Asset asset = assetService.createAsset(repository.getId(), "path/to/fake/file-with-unsupported.ext", false);
         AssetContent assetContent = assetContentService.createAssetContent(asset, "fake-content");
-        PollableFuture<Void> pollableTaskResult = assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null);
+        PollableFuture<Void> pollableTaskResult = assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null, null);
 
         // Wait for the processing to finish
         try {
@@ -1244,7 +1245,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
         Branch branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
 
         AssetContent assetContent = assetContentService.createAssetContent(asset, masterContent, false, master);
-        assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(assetContent.getId(), null, null, null, null).get();
 
         checkLastSuccessfulMultiBranchState(asset,
                 ImmutableList.of("master"),
@@ -1262,7 +1263,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "string1=content1\n";
 
         AssetContent branch1AssetContent = assetContentService.createAssetContent(asset, branch1Content, false, branch1);
-        assetExtractionService.processAssetAsync(branch1AssetContent.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(branch1AssetContent.getId(), null, null, null, null).get();
 
         checkLastSuccessfulMultiBranchState(asset,
                 ImmutableList.of("master", "branch1"),
@@ -1281,7 +1282,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "string3=content3\n";
 
         AssetContent branch2AssetContent = assetContentService.createAssetContent(asset, branch2Content, false, branch2);
-        assetExtractionService.processAssetAsync(branch2AssetContent.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(branch2AssetContent.getId(), null, null, null, null).get();
 
         checkLastSuccessfulMultiBranchState(asset,
                 ImmutableList.of("master", "branch1", "branch2"),
@@ -1315,7 +1316,7 @@ public class AssetExtractionServiceTest extends ServiceTestBase {
                 + "string3=content3\n";
 
         AssetContent branch2InMasterAssetContent = assetContentService.createAssetContent(asset, branch2ContentInMaster, false, master);
-        assetExtractionService.processAssetAsync(branch2InMasterAssetContent.getId(), null, null, null).get();
+        assetExtractionService.processAssetAsync(branch2InMasterAssetContent.getId(), null, null, null, null).get();
 
         checkLastSuccessfulMultiBranchState(asset,
                 ImmutableList.of("master", "branch1"),

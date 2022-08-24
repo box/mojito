@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
+import com.ibm.icu.text.MessageFormat;
+import org.apache.commons.lang3.StringUtils;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.param.Param;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
@@ -66,6 +69,14 @@ public class PushCommand extends Command {
     @Parameter(names = Param.PUSH_TYPE_LONG, arity = 1, required = false, description = Param.PUSH_TYPE_DESCRIPTION)
     PushService.PushType pushType = PushService.PushType.NORMAL;
 
+    @Parameter(names = {Param.COMMIT_HASH_LONG, Param.COMMIT_HASH_SHORT}, arity = 1, required = false, description =
+            Param.COMMIT_HASH_DESCRIPTION)
+    String commitHash;
+
+    @Parameter(names = {Param.RECORD_PUSH_RUN_LONG, Param.RECORD_PUSH_RUN_SHORT}, required = false, description =
+            Param.RECORD_PUSH_RUN_DESCRIPTION)
+    Boolean recordPushRun = false;
+
     @Parameter(names = {"--asset-mapping", "-am"}, required = false, description = "Asset mapping, format: \"local1:remote1;local2:remote2\"", converter = AssetMappingConverter.class)
     Map<String, String> assetMapping;
 
@@ -89,7 +100,42 @@ public class PushCommand extends Command {
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
+        if (commitHash != null && StringUtils.isBlank(commitHash)) {
+            throw new CommandException(
+                    MessageFormat.format(
+                            "The value provided with the {0} parameter can not be blank/whitespace.",
+                            Param.COMMIT_HASH_LONG));
+        }
+
+        if (commitHash != null && !recordPushRun) {
+            throw new CommandException(
+                    MessageFormat.format(
+                            "Whenever {0} is provided, {1} must also be passed in as true.",
+                            Param.COMMIT_HASH_LONG,
+                            Param.RECORD_PUSH_RUN_LONG));
+        }
+
+        if (recordPushRun && commitHash == null) {
+            throw new CommandException(
+                    MessageFormat.format(
+                            "Whenever {0} is set to true, {1} must also be passed in with a commit hash.",
+                            Param.RECORD_PUSH_RUN_LONG,
+                            Param.COMMIT_HASH_LONG));
+        }
+
+        if (recordPushRun && pushType == PushService.PushType.SEND_ASSET_NO_WAIT_NO_DELETE) {
+            throw new IllegalArgumentException(
+                    MessageFormat.format(
+                            "The SEND_ASSET_NO_WAIT_NO_DELETE push type can not be used in conjunction with {0} and {1} currently.",
+                            Param.COMMIT_HASH_LONG,
+                            Param.RECORD_PUSH_RUN_LONG));
+        }
+
+        String pushRunName = UUID.randomUUID().toString();
+        ArrayList<FileMatch> sourceFileMatches = commandHelper.getSourceFileMatches(commandDirectories,
+                                                                                    fileType,
+                                                                                    sourceLocale,
+                                                                                    sourcePathFilterRegex);
 
         Stream<SourceAsset> sourceAssetStream = sourceFileMatches.stream()
                 .sorted(Comparator.comparing(FileMatch::getSourcePath))
@@ -104,13 +150,16 @@ public class PushCommand extends Command {
                     sourceAsset.setContent(assetContent);
                     sourceAsset.setExtractedContent(false);
                     sourceAsset.setRepositoryId(repository.getId());
+                    sourceAsset.setPushRunName(recordPushRun ? pushRunName : null);
                     sourceAsset.setFilterConfigIdOverride(sourceFileMatch.getFileType().getFilterConfigIdOverride());
-                    sourceAsset.setFilterOptions(commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(), filterOptionsParam));
+                    sourceAsset.setFilterOptions(commandHelper.getFilterOptionsOrDefaults(sourceFileMatch.getFileType(),
+                                                                                          filterOptionsParam));
 
                     return sourceAsset;
                 });
 
         pushService.push(repository, sourceAssetStream, branchName, pushType);
+        pushService.associatePushRun(repository, pushRunName, commitHash);
 
         consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
     }

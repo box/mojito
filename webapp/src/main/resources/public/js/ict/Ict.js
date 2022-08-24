@@ -13,6 +13,7 @@ class Ict {
         this.messages = messages;
         this.locale = locale;
         this.actionButtons = [];
+        this.mtEnabled = false;
     }
 
     activate() {
@@ -33,6 +34,10 @@ class Ict {
         if (this.ictModalContainer) {
             this.ictModalContainer.setActionButtons(actionButtons);
         }
+    }
+
+    setMTEnabled(mtEnabled) {
+        this.mtEnabled = mtEnabled;
     }
 
     getNodesChildOf(node) {
@@ -80,25 +85,46 @@ class Ict {
         return string;
     }
 
-    wrapNode(node, onClick) {
+    wrapNode(node, onClick, addMTCSS) {
         var textUnits = IctMetadataExtractor.getTextUnits(this.getStringFromNode(node));
 
         if (node.nodeType === Node.TEXT_NODE) {
             node = node.parentNode;
         }
 
+
+        var mtRequired = this.mtEnabled && textUnits[0]['isTranslated'] === 'false';
+        var eventListenerClassName = mtRequired ? "mojito-ict-string-mt" : "mojito-ict-string-active"
+
         if (!node.classList.contains("mojito-ict-string")) {
-           try {
+            try {
                 node.className += " mojito-ict-string";
             } catch (e) {
             }
 
             node.addEventListener("mouseenter", (e) => {
-                e.target.classList.add("mojito-ict-string-active");
+                e.target.classList.add(eventListenerClassName);
             });
 
             node.addEventListener("mouseleave", (e) => {
-                e.target.classList.remove("mojito-ict-string-active");
+                e.target.classList.remove(eventListenerClassName);
+            });
+        }
+
+        if (mtRequired) {
+            chrome.runtime.sendMessage(textUnits[0], function (response) {
+                if (response.data && node.textContent !== response.data) {
+                    if (node.nodeType === Node.ELEMENT_NODE && node.getAttribute('placeholder')) {
+                        node.setAttribute('placeholder', response.data)
+                    } else {
+                        textUnits[0]['isMachineTranslated'] = true
+                        node.textContent = response.data;
+                        node.classList.add("mojito-mt-ict-string-static");
+                        node.addEventListener("click", (e) => addMTCSS(e, node))
+                        node.addEventListener("mouseenter", (e) => addMTCSS(e, node))
+                        node.addEventListener("mouseleave", (e) => addMTCSS(e, node))
+                    }
+                }
             });
         }
 
@@ -135,11 +161,14 @@ class Ict {
         }
     }
 
+    addMTCSS(e, node) {
+        node.classList.add("mojito-mt-ict-string-static");
+    }
+
     processNode(node) {
         var hasMetaData = IctMetadataExtractor.hasMetadata(this.getStringFromNode(node));
-
         if (hasMetaData) {
-            this.wrapNode(node, this.onClickBehavior.bind(this));
+            this.wrapNode(node, this.onClickBehavior.bind(this), this.addMTCSS.bind(this));
             this.removeTagsBlockFromNode(node);
         }
     }

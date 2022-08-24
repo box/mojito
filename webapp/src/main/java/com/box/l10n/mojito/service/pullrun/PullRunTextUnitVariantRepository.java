@@ -21,6 +21,8 @@ public interface PullRunTextUnitVariantRepository extends JpaRepository<PullRunT
 
     List<PullRunTextUnitVariant> findByPullRunAsset(PullRunAsset pullRunAsset, Pageable pageable);
 
+    List<PullRunTextUnitVariant> findByTmTextUnitVariant_TmTextUnitIdAndLocaleId(Long tmTextUnitId, Long localeId);
+
     @Query("select prtuv.tmTextUnitVariant from PullRunTextUnitVariant prtuv " +
             "inner join prtuv.pullRunAsset pra " +
             "inner join pra.pullRun pr where pr = :pullRun")

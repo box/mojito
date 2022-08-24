@@ -2,6 +2,16 @@
     border: 1px solid green !important;
 }
 
+.mojito-ict-string-mt {
+    border: 1px solid orange !important;
+}
+
+.mojito-mt-ict-string-static:after {
+    content: " MT";
+    color: orange;
+    font-size: 8px;
+}
+
 .mojito-ict-popup {
     width: 300px;
 }

@@ -6,6 +6,7 @@ import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 
+import java.sql.Date;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -57,6 +58,7 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
             "where a.repository = :repository " +
             "and a.deleted = false " +
             "and tuv.locale in :locales " +
+            "and tuv.includedInLocalizedFile = true " +
             "and tuv.createdDate >= :fromDate " +
             "and tuv.createdDate < :toDate " +
             "order by tuv.id asc ")
@@ -97,6 +99,7 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
             "inner join Asset a on a = tu.asset " +
             "where a.repository = :repository " +
             "and tuv.locale in :locales " +
+            "and tuv.includedInLocalizedFile = true " + // Exclude rejected translations
             "and pra.pushRun in :pushRuns")
     Page<TMTextUnitVariant> findAllVariantsForPushRuns(
             @Param("repository") Repository repository,
@@ -115,6 +118,10 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
      * <p>
      * To note: unused text units and deleted assets are also included,
      * as this method is indented to provided deltas relevant for a specific snapshot.
+     *
+     * @param translationsFromDate A java.sql.Date type needs to be provided for native queries, otherwise,
+     *                             if Joda Time's DateTime is used, that parameter is passed in as a
+     *                             VARBINARY to the SQL query and will silently mis-behave.
      */
     @Query(nativeQuery = true,
             value = "select distinct base_tu.name as tmTextUnitName, " +
@@ -151,12 +158,15 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
                     "                   and previous_tuv.locale_id = l.id " +
                     "                   and previous_tuv.text_unit_id = base_tu.id " +
                     "where " +
-                    "   previous_tuv.id is null " +
-                    "   or (latest_tuv.id != previous_tuv.id and latest_tuv.content_md5 != previous_tuv.content_md5) "
+                    "   latest_tuv.included_in_localized_file = true " + // Exclude rejected translations
+                    "   and base_tucv.created_date >= :translationsFromDate " +
+                    "   and (previous_tuv.id is null " +
+                    "       or (latest_tuv.id != previous_tuv.id and latest_tuv.content_md5 != previous_tuv.content_md5)) "
     )
     List<TextUnitVariantDelta> findDeltasForRuns(
             @Param("repositoryId") Long repositoryId,
             @Param("localeIds") List<Long> localeIds,
             @Param("pushRunIds") List<Long> pushRunIds,
-            @Param("pullRunIds") List<Long> pullRunIds);
+            @Param("pullRunIds") List<Long> pullRunIds,
+            @Param("translationsFromDate") Date translationsFromDate);
 }

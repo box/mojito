@@ -6,8 +6,9 @@ var ict = new Ict(enMessages, 'en');
 
 var config = {
     enabled: false,
+    mtEnabled: false,
     mojitoBaseUrl: '',
-    actionButtons: [],
+    actionButtons: []
 };
 
 chrome.storage.sync.get(config, (items) => {
@@ -16,6 +17,7 @@ chrome.storage.sync.get(config, (items) => {
         ict.activate();
         ict.setMojitoBaseUrl(items.mojitoBaseUrl);
         ict.setActionButtons(items.actionButtons);
+        ict.setMTEnabled(items.mtEnabled);
     }
 });
 
@@ -33,6 +35,10 @@ chrome.storage.onChanged.addListener((changes) => {
 
         if (key === 'actionButtons') {
             ict.setActionButtons(config.actionButtons);
+        }
+
+        if (key === 'mtEnabled' && config[key]) {
+            ict.setMTEnabled(config.mtEnabled)
         }
     }
 });

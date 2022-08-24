@@ -13,17 +13,19 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SourceAsset {
-
     private Long repositoryId;
     private String path;
     private String content;
     private String branch;
     private String branchCreatedByUsername;
     private Long addedAssetId;
+    private String pushRunName;
     private PollableTask pollableTask;
     private FilterConfigIdOverride filterConfigIdOverride;
     private List<String> filterOptions;
     private boolean extractedContent;
+
+    private String commitHash;
 
     public Long getRepositoryId() {
         return repositoryId;
@@ -95,6 +97,22 @@ public class SourceAsset {
 
     public void setFilterOptions(List<String> filterOptions) {
         this.filterOptions = filterOptions;
+    }
+
+    public String getCommitHash() {
+        return commitHash;
+    }
+
+    public void setCommitHash(String commitHash) {
+        this.commitHash = commitHash;
+    }
+
+    public String getPushRunName() {
+        return pushRunName;
+    }
+
+    public void setPushRunName(String pushRunName) {
+        this.pushRunName = pushRunName;
     }
 
     @JsonProperty

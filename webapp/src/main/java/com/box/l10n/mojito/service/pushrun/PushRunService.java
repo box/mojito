@@ -3,15 +3,18 @@ package com.box.l10n.mojito.service.pushrun;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.PushRunAsset;
-import com.box.l10n.mojito.entity.PushRunAssetTmTextUnit;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,7 +28,11 @@ import java.util.stream.Collectors;
 @Service
 public class PushRunService {
 
+    private static final int BATCH_SIZE = 1000;
+
     final EntityManager entityManager;
+
+    final JdbcTemplate jdbcTemplate;
 
     final PushRunRepository pushRunRepository;
 
@@ -34,10 +41,12 @@ public class PushRunService {
     final PushRunAssetTmTextUnitRepository pushRunAssetTmTextUnitRepository;
 
     public PushRunService(EntityManager entityManager,
+                          JdbcTemplate jdbcTemplate,
                           PushRunRepository pushRunRepository,
                           PushRunAssetRepository pushRunAssetRepository,
                           PushRunAssetTmTextUnitRepository pushRunAssetTmTextUnitRepository) {
         this.entityManager = entityManager;
+        this.jdbcTemplate = jdbcTemplate;
         this.pushRunRepository = pushRunRepository;
         this.pushRunAssetRepository = pushRunAssetRepository;
         this.pushRunAssetTmTextUnitRepository = pushRunAssetTmTextUnitRepository;
@@ -80,26 +89,8 @@ public class PushRunService {
     /**
      * Associates a set of TextUnits to a PushRunAsset and a PushRun.
      */
+    @Transactional
     public void associatePushRunToTextUnitIds(PushRun pushRun, Asset asset, List<Long> textUnitIds) {
-        // Avoid retrieving the full TmTextUnit entities, as we only need the IDs for the foreign key reference
-        List<TMTextUnit> textUnits = textUnitIds.stream()
-                .map(tmTextUnitId -> entityManager.getReference(TMTextUnit.class, tmTextUnitId))
-                .collect(Collectors.toList());
-
-        associatePushRunToTextUnits(pushRun, asset, textUnits);
-    }
-
-    /**
-     * Retrieves the list of TextUnits associated with a PushRun.
-     */
-    public List<TMTextUnit> getPushRunTextUnits(PushRun pushRun, Pageable pageable) {
-        return pushRunAssetTmTextUnitRepository.findByPushRun(pushRun, pageable);
-    }
-
-    /**
-     * Associates a set of TextUnits to a PushRunAsset and a PushRun.
-     */
-    void associatePushRunToTextUnits(PushRun pushRun, Asset asset, List<TMTextUnit> textUnits) {
         PushRunAsset pushRunAsset = pushRunAssetRepository.findByPushRunAndAsset(pushRun, asset).orElse(null);
 
         if (pushRunAsset == null) {
@@ -113,17 +104,31 @@ public class PushRunService {
             pushRunAssetTmTextUnitRepository.deleteByPushRunAsset(pushRunAsset);
         }
 
+        Instant now = Instant.now();
         PushRunAsset finalPushRunAsset = pushRunAsset;
-        List<PushRunAssetTmTextUnit> pushRunAssetTmTextUnits = textUnits.stream()
-                .map(tmTextUnit -> {
-                    PushRunAssetTmTextUnit pushRunAssetTmTextUnit = new PushRunAssetTmTextUnit();
+        Lists.partition(textUnitIds, BATCH_SIZE)
+                .forEach(textUnitIdsBatch -> saveTextUnits(finalPushRunAsset, textUnitIdsBatch, now));
+    }
 
-                    pushRunAssetTmTextUnit.setPushRunAsset(finalPushRunAsset);
-                    pushRunAssetTmTextUnit.setTmTextUnit(tmTextUnit);
+    /**
+     * Retrieves the list of TextUnits associated with a PushRun.
+     */
+    public List<TMTextUnit> getPushRunTextUnits(PushRun pushRun, Pageable pageable) {
+        return pushRunAssetTmTextUnitRepository.findByPushRun(pushRun, pageable);
+    }
 
-                    return pushRunAssetTmTextUnit;
-                }).collect(Collectors.toList());
+    void saveTextUnits(PushRunAsset pushRunAsset, List<Long> textUnitIds, Instant now) {
+        String sql = "insert into push_run_asset_tm_text_unit(push_run_asset_id, tm_text_unit_id, created_date) values" +
+                textUnitIds.stream()
+                        .map(tuId -> String.format("(%s, %s, '%s') ", pushRunAsset.getId(), tuId, Timestamp.from(now)))
+                        .collect(Collectors.joining(","));
 
-        pushRunAssetTmTextUnitRepository.saveAll(pushRunAssetTmTextUnits);
+        jdbcTemplate.update(sql);
+    }
+
+    public PushRun getPushRunById(long id) {
+        return pushRunRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(String.format(
+                        "Could not find a PushRun for id: %s", id)));
     }
 }

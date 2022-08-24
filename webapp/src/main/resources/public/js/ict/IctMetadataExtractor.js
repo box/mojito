@@ -31,16 +31,19 @@ class IctMetadataExtractor {
 
                     try {
                         var decodedTextUnitMedata = TagsBlockDecoder.tagsBlockToUnicode(textUnitMetadata);
-                        var spitTextUnitMetadata = decodedTextUnitMedata.split(IctMetadataBuilder.getInnerDelimiter());
-                        textUnit['repositoryName'] = spitTextUnitMetadata[0];
-                        textUnit['assetName'] = spitTextUnitMetadata[1];
-                        textUnit['textUnitName'] = spitTextUnitMetadata[2];
-                        textUnit['locale'] = spitTextUnitMetadata[3];
-                        textUnit['stack'] = spitTextUnitMetadata[4];
+                        var splitTextUnitMetadata = decodedTextUnitMedata.split(IctMetadataBuilder.getInnerDelimiter());
+                        textUnit['repositoryName'] = splitTextUnitMetadata[0];
+                        textUnit['assetName'] = splitTextUnitMetadata[1];
+                        textUnit['textUnitName'] = splitTextUnitMetadata[2];
+                        textUnit['locale'] = splitTextUnitMetadata[3];
+                        textUnit['stack'] = splitTextUnitMetadata[4];
+                        // For backwards compatibility check array length, if less than 5 set isTranslated to true
+                        textUnit['isTranslated'] = splitTextUnitMetadata.length > 5 ? splitTextUnitMetadata[5] : 'true';
+
                     } catch (e) {
                         console.log("Can't extract ict metadata from string: ", string, e);
                     }
-
+                    
                     textUnits.push(textUnit);
                     break;
             }

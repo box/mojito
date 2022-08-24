@@ -1,20 +1,45 @@
 package com.box.l10n.mojito.cli.command;
 
 import com.box.l10n.mojito.cli.CLITestBase;
+import com.box.l10n.mojito.entity.Locale;
+import com.box.l10n.mojito.entity.PullRun;
+import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import com.box.l10n.mojito.rest.client.AssetClient;
 import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.entity.Asset;
 import com.box.l10n.mojito.rest.entity.RepositoryStatistic;
+import com.box.l10n.mojito.service.commit.CommitService;
+import com.box.l10n.mojito.service.delta.DeltaService;
+import com.box.l10n.mojito.service.delta.DeltaType;
+import com.box.l10n.mojito.service.delta.dtos.DeltaResponseDTO;
+import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pullrun.PullRunTextUnitVariantRepository;
+import com.box.l10n.mojito.service.tm.TMService;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantService;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
+import com.google.common.collect.ImmutableList;
+import org.assertj.core.api.Assertions;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Batch rename when adding a test: find . -name "*properties" -exec rename "s/properties/json/" {} \;
@@ -34,6 +59,30 @@ public class PullCommandTest extends CLITestBase {
 
     @Autowired
     TMTextUnitVariantRepository tmTextUnitVariantRepository;
+
+    @Autowired
+    CommitService commitService;
+
+    @Autowired
+    DeltaService deltaService;
+
+    @Autowired
+    TMService tmService;
+
+    @Autowired
+    LocaleService localeService;
+
+    @Autowired
+    TMTextUnitCurrentVariantRepository tmTextUnitCurrentVariantRepository;
+
+    @Autowired
+    TMTextUnitCurrentVariantService tmTextUnitCurrentVariantService;
+
+    @Autowired
+    TMTextUnitRepository tmTextUnitRepository;
+
+    @Autowired
+    PullRunTextUnitVariantRepository pullRunTextUnitVariantRepository;
 
     @Test
     public void pull() throws Exception {
@@ -895,5 +944,381 @@ public class PullCommandTest extends CLITestBase {
                 "--fully-translated");
 
         checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void recordPullPoPlural() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+        repositoryService.addRepositoryLocale(repository, "ru-RU", null, true);
+
+        String pushCommitHash = "ccaa11";
+
+        logger.debug("Create the base commit that correspond to the initial push");
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pushCommitHash,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+
+        logger.debug("Initial push");
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "--record-push-run",
+                "--commit-hash", pushCommitHash);
+
+        logger.debug("Get pushRun for the initial push to test delta later on");
+        PushRun pushRun = commitService.getLastPushRun(ImmutableList.of(pushCommitHash), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a push run"));
+
+        logger.debug("Record a first pull run to generate the baseline");
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_baseline").getAbsolutePath(),
+                "-lm", "ru-RU:ru-RU",
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        getL10nJCommander().run("import", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getInputResourcesTestDir("translations").getAbsolutePath(),
+                "-lm", "ru-RU:ru-RU"
+        );
+
+        logger.debug("Record a second pull run after translation import");
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_translated").getAbsolutePath(),
+                "-lm", "ru-RU:ru-RU",
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        logger.debug("Simulate commit and linked to pull-run");
+        String pullRunHash1 = "ddaa11";
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pullRunHash1,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+        getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
+                "-i", getTargetTestDir("target_translated").getAbsolutePath(),
+                "--commit-hash", pullRunHash1);
+
+        // For language like cs-CZ or ru-RU, PO file use only 3 plural forms while Mojito store 4 form (CLDR).
+        // This leads to the number of recorded entry in the pull run to lower that the number of current translations.
+        // This might look strange but is expected
+        Locale ruRU = localeService.findByBcp47Tag("ru-RU");
+        List<TMTextUnit> tmTextUnits = tmTextUnitRepository.findByTm_id(repository.getTm().getId());
+
+        long countOfCurrentTranslationForRuRU = tmTextUnits.stream()
+                .map(tmTextUnit -> tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(ruRU.getId(), tmTextUnit.getId()))
+                .filter(Objects::nonNull)
+                .count();
+        Assertions.assertThat(countOfCurrentTranslationForRuRU).isEqualTo(4);
+
+        long countOfPullRunTextUnitVariantForRuRU = tmTextUnits.stream()
+                .flatMap(tmTextUnit -> pullRunTextUnitVariantRepository.findByTmTextUnitVariant_TmTextUnitIdAndLocaleId(tmTextUnit.getId(), ruRU.getId()).stream())
+                .count();
+        Assertions.assertThat(countOfPullRunTextUnitVariantForRuRU).isEqualTo(3);
+
+        PullRun pullRun = commitService.getLastPullRun(ImmutableList.of(pullRunHash1), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a pull run"));
+
+        DeltaResponseDTO deltas = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRun),
+                ImmutableList.of(pullRun));
+
+        // Implication on deltas is that we're getting a diff even though we'd like not to
+        // Assertions.assertThat(deltas.getTranslationsPerLocale()).isEmpty();
+        Assertions.assertThat(deltas.getTranslationsPerLocale().get("ru-RU")
+                .getTranslationsByTextUnitName().keySet())
+                .containsExactly("There is {number} car --- car _other");
+
+        pullRunNamesToNormalizedValueForTests();
+        checkExpectedGeneratedResources();
+    }
+
+    @Test
+    public void recordPullRunAndOTA() throws Exception {
+        Repository repository = createTestRepoUsingRepoService();
+
+        String pushCommitHash = "ccaa11";
+
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pushCommitHash,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+
+        logger.debug("Initial push");
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "--record-push-run",
+                "--commit-hash", pushCommitHash);
+
+        logger.debug("Get pushRun for the initial push to test delta later on");
+        PushRun pushRun = commitService.getLastPushRun(ImmutableList.of(pushCommitHash), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a push run"));
+
+        logger.debug("Record a first pull run to generate the baseline");
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_baseline").getAbsolutePath(),
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        logger.debug("Simulate commit and linked to pull-run");
+        String pullRunHash1 = "ddaa11";
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pullRunHash1,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+
+        getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
+                "-i", getTargetTestDir("target_baseline").getAbsolutePath(),
+                "--commit-hash", pullRunHash1);
+
+        PullRun pullRunBaseline = commitService.getLastPullRun(ImmutableList.of(pullRunHash1), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a pull run"));
+
+        logger.debug("Check that generating a delta yield empty result for the initial push run and baseline pull run");
+        DeltaResponseDTO deltaForBaseline = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                // so empty() should basically process nothing
+                ImmutableList.of(pushRun),
+                ImmutableList.of(pullRunBaseline));
+
+        Assertions.assertThat(deltaForBaseline.getTranslationsPerLocale()).isEmpty();
+
+        logger.debug("Import French translations to test delta generation");
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.properties", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+
+        logger.debug("Generating a delta for the initial push run and baseline pull run should now return the new French translations");
+        DeltaResponseDTO deltaForBaselineToFrenchImport = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRun),
+                ImmutableList.of(pullRunBaseline));
+
+        Assertions.assertThat(deltaForBaselineToFrenchImport.getTranslationsPerLocale()).hasSize(1);
+        checkFrenchTranslationsInDelta(deltaForBaselineToFrenchImport);
+
+        logger.debug("Record a pull run after the French import for later delta testing");
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_after_french_import").getAbsolutePath(),
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        logger.debug("Simulate commit and linked to pull-run");
+        String pullRunHash2 = "ddaa22";
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pullRunHash2,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+        getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
+                "-i", getTargetTestDir("target_after_french_import").getAbsolutePath(),
+                "--commit-hash", pullRunHash2);
+
+        PullRun pullRunAfterFrenchImport = commitService.getLastPullRun(ImmutableList.of(pullRunHash2), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a pull run"));
+
+        logger.debug("Add Japanese translations to test delta generation");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        logger.debug("Generating a delta for the initial push run and baseline pull run should now return the new French and Japanese translations");
+        DeltaResponseDTO deltaForBaselineToFrenchAndJapaneseImport = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRun),
+                ImmutableList.of(pullRunBaseline));
+
+        Assertions.assertThat(deltaForBaselineToFrenchAndJapaneseImport.getTranslationsPerLocale()).hasSize(2);
+        checkFrenchTranslationsInDelta(deltaForBaselineToFrenchAndJapaneseImport);
+        checkJapaneseTranslationsInDelta(deltaForBaselineToFrenchAndJapaneseImport);
+
+        logger.debug("Check that the delta for the pull run generated after the French import only return Japanese translations");
+        DeltaResponseDTO deltaForAfterFrenchImportToFrenchAndJapaneseImport = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRun),
+                ImmutableList.of(pullRunAfterFrenchImport));
+
+        Assertions.assertThat(deltaForAfterFrenchImportToFrenchAndJapaneseImport.getTranslationsPerLocale()).hasSize(1);
+        checkJapaneseTranslationsInDelta(deltaForAfterFrenchImportToFrenchAndJapaneseImport);
+
+        logger.debug("Record a pull run after the French and Japanese imports for later delta testing");
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath(),
+                "-t", getTargetTestDir("target_after_french_and_japanese_imports").getAbsolutePath(),
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        logger.debug("Simulate commit and linked to pull-run");
+        String pullRunHash3 = "ddaa33";
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pullRunHash3,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+        getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
+                "-i", getTargetTestDir("target_after_french_and_japanese_imports").getAbsolutePath(),
+                "--commit-hash", pullRunHash3);
+
+        PullRun pullRunAfterFrenchAndJapaneseImports = commitService.getLastPullRun(ImmutableList.of(pullRunHash3), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a pull run"));
+
+        logger.debug("Update one translation in French and remove one in Japanese");
+        Locale frFR = localeService.findByBcp47Tag("fr-FR");
+        Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+        TMTextUnit tmTextUnit = tmTextUnitRepository.findFirstByAssetIdAndName(asset.getId(), "1_month_duration");
+        tmService.addCurrentTMTextUnitVariant(tmTextUnit.getId(), frFR.getId(), "1 mois -- update");
+        tmTextUnitCurrentVariantService.removeCurrentVariant(tmTextUnitCurrentVariantRepository.findByLocale_IdAndTmTextUnit_Id(jaJP.getId(), tmTextUnit.getId()).getId());
+
+        logger.debug("Check that the delta for the pull run generated returns 1 modifications");
+        DeltaResponseDTO deltaForAfterFrenchAndJapaneseImportsToSmallChanges = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRun),
+                ImmutableList.of(pullRunAfterFrenchAndJapaneseImports));
+
+        Assertions.assertThat(deltaForAfterFrenchImportToFrenchAndJapaneseImport.getTranslationsPerLocale()).hasSize(1);
+        Assertions.assertThat(deltaForAfterFrenchAndJapaneseImportsToSmallChanges.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName()).hasSize(1);
+        Assertions.assertThat(deltaForAfterFrenchAndJapaneseImportsToSmallChanges.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName())
+                .extractingByKey("1_month_duration")
+                .hasFieldOrPropertyWithValue("text", "1 mois -- update")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.UPDATED_TRANSLATION);
+
+        logger.debug("Create a second commit that correspond to the second push");
+        String pushCommitHashModified = "ccaa22";
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pushCommitHashModified,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "--record-push-run",
+                "--commit-hash", pushCommitHashModified);
+
+        logger.debug("Get pushRun for the initial push to test delta later on");
+        PushRun pushRunModified = commitService.getLastPushRun(ImmutableList.of(pushCommitHashModified), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a push run"));
+
+        DeltaResponseDTO deltaWithPushModifiedForAfterFrenchAndJapaneseImportsToSmallChanges = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRunModified),
+                ImmutableList.of(pullRunAfterFrenchAndJapaneseImports));
+
+        Assertions.assertThat(deltaWithPushModifiedForAfterFrenchAndJapaneseImportsToSmallChanges.getTranslationsPerLocale()).hasSize(1);
+        Assertions.assertThat(deltaWithPushModifiedForAfterFrenchAndJapaneseImportsToSmallChanges.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName()).hasSize(1);
+        Assertions.assertThat(deltaWithPushModifiedForAfterFrenchAndJapaneseImportsToSmallChanges.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName())
+                .extractingByKey("1_month_duration")
+                .hasFieldOrPropertyWithValue("text", "1 mois -- update")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.UPDATED_TRANSLATION);
+
+        getL10nJCommander().run("pull", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source_modified").getAbsolutePath(),
+                "-t", getTargetTestDir("target_modified").getAbsolutePath(),
+                "--record-pull-run",
+                "--export-pull-run-id-to-file");
+
+        logger.debug("Simulate commit and linked to pull-run");
+        String pullRunHash4 = "ddaa44";
+        getL10nJCommander().run("commit-create", "-r", repository.getName(),
+                "--commit-hash", pullRunHash4,
+                "--author-email", "coder@mail.com",
+                "--author-name", "coder",
+                "--creation-date", DateTime.now().toString());
+        getL10nJCommander().run("commit-to-pull-run", "-r", repository.getName(),
+                "-i", getTargetTestDir("target_modified").getAbsolutePath(),
+                "--commit-hash", pullRunHash4);
+
+        PullRun pullRunModified = commitService.getLastPullRun(ImmutableList.of(pullRunHash4), repository.getId())
+                .orElseThrow(() -> new RuntimeException("There must be a pull run"));
+
+        DeltaResponseDTO deltaWithPushModifiedForPullModified = deltaService.getDeltasForRuns(
+                repository,
+                null,
+                ImmutableList.of(pushRunModified),
+                ImmutableList.of(pullRunModified));
+
+        Assertions.assertThat(deltaWithPushModifiedForPullModified.getTranslationsPerLocale()).hasSize(0);
+
+        pullRunNamesToNormalizedValueForTests();
+        checkExpectedGeneratedResources();
+    }
+
+    private void pullRunNamesToNormalizedValueForTests() throws IOException {
+        modifyFilesInTargetTestDirectory(input -> {
+            return input.replaceAll("\\d", "1").replaceAll("[a-z]", "1");
+        }, "pull-run-name.txt");
+    }
+
+    private void printDelta(DeltaResponseDTO delta) {
+        delta.getTranslationsPerLocale().forEach((locale, deltaLocaleDataDTO) -> {
+            deltaLocaleDataDTO.getTranslationsByTextUnitName().forEach((textUnitName, deltaTranslationDTO) -> {
+                logger.info(locale);
+                logger.info(textUnitName);
+                logger.info(deltaTranslationDTO.getText());
+                logger.info(deltaTranslationDTO.getDeltaType().toString());
+                logger.info("---");
+            });
+        });
+    }
+
+    private void checkJapaneseTranslationsInDelta(DeltaResponseDTO delta) {
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("ja-JP").getTranslationsByTextUnitName()).hasSize(5);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("ja-JP").getTranslationsByTextUnitName())
+                .extractingByKey("100_character_description_")
+                .hasFieldOrPropertyWithValue("text", "100文字の説明:")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("ja-JP").getTranslationsByTextUnitName())
+                .extractingByKey("1_hour_duration")
+                .hasFieldOrPropertyWithValue("text", "1時間")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("ja-JP").getTranslationsByTextUnitName())
+                .extractingByKey("1_day_duration")
+                .hasFieldOrPropertyWithValue("text", "1日")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("ja-JP").getTranslationsByTextUnitName())
+                .extractingByKey("1_month_duration")
+                .hasFieldOrPropertyWithValue("text", "1か月")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("ja-JP").getTranslationsByTextUnitName())
+                .extractingByKey("15_min_duration")
+                .hasFieldOrPropertyWithValue("text", "15分")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+    }
+
+    private void checkFrenchTranslationsInDelta(DeltaResponseDTO delta) {
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName()).hasSize(5);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName())
+                .extractingByKey("100_character_description_")
+                .hasFieldOrPropertyWithValue("text", "Description de 100 caractères :")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName())
+                .extractingByKey("1_hour_duration")
+                .hasFieldOrPropertyWithValue("text", "1 heure")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName())
+                .extractingByKey("1_day_duration")
+                .hasFieldOrPropertyWithValue("text", "1 jour")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName())
+                .extractingByKey("1_month_duration")
+                .hasFieldOrPropertyWithValue("text", "1 mois")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
+        Assertions.assertThat(delta.getTranslationsPerLocale().get("fr-FR").getTranslationsByTextUnitName())
+                .extractingByKey("15_min_duration")
+                .hasFieldOrPropertyWithValue("text", "15 min")
+                .hasFieldOrPropertyWithValue("deltaType", DeltaType.NEW_TRANSLATION);
     }
 }

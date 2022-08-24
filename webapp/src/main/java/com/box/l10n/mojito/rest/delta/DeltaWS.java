@@ -4,9 +4,9 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.rest.commit.CommitWS;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.delta.DeltaService;
+import com.box.l10n.mojito.service.delta.PushRunsMissingException;
 import com.box.l10n.mojito.service.delta.dtos.DeltaResponseDTO;
 import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.pullrun.PullRunRepository;
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.box.l10n.mojito.rest.locale.LocaleSpecification.bcp47TagIn;
 import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
@@ -41,7 +40,7 @@ public class DeltaWS {
     /**
      * logger
      */
-    static Logger logger = LoggerFactory.getLogger(CommitWS.class);
+    static Logger logger = LoggerFactory.getLogger(DeltaWS.class);
 
     EntityManager entityManager;
 
@@ -98,7 +97,7 @@ public class DeltaWS {
                                              @RequestParam(value = "pushRunIds") List<Long> pushRunIds,
                                              @RequestParam(value = "bcp47Tags", required = false) List<String> bcp47Tags,
                                              @RequestParam(value = "pullRunIds", required = false) List<Long> pullRunIds)
-            throws RepositoryWithIdNotFoundException {
+            throws RepositoryWithIdNotFoundException, PushRunsMissingException {
 
         Repository repository = repositoryRepository.findById(repositoryId)
                 .orElseThrow(() -> new RepositoryWithIdNotFoundException(repositoryId));

@@ -28,4 +28,7 @@ public interface AssetRepository extends JpaRepository<Asset, Long>, JpaSpecific
     
     @Query(value = "select a.id from Asset a where a.repository.id = :repositoryId and a.deleted = :deleted")
     Set<Long> findIdByRepositoryIdAndDeleted(@Param("repositoryId") Long repositoryId, @Param("deleted")  Boolean deleted);
+
+    @Query(value = "select a.id from Asset a where a.id IN ?1 and a.virtual = true")
+    Set<Long> getVirtualAssetIds(@Param("assetId") Set<Long> assetIds);
 }
