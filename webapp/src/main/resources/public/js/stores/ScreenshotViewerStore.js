@@ -14,7 +14,7 @@ class ScreenshotViewerStore {
         this.total = 0;
         this.branchStatisticScreenshots = [];
         this.textUnits = [];
-        this.isDeleting = false;
+        this.isDeleting = false
     }
 
     open(branchStatisticsScreenshots) {
@@ -49,24 +49,21 @@ class ScreenshotViewerStore {
         }
     }
 
-    deleteFromWorkbench() {
-        this.isDeleting = true;
-        this.getInstance().deleteScreenshotFromWorkbench()
+    delete() {
+        console.log("delete func is being accessed by both stores simultaneously")
+        // this.isDeleting = true;
+        // this.getInstance().delete()
     }
 
-    deleteFromBranches() {
-        this.isDeleting = true;
-        this.getInstance().deleteScreenshotFromBranches()
-    }
-
-    onDeleteSuccess(screenshots) {
-        if (screenshots.length) {
-            this.branchStatisticScreenshots = screenshots
-            this.loadScreenshot(1);
-        } else {
-            this.close()
-        }
-        this.isDeleting = false
+    onDeleteSuccess() {
+        console.log("onDeleteSuccess func would also be accessed by both stores simultaneously on the DataSource callback")
+        // if (this.branchStatisticScreenshots.length - 1) {
+        //     this.branchStatisticScreenshots.splice(this.number - 1, 1)
+        //     this.loadScreenshot(1);
+        // } else {
+        //     this.close()
+        // }
+        // this.isDeleting = false
     }
 
     onDeleteFailure() {

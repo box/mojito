@@ -6,21 +6,7 @@ import ScreenshotsPaginatorStore from "../../stores/screenshots/ScreenshotsPagin
 import ScreenshotClient from "../../sdk/ScreenshotClient";
 import {StatusCommonTypes} from "../../components/screenshots/StatusCommon";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
-import GitBlameScreenshotViewerActions from "../workbench/GitBlameScreenshotViewerActions";
-import TextUnitClient from "../../sdk/TextUnitClient";
-import TextUnit from "../../sdk/TextUnit";
-import BranchesScreenshotViewerActions from "../branches/BranchesScreenshotViewerActions";
-
-const deleteScreenshot = (branchStatisticScreenshots, number, textUnits) => {
-    const screenshotId = branchStatisticScreenshots[number - 1].id
-    const textUnit = new TextUnit({
-        tmTextUnitId: textUnits[0].tmTextUnit.id
-    })
-    return ScreenshotClient.deleteScreenshot(screenshotId)
-        .then(() => TextUnitClient.getGitBlameInfo(textUnit)
-            .then(textUnits => textUnits[0].screenshots)
-        )
-}
+import ScreenshotViewerActions from "./ScreenshotViewerActions";
 
 const ScreenshotsDataSource = {
     performScreenshotSearch: {
@@ -83,19 +69,13 @@ const ScreenshotsDataSource = {
         success: ScreenshotsPageActions.screenshotsSearchResultsReceivedSuccess,
         error: ScreenshotsPageActions.screenshotsSearchResultsReceivedError
     },
-    deleteScreenshotFromWorkbench: {
-        remote({branchStatisticScreenshots, number, textUnits}) {
-            return deleteScreenshot(branchStatisticScreenshots, number, textUnits)
+    delete: {
+        remote({branchStatisticScreenshots, number}) {
+            const screenshotId = branchStatisticScreenshots[number - 1].id
+            return ScreenshotClient.deleteScreenshot(screenshotId)
         },
-        success: GitBlameScreenshotViewerActions.onDeleteSuccess,
-        error: GitBlameScreenshotViewerActions.onDeleteFailure
-    },
-    deleteScreenshotFromBranches: {
-        remote({branchStatisticScreenshots, number, textUnits}) {
-            return deleteScreenshot(branchStatisticScreenshots, number, textUnits)
-        },
-        success: BranchesScreenshotViewerActions.onDeleteSuccess,
-        error: BranchesScreenshotViewerActions.onDeleteFailure
+        success: ScreenshotViewerActions.onDeleteSuccess,
+        error: ScreenshotViewerActions.onDeleteFailure
     },
 }
 

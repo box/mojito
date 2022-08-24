@@ -21,6 +21,7 @@ import UrlHelper from "../../utils/UrlHelper";
 import TranslationHistoryStore from "../../stores/workbench/TranslationHistoryStore";
 import TranslationHistoryModal from "./TranslationHistoryModal";
 import TranslationHistoryActions from "../../actions/workbench/TranslationHistoryActions";
+import ScreenshotViewerActions from "../../actions/screenshots/ScreenshotViewerActions";
 
 let Workbench = createReactClass({
     displayName: 'Workbench',
@@ -109,7 +110,7 @@ let Workbench = createReactClass({
                         onGoToPrevious={GitBlameScreenshotViewerActions.goToPrevious}
                         onGoToNext={GitBlameScreenshotViewerActions.goToNext}
                         onClose={GitBlameScreenshotViewerActions.close}
-                        onDelete={GitBlameScreenshotViewerActions.deleteFromWorkbench}
+                        onDelete={ScreenshotViewerActions.delete}
                     />
                 </AltContainer>
                 <AltContainer store={TranslationHistoryStore}>

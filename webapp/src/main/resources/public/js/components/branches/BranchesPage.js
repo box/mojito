@@ -25,6 +25,7 @@ import RepositoryStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 import GitBlameScreenshotViewerActions from "../../actions/workbench/GitBlameScreenshotViewerActions";
+import ScreenshotViewerActions from "../../actions/screenshots/ScreenshotViewerActions";
 
 
 class BranchesPage extends React.Component {
@@ -224,7 +225,7 @@ class BranchesPage extends React.Component {
                         onGoToPrevious={BranchesScreenshotViewerActions.goToPrevious}
                         onGoToNext={BranchesScreenshotViewerActions.goToNext}
                         onClose={BranchesScreenshotViewerActions.close}
-                        onDelete={BranchesScreenshotViewerActions.deleteFromBranches}
+                        onDelete={ScreenshotViewerActions.delete}
                     />
                 </AltContainer>
 
