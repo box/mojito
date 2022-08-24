@@ -1,21 +1,14 @@
 package com.box.l10n.mojito.service.pullrun;
 
-import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.PullRun;
-import com.box.l10n.mojito.entity.PullRunAsset;
-import com.box.l10n.mojito.entity.PullRunTextUnitVariant;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.TMTextUnitVariant;
-import org.apache.commons.lang3.StringUtils;
+import com.box.l10n.mojito.service.commit.CommitToPullRunRepository;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.sql.Timestamp;
+import java.time.Duration;
 
 /**
  * Service to manage PullRun data.
@@ -28,6 +21,15 @@ public class PullRunService {
     @Autowired
     PullRunRepository pullRunRepository;
 
+    @Autowired
+    CommitToPullRunRepository commitToPullRunRepository;
+
+    @Autowired
+    PullRunAssetRepository pullRunAssetRepository;
+
+    @Autowired
+    PullRunTextUnitVariantRepository pullRunTextUnitVariantRepository;
+
     public PullRun getOrCreate(String pullRunName, Repository repository) {
         return pullRunRepository.findByName(pullRunName).orElseGet(() -> {
             PullRun pullRun = new PullRun();
@@ -36,5 +38,15 @@ public class PullRunService {
             pullRunRepository.save(pullRun);
             return pullRun;
         });
+    }
+
+    public void deleteAllPullEntitiesOlderThan(Duration retentionDuration) {
+        DateTime beforeDate = DateTime.now().minusSeconds((int) retentionDuration.getSeconds());
+        Timestamp sqlBeforeDate = new Timestamp(beforeDate.toDate().getTime());
+
+        pullRunTextUnitVariantRepository.deleteAllByPullRunWithCreatedDateBefore(sqlBeforeDate);
+        pullRunAssetRepository.deleteAllByPullRunWithCreatedDateBefore(sqlBeforeDate);
+        commitToPullRunRepository.deleteAllByPullRunWithCreatedDateBefore(sqlBeforeDate);
+        pullRunRepository.deleteAllByCreatedDateBefore(sqlBeforeDate);
     }
 }

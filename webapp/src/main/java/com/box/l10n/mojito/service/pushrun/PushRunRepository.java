@@ -4,10 +4,13 @@ import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,4 +29,12 @@ public interface PushRunRepository extends JpaRepository<PushRun, Long> {
     List<PushRun> findLatestByCommitNames(@Param("commitNames") List<String> commitNames,
                                      @Param("repositoryId") Long repositoryId,
                                      Pageable pageable);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true,
+            value = "delete pr " +
+                    "from push_run pr " +
+                    "where pr.created_date < :beforeDate ")
+    void deleteAllByCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
 }
