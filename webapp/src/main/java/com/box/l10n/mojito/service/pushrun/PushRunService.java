@@ -5,8 +5,10 @@ import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.PushRunAsset;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.service.commit.CommitToPushRunRepository;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +37,8 @@ public class PushRunService {
 
     final JdbcTemplate jdbcTemplate;
 
+    final CommitToPushRunRepository commitToPushRunRepository;
+
     final PushRunRepository pushRunRepository;
 
     final PushRunAssetRepository pushRunAssetRepository;
@@ -42,11 +47,12 @@ public class PushRunService {
 
     public PushRunService(EntityManager entityManager,
                           JdbcTemplate jdbcTemplate,
-                          PushRunRepository pushRunRepository,
+                          CommitToPushRunRepository commitToPushRunRepository, PushRunRepository pushRunRepository,
                           PushRunAssetRepository pushRunAssetRepository,
                           PushRunAssetTmTextUnitRepository pushRunAssetTmTextUnitRepository) {
         this.entityManager = entityManager;
         this.jdbcTemplate = jdbcTemplate;
+        this.commitToPushRunRepository = commitToPushRunRepository;
         this.pushRunRepository = pushRunRepository;
         this.pushRunAssetRepository = pushRunAssetRepository;
         this.pushRunAssetTmTextUnitRepository = pushRunAssetTmTextUnitRepository;
@@ -130,5 +136,15 @@ public class PushRunService {
         return pushRunRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(String.format(
                         "Could not find a PushRun for id: %s", id)));
+    }
+
+    public void deleteAllPushEntitiesOlderThan(Duration retentionDuration) {
+        DateTime beforeDate = DateTime.now().minusSeconds((int) retentionDuration.getSeconds());
+        Timestamp sqlBeforeDate = new Timestamp(beforeDate.toDate().getTime());
+
+        pushRunAssetTmTextUnitRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
+        pushRunAssetRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
+        commitToPushRunRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
+        pushRunRepository.deleteAllByCreatedDateBefore(sqlBeforeDate);
     }
 }

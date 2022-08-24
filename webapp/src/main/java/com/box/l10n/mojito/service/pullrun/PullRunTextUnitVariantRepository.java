@@ -6,11 +6,13 @@ import com.box.l10n.mojito.entity.PullRunTextUnitVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -30,4 +32,14 @@ public interface PullRunTextUnitVariantRepository extends JpaRepository<PullRunT
 
     @Transactional
     void deleteByPullRunAsset(PullRunAsset pullRunAsset);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true,
+            value = "delete prtuv " +
+                    "from pull_run pr " +
+                    "join pull_run_asset pra on pra.pull_run_id = pr.id " +
+                    "join pull_run_text_unit_variant prtuv on prtuv.pull_run_asset_id = pra.id " +
+                    "where pr.created_date < :beforeDate ")
+    void deleteAllByPullRunWithCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
 }
