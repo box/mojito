@@ -16,6 +16,7 @@ import com.box.l10n.mojito.service.delta.DeltaService;
 import com.box.l10n.mojito.service.delta.DeltaType;
 import com.box.l10n.mojito.service.delta.dtos.DeltaResponseDTO;
 import com.box.l10n.mojito.service.locale.LocaleService;
+import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pullrun.PullRunTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
@@ -80,6 +81,9 @@ public class PullCommandTest extends CLITestBase {
 
     @Autowired
     TMTextUnitRepository tmTextUnitRepository;
+
+    @Autowired
+    PullRunRepository pullRunRepository;
 
     @Autowired
     PullRunTextUnitVariantRepository pullRunTextUnitVariantRepository;
@@ -1023,17 +1027,20 @@ public class PullCommandTest extends CLITestBase {
         PullRun pullRun = commitService.getLastPullRun(ImmutableList.of(pullRunHash1), repository.getId())
                 .orElseThrow(() -> new RuntimeException("There must be a pull run"));
 
+        // Advance the date of the PullRun to make sure the translation is older than the PullRun creation date
+        pullRun.setCreatedDate(pullRun.getCreatedDate().plusDays(1));
+        pullRunRepository.save(pullRun);
+
         DeltaResponseDTO deltas = deltaService.getDeltasForRuns(
                 repository,
                 null,
                 ImmutableList.of(pushRun),
                 ImmutableList.of(pullRun));
 
-        // Implication on deltas is that we're getting a diff even though we'd like not to
-        // Assertions.assertThat(deltas.getTranslationsPerLocale()).isEmpty();
-        Assertions.assertThat(deltas.getTranslationsPerLocale().get("ru-RU")
-                .getTranslationsByTextUnitName().keySet())
-                .containsExactly("There is {number} car --- car _other");
+        // As long as the translation for the other plural form wasn't changed
+        // after the pull recording was done, it shouldn't be included in the
+        // delta results.
+        Assertions.assertThat(deltas.getTranslationsPerLocale()).isEmpty();
 
         pullRunNamesToNormalizedValueForTests();
         checkExpectedGeneratedResources();
