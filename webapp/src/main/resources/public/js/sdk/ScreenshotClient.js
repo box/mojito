@@ -27,7 +27,9 @@ class ScreenshotClient extends BaseClient {
 
     deleteScreenshot(screenshotId) {
         // return this.delete(`${this.getUrl()}/${screenshotId}`)
-        return Promise.resolve()
+        console.log('deleteScreenshot')
+        return Promise.resolve();
+
     }
 }
 

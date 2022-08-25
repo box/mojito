@@ -8,6 +8,9 @@ class GitBlameScreenshotViewerActions {
             "close",
             "goToPrevious",
             "goToNext",
+            "delete",
+            "onDeleteSuccess",
+            "onDeleteFailure"
         );
     }
 }

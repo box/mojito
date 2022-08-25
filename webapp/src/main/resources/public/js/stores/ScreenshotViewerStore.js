@@ -4,7 +4,6 @@ class ScreenshotViewerStore {
 
     constructor() {
         this.setDefaultState();
-        this.registerAsync(ScreenshotsDataSource);
     }
 
     setDefaultState() {
@@ -51,8 +50,8 @@ class ScreenshotViewerStore {
 
     delete() {
         console.log("delete func is being accessed by both stores simultaneously")
-        // this.isDeleting = true;
-        // this.getInstance().delete()
+        this.isDeleting = true;
+        this.getInstance().delete()
     }
 
     onDeleteSuccess() {
@@ -63,7 +62,7 @@ class ScreenshotViewerStore {
         // } else {
         //     this.close()
         // }
-        // this.isDeleting = false
+        this.isDeleting = false
     }
 
     onDeleteFailure() {
