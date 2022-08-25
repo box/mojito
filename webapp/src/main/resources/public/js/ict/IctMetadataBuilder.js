@@ -30,7 +30,7 @@ class IctMetadataBuilder {
     }
 
     getInnerDelimiter() {
-        return "\x13";
+        return "\u{0013}";
     }
 }
 
