@@ -154,8 +154,7 @@ public class SpellCliChecker extends AbstractCliChecker {
         int index = stringWithoutPlaceholders.indexOf("{");
         while(index != -1 && stringWithoutPlaceholders.contains("}")) {
             int associatedClosingBraceIndex = getEndOfPlaceholderIndex(stringWithoutPlaceholders, index);
-            String tmp = stringWithoutPlaceholders.substring(index, associatedClosingBraceIndex + 1 < stringWithoutPlaceholders.length()? associatedClosingBraceIndex + 1 : associatedClosingBraceIndex).replaceAll("\\{", "\\\\{").replaceAll("\\}", "\\\\}");
-            stringWithoutPlaceholders = stringWithoutPlaceholders.replaceAll(tmp, "");
+            stringWithoutPlaceholders = stringWithoutPlaceholders.substring(0,index) + stringWithoutPlaceholders.substring(associatedClosingBraceIndex + 1);
             index = stringWithoutPlaceholders.indexOf("{");
         }
         return stringWithoutPlaceholders;

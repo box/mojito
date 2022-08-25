@@ -171,6 +171,23 @@ public class SpellCliCheckerTest {
     }
 
     @Test
+    public void testBracketedPlaceholderWithRegexSpecialCharacter() {
+        List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+        AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+        assetExtractorTextUnit.setSource("Searching for {recommended_terms[0]}?");
+        addedTUs.add(assetExtractorTextUnit);
+        List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+        AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+        assetExtractionDiff.setAddedTextunits(addedTUs);
+        assetExtractionDiffs.add(assetExtractionDiff);
+
+        CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
+        assertTrue(result.isSuccessful());
+        assertTrue(result.getNotificationText().isEmpty());
+        assertFalse(result.isHardFail());
+    }
+
+    @Test
     public void testAddingStringsToDictionaryAppendsSuggestedUpdateOnFailure() throws Exception {
         List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
         AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
