@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -61,9 +63,10 @@ public class PullRunAssetService {
     }
 
     void saveTextUnitVariantsMultiRowBatch(PullRunAsset pullRunAsset, Long localeId, List<Long> uniqueTmTextUnitVariantIds, Instant now) {
+        String createdTime = Timestamp.valueOf(LocalDateTime.ofInstant(now, ZoneOffset.UTC)).toString();
         String sql = "insert into pull_run_text_unit_variant(pull_run_asset_id, locale_id, tm_text_unit_variant_id, created_date) values "
                 + uniqueTmTextUnitVariantIds.stream().map(tuvId -> String.format("(%s, %s, %s, '%s') ",
-                pullRunAsset.getId(), localeId, tuvId, Timestamp.from(now))).collect(Collectors.joining(","));
+                pullRunAsset.getId(), localeId, tuvId, createdTime)).collect(Collectors.joining(","));
         jdbcTemplate.update(sql);
     }
 }

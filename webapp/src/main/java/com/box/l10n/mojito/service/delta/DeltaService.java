@@ -18,7 +18,10 @@ import org.joda.time.DateTime;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.sql.Date;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,6 +38,7 @@ import java.util.stream.Stream;
  */
 @Service
 public class DeltaService {
+
     CommitService commitService;
 
     RepositoryService repositoryService;
@@ -138,7 +142,8 @@ public class DeltaService {
                 // Remove milliseconds as the Mojito DB does not store dates with sub-second precision.
                 .map(dateTime -> dateTime.withMillisOfSecond(0))
                 .orElse(new DateTime(0));
-        Date sqlTranslationsFromDate = new Date(translationsFromDate.toDate().getTime());
+        Instant fromDateInstant = Instant.ofEpochMilli(translationsFromDate.getMillis());
+        Timestamp sqlTranslationsFromDate = Timestamp.valueOf(LocalDateTime.ofInstant(fromDateInstant, ZoneOffset.UTC));
 
         List<TextUnitVariantDelta> variants = tmTextUnitVariantRepository.findDeltasForRuns(
                 repository.getId(),

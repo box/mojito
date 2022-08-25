@@ -18,6 +18,8 @@ import javax.persistence.EntityManager;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -124,9 +126,10 @@ public class PushRunService {
     }
 
     void saveTextUnits(PushRunAsset pushRunAsset, List<Long> textUnitIds, Instant now) {
+        String createdTime = Timestamp.valueOf(LocalDateTime.ofInstant(now, ZoneOffset.UTC)).toString();
         String sql = "insert into push_run_asset_tm_text_unit(push_run_asset_id, tm_text_unit_id, created_date) values" +
                 textUnitIds.stream()
-                        .map(tuId -> String.format("(%s, %s, '%s') ", pushRunAsset.getId(), tuId, Timestamp.from(now)))
+                        .map(tuId -> String.format("(%s, %s, '%s') ", pushRunAsset.getId(), tuId, createdTime))
                         .collect(Collectors.joining(","));
 
         jdbcTemplate.update(sql);

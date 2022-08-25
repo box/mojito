@@ -6,7 +6,7 @@ import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -59,8 +59,8 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
             "and a.deleted = false " +
             "and tuv.locale in :locales " +
             "and tuv.includedInLocalizedFile = true " +
-            "and tuv.createdDate >= :fromDate " +
-            "and tuv.createdDate < :toDate " +
+            "and tucv.lastModifiedDate >= :fromDate " +
+            "and tucv.lastModifiedDate < :toDate " +
             "order by tuv.id asc ")
     Page<TextUnitVariantDelta> findAllUsedForRepositoryAndLocalesInDateRange(
             @Param("repository") Repository repository,
@@ -159,7 +159,7 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
                     "                   and previous_tuv.text_unit_id = base_tu.id " +
                     "where " +
                     "   latest_tuv.included_in_localized_file = true " + // Exclude rejected translations
-                    "   and base_tucv.created_date >= :translationsFromDate " +
+                    "   and base_tucv.last_modified_date >= :translationsFromDate " +
                     "   and (previous_tuv.id is null " +
                     "       or (latest_tuv.id != previous_tuv.id and latest_tuv.content_md5 != previous_tuv.content_md5)) "
     )
@@ -168,5 +168,5 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
             @Param("localeIds") List<Long> localeIds,
             @Param("pushRunIds") List<Long> pushRunIds,
             @Param("pullRunIds") List<Long> pullRunIds,
-            @Param("translationsFromDate") Date translationsFromDate);
+            @Param("translationsFromDate") Timestamp translationsFromDate);
 }
