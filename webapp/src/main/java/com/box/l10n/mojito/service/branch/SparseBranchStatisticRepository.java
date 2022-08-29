@@ -12,5 +12,6 @@ import org.springframework.lang.Nullable;
  * @author garion
  */
 public interface SparseBranchStatisticRepository {
-    Page<Long> findAllWithIdOnly(@Nullable Specification<BranchStatistic> specification, Pageable pageable);
+  Page<Long> findAllWithIdOnly(
+      @Nullable Specification<BranchStatistic> specification, Pageable pageable);
 }

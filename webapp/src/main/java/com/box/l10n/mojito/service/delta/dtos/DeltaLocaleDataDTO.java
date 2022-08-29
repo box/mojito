@@ -8,13 +8,14 @@ import java.util.Map;
  * @author garion
  */
 public class DeltaLocaleDataDTO {
-    Map<String, DeltaTranslationDTO> translationsByTextUnitName;
+  Map<String, DeltaTranslationDTO> translationsByTextUnitName;
 
-    public Map<String, DeltaTranslationDTO> getTranslationsByTextUnitName() {
-        return translationsByTextUnitName;
-    }
+  public Map<String, DeltaTranslationDTO> getTranslationsByTextUnitName() {
+    return translationsByTextUnitName;
+  }
 
-    public void setTranslationsByTextUnitName(Map<String, DeltaTranslationDTO> translationsByTextUnitName) {
-        this.translationsByTextUnitName = translationsByTextUnitName;
-    }
+  public void setTranslationsByTextUnitName(
+      Map<String, DeltaTranslationDTO> translationsByTextUnitName) {
+    this.translationsByTextUnitName = translationsByTextUnitName;
+  }
 }

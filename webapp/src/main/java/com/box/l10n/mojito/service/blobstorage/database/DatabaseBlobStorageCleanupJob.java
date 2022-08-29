@@ -11,14 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 @DisallowConcurrentExecution
 public class DatabaseBlobStorageCleanupJob implements Job {
 
-    static Logger logger = LoggerFactory.getLogger(DatabaseBlobStorageCleanupJob.class);
+  static Logger logger = LoggerFactory.getLogger(DatabaseBlobStorageCleanupJob.class);
 
-    @Autowired
-    DatabaseBlobStorage databaseBlobStorage;
+  @Autowired DatabaseBlobStorage databaseBlobStorage;
 
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        logger.debug("Cleanup expired blobs");
-        databaseBlobStorage.deleteExpired();
-    }
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    logger.debug("Cleanup expired blobs");
+    databaseBlobStorage.deleteExpired();
+  }
 }

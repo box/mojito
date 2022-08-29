@@ -9,28 +9,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class ImportLocalizedAssetJob extends QuartzPollableJob<ImportLocalizedAssetJobInput, Void> {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ImportLocalizedAssetJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(ImportLocalizedAssetJob.class);
 
-    @Autowired
-    TMService tmService;
+  @Autowired TMService tmService;
 
-    @Override
-    public Void call(ImportLocalizedAssetJobInput input) throws Exception {
+  @Override
+  public Void call(ImportLocalizedAssetJobInput input) throws Exception {
 
-        logger.debug("Run ImportLocalizedAssetJob");
-        tmService.importLocalizedAsset(
-                input.getAssetId(),
-                input.getContent(),
-                input.getLocaleId(),
-                input.getStatusForEqualtarget(),
-                input.getFilterConfigIdOverride(),
-                input.getFilterOptions());
+    logger.debug("Run ImportLocalizedAssetJob");
+    tmService.importLocalizedAsset(
+        input.getAssetId(),
+        input.getContent(),
+        input.getLocaleId(),
+        input.getStatusForEqualtarget(),
+        input.getFilterConfigIdOverride(),
+        input.getFilterOptions());
 
-        return null;
-    }
-
-
+    return null;
+  }
 }

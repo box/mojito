@@ -5,92 +5,89 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Entity that describes a user.
- * This entity mirrors: com.box.l10n.mojito.entity.security.user.User
- * 
+ * Entity that describes a user. This entity mirrors: com.box.l10n.mojito.entity.security.user.User
+ *
  * @author jyi
  */
 public class User {
-    
-    private Long id;
-    
-    private String username;
-    
-    private String password;
-    
-    private Boolean enabled;
-    
-    private String surname;
-    
-    private String givenName;
-    
-    private String commonName;
-    
-    @JsonManagedReference
-    Set<Authority> authorities = new HashSet<>();
 
-    public Long getId() {
-        return id;
-    }
+  private Long id;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  private String username;
 
-    public String getUsername() {
-        return username;
-    }
+  private String password;
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+  private Boolean enabled;
 
-    public String getPassword() {
-        return password;
-    }
+  private String surname;
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+  private String givenName;
 
-    public Boolean getEnabled() {
-        return enabled;
-    }
+  private String commonName;
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
+  @JsonManagedReference Set<Authority> authorities = new HashSet<>();
 
-    public String getSurname() {
-        return surname;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public String getGivenName() {
-        return givenName;
-    }
+  public String getUsername() {
+    return username;
+  }
 
-    public void setGivenName(String givenName) {
-        this.givenName = givenName;
-    }
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-    public String getCommonName() {
-        return commonName;
-    }
+  public String getPassword() {
+    return password;
+  }
 
-    public void setCommonName(String commonName) {
-        this.commonName = commonName;
-    }
+  public void setPassword(String password) {
+    this.password = password;
+  }
 
-    public Set<Authority> getAuthorities() {
-        return authorities;
-    }
+  public Boolean getEnabled() {
+    return enabled;
+  }
 
-    public void setAuthorities(Set<Authority> authorities) {
-        this.authorities = authorities;
-    }
+  public void setEnabled(Boolean enabled) {
+    this.enabled = enabled;
+  }
 
+  public String getSurname() {
+    return surname;
+  }
+
+  public void setSurname(String surname) {
+    this.surname = surname;
+  }
+
+  public String getGivenName() {
+    return givenName;
+  }
+
+  public void setGivenName(String givenName) {
+    this.givenName = givenName;
+  }
+
+  public String getCommonName() {
+    return commonName;
+  }
+
+  public void setCommonName(String commonName) {
+    this.commonName = commonName;
+  }
+
+  public Set<Authority> getAuthorities() {
+    return authorities;
+  }
+
+  public void setAuthorities(Set<Authority> authorities) {
+    this.authorities = authorities;
+  }
 }

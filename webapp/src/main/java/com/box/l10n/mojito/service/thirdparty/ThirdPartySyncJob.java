@@ -7,37 +7,31 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 @Component
 public class ThirdPartySyncJob extends QuartzPollableJob<ThirdPartySyncJobInput, Void> {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ThirdPartySyncJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(ThirdPartySyncJob.class);
 
-    @Autowired
-    ThirdPartyService thirdPartyService;
+  @Autowired ThirdPartyService thirdPartyService;
 
-    @Autowired
-    PollableTaskService pollableTaskService;
+  @Autowired PollableTaskService pollableTaskService;
 
-    @Override
-    public Void call(ThirdPartySyncJobInput input) {
-        logger.debug("Run ThirdPartyMapJob");
-        thirdPartyService.syncMojitoWithThirdPartyTMS(
-                input.getRepositoryId(),
-                input.getThirdPartyProjectId(),
-                input.getActions(),
-                input.getPluralSeparator(),
-                input.getLocaleMapping(),
-                input.getSkipTextUnitsWithPattern(),
-                input.getSkipAssetsWithPathPattern(),
-                input.getIncludeTextUnitsWithPattern(),
-                input.getOptions(),
-                getCurrentPollableTask());
-        return null;
-    }
+  @Override
+  public Void call(ThirdPartySyncJobInput input) {
+    logger.debug("Run ThirdPartyMapJob");
+    thirdPartyService.syncMojitoWithThirdPartyTMS(
+        input.getRepositoryId(),
+        input.getThirdPartyProjectId(),
+        input.getActions(),
+        input.getPluralSeparator(),
+        input.getLocaleMapping(),
+        input.getSkipTextUnitsWithPattern(),
+        input.getSkipAssetsWithPathPattern(),
+        input.getIncludeTextUnitsWithPattern(),
+        input.getOptions(),
+        getCurrentPollableTask());
+    return null;
+  }
 }

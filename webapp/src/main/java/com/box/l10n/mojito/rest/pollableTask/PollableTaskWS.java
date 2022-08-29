@@ -18,30 +18,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class PollableTaskWS {
 
-    @Autowired
-    PollableTaskService pollableTaskService;
+  @Autowired PollableTaskService pollableTaskService;
 
-    @Autowired
-    TMXliffRepository tmXliffRepository;
+  @Autowired TMXliffRepository tmXliffRepository;
 
-    @Autowired
-    PollableTaskBlobStorage pollableTaskBlobStorage;
+  @Autowired PollableTaskBlobStorage pollableTaskBlobStorage;
 
-    /**
-     * Gets a {@link PollableTask} by id.
-     *
-     * @param pollableTaskId
-     * @return
-     */
-    @RequestMapping(method = RequestMethod.GET, value = "/api/pollableTasks/{pollableTaskId}")
-    public PollableTask getPollableTaskById(@PathVariable Long pollableTaskId) {
-        return pollableTaskService.getPollableTask(pollableTaskId);
-    }
+  /**
+   * Gets a {@link PollableTask} by id.
+   *
+   * @param pollableTaskId
+   * @return
+   */
+  @RequestMapping(method = RequestMethod.GET, value = "/api/pollableTasks/{pollableTaskId}")
+  public PollableTask getPollableTaskById(@PathVariable Long pollableTaskId) {
+    return pollableTaskService.getPollableTask(pollableTaskId);
+  }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/api/pollableTasks/{pollableTaskId}/output")
-    public String getPollableTaskOutput(@PathVariable Long pollableTaskId) {
-        String outputJson = pollableTaskBlobStorage.getOutputJson(pollableTaskId);
-        return outputJson;
-    }
-
+  @RequestMapping(method = RequestMethod.GET, value = "/api/pollableTasks/{pollableTaskId}/output")
+  public String getPollableTaskOutput(@PathVariable Long pollableTaskId) {
+    String outputJson = pollableTaskBlobStorage.getOutputJson(pollableTaskId);
+    return outputJson;
+  }
 }

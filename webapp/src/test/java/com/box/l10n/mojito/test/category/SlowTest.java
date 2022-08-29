@@ -5,6 +5,4 @@ package com.box.l10n.mojito.test.category;
  *
  * @author jaurambault
  */
-public interface SlowTest {
-
-}
+public interface SlowTest {}

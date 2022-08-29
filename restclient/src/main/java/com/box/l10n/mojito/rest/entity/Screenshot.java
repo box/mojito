@@ -8,74 +8,74 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class Screenshot {
 
-    private String name;
+  private String name;
 
-    private Locale locale;
+  private Locale locale;
 
-    private String src;
+  private String src;
 
-    private Long sequence;
-    
-    private Long takenDate;
+  private Long sequence;
 
-    private Branch branch;
+  private Long takenDate;
 
-    @JsonProperty("textUnits")
-    Set<ScreenshotTextUnit> screenshotTextUnits = new LinkedHashSet<>();
+  private Branch branch;
 
-    public String getName() {
-        return name;
-    }
+  @JsonProperty("textUnits")
+  Set<ScreenshotTextUnit> screenshotTextUnits = new LinkedHashSet<>();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public Locale getLocale() {
-        return locale;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setLocale(Locale locale) {
-        this.locale = locale;
-    }
+  public Locale getLocale() {
+    return locale;
+  }
 
-    public String getSrc() {
-        return src;
-    }
+  public void setLocale(Locale locale) {
+    this.locale = locale;
+  }
 
-    public void setSrc(String src) {
-        this.src = src;
-    }
+  public String getSrc() {
+    return src;
+  }
 
-    public Set<ScreenshotTextUnit> getScreenshotTextUnits() {
-        return screenshotTextUnits;
-    }
+  public void setSrc(String src) {
+    this.src = src;
+  }
 
-    public void setScreenshotTextUnits(Set<ScreenshotTextUnit> screenshotTextUnits) {
-        this.screenshotTextUnits = screenshotTextUnits;
-    }
+  public Set<ScreenshotTextUnit> getScreenshotTextUnits() {
+    return screenshotTextUnits;
+  }
 
-    public Long getSequence() {
-        return sequence;
-    }
+  public void setScreenshotTextUnits(Set<ScreenshotTextUnit> screenshotTextUnits) {
+    this.screenshotTextUnits = screenshotTextUnits;
+  }
 
-    public void setSequence(Long sequence) {
-        this.sequence = sequence;
-    }
+  public Long getSequence() {
+    return sequence;
+  }
 
-    public Long getTakenDate() {
-        return takenDate;
-    }
+  public void setSequence(Long sequence) {
+    this.sequence = sequence;
+  }
 
-    public void setTakenDate(Long takenDate) {
-        this.takenDate = takenDate;
-    }
+  public Long getTakenDate() {
+    return takenDate;
+  }
 
-    public Branch getBranch() {
-        return branch;
-    }
+  public void setTakenDate(Long takenDate) {
+    this.takenDate = takenDate;
+  }
 
-    public void setBranch(Branch branch) {
-        this.branch = branch;
-    }
+  public Branch getBranch() {
+    return branch;
+  }
+
+  public void setBranch(Branch branch) {
+    this.branch = branch;
+  }
 }

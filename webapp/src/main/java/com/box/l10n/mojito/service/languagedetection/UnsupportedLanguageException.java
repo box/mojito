@@ -7,8 +7,7 @@ package com.box.l10n.mojito.service.languagedetection;
  */
 public class UnsupportedLanguageException extends RuntimeException {
 
-    public UnsupportedLanguageException(String string) {
-        super(string);
-    }
-
+  public UnsupportedLanguageException(String string) {
+    super(string);
+  }
 }

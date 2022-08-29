@@ -13,34 +13,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class EvolveCommandTest extends CLITestBase {
 
-    static Logger logger = LoggerFactory.getLogger(EvolveCommandTest.class);
+  static Logger logger = LoggerFactory.getLogger(EvolveCommandTest.class);
 
-    @Autowired(required = false)
-    Evolve evolve;
+  @Autowired(required = false)
+  Evolve evolve;
 
-    @Test
-    public void execute() throws Exception {
-        Assume.assumeNotNull(evolve);
-        Repository repository = createTestRepoUsingRepoService();
-        getL10nJCommander().run("evolve-sync", "-r", repository.getName());
-    }
+  @Test
+  public void execute() throws Exception {
+    Assume.assumeNotNull(evolve);
+    Repository repository = createTestRepoUsingRepoService();
+    getL10nJCommander().run("evolve-sync", "-r", repository.getName());
+  }
 
-    @Test
-    public void writeJsonTo() {
-        EvolveCommand evolveCommand = new EvolveCommand();
-        evolveCommand.writeJsonTo = getTargetTestDir().toString();
+  @Test
+  public void writeJsonTo() {
+    EvolveCommand evolveCommand = new EvolveCommand();
+    evolveCommand.writeJsonTo = getTargetTestDir().toString();
 
-        com.box.l10n.mojito.rest.entity.Repository repository = new com.box.l10n.mojito.rest.entity.Repository();
-        repository.setName("evolveRepository");
+    com.box.l10n.mojito.rest.entity.Repository repository =
+        new com.box.l10n.mojito.rest.entity.Repository();
+    repository.setName("evolveRepository");
 
-        Course course = new Course();
-        course.setId("course1");
+    Course course = new Course();
+    course.setId("course1");
 
-        Locale locale = new Locale();
-        locale.setBcp47Tag("fr-FR");
+    Locale locale = new Locale();
+    locale.setBcp47Tag("fr-FR");
 
-        evolveCommand.writeJsonToFile(repository, course, locale, "{\"key\" : \"value\"}");
-        checkExpectedGeneratedResources();
-    }
-
+    evolveCommand.writeJsonToFile(repository, course, locale, "{\"key\" : \"value\"}");
+    checkExpectedGeneratedResources();
+  }
 }

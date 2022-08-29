@@ -6,12 +6,16 @@ import org.springframework.web.client.RestTemplate;
 
 public class RestTemplateUtils {
 
-    public void enableFeature(RestTemplate restTemplate, DeserializationFeature feature) {
-        restTemplate.getMessageConverters().stream().
-                filter(httpMessageConverter -> httpMessageConverter instanceof MappingJackson2HttpMessageConverter).
-                map(httpMessageConverter -> (MappingJackson2HttpMessageConverter) httpMessageConverter).
-                map(MappingJackson2HttpMessageConverter::getObjectMapper).forEach(objectMapper -> {
-            objectMapper.enable(feature);
-        });
-    }
+  public void enableFeature(RestTemplate restTemplate, DeserializationFeature feature) {
+    restTemplate.getMessageConverters().stream()
+        .filter(
+            httpMessageConverter ->
+                httpMessageConverter instanceof MappingJackson2HttpMessageConverter)
+        .map(httpMessageConverter -> (MappingJackson2HttpMessageConverter) httpMessageConverter)
+        .map(MappingJackson2HttpMessageConverter::getObjectMapper)
+        .forEach(
+            objectMapper -> {
+              objectMapper.enable(feature);
+            });
+  }
 }

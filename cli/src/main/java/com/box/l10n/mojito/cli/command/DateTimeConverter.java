@@ -4,8 +4,8 @@ import com.beust.jcommander.IStringConverter;
 import org.joda.time.DateTime;
 
 public class DateTimeConverter implements IStringConverter<DateTime> {
-    @Override
-    public DateTime convert(String dateAsText) {
-        return DateTime.parse(dateAsText);
-    }
+  @Override
+  public DateTime convert(String dateAsText) {
+    return DateTime.parse(dateAsText);
+  }
 }

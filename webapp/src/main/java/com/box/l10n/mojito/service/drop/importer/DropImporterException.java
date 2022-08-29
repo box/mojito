@@ -7,8 +7,7 @@ package com.box.l10n.mojito.service.drop.importer;
  */
 public class DropImporterException extends Exception {
 
-    public DropImporterException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  public DropImporterException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

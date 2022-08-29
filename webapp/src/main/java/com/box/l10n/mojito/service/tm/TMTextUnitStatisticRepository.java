@@ -4,9 +4,6 @@ import com.box.l10n.mojito.entity.TMTextUnitStatistic;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/**
- * @author garion
- */
+/** @author garion */
 @RepositoryRestResource(exported = false)
-public interface TMTextUnitStatisticRepository  extends JpaRepository<TMTextUnitStatistic, Long> {
-}
+public interface TMTextUnitStatisticRepository extends JpaRepository<TMTextUnitStatistic, Long> {}

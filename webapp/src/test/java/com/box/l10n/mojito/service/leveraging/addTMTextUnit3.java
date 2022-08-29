@@ -5,10 +5,5 @@
  */
 package com.box.l10n.mojito.service.leveraging;
 
-/**
- *
- * @author jeanaurambault
- */
-class addTMTextUnit3 {
-    
-}
+/** @author jeanaurambault */
+class addTMTextUnit3 {}

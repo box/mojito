@@ -8,31 +8,37 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- *
- */
+/** */
 public class PseudoLocCommandTest extends CLITestBase {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(PseudoLocCommandTest.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(PseudoLocCommandTest.class);
 
-    @Autowired
-    RepositoryClient repositoryClient;
+  @Autowired RepositoryClient repositoryClient;
 
-    @Test
-    public void pseudo() throws Exception {
+  @Test
+  public void pseudo() throws Exception {
 
-        Repository repository = createTestRepoUsingRepoService();
+    Repository repository = createTestRepoUsingRepoService();
 
-        getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
 
-        getL10nJCommander().run("pseudo", "-r", repository.getName(),
-            "-s", getInputResourcesTestDir("source").getAbsolutePath(),
-            "-t", getTargetTestDir("target").getAbsolutePath());
+    getL10nJCommander()
+        .run(
+            "pseudo",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath());
 
-        checkExpectedGeneratedResources();
-   }
+    checkExpectedGeneratedResources();
+  }
 }

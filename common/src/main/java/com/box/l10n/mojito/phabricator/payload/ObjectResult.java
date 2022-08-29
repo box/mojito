@@ -1,13 +1,13 @@
 package com.box.l10n.mojito.phabricator.payload;
 
 public class ObjectResult extends ResultWithError {
-    Object result;
+  Object result;
 
-    public Object getResult() {
-        return result;
-    }
+  public Object getResult() {
+    return result;
+  }
 
-    public void setResult(Object result) {
-        this.result = result;
-    }
+  public void setResult(Object result) {
+    this.result = result;
+  }
 }

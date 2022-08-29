@@ -6,8 +6,6 @@ package com.box.l10n.mojito.service.tm.search;
  * @author jaurambault
  */
 public enum TranslatedFilter {
-
-    TRANSLATED,
-    UNTRANSLATED
-
+  TRANSLATED,
+  UNTRANSLATED
 }

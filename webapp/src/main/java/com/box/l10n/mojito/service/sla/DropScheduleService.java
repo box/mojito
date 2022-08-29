@@ -11,68 +11,65 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * @author jeanaurambault
- */
+/** @author jeanaurambault */
 @Component
 public class DropScheduleService {
 
-    static Logger logger = LoggerFactory.getLogger(DropScheduleService.class);
+  static Logger logger = LoggerFactory.getLogger(DropScheduleService.class);
 
-    @Autowired
-    DropScheduleConfig dropScheduleConfig;
+  @Autowired DropScheduleConfig dropScheduleConfig;
 
-    @Autowired
-    DateTimeUtils dateTimeUtils;
+  @Autowired DateTimeUtils dateTimeUtils;
 
-    public DateTime getLastDropCreatedDate() {
-        DateTime now = dateTimeUtils.now(dropScheduleConfig.getTimezone());
-        DateTime lastDropDueDate = getLastDropDueDate(now);
-        return getDropCreatedDate(lastDropDueDate);
-    }
-    
-    DateTime getDropCreatedDate(DateTime dropDueDate) {
+  public DateTime getLastDropCreatedDate() {
+    DateTime now = dateTimeUtils.now(dropScheduleConfig.getTimezone());
+    DateTime lastDropDueDate = getLastDropDueDate(now);
+    return getDropCreatedDate(lastDropDueDate);
+  }
 
-        DateTime dropCreatedDate = dropDueDate.withTime(dropScheduleConfig.getCreatedLocalTime());
+  DateTime getDropCreatedDate(DateTime dropDueDate) {
 
-        Integer dropDueDateDay = dropDueDate.getDayOfWeek();
-        Integer dropStartDateDay = getDueDayToStartDay().get(dropDueDateDay);
+    DateTime dropCreatedDate = dropDueDate.withTime(dropScheduleConfig.getCreatedLocalTime());
 
-        dropCreatedDate = dropCreatedDate.withDayOfWeek(dropStartDateDay);
+    Integer dropDueDateDay = dropDueDate.getDayOfWeek();
+    Integer dropStartDateDay = getDueDayToStartDay().get(dropDueDateDay);
 
-        if (dropStartDateDay > dropDueDateDay) {
-            dropCreatedDate = dropCreatedDate.minusWeeks(1);
-        }
+    dropCreatedDate = dropCreatedDate.withDayOfWeek(dropStartDateDay);
 
-        return dropCreatedDate;
+    if (dropStartDateDay > dropDueDateDay) {
+      dropCreatedDate = dropCreatedDate.minusWeeks(1);
     }
 
-    DateTime getLastDropDueDate(DateTime before) {
+    return dropCreatedDate;
+  }
 
-        DateTime lastDropDueDate = null;
+  DateTime getLastDropDueDate(DateTime before) {
 
-        HashSet<Integer> dropDueDaysSet = Sets.newHashSet(dropScheduleConfig.getDueDays());
+    DateTime lastDropDueDate = null;
 
-        for (int daysToSubstract = 0; daysToSubstract <= 7; daysToSubstract++) {
-            DateTime candidate = before.minusDays(daysToSubstract).withTime(dropScheduleConfig.getDueLocalTime());
+    HashSet<Integer> dropDueDaysSet = Sets.newHashSet(dropScheduleConfig.getDueDays());
 
-            if (dropDueDaysSet.contains(candidate.getDayOfWeek()) && !candidate.isAfter(before)) {
-                lastDropDueDate = candidate;
-                break;
-            }
-        }
+    for (int daysToSubstract = 0; daysToSubstract <= 7; daysToSubstract++) {
+      DateTime candidate =
+          before.minusDays(daysToSubstract).withTime(dropScheduleConfig.getDueLocalTime());
 
-        return lastDropDueDate;
+      if (dropDueDaysSet.contains(candidate.getDayOfWeek()) && !candidate.isAfter(before)) {
+        lastDropDueDate = candidate;
+        break;
+      }
     }
 
-    Map<Integer, Integer> getDueDayToStartDay() {
-        Map<Integer, Integer> dueDayToStartDay = new HashMap<>();
+    return lastDropDueDate;
+  }
 
-        for (int i = 0; i < dropScheduleConfig.getDueDays().size(); i++) {
-            dueDayToStartDay.put(dropScheduleConfig.getDueDays().get(i), dropScheduleConfig.getCreatedDays().get(i));
-        }
+  Map<Integer, Integer> getDueDayToStartDay() {
+    Map<Integer, Integer> dueDayToStartDay = new HashMap<>();
 
-        return dueDayToStartDay;
+    for (int i = 0; i < dropScheduleConfig.getDueDays().size(); i++) {
+      dueDayToStartDay.put(
+          dropScheduleConfig.getDueDays().get(i), dropScheduleConfig.getCreatedDays().get(i));
     }
 
+    return dueDayToStartDay;
+  }
 }

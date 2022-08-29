@@ -4,14 +4,12 @@ import org.aspectj.lang.Aspects;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 @Configuration
 public class RetryAspectConfig {
 
-    @Bean
-    public RetryAspect getRetryAspect() {
-        return Aspects.aspectOf(RetryAspect.class);
-    }
+  @Bean
+  public RetryAspect getRetryAspect() {
+    return Aspects.aspectOf(RetryAspect.class);
+  }
 }

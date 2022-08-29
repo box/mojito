@@ -18,20 +18,17 @@ import org.springframework.stereotype.Component;
 @DisallowConcurrentExecution
 public class RepositoryStatisticsJob extends QuartzPollableJob<RepositoryStatisticsJobInput, Void> {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(RepositoryStatisticsJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(RepositoryStatisticsJob.class);
 
-    @Autowired
-    RepositoryStatisticService repositoryStatisticService;
+  @Autowired RepositoryStatisticService repositoryStatisticService;
 
-    @Override
-    public Void call(RepositoryStatisticsJobInput input) throws Exception {
-        Long repositoryId = input.getRepositoryId();
-        Preconditions.checkNotNull(repositoryId);
-        logger.debug("Execute for repositoryId: {}", repositoryId);
-        repositoryStatisticService.updateStatistics(repositoryId);
-        return null;
-    }
+  @Override
+  public Void call(RepositoryStatisticsJobInput input) throws Exception {
+    Long repositoryId = input.getRepositoryId();
+    Preconditions.checkNotNull(repositoryId);
+    logger.debug("Execute for repositoryId: {}", repositoryId);
+    repositoryStatisticService.updateStatistics(repositoryId);
+    return null;
+  }
 }

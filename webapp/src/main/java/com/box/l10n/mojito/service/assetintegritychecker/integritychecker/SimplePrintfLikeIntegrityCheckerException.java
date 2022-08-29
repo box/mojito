@@ -1,13 +1,9 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
-/**
- *
- * @author jyi
- */
+/** @author jyi */
 public class SimplePrintfLikeIntegrityCheckerException extends IntegrityCheckException {
-    
-    public SimplePrintfLikeIntegrityCheckerException(String message) {
-        super(message);
-    }
-    
+
+  public SimplePrintfLikeIntegrityCheckerException(String message) {
+    super(message);
+  }
 }

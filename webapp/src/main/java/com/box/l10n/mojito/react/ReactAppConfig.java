@@ -4,69 +4,68 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 public class ReactAppConfig {
 
-    @JsonUnwrapped
-    ReactStaticAppConfig reactStaticAppConfig;
+  @JsonUnwrapped ReactStaticAppConfig reactStaticAppConfig;
 
-    ReactUser user;
+  ReactUser user;
 
-    String locale;
+  String locale;
 
-    boolean ict;
+  boolean ict;
 
-    String csrfToken;
+  String csrfToken;
 
-    String contextPath;
+  String contextPath;
 
-    public ReactAppConfig(ReactStaticAppConfig reactStaticAppConfig, ReactUser reactUser) {
-        this.reactStaticAppConfig = reactStaticAppConfig;
-        this.user = reactUser;
-    }
+  public ReactAppConfig(ReactStaticAppConfig reactStaticAppConfig, ReactUser reactUser) {
+    this.reactStaticAppConfig = reactStaticAppConfig;
+    this.user = reactUser;
+  }
 
-    public ReactStaticAppConfig getReactStaticAppConfig() {
-        return reactStaticAppConfig;
-    }
+  public ReactStaticAppConfig getReactStaticAppConfig() {
+    return reactStaticAppConfig;
+  }
 
-    public ReactUser getUser() {
-        return user;
-    }
+  public ReactUser getUser() {
+    return user;
+  }
 
-    public void setReactStaticAppConfig(ReactStaticAppConfig reactStaticAppConfig) {
-        this.reactStaticAppConfig = reactStaticAppConfig;
-    }
+  public void setReactStaticAppConfig(ReactStaticAppConfig reactStaticAppConfig) {
+    this.reactStaticAppConfig = reactStaticAppConfig;
+  }
 
-    public void setUser(ReactUser user) {
-        this.user = user;
-    }
+  public void setUser(ReactUser user) {
+    this.user = user;
+  }
 
-    public String getLocale() {
-        return locale;
-    }
+  public String getLocale() {
+    return locale;
+  }
 
-    public void setLocale(String locale) {
-        this.locale = locale;
-    }
+  public void setLocale(String locale) {
+    this.locale = locale;
+  }
 
-    public boolean isIct() {
-        return ict;
-    }
+  public boolean isIct() {
+    return ict;
+  }
 
-    public void setIct(boolean ict) {
-        this.ict = ict;
-    }
+  public void setIct(boolean ict) {
+    this.ict = ict;
+  }
 
-    public String getCsrfToken() {
-        return csrfToken;
-    }
+  public String getCsrfToken() {
+    return csrfToken;
+  }
 
-    public void setCsrfToken(String csrfToken) {
-        this.csrfToken = csrfToken;
-    }
+  public void setCsrfToken(String csrfToken) {
+    this.csrfToken = csrfToken;
+  }
 
-    public String getContextPath() {
-        return contextPath;
-    }
+  public String getContextPath() {
+    return contextPath;
+  }
 
-    public void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
+  public void setContextPath(String contextPath) {
+    this.contextPath = contextPath;
+  }
 }

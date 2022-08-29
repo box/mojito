@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.service.delta.dtos;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Map;
 
 /**
@@ -10,25 +9,25 @@ import java.util.Map;
  * @author garion
  */
 public class DeltaResponseDTO {
-    @JsonProperty("metadata")
-    DeltaMetadataDTO deltaMetadataDTO;
+  @JsonProperty("metadata")
+  DeltaMetadataDTO deltaMetadataDTO;
 
-    @JsonProperty("content")
-    Map<String, DeltaLocaleDataDTO> translationsPerLocale;
+  @JsonProperty("content")
+  Map<String, DeltaLocaleDataDTO> translationsPerLocale;
 
-    public DeltaMetadataDTO getDeltaMetadataDTO() {
-        return deltaMetadataDTO;
-    }
+  public DeltaMetadataDTO getDeltaMetadataDTO() {
+    return deltaMetadataDTO;
+  }
 
-    public void setDeltaMetadataDTO(DeltaMetadataDTO deltaMetadataDTO) {
-        this.deltaMetadataDTO = deltaMetadataDTO;
-    }
+  public void setDeltaMetadataDTO(DeltaMetadataDTO deltaMetadataDTO) {
+    this.deltaMetadataDTO = deltaMetadataDTO;
+  }
 
-    public Map<String, DeltaLocaleDataDTO> getTranslationsPerLocale() {
-        return translationsPerLocale;
-    }
+  public Map<String, DeltaLocaleDataDTO> getTranslationsPerLocale() {
+    return translationsPerLocale;
+  }
 
-    public void setTranslationsPerLocale(Map<String, DeltaLocaleDataDTO> translationsPerLocale) {
-        this.translationsPerLocale = translationsPerLocale;
-    }
+  public void setTranslationsPerLocale(Map<String, DeltaLocaleDataDTO> translationsPerLocale) {
+    this.translationsPerLocale = translationsPerLocale;
+  }
 }

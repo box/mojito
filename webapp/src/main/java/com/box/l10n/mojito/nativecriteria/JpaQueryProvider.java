@@ -6,19 +6,14 @@ import javax.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/**
- *
- * @author jeanaurambault
- */
+/** @author jeanaurambault */
 @Configurable
 public class JpaQueryProvider implements NativeQueryProvider {
 
-    @Autowired
-    EntityManager em;
+  @Autowired EntityManager em;
 
-    @Override
-    public NativeQuery getNativeQuery(String sql) {
-        return new JpaNativeQuery(sql, em.createNativeQuery(sql));
-    }
-
+  @Override
+  public NativeQuery getNativeQuery(String sql) {
+    return new JpaNativeQuery(sql, em.createNativeQuery(sql));
+  }
 }

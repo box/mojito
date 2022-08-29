@@ -6,23 +6,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public class GlossaryTerm {
 
-    private String term;
-    @JsonProperty("severity")
-    private GlossaryTermSeverity severity;
+  private String term;
 
-    public String getTerm() {
-        return term;
-    }
+  @JsonProperty("severity")
+  private GlossaryTermSeverity severity;
 
-    public void setTerm(String term) {
-        this.term = term;
-    }
+  public String getTerm() {
+    return term;
+  }
 
-    public GlossaryTermSeverity getSeverity() {
-        return severity;
-    }
+  public void setTerm(String term) {
+    this.term = term;
+  }
 
-    public void setSeverity(GlossaryTermSeverity severity) {
-        this.severity = severity;
-    }
+  public GlossaryTermSeverity getSeverity() {
+    return severity;
+  }
+
+  public void setSeverity(GlossaryTermSeverity severity) {
+    this.severity = severity;
+  }
 }

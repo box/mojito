@@ -13,57 +13,55 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class GenerateLocalizedAssetJob extends QuartzPollableJob<LocalizedAssetBody, LocalizedAssetBody> {
+public class GenerateLocalizedAssetJob
+    extends QuartzPollableJob<LocalizedAssetBody, LocalizedAssetBody> {
 
-    static Logger logger = LoggerFactory.getLogger(GenerateLocalizedAssetJob.class);
+  static Logger logger = LoggerFactory.getLogger(GenerateLocalizedAssetJob.class);
 
-    @Autowired
-    AssetRepository assetRepository;
+  @Autowired AssetRepository assetRepository;
 
-    @Autowired
-    RepositoryLocaleRepository repositoryLocaleRepository;
+  @Autowired RepositoryLocaleRepository repositoryLocaleRepository;
 
-    @Autowired
-    TMService tmService;
+  @Autowired TMService tmService;
 
-    @Autowired
-    AssetService assetService;
+  @Autowired AssetService assetService;
 
-    @Autowired
-    TMXliffRepository tmXliffRepository;
+  @Autowired TMXliffRepository tmXliffRepository;
 
-    @Autowired
-    LocaleService localeService;
+  @Autowired LocaleService localeService;
 
-    @Override
-    public LocalizedAssetBody call(LocalizedAssetBody localizedAssetBody) throws Exception {
-        Long assetId = localizedAssetBody.getAssetId();
-        logger.debug("Localizing content payload with asset id = {}, and locale = {}", assetId);
+  @Override
+  public LocalizedAssetBody call(LocalizedAssetBody localizedAssetBody) throws Exception {
+    Long assetId = localizedAssetBody.getAssetId();
+    logger.debug("Localizing content payload with asset id = {}, and locale = {}", assetId);
 
-        Asset asset = assetRepository.findById(assetId).orElse(null);
-        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(asset.getRepository().getId(), localizedAssetBody.getLocaleId());
+    Asset asset = assetRepository.findById(assetId).orElse(null);
+    RepositoryLocale repositoryLocale =
+        repositoryLocaleRepository.findByRepositoryIdAndLocaleId(
+            asset.getRepository().getId(), localizedAssetBody.getLocaleId());
 
-        String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
+    String normalizedContent = NormalizationUtils.normalize(localizedAssetBody.getContent());
 
-        String generateLocalized = tmService.generateLocalized(
-                asset,
-                normalizedContent,
-                repositoryLocale,
-                localizedAssetBody.getOutputBcp47tag(),
-                localizedAssetBody.getFilterConfigIdOverride(),
-                localizedAssetBody.getFilterOptions(),
-                localizedAssetBody.getStatus(),
-                localizedAssetBody.getInheritanceMode(),
-                localizedAssetBody.getPullRunName());
+    String generateLocalized =
+        tmService.generateLocalized(
+            asset,
+            normalizedContent,
+            repositoryLocale,
+            localizedAssetBody.getOutputBcp47tag(),
+            localizedAssetBody.getFilterConfigIdOverride(),
+            localizedAssetBody.getFilterOptions(),
+            localizedAssetBody.getStatus(),
+            localizedAssetBody.getInheritanceMode(),
+            localizedAssetBody.getPullRunName());
 
-        localizedAssetBody.setContent(generateLocalized);
+    localizedAssetBody.setContent(generateLocalized);
 
-        if (localizedAssetBody.getOutputBcp47tag() != null) {
-            localizedAssetBody.setBcp47Tag(localizedAssetBody.getOutputBcp47tag());
-        } else {
-            localizedAssetBody.setBcp47Tag(repositoryLocale.getLocale().getBcp47Tag());
-        }
-
-        return localizedAssetBody;
+    if (localizedAssetBody.getOutputBcp47tag() != null) {
+      localizedAssetBody.setBcp47Tag(localizedAssetBody.getOutputBcp47tag());
+    } else {
+      localizedAssetBody.setBcp47Tag(repositoryLocale.getLocale().getBcp47Tag());
     }
+
+    return localizedAssetBody;
+  }
 }

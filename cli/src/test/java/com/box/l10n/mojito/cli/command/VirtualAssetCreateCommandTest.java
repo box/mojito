@@ -10,19 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class VirtualAssetCreateCommandTest extends CLITestBase {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(VirtualAssetCreateCommandTest.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(VirtualAssetCreateCommandTest.class);
 
-    @Autowired
-    RepositoryClient repositoryClient; 
+  @Autowired RepositoryClient repositoryClient;
 
-    @Test
-    public void execute() throws Exception {
-        Repository repository = createTestRepoUsingRepoService();        
-        getL10nJCommander().run("virtual-asset-create", "-r", repository.getName(), "-p", "asset1");
-        getL10nJCommander().run("virtual-asset-create", "-r", repository.getName(), "-p", "asset2");
-    }
-        
+  @Test
+  public void execute() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+    getL10nJCommander().run("virtual-asset-create", "-r", repository.getName(), "-p", "asset1");
+    getL10nJCommander().run("virtual-asset-create", "-r", repository.getName(), "-p", "asset2");
+  }
 }

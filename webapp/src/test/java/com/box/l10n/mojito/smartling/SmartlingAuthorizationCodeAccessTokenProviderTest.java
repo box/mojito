@@ -1,8 +1,9 @@
 package com.box.l10n.mojito.smartling;
 
+import static org.mockito.ArgumentMatchers.*;
+
 import com.box.l10n.mojito.smartling.response.AuthenticationData;
 import com.box.l10n.mojito.smartling.response.AuthenticationResponse;
-import com.box.l10n.mojito.utils.RestTemplateUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,75 +18,89 @@ import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2RefreshToken;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.*;
-
 public class SmartlingAuthorizationCodeAccessTokenProviderTest {
 
-    @Spy
-    SmartlingAuthorizationCodeAccessTokenProvider smartlingAuthorizationCodeAccessTokenProvider;
+  @Spy SmartlingAuthorizationCodeAccessTokenProvider smartlingAuthorizationCodeAccessTokenProvider;
 
-    @Mock
-    RestTemplate mockRestTemplate;
+  @Mock RestTemplate mockRestTemplate;
 
-    @Mock
-    SmartlingOAuth2ProtectedResourceDetails mockResourceDetails;
+  @Mock SmartlingOAuth2ProtectedResourceDetails mockResourceDetails;
 
-    @Mock
-    AccessTokenRequest mockAccessTokenRequest;
+  @Mock AccessTokenRequest mockAccessTokenRequest;
 
-    @Mock
-    AuthenticationResponse mockResp;
+  @Mock AuthenticationResponse mockResp;
 
-    AuthenticationData mockAuthData = new AuthenticationData();
+  AuthenticationData mockAuthData = new AuthenticationData();
 
-    @Before
-    public void setUp(){
-        MockitoAnnotations.initMocks(this);
-        Mockito.when(smartlingAuthorizationCodeAccessTokenProvider.getRestTemplate()).thenReturn(mockRestTemplate);
-        Mockito.when(mockResourceDetails.getClientId()).thenReturn("testClient");
-        Mockito.when(mockResourceDetails.getClientSecret()).thenReturn("testSecret");
-        Mockito.when(mockResourceDetails.getAccessTokenUri()).thenReturn("http://test.com/accessToken");
-        Mockito.when(mockResourceDetails.getRefreshUri()).thenReturn("http://test.com/accessToken/refresh");
-        Mockito.when(mockRestTemplate.postForObject(anyString(), anyMap(), any())).thenReturn(mockResp);
+  @Before
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+    Mockito.when(smartlingAuthorizationCodeAccessTokenProvider.getRestTemplate())
+        .thenReturn(mockRestTemplate);
+    Mockito.when(mockResourceDetails.getClientId()).thenReturn("testClient");
+    Mockito.when(mockResourceDetails.getClientSecret()).thenReturn("testSecret");
+    Mockito.when(mockResourceDetails.getAccessTokenUri()).thenReturn("http://test.com/accessToken");
+    Mockito.when(mockResourceDetails.getRefreshUri())
+        .thenReturn("http://test.com/accessToken/refresh");
+    Mockito.when(mockRestTemplate.postForObject(anyString(), anyMap(), any())).thenReturn(mockResp);
 
+    mockAuthData.setAccessToken("testAccessToken");
+    mockAuthData.setExpiresIn(480);
+    mockAuthData.setRefreshToken("testRefreshToken");
+    mockAuthData.setRefreshExpiresIn(21700);
 
-        mockAuthData.setAccessToken("testAccessToken");
-        mockAuthData.setExpiresIn(480);
-        mockAuthData.setRefreshToken("testRefreshToken");
-        mockAuthData.setRefreshExpiresIn(21700);
+    Mockito.when(mockAccessTokenRequest.getExistingToken()).thenReturn(null);
+    Mockito.when(mockResp.getData()).thenReturn(mockAuthData);
+  }
 
-        Mockito.when(mockAccessTokenRequest.getExistingToken()).thenReturn(null);
-        Mockito.when(mockResp.getData()).thenReturn(mockAuthData);
-    }
+  @Test
+  public void testRefreshTokenMethodNotCalledIfNoExistingToken() {
 
-    @Test
-    public void testRefreshTokenMethodNotCalledIfNoExistingToken(){
+    OAuth2AccessToken accessToken =
+        smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(
+            mockResourceDetails, mockAccessTokenRequest);
+    Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(0))
+        .refreshAccessToken(
+            isA(OAuth2ProtectedResourceDetails.class),
+            isA(OAuth2RefreshToken.class),
+            isA(AccessTokenRequest.class));
+    Assert.assertEquals(mockAuthData.getAccessToken(), accessToken.getValue());
+    Assert.assertEquals(mockAuthData.getRefreshToken(), accessToken.getRefreshToken().getValue());
+  }
 
-        OAuth2AccessToken accessToken = smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(mockResourceDetails, mockAccessTokenRequest);
-        Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(0)).refreshAccessToken(isA(OAuth2ProtectedResourceDetails.class), isA(OAuth2RefreshToken.class), isA(AccessTokenRequest.class));
-        Assert.assertEquals(mockAuthData.getAccessToken(), accessToken.getValue());
-        Assert.assertEquals(mockAuthData.getRefreshToken(), accessToken.getRefreshToken().getValue());
-    }
+  @Test
+  public void testRefreshTokenMethodNotCalledIfNoRefreshToken() {
 
-    @Test
-    public void testRefreshTokenMethodNotCalledIfNoRefreshToken(){
+    DefaultOAuth2AccessToken accessToken = new DefaultOAuth2AccessToken("testAccessToken");
+    accessToken.setRefreshToken(null);
+    Mockito.when(mockAccessTokenRequest.getExistingToken()).thenReturn(accessToken);
+    smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(
+        mockResourceDetails, mockAccessTokenRequest);
+    Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(0))
+        .refreshAccessToken(
+            isA(OAuth2ProtectedResourceDetails.class),
+            isA(OAuth2RefreshToken.class),
+            isA(AccessTokenRequest.class));
+  }
 
-        DefaultOAuth2AccessToken accessToken = new DefaultOAuth2AccessToken("testAccessToken");
-        accessToken.setRefreshToken(null);
-        Mockito.when(mockAccessTokenRequest.getExistingToken()).thenReturn(accessToken);
-        smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(mockResourceDetails, mockAccessTokenRequest);
-        Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(0)).refreshAccessToken(isA(OAuth2ProtectedResourceDetails.class), isA(OAuth2RefreshToken.class), isA(AccessTokenRequest.class));
-    }
+  @Test
+  public void testTokenIsRefreshedIfRefreshTokenIsPresent() {
 
-    @Test
-    public void testTokenIsRefreshedIfRefreshTokenIsPresent(){
-
-        OAuth2AccessToken accessToken = smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(mockResourceDetails, mockAccessTokenRequest);
-        Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(0)).refreshAccessToken(isA(OAuth2ProtectedResourceDetails.class), isA(OAuth2RefreshToken.class), isA(AccessTokenRequest.class));
-        Mockito.when(mockAccessTokenRequest.getExistingToken()).thenReturn(accessToken);
-        smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(mockResourceDetails, mockAccessTokenRequest);
-        Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(1)).refreshAccessToken(isA(OAuth2ProtectedResourceDetails.class), isA(OAuth2RefreshToken.class), isA(AccessTokenRequest.class));
-    }
+    OAuth2AccessToken accessToken =
+        smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(
+            mockResourceDetails, mockAccessTokenRequest);
+    Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(0))
+        .refreshAccessToken(
+            isA(OAuth2ProtectedResourceDetails.class),
+            isA(OAuth2RefreshToken.class),
+            isA(AccessTokenRequest.class));
+    Mockito.when(mockAccessTokenRequest.getExistingToken()).thenReturn(accessToken);
+    smartlingAuthorizationCodeAccessTokenProvider.obtainAccessToken(
+        mockResourceDetails, mockAccessTokenRequest);
+    Mockito.verify(smartlingAuthorizationCodeAccessTokenProvider, Mockito.times(1))
+        .refreshAccessToken(
+            isA(OAuth2ProtectedResourceDetails.class),
+            isA(OAuth2RefreshToken.class),
+            isA(AccessTokenRequest.class));
+  }
 }

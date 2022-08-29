@@ -4,18 +4,15 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.springframework.stereotype.Component;
 
-/**
- *
- * @author jeanaurambault
- */
+/** @author jeanaurambault */
 @Component
 public class DateTimeUtils {
 
-    public DateTime now() {
-        return new DateTime();
-    }
+  public DateTime now() {
+    return new DateTime();
+  }
 
-    public DateTime now(DateTimeZone dateTimeZone) {
-        return new DateTime(dateTimeZone);
-    }
+  public DateTime now(DateTimeZone dateTimeZone) {
+    return new DateTime(dateTimeZone);
+  }
 }

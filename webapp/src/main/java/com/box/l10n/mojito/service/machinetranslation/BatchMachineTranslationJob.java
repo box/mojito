@@ -14,26 +14,27 @@ import org.springframework.stereotype.Component;
  * @author garion
  */
 @Component
-public class BatchMachineTranslationJob extends QuartzPollableJob<BatchTranslationRequestDTO, TranslationsResponseDTO> {
-    static Logger logger = LoggerFactory.getLogger(BatchMachineTranslationJob.class);
+public class BatchMachineTranslationJob
+    extends QuartzPollableJob<BatchTranslationRequestDTO, TranslationsResponseDTO> {
+  static Logger logger = LoggerFactory.getLogger(BatchMachineTranslationJob.class);
 
-    @Autowired
-    MachineTranslationService machineTranslationService;
+  @Autowired MachineTranslationService machineTranslationService;
 
-    @Override
-    public TranslationsResponseDTO call(BatchTranslationRequestDTO batchTranslationRequestDTO) throws Exception {
-        logger.debug("Machine translating batch with sources = {}, and target locales = {}",
-                StringUtils.join(batchTranslationRequestDTO.getTextSources(), ", "),
-                StringUtils.join(batchTranslationRequestDTO.getTargetBcp47Tags(), ", "));
+  @Override
+  public TranslationsResponseDTO call(BatchTranslationRequestDTO batchTranslationRequestDTO)
+      throws Exception {
+    logger.debug(
+        "Machine translating batch with sources = {}, and target locales = {}",
+        StringUtils.join(batchTranslationRequestDTO.getTextSources(), ", "),
+        StringUtils.join(batchTranslationRequestDTO.getTargetBcp47Tags(), ", "));
 
-        return machineTranslationService.getTranslations(
-                batchTranslationRequestDTO.getTextSources(),
-                batchTranslationRequestDTO.getSourceBcp47Tag(),
-                batchTranslationRequestDTO.getTargetBcp47Tags(),
-                batchTranslationRequestDTO.isSkipFunctionalProtection(),
-                batchTranslationRequestDTO.isSkipLeveraging(),
-                batchTranslationRequestDTO.getRepositoryIds(),
-                batchTranslationRequestDTO.getRepositoryNames()
-        );
-    }
+    return machineTranslationService.getTranslations(
+        batchTranslationRequestDTO.getTextSources(),
+        batchTranslationRequestDTO.getSourceBcp47Tag(),
+        batchTranslationRequestDTO.getTargetBcp47Tags(),
+        batchTranslationRequestDTO.isSkipFunctionalProtection(),
+        batchTranslationRequestDTO.isSkipLeveraging(),
+        batchTranslationRequestDTO.getRepositoryIds(),
+        batchTranslationRequestDTO.getRepositoryNames());
+  }
 }

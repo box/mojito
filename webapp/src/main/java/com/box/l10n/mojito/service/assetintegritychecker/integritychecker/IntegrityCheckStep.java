@@ -5,6 +5,11 @@ import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.google.common.io.CharStreams;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
@@ -18,134 +23,125 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-/**
- * @author aloison
- */
+/** @author aloison */
 @Configurable
 public class IntegrityCheckStep extends BasePipelineStep {
 
-    /**
-     * Logger
-     */
-    static Logger logger = LoggerFactory.getLogger(IntegrityCheckStep.class);
+  /** Logger */
+  static Logger logger = LoggerFactory.getLogger(IntegrityCheckStep.class);
 
-    @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
 
-    @Autowired
-    IntegrityCheckerFactory integrityCheckerFactory;
+  @Autowired IntegrityCheckerFactory integrityCheckerFactory;
 
-    Map<Long, Set<TextUnitIntegrityChecker>> textUnitIntegrityCheckerMap = new HashMap<>();
+  Map<Long, Set<TextUnitIntegrityChecker>> textUnitIntegrityCheckerMap = new HashMap<>();
 
-    private LocaleId targetLocale;
-    private RawDocument rawDocument;
+  private LocaleId targetLocale;
+  private RawDocument rawDocument;
 
-    @SuppressWarnings("deprecation")
-    @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
-    public void setTargetLocale(LocaleId targetLocale) {
-        this.targetLocale = targetLocale;
+  @SuppressWarnings("deprecation")
+  @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
+  public void setTargetLocale(LocaleId targetLocale) {
+    this.targetLocale = targetLocale;
+  }
+
+  @StepParameterMapping(parameterType = StepParameterType.INPUT_RAWDOC)
+  public void setInputDocument(RawDocument rawDocument) {
+    this.rawDocument = rawDocument;
+  }
+
+  @Override
+  public String getName() {
+    return "Integrity Check";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Updates the TM with the extracted new/changed variants."
+        + " Expects: raw document. Sends back: original events.";
+  }
+
+  @Override
+  protected Event handleStartDocument(Event event) {
+    logger.debug("Check integrity of document");
+
+    String documentContent = null;
+    try {
+      documentContent = CharStreams.toString(rawDocument.getReader());
+    } catch (IOException e) {
+      logger.error("Error reading document content", e);
+      throw new RuntimeException("Error reading document content", e);
     }
 
-    @StepParameterMapping(parameterType = StepParameterType.INPUT_RAWDOC)
-    public void setInputDocument(RawDocument rawDocument) {
-        this.rawDocument = rawDocument;
+    // TODO(P1): do not hardcode the type here
+    List<DocumentIntegrityChecker> documentIntegrityCheckers =
+        integrityCheckerFactory.getDocumentCheckers("xliff");
+    for (DocumentIntegrityChecker checker : documentIntegrityCheckers) {
+      checker.check(documentContent);
     }
 
-    @Override
-    public String getName() {
-        return "Integrity Check";
-    }
+    return super.handleStartDocument(event);
+  }
 
-    @Override
-    public String getDescription() {
-        return "Updates the TM with the extracted new/changed variants."
-                + " Expects: raw document. Sends back: original events.";
-    }
+  @Override
+  protected Event handleTextUnit(Event event) {
+    ITextUnit textUnit = event.getTextUnit();
 
-    @Override
-    protected Event handleStartDocument(Event event) {
-        logger.debug("Check integrity of document");
+    if (textUnit.isTranslatable()) {
+      TMTextUnit tmTextUnit = null;
+      Asset asset = null;
 
-        String documentContent = null;
+      try {
+        Long tmTextUnitId = Long.valueOf(textUnit.getId());
+        tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
+      } catch (NumberFormatException nfe) {
+        logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
+      }
+
+      if (tmTextUnit != null) {
+        asset = tmTextUnit.getAsset();
+        TextContainer target = textUnit.getTarget(targetLocale);
+
+        logger.debug("Check integrity of text unit");
+
         try {
-            documentContent = CharStreams.toString(rawDocument.getReader());
-        } catch (IOException e) {
-            logger.error("Error reading document content", e);
-            throw new RuntimeException("Error reading document content", e);
-        }
+          Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers =
+              getTextUnitIntegrityCheckers(asset);
 
-        // TODO(P1): do not hardcode the type here
-        List<DocumentIntegrityChecker> documentIntegrityCheckers = integrityCheckerFactory.getDocumentCheckers("xliff");
-        for (DocumentIntegrityChecker checker : documentIntegrityCheckers) {
-            checker.check(documentContent);
+          for (TextUnitIntegrityChecker textUnitIntegrityChecker : textUnitIntegrityCheckers) {
+            textUnitIntegrityChecker.check(textUnit.getSource().toString(), target.toString());
+          }
+        } catch (IntegrityCheckException e) {
+          TMTextUnitVariantCommentAnnotation tmTextUnitVariantCommentAnnotation =
+              new TMTextUnitVariantCommentAnnotation();
+          tmTextUnitVariantCommentAnnotation.setCommentType(
+              TMTextUnitVariantComment.Type.INTEGRITY_CHECK);
+          tmTextUnitVariantCommentAnnotation.setMessage(e.getMessage());
+          tmTextUnitVariantCommentAnnotation.setSeverity(TMTextUnitVariantComment.Severity.ERROR);
+          new TMTextUnitVariantCommentAnnotations(target)
+              .addAnnotation(tmTextUnitVariantCommentAnnotation);
         }
-
-        return super.handleStartDocument(event);
+      } else {
+        logger.debug("Could not find a TMTextUnit for id: {}. Skipping it...", textUnit.getId());
+      }
     }
 
-    @Override
-    protected Event handleTextUnit(Event event) {
-        ITextUnit textUnit = event.getTextUnit();
+    return event;
+  }
 
-        if (textUnit.isTranslatable()) {
-            TMTextUnit tmTextUnit = null;
-            Asset asset = null;
+  /**
+   * @param asset
+   * @return The created or cached TextUnitIntegrityChecker for the given asset
+   */
+  private Set<TextUnitIntegrityChecker> getTextUnitIntegrityCheckers(Asset asset) {
 
-            try {
-                Long tmTextUnitId = Long.valueOf(textUnit.getId());
-                tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
-            } catch (NumberFormatException nfe) {
-                logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
-            }
+    Set<TextUnitIntegrityChecker> checkers = textUnitIntegrityCheckerMap.get(asset.getId());
 
-            if (tmTextUnit != null) {
-                asset = tmTextUnit.getAsset();
-                TextContainer target = textUnit.getTarget(targetLocale);
-
-                logger.debug("Check integrity of text unit");
-
-                try {
-                    Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = getTextUnitIntegrityCheckers(asset);
-
-                    for (TextUnitIntegrityChecker textUnitIntegrityChecker : textUnitIntegrityCheckers) {
-                        textUnitIntegrityChecker.check(textUnit.getSource().toString(), target.toString());
-                    }
-                } catch (IntegrityCheckException e) {
-                    TMTextUnitVariantCommentAnnotation tmTextUnitVariantCommentAnnotation = new TMTextUnitVariantCommentAnnotation();
-                    tmTextUnitVariantCommentAnnotation.setCommentType(TMTextUnitVariantComment.Type.INTEGRITY_CHECK);
-                    tmTextUnitVariantCommentAnnotation.setMessage(e.getMessage());
-                    tmTextUnitVariantCommentAnnotation.setSeverity(TMTextUnitVariantComment.Severity.ERROR);
-                    new TMTextUnitVariantCommentAnnotations(target).addAnnotation(tmTextUnitVariantCommentAnnotation);
-                }
-            } else {
-                logger.debug("Could not find a TMTextUnit for id: {}. Skipping it...", textUnit.getId());
-            }
-        }
-
-        return event;
+    if (checkers == null) {
+      checkers = integrityCheckerFactory.getTextUnitCheckers(asset);
+      textUnitIntegrityCheckerMap.put(asset.getId(), checkers);
     }
 
-    /**
-     * @param asset
-     * @return The created or cached TextUnitIntegrityChecker for the given asset
-     */
-    private Set<TextUnitIntegrityChecker> getTextUnitIntegrityCheckers(Asset asset) {
-
-        Set<TextUnitIntegrityChecker> checkers = textUnitIntegrityCheckerMap.get(asset.getId());
-        
-        if (checkers == null) {
-            checkers = integrityCheckerFactory.getTextUnitCheckers(asset);
-            textUnitIntegrityCheckerMap.put(asset.getId(), checkers);
-        }
-
-        return checkers;
-    }
+    return checkers;
+  }
 }

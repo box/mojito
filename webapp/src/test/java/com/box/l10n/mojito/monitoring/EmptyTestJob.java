@@ -5,7 +5,6 @@ import org.quartz.JobExecutionContext;
 
 public class EmptyTestJob implements Job {
 
-    @Override
-    public void execute(JobExecutionContext context) {
-    }
+  @Override
+  public void execute(JobExecutionContext context) {}
 }

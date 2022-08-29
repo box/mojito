@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Main Command of the application, just has help and version options. Uses the
- * empty string as command name.
+ * Main Command of the application, just has help and version options. Uses the empty string as
+ * command name.
  *
  * @author jaurambault
  */
@@ -20,64 +20,65 @@ import org.springframework.stereotype.Component;
 @Parameters(commandNames = "")
 public class MainCommand extends Command {
 
-    @Autowired
-    ConsoleWriter consoleWriter;
+  @Autowired ConsoleWriter consoleWriter;
 
-    @Parameter(names = {"--version", "-v"}, description = "Show version")
-    private boolean versionParam;
+  @Parameter(
+      names = {"--version", "-v"},
+      description = "Show version")
+  private boolean versionParam;
 
-    @Parameter(names = {"--check-server-version"}, description = "Check if this CLI matches the server's version")
-    private boolean checkVersionServerParam;
+  @Parameter(
+      names = {"--check-server-version"},
+      description = "Check if this CLI matches the server's version")
+  private boolean checkVersionServerParam;
 
-    @Value("${info.build.version}")
-    String version;
+  @Value("${info.build.version}")
+  String version;
 
-    @Autowired
-    GitInfo gitInfo;
+  @Autowired GitInfo gitInfo;
 
-    @Autowired
-    CliClient cliClient;
+  @Autowired CliClient cliClient;
 
-    @Override
-    void showUsage() {
-        new L10nJCommander().usage();
+  @Override
+  void showUsage() {
+    new L10nJCommander().usage();
+  }
+
+  @Override
+  protected void execute() throws CommandException {
+    if (versionParam) {
+      showVersion();
+    } else if (checkVersionServerParam) {
+      checkServerVersion();
+    } else {
+      showUsage();
+    }
+  }
+
+  void checkServerVersion() throws CommandException {
+    String serverVersion = cliClient.getVersion();
+    String cliVersion = getCliVersion();
+    if (!cliVersion.equals(serverVersion)) {
+      throw new CommandException(
+          "CLI version: " + cliVersion + " not the same as the server version: " + serverVersion);
+    }
+  }
+
+  void showVersion() {
+    consoleWriter.fg(Ansi.Color.CYAN).a(version).reset();
+
+    if (gitInfo.getCommit().getId() != null) {
+      consoleWriter.a(" (git commit id: ").a(gitInfo.getCommit().getId()).a(")");
     }
 
-    @Override
-    protected void execute() throws CommandException {
-        if (versionParam) {
-            showVersion();
-        } else if (checkVersionServerParam) {
-            checkServerVersion();
-        } else {
-            showUsage();
-        }
+    consoleWriter.println();
+  }
+
+  String getCliVersion() {
+    String fullVersion = version;
+    if (gitInfo.getCommit() != null) {
+      fullVersion += " (git commit id: " + gitInfo.getCommit().getId() + ")";
     }
-
-    void checkServerVersion() throws CommandException {
-        String serverVersion = cliClient.getVersion();
-        String cliVersion = getCliVersion();
-        if (!cliVersion.equals(serverVersion)) {
-            throw new CommandException("CLI version: " + cliVersion + " not the same as the server version: " + serverVersion);
-        }
-    }
-
-    void showVersion() {
-        consoleWriter.fg(Ansi.Color.CYAN).a(version).reset();
-
-        if (gitInfo.getCommit().getId() != null) {
-            consoleWriter.a(" (git commit id: ").a(gitInfo.getCommit().getId()).a(")");
-        }
-
-        consoleWriter.println();
-    }
-
-    String getCliVersion() {
-        String fullVersion = version;
-        if (gitInfo.getCommit() != null) {
-            fullVersion += " (git commit id: " + gitInfo.getCommit().getId() + ")";
-        }
-        return fullVersion;
-    }
-
+    return fullVersion;
+  }
 }

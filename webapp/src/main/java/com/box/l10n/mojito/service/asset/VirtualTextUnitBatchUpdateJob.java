@@ -7,30 +7,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 @Component
-public class VirtualTextUnitBatchUpdateJob extends QuartzPollableJob<VirtualTextUnitBatchUpdateJobInput, Void> {
+public class VirtualTextUnitBatchUpdateJob
+    extends QuartzPollableJob<VirtualTextUnitBatchUpdateJobInput, Void> {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(VirtualTextUnitBatchUpdateJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(VirtualTextUnitBatchUpdateJob.class);
 
+  @Autowired VirtualTextUnitBatchUpdaterService virtualTextUnitBatchUpdaterService;
 
-    @Autowired
-    VirtualTextUnitBatchUpdaterService virtualTextUnitBatchUpdaterService;
+  @Autowired VirtualAssetService virtualAssetService;
 
-    @Autowired
-    VirtualAssetService virtualAssetService;
-
-
-    @Override
-    public Void call(VirtualTextUnitBatchUpdateJobInput input) throws Exception {
-        logger.debug("ImportVirtualAssetJob");
-        Asset asset = virtualAssetService.getVirtualAsset(input.getAssetId());
-        virtualTextUnitBatchUpdaterService.updateTextUnits(asset, input.getVirtualAssetTextUnits(), input.isReplace());
-        return null;
-    }
+  @Override
+  public Void call(VirtualTextUnitBatchUpdateJobInput input) throws Exception {
+    logger.debug("ImportVirtualAssetJob");
+    Asset asset = virtualAssetService.getVirtualAsset(input.getAssetId());
+    virtualTextUnitBatchUpdaterService.updateTextUnits(
+        asset, input.getVirtualAssetTextUnits(), input.isReplace());
+    return null;
+  }
 }

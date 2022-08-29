@@ -7,23 +7,23 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("l10n.evolve")
 public class EvolveConfigurationProperties {
 
-    String token;
+  String token;
 
-    String url;
+  String url;
 
-    public String getToken() {
-        return token;
-    }
+  public String getToken() {
+    return token;
+  }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
+  public void setToken(String token) {
+    this.token = token;
+  }
 
-    public String getUrl() {
-        return url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 }

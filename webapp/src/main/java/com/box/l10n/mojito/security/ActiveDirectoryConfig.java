@@ -12,32 +12,31 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "l10n.security.ad")
 public class ActiveDirectoryConfig {
 
-    String url;
-    String domain;   
-    String rootDn;
+  String url;
+  String domain;
+  String rootDn;
 
-    public String getUrl() {
-        return url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
-    public String getDomain() {
-        return domain;
-    }
+  public String getDomain() {
+    return domain;
+  }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
+  public void setDomain(String domain) {
+    this.domain = domain;
+  }
 
-    public String getRootDn() {
-        return rootDn;
-    }
+  public String getRootDn() {
+    return rootDn;
+  }
 
-    public void setRootDn(String rootDn) {
-        this.rootDn = rootDn;
-    }
-
+  public void setRootDn(String rootDn) {
+    this.rootDn = rootDn;
+  }
 }

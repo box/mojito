@@ -18,35 +18,30 @@ import org.springframework.beans.factory.annotation.Configurable;
 @Configurable
 public class CheckForDoNotTranslateStep extends BasePipelineStep {
 
-    static Logger logger = LoggerFactory.getLogger(CheckForDoNotTranslateStep.class);
+  static Logger logger = LoggerFactory.getLogger(CheckForDoNotTranslateStep.class);
 
-    /**
-     * skip translation if the string has the following comment
-     */
-    private static final String COMMENT_TO_SKIP_TRANSLATION = "DO NOT TRANSLATE";
+  /** skip translation if the string has the following comment */
+  private static final String COMMENT_TO_SKIP_TRANSLATION = "DO NOT TRANSLATE";
 
-    @Autowired
-    TextUnitUtils textUnitUtils;
+  @Autowired TextUnitUtils textUnitUtils;
 
-    @Override
-    public String getName() {
-        return "Do not translate";
+  @Override
+  public String getName() {
+    return "Do not translate";
+  }
+
+  @Override
+  public String getDescription() {
+    return "Mark TextUnit as not translatable" + " if it has note 'DO NOT TRANSLATE'";
+  }
+
+  @Override
+  protected Event handleTextUnit(Event event) {
+    ITextUnit textUnit = event.getTextUnit();
+    String comments = textUnitUtils.getNote(textUnit);
+    if (StringUtils.contains(comments, COMMENT_TO_SKIP_TRANSLATION)) {
+      textUnit.setIsTranslatable(false);
     }
-
-    @Override
-    public String getDescription() {
-        return "Mark TextUnit as not translatable"
-                + " if it has note 'DO NOT TRANSLATE'";
-    }
-
-    @Override
-    protected Event handleTextUnit(Event event) {
-        ITextUnit textUnit = event.getTextUnit();
-        String comments = textUnitUtils.getNote(textUnit);
-        if (StringUtils.contains(comments, COMMENT_TO_SKIP_TRANSLATION)) {
-            textUnit.setIsTranslatable(false);
-        }
-        return event;
-    }
-
+    return event;
+  }
 }

@@ -9,40 +9,47 @@ import com.box.l10n.mojito.test.XliffUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- *
- * @author jaurambault
- */
+/** @author jaurambault */
 public class TMExportCommandTest extends CLITestBase {
 
-    @Autowired
-    RepositoryClient repositoryClient;
+  @Autowired RepositoryClient repositoryClient;
 
-    @Autowired
-    AssetClient assetClient;
+  @Autowired AssetClient assetClient;
 
-    @Test
-    public void export() throws Exception {
+  @Test
+  public void export() throws Exception {
 
-        Repository repository = createTestRepoUsingRepoService();
+    Repository repository = createTestRepoUsingRepoService();
 
-        getL10nJCommander().run("push", "-r", repository.getName(),
-                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath());
 
-        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
-        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
-        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
 
-        Asset asset2 = assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
-        importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
-        importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
+    Asset asset2 =
+        assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
+    importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
+    importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
 
-        getL10nJCommander().run("tm-export", "-r", repository.getName(),
-                "-t", targetTestDir.getAbsolutePath(),
-                "--target-basename", "fortest");
-        
-        modifyFilesInTargetTestDirectory(XliffUtils.replaceCreatedDateFunction());
-        checkExpectedGeneratedResources();
-    }
+    getL10nJCommander()
+        .run(
+            "tm-export",
+            "-r",
+            repository.getName(),
+            "-t",
+            targetTestDir.getAbsolutePath(),
+            "--target-basename",
+            "fortest");
 
+    modifyFilesInTargetTestDirectory(XliffUtils.replaceCreatedDateFunction());
+    checkExpectedGeneratedResources();
+  }
 }

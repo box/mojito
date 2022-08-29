@@ -12,32 +12,28 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("l10n.drop-service")
 public class DropServiceConfig {
 
-    /**
-     * Week offset (from the current week) used when computing the drop name.
-     */
-    int dropNameWeekOffset = 0;
+  /** Week offset (from the current week) used when computing the drop name. */
+  int dropNameWeekOffset = 0;
 
-    /**
-     * User for imported translations
-     * If this is not set, then the authenticated user in context 
-     * who is importing the drop is used for all imported translations
-     */
-    String dropImporterUsername;
+  /**
+   * User for imported translations If this is not set, then the authenticated user in context who
+   * is importing the drop is used for all imported translations
+   */
+  String dropImporterUsername;
 
-    public int getDropNameWeekOffset() {
-        return dropNameWeekOffset;
-    }
+  public int getDropNameWeekOffset() {
+    return dropNameWeekOffset;
+  }
 
-    public void setDropNameWeekOffset(int dropNameWeekOffset) {
-        this.dropNameWeekOffset = dropNameWeekOffset;
-    }
+  public void setDropNameWeekOffset(int dropNameWeekOffset) {
+    this.dropNameWeekOffset = dropNameWeekOffset;
+  }
 
-    public String getDropImporterUsername() {
-        return dropImporterUsername;
-    }
+  public String getDropImporterUsername() {
+    return dropImporterUsername;
+  }
 
-    public void setDropImporterUsername(String dropImporterUsername) {
-        this.dropImporterUsername = dropImporterUsername;
-    }
-
+  public void setDropImporterUsername(String dropImporterUsername) {
+    this.dropImporterUsername = dropImporterUsername;
+  }
 }

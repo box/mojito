@@ -23,6 +23,17 @@ import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
 import com.google.common.base.Objects;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.TreeMap;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipelinedriver.IPipelineDriver;
 import net.sf.okapi.common.pipelinedriver.PipelineDriver;
@@ -34,18 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-import java.util.TreeMap;
-
 /**
  * Service to generate {@link TranslationKit}s
  *
@@ -54,349 +53,377 @@ import java.util.TreeMap;
 @Service
 public class TranslationKitService {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(TranslationKitService.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(TranslationKitService.class);
 
-    @Autowired
-    TextUnitSearcher textUnitSearcher;
+  @Autowired TextUnitSearcher textUnitSearcher;
 
-    @Autowired
-    LocaleService localeService;
+  @Autowired LocaleService localeService;
 
-    @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
 
-    @Autowired
-    DropRepository dropRepository;
+  @Autowired DropRepository dropRepository;
 
-    @Autowired
-    TranslationKitRepository translationKitRepository;
+  @Autowired TranslationKitRepository translationKitRepository;
 
-    @Autowired
-    TranslationKitTextUnitRepository translationKitTextUnitRepository;
+  @Autowired TranslationKitTextUnitRepository translationKitTextUnitRepository;
 
-    @Autowired
-    LanguageDetectionService languageDetectionService;
+  @Autowired LanguageDetectionService languageDetectionService;
 
-    @Autowired
-    EntityManager entityManager;
+  @Autowired EntityManager entityManager;
 
-    @Autowired
-    RepositoryLocaleRepository repositoryLocaleRepository;
+  @Autowired RepositoryLocaleRepository repositoryLocaleRepository;
 
-    /**
-     * Generates and gets a translation kit in XLIFF format for a given
-     * {@link TM} and {@link Locale}
-     *
-     * @param dropId {@link Drop#id}
-     * @param tmId {@link TM#id}
-     * @param localeId {@link Locale#id}
-     * @param type
-     * @param useInheritance
-     * @return the XLIFF content
-     */
-    @Transactional
-    public TranslationKitAsXliff generateTranslationKitAsXLIFF(Long dropId, Long tmId, Long localeId, TranslationKit.Type type, Boolean useInheritance) {
+  /**
+   * Generates and gets a translation kit in XLIFF format for a given {@link TM} and {@link Locale}
+   *
+   * @param dropId {@link Drop#id}
+   * @param tmId {@link TM#id}
+   * @param localeId {@link Locale#id}
+   * @param type
+   * @param useInheritance
+   * @return the XLIFF content
+   */
+  @Transactional
+  public TranslationKitAsXliff generateTranslationKitAsXLIFF(
+      Long dropId, Long tmId, Long localeId, TranslationKit.Type type, Boolean useInheritance) {
 
-        logger.debug("Get translation kit for in tmId: {} and locale: {}", tmId, localeId);
-        TranslationKit translationKit = addTranslationKit(dropId, localeId, type);
+    logger.debug("Get translation kit for in tmId: {} and locale: {}", tmId, localeId);
+    TranslationKit translationKit = addTranslationKit(dropId, localeId, type);
 
-        logger.trace("Create XLIFFWriter");
-        XLIFFWriter xliffWriter = new XLIFFWriter();
+    logger.trace("Create XLIFFWriter");
+    XLIFFWriter xliffWriter = new XLIFFWriter();
 
-        logger.trace("Prepare FilterEventsWriterStep to use an XLIFFWriter with outputstream (allows only one doc to be processed)");
-        FilterEventsWriterStep filterEventsWriterStep = new FilterEventsWriterStep(xliffWriter);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        filterEventsWriterStep.setOutputStream(byteArrayOutputStream);
-        filterEventsWriterStep.setOutputEncoding(StandardCharsets.UTF_8.toString());
+    logger.trace(
+        "Prepare FilterEventsWriterStep to use an XLIFFWriter with outputstream (allows only one doc to be processed)");
+    FilterEventsWriterStep filterEventsWriterStep = new FilterEventsWriterStep(xliffWriter);
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    filterEventsWriterStep.setOutputStream(byteArrayOutputStream);
+    filterEventsWriterStep.setOutputEncoding(StandardCharsets.UTF_8.toString());
 
-        TranslationKitStep tksStep = new TranslationKitStep(translationKit.getId());
-        logger.trace("Prepare the Okapi pipeline");
-        IPipelineDriver driver = new PipelineDriver();
-        driver.addStep(new RawDocumentToFilterEventsStep(new TranslationKitFilter(translationKit.getId(), type, useInheritance)));
-        driver.addStep(tksStep);
-        driver.addStep(filterEventsWriterStep);
+    TranslationKitStep tksStep = new TranslationKitStep(translationKit.getId());
+    logger.trace("Prepare the Okapi pipeline");
+    IPipelineDriver driver = new PipelineDriver();
+    driver.addStep(
+        new RawDocumentToFilterEventsStep(
+            new TranslationKitFilter(translationKit.getId(), type, useInheritance)));
+    driver.addStep(tksStep);
+    driver.addStep(filterEventsWriterStep);
 
-        logger.trace("Add single document with fake output URI to be processed with an outputStream");
-        Locale locale = localeService.findById(localeId);
-        RawDocument rawDocument = new RawDocument(RawDocument.EMPTY, LocaleId.ENGLISH, LocaleId.fromBCP47(locale.getBcp47Tag()));
+    logger.trace("Add single document with fake output URI to be processed with an outputStream");
+    Locale locale = localeService.findById(localeId);
+    RawDocument rawDocument =
+        new RawDocument(
+            RawDocument.EMPTY, LocaleId.ENGLISH, LocaleId.fromBCP47(locale.getBcp47Tag()));
 
-        driver.addBatchItem(rawDocument, RawDocument.getFakeOutputURIForStream(), null);
+    driver.addBatchItem(rawDocument, RawDocument.getFakeOutputURIForStream(), null);
 
-        logger.debug("Start processing batch");
-        driver.processBatch();
+    logger.debug("Start processing batch");
+    driver.processBatch();
 
-        logger.trace("Get the output result from the stream");
-        TranslationKitAsXliff translationKitAsXliff = new TranslationKitAsXliff();
-        translationKitAsXliff.setContent(StreamUtil.getUTF8OutputStreamAsString(byteArrayOutputStream));
-        translationKitAsXliff.setTranslationKitId(translationKit.getId());
-        translationKitAsXliff.setEmpty(tksStep.wordCount < 1);
+    logger.trace("Get the output result from the stream");
+    TranslationKitAsXliff translationKitAsXliff = new TranslationKitAsXliff();
+    translationKitAsXliff.setContent(StreamUtil.getUTF8OutputStreamAsString(byteArrayOutputStream));
+    translationKitAsXliff.setTranslationKitId(translationKit.getId());
+    translationKitAsXliff.setEmpty(tksStep.wordCount < 1);
 
-        return translationKitAsXliff;
+    return translationKitAsXliff;
+  }
+
+  public TranslationKitAsXliff generateTranslationKitAsXLIFF(
+      Long dropId, Long tmId, Long localeId, TranslationKit.Type type) {
+    return generateTranslationKitAsXLIFF(dropId, tmId, localeId, type, Boolean.FALSE);
+  }
+
+  /**
+   * Gets the list of {@link TextUnitDTO}s to generate a {@link TranslationKit}
+   *
+   * @param translationKitId {@link TranslationKit}'s id
+   * @param type
+   * @return the list of {@link TextUnitDTO}s to generate a {@link TranslationKit}
+   */
+  public List<TextUnitDTO> getTextUnitDTOsForTranslationKit(
+      Long translationKitId, TranslationKit.Type type) {
+
+    TranslationKit translationKit =
+        translationKitRepository.findById(translationKitId).orElse(null);
+    return getTextUnitDTOsForTranslationKit(
+        translationKit.getDrop().getRepository().getId(),
+        translationKit.getLocale().getId(),
+        TranslationKit.Type.TRANSLATION.equals(type)
+            ? StatusFilter.FOR_TRANSLATION
+            : StatusFilter.REVIEW_NEEDED);
+  }
+
+  /**
+   * Adds a {@link TranslationKit} to a {@link Drop} for a given {@link Locale}
+   *
+   * @param dropId {@link Drop#id}
+   * @param localeId {@link Locale#id}
+   * @param type
+   * @return the {@link TranslationKit} that was added
+   */
+  @Transactional
+  public TranslationKit addTranslationKit(Long dropId, Long localeId, TranslationKit.Type type) {
+
+    logger.debug("Add translation kit entities for dropId: {} and localeId: {}", dropId, localeId);
+
+    Drop drop = dropRepository.getOne(dropId);
+
+    TranslationKit translationKit = new TranslationKit();
+    translationKit.setDrop(drop);
+    translationKit.setLocale(localeService.findById(localeId));
+    translationKit.setType(type);
+
+    logger.trace("Save the TranslationKit");
+    translationKitRepository.save(translationKit);
+
+    return translationKit;
+  }
+
+  /**
+   * Update a {@link TranslationKit} with a list of {@link TranslationKitTextUnit#id}s.
+   *
+   * <p>{@link TranslationKitTextUnit#translationKit} will be set on element base on the given
+   * translation kit.
+   *
+   * @param translationKitId {@link TranslationKit#id}
+   * @param translationKitTextUnits List of {@link TranslationKitTextUnit#id}s
+   * @param wordCount
+   */
+  @Transactional
+  public void updateTranslationKitWithTmTextUnits(
+      Long translationKitId, List<TranslationKitTextUnit> translationKitTextUnits, Long wordCount) {
+
+    logger.debug("Update translation kit: {} with list of tmTextUnitIds", translationKitId);
+
+    TranslationKit translationKit =
+        translationKitRepository.findById(translationKitId).orElse(null);
+    translationKit.setNumTranslationKitUnits(translationKitTextUnits.size());
+    translationKit.setWordCount(wordCount);
+
+    logger.trace("Save the TranslationKit");
+    translationKitRepository.save(translationKit);
+
+    for (TranslationKitTextUnit translationKitTextUnit : translationKitTextUnits) {
+      logger.trace(
+          "Save TranslationKitTextUnit for TranslationKit id: {}, tmTextUnit id: {}",
+          translationKit.getId(),
+          translationKitTextUnit.getTmTextUnit().getId());
+      translationKitTextUnit.setTranslationKit(translationKit);
+      translationKitTextUnitRepository.save(translationKitTextUnit);
+    }
+  }
+
+  /**
+   * Marks a {@link TranslationKitTextUnit} as imported with provided {@link TMTextUnitVariant} and
+   * also perform language detection.
+   *
+   * @param translationKit
+   * @param tmTextUnitVariant
+   */
+  public void markTranslationKitTextUnitAsImported(
+      TranslationKit translationKit, TMTextUnitVariant tmTextUnitVariant) {
+
+    logger.debug(
+        "Mark TranslationKitTextUnit in translationKit: {} imported for TMTextUnit: {}, "
+            + "locale: {} with tmTextUnitVariant: {}",
+        translationKit,
+        tmTextUnitVariant.getTmTextUnit(),
+        tmTextUnitVariant.getLocale(),
+        tmTextUnitVariant.getId());
+
+    TranslationKitTextUnit translationKitTextUnit =
+        translationKitTextUnitRepository.findByTranslationKitAndTmTextUnitAndTranslationKit_Locale(
+            translationKit, tmTextUnitVariant.getTmTextUnit(), tmTextUnitVariant.getLocale());
+
+    translationKitTextUnit.setImportedTmTextUnitVariant(tmTextUnitVariant);
+
+    // TODO(P1) should be able to read this from the QualityStep information
+    translationKitTextUnit.setSourceEqualsTarget(
+        Objects.equal(
+            tmTextUnitVariant.getContentMD5(), tmTextUnitVariant.getTmTextUnit().getContentMd5()));
+
+    String targetLocale = tmTextUnitVariant.getLocale().getBcp47Tag();
+
+    // TODO(P1) Move this to TMTextUnitVariantComment, add annotation
+    if (languageDetectionService.isSupportedBcp47Tag(targetLocale)) {
+      LanguageDetectionResult languageDetectionResult =
+          languageDetectionService.detect(tmTextUnitVariant.getContent(), targetLocale);
+      translationKitTextUnit.setDetectedLanguage(languageDetectionResult.getDetected());
+      translationKitTextUnit.setDetectedLanguageProbability(
+          languageDetectionResult.getProbability());
+      translationKitTextUnit.setDetectedLanguageExpected(languageDetectionResult.getExpected());
+
+      if (languageDetectionResult.getLangDetectException() != null) {
+        translationKitTextUnit.setDetectedLanguageException(
+            languageDetectionResult.getLangDetectException().getMessage());
+      }
+    } else {
+      logger.debug(
+          "Language for: {} is not supported by the language detection service, skip detection",
+          targetLocale);
     }
 
-    public TranslationKitAsXliff generateTranslationKitAsXLIFF(Long dropId, Long tmId, Long localeId, TranslationKit.Type type) {
-        return generateTranslationKitAsXLIFF(dropId, tmId, localeId, type, Boolean.FALSE);
+    translationKitTextUnitRepository.save(translationKitTextUnit);
+  }
+
+  /**
+   * Updates the statistics of a {@link TranslationKit}.
+   *
+   * @param translationKitId {@link TranslationKit#id}
+   * @param notFoundTextUnitIds a list of text unit ids that was in the XLIFF but not in the TM
+   */
+  @Transactional
+  public void updateStatistics(Long translationKitId, Set<String> notFoundTextUnitIds) {
+
+    TranslationKit translationKit =
+        translationKitRepository.findById(translationKitId).orElse(null);
+
+    translationKit.setNumTranslatedTranslationKitUnits(
+        translationKitTextUnitRepository.countByTranslationKitAndImportedTmTextUnitVariantIsNotNull(
+            translationKit));
+    translationKit.setNumSourceEqualsTarget(
+        translationKitTextUnitRepository.countByTranslationKitAndSourceEqualsTargetTrue(
+            translationKit));
+    translationKit.setNumBadLanguageDetections(
+        translationKitTextUnitRepository
+            .countByTranslationKitAndDetectedLanguageNotEqualsDetectedLanguageExpected(
+                translationKit));
+    translationKit.setNotFoundTextUnitIds(notFoundTextUnitIds);
+    if (translationKit.getNumTranslationKitUnits() == 0
+        || translationKit.getNumTranslatedTranslationKitUnits() > 0) {
+      translationKit.setImported(true);
     }
 
-    /**
-     * Gets the list of {@link TextUnitDTO}s to generate a
-     * {@link TranslationKit}
-     *
-     * @param translationKitId {@link TranslationKit}'s id
-     * @param type
-     *
-     * @return the list of {@link TextUnitDTO}s to generate a
-     * {@link TranslationKit}
-     */
-    public List<TextUnitDTO> getTextUnitDTOsForTranslationKit(Long translationKitId, TranslationKit.Type type) {
+    translationKitRepository.save(translationKit);
+    checkForPartiallyImported(translationKit.getDrop().getId());
+  }
 
-        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
-        return getTextUnitDTOsForTranslationKit(translationKit.getDrop().getRepository().getId(),
-                translationKit.getLocale().getId(),
-                TranslationKit.Type.TRANSLATION.equals(type) ? StatusFilter.FOR_TRANSLATION : StatusFilter.REVIEW_NEEDED);
+  @Transactional
+  public void checkForPartiallyImported(Long dropId) {
+    Drop drop = dropRepository.findById(dropId).orElse(null);
+    List<TranslationKit> translationKits = translationKitRepository.findByDropId(drop.getId());
+    boolean partiallyImported = false;
+    for (TranslationKit translationKit : translationKits) {
+      if (translationKit.getNumTranslationKitUnits() > 0 && !translationKit.getImported()) {
+        partiallyImported = true;
+        break;
+      }
+    }
+    drop.setPartiallyImported(partiallyImported);
+    dropRepository.save(drop);
+  }
+
+  /**
+   * Get exported and current {@link TMTextUnitVariant}s for a {@link TranslationKit} as Map keyed
+   * by {@link TMTextUnit#id}
+   *
+   * @param translationKitId {@link TranslationKit#id}
+   * @return the exported and current {@link TMTextUnitVariant}s
+   */
+  public Map<Long, TranslationKitExportedImportedAndCurrentTUV>
+      getTranslationKitExportedAndCurrentTUVs(Long translationKitId) {
+
+    Map<Long, TranslationKitExportedImportedAndCurrentTUV> map = new HashMap<>();
+
+    logger.debug("Get exported and current tuvs for translationKit id: {}", translationKitId);
+
+    Query createNativeQuery =
+        entityManager.createNamedQuery("TranslationKit.exportedAndCurrentTuvs");
+    createNativeQuery.setParameter(1, translationKitId);
+
+    List<TranslationKitExportedImportedAndCurrentTUV> translationKitExportedAndCurrentTUVs =
+        (List<TranslationKitExportedImportedAndCurrentTUV>) createNativeQuery.getResultList();
+
+    for (TranslationKitExportedImportedAndCurrentTUV translationKitExportedAndCurrentTUV :
+        translationKitExportedAndCurrentTUVs) {
+      map.put(
+          translationKitExportedAndCurrentTUV.getTmTextUnitId(),
+          translationKitExportedAndCurrentTUV);
     }
 
-    /**
-     * Adds a {@link TranslationKit} to a {@link Drop} for a given
-     * {@link Locale}
-     *
-     * @param dropId {@link Drop#id}
-     * @param localeId {@link Locale#id}
-     * @param type
-     * @return the {@link TranslationKit} that was added
-     */
-    @Transactional
-    public TranslationKit addTranslationKit(Long dropId, Long localeId, TranslationKit.Type type) {
+    return map;
+  }
 
-        logger.debug("Add translation kit entities for dropId: {} and localeId: {}", dropId, localeId);
+  /**
+   * Gets the list of {@link TextUnitDTO}s to generate a {@link TranslationKit}
+   *
+   * @param translationKitId {@link TranslationKit}'s id
+   * @param type
+   * @return the list of {@link TextUnitDTO}s to generate a {@link TranslationKit}
+   */
+  public List<TextUnitDTO> getTextUnitDTOsForTranslationKitWithInheritance(Long translationKitId) {
 
-        Drop drop = dropRepository.getOne(dropId);
+    TranslationKit translationKit =
+        translationKitRepository.findById(translationKitId).orElse(null);
+    Long repositoryId = translationKit.getDrop().getRepository().getId();
+    Long localeId = translationKit.getLocale().getId();
+    Stack<Long> localeIds = getLocaleInheritanceStack(repositoryId, localeId);
 
-        TranslationKit translationKit = new TranslationKit();
-        translationKit.setDrop(drop);
-        translationKit.setLocale(localeService.findById(localeId));
-        translationKit.setType(type);
-
-        logger.trace("Save the TranslationKit");
-        translationKitRepository.save(translationKit);
-
-        return translationKit;
+    Map<Long, TextUnitDTO> mergedTextUnitDTOs = new TreeMap<>();
+    List<TextUnitDTO> textUnitDTOs = null;
+    while (!localeIds.empty()) {
+      Long currentLocaleId = localeIds.pop();
+      if (currentLocaleId == localeId) {
+        // child locale
+        textUnitDTOs =
+            getTextUnitDTOsForTranslationKit(
+                repositoryId, currentLocaleId, StatusFilter.REVIEW_NEEDED);
+        logger.debug(
+            "child locale {} has {} text units for review", currentLocaleId, textUnitDTOs.size());
+      } else {
+        // parent locale
+        textUnitDTOs =
+            getTextUnitDTOsForTranslationKit(
+                repositoryId, currentLocaleId, StatusFilter.TRANSLATED_AND_NOT_REJECTED);
+        logger.debug(
+            "parent locale {} has {} text units that are translated and not rejected",
+            currentLocaleId,
+            textUnitDTOs.size());
+      }
+      for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+        mergedTextUnitDTOs.put(textUnitDTO.getTmTextUnitId(), textUnitDTO);
+      }
     }
+    return new ArrayList<TextUnitDTO>(mergedTextUnitDTOs.values());
+  }
 
-    /**
-     * Update a {@link TranslationKit} with a list of
-     * {@link TranslationKitTextUnit#id}s.
-     *
-     * <p>
-     * {@link TranslationKitTextUnit#translationKit} will be set on element base
-     * on the given translation kit.
-     *
-     * @param translationKitId {@link TranslationKit#id}
-     * @param translationKitTextUnits List of {@link TranslationKitTextUnit#id}s
-     * @param wordCount
-     */
-    @Transactional
-    public void updateTranslationKitWithTmTextUnits(Long translationKitId, List<TranslationKitTextUnit> translationKitTextUnits, Long wordCount) {
-
-        logger.debug("Update translation kit: {} with list of tmTextUnitIds", translationKitId);
-
-        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
-        translationKit.setNumTranslationKitUnits(translationKitTextUnits.size());
-        translationKit.setWordCount(wordCount);
-
-        logger.trace("Save the TranslationKit");
-        translationKitRepository.save(translationKit);
-
-        for (TranslationKitTextUnit translationKitTextUnit : translationKitTextUnits) {
-            logger.trace("Save TranslationKitTextUnit for TranslationKit id: {}, tmTextUnit id: {}", translationKit.getId(), translationKitTextUnit.getTmTextUnit().getId());
-            translationKitTextUnit.setTranslationKit(translationKit);
-            translationKitTextUnitRepository.save(translationKitTextUnit);
-        }
+  /**
+   * Returns {@link Stack} of locale Ids with ancestor on the top.
+   *
+   * @param repositoryId
+   * @param localeId
+   * @return
+   */
+  private Stack<Long> getLocaleInheritanceStack(Long repositoryId, Long localeId) {
+    Stack<Long> localeInheritance = new Stack<>();
+    RepositoryLocale repositoryLocale =
+        repositoryLocaleRepository.findByRepositoryIdAndLocaleId(repositoryId, localeId);
+    while (repositoryLocale != null) {
+      localeInheritance.push(repositoryLocale.getLocale().getId());
+      repositoryLocale = repositoryLocale.getParentLocale();
     }
+    return localeInheritance;
+  }
 
-    /**
-     * Marks a {@link TranslationKitTextUnit} as imported with provided
-     * {@link TMTextUnitVariant} and also perform language detection.
-     *
-     * @param translationKit
-     * @param tmTextUnitVariant
-     */
-    public void markTranslationKitTextUnitAsImported(TranslationKit translationKit, TMTextUnitVariant tmTextUnitVariant) {
+  private List<TextUnitDTO> getTextUnitDTOsForTranslationKit(
+      Long repositoryId, Long localeId, StatusFilter statusFilter) {
 
-        logger.debug("Mark TranslationKitTextUnit in translationKit: {} imported for TMTextUnit: {}, "
-                + "locale: {} with tmTextUnitVariant: {}",
-                translationKit,
-                tmTextUnitVariant.getTmTextUnit(),
-                tmTextUnitVariant.getLocale(),
-                tmTextUnitVariant.getId());
+    List<TextUnitDTO> textUnitDTOs = null;
 
-        TranslationKitTextUnit translationKitTextUnit = translationKitTextUnitRepository.findByTranslationKitAndTmTextUnitAndTranslationKit_Locale(
-                translationKit,
-                tmTextUnitVariant.getTmTextUnit(),
-                tmTextUnitVariant.getLocale());
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-        translationKitTextUnit.setImportedTmTextUnitVariant(tmTextUnitVariant);
-
-        //TODO(P1) should be able to read this from the QualityStep information
-        translationKitTextUnit.setSourceEqualsTarget(Objects.equal(tmTextUnitVariant.getContentMD5(), tmTextUnitVariant.getTmTextUnit().getContentMd5()));
-
-        String targetLocale = tmTextUnitVariant.getLocale().getBcp47Tag();
-
-        //TODO(P1) Move this to TMTextUnitVariantComment, add annotation
-        if (languageDetectionService.isSupportedBcp47Tag(targetLocale)) {
-            LanguageDetectionResult languageDetectionResult = languageDetectionService.detect(tmTextUnitVariant.getContent(), targetLocale);
-            translationKitTextUnit.setDetectedLanguage(languageDetectionResult.getDetected());
-            translationKitTextUnit.setDetectedLanguageProbability(languageDetectionResult.getProbability());
-            translationKitTextUnit.setDetectedLanguageExpected(languageDetectionResult.getExpected());
-
-            if (languageDetectionResult.getLangDetectException() != null) {
-                translationKitTextUnit.setDetectedLanguageException(languageDetectionResult.getLangDetectException().getMessage());
-            }
-        } else {
-            logger.debug("Language for: {} is not supported by the language detection service, skip detection", targetLocale);
-        }
-
-        translationKitTextUnitRepository.save(translationKitTextUnit);
+    // TODO(P1) handle "deltas"
+    textUnitSearcherParameters.setRepositoryIds(repositoryId);
+    textUnitSearcherParameters.setLocaleId(localeId);
+    textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);
+    textUnitSearcherParameters.setDoNotTranslateFilter(Boolean.FALSE);
+    if (statusFilter != null) {
+      textUnitSearcherParameters.setStatusFilter(statusFilter);
     }
+    textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
 
-    /**
-     * Updates the statistics of a {@link TranslationKit}.
-     *
-     * @param translationKitId {@link TranslationKit#id}
-     * @param notFoundTextUnitIds a list of text unit ids that was in the XLIFF
-     * but not in the TM
-     */
-    @Transactional
-    public void updateStatistics(Long translationKitId, Set<String> notFoundTextUnitIds) {
-
-        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
-
-        translationKit.setNumTranslatedTranslationKitUnits(translationKitTextUnitRepository.countByTranslationKitAndImportedTmTextUnitVariantIsNotNull(translationKit));
-        translationKit.setNumSourceEqualsTarget(translationKitTextUnitRepository.countByTranslationKitAndSourceEqualsTargetTrue(translationKit));
-        translationKit.setNumBadLanguageDetections(translationKitTextUnitRepository.countByTranslationKitAndDetectedLanguageNotEqualsDetectedLanguageExpected(translationKit));
-        translationKit.setNotFoundTextUnitIds(notFoundTextUnitIds);
-        if (translationKit.getNumTranslationKitUnits() == 0 || translationKit.getNumTranslatedTranslationKitUnits() > 0) {
-            translationKit.setImported(true);
-        }
-
-        translationKitRepository.save(translationKit);
-        checkForPartiallyImported(translationKit.getDrop().getId());
-
-    }
-
-    @Transactional
-    public void checkForPartiallyImported(Long dropId) {
-        Drop drop = dropRepository.findById(dropId).orElse(null);
-        List<TranslationKit> translationKits = translationKitRepository.findByDropId(drop.getId());
-        boolean partiallyImported = false;
-        for (TranslationKit translationKit : translationKits) {
-            if (translationKit.getNumTranslationKitUnits() > 0 && !translationKit.getImported()) {
-                partiallyImported = true;
-                break;
-            }
-        }
-        drop.setPartiallyImported(partiallyImported);
-        dropRepository.save(drop);
-    }
-
-    /**
-     * Get exported and current {@link TMTextUnitVariant}s for a
-     * {@link TranslationKit} as Map keyed by {@link TMTextUnit#id}
-     *
-     * @param translationKitId {@link TranslationKit#id}
-     * @return the exported and current {@link TMTextUnitVariant}s
-     */
-    public Map<Long, TranslationKitExportedImportedAndCurrentTUV> getTranslationKitExportedAndCurrentTUVs(Long translationKitId) {
-
-        Map<Long, TranslationKitExportedImportedAndCurrentTUV> map = new HashMap<>();
-
-        logger.debug("Get exported and current tuvs for translationKit id: {}", translationKitId);
-
-        Query createNativeQuery = entityManager.createNamedQuery("TranslationKit.exportedAndCurrentTuvs");
-        createNativeQuery.setParameter(1, translationKitId);
-
-        List<TranslationKitExportedImportedAndCurrentTUV> translationKitExportedAndCurrentTUVs = (List<TranslationKitExportedImportedAndCurrentTUV>) createNativeQuery.getResultList();
-
-        for (TranslationKitExportedImportedAndCurrentTUV translationKitExportedAndCurrentTUV : translationKitExportedAndCurrentTUVs) {
-            map.put(translationKitExportedAndCurrentTUV.getTmTextUnitId(), translationKitExportedAndCurrentTUV);
-        }
-
-        return map;
-    }
-
-    /**
-     * Gets the list of {@link TextUnitDTO}s to generate a
-     * {@link TranslationKit}
-     *
-     * @param translationKitId {@link TranslationKit}'s id
-     * @param type
-     *
-     * @return the list of {@link TextUnitDTO}s to generate a
-     * {@link TranslationKit}
-     */
-    public List<TextUnitDTO> getTextUnitDTOsForTranslationKitWithInheritance(Long translationKitId) {
-
-        TranslationKit translationKit = translationKitRepository.findById(translationKitId).orElse(null);
-        Long repositoryId = translationKit.getDrop().getRepository().getId();
-        Long localeId = translationKit.getLocale().getId();
-        Stack<Long> localeIds = getLocaleInheritanceStack(repositoryId, localeId);
-
-        Map<Long, TextUnitDTO> mergedTextUnitDTOs = new TreeMap<>();
-        List<TextUnitDTO> textUnitDTOs = null;
-        while (!localeIds.empty()) {
-            Long currentLocaleId = localeIds.pop();
-            if (currentLocaleId == localeId) {
-                // child locale
-                textUnitDTOs = getTextUnitDTOsForTranslationKit(repositoryId, currentLocaleId, StatusFilter.REVIEW_NEEDED);
-                logger.debug("child locale {} has {} text units for review", currentLocaleId, textUnitDTOs.size());
-            } else {
-                // parent locale
-                textUnitDTOs = getTextUnitDTOsForTranslationKit(repositoryId, currentLocaleId, StatusFilter.TRANSLATED_AND_NOT_REJECTED);
-                logger.debug("parent locale {} has {} text units that are translated and not rejected", currentLocaleId, textUnitDTOs.size());
-            }
-            for (TextUnitDTO textUnitDTO : textUnitDTOs) {
-                mergedTextUnitDTOs.put(textUnitDTO.getTmTextUnitId(), textUnitDTO);
-            }
-        }
-        return new ArrayList<TextUnitDTO>(mergedTextUnitDTOs.values());
-    }
-
-    /**
-     * Returns {@link Stack} of locale Ids with ancestor on the top.
-     *
-     * @param repositoryId
-     * @param localeId
-     * @return
-     */
-    private Stack<Long> getLocaleInheritanceStack(Long repositoryId, Long localeId) {
-        Stack<Long> localeInheritance = new Stack<>();
-        RepositoryLocale repositoryLocale = repositoryLocaleRepository.findByRepositoryIdAndLocaleId(repositoryId, localeId);
-        while (repositoryLocale != null) {
-            localeInheritance.push(repositoryLocale.getLocale().getId());
-            repositoryLocale = repositoryLocale.getParentLocale();
-        }
-        return localeInheritance;
-    }
-
-    private List<TextUnitDTO> getTextUnitDTOsForTranslationKit(Long repositoryId, Long localeId, StatusFilter statusFilter) {
-
-        List<TextUnitDTO> textUnitDTOs = null;
-
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-
-        //TODO(P1) handle "deltas"
-        textUnitSearcherParameters.setRepositoryIds(repositoryId);
-        textUnitSearcherParameters.setLocaleId(localeId);
-        textUnitSearcherParameters.setUsedFilter(UsedFilter.USED);  
-        textUnitSearcherParameters.setDoNotTranslateFilter(Boolean.FALSE);
-        if (statusFilter != null) {
-            textUnitSearcherParameters.setStatusFilter(statusFilter);
-        }
-        textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
-
-        return textUnitDTOs;
-    }
+    return textUnitDTOs;
+  }
 }

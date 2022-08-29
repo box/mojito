@@ -1,12 +1,9 @@
 package com.box.l10n.mojito.cli.filefinder.file;
 
-/**
- *
- * @author jyi
- */
+/** @author jyi */
 public class JSFileType extends LocaleAsFileNameType {
 
-    public JSFileType() {
-        this.sourceFileExtension = "js";
-    }
+  public JSFileType() {
+    this.sourceFileExtension = "js";
+  }
 }

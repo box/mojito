@@ -19,34 +19,31 @@ import org.springframework.context.annotation.aspectj.EnableSpringConfigured;
 @SpringBootApplication
 public class App implements CommandLineRunner {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(App.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(App.class);
 
-    /**
-     * Application entry point.
-     *
-     * @param args
-     */
-    public static void main(String[] args) {
+  /**
+   * Application entry point.
+   *
+   * @param args
+   */
+  public static void main(String[] args) {
 
-        XmlParsingConfiguration.disableXPathLimits();
+    XmlParsingConfiguration.disableXPathLimits();
 
-        new SpringApplicationBuilder(App.class)
-                .web(WebApplicationType.NONE)
-                .bannerMode(Banner.Mode.OFF)
-                .run(args);
-    }
+    new SpringApplicationBuilder(App.class)
+        .web(WebApplicationType.NONE)
+        .bannerMode(Banner.Mode.OFF)
+        .run(args);
+  }
 
-    @Override
-    public void run(String... args) throws Exception {
-        new L10nJCommander().run(args);
-    }
+  @Override
+  public void run(String... args) throws Exception {
+    new L10nJCommander().run(args);
+  }
 
-    @Bean(name="outputIndented")
-    public ObjectMapper getOutputIndented() {
-        return ObjectMapper.withIndentedOutput();
-    }
-
+  @Bean(name = "outputIndented")
+  public ObjectMapper getOutputIndented() {
+    return ObjectMapper.withIndentedOutput();
+  }
 }

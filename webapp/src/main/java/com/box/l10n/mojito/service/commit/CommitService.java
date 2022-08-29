@@ -1,5 +1,9 @@
 package com.box.l10n.mojito.service.commit;
 
+import static com.box.l10n.mojito.rest.commit.CommitSpecification.*;
+import static com.box.l10n.mojito.specification.Specifications.distinct;
+import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
+
 import com.box.l10n.mojito.entity.Commit;
 import com.box.l10n.mojito.entity.CommitToPullRun;
 import com.box.l10n.mojito.entity.CommitToPushRun;
@@ -14,6 +18,8 @@ import com.box.l10n.mojito.service.pullrun.PullRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import java.util.List;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +30,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-
-import static com.box.l10n.mojito.rest.commit.CommitSpecification.*;
-import static com.box.l10n.mojito.specification.Specifications.distinct;
-import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
-
 /**
  * Service to manage commits.
  *
@@ -39,202 +38,209 @@ import static com.box.l10n.mojito.specification.Specifications.ifParamNotNull;
 @Service
 public class CommitService {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(CommitService.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(CommitService.class);
 
-    final CommitRepository commitRepository;
-    final CommitToPushRunRepository commitToPushRunRepository;
-    final CommitToPullRunRepository commitToPullRunRepository;
-    final PushRunRepository pushRunRepository;
-    final PullRunRepository pullRunRepository;
+  final CommitRepository commitRepository;
+  final CommitToPushRunRepository commitToPushRunRepository;
+  final CommitToPullRunRepository commitToPullRunRepository;
+  final PushRunRepository pushRunRepository;
+  final PullRunRepository pullRunRepository;
 
-    final RepositoryRepository repositoryRepository;
+  final RepositoryRepository repositoryRepository;
 
-    public CommitService(CommitRepository commitRepository,
-                         CommitToPushRunRepository commitToPushRunRepository,
-                         CommitToPullRunRepository commitToPullRunRepository,
-                         PushRunRepository pushRunRepository,
-                         PullRunRepository pullRunRepository,
-                         RepositoryRepository repositoryRepository) {
-        this.commitRepository = commitRepository;
-        this.commitToPushRunRepository = commitToPushRunRepository;
-        this.commitToPullRunRepository = commitToPullRunRepository;
-        this.pushRunRepository = pushRunRepository;
-        this.pullRunRepository = pullRunRepository;
-        this.repositoryRepository = repositoryRepository;
-    }
+  public CommitService(
+      CommitRepository commitRepository,
+      CommitToPushRunRepository commitToPushRunRepository,
+      CommitToPullRunRepository commitToPullRunRepository,
+      PushRunRepository pushRunRepository,
+      PullRunRepository pullRunRepository,
+      RepositoryRepository repositoryRepository) {
+    this.commitRepository = commitRepository;
+    this.commitToPushRunRepository = commitToPushRunRepository;
+    this.commitToPullRunRepository = commitToPullRunRepository;
+    this.pushRunRepository = pushRunRepository;
+    this.pullRunRepository = pullRunRepository;
+    this.repositoryRepository = repositoryRepository;
+  }
 
-    /**
-     * Gets the last known commit that we have processed and recorded a
-     * PushRun for from the list of commit names provided.
-     */
-    public Optional<Commit> getCommitWithNameAndRepository(String commitName, Long repositoryId) {
-        return commitRepository.findByNameAndRepositoryId(commitName, repositoryId);
-    }
+  /**
+   * Gets the last known commit that we have processed and recorded a PushRun for from the list of
+   * commit names provided.
+   */
+  public Optional<Commit> getCommitWithNameAndRepository(String commitName, Long repositoryId) {
+    return commitRepository.findByNameAndRepositoryId(commitName, repositoryId);
+  }
 
-    /**
-     * Gets a list of {@link Commit} using pagination based on a set of search criteria.
-     *
-     * @return a list of {@link Commit}
-     */
-    public Page<Commit> getCommits(Long repositoryId,
-                                   List<String> commitNames,
-                                   String pushRunName,
-                                   String pullRunName,
-                                   Boolean hasPushRun,
-                                   Boolean hasPullRun,
-                                   Pageable pageable) {
+  /**
+   * Gets a list of {@link Commit} using pagination based on a set of search criteria.
+   *
+   * @return a list of {@link Commit}
+   */
+  public Page<Commit> getCommits(
+      Long repositoryId,
+      List<String> commitNames,
+      String pushRunName,
+      String pullRunName,
+      Boolean hasPushRun,
+      Boolean hasPullRun,
+      Pageable pageable) {
 
-        Specification<Commit> commitSpecification = distinct(ifParamNotNull(repositoryIdEquals(repositoryId)))
-                .and(ifParamNotNull(commitNamesIn(commitNames)))
-                .and(ifParamNotNull(pushRunNameEquals(pushRunName)))
-                .and(ifParamNotNull(pullRunNameEquals(pullRunName)))
-                .and(ifParamNotNull(hasPushRun(hasPushRun)))
-                .and(ifParamNotNull(hasPullRun(hasPullRun)));
+    Specification<Commit> commitSpecification =
+        distinct(ifParamNotNull(repositoryIdEquals(repositoryId)))
+            .and(ifParamNotNull(commitNamesIn(commitNames)))
+            .and(ifParamNotNull(pushRunNameEquals(pushRunName)))
+            .and(ifParamNotNull(pullRunNameEquals(pullRunName)))
+            .and(ifParamNotNull(hasPushRun(hasPushRun)))
+            .and(ifParamNotNull(hasPullRun(hasPullRun)));
 
-        return commitRepository.findAll(commitSpecification, pageable);
-    }
+    return commitRepository.findAll(commitSpecification, pageable);
+  }
 
-    /**
-     * Creates a new commit in the database with the information provided.
-     *
-     * @return The newly created {@link View.Commit}.
-     */
-    @Transactional
-    public Commit saveCommit(Repository repository,
-                             String commitName,
-                             String authorEmail,
-                             String authorName,
-                             DateTime sourceCreationDate) {
-        Commit commit = new Commit();
+  /**
+   * Creates a new commit in the database with the information provided.
+   *
+   * @return The newly created {@link View.Commit}.
+   */
+  @Transactional
+  public Commit saveCommit(
+      Repository repository,
+      String commitName,
+      String authorEmail,
+      String authorName,
+      DateTime sourceCreationDate) {
+    Commit commit = new Commit();
 
-        commit.setRepository(repository);
-        commit.setName(commitName);
-        commit.setAuthorEmail(authorEmail);
-        commit.setAuthorName(authorName);
-        commit.setSourceCreationDate(sourceCreationDate);
+    commit.setRepository(repository);
+    commit.setName(commitName);
+    commit.setAuthorEmail(authorEmail);
+    commit.setAuthorName(authorName);
+    commit.setSourceCreationDate(sourceCreationDate);
 
-        return commitRepository.save(commit);
-    }
+    return commitRepository.save(commit);
+  }
 
-    /**
-     * Gets the last known commit that we have processed and recorded a
-     * PushRun for from the list of commit names provided.
-     */
-    public Optional<Commit> getLastPushedCommit(List<String> commitNames, Long repositoryId) {
-        return commitRepository.findLatestPushedCommits(commitNames, repositoryId, PageRequest.of(0, 1))
-                .stream().findFirst();
-    }
+  /**
+   * Gets the last known commit that we have processed and recorded a PushRun for from the list of
+   * commit names provided.
+   */
+  public Optional<Commit> getLastPushedCommit(List<String> commitNames, Long repositoryId) {
+    return commitRepository.findLatestPushedCommits(commitNames, repositoryId, PageRequest.of(0, 1))
+        .stream()
+        .findFirst();
+  }
 
-    /**
-     * Gets the last known PushRun that we have processed and recorded against
-     * a commit for from the list of commit names provided.
-     */
-    public Optional<PushRun> getLastPushRun(List<String> commitNames, Long repositoryId) {
-        return pushRunRepository.findLatestByCommitNames(commitNames, repositoryId, PageRequest.of(0, 1))
-                .stream().findFirst();
-    }
+  /**
+   * Gets the last known PushRun that we have processed and recorded against a commit for from the
+   * list of commit names provided.
+   */
+  public Optional<PushRun> getLastPushRun(List<String> commitNames, Long repositoryId) {
+    return pushRunRepository
+        .findLatestByCommitNames(commitNames, repositoryId, PageRequest.of(0, 1)).stream()
+        .findFirst();
+  }
 
-    /**
-     * Gets the last known commit that we have processed and recorded a
-     * PullRun for from the list of commit names provided.
-     */
-    public Optional<Commit> getLastPulledCommit(List<String> commitNames, Long repositoryId) {
-        return commitRepository.findLatestPulledCommits(commitNames, repositoryId, PageRequest.of(0, 1))
-                .stream().findFirst();
-    }
+  /**
+   * Gets the last known commit that we have processed and recorded a PullRun for from the list of
+   * commit names provided.
+   */
+  public Optional<Commit> getLastPulledCommit(List<String> commitNames, Long repositoryId) {
+    return commitRepository.findLatestPulledCommits(commitNames, repositoryId, PageRequest.of(0, 1))
+        .stream()
+        .findFirst();
+  }
 
-    /**
-     * Gets the last known PullRun that we have processed and recorded against
-     * a commit for from the list of commit names provided.
-     */
-    public Optional<PullRun> getLastPullRun(List<String> commitNames, Long repositoryId) {
-        return pullRunRepository.findLatestByCommitNames(commitNames, repositoryId, PageRequest.of(0, 1))
-                .stream().findFirst();
-    }
+  /**
+   * Gets the last known PullRun that we have processed and recorded against a commit for from the
+   * list of commit names provided.
+   */
+  public Optional<PullRun> getLastPullRun(List<String> commitNames, Long repositoryId) {
+    return pullRunRepository
+        .findLatestByCommitNames(commitNames, repositoryId, PageRequest.of(0, 1)).stream()
+        .findFirst();
+  }
 
-    /**
-     * Gets the {@link PushRun} associated with the commit or null if none exists.
-     */
-    public Optional<PushRun> getPushRunForCommitId(Long commitId) {
-        Optional<CommitToPushRun> commitToPushRun = commitToPushRunRepository.findByCommitId(commitId);
-        return commitToPushRun.map(CommitToPushRun::getPushRun);
-    }
+  /** Gets the {@link PushRun} associated with the commit or null if none exists. */
+  public Optional<PushRun> getPushRunForCommitId(Long commitId) {
+    Optional<CommitToPushRun> commitToPushRun = commitToPushRunRepository.findByCommitId(commitId);
+    return commitToPushRun.map(CommitToPushRun::getPushRun);
+  }
 
-    /**
-     * Gets the {@link PullRun} associated with the commit or null if none exists.
-     */
-    public Optional<PullRun> getPullRunForCommitId(Long commitId) {
-        Optional<CommitToPullRun> commitToPullRun = commitToPullRunRepository.findByCommitId(commitId);
-        return commitToPullRun.map(CommitToPullRun::getPullRun);
-    }
+  /** Gets the {@link PullRun} associated with the commit or null if none exists. */
+  public Optional<PullRun> getPullRunForCommitId(Long commitId) {
+    Optional<CommitToPullRun> commitToPullRun = commitToPullRunRepository.findByCommitId(commitId);
+    return commitToPullRun.map(CommitToPullRun::getPullRun);
+  }
 
-    /**
-     * See {@link CommitService#associateCommitToPushRun(Commit, PushRun)}.
-     */
-    @Transactional
-    public void associateCommitToPushRun(Long repositoryId, String commitName, String pushRunName)
-            throws CommitWithNameNotFoundException, RepositoryWithIdNotFoundException, PushRunWithNameNotFoundException {
-        Commit commit = commitRepository.findByNameAndRepositoryId(commitName, repositoryId)
-                .orElseThrow(() -> new CommitWithNameNotFoundException(commitName));
+  /** See {@link CommitService#associateCommitToPushRun(Commit, PushRun)}. */
+  @Transactional
+  public void associateCommitToPushRun(Long repositoryId, String commitName, String pushRunName)
+      throws CommitWithNameNotFoundException, RepositoryWithIdNotFoundException,
+          PushRunWithNameNotFoundException {
+    Commit commit =
+        commitRepository
+            .findByNameAndRepositoryId(commitName, repositoryId)
+            .orElseThrow(() -> new CommitWithNameNotFoundException(commitName));
 
-        Repository repository = repositoryRepository.findById(repositoryId)
-                .orElseThrow(() -> new RepositoryWithIdNotFoundException(repositoryId));
+    Repository repository =
+        repositoryRepository
+            .findById(repositoryId)
+            .orElseThrow(() -> new RepositoryWithIdNotFoundException(repositoryId));
 
-        PushRun pushRun = pushRunRepository.findByNameAndRepository(pushRunName, repository)
-                .orElseThrow(() -> new PushRunWithNameNotFoundException(pushRunName));
+    PushRun pushRun =
+        pushRunRepository
+            .findByNameAndRepository(pushRunName, repository)
+            .orElseThrow(() -> new PushRunWithNameNotFoundException(pushRunName));
 
-        associateCommitToPushRun(commit, pushRun);
-    }
+    associateCommitToPushRun(commit, pushRun);
+  }
 
-    /**
-     * Associates a commit with a specific push run ID. Any previous push run ID
-     * association for the same commitID will get overwritten.
-     * This API should only be called by the push command after all assets were
-     * processed successfully.
-     */
-    @Transactional
-    public void associateCommitToPushRun(Commit commit, PushRun pushRun) {
-        CommitToPushRun commitToPushRun = commitToPushRunRepository.findByCommitId(commit.getId())
-                .orElse(new CommitToPushRun());
+  /**
+   * Associates a commit with a specific push run ID. Any previous push run ID association for the
+   * same commitID will get overwritten. This API should only be called by the push command after
+   * all assets were processed successfully.
+   */
+  @Transactional
+  public void associateCommitToPushRun(Commit commit, PushRun pushRun) {
+    CommitToPushRun commitToPushRun =
+        commitToPushRunRepository.findByCommitId(commit.getId()).orElse(new CommitToPushRun());
 
-        commitToPushRun.setCommit(commit);
-        commitToPushRun.setPushRun(pushRun);
+    commitToPushRun.setCommit(commit);
+    commitToPushRun.setPushRun(pushRun);
 
-        commitToPushRunRepository.save(commitToPushRun);
-    }
+    commitToPushRunRepository.save(commitToPushRun);
+  }
 
-    /**
-     * See {@link CommitService#associateCommitToPullRun(Commit, PullRun)}.
-     */
-    @Transactional
-    public void associateCommitToPullRun(Long repositoryId, String commitName, String pullRunName)
-            throws CommitWithNameNotFoundException, PullRunWithNameNotFoundException {
-        Commit commit = commitRepository.findByNameAndRepositoryId(commitName, repositoryId)
-                .orElseThrow(() -> new CommitWithNameNotFoundException(commitName));
+  /** See {@link CommitService#associateCommitToPullRun(Commit, PullRun)}. */
+  @Transactional
+  public void associateCommitToPullRun(Long repositoryId, String commitName, String pullRunName)
+      throws CommitWithNameNotFoundException, PullRunWithNameNotFoundException {
+    Commit commit =
+        commitRepository
+            .findByNameAndRepositoryId(commitName, repositoryId)
+            .orElseThrow(() -> new CommitWithNameNotFoundException(commitName));
 
-        PullRun PullRun = pullRunRepository.findByName(pullRunName)
-                .orElseThrow(() -> new PullRunWithNameNotFoundException(pullRunName));
+    PullRun PullRun =
+        pullRunRepository
+            .findByName(pullRunName)
+            .orElseThrow(() -> new PullRunWithNameNotFoundException(pullRunName));
 
-        associateCommitToPullRun(commit, PullRun);
-    }
+    associateCommitToPullRun(commit, PullRun);
+  }
 
-    /**
-     * Associates a commit with a specific pull run ID. Any previous pull run ID
-     * association for the same commitID will get overwritten.
-     * This API should only be called once the localized files generated by the
-     * pull command are fully checked-in to the target repo.
-     */
-    @Transactional
-    public void associateCommitToPullRun(Commit commit, PullRun pullRun) {
-        CommitToPullRun commitToPullRun = commitToPullRunRepository.findByCommitId(commit.getId())
-                .orElse(new CommitToPullRun());
+  /**
+   * Associates a commit with a specific pull run ID. Any previous pull run ID association for the
+   * same commitID will get overwritten. This API should only be called once the localized files
+   * generated by the pull command are fully checked-in to the target repo.
+   */
+  @Transactional
+  public void associateCommitToPullRun(Commit commit, PullRun pullRun) {
+    CommitToPullRun commitToPullRun =
+        commitToPullRunRepository.findByCommitId(commit.getId()).orElse(new CommitToPullRun());
 
-        commitToPullRun.setCommit(commit);
-        commitToPullRun.setPullRun(pullRun);
+    commitToPullRun.setCommit(commit);
+    commitToPullRun.setPullRun(pullRun);
 
-        commitToPullRunRepository.save(commitToPullRun);
-    }
+    commitToPullRunRepository.save(commitToPullRun);
+  }
 }

@@ -1,13 +1,11 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
-/**
- * @author aloison
- */
+/** @author aloison */
 public interface TextUnitIntegrityChecker {
 
-    void check(String sourceContent, String targetContent) throws IntegrityCheckException;
+  void check(String sourceContent, String targetContent) throws IntegrityCheckException;
 
-    LocalizableString extractNonLocalizableParts(String string);
+  LocalizableString extractNonLocalizableParts(String string);
 
-    String restoreNonLocalizableParts(LocalizableString localizableString);
+  String restoreNonLocalizableParts(LocalizableString localizableString);
 }

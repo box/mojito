@@ -4,14 +4,10 @@ import com.box.l10n.mojito.entity.SlaIncident;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/**
- *
- * @author jeanaurambault
- */
+/** @author jeanaurambault */
 public interface SlaIncidentRepository extends JpaRepository<SlaIncident, Long> {
 
-    SlaIncident findFirstByClosedDateIsNull();
-    
-    List<SlaIncident> findByClosedDateIsNull();
+  SlaIncident findFirstByClosedDateIsNull();
 
+  List<SlaIncident> findByClosedDateIsNull();
 }

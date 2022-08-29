@@ -9,40 +9,34 @@ import net.sf.okapi.filters.regex.RegexFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-/**
- *
- * @author jyi
- */
+/** @author jyi */
 @Configurable
 public class RegexEscapeDoubleQuoteFilter extends RegexFilter {
 
-    @Autowired
-    UnescapeUtils unescapeUtils;
+  @Autowired UnescapeUtils unescapeUtils;
 
-    @Autowired
-    TextUnitUtils textUnitUtils;
+  @Autowired TextUnitUtils textUnitUtils;
 
-    @Override
-    public Event next() {
-        Event event = super.next();
-        if (event.getEventType() == EventType.TEXT_UNIT) {
-            // if source has escaped double-quotes, unescape
-            TextUnit textUnit = (TextUnit) event.getTextUnit();
-            String sourceString = textUnitUtils.getSourceAsString(textUnit);
-            String unescapedSourceString = unescapeUtils.unescape(sourceString);
-            textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
-        }
-        return event;
+  @Override
+  public Event next() {
+    Event event = super.next();
+    if (event.getEventType() == EventType.TEXT_UNIT) {
+      // if source has escaped double-quotes, unescape
+      TextUnit textUnit = (TextUnit) event.getTextUnit();
+      String sourceString = textUnitUtils.getSourceAsString(textUnit);
+      String unescapedSourceString = unescapeUtils.unescape(sourceString);
+      textUnitUtils.replaceSourceString(textUnit, unescapedSourceString);
     }
+    return event;
+  }
 
-    @Override
-    public EncoderManager getEncoderManager() {
-        EncoderManager encoderManager = super.getEncoderManager();
-        if (encoderManager == null) {
-            encoderManager = new EncoderManager();
-        }
-        encoderManager.setMapping(getMimeType(), "com.box.l10n.mojito.okapi.filters.SimpleEncoder");
-        return encoderManager;
+  @Override
+  public EncoderManager getEncoderManager() {
+    EncoderManager encoderManager = super.getEncoderManager();
+    if (encoderManager == null) {
+      encoderManager = new EncoderManager();
     }
-
+    encoderManager.setMapping(getMimeType(), "com.box.l10n.mojito.okapi.filters.SimpleEncoder");
+    return encoderManager;
+  }
 }

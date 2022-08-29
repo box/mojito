@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.cache;
 
+import java.time.Duration;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobDetail;
@@ -18,8 +19,6 @@ import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-
 /**
  * Deletes entries from the DatabaseCache for which their expiry date has already occurred.
  *
@@ -30,44 +29,44 @@ import java.time.Duration;
 @DisallowConcurrentExecution
 public class DatabaseCacheEvictionJob implements Job {
 
-    static Logger logger = LoggerFactory.getLogger(DatabaseCacheEvictionJob.class);
+  static Logger logger = LoggerFactory.getLogger(DatabaseCacheEvictionJob.class);
 
-    @Autowired
-    ApplicationCacheRepository applicationCacheRepository;
+  @Autowired ApplicationCacheRepository applicationCacheRepository;
 
-    @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        try {
-            clearAllExpired();
-        } catch (Exception ex) {
-            logger.error("Could not clear expired entries from the cache due to exception: ", ex);
-            throw ex;
-        }
+  @Override
+  public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+    try {
+      clearAllExpired();
+    } catch (Exception ex) {
+      logger.error("Could not clear expired entries from the cache due to exception: ", ex);
+      throw ex;
     }
+  }
 
-    @Bean(name = "DatabaseCacheEvictionJob")
-    JobDetailFactoryBean jobDatabaseCacheEvictionJob() {
-        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
-        jobDetailFactory.setJobClass(DatabaseCacheEvictionJob.class);
-        jobDetailFactory.setDescription("Remove expired entries from the database cache.");
-        jobDetailFactory.setDurability(true);
-        return jobDetailFactory;
-    }
+  @Bean(name = "DatabaseCacheEvictionJob")
+  JobDetailFactoryBean jobDatabaseCacheEvictionJob() {
+    JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+    jobDetailFactory.setJobClass(DatabaseCacheEvictionJob.class);
+    jobDetailFactory.setDescription("Remove expired entries from the database cache.");
+    jobDetailFactory.setDurability(true);
+    return jobDetailFactory;
+  }
 
-    @Profile("!disablescheduling")
-    @Bean
-    public SimpleTriggerFactoryBean triggerDatabaseCacheCronEvictionJob(@Qualifier("DatabaseCacheEvictionJob") JobDetail job) {
-        logger.info("Configure triggerDatabaseCacheCronEvictionJob");
-        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
-        trigger.setJobDetail(job);
-        trigger.setRepeatInterval(Duration.ofMinutes(5).toMillis());
-        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-        return trigger;
-    }
+  @Profile("!disablescheduling")
+  @Bean
+  public SimpleTriggerFactoryBean triggerDatabaseCacheCronEvictionJob(
+      @Qualifier("DatabaseCacheEvictionJob") JobDetail job) {
+    logger.info("Configure triggerDatabaseCacheCronEvictionJob");
+    SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
+    trigger.setJobDetail(job);
+    trigger.setRepeatInterval(Duration.ofMinutes(5).toMillis());
+    trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+    return trigger;
+  }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    private void clearAllExpired() {
-        logger.info("Evicting expired entries from the database cache.");
-        applicationCacheRepository.clearAllExpired();
-    }
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  private void clearAllExpired() {
+    logger.info("Evicting expired entries from the database cache.");
+    applicationCacheRepository.clearAllExpired();
+  }
 }

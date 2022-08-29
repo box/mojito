@@ -8,13 +8,13 @@ import java.util.List;
  * @author garion
  */
 public class MicrosoftTextTranslationDTO {
-    private List<MicrosoftLanguageTranslationDTO> translations;
+  private List<MicrosoftLanguageTranslationDTO> translations;
 
-    public List<MicrosoftLanguageTranslationDTO> getTranslations() {
-        return translations;
-    }
+  public List<MicrosoftLanguageTranslationDTO> getTranslations() {
+    return translations;
+  }
 
-    public void setTranslations(List<MicrosoftLanguageTranslationDTO> translations) {
-        this.translations = translations;
-    }
+  public void setTranslations(List<MicrosoftLanguageTranslationDTO> translations) {
+    this.translations = translations;
+  }
 }

@@ -15,20 +15,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @DisallowConcurrentExecution
-public class BranchNotificationMissingScreenshotsJob extends QuartzPollableJob<BranchNotificationMissingScreenshotsJobInput, Void> {
+public class BranchNotificationMissingScreenshotsJob
+    extends QuartzPollableJob<BranchNotificationMissingScreenshotsJobInput, Void> {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(BranchNotificationMissingScreenshotsJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(BranchNotificationMissingScreenshotsJob.class);
 
-    @Autowired
-    BranchNotificationService branchNotificationService;
+  @Autowired BranchNotificationService branchNotificationService;
 
-    @Override
-    public Void call(BranchNotificationMissingScreenshotsJobInput input) throws Exception {
-        logger.debug("execute for branchId: {} and sender type: {}", input.getBranchId(), input.getSenderType());
-        branchNotificationService.sendMissingScreenshotNotificationForBranch(input.getBranchId(), input.getSenderType());
-        return null;
-    }
+  @Override
+  public Void call(BranchNotificationMissingScreenshotsJobInput input) throws Exception {
+    logger.debug(
+        "execute for branchId: {} and sender type: {}", input.getBranchId(), input.getSenderType());
+    branchNotificationService.sendMissingScreenshotNotificationForBranch(
+        input.getBranchId(), input.getSenderType());
+    return null;
+  }
 }

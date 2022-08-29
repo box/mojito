@@ -7,14 +7,11 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 @RepositoryRestResource(exported = false)
 public interface TranslationKitRepository extends JpaRepository<TranslationKit, Long> {
 
-    List<TranslationKit> findByDropId(Long dropId);
+  List<TranslationKit> findByDropId(Long dropId);
 
-    TranslationKit findByDropAndLocale(Drop drop, Locale locale);
-
+  TranslationKit findByDropAndLocale(Drop drop, Locale locale);
 }

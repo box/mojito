@@ -9,19 +9,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class RepositoryStatisticsJobScheduler {
 
-    @Autowired
-    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+  @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
-    public void schedule(Long repositoryId) {
-        Preconditions.checkNotNull(repositoryId);
+  public void schedule(Long repositoryId) {
+    Preconditions.checkNotNull(repositoryId);
 
-        RepositoryStatisticsJobInput repositoryStatisticsJobInput = new RepositoryStatisticsJobInput();
-        repositoryStatisticsJobInput.setRepositoryId(repositoryId);
+    RepositoryStatisticsJobInput repositoryStatisticsJobInput = new RepositoryStatisticsJobInput();
+    repositoryStatisticsJobInput.setRepositoryId(repositoryId);
 
-        QuartzJobInfo.Builder<RepositoryStatisticsJobInput, Void> quartzInfo = QuartzJobInfo.newBuilder(RepositoryStatisticsJob.class)
-                .withUniqueId(String.valueOf(repositoryId))
-                .withInput(repositoryStatisticsJobInput);
+    QuartzJobInfo.Builder<RepositoryStatisticsJobInput, Void> quartzInfo =
+        QuartzJobInfo.newBuilder(RepositoryStatisticsJob.class)
+            .withUniqueId(String.valueOf(repositoryId))
+            .withInput(repositoryStatisticsJobInput);
 
-        quartzPollableTaskScheduler.scheduleJob(quartzInfo.build());
-    }
+    quartzPollableTaskScheduler.scheduleJob(quartzInfo.build());
+  }
 }

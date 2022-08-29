@@ -11,29 +11,26 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"quartz-jobs-delete"}, commandDescription = "Deletes all dynamic quartz jobs")
+@Parameters(
+    commandNames = {"quartz-jobs-delete"},
+    commandDescription = "Deletes all dynamic quartz jobs")
 public class QuartzJobsDeleteCommand extends Command {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(QuartzJobsDeleteCommand.class);
-    
-    @Autowired
-    ConsoleWriter consoleWriter;
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(QuartzJobsDeleteCommand.class);
 
-    @Autowired
-    QuartzJobsClient quartzJobsClient;
+  @Autowired ConsoleWriter consoleWriter;
 
-    @Override
-    public boolean shouldShowInCommandList() {
-        return false;
-    }
+  @Autowired QuartzJobsClient quartzJobsClient;
 
-    @Override
-    protected void execute() throws CommandException {   
-        consoleWriter.a("Delete quartz jobs").println();
-        quartzJobsClient.deleteAllDynamicJobs();
-    }
-    
+  @Override
+  public boolean shouldShowInCommandList() {
+    return false;
+  }
+
+  @Override
+  protected void execute() throws CommandException {
+    consoleWriter.a("Delete quartz jobs").println();
+    quartzJobsClient.deleteAllDynamicJobs();
+  }
 }

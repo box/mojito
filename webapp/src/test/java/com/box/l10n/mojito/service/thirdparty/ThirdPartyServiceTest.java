@@ -1,5 +1,21 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
@@ -26,6 +42,12 @@ import com.box.l10n.mojito.service.screenshot.ScreenshotService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,585 +60,665 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
-import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.only;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 public class ThirdPartyServiceTest extends ServiceTestBase {
 
-    static Logger logger = LoggerFactory.getLogger(ThirdPartyServiceTest.class);
+  static Logger logger = LoggerFactory.getLogger(ThirdPartyServiceTest.class);
 
-    @Rule
-    public TestIdWatcher testIdWatcher = new TestIdWatcher();
+  @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-    @Autowired
-    ThirdPartyService thirdPartyService;
+  @Autowired ThirdPartyService thirdPartyService;
 
-    @Autowired
-    RepositoryService repositoryService;
+  @Autowired RepositoryService repositoryService;
 
-    @Autowired
-    AssetService assetService;
+  @Autowired AssetService assetService;
 
-    @Autowired
-    AssetContentService assetContentService;
+  @Autowired AssetContentService assetContentService;
 
-    @Autowired
-    AssetExtractionService assetExtractionService;
+  @Autowired AssetExtractionService assetExtractionService;
 
-    @Autowired
-    AssetRepository assetRepository;
+  @Autowired AssetRepository assetRepository;
 
-    @Autowired
-    PollableTaskService pollableTaskService;
+  @Autowired PollableTaskService pollableTaskService;
 
-    @Autowired
-    ScreenshotService screenshotService;
+  @Autowired ScreenshotService screenshotService;
 
-    @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
 
-    @Autowired
-    ScreenshotRepository screenshotRepository;
+  @Autowired ScreenshotRepository screenshotRepository;
 
-    @Autowired
-    ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
+  @Autowired ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
 
-    @Autowired
-    ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
+  @Autowired ThirdPartyTextUnitRepository thirdPartyTextUnitRepository;
 
-    @Autowired
-    ImageService imageService;
+  @Autowired ImageService imageService;
 
-    @Autowired
-    LocaleMappingHelper localeMappingHelper;
+  @Autowired LocaleMappingHelper localeMappingHelper;
 
-    @Mock
-    ThirdPartyTMS thirdPartyTMSMock;
+  @Mock ThirdPartyTMS thirdPartyTMSMock;
 
-    @Captor
-    ArgumentCaptor<List<ThirdPartyImageToTextUnit>> thirdPartyImageToTextUnitsArgumentCaptor;
+  @Captor ArgumentCaptor<List<ThirdPartyImageToTextUnit>> thirdPartyImageToTextUnitsArgumentCaptor;
 
-    @Captor
-    ArgumentCaptor<List<String>> optionsArgumentCaptor;
+  @Captor ArgumentCaptor<List<String>> optionsArgumentCaptor;
 
-    @Captor
-    ArgumentCaptor<Map<String, String>> localeMappingArgumentCaptor;
+  @Captor ArgumentCaptor<Map<String, String>> localeMappingArgumentCaptor;
 
-    @Before
-    public void before() {
-        MockitoAnnotations.initMocks(this);
-        initThirdPartyTMSMock();
-    }
+  @Before
+  public void before() {
+    MockitoAnnotations.initMocks(this);
+    initThirdPartyTMSMock();
+  }
 
-    void initThirdPartyTMSMock() {
-        thirdPartyService.thirdPartyTMS = thirdPartyTMSMock;
+  void initThirdPartyTMSMock() {
+    thirdPartyService.thirdPartyTMS = thirdPartyTMSMock;
 
-        logger.debug("When uploading an image in the ThirdPartyTMS just return an ThirdPartyTMSImage with random id");
-        doAnswer((invocation) -> {
-            ThirdPartyTMSImage thirdPartyTMSImage = new ThirdPartyTMSImage();
-            thirdPartyTMSImage.setId("img-" + invocation.getArgument(1));
-            return thirdPartyTMSImage;
-        }).when(thirdPartyTMSMock).uploadImage(any(), any(), any());
+    logger.debug(
+        "When uploading an image in the ThirdPartyTMS just return an ThirdPartyTMSImage with random id");
+    doAnswer(
+            (invocation) -> {
+              ThirdPartyTMSImage thirdPartyTMSImage = new ThirdPartyTMSImage();
+              thirdPartyTMSImage.setId("img-" + invocation.getArgument(1));
+              return thirdPartyTMSImage;
+            })
+        .when(thirdPartyTMSMock)
+        .uploadImage(any(), any(), any());
 
-        doThrow(new RuntimeException("test must stub this")).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
-        doThrow(new RuntimeException("test must stub this")).when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
-    }
+    doThrow(new RuntimeException("test must stub this"))
+        .when(thirdPartyTMSMock)
+        .getThirdPartyTextUnits(any(), any(), any());
+    doThrow(new RuntimeException("test must stub this"))
+        .when(thirdPartyTMSMock)
+        .createImageToTextUnitMappings(any(), any());
+  }
 
-    @Test
-    public void mapMojitoAndThirdPartyTextUnits() throws InterruptedException, ExecutionException {
+  @Test
+  public void mapMojitoAndThirdPartyTextUnits() throws InterruptedException, ExecutionException {
 
-        ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
-        Repository repository = thirdPartyServiceTestData.repository;
-        Asset asset = thirdPartyServiceTestData.asset;
-        String projectId = "someProjectIdForTest";
+    ThirdPartyServiceTestData thirdPartyServiceTestData =
+        new ThirdPartyServiceTestData(testIdWatcher);
+    Repository repository = thirdPartyServiceTestData.repository;
+    Asset asset = thirdPartyServiceTestData.asset;
+    String projectId = "someProjectIdForTest";
 
-        logger.debug("Create mocks and data for tests");
-        doAnswer(invocation -> Arrays.asList(
-                createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
-                createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
-                createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things", true)
-        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
+    logger.debug("Create mocks and data for tests");
+    doAnswer(
+            invocation ->
+                Arrays.asList(
+                    createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
+                    createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
+                    createThirdPartyTextUnit(
+                        asset.getPath(), "3rd-plural_things", "plural_things", true)))
+        .when(thirdPartyTMSMock)
+        .getThirdPartyTextUnits(any(), any(), any());
 
-        doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
+    doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
-        logger.debug("Invoke function to test");
+    logger.debug("Invoke function to test");
 
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId(projectId);
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT, ThirdPartySyncAction.PUSH_SCREENSHOT));
-        thirdPartySync.setPluralSeparator("_");
-        thirdPartySync.setOptions(new ArrayList<>());
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId(projectId);
+    thirdPartySync.setActions(
+        Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT, ThirdPartySyncAction.PUSH_SCREENSHOT));
+    thirdPartySync.setPluralSeparator("_");
+    thirdPartySync.setOptions(new ArrayList<>());
 
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
-        logger.debug("Verify states");
-        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
-                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
-                .peek(t -> logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
-                        t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
-                        t.getTmTextUnit().getName(), t.getThirdPartyId()))
-                .collect(toList());
-
-        assertThat(thirdPartyTextUnits)
-                .as("Should have mappping for the normal and plural text units")
-                .extracting(
-                        t -> t.getAsset().getId(),
-                        com.box.l10n.mojito.entity.ThirdPartyTextUnit::getThirdPartyId,
-                        t -> t.getTmTextUnit().getId())
-                .containsExactly(
-                        tuple(asset.getId(), "3rd-hello", thirdPartyServiceTestData.tmTextUnitHello.getId()),
-                        tuple(asset.getId(), "3rd-bye", thirdPartyServiceTestData.tmTextUnitBye.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId())
-                );
-
-        logger.debug("Verify behavior");
-        verify(thirdPartyTMSMock, times(3)).createImageToTextUnitMappings(
-                eq(projectId),
-                thirdPartyImageToTextUnitsArgumentCaptor.capture()
-        );
-
-        List<List<ThirdPartyImageToTextUnit>> allThirdPartyImageToTextUnits = thirdPartyImageToTextUnitsArgumentCaptor.getAllValues();
-        List<ThirdPartyImageToTextUnit> thirdPartyImageToTextUnits = allThirdPartyImageToTextUnits.get(0);
-        assertEquals(2L, thirdPartyImageToTextUnits.size());
-        assertEquals("img-image1a.png", thirdPartyImageToTextUnits.get(0).getImageId());
-        assertEquals("3rd-bye", thirdPartyImageToTextUnits.get(0).getTextUnitId());
-        assertEquals("img-image1a.png", thirdPartyImageToTextUnits.get(1).getImageId());
-        assertEquals("3rd-hello", thirdPartyImageToTextUnits.get(1).getTextUnitId());
-
-        thirdPartyImageToTextUnits = allThirdPartyImageToTextUnits.get(1);
-        assertEquals(1L, thirdPartyImageToTextUnits.size());
-        assertEquals("img-image2a.png", thirdPartyImageToTextUnits.get(0).getImageId());
-        assertEquals("3rd-hello", thirdPartyImageToTextUnits.get(0).getTextUnitId());
-
-        thirdPartyImageToTextUnits = allThirdPartyImageToTextUnits.get(2);
-        assertEquals(2L, thirdPartyImageToTextUnits.size());
-        assertEquals("img-image3a.png", thirdPartyImageToTextUnits.get(0).getImageId());
-        assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(0).getTextUnitId());
-        assertEquals("img-image3a.png", thirdPartyImageToTextUnits.get(1).getImageId());
-        assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(1).getTextUnitId());
-    }
-
-    @Test
-    public void updateTextUnitComment() throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
-
-        ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
-        Repository repository = thirdPartyServiceTestData.repository;
-        Asset asset = thirdPartyServiceTestData.asset;
-        String projectId = "someProjectIdForTest";
-
-        logger.debug("Just update a comment");
-        String assetContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<resources>\n" +
-                "    <!--comment 1 updated-->\n" +
-                "    <string name=\"hello\">Hello</string>\n" +
-                "    <!--comment 2-->\n" +
-                "    <string name=\"bye\">Bye</string>\n" +
-                "    <plurals name=\"plural_things\">\n" +
-                "        <item quantity=\"one\">One thing</item>\n" +
-                "        <item quantity=\"other\">Multiple things</item>\n" +
-                "    </plurals>" +
-                "</resources>";
-
-        AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent);
-        assetExtractionService.processAssetAsync(assetContentEntity.getId(), null, null, null, null).get();
-
-        TMTextUnit tmTextUnitHelloCommentUpdated = tmTextUnitRepository.findFirstByTmAndMd5(asset.getRepository().getTm(),
-                new TextUnitUtils().computeTextUnitMD5("hello", "Hello", "comment 1 updated"));
-
-        logger.debug("Create mocks and data for tests");
-        doAnswer(invocation -> Arrays.asList(
-                createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
-                createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
-                createThirdPartyTextUnit(asset.getPath(), "3rd-plural_things", "plural_things", true)
-        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
-
-        doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
-
-        logger.debug("Invoke function to test");
-
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId(projectId);
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
-        thirdPartySync.setPluralSeparator("_");
-        thirdPartySync.setOptions(new ArrayList<>());
-
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
-
-        logger.debug("Verify states");
-        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
-                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
-                .peek(t -> {
-                    logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
-                            t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
-                            t.getTmTextUnit().getName(), t.getThirdPartyId());
-                }).collect(toList());
-
-        assertThat(thirdPartyTextUnits)
-                .as("both the used and unsed text units with the same name must be mapped")
-                .extracting(
-                        t -> t.getAsset().getId(),
-                        com.box.l10n.mojito.entity.ThirdPartyTextUnit::getThirdPartyId,
-                        t -> t.getTmTextUnit().getId())
-                .containsExactly(
-                        tuple(asset.getId(), "3rd-hello", tmTextUnitHelloCommentUpdated.getId()),
-                        tuple(asset.getId(), "3rd-hello", thirdPartyServiceTestData.tmTextUnitHello.getId()),
-                        tuple(asset.getId(), "3rd-bye", thirdPartyServiceTestData.tmTextUnitBye.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId()),
-                        tuple(asset.getId(), "3rd-plural_things",  thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId())
-                );
-    }
-
-    @Test
-    public void duplicatedNamesSubSequentMapping() throws ExecutionException, InterruptedException {
-        ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
-        Repository repository = thirdPartyServiceTestData.repository;
-        Asset asset = thirdPartyServiceTestData.asset;
-        String projectId = "someProjectIdForTest";
-
-        logger.debug("Create mocks and data for tests");
-        doAnswer(invocation -> Arrays.asList(
-                createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello")
-        )).doAnswer(invocation -> Arrays.asList(
-                createThirdPartyTextUnit(asset.getPath(), "3rd-hello-duplicate", "hello")
-        )).when(thirdPartyTMSMock).getThirdPartyTextUnits(any(), any(), any());
-
-        doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
-
-        logger.debug("Invoke function to test");
-
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId(projectId);
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
-        thirdPartySync.setPluralSeparator(" _");
-        thirdPartySync.setOptions(new ArrayList<>());
-
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
-
-        logger.debug("Verify states");
+    logger.debug("Verify states");
+    List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits =
         thirdPartyTextUnitRepository.findAll().stream()
-                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
-                .forEach(t -> {
-                    logger.debug("id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
-                            t.getId(), t.getAsset().getPath(), t.getTmTextUnit().getId(),
-                            t.getTmTextUnit().getName(), t.getThirdPartyId());
-                });
+            .filter(
+                thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+            .peek(
+                t ->
+                    logger.debug(
+                        "id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
+                        t.getId(),
+                        t.getAsset().getPath(),
+                        t.getTmTextUnit().getId(),
+                        t.getTmTextUnit().getName(),
+                        t.getThirdPartyId()))
+            .collect(toList());
 
-        List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
-                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
-                .collect(toList());
-        assertEquals(1, thirdPartyTextUnits.size());
-        thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
+    assertThat(thirdPartyTextUnits)
+        .as("Should have mappping for the normal and plural text units")
+        .extracting(
+            t -> t.getAsset().getId(),
+            com.box.l10n.mojito.entity.ThirdPartyTextUnit::getThirdPartyId,
+            t -> t.getTmTextUnit().getId())
+        .containsExactly(
+            tuple(asset.getId(), "3rd-hello", thirdPartyServiceTestData.tmTextUnitHello.getId()),
+            tuple(asset.getId(), "3rd-bye", thirdPartyServiceTestData.tmTextUnitBye.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId()));
 
-        assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
-        assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
+    logger.debug("Verify behavior");
+    verify(thirdPartyTMSMock, times(3))
+        .createImageToTextUnitMappings(
+            eq(projectId), thirdPartyImageToTextUnitsArgumentCaptor.capture());
 
-        logger.debug("Invoke function to test - duplicate name");
-        thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId(projectId);
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
-        thirdPartySync.setPluralSeparator(" _");
-        thirdPartySync.setOptions(new ArrayList<>());
+    List<List<ThirdPartyImageToTextUnit>> allThirdPartyImageToTextUnits =
+        thirdPartyImageToTextUnitsArgumentCaptor.getAllValues();
+    List<ThirdPartyImageToTextUnit> thirdPartyImageToTextUnits =
+        allThirdPartyImageToTextUnits.get(0);
+    assertEquals(2L, thirdPartyImageToTextUnits.size());
+    assertEquals("img-image1a.png", thirdPartyImageToTextUnits.get(0).getImageId());
+    assertEquals("3rd-bye", thirdPartyImageToTextUnits.get(0).getTextUnitId());
+    assertEquals("img-image1a.png", thirdPartyImageToTextUnits.get(1).getImageId());
+    assertEquals("3rd-hello", thirdPartyImageToTextUnits.get(1).getTextUnitId());
 
-        logger.debug("Verify states - duplicate name");
-        thirdPartyTextUnits = thirdPartyTextUnitRepository.findAll().stream()
-                .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
-                .collect(toList());
-        assertEquals(1, thirdPartyTextUnits.size());
-        thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
+    thirdPartyImageToTextUnits = allThirdPartyImageToTextUnits.get(1);
+    assertEquals(1L, thirdPartyImageToTextUnits.size());
+    assertEquals("img-image2a.png", thirdPartyImageToTextUnits.get(0).getImageId());
+    assertEquals("3rd-hello", thirdPartyImageToTextUnits.get(0).getTextUnitId());
 
-        assertEquals(thirdPartyServiceTestData.tmTextUnitHello.getId(), thirdPartyTextUnits.get(0).getTmTextUnit().getId());
-        assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
-    }
+    thirdPartyImageToTextUnits = allThirdPartyImageToTextUnits.get(2);
+    assertEquals(2L, thirdPartyImageToTextUnits.size());
+    assertEquals("img-image3a.png", thirdPartyImageToTextUnits.get(0).getImageId());
+    assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(0).getTextUnitId());
+    assertEquals("img-image3a.png", thirdPartyImageToTextUnits.get(1).getImageId());
+    assertEquals("3rd-plural_things", thirdPartyImageToTextUnits.get(1).getTextUnitId());
+  }
 
-    @Test
-    public void findUnmappedScreenshots() throws RepositoryNameAlreadyUsedException, IOException {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+  @Test
+  public void updateTextUnitComment()
+      throws InterruptedException, ExecutionException, UnsupportedAssetFilterTypeException {
 
-        byte[] content = ByteStreams.toByteArray(new ClassPathResource("/com/box/l10n/mojito/img/1.png").getInputStream());
-        imageService.uploadImage("image1.png", content);
+    ThirdPartyServiceTestData thirdPartyServiceTestData =
+        new ThirdPartyServiceTestData(testIdWatcher);
+    Repository repository = thirdPartyServiceTestData.repository;
+    Asset asset = thirdPartyServiceTestData.asset;
+    String projectId = "someProjectIdForTest";
 
-        ScreenshotRun screenshotRun = repository.getManualScreenshotRun();
-        Screenshot screen1 = new Screenshot();
-        screen1.setName("screen1");
-        screen1.setSrc("api/images/image1.png");
-        screen1.setStatus(ACCEPTED);
+    logger.debug("Just update a comment");
+    String assetContent =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<resources>\n"
+            + "    <!--comment 1 updated-->\n"
+            + "    <string name=\"hello\">Hello</string>\n"
+            + "    <!--comment 2-->\n"
+            + "    <string name=\"bye\">Bye</string>\n"
+            + "    <plurals name=\"plural_things\">\n"
+            + "        <item quantity=\"one\">One thing</item>\n"
+            + "        <item quantity=\"other\">Multiple things</item>\n"
+            + "    </plurals>"
+            + "</resources>";
 
-        Screenshot screen2 = new Screenshot();
-        screen2.setName("screen2");
-        screen1.setSrc("api/images/image1.png");
-        screen2.setStatus(ACCEPTED);
+    AssetContent assetContentEntity = assetContentService.createAssetContent(asset, assetContent);
+    assetExtractionService
+        .processAssetAsync(assetContentEntity.getId(), null, null, null, null)
+        .get();
 
-        Screenshot screen3 = new Screenshot();
-        screen3.setName("screen3");
-        screen1.setSrc("api/images/image1.png");
-        screen3.setStatus(Screenshot.Status.ACCEPTED);
+    TMTextUnit tmTextUnitHelloCommentUpdated =
+        tmTextUnitRepository.findFirstByTmAndMd5(
+            asset.getRepository().getTm(),
+            new TextUnitUtils().computeTextUnitMD5("hello", "Hello", "comment 1 updated"));
 
-        screenshotRun.getScreenshots().add(screen1);
-        screenshotRun.getScreenshots().add(screen2);
-        screenshotRun.getScreenshots().add(screen3);
-        screenshotService.createOrAddToScreenshotRun(screenshotRun, false);
+    logger.debug("Create mocks and data for tests");
+    doAnswer(
+            invocation ->
+                Arrays.asList(
+                    createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello"),
+                    createThirdPartyTextUnit(asset.getPath(), "3rd-bye", "bye"),
+                    createThirdPartyTextUnit(
+                        asset.getPath(), "3rd-plural_things", "plural_things", true)))
+        .when(thirdPartyTMSMock)
+        .getThirdPartyTextUnits(any(), any(), any());
 
-        List<Screenshot> unmappedScreenshots = screenshotRepository.findUnmappedScreenshots(repository);
-        assertEquals(3L, unmappedScreenshots.size());
+    doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
-        unmappedScreenshots.stream().limit(2).forEach(screenshot -> {
-            ThirdPartyScreenshot thirdPartyScreenshot = new ThirdPartyScreenshot();
-            thirdPartyScreenshot.setScreenshot(screenshot);
-            thirdPartyScreenshot.setThirdPartyId("thirdparty-" + screenshot.getName());
+    logger.debug("Invoke function to test");
 
-            thirdPartyScreenshotRepository.save(thirdPartyScreenshot);
-        });
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId(projectId);
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
+    thirdPartySync.setPluralSeparator("_");
+    thirdPartySync.setOptions(new ArrayList<>());
 
-        List<Screenshot> unmappedScreenshotsAfterSave = screenshotRepository.findUnmappedScreenshots(repository);
-        assertEquals(1L, unmappedScreenshotsAfterSave.size());
-        Screenshot screenshot = screenshotRepository.findUnmappedScreenshots(repository).stream().findFirst().get();
-        assertEquals("screen3", screenshot.getName());
-    }
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
-    @Test
-    public void testPushArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    logger.debug("Verify states");
+    List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits =
+        thirdPartyTextUnitRepository.findAll().stream()
+            .filter(
+                thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+            .peek(
+                t -> {
+                  logger.debug(
+                      "id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
+                      t.getId(),
+                      t.getAsset().getPath(),
+                      t.getTmTextUnit().getId(),
+                      t.getTmTextUnit().getName(),
+                      t.getThirdPartyId());
+                })
+            .collect(toList());
 
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId("projectId");
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH));
-        thirdPartySync.setPluralSeparator(" _");
-        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
-        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
-        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
-        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    assertThat(thirdPartyTextUnits)
+        .as("both the used and unsed text units with the same name must be mapped")
+        .extracting(
+            t -> t.getAsset().getId(),
+            com.box.l10n.mojito.entity.ThirdPartyTextUnit::getThirdPartyId,
+            t -> t.getTmTextUnit().getId())
+        .containsExactly(
+            tuple(asset.getId(), "3rd-hello", tmTextUnitHelloCommentUpdated.getId()),
+            tuple(asset.getId(), "3rd-hello", thirdPartyServiceTestData.tmTextUnitHello.getId()),
+            tuple(asset.getId(), "3rd-bye", thirdPartyServiceTestData.tmTextUnitBye.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsZero.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsOne.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsTwo.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsFew.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsMany.getId()),
+            tuple(
+                asset.getId(),
+                "3rd-plural_things",
+                thirdPartyServiceTestData.tmTextUnitPluralThingsOther.getId()));
+  }
 
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+  @Test
+  public void duplicatedNamesSubSequentMapping() throws ExecutionException, InterruptedException {
+    ThirdPartyServiceTestData thirdPartyServiceTestData =
+        new ThirdPartyServiceTestData(testIdWatcher);
+    Repository repository = thirdPartyServiceTestData.repository;
+    Asset asset = thirdPartyServiceTestData.asset;
+    String projectId = "someProjectIdForTest";
 
-        verify(thirdPartyTMSMock, only()).push(
-                repoCaptor.capture(),
-                eq("projectId"),
-                eq(" _"),
-                eq("text_unit_pattern"),
-                eq("asset_path_pattern"),
-                optionsArgumentCaptor.capture());
+    logger.debug("Create mocks and data for tests");
+    doAnswer(
+            invocation ->
+                Arrays.asList(createThirdPartyTextUnit(asset.getPath(), "3rd-hello", "hello")))
+        .doAnswer(
+            invocation ->
+                Arrays.asList(
+                    createThirdPartyTextUnit(asset.getPath(), "3rd-hello-duplicate", "hello")))
+        .when(thirdPartyTMSMock)
+        .getThirdPartyTextUnits(any(), any(), any());
 
-        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
-        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
-    }
+    doNothing().when(thirdPartyTMSMock).createImageToTextUnitMappings(any(), any());
 
-    @Test
-    public void testPushArgumentsWithSpacePlaceholder() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    logger.debug("Invoke function to test");
 
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId("projectId");
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH));
-        thirdPartySync.setPluralSeparator(" _");
-        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
-        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
-        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
-        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId(projectId);
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
+    thirdPartySync.setPluralSeparator(" _");
+    thirdPartySync.setOptions(new ArrayList<>());
 
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
-        verify(thirdPartyTMSMock, only()).push(
-                repoCaptor.capture(),
-                eq("projectId"),
-                eq(" _"),
-                eq("text_unit_pattern"),
-                eq("asset_path_pattern"),
-                optionsArgumentCaptor.capture());
+    logger.debug("Verify states");
+    thirdPartyTextUnitRepository.findAll().stream()
+        .filter(thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+        .forEach(
+            t -> {
+              logger.debug(
+                  "id:{}, asset: {}, ttuid: {}, ttuname:{}, tpid:{}",
+                  t.getId(),
+                  t.getAsset().getPath(),
+                  t.getTmTextUnit().getId(),
+                  t.getTmTextUnit().getName(),
+                  t.getThirdPartyId());
+            });
 
-        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
-        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
-    }
+    List<com.box.l10n.mojito.entity.ThirdPartyTextUnit> thirdPartyTextUnits =
+        thirdPartyTextUnitRepository.findAll().stream()
+            .filter(
+                thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+            .collect(toList());
+    assertEquals(1, thirdPartyTextUnits.size());
+    thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
 
-    @Test
-    public void testPushTranslationArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    assertEquals(
+        thirdPartyServiceTestData.tmTextUnitHello.getId(),
+        thirdPartyTextUnits.get(0).getTmTextUnit().getId());
+    assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
 
-        String localeMapping = "ja:ja-JP";
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId("projectId");
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH_TRANSLATION));
-        thirdPartySync.setPluralSeparator(" _");
-        thirdPartySync.setLocaleMapping(localeMapping);
-        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
-        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
-        thirdPartySync.setIncludeTextUnitsWithPattern("include_text_unit_pattern");
-        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
-        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    logger.debug("Invoke function to test - duplicate name");
+    thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId(projectId);
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.MAP_TEXTUNIT));
+    thirdPartySync.setPluralSeparator(" _");
+    thirdPartySync.setOptions(new ArrayList<>());
 
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+    logger.debug("Verify states - duplicate name");
+    thirdPartyTextUnits =
+        thirdPartyTextUnitRepository.findAll().stream()
+            .filter(
+                thirdPartyTextUnit -> thirdPartyTextUnit.getAsset().getId().equals(asset.getId()))
+            .collect(toList());
+    assertEquals(1, thirdPartyTextUnits.size());
+    thirdPartyTextUnits.forEach(t -> assertEquals(asset.getId(), t.getAsset().getId()));
 
-        verify(thirdPartyTMSMock, only()).pushTranslations(
-                repoCaptor.capture(),
-                eq("projectId"),
-                eq(" _"),
-                localeMappingArgumentCaptor.capture(),
-                eq("text_unit_pattern"),
-                eq("asset_path_pattern"),
-                eq("include_text_unit_pattern"),
-                optionsArgumentCaptor.capture());
+    assertEquals(
+        thirdPartyServiceTestData.tmTextUnitHello.getId(),
+        thirdPartyTextUnits.get(0).getTmTextUnit().getId());
+    assertEquals("3rd-hello", thirdPartyTextUnits.get(0).getThirdPartyId());
+  }
 
-        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
-        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
-        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
-    }
+  @Test
+  public void findUnmappedScreenshots() throws RepositoryNameAlreadyUsedException, IOException {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
-    @Test
-    public void testPushTranslationArgumentsWithSpacePlaceholder() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    byte[] content =
+        ByteStreams.toByteArray(
+            new ClassPathResource("/com/box/l10n/mojito/img/1.png").getInputStream());
+    imageService.uploadImage("image1.png", content);
 
-        String localeMapping = "ja:ja-JP";
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId("projectId");
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH_TRANSLATION));
-        thirdPartySync.setPluralSeparator(" _");
-        thirdPartySync.setLocaleMapping(localeMapping);
-        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
-        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
-        thirdPartySync.setIncludeTextUnitsWithPattern("include_text_unit_pattern");
-        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
-        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    ScreenshotRun screenshotRun = repository.getManualScreenshotRun();
+    Screenshot screen1 = new Screenshot();
+    screen1.setName("screen1");
+    screen1.setSrc("api/images/image1.png");
+    screen1.setStatus(ACCEPTED);
 
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+    Screenshot screen2 = new Screenshot();
+    screen2.setName("screen2");
+    screen1.setSrc("api/images/image1.png");
+    screen2.setStatus(ACCEPTED);
 
-        verify(thirdPartyTMSMock, only()).pushTranslations(
-                repoCaptor.capture(),
-                eq("projectId"),
-                eq(" _"),
-                localeMappingArgumentCaptor.capture(),
-                eq("text_unit_pattern"),
-                eq("asset_path_pattern"),
-                eq("include_text_unit_pattern"),
-                optionsArgumentCaptor.capture());
+    Screenshot screen3 = new Screenshot();
+    screen3.setName("screen3");
+    screen1.setSrc("api/images/image1.png");
+    screen3.setStatus(Screenshot.Status.ACCEPTED);
 
-        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
-        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
-        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
-    }
+    screenshotRun.getScreenshots().add(screen1);
+    screenshotRun.getScreenshots().add(screen2);
+    screenshotRun.getScreenshots().add(screen3);
+    screenshotService.createOrAddToScreenshotRun(screenshotRun, false);
 
-    @Test
-    public void testPullArguments() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    List<Screenshot> unmappedScreenshots = screenshotRepository.findUnmappedScreenshots(repository);
+    assertEquals(3L, unmappedScreenshots.size());
 
-        String localeMapping = "ja:ja-JP";
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId("projectId");
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PULL));
-        thirdPartySync.setPluralSeparator("_");
-        thirdPartySync.setLocaleMapping(localeMapping);
-        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
-        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
-        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
-        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    unmappedScreenshots.stream()
+        .limit(2)
+        .forEach(
+            screenshot -> {
+              ThirdPartyScreenshot thirdPartyScreenshot = new ThirdPartyScreenshot();
+              thirdPartyScreenshot.setScreenshot(screenshot);
+              thirdPartyScreenshot.setThirdPartyId("thirdparty-" + screenshot.getName());
 
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+              thirdPartyScreenshotRepository.save(thirdPartyScreenshot);
+            });
 
-        verify(thirdPartyTMSMock, only()).pull(
-                repoCaptor.capture(),
-                eq("projectId"),
-                eq("_"),
-                localeMappingArgumentCaptor.capture(),
-                eq("text_unit_pattern"),
-                eq("asset_path_pattern"),
-                optionsArgumentCaptor.capture());
+    List<Screenshot> unmappedScreenshotsAfterSave =
+        screenshotRepository.findUnmappedScreenshots(repository);
+    assertEquals(1L, unmappedScreenshotsAfterSave.size());
+    Screenshot screenshot =
+        screenshotRepository.findUnmappedScreenshots(repository).stream().findFirst().get();
+    assertEquals("screen3", screenshot.getName());
+  }
 
-        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
-        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
-        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
-    }
+  @Test
+  public void testPushArguments()
+      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
-    @Test
-    public void testPullArgumentsWithSpacePlaceholder() throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
-        Repository repository = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId("projectId");
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH));
+    thirdPartySync.setPluralSeparator(" _");
+    thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+    thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+    thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+    ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
 
-        String localeMapping = "ja:ja-JP";
-        ThirdPartySync thirdPartySync = new ThirdPartySync();
-        thirdPartySync.setRepositoryId(repository.getId());
-        thirdPartySync.setProjectId("projectId");
-        thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PULL));
-        thirdPartySync.setPluralSeparator(" _");
-        thirdPartySync.setLocaleMapping(localeMapping);
-        thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
-        thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
-        thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
-        ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
-        thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+    verify(thirdPartyTMSMock, only())
+        .push(
+            repoCaptor.capture(),
+            eq("projectId"),
+            eq(" _"),
+            eq("text_unit_pattern"),
+            eq("asset_path_pattern"),
+            optionsArgumentCaptor.capture());
 
-        verify(thirdPartyTMSMock, only()).pull(
-                repoCaptor.capture(),
-                eq("projectId"),
-                eq(" _"),
-                localeMappingArgumentCaptor.capture(),
-                eq("text_unit_pattern"),
-                eq("asset_path_pattern"),
-                optionsArgumentCaptor.capture());
+    assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+    assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+  }
 
-        assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
-        assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
-        assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
-    }
+  @Test
+  public void testPushArgumentsWithSpacePlaceholder()
+      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
-    @Test
-    public void testParseLocaleMapping() {
-        assertThat(thirdPartyService.parseLocaleMapping(null)).isEmpty();
-        assertThat(thirdPartyService.parseLocaleMapping("")).isEmpty();
-        assertThat(thirdPartyService.parseLocaleMapping("es:es-MX")).containsKey("es-MX").containsValue("es");
-        assertThat(thirdPartyService.parseLocaleMapping("es:es-MX,fr:fr-FR"))
-                .containsKeys("es-MX", "fr-FR").containsValues("es", "fr");
-        assertThatThrownBy(() -> thirdPartyService.parseLocaleMapping("unparseable"))
-                .isInstanceOf(IllegalArgumentException.class);
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId("projectId");
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH));
+    thirdPartySync.setPluralSeparator(" _");
+    thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+    thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+    thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+    ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
 
-    }
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
-    ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {
-        return createThirdPartyTextUnit(assetPath, id, name, false);
-    }
+    verify(thirdPartyTMSMock, only())
+        .push(
+            repoCaptor.capture(),
+            eq("projectId"),
+            eq(" _"),
+            eq("text_unit_pattern"),
+            eq("asset_path_pattern"),
+            optionsArgumentCaptor.capture());
 
-    ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name, boolean isNamePluralPrefix) {
-        ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
-        thirdPartyTextUnit.setAssetPath(assetPath);
-        thirdPartyTextUnit.setId(id);
-        thirdPartyTextUnit.setName(name);
-        thirdPartyTextUnit.setNamePluralPrefix(isNamePluralPrefix);
-        return thirdPartyTextUnit;
-    }
+    assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+    assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+  }
 
+  @Test
+  public void testPushTranslationArguments()
+      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+    String localeMapping = "ja:ja-JP";
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId("projectId");
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH_TRANSLATION));
+    thirdPartySync.setPluralSeparator(" _");
+    thirdPartySync.setLocaleMapping(localeMapping);
+    thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+    thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+    thirdPartySync.setIncludeTextUnitsWithPattern("include_text_unit_pattern");
+    thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+    ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+    verify(thirdPartyTMSMock, only())
+        .pushTranslations(
+            repoCaptor.capture(),
+            eq("projectId"),
+            eq(" _"),
+            localeMappingArgumentCaptor.capture(),
+            eq("text_unit_pattern"),
+            eq("asset_path_pattern"),
+            eq("include_text_unit_pattern"),
+            optionsArgumentCaptor.capture());
+
+    assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+    assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+    assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+  }
+
+  @Test
+  public void testPushTranslationArgumentsWithSpacePlaceholder()
+      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+    String localeMapping = "ja:ja-JP";
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId("projectId");
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PUSH_TRANSLATION));
+    thirdPartySync.setPluralSeparator(" _");
+    thirdPartySync.setLocaleMapping(localeMapping);
+    thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+    thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+    thirdPartySync.setIncludeTextUnitsWithPattern("include_text_unit_pattern");
+    thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+    ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+    verify(thirdPartyTMSMock, only())
+        .pushTranslations(
+            repoCaptor.capture(),
+            eq("projectId"),
+            eq(" _"),
+            localeMappingArgumentCaptor.capture(),
+            eq("text_unit_pattern"),
+            eq("asset_path_pattern"),
+            eq("include_text_unit_pattern"),
+            optionsArgumentCaptor.capture());
+
+    assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+    assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+    assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+  }
+
+  @Test
+  public void testPullArguments()
+      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+    String localeMapping = "ja:ja-JP";
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId("projectId");
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PULL));
+    thirdPartySync.setPluralSeparator("_");
+    thirdPartySync.setLocaleMapping(localeMapping);
+    thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+    thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+    thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+    ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+    verify(thirdPartyTMSMock, only())
+        .pull(
+            repoCaptor.capture(),
+            eq("projectId"),
+            eq("_"),
+            localeMappingArgumentCaptor.capture(),
+            eq("text_unit_pattern"),
+            eq("asset_path_pattern"),
+            optionsArgumentCaptor.capture());
+
+    assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+    assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+    assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+  }
+
+  @Test
+  public void testPullArgumentsWithSpacePlaceholder()
+      throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+    String localeMapping = "ja:ja-JP";
+    ThirdPartySync thirdPartySync = new ThirdPartySync();
+    thirdPartySync.setRepositoryId(repository.getId());
+    thirdPartySync.setProjectId("projectId");
+    thirdPartySync.setActions(Arrays.asList(ThirdPartySyncAction.PULL));
+    thirdPartySync.setPluralSeparator(" _");
+    thirdPartySync.setLocaleMapping(localeMapping);
+    thirdPartySync.setSkipTextUnitsWithPattern("text_unit_pattern");
+    thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
+    thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
+    ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+
+    thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
+
+    verify(thirdPartyTMSMock, only())
+        .pull(
+            repoCaptor.capture(),
+            eq("projectId"),
+            eq(" _"),
+            localeMappingArgumentCaptor.capture(),
+            eq("text_unit_pattern"),
+            eq("asset_path_pattern"),
+            optionsArgumentCaptor.capture());
+
+    assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
+    assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
+    assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+  }
+
+  @Test
+  public void testParseLocaleMapping() {
+    assertThat(thirdPartyService.parseLocaleMapping(null)).isEmpty();
+    assertThat(thirdPartyService.parseLocaleMapping("")).isEmpty();
+    assertThat(thirdPartyService.parseLocaleMapping("es:es-MX"))
+        .containsKey("es-MX")
+        .containsValue("es");
+    assertThat(thirdPartyService.parseLocaleMapping("es:es-MX,fr:fr-FR"))
+        .containsKeys("es-MX", "fr-FR")
+        .containsValues("es", "fr");
+    assertThatThrownBy(() -> thirdPartyService.parseLocaleMapping("unparseable"))
+        .isInstanceOf(IllegalArgumentException.class);
+  }
+
+  ThirdPartyTextUnit createThirdPartyTextUnit(String assetPath, String id, String name) {
+    return createThirdPartyTextUnit(assetPath, id, name, false);
+  }
+
+  ThirdPartyTextUnit createThirdPartyTextUnit(
+      String assetPath, String id, String name, boolean isNamePluralPrefix) {
+    ThirdPartyTextUnit thirdPartyTextUnit = new ThirdPartyTextUnit();
+    thirdPartyTextUnit.setAssetPath(assetPath);
+    thirdPartyTextUnit.setId(id);
+    thirdPartyTextUnit.setName(name);
+    thirdPartyTextUnit.setNamePluralPrefix(isNamePluralPrefix);
+    return thirdPartyTextUnit;
+  }
 }

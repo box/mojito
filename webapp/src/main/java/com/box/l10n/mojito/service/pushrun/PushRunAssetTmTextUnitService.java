@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class PushRunAssetTmTextUnitService {
-    @Autowired
-    PushRunAssetTmTextUnitRepository pushRunAssetTmTextUnitRepository;
+  @Autowired PushRunAssetTmTextUnitRepository pushRunAssetTmTextUnitRepository;
 
-    public PushRunAssetTmTextUnit createPushRunAssetTmTextUnit(PushRunAsset pushRunAsset, TMTextUnit tmTextUnit) {
-        PushRunAssetTmTextUnit pushRunAssetTmTextUnit = new PushRunAssetTmTextUnit();
-        pushRunAssetTmTextUnit.setPushRunAsset(pushRunAsset);
-        pushRunAssetTmTextUnit.setTmTextUnit(tmTextUnit);
+  public PushRunAssetTmTextUnit createPushRunAssetTmTextUnit(
+      PushRunAsset pushRunAsset, TMTextUnit tmTextUnit) {
+    PushRunAssetTmTextUnit pushRunAssetTmTextUnit = new PushRunAssetTmTextUnit();
+    pushRunAssetTmTextUnit.setPushRunAsset(pushRunAsset);
+    pushRunAssetTmTextUnit.setTmTextUnit(tmTextUnit);
 
-        return pushRunAssetTmTextUnitRepository.save(pushRunAssetTmTextUnit);
-    }
+    return pushRunAssetTmTextUnitRepository.save(pushRunAssetTmTextUnit);
+  }
 }

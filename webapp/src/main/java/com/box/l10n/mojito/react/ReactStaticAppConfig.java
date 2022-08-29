@@ -7,48 +7,43 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReactStaticAppConfig {
 
-    @JsonUnwrapped
-    @Autowired
-    LinkConfig link;
+  @JsonUnwrapped @Autowired LinkConfig link;
 
-    @Autowired
-    RepositoryStatisticsConfig repositoryStatistics;
+  @Autowired RepositoryStatisticsConfig repositoryStatistics;
 
-    @Autowired
-    GoogleAnalyticsConfig googleAnalytics;
+  @Autowired GoogleAnalyticsConfig googleAnalytics;
 
-    @Autowired
-    ReactSecurityConfig security;
+  @Autowired ReactSecurityConfig security;
 
-    public LinkConfig getLink() {
-        return link;
-    }
+  public LinkConfig getLink() {
+    return link;
+  }
 
-    public void setLink(LinkConfig link) {
-        this.link = link;
-    }
+  public void setLink(LinkConfig link) {
+    this.link = link;
+  }
 
-    public RepositoryStatisticsConfig getRepositoryStatistics() {
-        return repositoryStatistics;
-    }
+  public RepositoryStatisticsConfig getRepositoryStatistics() {
+    return repositoryStatistics;
+  }
 
-    public void setRepositoryStatistics(RepositoryStatisticsConfig repositoryStatistics) {
-        this.repositoryStatistics = repositoryStatistics;
-    }
+  public void setRepositoryStatistics(RepositoryStatisticsConfig repositoryStatistics) {
+    this.repositoryStatistics = repositoryStatistics;
+  }
 
-    public GoogleAnalyticsConfig getGoogleAnalytics() {
-        return googleAnalytics;
-    }
+  public GoogleAnalyticsConfig getGoogleAnalytics() {
+    return googleAnalytics;
+  }
 
-    public void setGoogleAnalytics(GoogleAnalyticsConfig googleAnalytics) {
-        this.googleAnalytics = googleAnalytics;
-    }
+  public void setGoogleAnalytics(GoogleAnalyticsConfig googleAnalytics) {
+    this.googleAnalytics = googleAnalytics;
+  }
 
-    public ReactSecurityConfig getSecurity() {
-        return security;
-    }
+  public ReactSecurityConfig getSecurity() {
+    return security;
+  }
 
-    public void setSecurity(ReactSecurityConfig security) {
-        this.security = security;
-    }
+  public void setSecurity(ReactSecurityConfig security) {
+    this.security = security;
+  }
 }

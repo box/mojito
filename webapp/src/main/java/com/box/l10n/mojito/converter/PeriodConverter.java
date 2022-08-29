@@ -14,10 +14,9 @@ import org.springframework.stereotype.Component;
 @ConfigurationPropertiesBinding
 public class PeriodConverter implements Converter<String, Period> {
 
-    @Override
-    public Period convert(String source) {
-        long sourceAsLong = Long.valueOf(source);
-        return new Period(sourceAsLong);
-    }
-
+  @Override
+  public Period convert(String source) {
+    long sourceAsLong = Long.valueOf(source);
+    return new Period(sourceAsLong);
+  }
 }

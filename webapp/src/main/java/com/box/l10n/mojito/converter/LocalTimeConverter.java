@@ -7,15 +7,15 @@ import org.springframework.stereotype.Component;
 
 /**
  * Converts a String to a {@link LocalTime}.
- * 
+ *
  * @author jaurambault
  */
 @Component
 @ConfigurationPropertiesBinding
 public class LocalTimeConverter implements Converter<String, LocalTime> {
 
-    @Override
-    public LocalTime convert(String source) {
-        return new LocalTime(source);
-    }
+  @Override
+  public LocalTime convert(String source) {
+    return new LocalTime(source);
+  }
 }

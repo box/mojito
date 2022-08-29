@@ -8,17 +8,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 public class BranchUrlBuilder {
 
-    @Autowired
-    ServerConfig serverConfig;
+  @Autowired ServerConfig serverConfig;
 
-    public String getBranchDashboardUrl(String branchName) {
-        return UriComponentsBuilder
-                .fromHttpUrl(serverConfig.getUrl())
-                .path("branches")
-                .queryParam("searchText", branchName)
-                .queryParam("deleted", false)
-                .queryParam("onlyMyBranches", false)
-                .build()
-                .toUriString();
-    }
+  public String getBranchDashboardUrl(String branchName) {
+    return UriComponentsBuilder.fromHttpUrl(serverConfig.getUrl())
+        .path("branches")
+        .queryParam("searchText", branchName)
+        .queryParam("deleted", false)
+        .queryParam("onlyMyBranches", false)
+        .build()
+        .toUriString();
+  }
 }

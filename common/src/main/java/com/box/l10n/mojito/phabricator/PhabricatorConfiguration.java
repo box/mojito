@@ -9,36 +9,36 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PhabricatorConfiguration {
 
-    @Autowired
-    PhabricatorConfigurationProperties phabricatorConfigurationProperties;
+  @Autowired PhabricatorConfigurationProperties phabricatorConfigurationProperties;
 
-    @Bean
-    public PhabricatorHttpClient phabricatorHttpClient() {
-        return new PhabricatorHttpClient(phabricatorConfigurationProperties.getUrl(), phabricatorConfigurationProperties.getToken());
-    }
+  @Bean
+  public PhabricatorHttpClient phabricatorHttpClient() {
+    return new PhabricatorHttpClient(
+        phabricatorConfigurationProperties.getUrl(), phabricatorConfigurationProperties.getToken());
+  }
 
-    @Bean
-    Harbormaster harbormaster() {
-        return new Harbormaster(phabricatorHttpClient());
-    }
+  @Bean
+  Harbormaster harbormaster() {
+    return new Harbormaster(phabricatorHttpClient());
+  }
 
-    @Bean
-    DifferentialRevision differentialRevision() {
-        return new DifferentialRevision(phabricatorHttpClient());
-    }
+  @Bean
+  DifferentialRevision differentialRevision() {
+    return new DifferentialRevision(phabricatorHttpClient());
+  }
 
-    @Bean
-    DifferentialDiff differentialDiff() {
-        return new DifferentialDiff(phabricatorHttpClient());
-    }
+  @Bean
+  DifferentialDiff differentialDiff() {
+    return new DifferentialDiff(phabricatorHttpClient());
+  }
 
-    @Bean
-    Phabricator phabricator() {
-        return new Phabricator(differentialDiff(), harbormaster(), differentialRevision());
-    }
+  @Bean
+  Phabricator phabricator() {
+    return new Phabricator(differentialDiff(), harbormaster(), differentialRevision());
+  }
 
-    @Bean
-    PhabricatorMessageBuilder phabricatorMessageBuilder() {
-        return new PhabricatorMessageBuilder();
-    }
+  @Bean
+  PhabricatorMessageBuilder phabricatorMessageBuilder() {
+    return new PhabricatorMessageBuilder();
+  }
 }

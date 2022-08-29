@@ -10,64 +10,65 @@ import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAu
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
 /**
- * Configures Active Directory {@link AuthenticationProvider} in the
- * {@link ProviderManagerBuilder}.
+ * Configures Active Directory {@link AuthenticationProvider} in the {@link ProviderManagerBuilder}.
  *
  * @author jaurambault
  * @param <B> the {@link ProviderManagerBuilder} type that this is configuring.
  */
 public class ActiveDirectoryAuthenticationProviderConfigurer<B extends ProviderManagerBuilder<B>>
-        extends SecurityConfigurerAdapter<AuthenticationManager, B> {
+    extends SecurityConfigurerAdapter<AuthenticationManager, B> {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ActiveDirectoryAuthenticationProviderConfigurer.class);
+  /** logger */
+  static Logger logger =
+      LoggerFactory.getLogger(ActiveDirectoryAuthenticationProviderConfigurer.class);
 
-    private String url;
-    private String domain;
-    private String rootDn;
-    private UserDetailsContextMapper userDetailsContextMapper;
+  private String url;
+  private String domain;
+  private String rootDn;
+  private UserDetailsContextMapper userDetailsContextMapper;
 
-    @Override
-    public void configure(B builder) throws Exception {
-        builder.authenticationProvider(build());
+  @Override
+  public void configure(B builder) throws Exception {
+    builder.authenticationProvider(build());
+  }
+
+  ActiveDirectoryLdapAuthenticationProvider build() {
+    ActiveDirectoryLdapAuthenticationProvider activeDirectoryLdapAuthenticationProvider;
+
+    if (rootDn == null) {
+      activeDirectoryLdapAuthenticationProvider =
+          new ActiveDirectoryLdapAuthenticationProvider(domain, url);
+    } else {
+      activeDirectoryLdapAuthenticationProvider =
+          new ActiveDirectoryLdapAuthenticationProvider(domain, url, rootDn);
     }
 
-    ActiveDirectoryLdapAuthenticationProvider build() {
-        ActiveDirectoryLdapAuthenticationProvider activeDirectoryLdapAuthenticationProvider;
-
-        if (rootDn == null) {
-            activeDirectoryLdapAuthenticationProvider = new ActiveDirectoryLdapAuthenticationProvider(domain, url);
-        } else {
-            activeDirectoryLdapAuthenticationProvider = new ActiveDirectoryLdapAuthenticationProvider(domain, url, rootDn);
-        }
-
-        if (userDetailsContextMapper != null) {
-            activeDirectoryLdapAuthenticationProvider.setUserDetailsContextMapper(userDetailsContextMapper);
-        }
-
-        return activeDirectoryLdapAuthenticationProvider;
+    if (userDetailsContextMapper != null) {
+      activeDirectoryLdapAuthenticationProvider.setUserDetailsContextMapper(
+          userDetailsContextMapper);
     }
 
-    public ActiveDirectoryAuthenticationProviderConfigurer<B> url(String url) {
-        this.url = url;
-        return this;
-    }
+    return activeDirectoryLdapAuthenticationProvider;
+  }
 
-    public ActiveDirectoryAuthenticationProviderConfigurer<B> domain(String domain) {
-        this.domain = domain;
-        return this;
-    }
+  public ActiveDirectoryAuthenticationProviderConfigurer<B> url(String url) {
+    this.url = url;
+    return this;
+  }
 
-    public ActiveDirectoryAuthenticationProviderConfigurer<B> rootDn(String rootDn) {
-        this.rootDn = rootDn;
-        return this;
-    }
+  public ActiveDirectoryAuthenticationProviderConfigurer<B> domain(String domain) {
+    this.domain = domain;
+    return this;
+  }
 
-    public ActiveDirectoryAuthenticationProviderConfigurer<B> userServiceDetailMapper(UserDetailsContextMapper userDetailsContextMapper) {
-        this.userDetailsContextMapper = userDetailsContextMapper;
-        return this;
-    }
+  public ActiveDirectoryAuthenticationProviderConfigurer<B> rootDn(String rootDn) {
+    this.rootDn = rootDn;
+    return this;
+  }
 
+  public ActiveDirectoryAuthenticationProviderConfigurer<B> userServiceDetailMapper(
+      UserDetailsContextMapper userDetailsContextMapper) {
+    this.userDetailsContextMapper = userDetailsContextMapper;
+    return this;
+  }
 }

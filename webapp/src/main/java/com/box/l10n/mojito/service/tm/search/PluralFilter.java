@@ -6,7 +6,6 @@ package com.box.l10n.mojito.service.tm.search;
  * @author jaurambault
  */
 public enum PluralFilter {
-
-    SINGULAR,
-    PLURAL
+  SINGULAR,
+  PLURAL
 }

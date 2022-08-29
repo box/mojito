@@ -4,13 +4,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author wyau
- *
- * This is an interface to provide the username and password value
+ *     <p>This is an interface to provide the username and password value
  */
 @Component
 public interface CredentialProvider {
 
-    String getUsername();
+  String getUsername();
 
-    String getPassword();
+  String getPassword();
 }

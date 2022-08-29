@@ -8,49 +8,49 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("l10n.management.metrics.export.statsd.prefix-hierarchical-name-mapper")
 public class PrefixHierarchicalNameMapperStatsdConfigurationProperties {
 
-    boolean enabled = false;
-    String namePrefix = "";
-    String tagKeyPrefix = "";
-    NamingConvention namingConventionOverride = null;
-    String stripCharacters = null;
+  boolean enabled = false;
+  String namePrefix = "";
+  String tagKeyPrefix = "";
+  NamingConvention namingConventionOverride = null;
+  String stripCharacters = null;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 
-    public String getNamePrefix() {
-        return namePrefix;
-    }
+  public String getNamePrefix() {
+    return namePrefix;
+  }
 
-    public void setNamePrefix(String namePrefix) {
-        this.namePrefix = namePrefix;
-    }
+  public void setNamePrefix(String namePrefix) {
+    this.namePrefix = namePrefix;
+  }
 
-    public String getTagKeyPrefix() {
-        return tagKeyPrefix;
-    }
+  public String getTagKeyPrefix() {
+    return tagKeyPrefix;
+  }
 
-    public void setTagKeyPrefix(String tagKeyPrefix) {
-        this.tagKeyPrefix = tagKeyPrefix;
-    }
+  public void setTagKeyPrefix(String tagKeyPrefix) {
+    this.tagKeyPrefix = tagKeyPrefix;
+  }
 
-    public NamingConvention getNamingConventionOverride() {
-        return namingConventionOverride;
-    }
+  public NamingConvention getNamingConventionOverride() {
+    return namingConventionOverride;
+  }
 
-    public void setNamingConventionOverride(NamingConvention namingConventionOverride) {
-        this.namingConventionOverride = namingConventionOverride;
-    }
+  public void setNamingConventionOverride(NamingConvention namingConventionOverride) {
+    this.namingConventionOverride = namingConventionOverride;
+  }
 
-    public String getStripCharacters() {
-        return stripCharacters;
-    }
+  public String getStripCharacters() {
+    return stripCharacters;
+  }
 
-    public void setStripCharacters(String stripCharacters) {
-        this.stripCharacters = stripCharacters;
-    }
+  public void setStripCharacters(String stripCharacters) {
+    this.stripCharacters = stripCharacters;
+  }
 }

@@ -19,9 +19,7 @@ import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.stereotype.Component;
 
-/**
- * @author jeanaurambault
- */
+/** @author jeanaurambault */
 @Profile("!disablescheduling")
 @ConditionalOnProperty(value = "l10n.sla-checker.incident-check.cron")
 @Configuration
@@ -29,36 +27,35 @@ import org.springframework.stereotype.Component;
 @DisallowConcurrentExecution
 public class SlaCheckerCronJob implements Job {
 
-    static Logger logger = LoggerFactory.getLogger(SlaCheckerCronJob.class);
+  static Logger logger = LoggerFactory.getLogger(SlaCheckerCronJob.class);
 
-    @Value("${l10n.slaChecker.incidentCheck.cron:}")
-    String incidentCheckCron;
+  @Value("${l10n.slaChecker.incidentCheck.cron:}")
+  String incidentCheckCron;
 
-    @Autowired
-    TaskScheduler taskScheduler;
+  @Autowired TaskScheduler taskScheduler;
 
-    @Autowired
-    SlaCheckerService slaCheckerService;
+  @Autowired SlaCheckerService slaCheckerService;
 
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        slaCheckerService.checkForIncidents();
-    }
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    slaCheckerService.checkForIncidents();
+  }
 
-    @Bean(name = "slaCheckerCron")
-    public JobDetailFactoryBean jobDetailSlaCheckerCronJob() {
-        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
-        jobDetailFactory.setJobClass(SlaCheckerCronJob.class);
-        jobDetailFactory.setDescription("Check for incident related to SLA");
-        jobDetailFactory.setDurability(true);
-        return jobDetailFactory;
-    }
+  @Bean(name = "slaCheckerCron")
+  public JobDetailFactoryBean jobDetailSlaCheckerCronJob() {
+    JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+    jobDetailFactory.setJobClass(SlaCheckerCronJob.class);
+    jobDetailFactory.setDescription("Check for incident related to SLA");
+    jobDetailFactory.setDurability(true);
+    return jobDetailFactory;
+  }
 
-    @Bean
-    public CronTriggerFactoryBean triggerSlaCheckerCronJob(@Qualifier("slaCheckerCron") JobDetail job) {
-        CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
-        trigger.setJobDetail(job);
-        trigger.setCronExpression(incidentCheckCron);
-        return trigger;
-    }
+  @Bean
+  public CronTriggerFactoryBean triggerSlaCheckerCronJob(
+      @Qualifier("slaCheckerCron") JobDetail job) {
+    CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
+    trigger.setJobDetail(job);
+    trigger.setCronExpression(incidentCheckCron);
+    return trigger;
+  }
 }

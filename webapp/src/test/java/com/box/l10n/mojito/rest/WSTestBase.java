@@ -9,6 +9,11 @@ import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.box.l10n.mojito.rest.resttemplate.ResttemplateConfig;
 import com.box.l10n.mojito.xml.XmlParsingConfiguration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import javax.annotation.PostConstruct;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -18,108 +23,99 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Supplier;
-
 /**
- * Base class for WS integration tests. Creates an in-memory instance of tomcat
- * and setup the REST client to use the port that was bound during container
- * initialization.
+ * Base class for WS integration tests. Creates an in-memory instance of tomcat and setup the REST
+ * client to use the port that was bound during container initialization.
  *
  * @author jaurambault
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
-        classes = Application.class,
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+    classes = Application.class,
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @WithDefaultTestUser
 public class WSTestBase {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(WSTestBase.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(WSTestBase.class);
 
-    @Autowired
-    protected AuthenticatedRestTemplate authenticatedRestTemplate;
+  @Autowired protected AuthenticatedRestTemplate authenticatedRestTemplate;
 
-    @Autowired
-    protected XliffDataFactory xliffDataFactory;
+  @Autowired protected XliffDataFactory xliffDataFactory;
 
-    @Autowired
-    protected LocaleClient localeClient;
+  @Autowired protected LocaleClient localeClient;
 
-    @Autowired
-    ResttemplateConfig resttemplateConfig;
+  @Autowired ResttemplateConfig resttemplateConfig;
 
-    @LocalServerPort
-    int port;
+  @LocalServerPort int port;
 
-    @PostConstruct
-    public void setPort() {
-        logger.debug("Saving port number = {}", port);
-        resttemplateConfig.setPort(port);
+  @PostConstruct
+  public void setPort() {
+    logger.debug("Saving port number = {}", port);
+    resttemplateConfig.setPort(port);
 
-        XmlParsingConfiguration.disableXPathLimits();
+    XmlParsingConfiguration.disableXPathLimits();
+  }
+
+  /**
+   * Returns a list of {@link RepositoryLocale}s whose locales correspond to the given tags
+   *
+   * @param bcp47Tags
+   * @return
+   */
+  protected Set<RepositoryLocale> getRepositoryLocales(List<String> bcp47Tags) {
+
+    Set<RepositoryLocale> repositoryLocales = new HashSet<>();
+
+    for (String bcp47Tag : bcp47Tags) {
+      try {
+        RepositoryLocale repositoryLocale = new RepositoryLocale();
+        repositoryLocale.setLocale(localeClient.getLocaleByBcp47Tag(bcp47Tag));
+        repositoryLocales.add(repositoryLocale);
+      } catch (LocaleNotFoundException e) {
+        logger.error("Locale not found for BCP47 tag: {}. Skipping it.", bcp47Tag);
+      }
     }
 
-    /**
-     * Returns a list of {@link RepositoryLocale}s whose locales correspond to
-     * the given tags
-     *
-     * @param bcp47Tags
-     * @return
-     */
-    protected Set<RepositoryLocale> getRepositoryLocales(List<String> bcp47Tags) {
+    return repositoryLocales;
+  }
 
-        Set<RepositoryLocale> repositoryLocales = new HashSet<>();
+  /**
+   * Wait until a condition is true with timeout.
+   *
+   * @param failMessage
+   * @param condition
+   * @throws InterruptedException
+   */
+  protected void waitForCondition(String failMessage, Supplier<Boolean> condition)
+      throws InterruptedException {
+    waitForCondition(failMessage, condition, 30, 100);
+  }
 
-        for (String bcp47Tag : bcp47Tags) {
-            try {
-                RepositoryLocale repositoryLocale = new RepositoryLocale();
-                repositoryLocale.setLocale(localeClient.getLocaleByBcp47Tag(bcp47Tag));
-                repositoryLocales.add(repositoryLocale);
-            } catch (LocaleNotFoundException e) {
-                logger.error("Locale not found for BCP47 tag: {}. Skipping it.", bcp47Tag);
-            }
-        }
+  protected void waitForCondition(
+      String failMessage,
+      Supplier<Boolean> condition,
+      int maxNumberAttempt,
+      int milisecondSleepTime)
+      throws InterruptedException {
+    int numberAttempt = 0;
+    while (true) {
+      numberAttempt++;
 
-        return repositoryLocales;
+      boolean res;
+
+      try {
+        res = condition.get();
+      } catch (Throwable t) {
+        res = false;
+      }
+
+      if (res) {
+        break;
+      } else if (numberAttempt > maxNumberAttempt) {
+        Assert.fail(failMessage);
+      }
+      Thread.sleep(numberAttempt * milisecondSleepTime);
     }
-
-    /**
-     * Wait until a condition is true with timeout.
-     *
-     * @param failMessage
-     * @param condition
-     * @throws InterruptedException
-     */
-    protected void waitForCondition(String failMessage, Supplier<Boolean> condition) throws InterruptedException {
-        waitForCondition(failMessage, condition, 30, 100);
-    }
-
-    protected void waitForCondition(String failMessage, Supplier<Boolean> condition, int maxNumberAttempt, int milisecondSleepTime) throws InterruptedException {
-        int numberAttempt = 0;
-        while (true) {
-            numberAttempt++;
-
-            boolean res;
-
-            try {
-                res = condition.get();
-            } catch (Throwable t) {
-                res = false;
-            }
-
-            if (res) {
-                break;
-            } else if (numberAttempt > maxNumberAttempt) {
-                Assert.fail(failMessage);
-            }
-            Thread.sleep(numberAttempt * milisecondSleepTime);
-        }
-    }
+  }
 }

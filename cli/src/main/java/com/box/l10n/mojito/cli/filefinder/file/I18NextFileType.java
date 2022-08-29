@@ -10,17 +10,31 @@ import static com.box.l10n.mojito.cli.filefinder.FilePattern.SUB_PATH;
 
 import com.box.l10n.mojito.cli.filefinder.locale.AnyLocaleTargetNotSourceType;
 
-/**
- * https://github.com/i18next/i18next-parser/tree/master/test
- */
+/** https://github.com/i18next/i18next-parser/tree/master/test */
 public class I18NextFileType extends FileType {
 
   public I18NextFileType() {
     this.sourceFileExtension = "json";
     this.subPath = "locales";
-    this.sourceFilePatternTemplate = "{" + PARENT_PATH + "}{" + SUB_PATH + "}" + PATH_SEPERATOR + "{" + LOCALE + "}" + PATH_SEPERATOR + "{" + BASE_NAME + "}" + DOT + "{" + FILE_EXTENSION + "}";
+    this.sourceFilePatternTemplate =
+        "{"
+            + PARENT_PATH
+            + "}{"
+            + SUB_PATH
+            + "}"
+            + PATH_SEPERATOR
+            + "{"
+            + LOCALE
+            + "}"
+            + PATH_SEPERATOR
+            + "{"
+            + BASE_NAME
+            + "}"
+            + DOT
+            + "{"
+            + FILE_EXTENSION
+            + "}";
     this.targetFilePatternTemplate = sourceFilePatternTemplate;
     this.localeType = new AnyLocaleTargetNotSourceType();
   }
-
 }

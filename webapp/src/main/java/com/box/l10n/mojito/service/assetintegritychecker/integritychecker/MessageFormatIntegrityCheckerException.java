@@ -1,17 +1,13 @@
 package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
 
-/**
- *
- * @author jaurambault
- */
+/** @author jaurambault */
 public class MessageFormatIntegrityCheckerException extends IntegrityCheckException {
 
-    public MessageFormatIntegrityCheckerException(String message) {
-        super(message);
-    }
+  public MessageFormatIntegrityCheckerException(String message) {
+    super(message);
+  }
 
-    public MessageFormatIntegrityCheckerException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  public MessageFormatIntegrityCheckerException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

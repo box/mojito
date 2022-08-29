@@ -7,12 +7,11 @@ package com.box.l10n.mojito.service.drop.exporter;
  */
 public class DropExporterException extends Exception {
 
-    public DropExporterException(String message) {
-        super(message);
-    }
+  public DropExporterException(String message) {
+    super(message);
+  }
 
-    public DropExporterException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  public DropExporterException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

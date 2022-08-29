@@ -8,6 +8,8 @@ import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.DropClient;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
 import com.box.l10n.mojito.rest.entity.Repository;
+import java.nio.file.Path;
+import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
@@ -16,114 +18,134 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.util.List;
-
 /**
- * Command to import an XLIFF originating from a Drop but in an independent way.
- * It can be used to import modified XLIFF for drops that are not in the system
- * anymore or when the normal drop import logic is too heavy (eg. no need to 
- * import all the files).
+ * Command to import an XLIFF originating from a Drop but in an independent way. It can be used to
+ * import modified XLIFF for drops that are not in the system anymore or when the normal drop import
+ * logic is too heavy (eg. no need to import all the files).
  *
  * @author jaurambault
  */
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"drop-xliff-import"}, commandDescription = "Import standalone XLIFFs")
+@Parameters(
+    commandNames = {"drop-xliff-import"},
+    commandDescription = "Import standalone XLIFFs")
 public class DropXliffImportCommand extends Command {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(DropXliffImportCommand.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(DropXliffImportCommand.class);
 
-    @Autowired
-    ConsoleWriter consoleWriter;
+  @Autowired ConsoleWriter consoleWriter;
 
-    @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
-    String repositoryParam;
+  @Parameter(
+      names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT},
+      arity = 1,
+      required = true,
+      description = Param.REPOSITORY_DESCRIPTION)
+  String repositoryParam;
 
-    @Parameter(names = {Param.SOURCE_DIRECTORY_LONG, Param.SOURCE_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.SOURCE_DIRECTORY_DESCRIPTION)
-    String sourceDirectoryParam;
+  @Parameter(
+      names = {Param.SOURCE_DIRECTORY_LONG, Param.SOURCE_DIRECTORY_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.SOURCE_DIRECTORY_DESCRIPTION)
+  String sourceDirectoryParam;
 
-    @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)
-    String targetDirectoryParam;
+  @Parameter(
+      names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.TARGET_DIRECTORY_DESCRIPTION)
+  String targetDirectoryParam;
 
-    @Parameter(names = {Param.DROP_IMPORT_STATUS}, required = false, description = Param.DROP_IMPORT_STATUS_DESCRIPTION,
-            converter = ImportDropConfigStatusConverter.class)
-    ImportDropConfig.Status importStatusParam = null;
-    
-    @Parameter(names = {"--import-by-md5"}, required = false, description = "To import using MD5 (only option if translation kit not available)")
-    Boolean importByMD5 = false;
+  @Parameter(
+      names = {Param.DROP_IMPORT_STATUS},
+      required = false,
+      description = Param.DROP_IMPORT_STATUS_DESCRIPTION,
+      converter = ImportDropConfigStatusConverter.class)
+  ImportDropConfig.Status importStatusParam = null;
 
-    @Autowired
-    CommandHelper commandHelper;
+  @Parameter(
+      names = {"--import-by-md5"},
+      required = false,
+      description = "To import using MD5 (only option if translation kit not available)")
+  Boolean importByMD5 = false;
 
-    @Autowired
-    Console console;
+  @Autowired CommandHelper commandHelper;
 
-    @Autowired
-    DropClient dropClient;
+  @Autowired Console console;
 
-    Repository repository;
+  @Autowired DropClient dropClient;
 
-    CommandDirectories commandDirectories;
+  Repository repository;
 
-    @Override
-    public void execute() throws CommandException {
+  CommandDirectories commandDirectories;
 
-        consoleWriter.newLine().a("Import localized XLIFFs to repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
+  @Override
+  public void execute() throws CommandException {
 
-        repository = commandHelper.findRepositoryByName(repositoryParam);
+    consoleWriter
+        .newLine()
+        .a("Import localized XLIFFs to repository: ")
+        .fg(Ansi.Color.CYAN)
+        .a(repositoryParam)
+        .println(2);
 
-        commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
+    repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        importXliffs();
+    commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
 
-        consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
+    importXliffs();
+
+    consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
+  }
+
+  void importXliffs() throws CommandException {
+
+    List<Path> xliffPaths = commandDirectories.listFilesWithExtensionInSourceDirectory("xliff");
+
+    for (Path xliffPath : xliffPaths) {
+      importXliff(xliffPath);
+    }
+  }
+
+  void importXliff(Path xliffPath) throws CommandException {
+
+    consoleWriter
+        .a(" - Uploading: ")
+        .fg(Ansi.Color.CYAN)
+        .a(commandDirectories.relativizeWithSourceDirectory(xliffPath).toString())
+        .print();
+
+    String xliffContent = commandHelper.getFileContent(xliffPath);
+
+    String importedXliff =
+        dropClient.importXiff(xliffContent, repository.getId(), !importByMD5, importStatusParam);
+
+    Path outputPath =
+        commandDirectories.resolveWithTargetDirectoryAndCreateParentDirectories(xliffPath);
+
+    commandHelper.writeFileContent(importedXliff, outputPath);
+
+    consoleWriter.a(" ");
+
+    if (mustBeReviewed(importedXliff)) {
+      consoleWriter.fg(Ansi.Color.RED).a("[MUST REVIEW]");
+    } else {
+      consoleWriter.fg(Ansi.Color.GREEN).a("[OK]");
     }
 
-    void importXliffs() throws CommandException {
-        
-        List<Path> xliffPaths = commandDirectories.listFilesWithExtensionInSourceDirectory("xliff");
-        
-        for (Path xliffPath : xliffPaths) {
-            importXliff(xliffPath);
-        }
-    }
+    consoleWriter.println();
+  }
 
-    void importXliff(Path xliffPath) throws CommandException {
-        
-        consoleWriter.a(" - Uploading: ").fg(Ansi.Color.CYAN).a(commandDirectories.relativizeWithSourceDirectory(xliffPath).toString()).print();
-
-        String xliffContent = commandHelper.getFileContent(xliffPath);
-
-        String importedXliff = dropClient.importXiff(xliffContent, repository.getId(), !importByMD5, importStatusParam);
-
-        Path outputPath = commandDirectories.resolveWithTargetDirectoryAndCreateParentDirectories(xliffPath);
-
-        commandHelper.writeFileContent(importedXliff, outputPath);
-
-        consoleWriter.a(" ");
-        
-        if (mustBeReviewed(importedXliff)) {
-            consoleWriter.fg(Ansi.Color.RED).a("[MUST REVIEW]");
-        } else {
-            consoleWriter.fg(Ansi.Color.GREEN).a("[OK]");
-        }
-
-        consoleWriter.println();
-    }
-
-    /**
-     * Indicates if an import must be reviewed by looking at comments in the
-     * XLIFF in a very simplistic fashion.
-     *
-     * @param xliffContent
-     * @return true if the import must be reviewed
-     */
-    boolean mustBeReviewed(String xliffContent) {
-        return xliffContent.contains("MUST REVIEW");
-    }
-
+  /**
+   * Indicates if an import must be reviewed by looking at comments in the XLIFF in a very
+   * simplistic fashion.
+   *
+   * @param xliffContent
+   * @return true if the import must be reviewed
+   */
+  boolean mustBeReviewed(String xliffContent) {
+    return xliffContent.contains("MUST REVIEW");
+  }
 }

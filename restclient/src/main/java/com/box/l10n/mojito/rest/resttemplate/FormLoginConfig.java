@@ -12,44 +12,43 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "l10n.resttemplate.authentication.formlogin")
 public class FormLoginConfig {
 
-    String loginFormPath = "login";
+  String loginFormPath = "login";
 
-    String loginPostPath = "login";
+  String loginPostPath = "login";
 
-    String loginRedirectPath = "";
+  String loginRedirectPath = "";
 
-    String csrfTokenPath = "api/csrf-token";
+  String csrfTokenPath = "api/csrf-token";
 
-    public String getLoginFormPath() {
-        return loginFormPath;
-    }
+  public String getLoginFormPath() {
+    return loginFormPath;
+  }
 
-    public void setLoginFormPath(String loginFormPath) {
-        this.loginFormPath = loginFormPath;
-    }
+  public void setLoginFormPath(String loginFormPath) {
+    this.loginFormPath = loginFormPath;
+  }
 
-    public String getLoginPostPath() {
-        return loginPostPath;
-    }
+  public String getLoginPostPath() {
+    return loginPostPath;
+  }
 
-    public void setLoginPostPath(String loginPostPath) {
-        this.loginPostPath = loginPostPath;
-    }
+  public void setLoginPostPath(String loginPostPath) {
+    this.loginPostPath = loginPostPath;
+  }
 
-    public String getLoginRedirectPath() {
-        return loginRedirectPath;
-    }
+  public String getLoginRedirectPath() {
+    return loginRedirectPath;
+  }
 
-    public void setLoginRedirectPath(String loginRedirectPath) {
-        this.loginRedirectPath = loginRedirectPath;
-    }
+  public void setLoginRedirectPath(String loginRedirectPath) {
+    this.loginRedirectPath = loginRedirectPath;
+  }
 
-    public String getCsrfTokenPath() {
-        return csrfTokenPath;
-    }
+  public String getCsrfTokenPath() {
+    return csrfTokenPath;
+  }
 
-    public void setCsrfTokenPath(String csrfTokenPath) {
-        this.csrfTokenPath = csrfTokenPath;
-    }
-
+  public void setCsrfTokenPath(String csrfTokenPath) {
+    this.csrfTokenPath = csrfTokenPath;
+  }
 }

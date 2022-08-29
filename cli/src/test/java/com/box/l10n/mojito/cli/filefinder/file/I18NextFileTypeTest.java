@@ -28,8 +28,8 @@ public class I18NextFileTypeTest {
   @Test
   public void testTargetPattern() {
     I18NextFileType i18NextFileType = new I18NextFileType();
-    Matcher matcher = i18NextFileType.getTargetFilePattern().getPattern()
-        .matcher("locales/fr/messages.json");
+    Matcher matcher =
+        i18NextFileType.getTargetFilePattern().getPattern().matcher("locales/fr/messages.json");
     Assert.assertTrue(matcher.matches());
     Assert.assertEquals("fr", matcher.group(LOCALE));
     Assert.assertEquals("", matcher.group(PARENT_PATH));
@@ -41,8 +41,8 @@ public class I18NextFileTypeTest {
   @Test
   public void testTargetPatternBcp47() {
     I18NextFileType i18NextFileType = new I18NextFileType();
-    Matcher matcher = i18NextFileType.getTargetFilePattern().getPattern()
-        .matcher("locales/fr-FR/messages.json");
+    Matcher matcher =
+        i18NextFileType.getTargetFilePattern().getPattern().matcher("locales/fr-FR/messages.json");
     Assert.assertTrue(matcher.matches());
     Assert.assertEquals("fr-FR", matcher.group(LOCALE));
     Assert.assertEquals("", matcher.group(PARENT_PATH));

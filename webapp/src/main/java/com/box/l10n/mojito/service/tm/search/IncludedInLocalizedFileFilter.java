@@ -6,7 +6,6 @@ package com.box.l10n.mojito.service.tm.search;
  * @author jaurambault
  */
 public enum IncludedInLocalizedFileFilter {
-
-    INCLUDED_IN_LOCALIZED_FILE,
-    NOT_INCLUDED_IN_LOCALIZED_FILE
+  INCLUDED_IN_LOCALIZED_FILE,
+  NOT_INCLUDED_IN_LOCALIZED_FILE
 }

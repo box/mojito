@@ -11,89 +11,75 @@ import java.util.Objects;
  */
 public class LanguageDetectionResult {
 
-    /**
-     * Probability of the detected language
-     */
-    double probability;
+  /** Probability of the detected language */
+  double probability;
 
-    /**
-     * Probability of the expected language
-     */
-    double probabilityExpected;
+  /** Probability of the expected language */
+  double probabilityExpected;
 
-    /**
-     * Detected language
-     */
-    String detected;
+  /** Detected language */
+  String detected;
 
-    /**
-     * Expected language
-     */
-    String expected;
+  /** Expected language */
+  String expected;
 
-    /**
-     * If an error occurred
-     */
-    LangDetectException langDetectException;
+  /** If an error occurred */
+  LangDetectException langDetectException;
 
-    /**
-     * The {@link Detector} instance used. Can be used to be get more
-     * information
-     */
-    //TODO(P1) Probably want to remove this later, I use it for now to get
-    // more info in the tests.
-    Detector detector;
+  /** The {@link Detector} instance used. Can be used to be get more information */
+  // TODO(P1) Probably want to remove this later, I use it for now to get
+  // more info in the tests.
+  Detector detector;
 
-    public double getProbability() {
-        return probability;
-    }
+  public double getProbability() {
+    return probability;
+  }
 
-    public void setProbability(double probability) {
-        this.probability = probability;
-    }
+  public void setProbability(double probability) {
+    this.probability = probability;
+  }
 
-    public String getDetected() {
-        return detected;
-    }
+  public String getDetected() {
+    return detected;
+  }
 
-    public void setDetected(String detected) {
-        this.detected = detected;
-    }
+  public void setDetected(String detected) {
+    this.detected = detected;
+  }
 
-    public LangDetectException getLangDetectException() {
-        return langDetectException;
-    }
+  public LangDetectException getLangDetectException() {
+    return langDetectException;
+  }
 
-    public void setLangDetectException(LangDetectException langDetectException) {
-        this.langDetectException = langDetectException;
-    }
+  public void setLangDetectException(LangDetectException langDetectException) {
+    this.langDetectException = langDetectException;
+  }
 
-    public String getExpected() {
-        return expected;
-    }
+  public String getExpected() {
+    return expected;
+  }
 
-    public void setExpected(String expected) {
-        this.expected = expected;
-    }
+  public void setExpected(String expected) {
+    this.expected = expected;
+  }
 
-    public boolean isExpectedLanguage() {
-        return Objects.equals(expected, detected);
-    }
+  public boolean isExpectedLanguage() {
+    return Objects.equals(expected, detected);
+  }
 
-    public double getProbabilityExpected() {
-        return probabilityExpected;
-    }
+  public double getProbabilityExpected() {
+    return probabilityExpected;
+  }
 
-    public void setProbabilityExpected(double probabilityExpected) {
-        this.probabilityExpected = probabilityExpected;
-    }
+  public void setProbabilityExpected(double probabilityExpected) {
+    this.probabilityExpected = probabilityExpected;
+  }
 
-    public Detector getDetector() {
-        return detector;
-    }
+  public Detector getDetector() {
+    return detector;
+  }
 
-    public void setDetector(Detector detector) {
-        this.detector = detector;
-    }
-
+  public void setDetector(Detector detector) {
+    this.detector = detector;
+  }
 }

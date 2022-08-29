@@ -2,7 +2,6 @@ package com.box.l10n.mojito.service.machinetranslation;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import java.util.List;
 
 /**
@@ -11,13 +10,13 @@ import java.util.List;
  * @author garion
  */
 public interface MachineTranslationEngine {
-    TranslationSource getSource();
+  TranslationSource getSource();
 
-    ImmutableMap<String, ImmutableList<TranslationDTO>> getTranslationsBySourceText(
-            List<String> textSources,
-            String sourceBcp47Tag,
-            List<String> targetBcp47Tags,
-            TextType sourceTextType,
-            String customModel,
-            boolean isFunctionalProtectionEnabled);
+  ImmutableMap<String, ImmutableList<TranslationDTO>> getTranslationsBySourceText(
+      List<String> textSources,
+      String sourceBcp47Tag,
+      List<String> targetBcp47Tags,
+      TextType sourceTextType,
+      String customModel,
+      boolean isFunctionalProtectionEnabled);
 }
