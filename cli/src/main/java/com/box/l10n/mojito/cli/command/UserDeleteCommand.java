@@ -13,33 +13,36 @@ import org.springframework.stereotype.Component;
 
 /**
  * Command to delete a user
- * 
+ *
  * @author jyi
  */
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"user-delete"}, commandDescription = "Deletes a user")
+@Parameters(
+    commandNames = {"user-delete"},
+    commandDescription = "Deletes a user")
 public class UserDeleteCommand extends Command {
 
-    @Autowired
-    ConsoleWriter consoleWriter;
+  @Autowired ConsoleWriter consoleWriter;
 
-    @Parameter(names = {Param.USERNAME_LONG, Param.USERNAME_SHORT}, arity = 1, required = true, description = Param.USERNAME_DESCRIPTION)
-    String username;
-    
-    @Autowired
-    UserClient userClient;
-    
-    @Override
-    protected void execute() throws CommandException {
-        consoleWriter.a("Delete user: ").fg(Ansi.Color.CYAN).a(username).println();
+  @Parameter(
+      names = {Param.USERNAME_LONG, Param.USERNAME_SHORT},
+      arity = 1,
+      required = true,
+      description = Param.USERNAME_DESCRIPTION)
+  String username;
 
-        try {
-            userClient.deleteUserByUsername(username);
-            consoleWriter.newLine().a("deleted --> user: ").fg(Ansi.Color.MAGENTA).a(username).println();
-        } catch (ResourceNotFoundException ex) {
-            throw new CommandException(ex.getMessage(), ex);
-        }
+  @Autowired UserClient userClient;
+
+  @Override
+  protected void execute() throws CommandException {
+    consoleWriter.a("Delete user: ").fg(Ansi.Color.CYAN).a(username).println();
+
+    try {
+      userClient.deleteUserByUsername(username);
+      consoleWriter.newLine().a("deleted --> user: ").fg(Ansi.Color.MAGENTA).a(username).println();
+    } catch (ResourceNotFoundException ex) {
+      throw new CommandException(ex.getMessage(), ex);
     }
-
+  }
 }

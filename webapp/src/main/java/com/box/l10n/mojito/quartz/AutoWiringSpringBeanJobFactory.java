@@ -9,29 +9,27 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-public final class AutoWiringSpringBeanJobFactory extends SpringBeanJobFactory implements ApplicationContextAware {
+public final class AutoWiringSpringBeanJobFactory extends SpringBeanJobFactory
+    implements ApplicationContextAware {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(AutoWiringSpringBeanJobFactory.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(AutoWiringSpringBeanJobFactory.class);
 
-    private transient AutowireCapableBeanFactory beanFactory;
+  private transient AutowireCapableBeanFactory beanFactory;
 
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        beanFactory = applicationContext.getAutowireCapableBeanFactory();
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    beanFactory = applicationContext.getAutowireCapableBeanFactory();
+  }
+
+  @Override
+  protected Object createJobInstance(final TriggerFiredBundle bundle) throws Exception {
+    try {
+      final Object job = super.createJobInstance(bundle);
+      beanFactory.autowireBean(job);
+      return job;
+    } catch (Throwable t) {
+      logger.error("Can't create a Quartz job instance, this is a critical error", t);
+      throw t;
     }
-
-    @Override
-    protected Object createJobInstance(final TriggerFiredBundle bundle) throws Exception {
-        try {
-            final Object job = super.createJobInstance(bundle);
-            beanFactory.autowireBean(job);
-            return job;
-        } catch (Throwable t) {
-            logger.error("Can't create a Quartz job instance, this is a critical error", t);
-            throw t;
-        }
-    }
-
+  }
 }

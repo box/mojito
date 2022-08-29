@@ -7,33 +7,33 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("l10n.google-analytics")
 public class GoogleAnalyticsConfig {
 
-    boolean enabled = false;
+  boolean enabled = false;
 
-    boolean hashedUserId = false;
+  boolean hashedUserId = false;
 
-    String trackingId;
+  String trackingId;
 
-    public boolean isEnabled() {
-        return enabled;
-    }
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
 
-    public String getTrackingId() {
-        return trackingId;
-    }
+  public String getTrackingId() {
+    return trackingId;
+  }
 
-    public void setTrackingId(String trackingId) {
-        this.trackingId = trackingId;
-    }
+  public void setTrackingId(String trackingId) {
+    this.trackingId = trackingId;
+  }
 
-    public boolean isHashedUserId() {
-        return hashedUserId;
-    }
+  public boolean isHashedUserId() {
+    return hashedUserId;
+  }
 
-    public void setHashedUserId(boolean hashedUserId) {
-        this.hashedUserId = hashedUserId;
-    }
+  public void setHashedUserId(boolean hashedUserId) {
+    this.hashedUserId = hashedUserId;
+  }
 }

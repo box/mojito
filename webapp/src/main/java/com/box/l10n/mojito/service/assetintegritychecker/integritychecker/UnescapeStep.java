@@ -20,78 +20,76 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  * This is to fix any escaped double-quotes and single quotes in target.
+ *
  * @author jyi
  */
 @Configurable
 public class UnescapeStep extends BasePipelineStep {
-    
-    /**
-     * Logger
-     */
-    static Logger logger = LoggerFactory.getLogger(UnescapeStep.class);
 
-    @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
+  /** Logger */
+  static Logger logger = LoggerFactory.getLogger(UnescapeStep.class);
 
-    @Autowired
-    AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
 
-    private LocaleId targetLocale;
+  @Autowired AssetPathToFilterConfigMapper assetPathToFilterConfigMapper;
 
-    @SuppressWarnings("deprecation")
-    @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
-    public void setTargetLocale(LocaleId targetLocale) {
-        this.targetLocale = targetLocale;
-    }
+  private LocaleId targetLocale;
 
-    @Override
-    public String getName() {
-        return "Unescape";
-    }
+  @SuppressWarnings("deprecation")
+  @StepParameterMapping(parameterType = StepParameterType.TARGET_LOCALE)
+  public void setTargetLocale(LocaleId targetLocale) {
+    this.targetLocale = targetLocale;
+  }
 
-    @Override
-    public String getDescription() {
-        return "Fixes escaped double-quotes and single-quotes for AndroidStrings and MacStrings";
-    }
+  @Override
+  public String getName() {
+    return "Unescape";
+  }
 
-    @Override
-    protected Event handleTextUnit(Event event) {
+  @Override
+  public String getDescription() {
+    return "Fixes escaped double-quotes and single-quotes for AndroidStrings and MacStrings";
+  }
 
-        ITextUnit textUnit = event.getTextUnit();
+  @Override
+  protected Event handleTextUnit(Event event) {
 
-        if (textUnit.isTranslatable()) {
-            TMTextUnit tmTextUnit = null;
-            Asset asset = null;
+    ITextUnit textUnit = event.getTextUnit();
 
-            try {
-                Long tmTextUnitId = Long.valueOf(textUnit.getId());
-                tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
-            } catch (NumberFormatException nfe) {
-                logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
-            }
+    if (textUnit.isTranslatable()) {
+      TMTextUnit tmTextUnit = null;
+      Asset asset = null;
 
-            if (tmTextUnit != null) {
-                asset = tmTextUnit.getAsset();
-                try {
-                    String filterConfigId = assetPathToFilterConfigMapper.getFilterConfigIdFromPath(asset.getPath());
-                    if (AndroidFilter.FILTER_CONFIG_ID.equals(filterConfigId)
-                            || AssetPathToFilterConfigMapper.MACSTRINGS_FILTER_CONFIG_ID.equals(filterConfigId)) {
-                        String targetContent = textUnit.getTarget(targetLocale).toString();
-                        targetContent = unescape(targetContent);
-                        TextContainer target = new TextContainer(targetContent);
-                        textUnit.setTarget(targetLocale, target);
-                    }
-                } catch (UnsupportedAssetFilterTypeException ex) {
-                    logger.debug("Could not find the asset filter type", ex);
-                }
-            }
+      try {
+        Long tmTextUnitId = Long.valueOf(textUnit.getId());
+        tmTextUnit = tmTextUnitRepository.findById(tmTextUnitId).orElse(null);
+      } catch (NumberFormatException nfe) {
+        logger.debug("Could not convert the textUnit id into a Long (TextUnit id)", nfe);
+      }
+
+      if (tmTextUnit != null) {
+        asset = tmTextUnit.getAsset();
+        try {
+          String filterConfigId =
+              assetPathToFilterConfigMapper.getFilterConfigIdFromPath(asset.getPath());
+          if (AndroidFilter.FILTER_CONFIG_ID.equals(filterConfigId)
+              || AssetPathToFilterConfigMapper.MACSTRINGS_FILTER_CONFIG_ID.equals(filterConfigId)) {
+            String targetContent = textUnit.getTarget(targetLocale).toString();
+            targetContent = unescape(targetContent);
+            TextContainer target = new TextContainer(targetContent);
+            textUnit.setTarget(targetLocale, target);
+          }
+        } catch (UnsupportedAssetFilterTypeException ex) {
+          logger.debug("Could not find the asset filter type", ex);
         }
+      }
+    }
 
-        return event;
-    }
-    
-    private String unescape(String text) {
-        text = text.replaceAll("\\\\(\"|')", "$1");
-        return text;
-    }
+    return event;
+  }
+
+  private String unescape(String text) {
+    text = text.replaceAll("\\\\(\"|')", "$1");
+    return text;
+  }
 }

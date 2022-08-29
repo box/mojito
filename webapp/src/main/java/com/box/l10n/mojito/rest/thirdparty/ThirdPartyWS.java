@@ -15,24 +15,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ThirdPartyWS {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ThirdPartyWS.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(ThirdPartyWS.class);
 
-    @Autowired
-    ThirdPartyService thirdPartyService;
+  @Autowired ThirdPartyService thirdPartyService;
 
-    @Autowired
-    MeterRegistry meterRegistry;
+  @Autowired MeterRegistry meterRegistry;
 
-    @RequestMapping(value = "/api/thirdparty/sync", method = RequestMethod.POST)
-    public PollableTask sync(@RequestBody ThirdPartySync thirdPartySync) {
-        logger.debug("Sync repository: {}", thirdPartySync);
+  @RequestMapping(value = "/api/thirdparty/sync", method = RequestMethod.POST)
+  public PollableTask sync(@RequestBody ThirdPartySync thirdPartySync) {
+    logger.debug("Sync repository: {}", thirdPartySync);
 
-        meterRegistry.counter("thirdPartyWS.sync", Tags.of("repositoryId", thirdPartySync.repositoryId.toString())).increment();
+    meterRegistry
+        .counter(
+            "thirdPartyWS.sync", Tags.of("repositoryId", thirdPartySync.repositoryId.toString()))
+        .increment();
 
-        return thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync)
-                .getPollableTask();
-    }
+    return thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).getPollableTask();
+  }
 }

@@ -14,14 +14,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class PullRunTextUnitVariantService {
 
-    @Autowired
-    PullRunTextUnitVariantRepository pullRunTextUnitVariantRepository;
+  @Autowired PullRunTextUnitVariantRepository pullRunTextUnitVariantRepository;
 
-    public PullRunTextUnitVariant createPullRunTextUnitVariant(PullRunAsset pullRunAsset, TMTextUnitVariant tmTextUnitVariant) {
-        PullRunTextUnitVariant pullRunTextUnitVariant = new PullRunTextUnitVariant();
-        pullRunTextUnitVariant.setPullRunAsset(pullRunAsset);
-        pullRunTextUnitVariant.setTmTextUnitVariant(tmTextUnitVariant);
+  public PullRunTextUnitVariant createPullRunTextUnitVariant(
+      PullRunAsset pullRunAsset, TMTextUnitVariant tmTextUnitVariant) {
+    PullRunTextUnitVariant pullRunTextUnitVariant = new PullRunTextUnitVariant();
+    pullRunTextUnitVariant.setPullRunAsset(pullRunAsset);
+    pullRunTextUnitVariant.setTmTextUnitVariant(tmTextUnitVariant);
 
-        return pullRunTextUnitVariantRepository.save(pullRunTextUnitVariant);
-    }
+    return pullRunTextUnitVariantRepository.save(pullRunTextUnitVariant);
+  }
 }

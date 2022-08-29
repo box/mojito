@@ -7,14 +7,15 @@ import javax.xml.transform.TransformerFactory;
 
 public final class AndroidStringDocumentUtils {
 
-    static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
-    static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
+  static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY =
+      DocumentBuilderFactory.newInstance();
+  static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
 
-    static DocumentBuilder documentBuilder() throws ParserConfigurationException {
-        return DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-    }
+  static DocumentBuilder documentBuilder() throws ParserConfigurationException {
+    return DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
+  }
 
-    private AndroidStringDocumentUtils() {
-        throw new AssertionError("Do not instantiate");
-    }
+  private AndroidStringDocumentUtils() {
+    throw new AssertionError("Do not instantiate");
+  }
 }

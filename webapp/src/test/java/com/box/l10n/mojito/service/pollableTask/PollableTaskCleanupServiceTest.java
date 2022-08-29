@@ -1,8 +1,13 @@
 package com.box.l10n.mojito.service.pollableTask;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.service.assetExtraction.AssetExtractionRepository;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
+import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,83 +15,75 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * @author aloison
- */
+/** @author aloison */
 public class PollableTaskCleanupServiceTest extends ServiceTestBase {
 
-    static Logger logger = getLogger(PollableTaskCleanupServiceTest.class);
+  static Logger logger = getLogger(PollableTaskCleanupServiceTest.class);
 
-    @Autowired
-    PollableTaskService pollableTaskService;
+  @Autowired PollableTaskService pollableTaskService;
 
-    @Autowired
-    PollableTaskCleanupService pollableTaskCleanupService;
+  @Autowired PollableTaskCleanupService pollableTaskCleanupService;
 
-    @Autowired
-    PollableTaskRepository pollableTaskRepository;
+  @Autowired PollableTaskRepository pollableTaskRepository;
 
-    @Autowired
-    AssetExtractionRepository assetExtractionRepository;
+  @Autowired AssetExtractionRepository assetExtractionRepository;
 
-    @Before
-    public void finishAllPollableTasks() {
-        List<PollableTask> pollableTasks = pollableTaskRepository.findAll();
-        for (PollableTask pollableTask : pollableTasks) {
-            pollableTask.setFinishedDate(new DateTime());
-        }
-        pollableTaskRepository.saveAll(pollableTasks);
+  @Before
+  public void finishAllPollableTasks() {
+    List<PollableTask> pollableTasks = pollableTaskRepository.findAll();
+    for (PollableTask pollableTask : pollableTasks) {
+      pollableTask.setFinishedDate(new DateTime());
     }
+    pollableTaskRepository.saveAll(pollableTasks);
+  }
 
-    @Test
-    public void testMarkZombieTasksAsFinishedWithErrorWithZombies() throws Exception {
+  @Test
+  public void testMarkZombieTasksAsFinishedWithErrorWithZombies() throws Exception {
 
-        PollableTask pollableTask = pollableTaskService.createPollableTask(null, "test-pollable", null, 0, 1);
-        PollableTask pollableTaskInPast = setPollableTaskCreatedDateInPast(pollableTask);
-        assertFalse(isMarkedAsZombie(pollableTaskInPast));
+    PollableTask pollableTask =
+        pollableTaskService.createPollableTask(null, "test-pollable", null, 0, 1);
+    PollableTask pollableTaskInPast = setPollableTaskCreatedDateInPast(pollableTask);
+    assertFalse(isMarkedAsZombie(pollableTaskInPast));
 
-        pollableTaskCleanupService.finishZombieTasksWithError();
+    pollableTaskCleanupService.finishZombieTasksWithError();
 
-        PollableTask pollableTaskAfterCleanup = pollableTaskService.getPollableTask(pollableTaskInPast.getId());
-        try {
-            assertTrue(isMarkedAsZombie(pollableTaskAfterCleanup));
-        } catch(AssertionError ae) {
-            logger.error("Make sure the server is configure in UTC");
-            throw ae;
-        }
+    PollableTask pollableTaskAfterCleanup =
+        pollableTaskService.getPollableTask(pollableTaskInPast.getId());
+    try {
+      assertTrue(isMarkedAsZombie(pollableTaskAfterCleanup));
+    } catch (AssertionError ae) {
+      logger.error("Make sure the server is configure in UTC");
+      throw ae;
     }
+  }
 
-    @Transactional
-    private PollableTask setPollableTaskCreatedDateInPast(PollableTask pollableTask) {
-        DateTime pastCreatedDate = (pollableTask.getCreatedDate()).minusHours(2);
-        pollableTask.setCreatedDate(pastCreatedDate);
-        pollableTaskRepository.save(pollableTask);
+  @Transactional
+  private PollableTask setPollableTaskCreatedDateInPast(PollableTask pollableTask) {
+    DateTime pastCreatedDate = (pollableTask.getCreatedDate()).minusHours(2);
+    pollableTask.setCreatedDate(pastCreatedDate);
+    pollableTaskRepository.save(pollableTask);
 
-        return pollableTaskRepository.findById(pollableTask.getId()).orElse(null);
-    }
+    return pollableTaskRepository.findById(pollableTask.getId()).orElse(null);
+  }
 
-    private boolean isMarkedAsZombie(PollableTask pollableTask) {
-        return pollableTask.getFinishedDate() != null &&
-                pollableTask.getErrorMessage() != null &&
-                pollableTask.getErrorStack().contains("Zombie task detected");
-    }
+  private boolean isMarkedAsZombie(PollableTask pollableTask) {
+    return pollableTask.getFinishedDate() != null
+        && pollableTask.getErrorMessage() != null
+        && pollableTask.getErrorStack().contains("Zombie task detected");
+  }
 
-    @Test
-    public void testMarkZombieTasksAsFinishedWithErrorWithoutZombies() throws Exception {
+  @Test
+  public void testMarkZombieTasksAsFinishedWithErrorWithoutZombies() throws Exception {
 
-        PollableTask pollableTask = pollableTaskService.createPollableTask(null, "test-pollable", null, 0);
-        pollableTaskService.finishTask(pollableTask.getId(), null, null, null);
-        assertFalse(isMarkedAsZombie(pollableTask));
+    PollableTask pollableTask =
+        pollableTaskService.createPollableTask(null, "test-pollable", null, 0);
+    pollableTaskService.finishTask(pollableTask.getId(), null, null, null);
+    assertFalse(isMarkedAsZombie(pollableTask));
 
-        pollableTaskCleanupService.finishZombieTasksWithError();
+    pollableTaskCleanupService.finishZombieTasksWithError();
 
-        PollableTask pollableTaskAfterCleanup = pollableTaskService.getPollableTask(pollableTask.getId());
-        assertFalse(isMarkedAsZombie(pollableTaskAfterCleanup));
-    }
+    PollableTask pollableTaskAfterCleanup =
+        pollableTaskService.getPollableTask(pollableTask.getId());
+    assertFalse(isMarkedAsZombie(pollableTaskAfterCleanup));
+  }
 }

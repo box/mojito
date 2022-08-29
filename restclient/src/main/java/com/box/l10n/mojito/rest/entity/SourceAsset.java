@@ -4,133 +4,130 @@ import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 /**
- * This is an exact copy of {@link com.box.l10n.mojito.rest.entity.SourceAsset}
- * This should be updated if it either one changes.
+ * This is an exact copy of {@link com.box.l10n.mojito.rest.entity.SourceAsset} This should be
+ * updated if it either one changes.
  *
  * @author wyau
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SourceAsset {
-    private Long repositoryId;
-    private String path;
-    private String content;
-    private String branch;
-    private String branchCreatedByUsername;
-    private Long addedAssetId;
-    private String pushRunName;
-    private PollableTask pollableTask;
-    private FilterConfigIdOverride filterConfigIdOverride;
-    private List<String> filterOptions;
-    private boolean extractedContent;
+  private Long repositoryId;
+  private String path;
+  private String content;
+  private String branch;
+  private String branchCreatedByUsername;
+  private Long addedAssetId;
+  private String pushRunName;
+  private PollableTask pollableTask;
+  private FilterConfigIdOverride filterConfigIdOverride;
+  private List<String> filterOptions;
+  private boolean extractedContent;
 
-    private String commitHash;
+  private String commitHash;
 
-    public Long getRepositoryId() {
-        return repositoryId;
-    }
+  public Long getRepositoryId() {
+    return repositoryId;
+  }
 
-    public void setRepositoryId(Long repositoryId) {
-        this.repositoryId = repositoryId;
-    }
+  public void setRepositoryId(Long repositoryId) {
+    this.repositoryId = repositoryId;
+  }
 
-    public String getPath() {
-        return path;
-    }
+  public String getPath() {
+    return path;
+  }
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+  public void setPath(String path) {
+    this.path = path;
+  }
 
-    public String getContent() {
-        return content;
-    }
+  public String getContent() {
+    return content;
+  }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+  public void setContent(String content) {
+    this.content = content;
+  }
 
-    public Long getAddedAssetId() {
-        return addedAssetId;
-    }
+  public Long getAddedAssetId() {
+    return addedAssetId;
+  }
 
-    public void setAddedAssetId(Long addedAssetId) {
-        this.addedAssetId = addedAssetId;
-    }
+  public void setAddedAssetId(Long addedAssetId) {
+    this.addedAssetId = addedAssetId;
+  }
 
-    public FilterConfigIdOverride getFilterConfigIdOverride() {
-        return filterConfigIdOverride;
-    }
+  public FilterConfigIdOverride getFilterConfigIdOverride() {
+    return filterConfigIdOverride;
+  }
 
-    public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
-        this.filterConfigIdOverride = filterConfigIdOverride;
-    }
+  public void setFilterConfigIdOverride(FilterConfigIdOverride filterConfigIdOverride) {
+    this.filterConfigIdOverride = filterConfigIdOverride;
+  }
 
-    public String getBranch() {
-        return branch;
-    }
+  public String getBranch() {
+    return branch;
+  }
 
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
+  public void setBranch(String branch) {
+    this.branch = branch;
+  }
 
-    public String getBranchCreatedByUsername() {
-        return branchCreatedByUsername;
-    }
+  public String getBranchCreatedByUsername() {
+    return branchCreatedByUsername;
+  }
 
-    public void setBranchCreatedByUsername(String branchCreatedByUsername) {
-        this.branchCreatedByUsername = branchCreatedByUsername;
-    }
+  public void setBranchCreatedByUsername(String branchCreatedByUsername) {
+    this.branchCreatedByUsername = branchCreatedByUsername;
+  }
 
-    public List<String> getFilterOptions() {
-        return filterOptions;
-    }
+  public List<String> getFilterOptions() {
+    return filterOptions;
+  }
 
-    public boolean isExtractedContent() {
-        return extractedContent;
-    }
+  public boolean isExtractedContent() {
+    return extractedContent;
+  }
 
-    public void setExtractedContent(boolean extractedContent) {
-        this.extractedContent = extractedContent;
-    }
+  public void setExtractedContent(boolean extractedContent) {
+    this.extractedContent = extractedContent;
+  }
 
-    public void setFilterOptions(List<String> filterOptions) {
-        this.filterOptions = filterOptions;
-    }
+  public void setFilterOptions(List<String> filterOptions) {
+    this.filterOptions = filterOptions;
+  }
 
-    public String getCommitHash() {
-        return commitHash;
-    }
+  public String getCommitHash() {
+    return commitHash;
+  }
 
-    public void setCommitHash(String commitHash) {
-        this.commitHash = commitHash;
-    }
+  public void setCommitHash(String commitHash) {
+    this.commitHash = commitHash;
+  }
 
-    public String getPushRunName() {
-        return pushRunName;
-    }
+  public String getPushRunName() {
+    return pushRunName;
+  }
 
-    public void setPushRunName(String pushRunName) {
-        this.pushRunName = pushRunName;
-    }
+  public void setPushRunName(String pushRunName) {
+    this.pushRunName = pushRunName;
+  }
 
-    @JsonProperty
-    public PollableTask getPollableTask() {
-        return pollableTask;
-    }
+  @JsonProperty
+  public PollableTask getPollableTask() {
+    return pollableTask;
+  }
 
-    /**
-     * @param pollableTask
-     * @JsonIgnore because this pollableTask is read only data generated by the
-     * server side, it is not aimed to by external process via WS
-     *
-     * @param pollableTask
-     */
-    @JsonIgnore
-    public void setPollableTask(PollableTask pollableTask) {
-        this.pollableTask = pollableTask;
-    }
+  /**
+   * @param pollableTask @JsonIgnore because this pollableTask is read only data generated by the
+   *     server side, it is not aimed to by external process via WS
+   * @param pollableTask
+   */
+  @JsonIgnore
+  public void setPollableTask(PollableTask pollableTask) {
+    this.pollableTask = pollableTask;
+  }
 }

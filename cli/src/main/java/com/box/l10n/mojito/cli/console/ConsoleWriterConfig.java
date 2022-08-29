@@ -13,24 +13,22 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class ConsoleWriterConfig {
 
-    @Autowired
-    ConsoleWriterConfigurationProperties consoleWriterConfigurationProperties;
+  @Autowired ConsoleWriterConfigurationProperties consoleWriterConfigurationProperties;
 
-    @Primary
-    @Bean
-    public ConsoleWriter consoleWriter() {
-        ConsoleWriter consoleWriter = new ConsoleWriter(
-                consoleWriterConfigurationProperties.isAnsiCodeEnabled(),
-                consoleWriterConfigurationProperties.getOutputType());
-        return consoleWriter;
-    }
+  @Primary
+  @Bean
+  public ConsoleWriter consoleWriter() {
+    ConsoleWriter consoleWriter =
+        new ConsoleWriter(
+            consoleWriterConfigurationProperties.isAnsiCodeEnabled(),
+            consoleWriterConfigurationProperties.getOutputType());
+    return consoleWriter;
+  }
 
-    @Bean(name = "ansiCodeEnabledFalse")
-    public ConsoleWriter consoleWriterNoAnsi() {
-        ConsoleWriter consoleWriter = new ConsoleWriter(
-                false,
-                consoleWriterConfigurationProperties.getOutputType());
-        return consoleWriter;
-    }
-
+  @Bean(name = "ansiCodeEnabledFalse")
+  public ConsoleWriter consoleWriterNoAnsi() {
+    ConsoleWriter consoleWriter =
+        new ConsoleWriter(false, consoleWriterConfigurationProperties.getOutputType());
+    return consoleWriter;
+  }
 }

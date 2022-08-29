@@ -8,23 +8,23 @@ import com.box.l10n.mojito.service.delta.DeltaType;
  * @author garion
  */
 public class DeltaTranslationDTO {
-    String text;
+  String text;
 
-    DeltaType deltaType = DeltaType.UNKNOWN;
+  DeltaType deltaType = DeltaType.UNKNOWN;
 
-    public String getText() {
-        return text;
-    }
+  public String getText() {
+    return text;
+  }
 
-    public void setText(String text) {
-        this.text = text;
-    }
+  public void setText(String text) {
+    this.text = text;
+  }
 
-    public DeltaType getDeltaType() {
-        return deltaType;
-    }
+  public DeltaType getDeltaType() {
+    return deltaType;
+  }
 
-    public void setDeltaType(DeltaType deltaType) {
-        this.deltaType = deltaType;
-    }
+  public void setDeltaType(DeltaType deltaType) {
+    this.deltaType = deltaType;
+  }
 }

@@ -18,92 +18,95 @@ import org.springframework.beans.factory.annotation.Configurable;
 @Configurable
 public class CommandWaitForPollableTaskListener implements WaitForPollableTaskListener {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(CommandWaitForPollableTaskListener.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(CommandWaitForPollableTaskListener.class);
 
-    @Autowired
-    ConsoleWriter consoleWriter;
+  @Autowired ConsoleWriter consoleWriter;
 
-    /**
-     * Keeps track of the number of callback to {@link #afterPoll(com.box.l10n.mojito.rest.entity.PollableTask)
-     * }
-     */
-    int numberAfterPollCallback = 0;
+  /**
+   * Keeps track of the number of callback to {@link
+   * #afterPoll(com.box.l10n.mojito.rest.entity.PollableTask) }
+   */
+  int numberAfterPollCallback = 0;
 
-    @Override
-    public void afterPoll(PollableTask pollableTask) {
+  @Override
+  public void afterPoll(PollableTask pollableTask) {
 
-        if (numberAfterPollCallback++ > 0) {
-            consoleWriter.erasePreviouslyPrintedLines();
-        }
-
-        printPollableTaskMessages(pollableTask, 0);
-
-        consoleWriter.print();
+    if (numberAfterPollCallback++ > 0) {
+      consoleWriter.erasePreviouslyPrintedLines();
     }
 
-    /**
-     * Recursively prints messages of a {@link PollableTask} and its sub tasks.
-     *
-     * <p>
-     * The indentation level is increased when a {@link PollableTask} contains a
-     * non-empty message (as no message is printed in that case, it is not
-     * needed indent sub task messages).
-      *
-     * @param pollableTask contains the messages to be printed
-     * @param indentationLevel indentation level used to determine the number of
-     * spaces used to indent the printed message
-     */
-    void printPollableTaskMessages(PollableTask pollableTask, int indentationLevel) {
+    printPollableTaskMessages(pollableTask, 0);
 
-        int newIndentationLevel = indentationLevel;
+    consoleWriter.print();
+  }
 
-        if (!Strings.isNullOrEmpty(pollableTask.getMessage())) {
+  /**
+   * Recursively prints messages of a {@link PollableTask} and its sub tasks.
+   *
+   * <p>The indentation level is increased when a {@link PollableTask} contains a non-empty message
+   * (as no message is printed in that case, it is not needed indent sub task messages).
+   *
+   * @param pollableTask contains the messages to be printed
+   * @param indentationLevel indentation level used to determine the number of spaces used to indent
+   *     the printed message
+   */
+  void printPollableTaskMessages(PollableTask pollableTask, int indentationLevel) {
 
-            String linePrefix = getLinePrefix(indentationLevel);
+    int newIndentationLevel = indentationLevel;
 
-            consoleWriter.a(linePrefix).a(pollableTask.getMessage()).fg(Ansi.Color.MAGENTA).a(" (").a(pollableTask.getId()).a(") ");
+    if (!Strings.isNullOrEmpty(pollableTask.getMessage())) {
 
-            if (pollableTask.getErrorMessage() != null) {
-                consoleWriter.fg(Ansi.Color.RED).a("Failed").newLine().a(pollableTask.getErrorMessage().getMessage());
+      String linePrefix = getLinePrefix(indentationLevel);
 
-                if (!pollableTask.getErrorMessage().isExpected()) {
-                    consoleWriter.newLine().a("Error stack").newLine().a(pollableTask.getErrorStack());
-                }
-            } else if (pollableTask.getFinishedDate() != null) {
-                consoleWriter.fg(Ansi.Color.GREEN).a("Done");
-            } else {
-                consoleWriter.fg(Ansi.Color.YELLOW).a("Running");
-            }
+      consoleWriter
+          .a(linePrefix)
+          .a(pollableTask.getMessage())
+          .fg(Ansi.Color.MAGENTA)
+          .a(" (")
+          .a(pollableTask.getId())
+          .a(") ");
 
-            consoleWriter.reset().newLine();
+      if (pollableTask.getErrorMessage() != null) {
+        consoleWriter
+            .fg(Ansi.Color.RED)
+            .a("Failed")
+            .newLine()
+            .a(pollableTask.getErrorMessage().getMessage());
 
-            newIndentationLevel += 1;
+        if (!pollableTask.getErrorMessage().isExpected()) {
+          consoleWriter.newLine().a("Error stack").newLine().a(pollableTask.getErrorStack());
         }
+      } else if (pollableTask.getFinishedDate() != null) {
+        consoleWriter.fg(Ansi.Color.GREEN).a("Done");
+      } else {
+        consoleWriter.fg(Ansi.Color.YELLOW).a("Running");
+      }
 
-        for (PollableTask subTask : pollableTask.getSubTasks()) {
-            printPollableTaskMessages(subTask, newIndentationLevel);
-        }
+      consoleWriter.reset().newLine();
+
+      newIndentationLevel += 1;
     }
 
-    /**
-     * Builds the line prefix to be used for displaying a message based on the
-     * indentation level.
-     *
-     * @param indentationLevel indentation level used to determine the number of
-     * spaces used to indent the printed message
-     * @return the line prefix
-     */
-    private String getLinePrefix(int indentationLevel) {
-        StringBuilder sb = new StringBuilder();
+    for (PollableTask subTask : pollableTask.getSubTasks()) {
+      printPollableTaskMessages(subTask, newIndentationLevel);
+    }
+  }
 
-        for (int numSpaces = 0; numSpaces < indentationLevel * 2; numSpaces++) {
-            sb.append(" ");
-        }
+  /**
+   * Builds the line prefix to be used for displaying a message based on the indentation level.
+   *
+   * @param indentationLevel indentation level used to determine the number of spaces used to indent
+   *     the printed message
+   * @return the line prefix
+   */
+  private String getLinePrefix(int indentationLevel) {
+    StringBuilder sb = new StringBuilder();
 
-        return sb.toString();
+    for (int numSpaces = 0; numSpaces < indentationLevel * 2; numSpaces++) {
+      sb.append(" ");
     }
 
+    return sb.toString();
+  }
 }

@@ -7,12 +7,11 @@ package com.box.l10n.mojito.service.assetintegritychecker.integritychecker;
  */
 public class IntegrityCheckException extends RuntimeException {
 
-    public IntegrityCheckException(String message) {
-        super(message);
-    }
+  public IntegrityCheckException(String message) {
+    super(message);
+  }
 
-    public IntegrityCheckException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
+  public IntegrityCheckException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

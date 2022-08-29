@@ -9,182 +9,166 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Describes a file pattern for source and target files. 
- * 
- * Placeholder can be used to extract specific information when matching filename
- * and can get there values from {@link FileType}.
+ * Describes a file pattern for source and target files.
+ *
+ * <p>Placeholder can be used to extract specific information when matching filename and can get
+ * there values from {@link FileType}.
  *
  * @author jaurambault
  */
 public class FilePattern {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(FilePattern.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(FilePattern.class);
 
-    public static String FILE_EXTENSION = "fileExtension"; 
-    public static String BASE_NAME = "baseName";
-    public static String PARENT_PATH = "parentPath";
-    public static String SUB_PATH = "subPath";
-    public static String LOCALE = "locale";
-    public static String DOT = ".";
-    public static String UNDERSCORE = "_";
-    public static String HYPHEN = "-";
-    public static String PATH_SEPERATOR = "/";
+  public static String FILE_EXTENSION = "fileExtension";
+  public static String BASE_NAME = "baseName";
+  public static String PARENT_PATH = "parentPath";
+  public static String SUB_PATH = "subPath";
+  public static String LOCALE = "locale";
+  public static String DOT = ".";
+  public static String UNDERSCORE = "_";
+  public static String HYPHEN = "-";
+  public static String PATH_SEPERATOR = "/";
 
-    /**
-     * Pattern string to find placeholder in a file pattern template
-     */
-    final static String PLACEHOLDER_PATTERN_STR = "\\{(.*?)}";
+  /** Pattern string to find placeholder in a file pattern template */
+  static final String PLACEHOLDER_PATTERN_STR = "\\{(.*?)}";
 
-    /**
-     * Actual pattern that matches placeholder in a filename expression.
-     */
-    final static Pattern PLACEHOLDER_PATTERN = Pattern.compile(PLACEHOLDER_PATTERN_STR);
+  /** Actual pattern that matches placeholder in a filename expression. */
+  static final Pattern PLACEHOLDER_PATTERN = Pattern.compile(PLACEHOLDER_PATTERN_STR);
 
-    /**
-     * Pattern used to match file names.
-     */
-    private Pattern pattern;
+  /** Pattern used to match file names. */
+  private Pattern pattern;
 
-    /**
-     * Groups in the regex.
-     */
-    private final Set<String> groups = new HashSet<>();
+  /** Groups in the regex. */
+  private final Set<String> groups = new HashSet<>();
 
-    /**
-     * File type associated with this pattern.
-     */
-    private final FileType fileType;
+  /** File type associated with this pattern. */
+  private final FileType fileType;
 
-    /**
-     * Indicates if this pattern is used to match source or target files.
-     */
-    private final boolean forSourceFile;
+  /** Indicates if this pattern is used to match source or target files. */
+  private final boolean forSourceFile;
 
-    public FilePattern(FileType fileType, boolean forSourceFile) {
-        this.fileType = fileType;
-        this.forSourceFile = forSourceFile;
-        initPattern();
-    }
-        
-    public Pattern getPattern() {
-        return pattern;
-    }
+  public FilePattern(FileType fileType, boolean forSourceFile) {
+    this.fileType = fileType;
+    this.forSourceFile = forSourceFile;
+    initPattern();
+  }
 
-    public Set<String> getGroups() {
-        return groups;
-    }
+  public Pattern getPattern() {
+    return pattern;
+  }
 
-    /**
-     * Initialize the pattern to match files.
-     */
-    private void initPattern() {
+  public Set<String> getGroups() {
+    return groups;
+  }
 
-        StringBuffer patternTemplateRegex = new StringBuffer();
+  /** Initialize the pattern to match files. */
+  private void initPattern() {
 
-        logger.debug("Get placeholder matcher");
-        Matcher placeholderMatcher = getPlaceholderMatcher();
+    StringBuffer patternTemplateRegex = new StringBuffer();
 
-        logger.debug("Replace all placeholder with regex group capture");
-        while (placeholderMatcher.find()) {
+    logger.debug("Get placeholder matcher");
+    Matcher placeholderMatcher = getPlaceholderMatcher();
 
-            String group = placeholderMatcher.group(1);
+    logger.debug("Replace all placeholder with regex group capture");
+    while (placeholderMatcher.find()) {
 
-            if (!groups.contains(group)) {
-                logger.trace("New group found, add it, replace with a capture group");
-                groups.add(group);
+      String group = placeholderMatcher.group(1);
 
-                String groupRegex = getGroupRegex(group);
+      if (!groups.contains(group)) {
+        logger.trace("New group found, add it, replace with a capture group");
+        groups.add(group);
 
-                placeholderMatcher.appendReplacement(patternTemplateRegex, Matcher.quoteReplacement("(?<" + group + ">" + groupRegex + ")"));
-            } else {
-                logger.trace("Existing group found, replace with a back reference");
-                placeholderMatcher.appendReplacement(patternTemplateRegex, Matcher.quoteReplacement("\\k<" + group + ">"));
-            }
-        }
+        String groupRegex = getGroupRegex(group);
 
-        placeholderMatcher.appendTail(patternTemplateRegex);
-
-        String patternRegex = patternTemplateRegex.toString();
-        logger.debug("pattern:" + patternRegex);
-
-        pattern = Pattern.compile(patternRegex);
+        placeholderMatcher.appendReplacement(
+            patternTemplateRegex, Matcher.quoteReplacement("(?<" + group + ">" + groupRegex + ")"));
+      } else {
+        logger.trace("Existing group found, replace with a back reference");
+        placeholderMatcher.appendReplacement(
+            patternTemplateRegex, Matcher.quoteReplacement("\\k<" + group + ">"));
+      }
     }
 
-    /**
-     * Gets the placeholder matcher for either source or target file pattern
-     * template.
-     *
-     * @return a placholder matcher.
-     */
-    private Matcher getPlaceholderMatcher() {
+    placeholderMatcher.appendTail(patternTemplateRegex);
 
-        String filePatternTemplate;
-        
-        if (forSourceFile) {
-            filePatternTemplate = fileType.getSourceFilePatternTemplate();
-        } else {
-            filePatternTemplate = fileType.getTargetFilePatternTemplate();
-        }
-          
-        return PLACEHOLDER_PATTERN.matcher(patternTemplateToRegex(filePatternTemplate));
+    String patternRegex = patternTemplateRegex.toString();
+    logger.debug("pattern:" + patternRegex);
+
+    pattern = Pattern.compile(patternRegex);
+  }
+
+  /**
+   * Gets the placeholder matcher for either source or target file pattern template.
+   *
+   * @return a placholder matcher.
+   */
+  private Matcher getPlaceholderMatcher() {
+
+    String filePatternTemplate;
+
+    if (forSourceFile) {
+      filePatternTemplate = fileType.getSourceFilePatternTemplate();
+    } else {
+      filePatternTemplate = fileType.getTargetFilePatternTemplate();
     }
 
-    /**
-     * Gets the regex for a group.
-     *
-     * @param group the group
-     * @return
-     */
-    private String getGroupRegex(String group) {
+    return PLACEHOLDER_PATTERN.matcher(patternTemplateToRegex(filePatternTemplate));
+  }
 
-        String groupRegex = ".+?";
+  /**
+   * Gets the regex for a group.
+   *
+   * @param group the group
+   * @return
+   */
+  private String getGroupRegex(String group) {
 
-        if (PARENT_PATH.equals(group)) {
-            groupRegex = fileType.getParentPath();
-        }
-        
-        if (SUB_PATH.equals(group)) {
-            groupRegex = fileType.getSubPath();
-        }
-        
-        if (BASE_NAME.equals(group)) {
-            groupRegex = fileType.getBaseNamePattern();
-        }
+    String groupRegex = ".+?";
 
-        if (FILE_EXTENSION.equals(group)) {
-            
-            if(forSourceFile) {
-                groupRegex = fileType.getSourceFileExtension();
-            } else {
-                groupRegex = fileType.getTargetFileExtension();    
-            }
-        }
-        
-        if (LOCALE.equals(group)) {
-
-            if (forSourceFile) {
-                groupRegex = fileType.getLocaleType().getSourceLocale();
-            } else {
-                groupRegex = fileType.getLocaleType().getTargetLocaleRegex();
-            }
-        }
-
-        return groupRegex;
+    if (PARENT_PATH.equals(group)) {
+      groupRegex = fileType.getParentPath();
     }
 
-    /**
-     * Transform the tempalte into a proper regex. 
-     * 
-     * Right now, it just escapes dots
-     *
-     * @param filePatternTemplate a template to be transform into a regex
-     * @return the corresponding regex
-     */
-    private String patternTemplateToRegex(String filePatternTemplate) {
-        return filePatternTemplate.replaceAll("\\.", Matcher.quoteReplacement("\\."));
+    if (SUB_PATH.equals(group)) {
+      groupRegex = fileType.getSubPath();
     }
 
+    if (BASE_NAME.equals(group)) {
+      groupRegex = fileType.getBaseNamePattern();
+    }
+
+    if (FILE_EXTENSION.equals(group)) {
+
+      if (forSourceFile) {
+        groupRegex = fileType.getSourceFileExtension();
+      } else {
+        groupRegex = fileType.getTargetFileExtension();
+      }
+    }
+
+    if (LOCALE.equals(group)) {
+
+      if (forSourceFile) {
+        groupRegex = fileType.getLocaleType().getSourceLocale();
+      } else {
+        groupRegex = fileType.getLocaleType().getTargetLocaleRegex();
+      }
+    }
+
+    return groupRegex;
+  }
+
+  /**
+   * Transform the tempalte into a proper regex.
+   *
+   * <p>Right now, it just escapes dots
+   *
+   * @param filePatternTemplate a template to be transform into a regex
+   * @return the corresponding regex
+   */
+  private String patternTemplateToRegex(String filePatternTemplate) {
+    return filePatternTemplate.replaceAll("\\.", Matcher.quoteReplacement("\\."));
+  }
 }

@@ -9,18 +9,18 @@ import org.springframework.stereotype.Component;
 @ConfigurationPropertiesBinding
 public class NamingConventionConverter implements Converter<String, NamingConvention> {
 
-    @Override
-    public NamingConvention convert(String s) {
-        NamingConvention namingConvention = null;
+  @Override
+  public NamingConvention convert(String s) {
+    NamingConvention namingConvention = null;
 
-        if (s != null) {
-            try {
-                namingConvention = (NamingConvention) NamingConvention.class.getField(s).get(null);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                throw new RuntimeException("Name convention not valid: " + s);
-            }
-        }
-
-        return namingConvention;
+    if (s != null) {
+      try {
+        namingConvention = (NamingConvention) NamingConvention.class.getField(s).get(null);
+      } catch (NoSuchFieldException | IllegalAccessException e) {
+        throw new RuntimeException("Name convention not valid: " + s);
+      }
     }
+
+    return namingConvention;
+  }
 }

@@ -1,32 +1,28 @@
 package com.box.l10n.mojito.rest.repository;
 
-/**
- *
- * @author jaurambault
- */
+/** @author jaurambault */
 public class ImportRepositoryBody {
-    
-    String xliffContent;
-    /**
-     * Indicates if the TM should be updated or if the translation can be
-     * imported assuming that there is no translation yet.
-     */
-    boolean updateTM = false;
 
-    public String getXliffContent() {
-        return xliffContent;
-    }
+  String xliffContent;
+  /**
+   * Indicates if the TM should be updated or if the translation can be imported assuming that there
+   * is no translation yet.
+   */
+  boolean updateTM = false;
 
-    public void setXliffContent(String xliffContent) {
-        this.xliffContent = xliffContent;
-    }
+  public String getXliffContent() {
+    return xliffContent;
+  }
 
-    public boolean isUpdateTM() {
-        return updateTM;
-    }
+  public void setXliffContent(String xliffContent) {
+    this.xliffContent = xliffContent;
+  }
 
-    public void setUpdateTM(boolean updateTM) {
-        this.updateTM = updateTM;
-    }
-    
+  public boolean isUpdateTM() {
+    return updateTM;
+  }
+
+  public void setUpdateTM(boolean updateTM) {
+    this.updateTM = updateTM;
+  }
 }

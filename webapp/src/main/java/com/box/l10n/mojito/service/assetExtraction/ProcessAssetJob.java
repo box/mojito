@@ -8,23 +8,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProcessAssetJob extends QuartzPollableJob<ProcessAssetJobInput, Void> {
 
-    @Autowired
-    AssetExtractionService assetExtractionService;
+  @Autowired AssetExtractionService assetExtractionService;
 
-    @Autowired
-    PollableTaskService pollableTaskService;
+  @Autowired PollableTaskService pollableTaskService;
 
-    @Override
-    public Void call(ProcessAssetJobInput input) throws Exception {
+  @Override
+  public Void call(ProcessAssetJobInput input) throws Exception {
 
-        assetExtractionService.processAsset(
-                input.getAssetContentId(),
-                input.getPushRunId(),
-                input.getFilterConfigIdOverride(),
-                input.getFilterOptions(),
-                getCurrentPollableTask()
-        );
+    assetExtractionService.processAsset(
+        input.getAssetContentId(),
+        input.getPushRunId(),
+        input.getFilterConfigIdOverride(),
+        input.getFilterOptions(),
+        getCurrentPollableTask());
 
-        return null;
-    }
+    return null;
+  }
 }

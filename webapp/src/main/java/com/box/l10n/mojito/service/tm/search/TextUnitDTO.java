@@ -10,234 +10,236 @@ import org.joda.time.DateTime;
  */
 public class TextUnitDTO {
 
-    private Long tmTextUnitId;
-    private Long tmTextUnitVariantId;
-    private Long localeId;
-    private String name;
-    private String source;
-    private String comment;
-    private String target;
-    private String targetLocale;
-    private String targetComment;
-    private Long assetId;
-    private Long lastSuccessfulAssetExtractionId;
-    private Long assetExtractionId;
-    private Long tmTextUnitCurrentVariantId;
-    private TMTextUnitVariant.Status status;
-    private boolean includedInLocalizedFile;
-    private DateTime createdDate;
-    private boolean assetDeleted;
-    private String pluralForm;
-    private String pluralFormOther;
-    private String repositoryName;
-    private String assetPath;
-    private Long assetTextUnitId;
-    private DateTime tmTextUnitCreatedDate;
-    private boolean doNotTranslate;
+  private Long tmTextUnitId;
+  private Long tmTextUnitVariantId;
+  private Long localeId;
+  private String name;
+  private String source;
+  private String comment;
+  private String target;
+  private String targetLocale;
+  private String targetComment;
+  private Long assetId;
+  private Long lastSuccessfulAssetExtractionId;
+  private Long assetExtractionId;
+  private Long tmTextUnitCurrentVariantId;
+  private TMTextUnitVariant.Status status;
+  private boolean includedInLocalizedFile;
+  private DateTime createdDate;
+  private boolean assetDeleted;
+  private String pluralForm;
+  private String pluralFormOther;
+  private String repositoryName;
+  private String assetPath;
+  private Long assetTextUnitId;
+  private DateTime tmTextUnitCreatedDate;
+  private boolean doNotTranslate;
 
-    public Long getTmTextUnitId() {
-        return tmTextUnitId;
-    }
+  public Long getTmTextUnitId() {
+    return tmTextUnitId;
+  }
 
-    public void setTmTextUnitId(Long tmTextUnitId) {
-        this.tmTextUnitId = tmTextUnitId;
-    }
+  public void setTmTextUnitId(Long tmTextUnitId) {
+    this.tmTextUnitId = tmTextUnitId;
+  }
 
-    public Long getTmTextUnitVariantId() {
-        return tmTextUnitVariantId;
-    }
+  public Long getTmTextUnitVariantId() {
+    return tmTextUnitVariantId;
+  }
 
-    public void setTmTextUnitVariantId(Long tmTextUnitVariantId) {
-        this.tmTextUnitVariantId = tmTextUnitVariantId;
-    }
+  public void setTmTextUnitVariantId(Long tmTextUnitVariantId) {
+    this.tmTextUnitVariantId = tmTextUnitVariantId;
+  }
 
-    public Long getLocaleId() {
-        return localeId;
-    }
+  public Long getLocaleId() {
+    return localeId;
+  }
 
-    //TODO(PO) THIS NOT CONSISTANT !! chooose
-    public void setLocaleId(Long localeId) {
-        this.localeId = localeId;
-    }
+  // TODO(PO) THIS NOT CONSISTANT !! chooose
+  public void setLocaleId(Long localeId) {
+    this.localeId = localeId;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public String getSource() {
-        return source;
-    }
+  public String getSource() {
+    return source;
+  }
 
-    public void setSource(String source) {
-        this.source = source;
-    }
+  public void setSource(String source) {
+    this.source = source;
+  }
 
-    public String getComment() {
-        return comment;
-    }
+  public String getComment() {
+    return comment;
+  }
 
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
 
-    public String getTarget() {
-        return target;
-    }
+  public String getTarget() {
+    return target;
+  }
 
-    public void setTarget(String target) {
-        this.target = target;
-    }
+  public void setTarget(String target) {
+    this.target = target;
+  }
 
-    //TODO(PO) THIS NOT CONSISTANT !! chooose
-    public String getTargetLocale() {
-        return targetLocale;
-    }
+  // TODO(PO) THIS NOT CONSISTANT !! chooose
+  public String getTargetLocale() {
+    return targetLocale;
+  }
 
-    public void setTargetLocale(String targetLocale) {
-        this.targetLocale = targetLocale;
-    }
+  public void setTargetLocale(String targetLocale) {
+    this.targetLocale = targetLocale;
+  }
 
-    public Long getAssetId() {
-        return assetId;
-    }
+  public Long getAssetId() {
+    return assetId;
+  }
 
-    public void setAssetId(Long assetId) {
-        this.assetId = assetId;
-    }
+  public void setAssetId(Long assetId) {
+    this.assetId = assetId;
+  }
 
-    public boolean isUsed() {
-        return !assetDeleted && assetExtractionId != null && assetExtractionId.equals(lastSuccessfulAssetExtractionId);
-    }
+  public boolean isUsed() {
+    return !assetDeleted
+        && assetExtractionId != null
+        && assetExtractionId.equals(lastSuccessfulAssetExtractionId);
+  }
 
-    public boolean isTranslated() {
-        return tmTextUnitVariantId != null;
-    }
+  public boolean isTranslated() {
+    return tmTextUnitVariantId != null;
+  }
 
-    public boolean hasEmptyTranslation() {
-        return target == null || target.isEmpty();
-    }
+  public boolean hasEmptyTranslation() {
+    return target == null || target.isEmpty();
+  }
 
-    public Long getLastSuccessfulAssetExtractionId() {
-        return lastSuccessfulAssetExtractionId;
-    }
+  public Long getLastSuccessfulAssetExtractionId() {
+    return lastSuccessfulAssetExtractionId;
+  }
 
-    public void setLastSuccessfulAssetExtractionId(Long lastSuccessfulAssetExtractionId) {
-        this.lastSuccessfulAssetExtractionId = lastSuccessfulAssetExtractionId;
-    }
+  public void setLastSuccessfulAssetExtractionId(Long lastSuccessfulAssetExtractionId) {
+    this.lastSuccessfulAssetExtractionId = lastSuccessfulAssetExtractionId;
+  }
 
-    public Long getAssetExtractionId() {
-        return assetExtractionId;
-    }
+  public Long getAssetExtractionId() {
+    return assetExtractionId;
+  }
 
-    public void setAssetExtractionId(Long assetExtractionId) {
-        this.assetExtractionId = assetExtractionId;
-    }
+  public void setAssetExtractionId(Long assetExtractionId) {
+    this.assetExtractionId = assetExtractionId;
+  }
 
-    public String getTargetComment() {
-        return targetComment;
-    }
+  public String getTargetComment() {
+    return targetComment;
+  }
 
-    public void setTargetComment(String targetComment) {
-        this.targetComment = targetComment;
-    }
+  public void setTargetComment(String targetComment) {
+    this.targetComment = targetComment;
+  }
 
-    public Long getTmTextUnitCurrentVariantId() {
-        return tmTextUnitCurrentVariantId;
-    }
+  public Long getTmTextUnitCurrentVariantId() {
+    return tmTextUnitCurrentVariantId;
+  }
 
-    public void setTmTextUnitCurrentVariantId(Long tmTextUnitCurrentVariantId) {
-        this.tmTextUnitCurrentVariantId = tmTextUnitCurrentVariantId;
-    }
+  public void setTmTextUnitCurrentVariantId(Long tmTextUnitCurrentVariantId) {
+    this.tmTextUnitCurrentVariantId = tmTextUnitCurrentVariantId;
+  }
 
-    public TMTextUnitVariant.Status getStatus() {
-        return status;
-    }
+  public TMTextUnitVariant.Status getStatus() {
+    return status;
+  }
 
-    public void setStatus(TMTextUnitVariant.Status status) {
-        this.status = status;
-    }
+  public void setStatus(TMTextUnitVariant.Status status) {
+    this.status = status;
+  }
 
-    public boolean isIncludedInLocalizedFile() {
-        return includedInLocalizedFile;
-    }
+  public boolean isIncludedInLocalizedFile() {
+    return includedInLocalizedFile;
+  }
 
-    public void setIncludedInLocalizedFile(boolean includedInLocalizedFile) {
-        this.includedInLocalizedFile = includedInLocalizedFile;
-    }
+  public void setIncludedInLocalizedFile(boolean includedInLocalizedFile) {
+    this.includedInLocalizedFile = includedInLocalizedFile;
+  }
 
-    public DateTime getCreatedDate() {
-        return createdDate;
-    }
+  public DateTime getCreatedDate() {
+    return createdDate;
+  }
 
-    public void setCreatedDate(DateTime createdDate) {
-        this.createdDate = createdDate;
-    }
+  public void setCreatedDate(DateTime createdDate) {
+    this.createdDate = createdDate;
+  }
 
-    public boolean isAssetDeleted() {
-        return assetDeleted;
-    }
+  public boolean isAssetDeleted() {
+    return assetDeleted;
+  }
 
-    public void setAssetDeleted(boolean assetDeleted) {
-        this.assetDeleted = assetDeleted;
-    }
+  public void setAssetDeleted(boolean assetDeleted) {
+    this.assetDeleted = assetDeleted;
+  }
 
-    public String getPluralForm() {
-        return pluralForm;
-    }
+  public String getPluralForm() {
+    return pluralForm;
+  }
 
-    public void setPluralForm(String pluralForm) {
-        this.pluralForm = pluralForm;
-    }
+  public void setPluralForm(String pluralForm) {
+    this.pluralForm = pluralForm;
+  }
 
-    public String getPluralFormOther() {
-        return pluralFormOther;
-    }
+  public String getPluralFormOther() {
+    return pluralFormOther;
+  }
 
-    public void setPluralFormOther(String pluralFormOther) {
-        this.pluralFormOther = pluralFormOther;
-    }
+  public void setPluralFormOther(String pluralFormOther) {
+    this.pluralFormOther = pluralFormOther;
+  }
 
-    public String getRepositoryName() {
-        return repositoryName;
-    }
+  public String getRepositoryName() {
+    return repositoryName;
+  }
 
-    public void setRepositoryName(String repositoryName) {
-        this.repositoryName = repositoryName;
-    }
+  public void setRepositoryName(String repositoryName) {
+    this.repositoryName = repositoryName;
+  }
 
-    public String getAssetPath() {
-        return assetPath;
-    }
+  public String getAssetPath() {
+    return assetPath;
+  }
 
-    public void setAssetPath(String assetPath) {
-        this.assetPath = assetPath;
-    }
+  public void setAssetPath(String assetPath) {
+    this.assetPath = assetPath;
+  }
 
-    public Long getAssetTextUnitId() {
-        return assetTextUnitId;
-    }
+  public Long getAssetTextUnitId() {
+    return assetTextUnitId;
+  }
 
-    public void setAssetTextUnitId(Long assetTextUnitId) {
-        this.assetTextUnitId = assetTextUnitId;
-    }
+  public void setAssetTextUnitId(Long assetTextUnitId) {
+    this.assetTextUnitId = assetTextUnitId;
+  }
 
-    public DateTime getTmTextUnitCreatedDate() {
-        return tmTextUnitCreatedDate;
-    }
+  public DateTime getTmTextUnitCreatedDate() {
+    return tmTextUnitCreatedDate;
+  }
 
-    public void setTmTextUnitCreatedDate(DateTime tmTextUnitCreatedDate) {
-        this.tmTextUnitCreatedDate = tmTextUnitCreatedDate;
-    }
+  public void setTmTextUnitCreatedDate(DateTime tmTextUnitCreatedDate) {
+    this.tmTextUnitCreatedDate = tmTextUnitCreatedDate;
+  }
 
-    public boolean isDoNotTranslate() {
-        return doNotTranslate;
-    }
+  public boolean isDoNotTranslate() {
+    return doNotTranslate;
+  }
 
-    public void setDoNotTranslate(boolean doNotTranslate) {
-        this.doNotTranslate = doNotTranslate;
-    }
+  public void setDoNotTranslate(boolean doNotTranslate) {
+    this.doNotTranslate = doNotTranslate;
+  }
 }

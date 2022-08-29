@@ -1,93 +1,92 @@
 package com.box.l10n.mojito.slack.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Attachment {
 
-    public static final String MRKDWNIN_TEXT = "text";
-    public static final String MRKDOWNIN_PRETEXT = "pretex";
-    public static final String MRKDOWNIN_FILEDS = "fields";
+  public static final String MRKDWNIN_TEXT = "text";
+  public static final String MRKDOWNIN_PRETEXT = "pretex";
+  public static final String MRKDOWNIN_FILEDS = "fields";
 
-    String title;
+  String title;
 
-    String text;
+  String text;
 
-    String fallback;
+  String fallback;
 
-    @JsonProperty("mrkdwn_in")
-    List<String> mrkdwnIn = new ArrayList<>();
+  @JsonProperty("mrkdwn_in")
+  List<String> mrkdwnIn = new ArrayList<>();
 
-    String color;
+  String color;
 
-    List<Action> actions = new ArrayList<>();
+  List<Action> actions = new ArrayList<>();
 
-    List<Field> fields = new ArrayList<>();
+  List<Field> fields = new ArrayList<>();
 
-    public Attachment() {
-        super();
-    }
+  public Attachment() {
+    super();
+  }
 
-    public Attachment(String title, String text) {
-        this.title = title;
-        this.text = text;
-    }
+  public Attachment(String title, String text) {
+    this.title = title;
+    this.text = text;
+  }
 
-    public String getTitle() {
-        return title;
-    }
+  public String getTitle() {
+    return title;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public String getText() {
-        return text;
-    }
+  public String getText() {
+    return text;
+  }
 
-    public void setText(String text) {
-        this.text = text;
-    }
+  public void setText(String text) {
+    this.text = text;
+  }
 
-    public String getFallback() {
-        return fallback;
-    }
+  public String getFallback() {
+    return fallback;
+  }
 
-    public void setFallback(String fallback) {
-        this.fallback = fallback;
-    }
+  public void setFallback(String fallback) {
+    this.fallback = fallback;
+  }
 
-    public List<String> getMrkdwnIn() {
-        return mrkdwnIn;
-    }
+  public List<String> getMrkdwnIn() {
+    return mrkdwnIn;
+  }
 
-    public void setMrkdwnIn(List<String> mrkdwnIn) {
-        this.mrkdwnIn = mrkdwnIn;
-    }
+  public void setMrkdwnIn(List<String> mrkdwnIn) {
+    this.mrkdwnIn = mrkdwnIn;
+  }
 
-    public String getColor() {
-        return color;
-    }
+  public String getColor() {
+    return color;
+  }
 
-    public void setColor(String color) {
-        this.color = color;
-    }
+  public void setColor(String color) {
+    this.color = color;
+  }
 
-    public List<Action> getActions() {
-        return actions;
-    }
+  public List<Action> getActions() {
+    return actions;
+  }
 
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
-    }
+  public void setActions(List<Action> actions) {
+    this.actions = actions;
+  }
 
-    public List<Field> getFields() {
-        return fields;
-    }
+  public List<Field> getFields() {
+    return fields;
+  }
 
-    public void setFields(List<Field> fields) {
-        this.fields = fields;
-    }
+  public void setFields(List<Field> fields) {
+    this.fields = fields;
+  }
 }

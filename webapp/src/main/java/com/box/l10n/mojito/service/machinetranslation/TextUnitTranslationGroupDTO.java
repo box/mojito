@@ -10,22 +10,22 @@ import java.util.List;
  * @author garion
  */
 public class TextUnitTranslationGroupDTO implements Serializable {
-    private String sourceText;
-    private List<TranslationDTO> translations = new ArrayList<>();
+  private String sourceText;
+  private List<TranslationDTO> translations = new ArrayList<>();
 
-    public String getSourceText() {
-        return sourceText;
-    }
+  public String getSourceText() {
+    return sourceText;
+  }
 
-    public void setSourceText(String sourceText) {
-        this.sourceText = sourceText;
-    }
+  public void setSourceText(String sourceText) {
+    this.sourceText = sourceText;
+  }
 
-    public List<TranslationDTO> getTranslations() {
-        return translations;
-    }
+  public List<TranslationDTO> getTranslations() {
+    return translations;
+  }
 
-    public void setTranslations(List<TranslationDTO> translations) {
-        this.translations = translations;
-    }
+  public void setTranslations(List<TranslationDTO> translations) {
+    this.translations = translations;
+  }
 }

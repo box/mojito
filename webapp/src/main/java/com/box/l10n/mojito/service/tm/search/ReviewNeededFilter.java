@@ -6,7 +6,6 @@ package com.box.l10n.mojito.service.tm.search;
  * @author jaurambault
  */
 public enum ReviewNeededFilter {
-
-    REVIEW_NEEDED,
-    REVIEW_NOT_NEEDED
+  REVIEW_NEEDED,
+  REVIEW_NOT_NEEDED
 }

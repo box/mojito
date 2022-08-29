@@ -11,16 +11,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigBasedCredentialProvider implements CredentialProvider {
 
-    @Autowired
-    ResttemplateConfig resttemplateConfig;
+  @Autowired ResttemplateConfig resttemplateConfig;
 
-    @Override
-    public String getUsername() {
-        return resttemplateConfig.getAuthentication().getUsername();
-    }
+  @Override
+  public String getUsername() {
+    return resttemplateConfig.getAuthentication().getUsername();
+  }
 
-    @Override
-    public String getPassword() {
-        return resttemplateConfig.getAuthentication().getPassword();
-    }
+  @Override
+  public String getPassword() {
+    return resttemplateConfig.getAuthentication().getPassword();
+  }
 }

@@ -14,43 +14,42 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "git")
 public class GitInfo {
 
-    private String branch;
+  private String branch;
 
-    private final Commit commit = new Commit();
+  private final Commit commit = new Commit();
 
-    public String getBranch() {
-        return this.branch;
+  public String getBranch() {
+    return this.branch;
+  }
+
+  public void setBranch(String branch) {
+    this.branch = branch;
+  }
+
+  public Commit getCommit() {
+    return this.commit;
+  }
+
+  public static class Commit {
+
+    private String id;
+
+    private String time;
+
+    public String getId() {
+      return id;
     }
 
-    public void setBranch(String branch) {
-        this.branch = branch;
+    public void setId(String id) {
+      this.id = id;
     }
 
-    public Commit getCommit() {
-        return this.commit;
+    public String getTime() {
+      return this.time;
     }
 
-    public static class Commit {
-
-        private String id;
-
-        private String time;
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-        public String getTime() {
-            return this.time;
-        }
-
-        public void setTime(String time) {
-            this.time = time;
-        }
+    public void setTime(String time) {
+      this.time = time;
     }
-
+  }
 }

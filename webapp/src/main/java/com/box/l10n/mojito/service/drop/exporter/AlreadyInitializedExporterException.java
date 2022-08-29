@@ -6,6 +6,4 @@ package com.box.l10n.mojito.service.drop.exporter;
  *
  * @author jaurambault
  */
-public class AlreadyInitializedExporterException extends RuntimeException {
-
-}
+public class AlreadyInitializedExporterException extends RuntimeException {}

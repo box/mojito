@@ -10,18 +10,17 @@ import net.sf.okapi.common.annotation.IAnnotation;
  */
 public class TextUnitDTOAnnotation implements IAnnotation {
 
-    TextUnitDTO textUnitDTO;
+  TextUnitDTO textUnitDTO;
 
-    public TextUnitDTOAnnotation(TextUnitDTO textUnitDTO) {
-        this.textUnitDTO = textUnitDTO;
-    }
+  public TextUnitDTOAnnotation(TextUnitDTO textUnitDTO) {
+    this.textUnitDTO = textUnitDTO;
+  }
 
-    public TextUnitDTO getTextUnitDTO() {
-        return textUnitDTO;
-    }
+  public TextUnitDTO getTextUnitDTO() {
+    return textUnitDTO;
+  }
 
-    public void setTextUnitDTO(TextUnitDTO textUnitDTO) {
-        this.textUnitDTO = textUnitDTO;
-    }
-
+  public void setTextUnitDTO(TextUnitDTO textUnitDTO) {
+    this.textUnitDTO = textUnitDTO;
+  }
 }

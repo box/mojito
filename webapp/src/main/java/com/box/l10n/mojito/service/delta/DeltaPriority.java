@@ -6,17 +6,17 @@ package com.box.l10n.mojito.service.delta;
  * @author garion
  */
 public enum DeltaPriority {
-    HIGH(1),
-    MEDIUM(2),
-    LOW(3);
+  HIGH(1),
+  MEDIUM(2),
+  LOW(3);
 
-    private final int value;
+  private final int value;
 
-    DeltaPriority(int value) {
-        this.value = value;
-    }
+  DeltaPriority(int value) {
+    this.value = value;
+  }
 
-    public int getValue() {
-        return value;
-    }
+  public int getValue() {
+    return value;
+  }
 }

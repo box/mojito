@@ -12,12 +12,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 /**
- * Run Mojo is a wrapper around Mojito CLI that can be used to run any CLI command
- * via Maven. 
- * 
- * The command is passed through the "cmd" parameters.
+ * Run Mojo is a wrapper around Mojito CLI that can be used to run any CLI command via Maven.
  *
- * Usage: mvn com.box.l10n.mojito:mojito-maven-plugin:run -Dcmd="pull -r Demo
+ * <p>The command is passed through the "cmd" parameters.
+ *
+ * <p>Usage: mvn com.box.l10n.mojito:mojito-maven-plugin:run -Dcmd="pull -r Demo
  * -localeMapping=\"fr:fr-FR,es:fr-FR\""
  *
  * @author jaurambault
@@ -25,20 +24,17 @@ import org.apache.maven.plugins.annotations.Parameter;
 @Mojo(name = "run", requiresProject = false)
 public class RunMojo extends AbstractMojo {
 
-    /**
-     * the CLI arguments
-     */
-    @Parameter(property = "cmd", required = true)
-    private String commandParameter;
+  /** the CLI arguments */
+  @Parameter(property = "cmd", required = true)
+  private String commandParameter;
 
-    @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        Iterable<String> args = Splitter.on(" ").split(commandParameter);
-        
-        ArrayList<String> argsWithOutputType = Lists.newArrayList(args);
-        argsWithOutputType.add("--l10n.consoleWritter.outputType=ANSI_LOGGER");
+  @Override
+  public void execute() throws MojoExecutionException, MojoFailureException {
+    Iterable<String> args = Splitter.on(" ").split(commandParameter);
 
-        App.main(Iterables.toArray(argsWithOutputType, String.class));
-    }
+    ArrayList<String> argsWithOutputType = Lists.newArrayList(args);
+    argsWithOutputType.add("--l10n.consoleWritter.outputType=ANSI_LOGGER");
 
+    App.main(Iterables.toArray(argsWithOutputType, String.class));
+  }
 }

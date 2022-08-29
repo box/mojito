@@ -7,9 +7,8 @@ package com.box.l10n.mojito.cli.filefinder.locale;
  */
 public class AnyLocaleType extends LocaleType {
 
-    @Override
-    public String getTargetLocaleRegex() {
-        return ".+?";
-    }
-
+  @Override
+  public String getTargetLocaleRegex() {
+    return ".+?";
+  }
 }

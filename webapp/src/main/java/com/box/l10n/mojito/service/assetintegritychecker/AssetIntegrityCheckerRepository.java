@@ -6,15 +6,15 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/**
- * @author aloison
- */
+/** @author aloison */
 @RepositoryRestResource(exported = false)
-public interface AssetIntegrityCheckerRepository extends JpaRepository<AssetIntegrityChecker, Long> {
+public interface AssetIntegrityCheckerRepository
+    extends JpaRepository<AssetIntegrityChecker, Long> {
 
-    Set<AssetIntegrityChecker> findByRepository(Repository repository);
+  Set<AssetIntegrityChecker> findByRepository(Repository repository);
 
-    Set<AssetIntegrityChecker> findByRepositoryAndAssetExtension(Repository repository, String assetExtension);
+  Set<AssetIntegrityChecker> findByRepositoryAndAssetExtension(
+      Repository repository, String assetExtension);
 
-    void deleteByRepository(Repository repository);
+  void deleteByRepository(Repository repository);
 }

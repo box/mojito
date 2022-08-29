@@ -24,88 +24,83 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Integration test that needs Smartling account and verfication on the screenshot upload done manually in Smartling
+ * Integration test that needs Smartling account and verfication on the screenshot upload done
+ * manually in Smartling
  */
 public class ThirdPartyTMSSmartlingITest extends ServiceTestBase {
 
-    static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);
+  static Logger logger = LoggerFactory.getLogger(SmartlingClient.class);
 
-    @Rule
-    public TestIdWatcher testIdWatcher = new TestIdWatcher();
+  @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-    @Autowired(required = false)
-    SmartlingClient smartlingClient;
+  @Autowired(required = false)
+  SmartlingClient smartlingClient;
 
-    @Autowired
-    AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys;
+  @Autowired AssetPathAndTextUnitNameKeys assetPathAndTextUnitNameKeys;
 
-    @Autowired
-    ThirdPartyService thirdPartyService;
+  @Autowired ThirdPartyService thirdPartyService;
 
-    @Autowired
-    RepositoryService repositoryService;
+  @Autowired RepositoryService repositoryService;
 
-    @Autowired
-    AssetService assetService;
+  @Autowired AssetService assetService;
 
-    @Autowired
-    AssetRepository assetRepository;
+  @Autowired AssetRepository assetRepository;
 
-    @Autowired
-    PollableTaskService pollableTaskService;
+  @Autowired PollableTaskService pollableTaskService;
 
-    @Autowired
-    ScreenshotService screenshotService;
+  @Autowired ScreenshotService screenshotService;
 
-    @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
 
-    @Autowired
-    ScreenshotRepository screenshotRepository;
+  @Autowired ScreenshotRepository screenshotRepository;
 
-    @Autowired
-    ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
+  @Autowired ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
 
-    @Autowired
-    ImageService imageService;
+  @Autowired ImageService imageService;
 
-    @Autowired
-    SmartlingTestConfig testConfig;
+  @Autowired SmartlingTestConfig testConfig;
 
-    @Test
-    public void testMappingAndScreenshot() throws Exception {
-        Assume.assumeNotNull(smartlingClient);
-        Assume.assumeNotNull(testConfig.projectId);
+  @Test
+  public void testMappingAndScreenshot() throws Exception {
+    Assume.assumeNotNull(smartlingClient);
+    Assume.assumeNotNull(testConfig.projectId);
 
-        ThirdPartyServiceTestData thirdPartyServiceTestData = new ThirdPartyServiceTestData(testIdWatcher);
-        Repository repository = thirdPartyServiceTestData.repository;
+    ThirdPartyServiceTestData thirdPartyServiceTestData =
+        new ThirdPartyServiceTestData(testIdWatcher);
+    Repository repository = thirdPartyServiceTestData.repository;
 
-        String smartlingContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<resources>\n" +
-                "    <!--comment 1-->\n" +
-                "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"946852\">Hello</string>\n" +
-                "    <!-- twice the same name in the 3rd party tms shouldn't break the mapping -->\n" +
-                "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"8464561\">Hello-samename</string>\n" +
-                "    <!--comment 2-->\n" +
-                "    <string name=\"src/main/res/values/strings.xml#@#bye\" tmTextUnitId=\"946853\">Bye</string>\n" +
-                "    <plurals name=\"src/main/res/values/strings.xml#@#plural_things\">\n" +
-                "        <item quantity=\"one\">One thing</item>\n" +
-                "        <item quantity=\"other\">Multiple things</item>\n" +
-                "    </plurals>" +
-                "</resources>";
+    String smartlingContent =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<resources>\n"
+            + "    <!--comment 1-->\n"
+            + "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"946852\">Hello</string>\n"
+            + "    <!-- twice the same name in the 3rd party tms shouldn't break the mapping -->\n"
+            + "    <string name=\"src/main/res/values/strings.xml#@#hello\" tmTextUnitId=\"8464561\">Hello-samename</string>\n"
+            + "    <!--comment 2-->\n"
+            + "    <string name=\"src/main/res/values/strings.xml#@#bye\" tmTextUnitId=\"946853\">Bye</string>\n"
+            + "    <plurals name=\"src/main/res/values/strings.xml#@#plural_things\">\n"
+            + "        <item quantity=\"one\">One thing</item>\n"
+            + "        <item quantity=\"other\">Multiple things</item>\n"
+            + "    </plurals>"
+            + "</resources>";
 
-        String smartlingFileUri = repository.getName() + "/0000_singular_source.xml";
-        smartlingClient.uploadFile(testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null);
+    String smartlingFileUri = repository.getName() + "/0000_singular_source.xml";
+    smartlingClient.uploadFile(
+        testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null);
 
-        String pollableTaskName = "testThirdPartyPollableTask";
-        PollableTask parentTask = pollableTaskService.createPollableTask(null, pollableTaskName, null, 0);
+    String pollableTaskName = "testThirdPartyPollableTask";
+    PollableTask parentTask =
+        pollableTaskService.createPollableTask(null, pollableTaskName, null, 0);
 
-        logger.debug("First mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of(), parentTask);
+    logger.debug("First mapping");
+    thirdPartyService.mapMojitoAndThirdPartyTextUnits(
+        repository, testConfig.projectId, "_", ImmutableList.of(), parentTask);
 
-        logger.debug("Second mapping");
-        thirdPartyService.mapMojitoAndThirdPartyTextUnits(repository, testConfig.projectId, "_", ImmutableList.of(), parentTask);
+    logger.debug("Second mapping");
+    thirdPartyService.mapMojitoAndThirdPartyTextUnits(
+        repository, testConfig.projectId, "_", ImmutableList.of(), parentTask);
 
-        thirdPartyService.uploadScreenshotsAndCreateMappings(repository, testConfig.projectId, parentTask);
-    }
+    thirdPartyService.uploadScreenshotsAndCreateMappings(
+        repository, testConfig.projectId, parentTask);
+  }
 }

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetExtraction;
 
+import java.time.Duration;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobDetail;
@@ -18,11 +19,7 @@ import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-
-/**
- * @author aloison
- */
+/** @author aloison */
 @Profile("!disablescheduling")
 @Configuration
 @Component
@@ -30,36 +27,33 @@ import java.time.Duration;
 @ConditionalOnProperty(value = "l10n.asset-extraction.cleanup-job.enabled", havingValue = "true")
 public class AssetExtractionCleanupJob implements Job {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(AssetExtractionCleanupJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(AssetExtractionCleanupJob.class);
 
-    @Autowired
-    AssetExtractionCleanupService assetExtractionCleanupService;
+  @Autowired AssetExtractionCleanupService assetExtractionCleanupService;
 
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        logger.debug("Cleanup asset extraction");
-        assetExtractionCleanupService.cleanupOldAssetExtractions();
-    }
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    logger.debug("Cleanup asset extraction");
+    assetExtractionCleanupService.cleanupOldAssetExtractions();
+  }
 
+  @Bean(name = "jobDetailAssetExtractionCleanup")
+  public JobDetailFactoryBean jobDetailAssetExtractionCleanup() {
+    JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+    jobDetailFactory.setJobClass(AssetExtractionCleanupJob.class);
+    jobDetailFactory.setDescription("Cleanup old asset extraction");
+    jobDetailFactory.setDurability(true);
+    return jobDetailFactory;
+  }
 
-    @Bean(name = "jobDetailAssetExtractionCleanup")
-    public JobDetailFactoryBean jobDetailAssetExtractionCleanup() {
-        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
-        jobDetailFactory.setJobClass(AssetExtractionCleanupJob.class);
-        jobDetailFactory.setDescription("Cleanup old asset extraction");
-        jobDetailFactory.setDurability(true);
-        return jobDetailFactory;
-    }
-
-    @Bean
-    public SimpleTriggerFactoryBean triggerAssetExtractionCleanup(@Qualifier("jobDetailAssetExtractionCleanup") JobDetail job) {
-        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
-        trigger.setJobDetail(job);
-        trigger.setRepeatInterval(Duration.ofMinutes(5).toMillis());
-        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-        return trigger;
-    }
+  @Bean
+  public SimpleTriggerFactoryBean triggerAssetExtractionCleanup(
+      @Qualifier("jobDetailAssetExtractionCleanup") JobDetail job) {
+    SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
+    trigger.setJobDetail(job);
+    trigger.setRepeatInterval(Duration.ofMinutes(5).toMillis());
+    trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+    return trigger;
+  }
 }

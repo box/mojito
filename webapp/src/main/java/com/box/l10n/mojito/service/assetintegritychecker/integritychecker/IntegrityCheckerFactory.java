@@ -15,75 +15,77 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-/**
- * @author wyau
- */
+/** @author wyau */
 @Component
 public class IntegrityCheckerFactory {
 
-    @Autowired
-    AssetIntegrityCheckerRepository assetIntegrityCheckerRepository;
+  @Autowired AssetIntegrityCheckerRepository assetIntegrityCheckerRepository;
 
-    @Autowired
-    ApplicationContext applicationContext;
+  @Autowired ApplicationContext applicationContext;
 
-    List<DocumentIntegrityChecker> documentIntegrityCheckers = new ArrayList<>();
+  List<DocumentIntegrityChecker> documentIntegrityCheckers = new ArrayList<>();
 
-    @PostConstruct
-    private void initAvailableDocumentCheckers() {
-        Iterable<DocumentIntegrityChecker> documentIntegrityCheckersIterable = applicationContext.getBeansOfType(DocumentIntegrityChecker.class).values();
-        documentIntegrityCheckers = Lists.newArrayList(documentIntegrityCheckersIterable);
+  @PostConstruct
+  private void initAvailableDocumentCheckers() {
+    Iterable<DocumentIntegrityChecker> documentIntegrityCheckersIterable =
+        applicationContext.getBeansOfType(DocumentIntegrityChecker.class).values();
+    documentIntegrityCheckers = Lists.newArrayList(documentIntegrityCheckersIterable);
+  }
+
+  /**
+   * @param documentExtension The file extension of the document to check
+   * @return A list of {@link DocumentIntegrityChecker} supporting the given document extension
+   */
+  public List<DocumentIntegrityChecker> getDocumentCheckers(String documentExtension) {
+
+    List<DocumentIntegrityChecker> supportedCheckers = new ArrayList<>();
+
+    for (DocumentIntegrityChecker documentIntegrityChecker : documentIntegrityCheckers) {
+      if (documentIntegrityChecker.supportsExtension(documentExtension)) {
+        supportedCheckers.add(documentIntegrityChecker);
+      }
     }
 
-    /**
-     * @param documentExtension The file extension of the document to check
-     * @return A list of {@link DocumentIntegrityChecker} supporting the given document extension
-     */
-    public List<DocumentIntegrityChecker> getDocumentCheckers(String documentExtension) {
+    return supportedCheckers;
+  }
 
-        List<DocumentIntegrityChecker> supportedCheckers = new ArrayList<>();
+  /**
+   * @param asset
+   * @return Instance of {@link TextUnitIntegrityChecker}, depending on the given asset
+   * @throws IntegrityCheckerInstantiationException if unable to create an instance of the integrity
+   *     checker
+   */
+  public Set<TextUnitIntegrityChecker> getTextUnitCheckers(Asset asset) {
 
-        for (DocumentIntegrityChecker documentIntegrityChecker : documentIntegrityCheckers) {
-            if (documentIntegrityChecker.supportsExtension(documentExtension)) {
-                supportedCheckers.add(documentIntegrityChecker);
-            }
-        }
+    Repository repository = asset.getRepository();
+    String assetExtension = FilenameUtils.getExtension(asset.getPath());
 
-        return supportedCheckers;
+    Set<AssetIntegrityChecker> assetIntegrityCheckers =
+        assetIntegrityCheckerRepository.findByRepositoryAndAssetExtension(
+            repository, assetExtension);
+    Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
+
+    for (AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckers) {
+      String className = assetIntegrityChecker.getIntegrityCheckerType().getClassName();
+      textUnitIntegrityCheckers.add(createInstanceForClassName(className));
     }
 
-    /**
-     * @param asset
-     * @return Instance of {@link TextUnitIntegrityChecker}, depending on the given asset
-     * @throws IntegrityCheckerInstantiationException if unable to create an instance of the integrity checker
-     */
-    public Set<TextUnitIntegrityChecker> getTextUnitCheckers(Asset asset) {
+    return textUnitIntegrityCheckers;
+  }
 
-        Repository repository = asset.getRepository();
-        String assetExtension = FilenameUtils.getExtension(asset.getPath());
-
-        Set<AssetIntegrityChecker> assetIntegrityCheckers = assetIntegrityCheckerRepository.findByRepositoryAndAssetExtension(repository, assetExtension);
-        Set<TextUnitIntegrityChecker> textUnitIntegrityCheckers = new HashSet<>();
-
-        for (AssetIntegrityChecker assetIntegrityChecker : assetIntegrityCheckers) {
-            String className = assetIntegrityChecker.getIntegrityCheckerType().getClassName();
-            textUnitIntegrityCheckers.add(createInstanceForClassName(className));
-        }
-
-        return textUnitIntegrityCheckers;
+  /**
+   * @param className
+   * @return An instance of {@link TextUnitIntegrityChecker} for the given class
+   * @throws IntegrityCheckerInstantiationException
+   */
+  private TextUnitIntegrityChecker createInstanceForClassName(String className)
+      throws IntegrityCheckerInstantiationException {
+    try {
+      Class<?> clazz = Class.forName(className);
+      return (TextUnitIntegrityChecker) clazz.newInstance();
+    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+      throw new IntegrityCheckerInstantiationException(
+          "Cannot create an instance of TextUnitIntegrityChecker using reflection", e);
     }
-
-    /**
-     * @param className
-     * @return An instance of {@link TextUnitIntegrityChecker} for the given class
-     * @throws IntegrityCheckerInstantiationException
-     */
-    private TextUnitIntegrityChecker createInstanceForClassName(String className) throws IntegrityCheckerInstantiationException {
-        try {
-            Class<?> clazz = Class.forName(className);
-            return (TextUnitIntegrityChecker) clazz.newInstance();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-            throw new IntegrityCheckerInstantiationException("Cannot create an instance of TextUnitIntegrityChecker using reflection", e);
-        }
-    }
+  }
 }

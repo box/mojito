@@ -6,17 +6,18 @@ import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 
 /**
  * Escaped/ISO 8859-1 with base name
+ *
  * @author jaurambault
  */
 public class PropertiesJavaFileType extends LocaleInNameFileType {
 
-    public PropertiesJavaFileType() {
-        this.sourceFileExtension = "properties";
-        this.filterConfigIdOverride = FilterConfigIdOverride.PROPERTIES_JAVA;
-    }
+  public PropertiesJavaFileType() {
+    this.sourceFileExtension = "properties";
+    this.filterConfigIdOverride = FilterConfigIdOverride.PROPERTIES_JAVA;
+  }
 
-    @Override
-    public LocaleType getLocaleType() {
-        return new PropertiesJavaLocaleType();
-    }
+  @Override
+  public LocaleType getLocaleType() {
+    return new PropertiesJavaLocaleType();
+  }
 }

@@ -13,14 +13,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class PushRunAssetService {
-    @Autowired
-    PushRunAssetRepository pushRunAssetRepository;
+  @Autowired PushRunAssetRepository pushRunAssetRepository;
 
-    public PushRunAsset createPushRunAsset(PushRun pushRun, Asset asset) {
-        PushRunAsset pushRunAsset = new PushRunAsset();
-        pushRunAsset.setPushRun(pushRun);
-        pushRunAsset.setAsset(asset);
+  public PushRunAsset createPushRunAsset(PushRun pushRun, Asset asset) {
+    PushRunAsset pushRunAsset = new PushRunAsset();
+    pushRunAsset.setPushRun(pushRun);
+    pushRunAsset.setAsset(asset);
 
-        return pushRunAssetRepository.save(pushRunAsset);
-    }
+    return pushRunAssetRepository.save(pushRunAsset);
+  }
 }

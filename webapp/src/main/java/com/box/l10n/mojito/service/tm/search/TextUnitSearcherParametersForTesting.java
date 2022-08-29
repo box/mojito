@@ -6,14 +6,14 @@ package com.box.l10n.mojito.service.tm.search;
  * @author jaurambault
  */
 public class TextUnitSearcherParametersForTesting extends TextUnitSearcherParameters {
- 
-    boolean ordered = true;
 
-    public boolean isOrdered() {
-        return ordered;
-    }
+  boolean ordered = true;
 
-    public void setOrdered(boolean ordered) {
-        this.ordered = ordered;
-    }
+  public boolean isOrdered() {
+    return ordered;
+  }
+
+  public void setOrdered(boolean ordered) {
+    this.ordered = ordered;
+  }
 }

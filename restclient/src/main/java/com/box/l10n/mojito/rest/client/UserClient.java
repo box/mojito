@@ -17,132 +17,140 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
-/**
- *
- * @author jyi
- */
+/** @author jyi */
 @Component
 public class UserClient extends BaseClient {
-    
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(UserClient.class);
-    
-    @Override
-    public String getEntityName() {
-        return "users";
-    }
-    
-    /**
-     * Get a list of {@link User}s.
-     * 
-     * @param username
-     * @return List of {@link User}s
-     */
-    public List<User> getUsers(String username) {
-        
-        Map<String, String> filterParams = new HashMap<>();
 
-        if (username != null) {
-            filterParams.put("username", username);
-        }
-        
-        return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
-                getBasePathForEntity(),
-                User[].class,
-                filterParams);
-    }
-    
-    /**
-     * Creates a {@link User}
-     * 
-     * @param username
-     * @param password
-     * @param role
-     * @param surname
-     * @param givenName
-     * @param commonName
-     * @return 
-     * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException 
-     */
-    public User createUser(String username, String password, Role role, String surname, String givenName, String commonName) throws ResourceNotCreatedException {
-        logger.debug("Creating user with username [{}]", username);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(UserClient.class);
 
-        User userToCreate = new User();
-        userToCreate.setUsername(username);
-        userToCreate.setPassword(password);
-        userToCreate.setSurname(surname);
-        userToCreate.setGivenName(givenName);
-        userToCreate.setCommonName(commonName);
-        
-        if (role != null) {
-            Authority authority = new Authority();
-            authority.setAuthority(role.toString());
-            userToCreate.setAuthorities(Sets.newHashSet(authority));
-        }
+  @Override
+  public String getEntityName() {
+    return "users";
+  }
 
-        try {
-            return authenticatedRestTemplate.postForObject(getBasePathForEntity(), userToCreate, User.class);
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
-                throw new ResourceNotCreatedException("User with username [" + username + "] already exists");
-            } else {
-                throw exception;
-            }
-        }
-    }
-    
-    /**
-     * Deletes a {@link User} by the {@link User#username}
-     *
-     * @param username
-     * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotFoundException
-     */
-    public void deleteUserByUsername(String username) throws ResourceNotFoundException {
-        logger.debug("Deleting user by username = [{}]", username);
-        List<User> users = getUsers(username);
-        if (users.isEmpty()) {
-            throw new ResourceNotFoundException("User with username [" + username + "] is not found");
-        } else {
-            authenticatedRestTemplate.delete(getBasePathForEntity() + "/" + users.get(0).getId());
-        }
+  /**
+   * Get a list of {@link User}s.
+   *
+   * @param username
+   * @return List of {@link User}s
+   */
+  public List<User> getUsers(String username) {
+
+    Map<String, String> filterParams = new HashMap<>();
+
+    if (username != null) {
+      filterParams.put("username", username);
     }
 
-    /**
-     * Updates a {@link User} by the {@link User#username}
-     * 
-     * @param username
-     * @param password
-     * @param role
-     * @param surname
-     * @param givenName
-     * @param commonName
-     * @throws ResourceNotFoundException 
-     */
-    public void updateUserByUsername(String username, String password, Role role, String surname, String givenName, String commonName) throws ResourceNotFoundException {
-        logger.debug("Updating user by username = [{}]", username);
-        
-        List<User> users = getUsers(username);       
-        if (users.isEmpty()) {
-            throw new ResourceNotFoundException("User with username [" + username + "] is not found");
-        } else {
-            User user = users.get(0);
-            user.setPassword(password);
-            user.setSurname(surname);
-            user.setGivenName(givenName);
-            user.setCommonName(commonName);
+    return authenticatedRestTemplate.getForObjectAsListWithQueryStringParams(
+        getBasePathForEntity(), User[].class, filterParams);
+  }
 
-            Set<Authority> authorities = new HashSet<>();
-            if (role != null) {
-                Authority authority = new Authority();
-                authority.setAuthority(role.toString());
-                authorities.add(authority);
-            }
-            user.setAuthorities(authorities);
+  /**
+   * Creates a {@link User}
+   *
+   * @param username
+   * @param password
+   * @param role
+   * @param surname
+   * @param givenName
+   * @param commonName
+   * @return
+   * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException
+   */
+  public User createUser(
+      String username,
+      String password,
+      Role role,
+      String surname,
+      String givenName,
+      String commonName)
+      throws ResourceNotCreatedException {
+    logger.debug("Creating user with username [{}]", username);
 
-            authenticatedRestTemplate.patch(getBasePathForResource(user.getId()), user);
-        }
+    User userToCreate = new User();
+    userToCreate.setUsername(username);
+    userToCreate.setPassword(password);
+    userToCreate.setSurname(surname);
+    userToCreate.setGivenName(givenName);
+    userToCreate.setCommonName(commonName);
+
+    if (role != null) {
+      Authority authority = new Authority();
+      authority.setAuthority(role.toString());
+      userToCreate.setAuthorities(Sets.newHashSet(authority));
     }
-    
+
+    try {
+      return authenticatedRestTemplate.postForObject(
+          getBasePathForEntity(), userToCreate, User.class);
+    } catch (HttpClientErrorException exception) {
+      if (exception.getStatusCode().equals(HttpStatus.CONFLICT)) {
+        throw new ResourceNotCreatedException(
+            "User with username [" + username + "] already exists");
+      } else {
+        throw exception;
+      }
+    }
+  }
+
+  /**
+   * Deletes a {@link User} by the {@link User#username}
+   *
+   * @param username
+   * @throws com.box.l10n.mojito.rest.client.exception.ResourceNotFoundException
+   */
+  public void deleteUserByUsername(String username) throws ResourceNotFoundException {
+    logger.debug("Deleting user by username = [{}]", username);
+    List<User> users = getUsers(username);
+    if (users.isEmpty()) {
+      throw new ResourceNotFoundException("User with username [" + username + "] is not found");
+    } else {
+      authenticatedRestTemplate.delete(getBasePathForEntity() + "/" + users.get(0).getId());
+    }
+  }
+
+  /**
+   * Updates a {@link User} by the {@link User#username}
+   *
+   * @param username
+   * @param password
+   * @param role
+   * @param surname
+   * @param givenName
+   * @param commonName
+   * @throws ResourceNotFoundException
+   */
+  public void updateUserByUsername(
+      String username,
+      String password,
+      Role role,
+      String surname,
+      String givenName,
+      String commonName)
+      throws ResourceNotFoundException {
+    logger.debug("Updating user by username = [{}]", username);
+
+    List<User> users = getUsers(username);
+    if (users.isEmpty()) {
+      throw new ResourceNotFoundException("User with username [" + username + "] is not found");
+    } else {
+      User user = users.get(0);
+      user.setPassword(password);
+      user.setSurname(surname);
+      user.setGivenName(givenName);
+      user.setCommonName(commonName);
+
+      Set<Authority> authorities = new HashSet<>();
+      if (role != null) {
+        Authority authority = new Authority();
+        authority.setAuthority(role.toString());
+        authorities.add(authority);
+      }
+      user.setAuthorities(authorities);
+
+      authenticatedRestTemplate.patch(getBasePathForResource(user.getId()), user);
+    }
+  }
 }

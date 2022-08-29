@@ -1,27 +1,25 @@
 package com.box.l10n.mojito.boxsdk;
 
-/**
- * @author wyau
- */
+/** @author wyau */
 public class MojitoAppUserInfo {
 
-    String rootFolderId;
+  String rootFolderId;
 
-    String dropsFolderId;
+  String dropsFolderId;
 
-    public String getRootFolderId() {
-        return rootFolderId;
-    }
+  public String getRootFolderId() {
+    return rootFolderId;
+  }
 
-    public void setRootFolderId(String rootFolderId) {
-        this.rootFolderId = rootFolderId;
-    }
+  public void setRootFolderId(String rootFolderId) {
+    this.rootFolderId = rootFolderId;
+  }
 
-    public String getDropsFolderId() {
-        return dropsFolderId;
-    }
+  public String getDropsFolderId() {
+    return dropsFolderId;
+  }
 
-    public void setDropsFolderId(String dropsFolderId) {
-        this.dropsFolderId = dropsFolderId;
-    }
+  public void setDropsFolderId(String dropsFolderId) {
+    this.dropsFolderId = dropsFolderId;
+  }
 }

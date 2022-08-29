@@ -1,5 +1,12 @@
 package com.box.l10n.mojito.boxsdk;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+import static org.slf4j.LoggerFactory.getLogger;
+
 import com.box.l10n.mojito.rest.WSTestBase;
 import com.box.l10n.mojito.test.category.BoxSDKTest;
 import com.box.sdk.BoxComment;
@@ -7,15 +14,6 @@ import com.box.sdk.BoxFile;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxItem;
 import com.box.sdk.BoxSharedLink;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,213 +23,226 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-import static org.slf4j.LoggerFactory.getLogger;
-
-/**
- * @author jaurambault
- */
-//TODO(spring2)(later) Instruction to create the Box app has changed and I couldn't get it to run quickly.
-// Since this is not blocker for most needs moving on, keep the note here for the record. still it should be tested and
+/** @author jaurambault */
+// TODO(spring2)(later) Instruction to create the Box app has changed and I couldn't get it to run
+// quickly.
+// Since this is not blocker for most needs moving on, keep the note here for the record. still it
+// should be tested and
 // re-documented
 public class BoxSDKServiceTest extends WSTestBase {
 
-    /**
-     * logger
-     */
-    static Logger logger = getLogger(BoxSDKServiceTest.class);
+  /** logger */
+  static Logger logger = getLogger(BoxSDKServiceTest.class);
 
-    @Autowired
-    BoxSDKServiceConfigFromProperties boxSDKServiceConfigFromProperties;
+  @Autowired BoxSDKServiceConfigFromProperties boxSDKServiceConfigFromProperties;
 
-    @Autowired
-    BoxSDKService boxSDKService;
+  @Autowired BoxSDKService boxSDKService;
 
-    static BoxFolder testFolder = null;
+  static BoxFolder testFolder = null;
 
-    @Before
-    public void prepareTestFolderOnBox() throws Exception {
+  @Before
+  public void prepareTestFolderOnBox() throws Exception {
 
-        assumeTrue(StringUtils.isNotEmpty(boxSDKServiceConfigFromProperties.getRootFolderId()));
+    assumeTrue(StringUtils.isNotEmpty(boxSDKServiceConfigFromProperties.getRootFolderId()));
 
-        // since @Before runs multiple times...
-        if (testFolder != null) {
-            return;
-        }
-
-        String currentClassName = this.getClass().getSimpleName();
-        BoxFolder folder = boxSDKService.getFolderWithName(currentClassName);
-
-        if (folder != null) {
-            boxSDKService.deleteFolderAndItsContent(folder.getID());
-        }
-
-        testFolder = boxSDKService.createFolderUnderRoot(currentClassName);
+    // since @Before runs multiple times...
+    if (testFolder != null) {
+      return;
     }
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testGetRootFolder() throws Exception {
-        BoxFolder rootFolder = boxSDKService.getRootFolder();
-        assertEquals(boxSDKServiceConfigFromProperties.getRootFolderId(), rootFolder.getID());
+    String currentClassName = this.getClass().getSimpleName();
+    BoxFolder folder = boxSDKService.getFolderWithName(currentClassName);
+
+    if (folder != null) {
+      boxSDKService.deleteFolderAndItsContent(folder.getID());
     }
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testListFiles() throws Exception {
+    testFolder = boxSDKService.createFolderUnderRoot(currentClassName);
+  }
 
-        BoxFolder createdFolder = boxSDKService.createFolder("testListFiles-" + new Date().getTime(), testFolder.getID());
-        boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", "content of file1.txt");
-        boxSDKService.uploadFile(createdFolder.getID(), "file2.txt", "content of file2.txt");
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testGetRootFolder() throws Exception {
+    BoxFolder rootFolder = boxSDKService.getRootFolder();
+    assertEquals(boxSDKServiceConfigFromProperties.getRootFolderId(), rootFolder.getID());
+  }
 
-        List<BoxFile> listFiles = boxSDKService.listFiles(createdFolder.getID());
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testListFiles() throws Exception {
 
-        assertEquals("file1.txt", listFiles.get(0).getInfo().getName());
-        assertEquals("file2.txt", listFiles.get(1).getInfo().getName());
+    BoxFolder createdFolder =
+        boxSDKService.createFolder("testListFiles-" + new Date().getTime(), testFolder.getID());
+    boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", "content of file1.txt");
+    boxSDKService.uploadFile(createdFolder.getID(), "file2.txt", "content of file2.txt");
 
-        boxSDKService.uploadFile(createdFolder.getID(), "file2.txt", "v2 content of file2.txt");
+    List<BoxFile> listFiles = boxSDKService.listFiles(createdFolder.getID());
 
-        listFiles = boxSDKService.listFiles(createdFolder.getID());
+    assertEquals("file1.txt", listFiles.get(0).getInfo().getName());
+    assertEquals("file2.txt", listFiles.get(1).getInfo().getName());
 
-        assertEquals("file1.txt", listFiles.get(0).getInfo().getName());
-        assertEquals("file2.txt", listFiles.get(1).getInfo().getName());
+    boxSDKService.uploadFile(createdFolder.getID(), "file2.txt", "v2 content of file2.txt");
+
+    listFiles = boxSDKService.listFiles(createdFolder.getID());
+
+    assertEquals("file1.txt", listFiles.get(0).getInfo().getName());
+    assertEquals("file2.txt", listFiles.get(1).getInfo().getName());
+  }
+
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testUpload() throws Exception {
+    BoxFolder createdFolder =
+        boxSDKService.createFolder("testUpadteFile-" + new Date().getTime(), testFolder.getID());
+
+    String fileContentStr = "content of file1.txt";
+    BoxFile createdFile =
+        boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", fileContentStr);
+
+    BoxFileWithContent fileContent = boxSDKService.getFileContent(createdFile);
+    assertEquals(fileContentStr, fileContent.getContent());
+
+    BoxFile updatedFile =
+        boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", fileContentStr + "updated");
+
+    BoxFileWithContent fileContentUpdate = boxSDKService.getFileContent(updatedFile);
+    assertEquals(fileContentStr + "updated", fileContentUpdate.getContent());
+  }
+
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testGetFileContent() throws Exception {
+
+    BoxFolder createdFolder =
+        boxSDKService.createFolder(
+            "testGetFileContent-" + new Date().getTime(), testFolder.getID());
+
+    String fileContentStr = "content of file1.txt";
+    BoxFile createdFile =
+        boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", fileContentStr);
+
+    BoxFileWithContent fileContent = boxSDKService.getFileContent(createdFile);
+
+    assertEquals(fileContentStr, fileContent.getContent());
+    assertEquals(createdFile, fileContent.getBoxFile());
+  }
+
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testMultithreadedCreateFolder() throws ExecutionException, InterruptedException {
+
+    int nbThreads = 10;
+
+    ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(nbThreads);
+    List<Callable<Object>> callables = new ArrayList<>();
+
+    for (int i = 0; i < nbThreads; i++) {
+      callables.add(
+          () -> {
+            boxSDKService.createFolder(
+                "testMultithreadedCreateFolder-" + UUID.randomUUID(), testFolder.getID());
+            return null;
+          });
     }
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testUpload() throws Exception {
-        BoxFolder createdFolder = boxSDKService.createFolder("testUpadteFile-" + new Date().getTime(), testFolder.getID());
+    List<Future<Object>> invokeAll = newFixedThreadPool.invokeAll(callables);
 
-        String fileContentStr = "content of file1.txt";
-        BoxFile createdFile = boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", fileContentStr);
-
-        BoxFileWithContent fileContent = boxSDKService.getFileContent(createdFile);
-        assertEquals(fileContentStr, fileContent.getContent());
-
-        BoxFile updatedFile = boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", fileContentStr + "updated");
-
-        BoxFileWithContent fileContentUpdate = boxSDKService.getFileContent(updatedFile);
-        assertEquals(fileContentStr + "updated", fileContentUpdate.getContent());
+    for (Future<Object> future : invokeAll) {
+      try {
+        future.get();
+      } catch (ExecutionException e) {
+        fail("Multithreaded create folder must not fail: " + e.getMessage());
+      }
     }
+  }
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testGetFileContent() throws Exception {
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testGetFolderWithNameShouldFindSubFolder() throws BoxSDKServiceException {
 
-        BoxFolder createdFolder = boxSDKService.createFolder("testGetFileContent-" + new Date().getTime(), testFolder.getID());
+    String expectedSubFolderName = "testGetFolderWithName-subFolder";
+    String testFolderId = testFolder.getID();
 
-        String fileContentStr = "content of file1.txt";
-        BoxFile createdFile = boxSDKService.uploadFile(createdFolder.getID(), "file1.txt", fileContentStr);
+    BoxFolder subFolder = boxSDKService.createFolder(expectedSubFolderName, testFolderId);
 
-        BoxFileWithContent fileContent = boxSDKService.getFileContent(createdFile);
+    BoxItem foundItem =
+        boxSDKService.getFolderWithNameAndParentFolderId(expectedSubFolderName, testFolderId);
 
-        assertEquals(fileContentStr, fileContent.getContent());
-        assertEquals(createdFile, fileContent.getBoxFile());
-    }
+    assertEquals(subFolder.getID(), foundItem.getID());
+  }
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testMultithreadedCreateFolder() throws ExecutionException, InterruptedException {
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testGetFolderWithNameShouldReturnNullIfItemNotFound() throws BoxSDKServiceException {
+    String testFolderId = testFolder.getID();
 
-        int nbThreads = 10;
+    BoxFolder rootFolder =
+        boxSDKService.createFolder(
+            "testGetFolderWithNameShouldReturnNullIfItemNotFound-" + new Date().getTime(),
+            testFolderId);
 
-        ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(nbThreads);
-        List<Callable<Object>> callables = new ArrayList<>();
+    BoxItem foundItem =
+        boxSDKService.getFolderWithNameAndParentFolderId("file-that-does-not-exist", testFolderId);
 
-        for (int i = 0; i < nbThreads; i++) {
-            callables.add(() -> {
-                boxSDKService.createFolder("testMultithreadedCreateFolder-" + UUID.randomUUID(), testFolder.getID());
-                return null;
-            });
-        }
+    assertNull(foundItem);
+  }
 
-        List<Future<Object>> invokeAll = newFixedThreadPool.invokeAll(callables);
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testAddCommentToFile() throws BoxSDKServiceException {
+    String testFolderId = testFolder.getID();
 
-        for (Future<Object> future : invokeAll) {
-            try {
-                future.get();
-            } catch (ExecutionException e) {
-                fail("Multithreaded create folder must not fail: " + e.getMessage());
-            }
-        }
-    }
+    BoxFolder rootFolder =
+        boxSDKService.createFolder("testAddCommentOnFile-" + new Date().getTime(), testFolderId);
+    BoxFile uploadFile =
+        boxSDKService.uploadFile(rootFolder.getID(), "fileWithComment.txt", "for test");
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testGetFolderWithNameShouldFindSubFolder() throws BoxSDKServiceException {
+    boxSDKService.addCommentToFile(uploadFile.getID(), "test comment");
+    boxSDKService.addCommentToFile(uploadFile.getID(), "test comment2");
 
-        String expectedSubFolderName = "testGetFolderWithName-subFolder";
-        String testFolderId = testFolder.getID();
+    List<BoxComment.Info> comments = uploadFile.getComments();
 
-        BoxFolder subFolder = boxSDKService.createFolder(expectedSubFolderName, testFolderId);
+    Assert.assertEquals(2, comments.size());
+    Assert.assertEquals("test comment", comments.get(0).getMessage());
+    Assert.assertEquals("test comment2", comments.get(1).getMessage());
+  }
 
-        BoxItem foundItem = boxSDKService.getFolderWithNameAndParentFolderId(expectedSubFolderName, testFolderId);
+  /**
+   * This is not a test per say but cleans up old data in the root folder so that there won't be any
+   * performance issue after a while.
+   *
+   * @throws BoxSDKServiceException
+   */
+  @Category(BoxSDKTest.class)
+  public void removeContentOlderThanADayInRootFolder() throws BoxSDKServiceException {
 
-        assertEquals(subFolder.getID(), foundItem.getID());
-    }
+    BoxFolder rootFolder = boxSDKService.getRootFolder();
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testGetFolderWithNameShouldReturnNullIfItemNotFound() throws BoxSDKServiceException {
-        String testFolderId = testFolder.getID();
+    DateTime dateTime = new DateTime();
+    dateTime = dateTime.minusDays(1);
 
-        BoxFolder rootFolder = boxSDKService.createFolder("testGetFolderWithNameShouldReturnNullIfItemNotFound-" + new Date().getTime(), testFolderId);
+    boxSDKService.deleteFolderContentOlderThan(rootFolder.getID(), dateTime);
+  }
 
-        BoxItem foundItem = boxSDKService.getFolderWithNameAndParentFolderId("file-that-does-not-exist", testFolderId);
+  @Test
+  @Category(BoxSDKTest.class)
+  public void testSharedFolder() throws BoxSDKServiceException {
+    String testFolderId = testFolder.getID();
 
-        assertNull(foundItem);
-    }
+    BoxFolder folder =
+        boxSDKService.createSharedFolder("testSharedFolder-" + new Date().getTime(), testFolderId);
 
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testAddCommentToFile() throws BoxSDKServiceException {
-        String testFolderId = testFolder.getID();
-
-        BoxFolder rootFolder = boxSDKService.createFolder("testAddCommentOnFile-" + new Date().getTime(), testFolderId);
-        BoxFile uploadFile = boxSDKService.uploadFile(rootFolder.getID(), "fileWithComment.txt", "for test");
-
-        boxSDKService.addCommentToFile(uploadFile.getID(), "test comment");
-        boxSDKService.addCommentToFile(uploadFile.getID(), "test comment2");
-
-        List<BoxComment.Info> comments = uploadFile.getComments();
-
-        Assert.assertEquals(2, comments.size());
-        Assert.assertEquals("test comment", comments.get(0).getMessage());
-        Assert.assertEquals("test comment2", comments.get(1).getMessage());
-    }
-
-    /**
-     * This is not a test per say but cleans up old data in the root folder so
-     * that there won't be any performance issue after a while.
-     *
-     * @throws BoxSDKServiceException
-     */
-    @Category(BoxSDKTest.class)
-    public void removeContentOlderThanADayInRootFolder() throws BoxSDKServiceException {
-
-        BoxFolder rootFolder = boxSDKService.getRootFolder();
-
-        DateTime dateTime = new DateTime();
-        dateTime = dateTime.minusDays(1);
-
-        boxSDKService.deleteFolderContentOlderThan(rootFolder.getID(), dateTime);
-    }
-
-    @Test
-    @Category(BoxSDKTest.class)
-    public void testSharedFolder() throws BoxSDKServiceException {
-        String testFolderId = testFolder.getID();
-
-        BoxFolder folder = boxSDKService.createSharedFolder("testSharedFolder-" + new Date().getTime(), testFolderId);
-
-        BoxSharedLink sharedLink = folder.getInfo().getSharedLink();
-        assertNotNull(sharedLink);
-        logger.debug("SharedLink Url is: {}", sharedLink.getURL());
-    }
-
+    BoxSharedLink sharedLink = folder.getInfo().getSharedLink();
+    assertNotNull(sharedLink);
+    logger.debug("SharedLink Url is: {}", sharedLink.getURL());
+  }
 }

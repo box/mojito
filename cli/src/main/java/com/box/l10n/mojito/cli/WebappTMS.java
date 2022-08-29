@@ -4,12 +4,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Just to flag code that should be removed when we decommissioned the
- * Webapp TMS
+ * Just to flag code that should be removed when we decommissioned the Webapp TMS
  *
  * @author jaurambault
  */
 @Retention(RetentionPolicy.SOURCE)
-public @interface WebappTMS {
-
-}
+public @interface WebappTMS {}

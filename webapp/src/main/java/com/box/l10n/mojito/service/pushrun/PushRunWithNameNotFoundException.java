@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class PushRunWithNameNotFoundException extends EntityWithNameNotFoundException {
-    public PushRunWithNameNotFoundException(String pushRunName) {
-        super("PushRun", pushRunName);
-    }
+  public PushRunWithNameNotFoundException(String pushRunName) {
+    super("PushRun", pushRunName);
+  }
 }

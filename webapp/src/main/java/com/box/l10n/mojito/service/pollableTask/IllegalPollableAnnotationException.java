@@ -7,11 +7,11 @@ package com.box.l10n.mojito.service.pollableTask;
  */
 public class IllegalPollableAnnotationException extends RuntimeException {
 
-    public IllegalPollableAnnotationException(String message) {
-        super(message);
-    }
+  public IllegalPollableAnnotationException(String message) {
+    super(message);
+  }
 
-    public IllegalPollableAnnotationException(String message, Throwable e) {
-        super(message, e);
-    }
+  public IllegalPollableAnnotationException(String message, Throwable e) {
+    super(message, e);
+  }
 }

@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.machinetranslation;
 
+import static com.box.l10n.mojito.CacheType.Names.MACHINE_TRANSLATION;
+
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
@@ -19,9 +21,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.box.l10n.mojito.CacheType.Names.MACHINE_TRANSLATION;
-
-
 /**
  * Webservice for machine translating strings, with optional source leveraging.
  *
@@ -29,47 +28,46 @@ import static com.box.l10n.mojito.CacheType.Names.MACHINE_TRANSLATION;
  */
 @RestController
 public class MachineTranslationWS {
-    static Logger logger = LoggerFactory.getLogger(MachineTranslationWS.class);
+  static Logger logger = LoggerFactory.getLogger(MachineTranslationWS.class);
 
-    public static final String DEFAULT_LOCALE = "en";
+  public static final String DEFAULT_LOCALE = "en";
 
-    @Autowired
-    MachineTranslationService machineTranslationService;
+  @Autowired MachineTranslationService machineTranslationService;
 
-    @Autowired
-    QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+  @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
-    @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation-batch")
-    @ResponseStatus(HttpStatus.OK)
-    @Cacheable(MACHINE_TRANSLATION)
-    public PollableTask getTranslations(@RequestBody BatchTranslationRequestDTO translationRequest) {
-        QuartzJobInfo<BatchTranslationRequestDTO, TranslationsResponseDTO> quartzJobInfo =
-                QuartzJobInfo.newBuilder(BatchMachineTranslationJob.class)
-                        .withInlineInput(false)
-                        .withInput(translationRequest)
-                        .build();
-        PollableFuture<TranslationsResponseDTO> localizedAssetBodyPollableFuture = quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
-        return localizedAssetBodyPollableFuture.getPollableTask();
-    }
+  @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation-batch")
+  @ResponseStatus(HttpStatus.OK)
+  @Cacheable(MACHINE_TRANSLATION)
+  public PollableTask getTranslations(@RequestBody BatchTranslationRequestDTO translationRequest) {
+    QuartzJobInfo<BatchTranslationRequestDTO, TranslationsResponseDTO> quartzJobInfo =
+        QuartzJobInfo.newBuilder(BatchMachineTranslationJob.class)
+            .withInlineInput(false)
+            .withInput(translationRequest)
+            .build();
+    PollableFuture<TranslationsResponseDTO> localizedAssetBodyPollableFuture =
+        quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
+    return localizedAssetBodyPollableFuture.getPollableTask();
+  }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation")
-    @ResponseStatus(HttpStatus.OK)
-    @Cacheable(MACHINE_TRANSLATION)
-    public TranslationDTO getSingleTranslation(@RequestBody TranslationRequestDTO translationRequest) {
-        return machineTranslationService.getSingleTranslation(
-                translationRequest.getTextSource(),
-                translationRequest.getSourceBcp47Tag(),
-                translationRequest.getTargetBcp47Tag(),
-                translationRequest.isSkipFunctionalProtection(),
-                translationRequest.isSkipLeveraging(),
-                translationRequest.getRepositoryIds(),
-                translationRequest.getRepositoryNames()
-        );
-    }
+  @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation")
+  @ResponseStatus(HttpStatus.OK)
+  @Cacheable(MACHINE_TRANSLATION)
+  public TranslationDTO getSingleTranslation(
+      @RequestBody TranslationRequestDTO translationRequest) {
+    return machineTranslationService.getSingleTranslation(
+        translationRequest.getTextSource(),
+        translationRequest.getSourceBcp47Tag(),
+        translationRequest.getTargetBcp47Tag(),
+        translationRequest.isSkipFunctionalProtection(),
+        translationRequest.isSkipLeveraging(),
+        translationRequest.getRepositoryIds(),
+        translationRequest.getRepositoryNames());
+  }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/api/machine-translation/config")
-    @ResponseStatus(HttpStatus.OK)
-    public String getMachineTranslationConfiguration() {
-        return machineTranslationService.getConfiguredEngineSource().toString();
-    }
+  @RequestMapping(method = RequestMethod.GET, value = "/api/machine-translation/config")
+  @ResponseStatus(HttpStatus.OK)
+  public String getMachineTranslationConfiguration() {
+    return machineTranslationService.getConfiguredEngineSource().toString();
+  }
 }

@@ -9,19 +9,19 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("l10n.slack")
 public class SlackClientConfiguration {
 
-    String token;
+  String token;
 
-    @ConditionalOnProperty("l10n.slack.token")
-    @Bean
-    SlackClient getSlackClient() {
-        return new SlackClient(token);
-    }
+  @ConditionalOnProperty("l10n.slack.token")
+  @Bean
+  SlackClient getSlackClient() {
+    return new SlackClient(token);
+  }
 
-    public String getToken() {
-        return token;
-    }
+  public String getToken() {
+    return token;
+  }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
+  public void setToken(String token) {
+    this.token = token;
+  }
 }

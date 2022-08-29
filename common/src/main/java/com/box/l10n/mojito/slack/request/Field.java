@@ -4,34 +4,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Field {
 
-    String title;
+  String title;
 
-    String value;
+  String value;
 
-    @JsonProperty("short")
-    Boolean isShort;
+  @JsonProperty("short")
+  Boolean isShort;
 
-    public String getTitle() {
-        return title;
-    }
+  public String getTitle() {
+    return title;
+  }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-    public String getValue() {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
+  public void setValue(String value) {
+    this.value = value;
+  }
 
-    public Boolean getShort() {
-        return isShort;
-    }
+  public Boolean getShort() {
+    return isShort;
+  }
 
-    public void setShort(Boolean aShort) {
-        isShort = aShort;
-    }
+  public void setShort(Boolean aShort) {
+    isShort = aShort;
+  }
 }

@@ -14,51 +14,43 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- *
- * @author jaurambault
- */
+/** @author jaurambault */
 public class DemoCreateCommandTest extends CLITestBase {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(DemoCreateCommandTest.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(DemoCreateCommandTest.class);
 
-    protected static final String COMMAND_ERROR_MESSAGE = "Error creating repository";
+  protected static final String COMMAND_ERROR_MESSAGE = "Error creating repository";
 
-    @Autowired
-    RepositoryRepository repositoryRepository;
+  @Autowired RepositoryRepository repositoryRepository;
 
-    @Autowired
-    RepositoryService repositoryService;
-    
-    @Autowired
-    TextUnitSearcher textUnitSearcher;
+  @Autowired RepositoryService repositoryService;
 
-    @Test
-    public void testDemoCreate() throws Exception {
+  @Autowired TextUnitSearcher textUnitSearcher;
 
-        String testRepoName = testIdWatcher.getEntityName("repository");
+  @Test
+  public void testDemoCreate() throws Exception {
 
-        logger.debug("Creating repo with name: {}", testRepoName);
+    String testRepoName = testIdWatcher.getEntityName("repository");
 
-        getL10nJCommander().run(
-                "demo-create",
-                "-n", testRepoName,
-                "-o", getTargetTestDir("outputDir").getAbsolutePath());
-        
-        
-        Repository repository = repositoryRepository.findByName(testRepoName);
-        
-        TextUnitSearcherParameters searchParameters = new TextUnitSearcherParameters();
-        searchParameters.setRepositoryIds(repository.getId());
-             
-        
-        List<TextUnitDTO> search = textUnitSearcher.search(searchParameters);
-        Assert.assertEquals("Number of translations added not correct", 1575, search.size());
-        
-        checkExpectedGeneratedResources();        
-    }
+    logger.debug("Creating repo with name: {}", testRepoName);
 
+    getL10nJCommander()
+        .run(
+            "demo-create",
+            "-n",
+            testRepoName,
+            "-o",
+            getTargetTestDir("outputDir").getAbsolutePath());
+
+    Repository repository = repositoryRepository.findByName(testRepoName);
+
+    TextUnitSearcherParameters searchParameters = new TextUnitSearcherParameters();
+    searchParameters.setRepositoryIds(repository.getId());
+
+    List<TextUnitDTO> search = textUnitSearcher.search(searchParameters);
+    Assert.assertEquals("Number of translations added not correct", 1575, search.size());
+
+    checkExpectedGeneratedResources();
+  }
 }

@@ -21,6 +21,11 @@ import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,313 +33,421 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 public class LeveragingServiceTest extends ServiceTestBase {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(LeveragingServiceTest.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(LeveragingServiceTest.class);
 
-    @Rule
-    public TestIdWatcher testIdWatcher = new TestIdWatcher();
+  @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-    @Autowired
-    LeveragingService leveragingService;
+  @Autowired LeveragingService leveragingService;
 
-    @Autowired
-    RepositoryService repositoryService;
+  @Autowired RepositoryService repositoryService;
 
-    @Autowired
-    TMTextUnitVariantRepository tmTextUnitVariantRepository;
+  @Autowired TMTextUnitVariantRepository tmTextUnitVariantRepository;
 
-    @Autowired
-    AssetService assetService;
+  @Autowired AssetService assetService;
 
-    @Autowired
-    TMService tmService;
+  @Autowired TMService tmService;
 
-    @Autowired
-    LocaleService localeService;
+  @Autowired LocaleService localeService;
 
-    @Test
-    public void copyAllTranslationsWithMD5MatchBetweenRepositories() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+  @Test
+  public void copyAllTranslationsWithMD5MatchBetweenRepositories()
+      throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
 
-        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
 
-        Repository sourceRepository = tmTestDataSource.repository;
+    Repository sourceRepository = tmTestDataSource.repository;
 
-        logger.debug("Create the target repository");
-        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
 
-        TM tm = targetRepository.getTm();
+    TM tm = targetRepository.getTm();
 
-        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
-        Long assetId = asset.getId();
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
 
-        tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "zuora_error_message_verify_state_province",
+        "Please enter a valid state, region or province",
+        "Comment1");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
 
-        CopyTmConfig copyTmConfig = new CopyTmConfig();
-        copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-        copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
 
-        leveragingService.copyTm(copyTmConfig).get();
+    leveragingService.copyTm(copyTmConfig).get();
 
-        List<TMTextUnitVariant> sourceTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(sourceRepository, "en");
-        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(targetRepository, "en");
+    List<TMTextUnitVariant> sourceTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                sourceRepository, "en");
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
 
-        Iterator<TMTextUnitVariant> itSource = sourceTranslations.iterator();
-        Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
+    Iterator<TMTextUnitVariant> itSource = sourceTranslations.iterator();
+    Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
 
-        while (itTarget.hasNext()) {
-            TMTextUnitVariant next = itTarget.next();
-            Assert.assertEquals("translation in source and target must be the same", itSource.next().getContent(), next.getContent());
-        }
-
-        Assert.assertFalse(itSource.hasNext());
+    while (itTarget.hasNext()) {
+      TMTextUnitVariant next = itTarget.next();
+      Assert.assertEquals(
+          "translation in source and target must be the same",
+          itSource.next().getContent(),
+          next.getContent());
     }
 
-    @Test
-    public void copyAllTranslationsWithMD5MatchBetweenRepositoriesNameRegex() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+    Assert.assertFalse(itSource.hasNext());
+  }
 
-        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+  @Test
+  public void copyAllTranslationsWithMD5MatchBetweenRepositoriesNameRegex()
+      throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
 
-        Repository sourceRepository = tmTestDataSource.repository;
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
 
-        logger.debug("Create the target repository");
-        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    Repository sourceRepository = tmTestDataSource.repository;
 
-        TM tm = targetRepository.getTm();
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
 
-        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
-        Long assetId = asset.getId();
+    TM tm = targetRepository.getTm();
 
-        tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province", "Please enter a valid state, region or province", "Comment1");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
 
-        CopyTmConfig copyTmConfig = new CopyTmConfig();
-        copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-        copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-        copyTmConfig.setNameRegex("TEST.*");
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "zuora_error_message_verify_state_province",
+        "Please enter a valid state, region or province",
+        "Comment1");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
 
-        leveragingService.copyTm(copyTmConfig).get();
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setNameRegex("TEST.*");
 
-        List<TMTextUnitVariant> sourceTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(sourceRepository, "en");
-        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(targetRepository, "en");
+    leveragingService.copyTm(copyTmConfig).get();
 
-        Predicate<TMTextUnitVariant> filterZuora = new Predicate<TMTextUnitVariant>() {
-            @Override
-            public boolean apply(TMTextUnitVariant tmtuv) {
-                return !"zuora_error_message_verify_state_province".equals(tmtuv.getTmTextUnit().getName());
-            }
+    List<TMTextUnitVariant> sourceTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                sourceRepository, "en");
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
 
+    Predicate<TMTextUnitVariant> filterZuora =
+        new Predicate<TMTextUnitVariant>() {
+          @Override
+          public boolean apply(TMTextUnitVariant tmtuv) {
+            return !"zuora_error_message_verify_state_province"
+                .equals(tmtuv.getTmTextUnit().getName());
+          }
         };
 
-        Iterator<TMTextUnitVariant> itSource = Iterables.filter(sourceTranslations, filterZuora).iterator();
-        Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
+    Iterator<TMTextUnitVariant> itSource =
+        Iterables.filter(sourceTranslations, filterZuora).iterator();
+    Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
 
-        while (itTarget.hasNext()) {
-            TMTextUnitVariant next = itTarget.next();
-            Assert.assertEquals("translation in source and target must be the same", itSource.next().getContent(), next.getContent());
-        }
-
-        Assert.assertFalse(itSource.hasNext());
-
+    while (itTarget.hasNext()) {
+      TMTextUnitVariant next = itTarget.next();
+      Assert.assertEquals(
+          "translation in source and target must be the same",
+          itSource.next().getContent(),
+          next.getContent());
     }
 
-    @Test
-    public void copyTranslationForTmTextUnitMapping() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+    Assert.assertFalse(itSource.hasNext());
+  }
 
-        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+  @Test
+  public void copyTranslationForTmTextUnitMapping()
+      throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
 
-        Repository sourceRepository = tmTestDataSource.repository;
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
 
-        logger.debug("Create the target repository");
-        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    Repository sourceRepository = tmTestDataSource.repository;
 
-        TM tm = targetRepository.getTm();
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
 
-        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
-        Long assetId = asset.getId();
+    TM tm = targetRepository.getTm();
 
-        TMTextUnit targetTmTextUnit1 = tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province other", "Please enter a valid state, region or province", "Comment1");
-        TMTextUnit targetTmTextUnit2 = tmService.addTMTextUnit(tm.getId(), assetId, "TEST2 other", "Content2", "Comment2");
-        TMTextUnit targetTmTextUnit3 = tmService.addTMTextUnit(tm.getId(), assetId, "TEST3 other", "Content3", "Comment3");
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
 
-        Map<Long, Long> sourceTotTargetTmTextUnitIds = new HashMap<>();
-        sourceTotTargetTmTextUnitIds.put(tmTestDataSource.addTMTextUnit1.getId(), targetTmTextUnit1.getId());
-        sourceTotTargetTmTextUnitIds.put(tmTestDataSource.addTMTextUnit2.getId(), targetTmTextUnit2.getId());
+    TMTextUnit targetTmTextUnit1 =
+        tmService.addTMTextUnit(
+            tm.getId(),
+            assetId,
+            "zuora_error_message_verify_state_province other",
+            "Please enter a valid state, region or province",
+            "Comment1");
+    TMTextUnit targetTmTextUnit2 =
+        tmService.addTMTextUnit(tm.getId(), assetId, "TEST2 other", "Content2", "Comment2");
+    TMTextUnit targetTmTextUnit3 =
+        tmService.addTMTextUnit(tm.getId(), assetId, "TEST3 other", "Content3", "Comment3");
 
-        CopyTmConfig copyTmConfig = new CopyTmConfig();
-        copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-        copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-        copyTmConfig.setMode(CopyTmConfig.Mode.TUIDS);
-        copyTmConfig.setSourceToTargetTmTextUnitIds(sourceTotTargetTmTextUnitIds);
+    Map<Long, Long> sourceTotTargetTmTextUnitIds = new HashMap<>();
+    sourceTotTargetTmTextUnitIds.put(
+        tmTestDataSource.addTMTextUnit1.getId(), targetTmTextUnit1.getId());
+    sourceTotTargetTmTextUnitIds.put(
+        tmTestDataSource.addTMTextUnit2.getId(), targetTmTextUnit2.getId());
 
-        leveragingService.copyTm(copyTmConfig).get();
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.TUIDS);
+    copyTmConfig.setSourceToTargetTmTextUnitIds(sourceTotTargetTmTextUnitIds);
 
-        List<TMTextUnitVariant> sourceTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(sourceRepository, "en");
-        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(targetRepository, "en");
+    leveragingService.copyTm(copyTmConfig).get();
 
-        Assert.assertEquals(5, sourceTranslations.size());
-        Assert.assertEquals(3, targetTranslations.size());
+    List<TMTextUnitVariant> sourceTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                sourceRepository, "en");
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
 
-        Assert.assertEquals("Content2 fr-CA", targetTranslations.get(0).getContent());
-        Assert.assertEquals(targetTmTextUnit2.getId(), targetTranslations.get(0).getTmTextUnit().getId());
+    Assert.assertEquals(5, sourceTranslations.size());
+    Assert.assertEquals(3, targetTranslations.size());
 
+    Assert.assertEquals("Content2 fr-CA", targetTranslations.get(0).getContent());
+    Assert.assertEquals(
+        targetTmTextUnit2.getId(), targetTranslations.get(0).getTmTextUnit().getId());
 
-        Assert.assertEquals("Veuillez indiquer un état, une région ou une province valide.", targetTranslations.get(1).getContent());
-        Assert.assertEquals(targetTmTextUnit1.getId(), targetTranslations.get(1).getTmTextUnit().getId());
+    Assert.assertEquals(
+        "Veuillez indiquer un état, une région ou une province valide.",
+        targetTranslations.get(1).getContent());
+    Assert.assertEquals(
+        targetTmTextUnit1.getId(), targetTranslations.get(1).getTmTextUnit().getId());
 
+    Assert.assertEquals("올바른 국가, 지역 또는 시/도를 입력하십시오.", targetTranslations.get(2).getContent());
+    Assert.assertEquals(
+        targetTmTextUnit1.getId(), targetTranslations.get(2).getTmTextUnit().getId());
+  }
 
-        Assert.assertEquals("올바른 국가, 지역 또는 시/도를 입력하십시오.", targetTranslations.get(2).getContent());
-        Assert.assertEquals(targetTmTextUnit1.getId(), targetTranslations.get(2).getTmTextUnit().getId());
+  @Test
+  public void copyAllTranslationsWithExactMatchBetweenRepositories()
+      throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+
+    Repository sourceRepository = tmTestDataSource.repository;
+
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+
+    TM tm = targetRepository.getTm();
+
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
+
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "zuora_error_message_verify_state_province_update",
+        "Please enter a valid state, region or province",
+        "Comment1");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    copyTmConfig.setMode(CopyTmConfig.Mode.EXACT);
+
+    leveragingService.copyTm(copyTmConfig).get();
+
+    List<TMTextUnitVariant> sourceTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                sourceRepository, "en");
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+
+    Iterator<TMTextUnitVariant> itSource = sourceTranslations.iterator();
+    Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
+
+    while (itTarget.hasNext()) {
+      TMTextUnitVariant next = itTarget.next();
+      Assert.assertEquals(
+          "translation in source and target must be the same",
+          itSource.next().getContent(),
+          next.getContent());
     }
 
-    @Test
-    public void copyAllTranslationsWithExactMatchBetweenRepositories() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+    Assert.assertFalse(itSource.hasNext());
+  }
 
-        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+  @Test
+  public void checkCommentsAreNotCopiedIfTmTextUnitCurrentVariantNotChanged()
+      throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException,
+          AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
 
-        Repository sourceRepository = tmTestDataSource.repository;
+    TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
 
-        logger.debug("Create the target repository");
-        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    Repository sourceRepository = tmTestDataSource.repository;
 
-        TM tm = targetRepository.getTm();
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
 
-        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
-        Long assetId = asset.getId();
+    TM tm = targetRepository.getTm();
 
-        tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province_update", "Please enter a valid state, region or province", "Comment1");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+    Asset asset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long assetId = asset.getId();
 
-        CopyTmConfig copyTmConfig = new CopyTmConfig();
-        copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-        copyTmConfig.setTargetRepositoryId(targetRepository.getId());
-        copyTmConfig.setMode(CopyTmConfig.Mode.EXACT);
+    tmService.addTMTextUnit(
+        tm.getId(),
+        assetId,
+        "zuora_error_message_verify_state_province_update",
+        "Please enter a valid state, region or province",
+        "Comment1");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
+    tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
 
-        leveragingService.copyTm(copyTmConfig).get();
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
+    copyTmConfig.setTargetRepositoryId(targetRepository.getId());
 
-        List<TMTextUnitVariant> sourceTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(sourceRepository, "en");
-        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(targetRepository, "en");
+    leveragingService.copyTm(copyTmConfig).get();
+    leveragingService.copyTm(copyTmConfig).get();
 
-        Iterator<TMTextUnitVariant> itSource = sourceTranslations.iterator();
-        Iterator<TMTextUnitVariant> itTarget = targetTranslations.iterator();
-
-        while (itTarget.hasNext()) {
-            TMTextUnitVariant next = itTarget.next();
-            Assert.assertEquals("translation in source and target must be the same", itSource.next().getContent(), next.getContent());
-        }
-
-        Assert.assertFalse(itSource.hasNext());
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+    for (TMTextUnitVariant targetTranslation : targetTranslations) {
+      Assert.assertEquals(1, targetTranslation.getTmTextUnitVariantComments().size());
     }
+  }
 
-    @Test
-    public void checkCommentsAreNotCopiedIfTmTextUnitCurrentVariantNotChanged() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+  @Test
+  public void copyBetweenAssets()
+      throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException,
+          RepositoryLocaleCreationException, AssetWithIdNotFoundException,
+          RepositoryWithIdNotFoundException {
 
-        TMTestData tmTestDataSource = new TMTestData(testIdWatcher);
+    Locale frFR = localeService.findByBcp47Tag("fr-FR");
 
-        Repository sourceRepository = tmTestDataSource.repository;
+    logger.debug("Create the source repository");
+    Repository sourceRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
+    repositoryService.addRepositoryLocale(sourceRepository, frFR.getBcp47Tag());
 
-        logger.debug("Create the target repository");
-        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    Asset sourceAsset =
+        assetService.createAssetWithContent(
+            sourceRepository.getId(), "fake_for_test_1", "fake for test");
+    Long sourceAssetId = sourceAsset.getId();
 
-        TM tm = targetRepository.getTm();
+    TMTextUnit addTMTextUnit =
+        tmService.addTMTextUnit(
+            sourceRepository.getTm().getId(), sourceAssetId, "TEST3", "Content3", "Comment3");
+    tmService.addCurrentTMTextUnitVariant(
+        addTMTextUnit.getId(), frFR.getId(), "Content3 fr-FR from source");
 
-        Asset asset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
-        Long assetId = asset.getId();
+    Asset sourceAsset2 =
+        assetService.createAssetWithContent(
+            sourceRepository.getId(), "fake_for_test2", "fake for test");
+    Long sourceAssetId2 = sourceAsset2.getId();
 
-        tmService.addTMTextUnit(tm.getId(), assetId, "zuora_error_message_verify_state_province_update", "Please enter a valid state, region or province", "Comment1");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST2", "Content2", "Comment2");
-        tmService.addTMTextUnit(tm.getId(), assetId, "TEST3", "Content3", "Comment3");
+    TMTextUnit addTMTextUnit2 =
+        tmService.addTMTextUnit(
+            sourceRepository.getTm().getId(), sourceAssetId2, "TEST3", "Content3", "Comment3");
+    tmService.addCurrentTMTextUnitVariant(
+        addTMTextUnit2.getId(), frFR.getId(), "Content3 fr-FR from source2");
 
-        CopyTmConfig copyTmConfig = new CopyTmConfig();
-        copyTmConfig.setSourceRepositoryId(sourceRepository.getId());
-        copyTmConfig.setTargetRepositoryId(targetRepository.getId());
+    logger.debug("Create the target repository");
+    Repository targetRepository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
 
-        leveragingService.copyTm(copyTmConfig).get();
-        leveragingService.copyTm(copyTmConfig).get();
+    Asset targetAsset =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test", "fake for test");
+    Long targetAssetId = targetAsset.getId();
 
-        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(targetRepository, "en");
-        for (TMTextUnitVariant targetTranslation : targetTranslations) {
-            Assert.assertEquals(1, targetTranslation.getTmTextUnitVariantComments().size());
-        }
-    }
+    tmService.addTMTextUnit(
+        targetRepository.getTm().getId(), targetAssetId, "TEST3", "Content3", "Comment3");
 
-    @Test
-    public void copyBetweenAssets() throws InterruptedException, ExecutionException, RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException, AssetWithIdNotFoundException, RepositoryWithIdNotFoundException {
+    Asset targetAsset2 =
+        assetService.createAssetWithContent(
+            targetRepository.getId(), "fake_for_test2", "fake for test");
+    Long targetAssetId2 = targetAsset2.getId();
 
-        Locale frFR = localeService.findByBcp47Tag("fr-FR");
+    tmService.addTMTextUnit(
+        targetRepository.getTm().getId(), targetAssetId2, "TEST3", "Content3", "Comment3");
 
-        logger.debug("Create the source repository");
-        Repository sourceRepository = repositoryService.createRepository(testIdWatcher.getEntityName("sourceRepository"));
-        repositoryService.addRepositoryLocale(sourceRepository, frFR.getBcp47Tag());
+    CopyTmConfig copyTmConfig = new CopyTmConfig();
+    copyTmConfig.setSourceAssetId(sourceAssetId);
+    copyTmConfig.setTargetAssetId(targetAssetId);
+    copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
 
-        Asset sourceAsset = assetService.createAssetWithContent(sourceRepository.getId(), "fake_for_test_1", "fake for test");
-        Long sourceAssetId = sourceAsset.getId();
+    leveragingService.copyTm(copyTmConfig).get();
 
-        TMTextUnit addTMTextUnit = tmService.addTMTextUnit(sourceRepository.getTm().getId(), sourceAssetId, "TEST3", "Content3", "Comment3");
-        tmService.addCurrentTMTextUnitVariant(addTMTextUnit.getId(), frFR.getId(), "Content3 fr-FR from source");
+    List<TMTextUnitVariant> targetTranslations =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+    Assert.assertEquals("Content3 fr-FR from source", targetTranslations.get(0).getContent());
+    Assert.assertEquals(
+        targetAsset.getId(), targetTranslations.get(0).getTmTextUnit().getAsset().getId());
 
-        Asset sourceAsset2 = assetService.createAssetWithContent(sourceRepository.getId(), "fake_for_test2", "fake for test");
-        Long sourceAssetId2 = sourceAsset2.getId();
+    Assert.assertEquals(1, targetTranslations.size());
 
-        TMTextUnit addTMTextUnit2 = tmService.addTMTextUnit(sourceRepository.getTm().getId(), sourceAssetId2, "TEST3", "Content3", "Comment3");
-        tmService.addCurrentTMTextUnitVariant(addTMTextUnit2.getId(), frFR.getId(), "Content3 fr-FR from source2");
+    CopyTmConfig copyTmConfig2 = new CopyTmConfig();
+    copyTmConfig2.setSourceAssetId(sourceAssetId2);
+    copyTmConfig2.setTargetAssetId(targetAssetId2);
+    copyTmConfig2.setMode(CopyTmConfig.Mode.MD5);
 
-        logger.debug("Create the target repository");
-        Repository targetRepository = repositoryService.createRepository(testIdWatcher.getEntityName("targetRepository"));
+    leveragingService.copyTm(copyTmConfig2).get();
 
-        Asset targetAsset = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test", "fake for test");
-        Long targetAssetId = targetAsset.getId();
+    List<TMTextUnitVariant> targetTranslations2 =
+        tmTextUnitVariantRepository
+            .findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(
+                targetRepository, "en");
+    Assert.assertEquals("Content3 fr-FR from source", targetTranslations2.get(0).getContent());
+    Assert.assertEquals(
+        targetAsset.getId(), targetTranslations2.get(0).getTmTextUnit().getAsset().getId());
 
-        tmService.addTMTextUnit(targetRepository.getTm().getId(), targetAssetId, "TEST3", "Content3", "Comment3");
+    Assert.assertEquals("Content3 fr-FR from source2", targetTranslations2.get(1).getContent());
+    Assert.assertEquals(
+        targetAsset2.getId(), targetTranslations2.get(1).getTmTextUnit().getAsset().getId());
 
-        Asset targetAsset2 = assetService.createAssetWithContent(targetRepository.getId(), "fake_for_test2", "fake for test");
-        Long targetAssetId2 = targetAsset2.getId();
-
-        tmService.addTMTextUnit(targetRepository.getTm().getId(), targetAssetId2, "TEST3", "Content3", "Comment3");
-
-        CopyTmConfig copyTmConfig = new CopyTmConfig();
-        copyTmConfig.setSourceAssetId(sourceAssetId);
-        copyTmConfig.setTargetAssetId(targetAssetId);
-        copyTmConfig.setMode(CopyTmConfig.Mode.MD5);
-
-        leveragingService.copyTm(copyTmConfig).get();
-
-        List<TMTextUnitVariant> targetTranslations = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(targetRepository, "en");
-        Assert.assertEquals("Content3 fr-FR from source", targetTranslations.get(0).getContent());
-        Assert.assertEquals(targetAsset.getId(), targetTranslations.get(0).getTmTextUnit().getAsset().getId());
-
-        Assert.assertEquals(1, targetTranslations.size());
-
-        CopyTmConfig copyTmConfig2 = new CopyTmConfig();
-        copyTmConfig2.setSourceAssetId(sourceAssetId2);
-        copyTmConfig2.setTargetAssetId(targetAssetId2);
-        copyTmConfig2.setMode(CopyTmConfig.Mode.MD5);
-
-        leveragingService.copyTm(copyTmConfig2).get();
-
-        List<TMTextUnitVariant> targetTranslations2 = tmTextUnitVariantRepository.findByTmTextUnitTmRepositoriesAndLocale_Bcp47TagNotOrderByContent(targetRepository, "en");
-        Assert.assertEquals("Content3 fr-FR from source", targetTranslations2.get(0).getContent());
-        Assert.assertEquals(targetAsset.getId(), targetTranslations2.get(0).getTmTextUnit().getAsset().getId());
-
-        Assert.assertEquals("Content3 fr-FR from source2", targetTranslations2.get(1).getContent());
-        Assert.assertEquals(targetAsset2.getId(), targetTranslations2.get(1).getTmTextUnit().getAsset().getId());
-
-        Assert.assertEquals(2, targetTranslations2.size());
-    }
+    Assert.assertEquals(2, targetTranslations2.size());
+  }
 }

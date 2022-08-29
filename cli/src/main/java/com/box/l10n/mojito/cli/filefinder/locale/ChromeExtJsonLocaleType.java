@@ -6,7 +6,7 @@ package com.box.l10n.mojito.cli.filefinder.locale;
  * @author jaurambault
  */
 public class ChromeExtJsonLocaleType extends AnyLocaleTargetNotSourceType {
-    public String getTargetLocaleRepresentation(String targetLocale) {
-        return targetLocale.replace("-", "_");
-    }
+  public String getTargetLocaleRepresentation(String targetLocale) {
+    return targetLocale.replace("-", "_");
+  }
 }

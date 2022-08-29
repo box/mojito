@@ -1,8 +1,4 @@
 package com.box.l10n.mojito.test.category;
 
-/**
- * @author jaurambault
- */
-public class IntegrationTest {
-
-}
+/** @author jaurambault */
+public class IntegrationTest {}

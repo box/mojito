@@ -2,45 +2,42 @@ package com.box.l10n.mojito;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.HashBiMap;
-import org.springframework.stereotype.Component;
-
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class LocaleMappingHelper {
 
-    /**
-     * Gets the locale mapping given the locale mapping param
-     *
-     * @param localeMapppingParam locale mapping param coming from the CLI
-     * @return A map containing the locale mapping
-     */
-    public Map<String, String> getLocaleMapping(String localeMapppingParam) {
+  /**
+   * Gets the locale mapping given the locale mapping param
+   *
+   * @param localeMapppingParam locale mapping param coming from the CLI
+   * @return A map containing the locale mapping
+   */
+  public Map<String, String> getLocaleMapping(String localeMapppingParam) {
 
-        Map<String, String> localeMappings = null;
-        if (localeMapppingParam != null) {
-            localeMappings = Splitter.on(",").withKeyValueSeparator(":").split(localeMapppingParam);
-        }
-
-        return localeMappings;
+    Map<String, String> localeMappings = null;
+    if (localeMapppingParam != null) {
+      localeMappings = Splitter.on(",").withKeyValueSeparator(":").split(localeMapppingParam);
     }
 
-    /**
-     * Gets the inverse locale mapping given the locale mapping param
-     *
-     * @param localeMapppingParam locale mapping param coming from the CLI
-     * @return A map containing the inverse locale mapping
-     */
-    public Map<String, String> getInverseLocaleMapping(String localeMapppingParam) {
+    return localeMappings;
+  }
 
-        Map<String, String> inverseLocaleMapping = null;
+  /**
+   * Gets the inverse locale mapping given the locale mapping param
+   *
+   * @param localeMapppingParam locale mapping param coming from the CLI
+   * @return A map containing the inverse locale mapping
+   */
+  public Map<String, String> getInverseLocaleMapping(String localeMapppingParam) {
 
-        if (localeMapppingParam != null) {
-            inverseLocaleMapping = HashBiMap.create(getLocaleMapping(localeMapppingParam)).inverse();
+    Map<String, String> inverseLocaleMapping = null;
 
-        }
-
-        return inverseLocaleMapping;
+    if (localeMapppingParam != null) {
+      inverseLocaleMapping = HashBiMap.create(getLocaleMapping(localeMapppingParam)).inverse();
     }
 
+    return inverseLocaleMapping;
+  }
 }

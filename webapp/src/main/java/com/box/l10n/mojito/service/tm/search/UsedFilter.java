@@ -6,7 +6,6 @@ package com.box.l10n.mojito.service.tm.search;
  * @author jaurambault
  */
 public enum UsedFilter {
-
-    USED,
-    UNUSED
+  USED,
+  UNUSED
 }

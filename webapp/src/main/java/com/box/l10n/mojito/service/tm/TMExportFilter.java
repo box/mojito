@@ -16,6 +16,9 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.translationkit.TranslationKitService;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.IParameters;
@@ -35,10 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-
 /**
  * An {@link IFilter} to export all {@link TextUnit}s of a {@link TM}
  *
@@ -47,246 +46,226 @@ import java.util.NoSuchElementException;
 @Configurable
 public class TMExportFilter implements IFilter {
 
-    static Logger logger = LoggerFactory.getLogger(TMExportFilter.class);
+  static Logger logger = LoggerFactory.getLogger(TMExportFilter.class);
 
-    public static final String FILTER_NAME = "box_tmexport_filter";
+  public static final String FILTER_NAME = "box_tmexport_filter";
 
-    private static final String DISPLAY_NAME = "TM Export Filter";
+  private static final String DISPLAY_NAME = "TM Export Filter";
 
-    @Autowired
-    TranslationKitService translationKitService;
+  @Autowired TranslationKitService translationKitService;
 
-    @Autowired
-    RepositoryRepository repositoryRepository;
+  @Autowired RepositoryRepository repositoryRepository;
 
-    @Autowired
-    LocaleService localeService;
+  @Autowired LocaleService localeService;
 
-    @Autowired
-    RepositoryLocaleRepository repositoryLocaleRepository;
+  @Autowired RepositoryLocaleRepository repositoryLocaleRepository;
 
-    @Autowired
-    AssetRepository assetRepository;
+  @Autowired AssetRepository assetRepository;
 
-    @Autowired
-    TextUnitSearcher textUnitSearcher;
+  @Autowired TextUnitSearcher textUnitSearcher;
 
-    @Autowired
-    TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
+  @Autowired TMTextUnitVariantCommentService tmTextUnitVariantCommentService;
 
-    @Autowired
-    ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-    @Autowired
-    ImportExportTextUnitUtils importExportTextUnitUtils;
+  @Autowired ImportExportTextUnitUtils importExportTextUnitUtils;
 
-    @Autowired
-    TextUnitUtils textUnitUtils;
+  @Autowired TextUnitUtils textUnitUtils;
 
-    /**
-     * {@link TM#id} to be exported
-     */
-    Long assetId;
+  /** {@link TM#id} to be exported */
+  Long assetId;
 
-    /**
-     * The text units to be returned by the filter
-     */
-    Iterator<TextUnitDTOWithComments> textUnitsIterator;
+  /** The text units to be returned by the filter */
+  Iterator<TextUnitDTOWithComments> textUnitsIterator;
 
-    /**
-     * Tracks when filter is done returning events ({@code true} when the filter
-     * is done).
-     */
-    boolean finished = false;
+  /** Tracks when filter is done returning events ({@code true} when the filter is done). */
+  boolean finished = false;
 
-    /**
-     * Stores the next event to be returned by {@link #next() }.
-     */
-    Event nextEvent = null;
+  /** Stores the next event to be returned by {@link #next() }. */
+  Event nextEvent = null;
 
-    LocaleId targetLocale;
+  LocaleId targetLocale;
 
-    Locale locale;
+  Locale locale;
 
-    public TMExportFilter(Long tmId) {
-        this.assetId = tmId;
+  public TMExportFilter(Long tmId) {
+    this.assetId = tmId;
+  }
+
+  @Override
+  public String getName() {
+    return FILTER_NAME;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return DISPLAY_NAME;
+  }
+
+  @Override
+  public void open(RawDocument input) {
+    open(input, false);
+  }
+
+  @Override
+  public void open(RawDocument input, boolean generateSkeleton) {
+
+    logger.debug("Open raw document: get the textunitDTOs to export asset, id: {}", assetId);
+
+    targetLocale = input.getTargetLocale();
+    locale = localeService.findByBcp47Tag(targetLocale.toBCP47());
+
+    List<TextUnitDTO> textUnitDTOsForExport = getTextUnitDTOsForExport();
+    List<TextUnitDTOWithComments> textUnitDTOWithCommentsForExport =
+        tmTextUnitVariantCommentService.enrichTextUnitDTOsWithComments(textUnitDTOsForExport);
+    textUnitsIterator = textUnitDTOWithCommentsForExport.iterator();
+
+    StartDocument startDoc = new StartDocument("Export asset id: " + assetId);
+
+    Asset asset = assetRepository.findById(assetId).orElse(null);
+
+    startDoc.setName(asset.getPath());
+    startDoc.setEncoding("UTF-8", true);
+    startDoc.setLocale(LocaleId.ENGLISH);
+    // TODO(P1) Review what multilingual actually means for okapi
+    startDoc.setMultilingual(true);
+
+    nextEvent = new Event(EventType.START_DOCUMENT, startDoc);
+  }
+
+  @Override
+  public void close() {}
+
+  @Override
+  public boolean hasNext() {
+    return !finished && (nextEvent != null || textUnitsIterator.hasNext());
+  }
+
+  @Override
+  public Event next() {
+
+    Event event;
+
+    if (nextEvent != null) {
+      logger.debug("Return existing event, type: {}", nextEvent.getEventType().toString());
+      event = nextEvent;
+      nextEvent = null;
+    } else if (textUnitsIterator.hasNext()) {
+      logger.debug(
+          "There are TextUnitDTOs available, create a text unit and return the text unit event");
+      event = new Event(EventType.TEXT_UNIT, getNextTextUnit());
+    } else {
+      logger.debug("No more TextUnitDTO, create end document event and return it");
+      event = new Event(EventType.END_DOCUMENT);
+      finished = true;
     }
 
-    @Override
-    public String getName() {
-        return FILTER_NAME;
+    return event;
+  }
+
+  /**
+   * Gets the next {@link TextUnit} to be returned by the filter by converting the next {@link
+   * TextUnitDTOWithComments} available.
+   *
+   * @return the next {@link TextUnit} to be returned by the filter
+   * @throws NoSuchElementException if there is no more {@link TextUnitDTOWithComments}
+   */
+  private TextUnit getNextTextUnit() throws NoSuchElementException {
+
+    TextUnitDTOWithComments textUnitDTO = textUnitsIterator.next();
+
+    if (logger.isDebugEnabled()) {
+      logger.debug(
+          "Get next text unit for tuId: {}, name: {}, locale: {}, source: {}",
+          textUnitDTO.getTmTextUnitId(),
+          textUnitDTO.getName(),
+          textUnitDTO.getTargetLocale(),
+          textUnitDTO.getSource());
     }
 
-    @Override
-    public String getDisplayName() {
-        return DISPLAY_NAME;
-    }
+    TextUnit textUnit = new TextUnit("");
+    textUnit.setName(textUnitDTO.getName());
 
-    @Override
-    public void open(RawDocument input) {
-        open(input, false);
-    }
+    textUnitUtils.replaceSourceString(textUnit, textUnitDTO.getSource());
 
-    @Override
-    public void open(RawDocument input, boolean generateSkeleton) {
+    TextContainer targetTextContainer = new TextContainer(textUnitDTO.getTarget());
+    textUnit.setTarget(targetLocale, targetTextContainer);
 
-        logger.debug("Open raw document: get the textunitDTOs to export asset, id: {}", assetId);
+    ImportExportNote importExportNote = new ImportExportNote();
+    importExportNote.setSourceComment(textUnitDTO.getComment());
+    importExportNote.setTargetComment(textUnitDTO.getTargetComment());
+    importExportNote.setStatus(textUnitDTO.getStatus());
+    importExportNote.setIncludedInLocalizedFile(textUnitDTO.isIncludedInLocalizedFile());
+    importExportNote.setCreatedDate(textUnitDTO.getCreatedDate());
+    importExportNote.setVariantComments(textUnitDTO.getTmTextUnitVariantComments());
+    importExportNote.setPluralForm(textUnitDTO.getPluralForm());
+    importExportNote.setPluralFormOther(textUnitDTO.getPluralFormOther());
 
-        targetLocale = input.getTargetLocale();
-        locale = localeService.findByBcp47Tag(targetLocale.toBCP47());
+    importExportTextUnitUtils.setImportExportNote(textUnit, importExportNote);
+    textUnit.setPreserveWhitespaces(true);
+    return textUnit;
+  }
 
-        List<TextUnitDTO> textUnitDTOsForExport = getTextUnitDTOsForExport();
-        List<TextUnitDTOWithComments> textUnitDTOWithCommentsForExport = tmTextUnitVariantCommentService.enrichTextUnitDTOsWithComments(textUnitDTOsForExport);
-        textUnitsIterator = textUnitDTOWithCommentsForExport.iterator();
+  @Override
+  public void cancel() {
+    nextEvent = new Event(EventType.CANCELED);
+  }
 
-        StartDocument startDoc = new StartDocument("Export asset id: " + assetId);
+  @Override
+  public IParameters getParameters() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-        Asset asset = assetRepository.findById(assetId).orElse(null);
+  @Override
+  public void setParameters(IParameters params) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-        startDoc.setName(asset.getPath());
-        startDoc.setEncoding("UTF-8", true);
-        startDoc.setLocale(LocaleId.ENGLISH);
-        //TODO(P1) Review what multilingual actually means for okapi
-        startDoc.setMultilingual(true);
+  @Override
+  public void setFilterConfigurationMapper(IFilterConfigurationMapper fcMapper) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-        nextEvent = new Event(EventType.START_DOCUMENT, startDoc);
-    }
+  @Override
+  public ISkeletonWriter createSkeletonWriter() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-    @Override
-    public void close() {
-    }
+  @Override
+  public IFilterWriter createFilterWriter() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-    @Override
-    public boolean hasNext() {
-        return !finished && (nextEvent != null || textUnitsIterator.hasNext());
-    }
+  @Override
+  public EncoderManager getEncoderManager() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-    @Override
-    public Event next() {
+  @Override
+  public String getMimeType() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-        Event event;
+  @Override
+  public List<FilterConfiguration> getConfigurations() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
 
-        if (nextEvent != null) {
-            logger.debug("Return existing event, type: {}", nextEvent.getEventType().toString());
-            event = nextEvent;
-            nextEvent = null;
-        } else if (textUnitsIterator.hasNext()) {
-            logger.debug("There are TextUnitDTOs available, create a text unit and return the text unit event");
-            event = new Event(EventType.TEXT_UNIT, getNextTextUnit());
-        } else {
-            logger.debug("No more TextUnitDTO, create end document event and return it");
-            event = new Event(EventType.END_DOCUMENT);
-            finished = true;
-        }
+  /**
+   * Gets the list of {@link TextUnitDTO}s to generate a {@link TranslationKit}
+   *
+   * @return the list of {@link TextUnitDTO}s to generate a {@link TranslationKit}
+   */
+  public List<TextUnitDTO> getTextUnitDTOsForExport() {
 
-        return event;
-    }
+    logger.debug("Get TextUnitDTOs for export, locale: {}");
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
 
-    /**
-     * Gets the next {@link TextUnit} to be returned by the filter by converting
-     * the next {@link TextUnitDTOWithComments} available.
-     *
-     * @return the next {@link TextUnit} to be returned by the filter
-     * @throws NoSuchElementException if there is no more {@link TextUnitDTOWithComments}
-     */
-    private TextUnit getNextTextUnit() throws NoSuchElementException {
+    textUnitSearcherParameters.setAssetId(assetId);
+    textUnitSearcherParameters.setRootLocaleExcluded(false);
+    textUnitSearcherParameters.setLocaleId(locale.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
 
-        TextUnitDTOWithComments textUnitDTO = textUnitsIterator.next();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get next text unit for tuId: {}, name: {}, locale: {}, source: {}",
-                    textUnitDTO.getTmTextUnitId(),
-                    textUnitDTO.getName(),
-                    textUnitDTO.getTargetLocale(),
-                    textUnitDTO.getSource());
-        }
-
-        TextUnit textUnit = new TextUnit("");
-        textUnit.setName(textUnitDTO.getName());
-
-        textUnitUtils.replaceSourceString(textUnit, textUnitDTO.getSource());
-
-        TextContainer targetTextContainer = new TextContainer(textUnitDTO.getTarget());
-        textUnit.setTarget(targetLocale, targetTextContainer);
-
-        ImportExportNote importExportNote = new ImportExportNote();
-        importExportNote.setSourceComment(textUnitDTO.getComment());
-        importExportNote.setTargetComment(textUnitDTO.getTargetComment());
-        importExportNote.setStatus(textUnitDTO.getStatus());
-        importExportNote.setIncludedInLocalizedFile(textUnitDTO.isIncludedInLocalizedFile());
-        importExportNote.setCreatedDate(textUnitDTO.getCreatedDate());
-        importExportNote.setVariantComments(textUnitDTO.getTmTextUnitVariantComments());
-        importExportNote.setPluralForm(textUnitDTO.getPluralForm());
-        importExportNote.setPluralFormOther(textUnitDTO.getPluralFormOther());
-        
-        importExportTextUnitUtils.setImportExportNote(textUnit, importExportNote);
-        textUnit.setPreserveWhitespaces(true);
-        return textUnit;
-    }
-
-    @Override
-    public void cancel() {
-        nextEvent = new Event(EventType.CANCELED);
-    }
-
-    @Override
-    public IParameters getParameters() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void setParameters(IParameters params) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void setFilterConfigurationMapper(IFilterConfigurationMapper fcMapper) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public ISkeletonWriter createSkeletonWriter() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public IFilterWriter createFilterWriter() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public EncoderManager getEncoderManager() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public String getMimeType() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public List<FilterConfiguration> getConfigurations() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    /**
-     * Gets the list of {@link TextUnitDTO}s to generate a
-     * {@link TranslationKit}
-     *
-     * @return the list of {@link TextUnitDTO}s to generate a
-     * {@link TranslationKit}
-     */
-    public List<TextUnitDTO> getTextUnitDTOsForExport() {
-
-        logger.debug("Get TextUnitDTOs for export, locale: {}");
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-
-        textUnitSearcherParameters.setAssetId(assetId);
-        textUnitSearcherParameters.setRootLocaleExcluded(false);
-        textUnitSearcherParameters.setLocaleId(locale.getId());
-        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
-
-        return textUnitSearcher.search(textUnitSearcherParameters);
-    }
-
+    return textUnitSearcher.search(textUnitSearcherParameters);
+  }
 }

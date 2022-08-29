@@ -9,20 +9,16 @@ import java.util.ArrayList;
  */
 public class FileFinderResult {
 
-    /**
-     * FileMatches for source files (files to be localized)
-     */
-    ArrayList<FileMatch> sources = new ArrayList<>();
-    /**
-     * FileMatches for target files (localized files)
-     */
-    ArrayList<FileMatch> targets = new ArrayList<>();
+  /** FileMatches for source files (files to be localized) */
+  ArrayList<FileMatch> sources = new ArrayList<>();
+  /** FileMatches for target files (localized files) */
+  ArrayList<FileMatch> targets = new ArrayList<>();
 
-    public ArrayList<FileMatch> getSources() {
-        return sources;
-    }
+  public ArrayList<FileMatch> getSources() {
+    return sources;
+  }
 
-    public ArrayList<FileMatch> getTargets() {
-        return targets;
-    }
+  public ArrayList<FileMatch> getTargets() {
+    return targets;
+  }
 }

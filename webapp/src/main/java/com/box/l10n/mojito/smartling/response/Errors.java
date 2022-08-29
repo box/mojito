@@ -1,31 +1,31 @@
 package com.box.l10n.mojito.smartling.response;
 
 public class Errors {
-    private String key;
-    private String message;
-    private String details;
+  private String key;
+  private String message;
+  private String details;
 
-    public void setKey(String key) {
-        this.key = key;
-    }
+  public void setKey(String key) {
+    this.key = key;
+  }
 
-    public String getKey() {
-        return this.key;
-    }
+  public String getKey() {
+    return this.key;
+  }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  public void setMessage(String message) {
+    this.message = message;
+  }
 
-    public String getMessage() {
-        return this.message;
-    }
+  public String getMessage() {
+    return this.message;
+  }
 
-    public void setDetails(String details) {
-        this.details = details;
-    }
+  public void setDetails(String details) {
+    this.details = details;
+  }
 
-    public String getDetails() {
-        return this.details;
-    }
+  public String getDetails() {
+    return this.details;
+  }
 }

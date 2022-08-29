@@ -12,25 +12,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class ImageClient extends BaseClient {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ImageClient.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(ImageClient.class);
 
-    @Override
-    public String getEntityName() {
-        return "images";
-    }
+  @Override
+  public String getEntityName() {
+    return "images";
+  }
 
-    /**
-     * Uploads an image.
-     *
-     * @param name the image name
-     * @param content the image content
-     */
-    public void uploadImage(String name, byte[] content) {
-        logger.debug("Upload image with name = {}", name);
-        authenticatedRestTemplate.put(getBasePathForEntity() + "/" + name, content);
-    }
-
+  /**
+   * Uploads an image.
+   *
+   * @param name the image name
+   * @param content the image content
+   */
+  public void uploadImage(String name, byte[] content) {
+    logger.debug("Upload image with name = {}", name);
+    authenticatedRestTemplate.put(getBasePathForEntity() + "/" + name, content);
+  }
 }

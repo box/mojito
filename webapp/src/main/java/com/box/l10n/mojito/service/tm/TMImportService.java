@@ -19,88 +19,72 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 @Component
 public class TMImportService {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(TMImportService.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(TMImportService.class);
 
-    @Autowired
-    LocaleService localeService;
+  @Autowired LocaleService localeService;
 
-    @Autowired
-    TMService tmService;
+  @Autowired TMService tmService;
 
-    @Autowired
-    AssetRepository assetRepository;
+  @Autowired AssetRepository assetRepository;
 
-    @Autowired
-    AssetService assetService;
+  @Autowired AssetService assetService;
 
-    @Autowired
-    TMTextUnitRepository tmTextUnitRepository;
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
 
-    @Autowired
-    ObjectMapper objectMapper;
+  @Autowired ObjectMapper objectMapper;
 
-    @Autowired
-    ImportExportTextUnitUtils importExportTextUnitUtils;
+  @Autowired ImportExportTextUnitUtils importExportTextUnitUtils;
 
-    /**
-     * Import the exported XLIFF using Okapi driver into repository.
-     *
-     * @param repository
-     * @param xliffContent
-     * @param updateTM indicates if the TM should be updated or if the
-     * translation can be imported assuming that there is no translation yet.
-     */
-    public void importXLIFF(
-            Repository repository,
-            String xliffContent,
-            boolean updateTM) {
+  /**
+   * Import the exported XLIFF using Okapi driver into repository.
+   *
+   * @param repository
+   * @param xliffContent
+   * @param updateTM indicates if the TM should be updated or if the translation can be imported
+   *     assuming that there is no translation yet.
+   */
+  public void importXLIFF(Repository repository, String xliffContent, boolean updateTM) {
 
-        ImportExportedXliffStep importExportedXliffStep = new ImportExportedXliffStep(repository, xliffContent, updateTM);
-        importXLIFF(importExportedXliffStep, xliffContent);
-    }
+    ImportExportedXliffStep importExportedXliffStep =
+        new ImportExportedXliffStep(repository, xliffContent, updateTM);
+    importXLIFF(importExportedXliffStep, xliffContent);
+  }
 
-    /**
-     * Import the exported XLIFF using Okapi driver for a specific asset.
-     *
-     * @param assetId
-     * @param xliffContent
-     * @param updateTM
-     */
-    public void importXLIFF(
-            Long assetId,
-            String xliffContent,
-            boolean updateTM) {
+  /**
+   * Import the exported XLIFF using Okapi driver for a specific asset.
+   *
+   * @param assetId
+   * @param xliffContent
+   * @param updateTM
+   */
+  public void importXLIFF(Long assetId, String xliffContent, boolean updateTM) {
 
-        Asset asset = assetRepository.findById(assetId).orElse(null);
-        ImportExportedXliffStep importExportedXliffStep = new ImportExportedXliffStep(asset, xliffContent, updateTM);
-        importXLIFF(importExportedXliffStep, xliffContent);
-    }
+    Asset asset = assetRepository.findById(assetId).orElse(null);
+    ImportExportedXliffStep importExportedXliffStep =
+        new ImportExportedXliffStep(asset, xliffContent, updateTM);
+    importXLIFF(importExportedXliffStep, xliffContent);
+  }
 
-    @Transactional
-    private void importXLIFF(ImportExportedXliffStep importExportedXliffStep, String xliffContent) {
+  @Transactional
+  private void importXLIFF(ImportExportedXliffStep importExportedXliffStep, String xliffContent) {
 
-        IPipelineDriver driver = new PipelineDriver();
-        XLIFFFilter xliffFilter = new XLIFFFilter();
-        driver.addStep(new RawDocumentToFilterEventsStep(xliffFilter));
+    IPipelineDriver driver = new PipelineDriver();
+    XLIFFFilter xliffFilter = new XLIFFFilter();
+    driver.addStep(new RawDocumentToFilterEventsStep(xliffFilter));
 
-        importExportedXliffStep.setXliffFilter(xliffFilter);
-        driver.addStep(importExportedXliffStep);
+    importExportedXliffStep.setXliffFilter(xliffFilter);
+    driver.addStep(importExportedXliffStep);
 
-        RawDocument rawDocument = new RawDocument(xliffContent, LocaleId.ENGLISH);
+    RawDocument rawDocument = new RawDocument(xliffContent, LocaleId.ENGLISH);
 
-        driver.addBatchItem(rawDocument);
+    driver.addBatchItem(rawDocument);
 
-        logger.debug("Start importing XLIFF");
-        driver.processBatch();
-    }
-
+    logger.debug("Start importing XLIFF");
+    driver.processBatch();
+  }
 }

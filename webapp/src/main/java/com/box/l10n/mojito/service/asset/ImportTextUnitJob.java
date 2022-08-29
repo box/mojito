@@ -8,30 +8,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 @Component
 public class ImportTextUnitJob extends QuartzPollableJob<ImportTextUnitJobInput, Void> {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ImportTextUnitJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(ImportTextUnitJob.class);
 
-    @Autowired
-    TextUnitBatchImporterService textUnitBatchImporterService;
+  @Autowired TextUnitBatchImporterService textUnitBatchImporterService;
 
-    @Autowired
-    PollableTaskService pollableTaskService;
+  @Autowired PollableTaskService pollableTaskService;
 
-    @Override
-    public Void call(ImportTextUnitJobInput input) throws Exception {
-        logger.debug("Run ImportTextUnitJob");
-        textUnitBatchImporterService.importTextUnits(
-                input.getTextUnitDTOs(),
-                input.isIntegrityCheckSkipped(),
-                input.isIntegrityCheckKeepStatusIfFailedAndSameTarget());
-        return null;
-    }
+  @Override
+  public Void call(ImportTextUnitJobInput input) throws Exception {
+    logger.debug("Run ImportTextUnitJob");
+    textUnitBatchImporterService.importTextUnits(
+        input.getTextUnitDTOs(),
+        input.isIntegrityCheckSkipped(),
+        input.isIntegrityCheckKeepStatusIfFailedAndSameTarget());
+    return null;
+  }
 }

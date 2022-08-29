@@ -5,13 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/**
- * @author wyau
- */
+/** @author wyau */
 @RepositoryRestResource(exported = false)
-public interface BoxSDKServiceConfigEntityRepository extends JpaRepository<BoxSDKServiceConfigEntity, Long>, JpaSpecificationExecutor<BoxSDKServiceConfigEntity> {
+public interface BoxSDKServiceConfigEntityRepository
+    extends JpaRepository<BoxSDKServiceConfigEntity, Long>,
+        JpaSpecificationExecutor<BoxSDKServiceConfigEntity> {
 
-    BoxSDKServiceConfigEntity findFirstByOrderByIdAsc();
+  BoxSDKServiceConfigEntity findFirstByOrderByIdAsc();
 
-    Long deleteFirstByOrderByIdAsc();
+  Long deleteFirstByOrderByIdAsc();
 }

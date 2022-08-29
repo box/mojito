@@ -15,38 +15,44 @@ import org.springframework.stereotype.Component;
 
 /**
  * Command to delete a repository
- * 
+ *
  * @author jyi
  */
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"repo-delete"}, commandDescription = "Deletes a repository")
+@Parameters(
+    commandNames = {"repo-delete"},
+    commandDescription = "Deletes a repository")
 public class RepoDeleteCommand extends Command {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(RepoDeleteCommand.class);
-    
-    @Autowired
-    ConsoleWriter consoleWriter;
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(RepoDeleteCommand.class);
 
-    @Parameter(names = {Param.REPOSITORY_NAME_LONG, Param.REPOSITORY_NAME_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_NAME_DESCRIPTION)
-    String nameParam;
-    
-    @Autowired
-    RepositoryClient repositoryClient;
-    
-    @Override
-    protected void execute() throws CommandException {   
-        consoleWriter.a("Delete repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
+  @Autowired ConsoleWriter consoleWriter;
 
-        try {
-            repositoryClient.deleteRepositoryByName(nameParam);
-            consoleWriter.newLine().a("deleted --> repository name: ").fg(Ansi.Color.MAGENTA).a(nameParam).println();
-        } catch (RepositoryNotFoundException ex) {
-            throw new CommandException(ex.getMessage(), ex);
-        }
+  @Parameter(
+      names = {Param.REPOSITORY_NAME_LONG, Param.REPOSITORY_NAME_SHORT},
+      arity = 1,
+      required = true,
+      description = Param.REPOSITORY_NAME_DESCRIPTION)
+  String nameParam;
+
+  @Autowired RepositoryClient repositoryClient;
+
+  @Override
+  protected void execute() throws CommandException {
+    consoleWriter.a("Delete repository: ").fg(Ansi.Color.CYAN).a(nameParam).println();
+
+    try {
+      repositoryClient.deleteRepositoryByName(nameParam);
+      consoleWriter
+          .newLine()
+          .a("deleted --> repository name: ")
+          .fg(Ansi.Color.MAGENTA)
+          .a(nameParam)
+          .println();
+    } catch (RepositoryNotFoundException ex) {
+      throw new CommandException(ex.getMessage(), ex);
     }
-    
+  }
 }

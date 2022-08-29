@@ -3,6 +3,7 @@ package com.box.l10n.mojito;
 import com.box.l10n.mojito.entity.BaseEntity;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.xml.XmlParsingConfiguration;
+import java.io.IOException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -24,14 +25,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import java.io.IOException;
-
 @SpringBootApplication(
-        scanBasePackageClasses = Application.class,
-        exclude = {
-                QuartzAutoConfiguration.class, // We integrated with Quartz before spring supported it
-        }
-)
+    scanBasePackageClasses = Application.class,
+    exclude = {
+      QuartzAutoConfiguration.class, // We integrated with Quartz before spring supported it
+    })
 @EnableSpringConfigured
 @EnableJpaAuditing
 @EnableJpaRepositories
@@ -41,82 +39,80 @@ import java.io.IOException;
 @EntityScan(basePackageClasses = BaseEntity.class)
 public class Application {
 
+  // TODO(spring2), find replacement - this was commented in previous attempt
+  //    @Value("${org.springframework.http.converter.json.indent_output}")
+  boolean shouldIndentJacksonOutput;
 
-    // TODO(spring2), find replacement - this was commented in previous attempt
-    //    @Value("${org.springframework.http.converter.json.indent_output}")
-    boolean shouldIndentJacksonOutput;
+  public static void main(String[] args) throws IOException {
 
-    public static void main(String[] args) throws IOException {
+    XmlParsingConfiguration.disableXPathLimits();
 
-        XmlParsingConfiguration.disableXPathLimits();
+    SpringApplication springApplication = new SpringApplication(Application.class);
+    springApplication.addListeners(new ApplicationPidFileWriter("application.pid"));
+    springApplication.run(args);
+  }
 
-        SpringApplication springApplication = new SpringApplication(Application.class);
-        springApplication.addListeners(new ApplicationPidFileWriter("application.pid"));
-        springApplication.run(args);
-    }
+  /**
+   * Fix Spring scanning issue.
+   *
+   * <p>without this the ObjectMapper instance is not created/available in the container.
+   *
+   * @return
+   */
+  @Bean
+  @Primary
+  public ObjectMapper getObjectMapper() {
+    return new ObjectMapper();
+  }
 
-    /**
-     * Fix Spring scanning issue.
-     * <p>
-     * without this the ObjectMapper instance is not created/available in the
-     * container.
-     *
-     * @return
-     */
-    @Bean
-    @Primary
-    public ObjectMapper getObjectMapper() {
-        return new ObjectMapper();
-    }
+  @Bean(name = "fail_on_unknown_properties_false")
+  public ObjectMapper getObjectMapperFailOnUnknownPropertiesFalse() {
+    ObjectMapper objectMapper = ObjectMapper.withNoFailOnUnknownProperties();
+    return objectMapper;
+  }
 
-    @Bean(name = "fail_on_unknown_properties_false")
-    public ObjectMapper getObjectMapperFailOnUnknownPropertiesFalse() {
-        ObjectMapper objectMapper = ObjectMapper.withNoFailOnUnknownProperties();
-        return objectMapper;
-    }
+  /**
+   * Configuration Jackson ObjectMapper
+   *
+   * @return
+   */
+  @Bean
+  public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+    MappingJackson2HttpMessageConverter mjhmc = new MappingJackson2HttpMessageConverter();
 
-    /**
-     * Configuration Jackson ObjectMapper
-     *
-     * @return
-     */
-    @Bean
-    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
-        MappingJackson2HttpMessageConverter mjhmc = new MappingJackson2HttpMessageConverter();
+    Jackson2ObjectMapperFactoryBean jomfb = new Jackson2ObjectMapperFactoryBean();
+    jomfb.setAutoDetectFields(false);
+    jomfb.setIndentOutput(shouldIndentJacksonOutput);
+    jomfb.afterPropertiesSet();
 
-        Jackson2ObjectMapperFactoryBean jomfb = new Jackson2ObjectMapperFactoryBean();
-        jomfb.setAutoDetectFields(false);
-        jomfb.setIndentOutput(shouldIndentJacksonOutput);
-        jomfb.afterPropertiesSet();
+    mjhmc.setObjectMapper(jomfb.getObject());
+    return mjhmc;
+  }
 
-        mjhmc.setObjectMapper(jomfb.getObject());
-        return mjhmc;
-    }
+  @Bean
+  public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+    ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+    threadPoolTaskScheduler.setPoolSize(5);
+    threadPoolTaskScheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
+    return threadPoolTaskScheduler;
+  }
 
-    @Bean
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(5);
-        threadPoolTaskScheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
-        return threadPoolTaskScheduler;
-    }
+  @Bean
+  public RetryTemplate retryTemplate() {
+    SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+    retryPolicy.setMaxAttempts(6);
 
-    @Bean
-    public RetryTemplate retryTemplate() {
-        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(6);
+    ExponentialRandomBackOffPolicy exponentialRandomBackOffPolicy =
+        new ExponentialRandomBackOffPolicy();
+    exponentialRandomBackOffPolicy.setInitialInterval(10);
+    exponentialRandomBackOffPolicy.setMultiplier(3);
+    exponentialRandomBackOffPolicy.setMaxInterval(5000);
 
-        ExponentialRandomBackOffPolicy exponentialRandomBackOffPolicy = new ExponentialRandomBackOffPolicy();
-        exponentialRandomBackOffPolicy.setInitialInterval(10);
-        exponentialRandomBackOffPolicy.setMultiplier(3);
-        exponentialRandomBackOffPolicy.setMaxInterval(5000);
+    RetryTemplate template = new RetryTemplate();
+    template.setRetryPolicy(retryPolicy);
+    template.setBackOffPolicy(exponentialRandomBackOffPolicy);
+    template.setThrowLastExceptionOnExhausted(true);
 
-        RetryTemplate template = new RetryTemplate();
-        template.setRetryPolicy(retryPolicy);
-        template.setBackOffPolicy(exponentialRandomBackOffPolicy);
-        template.setThrowLastExceptionOnExhausted(true);
-
-        return template;
-    }
-
+    return template;
+  }
 }

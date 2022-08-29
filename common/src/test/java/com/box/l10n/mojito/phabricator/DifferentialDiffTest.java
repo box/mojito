@@ -16,36 +16,42 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {
-        TestWithEnableAutoConfiguration.class,
-        PhabricatorConfiguration.class,
-        PhabricatorConfigurationProperties.class})
+@SpringBootTest(
+    classes = {
+      TestWithEnableAutoConfiguration.class,
+      PhabricatorConfiguration.class,
+      PhabricatorConfigurationProperties.class
+    })
 public class DifferentialDiffTest extends IOTestBase {
 
-    static Logger logger = LoggerFactory.getLogger(DifferentialDiff.class);
+  static Logger logger = LoggerFactory.getLogger(DifferentialDiff.class);
 
-    @Autowired(required = false)
-    PhabricatorHttpClient phabricatorHttpClient;
+  @Autowired(required = false)
+  PhabricatorHttpClient phabricatorHttpClient;
 
-    @Value("${test.l10n.phabricator.differentialdiff.diffId:}")
-    String diffId;
+  @Value("${test.l10n.phabricator.differentialdiff.diffId:}")
+  String diffId;
 
-    @Test
-    public void queryDiff() {
-        Assume.assumeNotNull(phabricatorHttpClient, diffId);
-        DifferentialDiff differentialDiff = new DifferentialDiff(phabricatorHttpClient);
-        QueryDiffsFields revisionPHID = differentialDiff.queryDiff(diffId);
-        QueryDiffsFields queryDiffsFields = differentialDiff.queryDiff(diffId);
-        logger.debug("queryDiff, revision: {}, base commit: {}", queryDiffsFields.getRevisionId(), queryDiffsFields.getSourceControlBaseRevision());
-    }
+  @Test
+  public void queryDiff() {
+    Assume.assumeNotNull(phabricatorHttpClient, diffId);
+    DifferentialDiff differentialDiff = new DifferentialDiff(phabricatorHttpClient);
+    QueryDiffsFields revisionPHID = differentialDiff.queryDiff(diffId);
+    QueryDiffsFields queryDiffsFields = differentialDiff.queryDiff(diffId);
+    logger.debug(
+        "queryDiff, revision: {}, base commit: {}",
+        queryDiffsFields.getRevisionId(),
+        queryDiffsFields.getSourceControlBaseRevision());
+  }
 
-    @Test
-    public void justCallAPI() {
-        Assume.assumeNotNull(phabricatorHttpClient, diffId);
-        ObjectResult objectResult = phabricatorHttpClient.postEntityAndCheckResponse(
-                Method.DIFFERENTIAL_QUERYDIFFS,
-                phabricatorHttpClient.withId(diffId),
-                ObjectResult.class);
-        logger.debug("{}", new ObjectMapper().writeValueAsStringUnchecked(objectResult));
-    }
+  @Test
+  public void justCallAPI() {
+    Assume.assumeNotNull(phabricatorHttpClient, diffId);
+    ObjectResult objectResult =
+        phabricatorHttpClient.postEntityAndCheckResponse(
+            Method.DIFFERENTIAL_QUERYDIFFS,
+            phabricatorHttpClient.withId(diffId),
+            ObjectResult.class);
+    logger.debug("{}", new ObjectMapper().writeValueAsStringUnchecked(objectResult));
+  }
 }

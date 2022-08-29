@@ -11,13 +11,13 @@ import java.util.List;
  * @author garion
  */
 public class TranslationsResponseDTO implements Serializable {
-    private List<TextUnitTranslationGroupDTO> textUnitTranslationGroups = new ArrayList<>();
+  private List<TextUnitTranslationGroupDTO> textUnitTranslationGroups = new ArrayList<>();
 
-    public List<TextUnitTranslationGroupDTO> getTextUnitTranslations() {
-        return textUnitTranslationGroups;
-    }
+  public List<TextUnitTranslationGroupDTO> getTextUnitTranslations() {
+    return textUnitTranslationGroups;
+  }
 
-    public void setTextUnitTranslations(List<TextUnitTranslationGroupDTO> textUnitTranslationGroups) {
-        this.textUnitTranslationGroups = textUnitTranslationGroups;
-    }
+  public void setTextUnitTranslations(List<TextUnitTranslationGroupDTO> textUnitTranslationGroups) {
+    this.textUnitTranslationGroups = textUnitTranslationGroups;
+  }
 }

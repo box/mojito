@@ -4,14 +4,12 @@ import org.aspectj.lang.Aspects;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @author aloison
- */
+/** @author aloison */
 @Configuration
 public class PollableAspectConfig {
 
-    @Bean
-    public PollableAspect getPollableAspect() {
-        return Aspects.aspectOf(PollableAspect.class);
-    }
+  @Bean
+  public PollableAspect getPollableAspect() {
+    return Aspects.aspectOf(PollableAspect.class);
+  }
 }

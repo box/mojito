@@ -11,41 +11,34 @@ import com.github.pnowy.nc.utils.Strings;
  */
 public class NativeColumnNotEqExp implements NativeExp {
 
-    /**
-     * Right column name.
-     */
-    private String right;
+  /** Right column name. */
+  private String right;
 
-    /**
-     * Left column name.
-     */
-    private String left;
+  /** Left column name. */
+  private String left;
 
-    /**
-     *
-     * @param right right column name
-     * @param left left column name
-     */
-    public NativeColumnNotEqExp(String right, String left) {
-        if (Strings.isBlank(right)) {
-            throw new IllegalStateException("columnName is null!");
-        }
-        if (Strings.isBlank(left)) {
-            throw new IllegalStateException("value is null!");
-        }
-
-        this.right = right;
-        this.left = left;
+  /**
+   * @param right right column name
+   * @param left left column name
+   */
+  public NativeColumnNotEqExp(String right, String left) {
+    if (Strings.isBlank(right)) {
+      throw new IllegalStateException("columnName is null!");
+    }
+    if (Strings.isBlank(left)) {
+      throw new IllegalStateException("value is null!");
     }
 
-    @Override
-    public String toSQL() {
+    this.right = right;
+    this.left = left;
+  }
 
-        return right + " != " + left;
-    }
+  @Override
+  public String toSQL() {
 
-    @Override
-    public void setValues(NativeQuery query) {
-    }
+    return right + " != " + left;
+  }
 
+  @Override
+  public void setValues(NativeQuery query) {}
 }

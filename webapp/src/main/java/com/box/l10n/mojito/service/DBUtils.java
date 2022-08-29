@@ -6,14 +6,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class DBUtils {
 
-    @Value("${spring.datasource.url}")
-    String url;
+  @Value("${spring.datasource.url}")
+  String url;
 
-    public boolean isMysql() {
-        return url.contains("mysql");
-    }
+  public boolean isMysql() {
+    return url.contains("mysql");
+  }
 
-    public boolean isHsql() {
-        return url.contains("hsqldb");
-    }
+  public boolean isHsql() {
+    return url.contains("hsqldb");
+  }
 }

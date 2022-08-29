@@ -8,12 +8,10 @@ import java.lang.annotation.Target;
 /**
  * Annotation to put on methods to retry
  *
- * See {@link RetryAspect} for details
+ * <p>See {@link RetryAspect} for details
  *
  * @author jaurambault
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Retry {
-
-}
+public @interface Retry {}

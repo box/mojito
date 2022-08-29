@@ -3,7 +3,6 @@ package com.box.l10n.mojito.entity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.springframework.data.annotation.CreatedBy;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,109 +12,103 @@ import javax.persistence.ForeignKey;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import org.springframework.data.annotation.CreatedBy;
 
 /**
- * Contains comments for a {@link TMTextUnitVariant} with different levels of
- * severity which are linked implicitly to {@link TMTextUnitVariant#reviewNeeded}
- * and {@link TMTextUnitVariant#includedInLocalizedFile}.
+ * Contains comments for a {@link TMTextUnitVariant} with different levels of severity which are
+ * linked implicitly to {@link TMTextUnitVariant#reviewNeeded} and {@link
+ * TMTextUnitVariant#includedInLocalizedFile}.
  *
  * @author jaurambault
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
-@Table(
-        name = "tm_text_unit_variant_comment"
-)
+@Table(name = "tm_text_unit_variant_comment")
 public class TMTextUnitVariantComment extends AuditableEntity {
 
+  /** Types of comment */
+  public enum Type {
+    LEVERAGING,
+    INTEGRITY_CHECK,
+    QUALITY_CHECK
+  }
+
+  public enum Severity {
+
+    /** Provides information that doesn't require reviews. */
+    INFO,
+    /** Should be reviewed but the {@link TMTextUnitVariant} can be included. */
+    WARNING,
     /**
-     * Types of comment
+     * Must be reviewed, {@link TMTextUnitVariant} must not be included in generated files, see
+     * {@link TMTextUnitVariant#includedInLocalizedFile}.
      */
-    public enum Type {
-        LEVERAGING,
-        INTEGRITY_CHECK,
-        QUALITY_CHECK
-    }
+    ERROR,
+  }
 
-    public enum Severity {
+  @JsonBackReference
+  @Basic(optional = false)
+  @ManyToOne
+  @JoinColumn(
+      name = "tm_text_unit_variant_id",
+      foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT_COMMENT__TM_TEXT_UNIT_VARIANT__ID"))
+  private TMTextUnitVariant tmTextUnitVariant;
 
-        /**
-         * Provides information that doesn't require reviews.
-         */
-        INFO,
-        /**
-         * Should be reviewed but the {@link TMTextUnitVariant} can be included.
-         */
-        WARNING,
-        /**
-         * Must be reviewed, {@link TMTextUnitVariant} must not be included in
-         * generated files, see
-         * {@link TMTextUnitVariant#includedInLocalizedFile}.
-         */
-        ERROR,
-    }
+  @Column(name = "severity")
+  @Enumerated(EnumType.STRING)
+  private Severity severity;
 
+  @Column(name = "type")
+  @Enumerated(EnumType.STRING)
+  private Type type;
 
-    @JsonBackReference
-    @Basic(optional = false)
-    @ManyToOne
-    @JoinColumn(name = "tm_text_unit_variant_id", foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT_COMMENT__TM_TEXT_UNIT_VARIANT__ID"))
-    private TMTextUnitVariant tmTextUnitVariant;
+  @Column(name = "content", length = Integer.MAX_VALUE)
+  private String content;
 
-    @Column(name = "severity")
-    @Enumerated(EnumType.STRING)
-    private Severity severity;
+  @CreatedBy
+  @ManyToOne
+  @JoinColumn(
+      name = BaseEntity.CreatedByUserColumnName,
+      foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT_COMMENT__USER__ID"))
+  protected User createdByUser;
 
-    @Column(name = "type")
-    @Enumerated(EnumType.STRING)
-    private Type type;
+  public User getCreatedByUser() {
+    return createdByUser;
+  }
 
-    @Column(name = "content", length = Integer.MAX_VALUE)
-    private String content;
+  public void setCreatedByUser(User createdByUser) {
+    this.createdByUser = createdByUser;
+  }
 
-    @CreatedBy
-    @ManyToOne
-    @JoinColumn(name = BaseEntity.CreatedByUserColumnName, foreignKey = @ForeignKey(name = "FK__TM_TEXT_UNIT_VARIANT_COMMENT__USER__ID"))
-    protected User createdByUser;
+  public TMTextUnitVariant getTmTextUnitVariant() {
+    return tmTextUnitVariant;
+  }
 
-    public User getCreatedByUser() {
-        return createdByUser;
-    }
+  public void setTmTextUnitVariant(TMTextUnitVariant tmTextUnitVariant) {
+    this.tmTextUnitVariant = tmTextUnitVariant;
+  }
 
-    public void setCreatedByUser(User createdByUser) {
-        this.createdByUser = createdByUser;
-    }
+  public Severity getSeverity() {
+    return severity;
+  }
 
-    public TMTextUnitVariant getTmTextUnitVariant() {
-        return tmTextUnitVariant;
-    }
+  public void setSeverity(Severity severity) {
+    this.severity = severity;
+  }
 
-    public void setTmTextUnitVariant(TMTextUnitVariant tmTextUnitVariant) {
-        this.tmTextUnitVariant = tmTextUnitVariant;
-    }
+  public Type getType() {
+    return type;
+  }
 
-    public Severity getSeverity() {
-        return severity;
-    }
+  public void setType(Type type) {
+    this.type = type;
+  }
 
-    public void setSeverity(Severity severity) {
-        this.severity = severity;
-    }
+  public String getContent() {
+    return content;
+  }
 
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
+  public void setContent(String content) {
+    this.content = content;
+  }
 }

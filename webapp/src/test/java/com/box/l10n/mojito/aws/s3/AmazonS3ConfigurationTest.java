@@ -14,26 +14,30 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {AmazonS3ConfigurationTest.class, AmazonS3ConfigurationProperties.class, AmazonS3Configuration.class})
+@SpringBootTest(
+    classes = {
+      AmazonS3ConfigurationTest.class,
+      AmazonS3ConfigurationProperties.class,
+      AmazonS3Configuration.class
+    })
 @EnableConfigurationProperties
 public class AmazonS3ConfigurationTest {
 
-    static Logger logger = LoggerFactory.getLogger(AmazonS3ConfigurationTest.class);
+  static Logger logger = LoggerFactory.getLogger(AmazonS3ConfigurationTest.class);
 
-    @Autowired(required = false)
-    AmazonS3 amazonS3;
+  @Autowired(required = false)
+  AmazonS3 amazonS3;
 
-    @Autowired
-    AmazonS3ConfigurationProperties amazonS3ConfigurationProperties;
+  @Autowired AmazonS3ConfigurationProperties amazonS3ConfigurationProperties;
 
-    @Before
-    public void before() {
-        Assume.assumeNotNull(amazonS3);
-    }
+  @Before
+  public void before() {
+    Assume.assumeNotNull(amazonS3);
+  }
 
-    @Ignore("Placeholder to test amazon client")
-    @Test
-    public void testPutString() {
-        amazonS3.putObject("change-me", "testkey", "काहीतरी");
-    }
+  @Ignore("Placeholder to test amazon client")
+  @Test
+  public void testPutString() {
+    amazonS3.putObject("change-me", "testkey", "काहीतरी");
+  }
 }

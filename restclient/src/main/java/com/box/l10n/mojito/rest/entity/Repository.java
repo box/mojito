@@ -2,109 +2,105 @@ package com.box.l10n.mojito.rest.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Entity that describes a repository.
- * This entity mirrors: com.box.l10n.mojito.entity.Repository
+ * Entity that describes a repository. This entity mirrors: com.box.l10n.mojito.entity.Repository
  *
  * @author wyau
  */
 public class Repository {
 
-    private Long id;
+  private Long id;
 
-    private String name;
+  private String name;
 
-    private String description;
-    
-    private Boolean deleted;
+  private String description;
 
-    private Boolean checkSLA;
+  private Boolean deleted;
 
-    private Locale sourceLocale;
+  private Boolean checkSLA;
 
-    @JsonManagedReference
-    Set<RepositoryLocale> repositoryLocales = new HashSet<>();
+  private Locale sourceLocale;
 
-    @JsonManagedReference
-    @JsonProperty("assetIntegrityCheckers")
-    Set<IntegrityChecker> integrityCheckers = new HashSet<>();
+  @JsonManagedReference Set<RepositoryLocale> repositoryLocales = new HashSet<>();
 
-    RepositoryStatistic repositoryStatistic;
+  @JsonManagedReference
+  @JsonProperty("assetIntegrityCheckers")
+  Set<IntegrityChecker> integrityCheckers = new HashSet<>();
 
-    public Long getId() {
-        return id;
-    }
+  RepositoryStatistic repositoryStatistic;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public String getDescription() {
-        return description;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+  public String getDescription() {
+    return description;
+  }
 
-    public Locale getSourceLocale() {
-        return sourceLocale;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public void setSourceLocale(Locale sourceLocale) {
-        this.sourceLocale = sourceLocale;
-    }
+  public Locale getSourceLocale() {
+    return sourceLocale;
+  }
 
-    public Set<RepositoryLocale> getRepositoryLocales() {
-        return repositoryLocales;
-    }
+  public void setSourceLocale(Locale sourceLocale) {
+    this.sourceLocale = sourceLocale;
+  }
 
-    public void setRepositoryLocales(Set<RepositoryLocale> repositoryLocales) {
-        this.repositoryLocales = repositoryLocales;
-    }
+  public Set<RepositoryLocale> getRepositoryLocales() {
+    return repositoryLocales;
+  }
 
-    public Set<IntegrityChecker> getIntegrityCheckers() {
-        return integrityCheckers;
-    }
+  public void setRepositoryLocales(Set<RepositoryLocale> repositoryLocales) {
+    this.repositoryLocales = repositoryLocales;
+  }
 
-    public void setIntegrityCheckers(Set<IntegrityChecker> integrityCheckers) {
-        this.integrityCheckers = integrityCheckers;
-    }
+  public Set<IntegrityChecker> getIntegrityCheckers() {
+    return integrityCheckers;
+  }
 
-    public Boolean getDeleted() {
-        return deleted;
-    }
+  public void setIntegrityCheckers(Set<IntegrityChecker> integrityCheckers) {
+    this.integrityCheckers = integrityCheckers;
+  }
 
-    public void setDeleted(Boolean deleted) {
-        this.deleted = deleted;
-    }
+  public Boolean getDeleted() {
+    return deleted;
+  }
 
-    public Boolean getCheckSLA() {
-        return checkSLA;
-    }
+  public void setDeleted(Boolean deleted) {
+    this.deleted = deleted;
+  }
 
-    public void setCheckSLA(Boolean checkSLA) {
-        this.checkSLA = checkSLA;
-    }
+  public Boolean getCheckSLA() {
+    return checkSLA;
+  }
 
-    public RepositoryStatistic getRepositoryStatistic() {
-        return repositoryStatistic;
-    }
+  public void setCheckSLA(Boolean checkSLA) {
+    this.checkSLA = checkSLA;
+  }
 
-    public void setRepositoryStatistic(RepositoryStatistic repositoryStatistic) {
-        this.repositoryStatistic = repositoryStatistic;
-    }
+  public RepositoryStatistic getRepositoryStatistic() {
+    return repositoryStatistic;
+  }
 
+  public void setRepositoryStatistic(RepositoryStatistic repositoryStatistic) {
+    this.repositoryStatistic = repositoryStatistic;
+  }
 }

@@ -11,43 +11,41 @@ import org.springframework.beans.factory.annotation.Configurable;
 
 /**
  * Performs leveraging based using the provided TmTextUnit id
- * 
+ *
  * @author jaurambault
  */
 @Configurable
 public class LeveragerByTmTextUnit extends AbstractLeverager {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(LeveragerByTmTextUnit.class);
-    
-    Long tmTextUnitId;
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(LeveragerByTmTextUnit.class);
 
-    public LeveragerByTmTextUnit(Long tmTextUnitId) {
-        this.tmTextUnitId = tmTextUnitId;
-    }
-    
-    @Override
-    public List<TextUnitDTO> getLeveragingMatches(TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
-        logger.debug("Get TextUnitDTOs for leveraging with TmTextUnit");
+  Long tmTextUnitId;
 
-        TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-        textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
-        textUnitSearcherParameters.setAssetId(sourceAssetId);
-        textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
+  public LeveragerByTmTextUnit(Long tmTextUnitId) {
+    this.tmTextUnitId = tmTextUnitId;
+  }
 
-        return textUnitSearcher.search(textUnitSearcherParameters);
-    }
+  @Override
+  public List<TextUnitDTO> getLeveragingMatches(
+      TMTextUnit tmTextUnit, Long sourceTmId, Long sourceAssetId) {
+    logger.debug("Get TextUnitDTOs for leveraging with TmTextUnit");
 
-    @Override
-    public boolean isTranslationNeededIfUniqueMatch() {
-        return true;
-    }
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitId);
+    textUnitSearcherParameters.setAssetId(sourceAssetId);
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.TRANSLATED);
 
-    @Override
-    public String getType() {
-        return "Leverage with TmTextUnit";
-    }
+    return textUnitSearcher.search(textUnitSearcherParameters);
+  }
 
+  @Override
+  public boolean isTranslationNeededIfUniqueMatch() {
+    return true;
+  }
+
+  @Override
+  public String getType() {
+    return "Leverage with TmTextUnit";
+  }
 }

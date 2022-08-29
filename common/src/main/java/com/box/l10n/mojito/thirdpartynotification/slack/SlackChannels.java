@@ -11,26 +11,27 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty("l10n.slack.token")
 public class SlackChannels {
 
-    @Autowired
-    SlackClient slackClient;
+  @Autowired SlackClient slackClient;
 
-    public String getSlackChannelForDirectOrBotMessage(boolean useDirectMessage, String username, String userEmailPattern) throws SlackClientException {
-        String channel;
+  public String getSlackChannelForDirectOrBotMessage(
+      boolean useDirectMessage, String username, String userEmailPattern)
+      throws SlackClientException {
+    String channel;
 
-        if (useDirectMessage) {
-            channel = slackClient.getInstantMessageChannel(getEmail(userEmailPattern, username)).getId();
-        } else {
-            channel = getSlackbotChannel(username);
-        }
-
-        return channel;
+    if (useDirectMessage) {
+      channel = slackClient.getInstantMessageChannel(getEmail(userEmailPattern, username)).getId();
+    } else {
+      channel = getSlackbotChannel(username);
     }
 
-    private String getSlackbotChannel(String username) {
-        return "@" + username;
-    }
+    return channel;
+  }
 
-    private String getEmail(String userEmailPattern, String username) {
-        return MessageFormat.format(userEmailPattern, username);
-    }
+  private String getSlackbotChannel(String username) {
+    return "@" + username;
+  }
+
+  private String getEmail(String userEmailPattern, String username) {
+    return MessageFormat.format(userEmailPattern, username);
+  }
 }

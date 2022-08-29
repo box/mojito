@@ -17,56 +17,49 @@ import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.stereotype.Component;
 
-/**
- * @author aloison
- */
+/** @author aloison */
 @Profile("!disablescheduling")
 @Configuration
 @Component
 @DisallowConcurrentExecution
 public class PollableTaskCleanupJob implements Job {
 
-    static final String FINISH_ZOMBIE_TASKS_WITH_ERROR = "Finish zombie tasks with error";
+  static final String FINISH_ZOMBIE_TASKS_WITH_ERROR = "Finish zombie tasks with error";
 
-    /**
-     * in milliseconds
-     */
-    static final int REPEAT_INTERVAL = 30000;
+  /** in milliseconds */
+  static final int REPEAT_INTERVAL = 30000;
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(PollableTaskCleanupJob.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(PollableTaskCleanupJob.class);
 
+  @Autowired PollableTaskCleanupService pollableTaskCleanupService;
 
-    @Autowired
-    PollableTaskCleanupService pollableTaskCleanupService;
+  /**
+   * @see PollableTaskCleanupService#finishZombieTasksWithError() It is triggered every 30 seconds
+   *     (= 30,000 milliseconds).
+   */
+  @Override
+  public void execute(JobExecutionContext context) throws JobExecutionException {
+    logger.debug(FINISH_ZOMBIE_TASKS_WITH_ERROR);
+    pollableTaskCleanupService.finishZombieTasksWithError();
+  }
 
-    /**
-     * @see PollableTaskCleanupService#finishZombieTasksWithError()
-     * It is triggered every 30 seconds (= 30,000 milliseconds).
-     */
-    @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        logger.debug(FINISH_ZOMBIE_TASKS_WITH_ERROR);
-        pollableTaskCleanupService.finishZombieTasksWithError();
-    }
+  @Bean(name = "jobDetailPollableTaskCleanup")
+  public JobDetailFactoryBean jobDetailPollableTaskCleanup() {
+    JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+    jobDetailFactory.setJobClass(PollableTaskCleanupJob.class);
+    jobDetailFactory.setDescription(FINISH_ZOMBIE_TASKS_WITH_ERROR);
+    jobDetailFactory.setDurability(true);
+    return jobDetailFactory;
+  }
 
-    @Bean(name = "jobDetailPollableTaskCleanup")
-    public JobDetailFactoryBean jobDetailPollableTaskCleanup() {
-        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
-        jobDetailFactory.setJobClass(PollableTaskCleanupJob.class);
-        jobDetailFactory.setDescription(FINISH_ZOMBIE_TASKS_WITH_ERROR);
-        jobDetailFactory.setDurability(true);
-        return jobDetailFactory;
-    }
-
-    @Bean
-    public SimpleTriggerFactoryBean triggerPollableTaskCleanup(@Qualifier("jobDetailPollableTaskCleanup") JobDetail job) {
-        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
-        trigger.setJobDetail(job);
-        trigger.setRepeatInterval(REPEAT_INTERVAL);
-        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-        return trigger;
-    }
+  @Bean
+  public SimpleTriggerFactoryBean triggerPollableTaskCleanup(
+      @Qualifier("jobDetailPollableTaskCleanup") JobDetail job) {
+    SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
+    trigger.setJobDetail(job);
+    trigger.setRepeatInterval(REPEAT_INTERVAL);
+    trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+    return trigger;
+  }
 }

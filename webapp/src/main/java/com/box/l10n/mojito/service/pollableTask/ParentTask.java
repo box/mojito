@@ -6,13 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The annotated parameter will be used as parent task for the current
- * pollable task.
+ * The annotated parameter will be used as parent task for the current pollable task.
  *
  * @author jaurambault
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface ParentTask {
-
-}
+public @interface ParentTask {}

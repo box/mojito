@@ -7,64 +7,63 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *
- * @author jaurambault
- */
+/** @author jaurambault */
 public class NativeInExpFix implements NativeExp {
 
-    private static final Logger log = LoggerFactory.getLogger(NativeInExpFix.class);
-    private String columnName;
-    @SuppressWarnings("unchecked")
-    private Collection values;
-    private Object[] arrValues;
-    private String varName;
+  private static final Logger log = LoggerFactory.getLogger(NativeInExpFix.class);
+  private String columnName;
 
-    /**
-     * @param columnName the column name
-     * @param values the values
-     */
-    @SuppressWarnings("unchecked")
-    public NativeInExpFix(String columnName, Collection values) {
-        if (Strings.isBlank(columnName)) {
-            throw new IllegalStateException("columnName is null!");
-        }
-        if (values == null) {
-            throw new IllegalStateException("values is null!");
-        }
+  @SuppressWarnings("unchecked")
+  private Collection values;
 
-        this.columnName = columnName;
-        this.values = values;
+  private Object[] arrValues;
+  private String varName;
+
+  /**
+   * @param columnName the column name
+   * @param values the values
+   */
+  @SuppressWarnings("unchecked")
+  public NativeInExpFix(String columnName, Collection values) {
+    if (Strings.isBlank(columnName)) {
+      throw new IllegalStateException("columnName is null!");
+    }
+    if (values == null) {
+      throw new IllegalStateException("values is null!");
     }
 
-    /**
-     * @param columnName the column name
-     * @param values the values
-     */
-    public NativeInExpFix(String columnName, Object[] values) {
-        if (Strings.isBlank(columnName)) {
-            throw new IllegalStateException("columnName is null!");
-        }
-        if (values == null) {
-            throw new IllegalStateException("values is null!");
-        }
+    this.columnName = columnName;
+    this.values = values;
+  }
 
-        this.columnName = columnName;
-        this.arrValues = values;
+  /**
+   * @param columnName the column name
+   * @param values the values
+   */
+  public NativeInExpFix(String columnName, Object[] values) {
+    if (Strings.isBlank(columnName)) {
+      throw new IllegalStateException("columnName is null!");
+    }
+    if (values == null) {
+      throw new IllegalStateException("values is null!");
     }
 
-    @Override
-    public String toSQL() {
-        varName = VarGenerator.gen(columnName);
-        return columnName + " IN (:" + varName + ")";
-    }
+    this.columnName = columnName;
+    this.arrValues = values;
+  }
 
-    @Override
-    public void setValues(NativeQuery query) {
-        if (values != null) {
-            query.setParameterList(varName, values);
-        } else if (arrValues != null) {
-            query.setParameterList(varName, arrValues);
-        }
+  @Override
+  public String toSQL() {
+    varName = VarGenerator.gen(columnName);
+    return columnName + " IN (:" + varName + ")";
+  }
+
+  @Override
+  public void setValues(NativeQuery query) {
+    if (values != null) {
+      query.setParameterList(varName, values);
+    } else if (arrValues != null) {
+      query.setParameterList(varName, arrValues);
     }
+  }
 }

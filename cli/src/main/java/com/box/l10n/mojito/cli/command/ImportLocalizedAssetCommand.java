@@ -17,6 +17,11 @@ import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody;
 import com.box.l10n.mojito.rest.entity.ImportLocalizedAssetBody.StatusForEqualTarget;
 import com.box.l10n.mojito.rest.entity.Locale;
 import com.box.l10n.mojito.rest.entity.Repository;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,161 +29,197 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-/**
- * @author jaurambault
- */
+/** @author jaurambault */
 @Component
 @Scope("prototype")
-@Parameters(commandNames = {"import"}, commandDescription = "Import localized assets into the TMS")
+@Parameters(
+    commandNames = {"import"},
+    commandDescription = "Import localized assets into the TMS")
 public class ImportLocalizedAssetCommand extends Command {
 
-    /**
-     * logger
-     */
-    static Logger logger = LoggerFactory.getLogger(ImportLocalizedAssetCommand.class);
+  /** logger */
+  static Logger logger = LoggerFactory.getLogger(ImportLocalizedAssetCommand.class);
 
-    @Autowired
-    ConsoleWriter consoleWriter;
+  @Autowired ConsoleWriter consoleWriter;
 
-    @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
-    String repositoryParam;
+  @Parameter(
+      names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT},
+      arity = 1,
+      required = true,
+      description = Param.REPOSITORY_DESCRIPTION)
+  String repositoryParam;
 
-    @Parameter(names = {Param.SOURCE_DIRECTORY_LONG, Param.SOURCE_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.SOURCE_DIRECTORY_DESCRIPTION)
-    String sourceDirectoryParam;
+  @Parameter(
+      names = {Param.SOURCE_DIRECTORY_LONG, Param.SOURCE_DIRECTORY_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.SOURCE_DIRECTORY_DESCRIPTION)
+  String sourceDirectoryParam;
 
-    @Parameter(names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT}, arity = 1, required = false, description = Param.TARGET_DIRECTORY_DESCRIPTION)
-    String targetDirectoryParam;
+  @Parameter(
+      names = {Param.TARGET_DIRECTORY_LONG, Param.TARGET_DIRECTORY_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.TARGET_DIRECTORY_DESCRIPTION)
+  String targetDirectoryParam;
 
-    @Parameter(names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT}, arity = 1, required = false, description = Param.REPOSITORY_LOCALES_MAPPING_DESCRIPTION)
-    String localeMappingParam;
+  @Parameter(
+      names = {Param.REPOSITORY_LOCALES_MAPPING_LONG, Param.REPOSITORY_LOCALES_MAPPING_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.REPOSITORY_LOCALES_MAPPING_DESCRIPTION)
+  String localeMappingParam;
 
-    @Parameter(names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT}, arity = 1, required = false, description = Param.FILE_TYPE_DESCRIPTION,
-            converter = FileTypeConverter.class)
-    FileType fileType;
+  @Parameter(
+      names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.FILE_TYPE_DESCRIPTION,
+      converter = FileTypeConverter.class)
+  FileType fileType;
 
-    @Parameter(names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT}, variableArity = true, required = false, description = Param.FILTER_OPTIONS_DESCRIPTION)
-    List<String> filterOptionsParam;
+  @Parameter(
+      names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT},
+      variableArity = true,
+      required = false,
+      description = Param.FILTER_OPTIONS_DESCRIPTION)
+  List<String> filterOptionsParam;
 
-    @Parameter(names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT}, arity = 1, required = false, description = Param.SOURCE_LOCALE_DESCRIPTION)
-    String sourceLocale;
+  @Parameter(
+      names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.SOURCE_LOCALE_DESCRIPTION)
+  String sourceLocale;
 
-    @Parameter(names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT}, arity = 1, required = false, description = Param.SOURCE_REGEX_DESCRIPTION)
-    String sourcePathFilterRegex;
+  @Parameter(
+      names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT},
+      arity = 1,
+      required = false,
+      description = Param.SOURCE_REGEX_DESCRIPTION)
+  String sourcePathFilterRegex;
 
-    @Parameter(names = {"--status-equal-target"}, required = false, description = "Status of the imported translation when the target is the same as "
-            + "the parent (SKIPPED for no import). Applies only to fully translated locales",
-            converter = ImportLocalizedAssetBodyStatusForEqualTargetConverter.class)
-    StatusForEqualTarget statusForEqualTarget = StatusForEqualTarget.APPROVED;
+  @Parameter(
+      names = {"--status-equal-target"},
+      required = false,
+      description =
+          "Status of the imported translation when the target is the same as "
+              + "the parent (SKIPPED for no import). Applies only to fully translated locales",
+      converter = ImportLocalizedAssetBodyStatusForEqualTargetConverter.class)
+  StatusForEqualTarget statusForEqualTarget = StatusForEqualTarget.APPROVED;
 
-    @Autowired
-    AssetClient assetClient;
+  @Autowired AssetClient assetClient;
 
-    @Autowired
-    LocaleClient localeClient;
+  @Autowired LocaleClient localeClient;
 
-    @Autowired
-    RepositoryClient repositoryClient;
+  @Autowired RepositoryClient repositoryClient;
 
-    @Autowired
-    CommandHelper commandHelper;
+  @Autowired CommandHelper commandHelper;
 
-    @Autowired
-    LocaleMappingHelper localeMappingHelper;
+  @Autowired LocaleMappingHelper localeMappingHelper;
 
-    Repository repository;
+  Repository repository;
 
-    CommandDirectories commandDirectories;
+  CommandDirectories commandDirectories;
 
-    /**
-     * Contains a map of locale for generating localized file a locales defined
-     * in the repository.
-     */
-    Map<String, String> inverseLocaleMapping;
+  /** Contains a map of locale for generating localized file a locales defined in the repository. */
+  Map<String, String> inverseLocaleMapping;
 
-    @Override
-    public void execute() throws CommandException {
+  @Override
+  public void execute() throws CommandException {
 
-        consoleWriter.newLine().a("Start importing localized files for repository: ").fg(Ansi.Color.CYAN).a(repositoryParam).println(2);
+    consoleWriter
+        .newLine()
+        .a("Start importing localized files for repository: ")
+        .fg(Ansi.Color.CYAN)
+        .a(repositoryParam)
+        .println(2);
 
-        repository = commandHelper.findRepositoryByName(repositoryParam);
-        commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
-        inverseLocaleMapping = localeMappingHelper.getInverseLocaleMapping(localeMappingParam);
+    repository = commandHelper.findRepositoryByName(repositoryParam);
+    commandDirectories = new CommandDirectories(sourceDirectoryParam, targetDirectoryParam);
+    inverseLocaleMapping = localeMappingHelper.getInverseLocaleMapping(localeMappingParam);
 
-        for (FileMatch sourceFileMatch : commandHelper.getSourceFileMatches(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
-            for (Locale locale : getLocalesForImport()) {
-                doImportFileMatch(sourceFileMatch, locale);
-            }
+    for (FileMatch sourceFileMatch :
+        commandHelper.getSourceFileMatches(
+            commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
+      for (Locale locale : getLocalesForImport()) {
+        doImportFileMatch(sourceFileMatch, locale);
+      }
+    }
+
+    consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+  }
+
+  protected void doImportFileMatch(FileMatch fileMatch, Locale locale) throws CommandException {
+    try {
+      logger.info("Importing for locale: {}", locale.getBcp47Tag());
+      Path targetPath = getTargetPath(fileMatch, locale);
+
+      consoleWriter
+          .a(" - Importing file: ")
+          .fg(Ansi.Color.MAGENTA)
+          .a(targetPath.toString())
+          .println();
+
+      Asset assetByPathAndRepositoryId =
+          assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
+
+      ImportLocalizedAssetBody importLocalizedAssetForContent =
+          assetClient.importLocalizedAssetForContent(
+              assetByPathAndRepositoryId.getId(),
+              locale.getId(),
+              commandHelper.getFileContent(targetPath),
+              statusForEqualTarget,
+              fileMatch.getFileType().getFilterConfigIdOverride(),
+              commandHelper.getFilterOptionsOrDefaults(
+                  fileMatch.getFileType(), filterOptionsParam));
+
+      try {
+        commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());
+      } catch (PollableTaskException e) {
+        throw new CommandException(e.getMessage(), e.getCause());
+      }
+    } catch (AssetNotFoundException ex) {
+      throw new CommandException(
+          "No asset for file [" + fileMatch.getPath() + "] into repo [" + repositoryParam + "]",
+          ex);
+    }
+  }
+
+  public Collection<Locale> getLocalesForImport() {
+    Collection<Locale> sortedRepositoryLocales =
+        commandHelper.getSortedRepositoryLocales(repository).values();
+    filterLocalesWithMapping(sortedRepositoryLocales);
+    return sortedRepositoryLocales;
+  }
+
+  private void filterLocalesWithMapping(Collection<Locale> locales) {
+
+    if (inverseLocaleMapping != null) {
+      Iterator<Locale> iterator = locales.iterator();
+      while (iterator.hasNext()) {
+        Locale l = iterator.next();
+        if (!inverseLocaleMapping.containsKey(l.getBcp47Tag())) {
+          iterator.remove();
         }
+      }
+    }
+  }
 
-        consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Finished").println(2);
+  private Path getTargetPath(FileMatch fileMatch, Locale locale) throws CommandException {
+
+    String targetLocale;
+
+    if (inverseLocaleMapping != null) {
+      targetLocale = inverseLocaleMapping.get(locale.getBcp47Tag());
+    } else {
+      targetLocale = locale.getBcp47Tag();
     }
 
-    protected void doImportFileMatch(FileMatch fileMatch, Locale locale) throws CommandException {
-        try {
-            logger.info("Importing for locale: {}", locale.getBcp47Tag());
-            Path targetPath = getTargetPath(fileMatch, locale);
+    logger.info("processing locale for import: {}", targetLocale);
+    Path targetPath =
+        commandDirectories.getTargetDirectoryPath().resolve(fileMatch.getTargetPath(targetLocale));
 
-            consoleWriter.a(" - Importing file: ").fg(Ansi.Color.MAGENTA).a(targetPath.toString()).println();
-
-            Asset assetByPathAndRepositoryId = assetClient.getAssetByPathAndRepositoryId(fileMatch.getSourcePath(), repository.getId());
-
-            ImportLocalizedAssetBody importLocalizedAssetForContent = assetClient.importLocalizedAssetForContent(assetByPathAndRepositoryId.getId(),
-                    locale.getId(),
-                    commandHelper.getFileContent(targetPath),
-                    statusForEqualTarget,
-                    fileMatch.getFileType().getFilterConfigIdOverride(),
-                    commandHelper.getFilterOptionsOrDefaults(fileMatch.getFileType(), filterOptionsParam)
-            );
-
-            try {
-                commandHelper.waitForPollableTask(importLocalizedAssetForContent.getPollableTask().getId());
-            } catch (PollableTaskException e) {
-                throw new CommandException(e.getMessage(), e.getCause());
-            }
-        } catch (AssetNotFoundException ex) {
-            throw new CommandException("No asset for file [" + fileMatch.getPath() + "] into repo [" + repositoryParam + "]", ex);
-        }
-    }
-
-    public Collection<Locale> getLocalesForImport() {
-        Collection<Locale> sortedRepositoryLocales = commandHelper.getSortedRepositoryLocales(repository).values();
-        filterLocalesWithMapping(sortedRepositoryLocales);
-        return sortedRepositoryLocales;
-    }
-
-    private void filterLocalesWithMapping(Collection<Locale> locales) {
-
-        if (inverseLocaleMapping != null) {
-            Iterator<Locale> iterator = locales.iterator();
-            while (iterator.hasNext()) {
-                Locale l = iterator.next();
-                if (!inverseLocaleMapping.containsKey(l.getBcp47Tag())) {
-                    iterator.remove();
-                }
-            }
-        }
-    }
-
-    private Path getTargetPath(FileMatch fileMatch, Locale locale) throws CommandException {
-
-        String targetLocale;
-
-        if (inverseLocaleMapping != null) {
-            targetLocale = inverseLocaleMapping.get(locale.getBcp47Tag());
-        } else {
-            targetLocale = locale.getBcp47Tag();
-        }
-
-        logger.info("processing locale for import: {}", targetLocale);
-        Path targetPath = commandDirectories.getTargetDirectoryPath().resolve(fileMatch.getTargetPath(targetLocale));
-
-        return targetPath;
-    }
-
+    return targetPath;
+  }
 }

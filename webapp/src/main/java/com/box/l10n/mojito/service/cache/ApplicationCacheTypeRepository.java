@@ -5,10 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-/**
- * @author garion
- */
+/** @author garion */
 @RepositoryRestResource(exported = false)
 public interface ApplicationCacheTypeRepository extends JpaRepository<ApplicationCacheType, Short> {
-    ApplicationCacheType findByName(@Param("name") String name);
+  ApplicationCacheType findByName(@Param("name") String name);
 }

@@ -7,13 +7,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The annotated parameter will be injected with the current
- * {@link PollableTask} of the wrapped method.
+ * The annotated parameter will be injected with the current {@link PollableTask} of the wrapped
+ * method.
  *
  * @author jaurambault
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface InjectCurrentTask {
-
-}
+public @interface InjectCurrentTask {}

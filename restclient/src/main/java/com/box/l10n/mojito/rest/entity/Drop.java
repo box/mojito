@@ -2,50 +2,46 @@ package com.box.l10n.mojito.rest.entity;
 
 import org.joda.time.DateTime;
 
-/**
- *
- * @author jaurambault
- */
+/** @author jaurambault */
 public class Drop {
 
-    Long id;
+  Long id;
 
-    String name;
+  String name;
 
-    DateTime lastImportedDate;
+  DateTime lastImportedDate;
 
-    Boolean canceled;
+  Boolean canceled;
 
-    public Long getId() {
-        return id;
-    }
+  public Long getId() {
+    return id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public DateTime getLastImportedDate() {
-        return lastImportedDate;
-    }
+  public DateTime getLastImportedDate() {
+    return lastImportedDate;
+  }
 
-    public void setLastImportedDate(DateTime lastImportedDate) {
-        this.lastImportedDate = lastImportedDate;
-    }
+  public void setLastImportedDate(DateTime lastImportedDate) {
+    this.lastImportedDate = lastImportedDate;
+  }
 
-    public Boolean getCanceled() {
-        return canceled;
-    }
+  public Boolean getCanceled() {
+    return canceled;
+  }
 
-    public void setCanceled(Boolean canceled) {
-        this.canceled = canceled;
-    }
-
+  public void setCanceled(Boolean canceled) {
+    this.canceled = canceled;
+  }
 }

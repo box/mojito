@@ -7,8 +7,11 @@ import org.immutables.value.Value;
 @Value.Immutable
 @NoPrefixNoBuiltinContainer
 public abstract class AbstractForTranslationCountForTmTextUnitId {
-    abstract long getTmTextUnitId();
-    abstract long getForTranslationCount();
-    abstract long getTotalCount();
-    abstract Branch getBranch();
+  abstract long getTmTextUnitId();
+
+  abstract long getForTranslationCount();
+
+  abstract long getTotalCount();
+
+  abstract Branch getBranch();
 }
