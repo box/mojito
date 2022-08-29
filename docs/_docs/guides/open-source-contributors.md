@@ -195,6 +195,7 @@ Now the basic setup is done the project can be built
 ```sh
 git clone https://github.com/box/mojito.git ${PROJECT_DIR}
 cd ${PROJECT_DIR}
+git config blame.ignoreRevsFile .git-blame-ignore-revs
 mvn clean install -DskipTests=true
 ```
     
