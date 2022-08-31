@@ -338,9 +338,31 @@ public class PlaceholderCommentCheckerTest {
     AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
     assetExtractionDiff.setAddedTextunits(addedTUs);
     assetExtractionDiffs.add(assetExtractionDiff);
-
     CliCheckResult result = placeholderCommentChecker.run(assetExtractionDiffs);
     Assert.assertFalse(result.isSuccessful());
     Assert.assertTrue(result.getNotificationText().contains("Comment is empty."));
+  }
+
+  @Test
+  public void testIOSPercentageSignNotPlaceholder() {
+    placeholderCommentChecker.setCliCheckerOptions(
+        new CliCheckerOptions(
+            Sets.newHashSet(PRINTF_LIKE_IOS_REGEX),
+            Sets.newHashSet(),
+            ImmutableMap.<String, String>builder().build()));
+    List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+    AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+    assetExtractorTextUnit.setName("Some string id --- Test context");
+    assetExtractorTextUnit.setSource("A source string with a single % percentage sign");
+    assetExtractorTextUnit.setComments("Test comment ");
+    addedTUs.add(assetExtractorTextUnit);
+    List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+    AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+    assetExtractionDiff.setAddedTextunits(addedTUs);
+    assetExtractionDiffs.add(assetExtractionDiff);
+
+    CliCheckResult result = placeholderCommentChecker.run(assetExtractionDiffs);
+    Assert.assertTrue(result.isSuccessful());
+    Assert.assertFalse(result.isHardFail());
   }
 }

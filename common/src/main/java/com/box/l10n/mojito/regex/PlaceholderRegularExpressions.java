@@ -37,7 +37,7 @@ public enum PlaceholderRegularExpressions {
    * '%1$@ld'
    */
   PRINTF_LIKE_IOS_REGEX(
-      "%(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n|@)(hh|h|l|ll|j|z|t|L|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n)*");
+      "%(?!\\s)(\\d+\\$)?([-#+ 0,(\\<]*)?(\\d+)?(\\.\\d+)?([tT])?(hh|h|l|ll|j|z|t|L)?(%|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n|@)(hh|h|l|ll|j|z|t|L|d|i|u|o|x|X|f|F|e|E|g|G|a|A|c|s|p|n)*");
 
   private String regex;
 
