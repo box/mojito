@@ -14,6 +14,7 @@ import com.box.l10n.mojito.service.delta.dtos.DeltaTranslationDTO;
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
 import com.box.l10n.mojito.service.tm.TextUnitVariantDelta;
+import com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.joda.time.DateTime;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +62,7 @@ public class DeltaService {
    *
    * @return The delta of text unit variants, their translations and corresponding metadata.
    */
-  public DeltaResponseDTO getDeltasForDates(
+  public Page<TextUnitVariantDeltaDTO> getDeltasForDates(
       Repository repository,
       List<Locale> locales,
       DateTime fromDate,
@@ -81,24 +83,8 @@ public class DeltaService {
       toDate = DateTime.now();
     }
 
-    List<TextUnitVariantDelta> variants =
-        tmTextUnitVariantRepository
-            .findAllUsedForRepositoryAndLocalesInDateRange(
-                repository, locales, fromDate, toDate, pageable)
-            .getContent();
-
-    Map<String, DeltaLocaleDataDTO> deltaLocaleDataByBcp47Tags =
-        getStringDeltaLocaleDataDTOMap(variants);
-
-    DeltaMetadataDTO deltaMetadataDTO = new DeltaMetadataDTO();
-    deltaMetadataDTO.setFromDate(fromDate);
-    deltaMetadataDTO.setToDate(toDate);
-
-    DeltaResponseDTO deltaResponseDTO = new DeltaResponseDTO();
-    deltaResponseDTO.setTranslationsPerLocale(deltaLocaleDataByBcp47Tags);
-    deltaResponseDTO.setDeltaMetadataDTO(deltaMetadataDTO);
-
-    return deltaResponseDTO;
+    return tmTextUnitVariantRepository.findAllUsedForRepositoryAndLocalesInDateRange(
+        repository, locales, fromDate, toDate, pageable);
   }
 
   /**
@@ -172,7 +158,7 @@ public class DeltaService {
         .collect(Collectors.toList());
   }
 
-  private Map<String, DeltaLocaleDataDTO> getStringDeltaLocaleDataDTOMap(
+  Map<String, DeltaLocaleDataDTO> getStringDeltaLocaleDataDTOMap(
       List<TextUnitVariantDelta> variants) {
     return variants.stream()
         .collect(
@@ -180,7 +166,7 @@ public class DeltaService {
                 TextUnitVariantDelta::getBcp47Tag,
                 Collectors.collectingAndThen(
                     Collectors.toMap(
-                        TextUnitVariantDelta::getTmTextUnitName,
+                        TextUnitVariantDelta::getTextUnitName,
                         tmTextUnitVariantDelta -> {
                           DeltaTranslationDTO deltaTranslationDTO = new DeltaTranslationDTO();
                           deltaTranslationDTO.setText(tmTextUnitVariantDelta.getContent());

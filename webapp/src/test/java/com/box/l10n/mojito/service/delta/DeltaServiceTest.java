@@ -33,13 +33,13 @@ import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitVariantRepository;
+import com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.joda.time.DateTime;
@@ -92,23 +92,27 @@ public class DeltaServiceTest extends ServiceTestBase {
     TMTestData tmTestData = new TMTestData(testIdWatcher);
     Assert.assertNotNull(tmTestData.repository);
 
-    DeltaResponseDTO deltasFromBeginning =
-        deltaService.getDeltasForDates(
-            tmTestData.repository,
-            Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
-            DateTime.now().plusSeconds(1),
-            null,
-            Pageable.unpaged());
-    Assert.assertEquals(0, deltasFromBeginning.getTranslationsPerLocale().size());
+    List<TextUnitVariantDeltaDTO> deltasFromBeginning =
+        deltaService
+            .getDeltasForDates(
+                tmTestData.repository,
+                Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
+                DateTime.now().plusSeconds(1),
+                null,
+                Pageable.unpaged())
+            .getContent();
+    Assert.assertEquals(0, deltasFromBeginning.size());
 
-    DeltaResponseDTO deltasFromCreation =
-        deltaService.getDeltasForDates(
-            tmTestData.repository,
-            Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
-            new DateTime(0),
-            DateTime.now().plusHours(1),
-            PageRequest.of(0, 1, Sort.Direction.ASC, "id"));
-    Assert.assertNotEquals(0, deltasFromCreation.getTranslationsPerLocale().size());
+    List<TextUnitVariantDeltaDTO> deltasFromCreation =
+        deltaService
+            .getDeltasForDates(
+                tmTestData.repository,
+                Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
+                new DateTime(0),
+                DateTime.now().plusHours(1),
+                PageRequest.of(0, 1, Sort.Direction.ASC, "id"))
+            .getContent();
+    Assert.assertNotEquals(0, deltasFromCreation.size());
   }
 
   @Test
@@ -116,24 +120,28 @@ public class DeltaServiceTest extends ServiceTestBase {
     TMTestData tmTestData = new TMTestData(testIdWatcher);
     Assert.assertNotNull(tmTestData.repository);
 
-    DeltaResponseDTO deltasFromBeginning =
-        deltaService.getDeltasForDates(
-            tmTestData.repository,
-            Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
-            DateTime.now().plusSeconds(1),
-            null,
-            Pageable.unpaged());
-    Assert.assertEquals(0, deltasFromBeginning.getTranslationsPerLocale().size());
+    List<TextUnitVariantDeltaDTO> deltasFromBeginning =
+        deltaService
+            .getDeltasForDates(
+                tmTestData.repository,
+                Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
+                DateTime.now().plusSeconds(1),
+                null,
+                Pageable.unpaged())
+            .getContent();
+    Assert.assertEquals(0, deltasFromBeginning.size());
 
-    DeltaResponseDTO deltasFromCreation =
-        deltaService.getDeltasForDates(
-            tmTestData.repository,
-            Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
-            new DateTime(0),
-            new DateTime(0),
-            PageRequest.of(0, 1, Sort.Direction.ASC, "id"));
+    List<TextUnitVariantDeltaDTO> deltasFromCreation =
+        deltaService
+            .getDeltasForDates(
+                tmTestData.repository,
+                Arrays.asList(tmTestData.frFR, tmTestData.frCA, tmTestData.koKR, tmTestData.jaJP),
+                new DateTime(0),
+                new DateTime(0),
+                PageRequest.of(0, 1, Sort.Direction.ASC, "id"))
+            .getContent();
 
-    Assert.assertEquals(0, deltasFromCreation.getTranslationsPerLocale().size());
+    Assert.assertEquals(0, deltasFromCreation.size());
   }
 
   @Test
@@ -179,12 +187,13 @@ public class DeltaServiceTest extends ServiceTestBase {
     tmService.addCurrentTMTextUnitVariant(usedTextUnit.getId(), frFR.getId(), "chaîne active");
     tmService.addCurrentTMTextUnitVariant(unusedTextUnit.getId(), frFR.getId(), "inutilisé");
 
-    DeltaResponseDTO deltasFromBeggining =
-        deltaService.getDeltasForDates(
-            repository, null, new DateTime(0), DateTime.now().plusHours(1), Pageable.unpaged());
+    List<TextUnitVariantDeltaDTO> deltasFromBeggining =
+        deltaService
+            .getDeltasForDates(
+                repository, null, new DateTime(0), DateTime.now().plusHours(1), Pageable.unpaged())
+            .getContent();
 
-    Assert.assertEquals(2, deltasFromBeggining.getTranslationsPerLocale().size());
-    Assert.assertEquals(2, getDeltaTranslationsFromDeltaFile(deltasFromBeggining).size());
+    Assert.assertEquals(2, deltasFromBeggining.size());
   }
 
   @Test
@@ -231,12 +240,13 @@ public class DeltaServiceTest extends ServiceTestBase {
 
     tmService.addCurrentTMTextUnitVariant(usedTextUnit.getId(), frFR.getId(), "chaîne active");
 
-    DeltaResponseDTO deltasFromBeggining =
-        deltaService.getDeltasForDates(
-            repository, null, new DateTime(0), DateTime.now().plusHours(1), Pageable.unpaged());
+    List<TextUnitVariantDeltaDTO> deltasFromBeggining =
+        deltaService
+            .getDeltasForDates(
+                repository, null, new DateTime(0), DateTime.now().plusHours(1), Pageable.unpaged())
+            .getContent();
 
-    Assert.assertEquals(1, deltasFromBeggining.getTranslationsPerLocale().size());
-    Assert.assertEquals(1, getDeltaTranslationsFromDeltaFile(deltasFromBeggining).size());
+    Assert.assertEquals(1, deltasFromBeggining.size());
   }
 
   @Test
@@ -293,61 +303,45 @@ public class DeltaServiceTest extends ServiceTestBase {
     tmService.addCurrentTMTextUnitVariant(usedTextUnit1.getId(), frFR.getId(), "chaîne active");
     tmService.addCurrentTMTextUnitVariant(usedTextUnit2.getId(), frFR.getId(), "inutilisé");
 
-    DeltaResponseDTO frDeltasFromStart =
-        deltaService.getDeltasForDates(
-            repository,
-            Collections.singletonList(frFR),
-            new DateTime(0),
-            DateTime.now().plusHours(1),
-            Pageable.unpaged());
-    Assert.assertEquals(1, frDeltasFromStart.getTranslationsPerLocale().size());
-    Assert.assertEquals(
-        2,
-        Objects.requireNonNull(getFirstLocaleFromDeltaFile(frDeltasFromStart))
-            .getTranslationsByTextUnitName()
-            .size());
+    List<TextUnitVariantDeltaDTO> frDeltasFromStart =
+        deltaService
+            .getDeltasForDates(
+                repository,
+                Collections.singletonList(frFR),
+                new DateTime(0),
+                DateTime.now().plusHours(1),
+                Pageable.unpaged())
+            .getContent();
+    Assert.assertEquals(2, frDeltasFromStart.size());
 
-    DeltaResponseDTO koKrDeltasFromStart =
-        deltaService.getDeltasForDates(
-            repository,
-            Collections.singletonList(koKR),
-            new DateTime(0),
-            DateTime.now().plusHours(1),
-            Pageable.unpaged());
-    Assert.assertEquals(1, koKrDeltasFromStart.getTranslationsPerLocale().size());
-    Assert.assertEquals(
-        1,
-        Objects.requireNonNull(getFirstLocaleFromDeltaFile(koKrDeltasFromStart))
-            .getTranslationsByTextUnitName()
-            .size());
+    List<TextUnitVariantDeltaDTO> koKrDeltasFromStart =
+        deltaService
+            .getDeltasForDates(
+                repository,
+                Collections.singletonList(koKR),
+                new DateTime(0),
+                DateTime.now().plusHours(1),
+                Pageable.unpaged())
+            .getContent();
+    Assert.assertEquals(1, koKrDeltasFromStart.size());
 
-    DeltaResponseDTO noSpecificLocalesDeltasFromStart =
-        deltaService.getDeltasForDates(
-            repository, null, new DateTime(0), DateTime.now().plusHours(1), Pageable.unpaged());
-    Assert.assertEquals(2, noSpecificLocalesDeltasFromStart.getTranslationsPerLocale().size());
-    Assert.assertEquals(
-        3,
-        noSpecificLocalesDeltasFromStart.getTranslationsPerLocale().values().stream()
-            .mapToLong(
-                deltaLocaleDataDTO ->
-                    deltaLocaleDataDTO.getTranslationsByTextUnitName().values().size())
-            .sum());
+    List<TextUnitVariantDeltaDTO> noSpecificLocalesDeltasFromStart =
+        deltaService
+            .getDeltasForDates(
+                repository, null, new DateTime(0), DateTime.now().plusHours(1), Pageable.unpaged())
+            .getContent();
+    Assert.assertEquals(3, noSpecificLocalesDeltasFromStart.size());
 
-    DeltaResponseDTO allLocalesDeltasFromStart =
-        deltaService.getDeltasForDates(
-            repository,
-            Arrays.asList(koKR, frFR),
-            new DateTime(0),
-            DateTime.now().plusHours(1),
-            Pageable.unpaged());
-    Assert.assertEquals(2, allLocalesDeltasFromStart.getTranslationsPerLocale().size());
-    Assert.assertEquals(
-        3,
-        allLocalesDeltasFromStart.getTranslationsPerLocale().values().stream()
-            .mapToLong(
-                deltaLocaleDataDTO ->
-                    deltaLocaleDataDTO.getTranslationsByTextUnitName().values().size())
-            .sum());
+    List<TextUnitVariantDeltaDTO> allLocalesDeltasFromStart =
+        deltaService
+            .getDeltasForDates(
+                repository,
+                Arrays.asList(koKR, frFR),
+                new DateTime(0),
+                DateTime.now().plusHours(1),
+                Pageable.unpaged())
+            .getContent();
+    Assert.assertEquals(3, allLocalesDeltasFromStart.size());
   }
 
   @Transactional

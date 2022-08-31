@@ -11,7 +11,7 @@ import javax.persistence.Enumerated;
  * @author garion
  */
 public interface TextUnitVariantDelta {
-  String getTmTextUnitName();
+  String getTextUnitName();
 
   String getBcp47Tag();
 
