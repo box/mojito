@@ -8,6 +8,7 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PullRun;
 import com.box.l10n.mojito.entity.PushRun;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.delta.DeltaService;
 import com.box.l10n.mojito.service.delta.PushRunsMissingException;
@@ -16,12 +17,14 @@ import com.box.l10n.mojito.service.locale.LocaleRepository;
 import com.box.l10n.mojito.service.pullrun.PullRunRepository;
 import com.box.l10n.mojito.service.pushrun.PushRunRepository;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -72,7 +75,7 @@ public class DeltaWS {
    * @return The delta of text unit variants, their translations and corresponding metadata.
    */
   @RequestMapping(value = "/api/deltas/date", method = RequestMethod.GET)
-  public DeltaResponseDTO getDeltasFromDate(
+  public Page<TextUnitVariantDeltaDTO> getDeltasFromDate(
       @RequestParam(value = "repositoryId") Long repositoryId,
       @RequestParam(value = "bcp47Tags", required = false) List<String> bcp47Tags,
       @RequestParam(value = "fromDate", required = false) DateTime fromDate,
@@ -89,7 +92,9 @@ public class DeltaWS {
     if (bcp47Tags != null && bcp47Tags.size() > 0) {
       locales = localeRepository.findAll(where(ifParamNotNull(bcp47TagIn(bcp47Tags))));
     }
-    return deltaService.getDeltasForDates(repository, locales, fromDate, toDate, pageable);
+
+    return new PageView<>(
+        deltaService.getDeltasForDates(repository, locales, fromDate, toDate, pageable));
   }
 
   @RequestMapping(value = "/api/deltas/state", method = RequestMethod.GET)

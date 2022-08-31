@@ -42,11 +42,12 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
    */
   @Query(
       value =
-          "select distinct tuv.id, "
-              + "   tu.name as tmTextUnitName, "
-              + "   tuv.locale.bcp47Tag as bcp47Tag,"
-              + "   tuv.content as content, "
-              + "   'UNKNOWN' as deltaType "
+          "select distinct new com.box.l10n.mojito.service.tm.TextUnitVariantDeltaDTO("
+              + "   tuv.id, "
+              + "   tu.name, "
+              + "   tuv.locale.bcp47Tag,"
+              + "   tuv.content, "
+              + "   'UNKNOWN') "
               + "from TMTextUnitVariant tuv "
               + "inner join TMTextUnitCurrentVariant tucv on tucv.tmTextUnitVariant = tuv "
               + "inner join TMTextUnit tu on tu = tucv.tmTextUnit "
@@ -59,54 +60,11 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
               + "and tucv.lastModifiedDate >= :fromDate "
               + "and tucv.lastModifiedDate < :toDate "
               + "order by tuv.id asc ")
-  Page<TextUnitVariantDelta> findAllUsedForRepositoryAndLocalesInDateRange(
+  Page<TextUnitVariantDeltaDTO> findAllUsedForRepositoryAndLocalesInDateRange(
       @Param("repository") Repository repository,
       @Param("locales") List<Locale> locales,
       @Param("fromDate") DateTime fromDate,
       @Param("toDate") DateTime toDate,
-      Pageable pageable);
-
-  /**
-   * Gets all {@link TMTextUnitVariant} entities that are linked to a PullRun, regardless of used
-   * status or the asset being deleted or not.
-   */
-  @Query(
-      value =
-          "select distinct tuv from TMTextUnitVariant tuv "
-              + "inner join PullRunTextUnitVariant prtuv on prtuv.tmTextUnitVariant = tuv "
-              + "inner join TMTextUnitCurrentVariant tucv on tucv.tmTextUnitVariant = tuv "
-              + "inner join TMTextUnit tu on tu = tucv.tmTextUnit "
-              + "inner join Asset a on a = tu.asset "
-              + "where a.repository = :repository "
-              + "and tuv.locale in :locales "
-              + "and prtuv.pullRunAsset.pullRun in :pullRuns ")
-  Page<TMTextUnitVariant> findAllVariantsForPullRuns(
-      @Param("repository") Repository repository,
-      @Param("locales") List<Locale> locales,
-      @Param("pullRuns") List<PullRun> pullRuns,
-      Pageable pageable);
-
-  /**
-   * Gets all {@link TMTextUnitVariant} entities that are linked to a PushRun, regardless of used
-   * status or the asset being deleted or not.
-   */
-  @Query(
-      value =
-          "select distinct tuv from TMTextUnitVariant tuv "
-              + "inner join TMTextUnitCurrentVariant tucv on tucv.tmTextUnitVariant = tuv "
-              + "inner join TMTextUnit tu on tu = tucv.tmTextUnit "
-              + "inner join PushRunAssetTmTextUnit prattu on prattu.tmTextUnit = tu "
-              + "inner join PushRunAsset pra on pra = prattu.pushRunAsset "
-              + "inner join Asset a on a = tu.asset "
-              + "where a.repository = :repository "
-              + "and tuv.locale in :locales "
-              + "and tuv.includedInLocalizedFile = true "
-              + // Exclude rejected translations
-              "and pra.pushRun in :pushRuns")
-  Page<TMTextUnitVariant> findAllVariantsForPushRuns(
-      @Param("repository") Repository repository,
-      @Param("locales") List<Locale> locales,
-      @Param("pushRuns") List<PushRun> pushRuns,
       Pageable pageable);
 
   /**
@@ -127,7 +85,7 @@ public interface TMTextUnitVariantRepository extends JpaRepository<TMTextUnitVar
   @Query(
       nativeQuery = true,
       value =
-          "select distinct base_tu.name as tmTextUnitName, "
+          "select distinct base_tu.name as textUnitName, "
               + "   l.bcp47_tag as bcp47Tag, "
               + "   latest_tuv.content as content, "
               + "   case "
