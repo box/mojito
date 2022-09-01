@@ -47,7 +47,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     Commit retrievedCommit =
@@ -71,7 +71,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     Assert.assertNotNull(createdCommit);
@@ -82,13 +82,29 @@ public class CommitServiceTest extends ServiceTestBase {
     Assert.assertEquals(sourceCreationTime, createdCommit.getSourceCreationDate());
   }
 
-  @Test(expected = DataIntegrityViolationException.class)
-  public void testSaveCommitDuplicateNameAndRepoThrowsException() throws Exception {
+  public void testSaveCommitWithIdenticalDataReturnsSameCommit() throws Exception {
     Repository repository =
         repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
 
-    commitService.saveCommit(repository, "n1", "ae1", "an1", DateTime.now());
-    commitService.saveCommit(repository, "n1", "ae2", "an2", DateTime.now());
+    String commitName = "commitName";
+    String authorEmail = "authorEmail";
+    String authorName = "authorName";
+    DateTime creationTime = DateTime.now();
+    Commit commit1 = commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, creationTime);
+    Commit commit2 = commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, creationTime);
+    Assert.assertEquals(commit1.getId(), commit2.getId());
+  }
+
+  @Test(expected = SaveCommitMismatchedExistingDataException.class)
+  public void testSaveCommitDuplicateNameAndRepoWithDifferentDateThrows() throws Exception {
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+
+    String commitName = "commitName";
+    String authorEmail = "authorEmail";
+    String authorName = "authorName";
+    commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, DateTime.now());
+    commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, DateTime.now().plusHours(3));
   }
 
   @Test
@@ -98,8 +114,8 @@ public class CommitServiceTest extends ServiceTestBase {
     Repository repositoryB =
         repositoryService.createRepository(testIdWatcher.getEntityName("repository") + 'B');
 
-    commitService.saveCommit(repositoryA, "n1", "ae1", "an1", DateTime.now());
-    commitService.saveCommit(repositoryB, "n1", "ae2", "an2", DateTime.now());
+    commitService.getOrCreateCommit(repositoryA, "n1", "ae1", "an1", DateTime.now());
+    commitService.getOrCreateCommit(repositoryB, "n1", "ae2", "an2", DateTime.now());
   }
 
   @Test
@@ -113,7 +129,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     Optional<Commit> commitWithoutPush =
@@ -145,11 +161,11 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommitA =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameA, authorEmail, authorName, sourceCreationTime);
 
     Commit createdCommitB =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameB, authorEmail, authorName, sourceCreationTime);
 
     Optional<Commit> commitWithoutPush =
@@ -190,11 +206,11 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommitA =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameA, authorEmail, authorName, sourceCreationTime);
 
     Commit createdCommitB =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameB, authorEmail, authorName, sourceCreationTime);
 
     Optional<Commit> commitWithoutPush =
@@ -234,7 +250,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     Optional<Commit> commitWithoutPull =
@@ -266,11 +282,11 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommitA =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameA, authorEmail, authorName, sourceCreationTime);
 
     Commit createdCommitB =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameB, authorEmail, authorName, sourceCreationTime);
 
     Optional<Commit> commitWithoutPull =
@@ -311,11 +327,11 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommitA =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameA, authorEmail, authorName, sourceCreationTime);
 
     Commit createdCommitB =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitNameB, authorEmail, authorName, sourceCreationTime);
 
     Optional<Commit> commitWithoutPull =
@@ -355,7 +371,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     PushRun pushRun = new PushRun();
@@ -381,7 +397,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     PushRun pushRun = new PushRun();
@@ -408,7 +424,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     PullRun pullRun = new PullRun();
@@ -434,7 +450,7 @@ public class CommitServiceTest extends ServiceTestBase {
     DateTime sourceCreationTime = DateTime.now();
 
     Commit createdCommit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitName, authorEmail, authorName, sourceCreationTime);
 
     PullRun pullRun = new PullRun();

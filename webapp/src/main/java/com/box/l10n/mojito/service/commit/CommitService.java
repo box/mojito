@@ -103,21 +103,51 @@ public class CommitService {
    * @return The newly created {@link View.Commit}.
    */
   @Transactional
-  public Commit saveCommit(
+  public Commit getOrCreateCommit(
       Repository repository,
       String commitName,
       String authorEmail,
       String authorName,
-      DateTime sourceCreationDate) {
+      DateTime sourceCreationDate)
+      throws SaveCommitMismatchedExistingDataException {
     Commit commit = new Commit();
 
-    commit.setRepository(repository);
-    commit.setName(commitName);
-    commit.setAuthorEmail(authorEmail);
-    commit.setAuthorName(authorName);
-    commit.setSourceCreationDate(sourceCreationDate);
+    Optional<Commit> existingCommit =
+        commitRepository.findByNameAndRepositoryId(commitName, repository.getId());
 
-    return commitRepository.save(commit);
+    if (existingCommit.isPresent()) {
+      commit = existingCommit.get();
+
+      if (!commit.getAuthorEmail().equals(authorEmail)) {
+        throw new SaveCommitMismatchedExistingDataException(
+            "authorEmail", commit.getAuthorEmail(), authorEmail);
+      }
+
+      if (!commit.getAuthorName().equals(authorName)) {
+        throw new SaveCommitMismatchedExistingDataException(
+            "authorName", commit.getAuthorName(), authorName);
+      }
+
+      // Remove milliseconds when comparing as the dates are not stored with sub-second precision.
+      DateTime existingCreationDateWithoutMs = commit.getSourceCreationDate().withMillisOfSecond(0);
+      DateTime sourceCreationDateWithoutMs = sourceCreationDate.withMillisOfSecond(0);
+      if (existingCreationDateWithoutMs.getMillis() != sourceCreationDateWithoutMs.getMillis()) {
+        throw new SaveCommitMismatchedExistingDataException(
+            "sourceCreationDate",
+            commit.getSourceCreationDate().toString(),
+            sourceCreationDateWithoutMs.toString());
+      }
+    } else {
+      commit.setRepository(repository);
+      commit.setName(commitName);
+      commit.setAuthorEmail(authorEmail);
+      commit.setAuthorName(authorName);
+      commit.setSourceCreationDate(sourceCreationDate);
+
+      commit = commitRepository.save(commit);
+    }
+
+    return commit;
   }
 
   /**
