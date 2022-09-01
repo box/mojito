@@ -1,17 +1,8 @@
 package com.box.l10n.mojito.service.screenshot;
 
-import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.Locale_;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.Repository_;
-import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.ScreenshotRun;
-import com.box.l10n.mojito.entity.ScreenshotRun_;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit_;
-import com.box.l10n.mojito.entity.Screenshot_;
-import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartyScreenshotRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -58,6 +49,9 @@ public class ScreenshotService {
   @Autowired ScreenshotTextUnitRepository screenshotTextUnitRepository;
 
   @Autowired TextUnitSearcher textUnitSearcher;
+
+  @Autowired
+  ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
@@ -382,5 +376,22 @@ public class ScreenshotService {
    */
   public void updateScreenshot(Screenshot screenshot) {
     screenshotRepository.save(screenshot);
+  }
+
+  /**
+   * Deletes a screenshot
+   *
+   * @param id screenshotId
+   */
+  @Transactional
+  public void deleteScreenshot(Long id) {
+    List<ThirdPartyScreenshot> thirdPartyScreenshots = thirdPartyScreenshotRepository.findAllByScreenshotId(id);
+    if (thirdPartyScreenshots.size() > 0){
+      thirdPartyScreenshotRepository.deleteAllInBatch(thirdPartyScreenshots);
+//            smartlingAPI.deleteAllInBatch(thirdPartyScreenshots);
+    }
+
+    screenshotTextUnitRepository.deleteAllByScreenshotId(id);
+    screenshotRepository.deleteById(id);
   }
 }
