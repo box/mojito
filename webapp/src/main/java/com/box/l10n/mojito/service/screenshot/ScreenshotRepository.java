@@ -7,6 +7,7 @@ import com.box.l10n.mojito.entity.ScreenshotRun;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
@@ -26,4 +27,8 @@ public interface ScreenshotRepository
               + "left join  s.thirdPartyScreenshots tps "
               + "where r = ?1 and r.manualScreenshotRun = sr and tps is null")
   List<Screenshot> findUnmappedScreenshots(Repository repository);
+
+  @Modifying
+  @Query("delete from Screenshot where id = ?1")
+  void deleteById(Long screenshotId);
 }
