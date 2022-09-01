@@ -249,6 +249,11 @@ Alternatively, install the CLI using the [install scripts]({{ site.url }}/docs/g
 cd ${PROJECT_DIR}
 mvn test
 ```
+
+## Style guide
+Mojito uses the [Google Java Format](https://github.com/google/google-java-format) style guidelines, which is integrated to run alongside Maven's compile phase with [spotless](https://github.com/diffplug/spotless/tree/main/plugin-maven).
+
+If you use IntelliJ, we recommend to either import the [XML styleguide](https://github.com/google/styleguide/blob/gh-pages/intellij-java-google-style.xml) into the IDE or to install the [google-java-format plugin](https://plugins.jetbrains.com/plugin/8527-google-java-format) and use that for re-formatting code.
  
 ## DB migration
 DB migration is done with Flyway, and Default DB setup with MySql. The default app configuration uses HSQL hence Flyway is disabled.
