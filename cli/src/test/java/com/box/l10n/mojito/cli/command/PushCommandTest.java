@@ -458,7 +458,7 @@ public class PushCommandTest extends CLITestBase {
 
     String commitHash = "ABC123";
     Commit commit =
-        commitService.saveCommit(
+        commitService.getOrCreateCommit(
             repository, commitHash, "authorEmail", "authorName", DateTime.now());
     assertNull(
         commitRepository

@@ -8,6 +8,7 @@ import com.box.l10n.mojito.rest.PageView;
 import com.box.l10n.mojito.rest.View;
 import com.box.l10n.mojito.rest.repository.RepositoryWithIdNotFoundException;
 import com.box.l10n.mojito.service.commit.CommitService;
+import com.box.l10n.mojito.service.commit.SaveCommitMismatchedExistingDataException;
 import com.box.l10n.mojito.service.pullrun.PullRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.pushrun.PushRunWithNameNotFoundException;
 import com.box.l10n.mojito.service.repository.RepositoryNameNotFoundException;
@@ -180,13 +181,13 @@ public class CommitWS {
   @JsonView(View.Commit.class)
   @RequestMapping(value = "/api/commits", method = RequestMethod.POST)
   public Commit createCommit(@RequestBody CommitBody commitBody)
-      throws RepositoryWithIdNotFoundException {
+      throws RepositoryWithIdNotFoundException, SaveCommitMismatchedExistingDataException {
     Repository repository =
         repositoryRepository
             .findById(commitBody.getRepositoryId())
             .orElseThrow(() -> new RepositoryWithIdNotFoundException(commitBody.getRepositoryId()));
 
-    return commitService.saveCommit(
+    return commitService.getOrCreateCommit(
         repository,
         commitBody.getCommitName(),
         commitBody.getAuthorEmail(),
