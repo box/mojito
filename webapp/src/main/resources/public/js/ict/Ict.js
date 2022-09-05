@@ -92,9 +92,8 @@ class Ict {
             node = node.parentNode;
         }
 
-
-        var mtRequired = this.mtEnabled && textUnits[0]['isTranslated'] === 'false';
-        var eventListenerClassName = mtRequired ? "mojito-ict-string-mt" : "mojito-ict-string-active"
+        var mtRequired = this.mtEnabled && textUnits[0]['translationType'] === 'MT_REQUIRED';
+        var eventListenerClassName = mtRequired ? "mojito-ict-string-mt" : textUnits[0]['translationType'] === 'DELTA_OTA' ? "mojito-ict-string-delta-active" : "mojito-ict-string-active";
 
         if (!node.classList.contains("mojito-ict-string")) {
             try {

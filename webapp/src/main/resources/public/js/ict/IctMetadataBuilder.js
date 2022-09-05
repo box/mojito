@@ -2,19 +2,19 @@ import TagsBlockEncoder from './TagsBlockEncoder';
 
 class IctMetadataBuilder {
 
-    getTranslationWithMetadata(repositoryName, assetName, textUnitName, localeName, stack, translation, isTranslated) {
-        var textUnitMetadata = this.getTextUnitMetadata(repositoryName, assetName, textUnitName, localeName, stack, isTranslated);
+    getTranslationWithMetadata(repositoryName, assetName, textUnitName, localeName, stack, translation, translationType) {
+        var textUnitMetadata = this.getTextUnitMetadata(repositoryName, assetName, textUnitName, localeName, stack, translationType);
         var textUnitMetadataAsTagsBlock = TagsBlockEncoder.unicodeToTagsBlock(textUnitMetadata);
         return this.getStartDelimiter() + textUnitMetadataAsTagsBlock + this.getMiddleDelimiter() + translation + this.getEndDelimiter();
     }
 
-    getTextUnitMetadata(repositoryName, assetName, textUnitName, localeName, stack, isTranslated) {
+    getTextUnitMetadata(repositoryName, assetName, textUnitName, localeName, stack, translationType) {
         return repositoryName + this.getInnerDelimiter()
                 + (assetName ? assetName : "") + this.getInnerDelimiter()
                 + textUnitName + this.getInnerDelimiter()
                 + localeName + this.getInnerDelimiter()
                 + stack + this.getInnerDelimiter()
-                + isTranslated;
+                + translationType;
     }
 
     getStartDelimiter() {
