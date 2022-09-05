@@ -37,8 +37,8 @@ class IctMetadataExtractor {
                         textUnit['textUnitName'] = splitTextUnitMetadata[2];
                         textUnit['locale'] = splitTextUnitMetadata[3];
                         textUnit['stack'] = splitTextUnitMetadata[4];
-                        // For backwards compatibility check array length, if less than 5 set isTranslated to true
-                        textUnit['isTranslated'] = splitTextUnitMetadata.length > 5 ? splitTextUnitMetadata[5] : 'true';
+                        // For backwards compatibility check array length, if less than 5 set translationType to 'NATIVE'
+                        textUnit['translationType'] = splitTextUnitMetadata.length > 5 ? splitTextUnitMetadata[5] : 'NATIVE';
 
                     } catch (e) {
                         console.log("Can't extract ict metadata from string: ", string, e);
