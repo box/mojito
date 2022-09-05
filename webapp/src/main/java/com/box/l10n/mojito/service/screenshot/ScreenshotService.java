@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.screenshot;
 
 import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.service.NormalizationUtils;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartyScreenshotRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
@@ -8,25 +9,16 @@ import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
+import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.google.common.base.Strings;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.comparator.NullSafeComparator;
@@ -50,12 +42,15 @@ public class ScreenshotService {
 
   @Autowired TextUnitSearcher textUnitSearcher;
 
-  @Autowired
-  ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
+  @Autowired ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
 
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
   @Autowired EntityManager em;
+
+  @Autowired SmartlingClient smartlingClient;
+
+  @Autowired Environment env;
 
   /**
    * Creates or add to a screenshot run including the creation of related screenshots. If the
@@ -385,10 +380,25 @@ public class ScreenshotService {
    */
   @Transactional
   public void deleteScreenshot(Long id) {
-    List<ThirdPartyScreenshot> thirdPartyScreenshots = thirdPartyScreenshotRepository.findAllByScreenshotId(id);
-    if (thirdPartyScreenshots.size() > 0){
+    List<ThirdPartyScreenshot> thirdPartyScreenshots =
+        thirdPartyScreenshotRepository.findAllByScreenshotId(id);
+    if (thirdPartyScreenshots.size() > 0) {
       thirdPartyScreenshotRepository.deleteAllInBatch(thirdPartyScreenshots);
-//            smartlingAPI.deleteAllInBatch(thirdPartyScreenshots);
+      for (ThirdPartyScreenshot thirdPartyScreenshot : thirdPartyScreenshots) {
+        String repository =
+            thirdPartyScreenshot.getScreenshot().getScreenshotTextUnits().stream()
+                .findFirst()
+                .get()
+                .getTmTextUnit()
+                .getAsset()
+                .getRepository()
+                .getName();
+        String projectId =
+            env.getProperty(String.format("l10n.link.%s.thirdParty.projectId", repository));
+
+        smartlingClient.deleteContext(
+            projectId, thirdPartyScreenshot.getScreenshot().getSrc().split("api/images/")[1]);
+      }
     }
 
     screenshotTextUnitRepository.deleteAllByScreenshotId(id);
