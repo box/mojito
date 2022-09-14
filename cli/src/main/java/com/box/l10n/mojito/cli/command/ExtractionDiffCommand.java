@@ -15,6 +15,7 @@ import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.shell.Shell;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -174,6 +175,13 @@ public class ExtractionDiffCommand extends Command {
       description = "Message for the fail safe email")
   String failSafeMessage = null;
 
+  @Parameter(
+      names = {"--asset-mapping", "-am"},
+      required = false,
+      description = "Asset mapping, format: \"local1:remote1;local2:remote2\"",
+      converter = AssetMappingConverter.class)
+  Map<String, String> assetMapping;
+
   @Autowired ExtractionDiffService extractionDiffService;
 
   @Autowired ObjectMapper objectMapper;
@@ -289,7 +297,9 @@ public class ExtractionDiffCommand extends Command {
                         objectMapper.writeValueAsStringUnchecked(
                             assetExtractionDiff.getAddedTextunits());
 
-                    String sourceFileMatchPath = extractionDiffPaths.sourceFileMatchPath(path);
+                    String sourceFileMatchPath =
+                        commandHelper.getMappedSourcePath(
+                            assetMapping, extractionDiffPaths.sourceFileMatchPath(path));
 
                     sourceAsset = new SourceAsset();
                     sourceAsset.setBranch(pushToBranchName);
