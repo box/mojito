@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.entity;
 
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
 /**
@@ -9,6 +10,7 @@ import java.util.List;
  *
  * @author wyau
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LocalizedAssetBody {
   public enum InheritanceMode {
 
