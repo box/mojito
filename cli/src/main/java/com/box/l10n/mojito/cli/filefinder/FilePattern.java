@@ -21,15 +21,15 @@ public class FilePattern {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(FilePattern.class);
 
-  public static String FILE_EXTENSION = "fileExtension";
-  public static String BASE_NAME = "baseName";
-  public static String PARENT_PATH = "parentPath";
-  public static String SUB_PATH = "subPath";
-  public static String LOCALE = "locale";
-  public static String DOT = ".";
-  public static String UNDERSCORE = "_";
-  public static String HYPHEN = "-";
-  public static String PATH_SEPERATOR = "/";
+  public static final String FILE_EXTENSION = "fileExtension";
+  public static final String BASE_NAME = "baseName";
+  public static final String PARENT_PATH = "parentPath";
+  public static final String SUB_PATH = "subPath";
+  public static final String LOCALE = "locale";
+  public static final String DOT = ".";
+  public static final String UNDERSCORE = "_";
+  public static final String HYPHEN = "-";
+  public static final String PATH_SEPERATOR = "/";
 
   /** Pattern string to find placeholder in a file pattern template */
   static final String PLACEHOLDER_PATTERN_STR = "\\{(.*?)}";
@@ -127,34 +127,34 @@ public class FilePattern {
 
     String groupRegex = ".+?";
 
-    if (PARENT_PATH.equals(group)) {
-      groupRegex = fileType.getParentPath();
-    }
+    switch (group) {
+      case PARENT_PATH:
+        groupRegex = fileType.getParentPath();
+        break;
 
-    if (SUB_PATH.equals(group)) {
-      groupRegex = fileType.getSubPath();
-    }
+      case SUB_PATH:
+        groupRegex = fileType.getSubPath();
+        break;
 
-    if (BASE_NAME.equals(group)) {
-      groupRegex = fileType.getBaseNamePattern();
-    }
+      case BASE_NAME:
+        groupRegex = fileType.getBaseNamePattern();
+        break;
 
-    if (FILE_EXTENSION.equals(group)) {
+      case FILE_EXTENSION:
+        if (forSourceFile) {
+          groupRegex = fileType.getSourceFileExtension();
+        } else {
+          groupRegex = fileType.getTargetFileExtension();
+        }
+        break;
 
-      if (forSourceFile) {
-        groupRegex = fileType.getSourceFileExtension();
-      } else {
-        groupRegex = fileType.getTargetFileExtension();
-      }
-    }
-
-    if (LOCALE.equals(group)) {
-
-      if (forSourceFile) {
-        groupRegex = fileType.getLocaleType().getSourceLocale();
-      } else {
-        groupRegex = fileType.getLocaleType().getTargetLocaleRegex();
-      }
+      case LOCALE:
+        if (forSourceFile) {
+          groupRegex = fileType.getLocaleType().getSourceLocale();
+        } else {
+          groupRegex = fileType.getLocaleType().getTargetLocaleRegex();
+        }
+        break;
     }
 
     return groupRegex;
