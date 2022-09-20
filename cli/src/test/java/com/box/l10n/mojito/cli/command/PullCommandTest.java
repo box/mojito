@@ -1645,8 +1645,7 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_baseline").getAbsolutePath(),
             "-lm",
             "ru-RU:ru-RU",
-            "--record-pull-run",
-            "--export-pull-run-id-to-file");
+            "--record-pull-run");
 
     getL10nJCommander()
         .run(
@@ -1672,8 +1671,7 @@ public class PullCommandTest extends CLITestBase {
             getTargetTestDir("target_translated").getAbsolutePath(),
             "-lm",
             "ru-RU:ru-RU",
-            "--record-pull-run",
-            "--export-pull-run-id-to-file");
+            "--record-pull-run");
 
     logger.debug("Simulate commit and linked to pull-run");
     String pullRunHash1 = "ddaa11";
@@ -1800,8 +1798,7 @@ public class PullCommandTest extends CLITestBase {
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-t",
             getTargetTestDir("target_baseline").getAbsolutePath(),
-            "--record-pull-run",
-            "--export-pull-run-id-to-file");
+            "--record-pull-run");
 
     logger.debug("Simulate commit and linked to pull-run");
     String pullRunHash1 = "ddaa11";
@@ -1869,8 +1866,7 @@ public class PullCommandTest extends CLITestBase {
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-t",
             getTargetTestDir("target_after_french_import").getAbsolutePath(),
-            "--record-pull-run",
-            "--export-pull-run-id-to-file");
+            "--record-pull-run");
 
     logger.debug("Simulate commit and linked to pull-run");
     String pullRunHash2 = "ddaa22";
@@ -1940,8 +1936,7 @@ public class PullCommandTest extends CLITestBase {
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-t",
             getTargetTestDir("target_after_french_and_japanese_imports").getAbsolutePath(),
-            "--record-pull-run",
-            "--export-pull-run-id-to-file");
+            "--record-pull-run");
 
     logger.debug("Simulate commit and linked to pull-run");
     String pullRunHash3 = "ddaa33";
@@ -2078,8 +2073,7 @@ public class PullCommandTest extends CLITestBase {
             getInputResourcesTestDir("source_modified").getAbsolutePath(),
             "-t",
             getTargetTestDir("target_modified").getAbsolutePath(),
-            "--record-pull-run",
-            "--export-pull-run-id-to-file");
+            "--record-pull-run");
 
     logger.debug("Simulate commit and linked to pull-run");
     String pullRunHash4 = "ddaa44";
