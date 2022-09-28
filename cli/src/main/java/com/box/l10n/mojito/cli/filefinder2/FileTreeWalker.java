@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.cli.filefinder2;
 
-import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -15,28 +14,31 @@ import java.util.stream.Collectors;
 
 
 /**
- * FileTreeWalker with Include and Exclude regex filters
+ * FileTreeWalker with "include" and "exclude" regex filters
  * <p>
- * - Calls onIncludeFile() for files that don't match any of the "exclude" patterns and that match
- * one of the "include" patterns. In other words "exclude" has precedence over "include". The
- * pattern matching is done on the "start" relativized path - The file passed to onIncludeFile() is
- * from the SimpleFileVisitor without any modification - "include" and "exclude" patterns apply to
- * files, not directories
+ * The FileTreeWalker calls onIncludeFile() for files that don't match any of the "exclude" patterns
+ * and that match one of the "include" patterns. In other words "exclude" has precedence over
+ * "include". The pattern matching is done on the "start" relativized path
+ * <p>
+ * The "include" regex pattern applies to file only. The "exclude" pattern is applied to both files
+ * and directories to avoid walking unecessary part of the tree.
+ * <p>
+ * The file passed to onIncludeFile() is from the SimpleFileVisitor, left unchanged
  */
 public class FileTreeWalker {
 
   final Path start;
   final Consumer<Path> onIncludedFile;
-  private final List<Pattern> includePatterns;
-  private final List<Pattern> excludePatterns;
+  final List<Pattern> includePatterns;
+  final List<Pattern> excludePatterns;
 
-  public FileTreeWalker(Path start, Consumer<Path> onIncludedFile, List<String> includeRegex,
-      List<String> excludeRegex) {
+  public FileTreeWalker(Path start, Consumer<Path> onIncludedFile, List<String> includeRegexes,
+      List<String> excludeRegexes) {
     this.start = start;
     this.onIncludedFile = onIncludedFile;
-    this.includePatterns = includeRegex.stream().map(Pattern::compile)
+    this.includePatterns = includeRegexes.stream().map(Pattern::compile)
         .collect(Collectors.toList());
-    this.excludePatterns = excludeRegex.stream().map(Pattern::compile)
+    this.excludePatterns = excludeRegexes.stream().map(Pattern::compile)
         .collect(Collectors.toList());
   }
 
@@ -44,24 +46,42 @@ public class FileTreeWalker {
 
     try {
       Files.walkFileTree(start, new SimpleFileVisitor<Path>() {
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+            throws IOException {
+
+          FileVisitResult fileVisitResult = FileVisitResult.CONTINUE;
+
+          final Path relativeDirPath = start.relativize(dir);
+
+          if (shouldExcludePath(relativeDirPath)) {
+            fileVisitResult = fileVisitResult.SKIP_SUBTREE;
+          }
+
+          return fileVisitResult;
+        }
+
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          final Path relativePath = start.relativize(file);
+          final Path relativeFilePath = start.relativize(file);
 
-          final boolean isExcluded = excludePatterns.stream()
-              .map(pattern -> pattern.matcher(relativePath.toString())).anyMatch(
-                  Matcher::matches);
-
-          if (!isExcluded) {
-            final boolean isIncluded = includePatterns.stream()
-                .map(pattern -> pattern.matcher(relativePath.toString())).anyMatch(
+          if (!shouldExcludePath(relativeFilePath)) {
+            final boolean shouldIncludeFile = includePatterns.stream()
+                .map(pattern -> pattern.matcher(relativeFilePath.toString())).anyMatch(
                     Matcher::matches);
-            if (isIncluded) {
+            if (shouldIncludeFile) {
               onIncludedFile.accept(file);
             }
           }
 
           return FileVisitResult.CONTINUE;
+        }
+
+        private boolean shouldExcludePath(Path relativeDirPath) {
+          return excludePatterns.stream()
+              .map(pattern -> pattern.matcher(relativeDirPath.toString())).anyMatch(
+                  Matcher::matches);
         }
       });
     } catch (IOException e) {

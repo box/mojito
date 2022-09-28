@@ -11,12 +11,12 @@ class FileTreeWalkerTest {
 
   @Test
   void test() {
-    final Path start = Paths.get("target/").toAbsolutePath();
+    final Path start = Paths.get("").toAbsolutePath();
     System.out.println(start);
     new FileTreeWalker(start, path -> {
       System.out.println(path);
       System.out.println(start.relativize(path));
     }, Arrays.asList(".*\\.resx"),
-        Arrays.asList(".*\\.fr\\.resx", ".*filefinder")).walkFileTree();
+        Arrays.asList(".*\\.fr\\.resx", "target")).walkFileTree();
   }
 }
