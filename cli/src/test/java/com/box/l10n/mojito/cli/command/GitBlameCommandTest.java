@@ -46,13 +46,6 @@ public class GitBlameCommandTest extends CLITestBase {
    */
   boolean shallowClone = true;
 
-  /** GitActions has an even differnt type of checkout than Travis, just skip for now */
-  boolean isGitActions() {
-    Boolean githubActions = Boolean.valueOf(System.getenv("GITHUB_ACTIONS"));
-    logger.info("Github actions: {}", githubActions);
-    return githubActions;
-  }
-
   @Test
   public void android() throws Exception {
     Assume.assumeFalse(isGitActions());
