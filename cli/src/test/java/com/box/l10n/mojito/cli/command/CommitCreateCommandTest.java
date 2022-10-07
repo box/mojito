@@ -7,12 +7,17 @@ import com.box.l10n.mojito.cli.command.param.Param;
 import com.box.l10n.mojito.entity.Commit;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.service.commit.CommitService;
+import com.google.common.collect.Streams;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.joda.time.DateTime;
+import org.junit.Assume;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 /** @author garion */
@@ -60,7 +65,9 @@ public class CommitCreateCommandTest extends CLITestBase {
     assertEquals(commitHash, createdCommit.getName());
     assertEquals(authorEmail, createdCommit.getAuthorEmail());
     assertEquals(authorName, createdCommit.getAuthorName());
-    assertEquals(creationDate.withMillisOfSecond(0).getMillis(), createdCommit.getSourceCreationDate().withMillisOfSecond(0).getMillis());
+    assertEquals(
+        creationDate.withMillisOfSecond(0).getMillis(),
+        createdCommit.getSourceCreationDate().withMillisOfSecond(0).getMillis());
   }
 
   @Test
@@ -120,6 +127,57 @@ public class CommitCreateCommandTest extends CLITestBase {
     assertEquals(commitHash, createdCommit.getName());
     assertEquals(authorEmail, createdCommit.getAuthorEmail());
     assertEquals(authorName, createdCommit.getAuthorName());
-    assertEquals(creationDate.withMillisOfSecond(0).getMillis(), createdCommit.getSourceCreationDate().withMillisOfSecond(0).getMillis());
+    assertEquals(
+        creationDate.withMillisOfSecond(0).getMillis(),
+        createdCommit.getSourceCreationDate().withMillisOfSecond(0).getMillis());
+  }
+
+  @Test
+  public void testReadFromGitWithHash() throws Exception {
+    // shallow clone, etc won't work for this test. Skip it on CI
+    Assume.assumeFalse(isGitActions());
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    L10nJCommander l10nJCommanderFirstRun = getL10nJCommander();
+    l10nJCommanderFirstRun.run(
+        "commit-create", "-r", repository.getName(), "--read-from-git", "--commit-hash", "104e24");
+
+    final Page<Commit> commits =
+        commitService.getCommits(
+            repository.getId(), null, null, null, null, null, Pageable.unpaged());
+
+    assertEquals(1, commits.getTotalElements());
+    final Commit commit = commits.get().findFirst().get();
+    assertEquals("104e243819a3d7ba5fe25d069d6b51c8f0f3b2c2", commit.getName());
+    assertEquals("Jean Aurambault", commit.getAuthorName());
+    assertEquals("aurambaj@users.noreply.github.com", commit.getAuthorEmail());
+    assertEquals(
+        DateTime.parse("2022-09-20T10:55:39.000-07:00").toInstant(),
+        commit.getSourceCreationDate().toInstant());
+  }
+
+  @Test
+  public void testReadGitInfoNoHash() throws Exception {
+    Repository repository = createTestRepoUsingRepoService();
+
+    L10nJCommander l10nJCommanderFirstRun = getL10nJCommander();
+    l10nJCommanderFirstRun.run("commit-create", "-r", repository.getName(), "--read-from-git");
+
+    final Page<Commit> commits =
+        commitService.getCommits(
+            repository.getId(), null, null, null, null, null, Pageable.unpaged());
+
+    assertEquals(1, commits.getTotalElements());
+    final Commit commit = commits.get().findFirst().get();
+
+    final GitRepository gitRepository = new GitRepository();
+    gitRepository.init(getInputResourcesTestDir().toString());
+    final RevCommit revCommit =
+        Streams.stream(new Git(gitRepository.jgitRepository).log().setMaxCount(1).call())
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("test must be run on the mojito git repo"));
+
+    assertEquals(revCommit.getName(), commit.getName());
   }
 }

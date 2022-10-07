@@ -196,4 +196,11 @@ public class CLITestBase extends IOTestBase {
       Thread.sleep(numberAttempt * 100);
     }
   }
+
+  /** GitActions has an even differnt type of checkout than Travis, just skip for now */
+  protected boolean isGitActions() {
+    Boolean githubActions = Boolean.valueOf(System.getenv("GITHUB_ACTIONS"));
+    logger.info("Github actions: {}", githubActions);
+    return githubActions;
+  }
 }
