@@ -15,7 +15,7 @@ public class MacStringsFileType extends FileType {
 
   public MacStringsFileType() {
     this.sourceFileExtension = "strings";
-    this.baseNamePattern = ".*?Localizable|InfoPlist";
+    this.baseNamePattern = ".+?";
     this.subPath = "lproj";
     this.sourceFilePatternTemplate =
         "{"
