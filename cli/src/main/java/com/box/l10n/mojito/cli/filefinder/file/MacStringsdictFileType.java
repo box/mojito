@@ -15,7 +15,7 @@ public class MacStringsdictFileType extends FileType {
 
   public MacStringsdictFileType() {
     this.sourceFileExtension = "stringsdict";
-    this.baseNamePattern = "Localizable";
+    this.baseNamePattern = ".+?";
     this.subPath = "lproj";
     this.sourceFilePatternTemplate =
         "{"
