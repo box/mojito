@@ -17,7 +17,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 
 /** @author garion */
 public class CommitServiceTest extends ServiceTestBase {
@@ -90,8 +89,12 @@ public class CommitServiceTest extends ServiceTestBase {
     String authorEmail = "authorEmail";
     String authorName = "authorName";
     DateTime creationTime = DateTime.now();
-    Commit commit1 = commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, creationTime);
-    Commit commit2 = commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, creationTime);
+    Commit commit1 =
+        commitService.getOrCreateCommit(
+            repository, commitName, authorEmail, authorName, creationTime);
+    Commit commit2 =
+        commitService.getOrCreateCommit(
+            repository, commitName, authorEmail, authorName, creationTime);
     Assert.assertEquals(commit1.getId(), commit2.getId());
   }
 
@@ -103,8 +106,10 @@ public class CommitServiceTest extends ServiceTestBase {
     String commitName = "commitName";
     String authorEmail = "authorEmail";
     String authorName = "authorName";
-    commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, DateTime.now());
-    commitService.getOrCreateCommit(repository, commitName, authorEmail, authorName, DateTime.now().plusHours(3));
+    commitService.getOrCreateCommit(
+        repository, commitName, authorEmail, authorName, DateTime.now());
+    commitService.getOrCreateCommit(
+        repository, commitName, authorEmail, authorName, DateTime.now().plusHours(3));
   }
 
   @Test
