@@ -1,0 +1,130 @@
+commands:
+  shared:
+    repository: demo1
+    file-types:
+      - ANDROID
+      - IOS
+    # we need multi map OR a map local locale to remote locale (we must not have remote to local locale map since it prevents to do easy fr -> fr-CA & fr -> fr-FR )
+    locale-mapping:
+
+  push:
+  pull:
+    target: output/
+
+file-types:
+  # those are default
+  IOS:
+    file-set:
+      include-exact:
+        - 'exactpath'
+      include-regex:
+        - '.*/string.dict'
+      exclude:
+        - .git/
+  ANDROID:
+    # file-set-ref: android
+    file-set:
+      file-pattern:
+        source: '{parentPath}/res/values/strings.xml'
+        # android locale ... is fr-rFR ...
+        target: '{parentPath}/res/values-{locale}/strings.xml'
+      predefined: android
+      # exclude has precedence over
+      include:
+        - '**/res/values*/strings.xml'
+      exclude:
+        - '**/.git'
+  MYFILETYPE1:
+    file-set: default
+    file-pattern:
+      source: ""
+      localePattern: "en"
+      sourcePattern: ""
+      targetPattern: ""
+    deserialize: JSON
+    serialize: JSON
+  MYFILETYPE2:
+    file-set: default
+    file-pattern:
+      source: ""
+      localePattern: "en"
+      sourcePattern: ""
+      targetPattern: ""
+    deserialize: JSON
+    serialize: JSON
+files:
+  include:
+    - src/**/string.json
+  exclude:
+    # that'd be the default exclude?
+    - .git/
+    - src/notranslate/string.json
+
+# but we want files per type too?
+# and here it is a huge mess now
+file-sets:
+  default:
+    # include anything
+    include:
+      - '**/*'
+    # and then filter down
+    exclude:
+      # for performance reason
+      - .git/
+  ios:
+    include:
+      - '**/string.dict'
+      -
+
+
+---
+sourceRoot: "source/"
+targetRoot: "target/"
+files:
+  - layout: IOS
+    file-filter: IOS
+    exclude:
+      - '.git' # default?
+      - 'src/module-no-translate'
+  - layout:
+      id: PROPERTIES
+  - layout:
+      id: USER_DEFINED
+      source-regex: "src/main/resources/dir1/(?P<basename>fi_le)\\.properties"
+      target-regex: "src/main/resources/dir1/(?P<basename>fi_le)\\_(?P<locale>.+)\\.properties"
+      target-template: "src/main/resources/dir1/{basename}_{locale}.properties"
+
+
+
+
+---
+
+fileType: &mynewtype
+  - id: mynewtype
+    target-tempalte: {basename}.{extension}
+
+---
+
+# must have ALL the information to process!
+one-by-one-files:
+  - sourcePath: messages.pot
+    fileType:
+      # first lookup by id - then merge other fields
+      id: existing
+      target-template: {basename}.{extension}
+    fileFilter:
+      id: existing
+      options:
+by-type-scan:
+  - fileTypes:
+      id: existing
+    include-regex:
+      - regexp
+    exclude-regex:
+      - regexp
+    accept-ambiguous-source: "if-source-root-different-target-root"
+
+
+
+
+
