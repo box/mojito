@@ -94,7 +94,7 @@ public class Param {
   public static final String FILE_TYPE_LONG = "--file-type";
   public static final String FILE_TYPE_SHORT = "-ft";
   public static final String FILE_TYPE_DESCRIPTION =
-      "File type (if none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, MAC_STRINGSDICT, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, PROPERTIES_JAVA, RESW, RESX, PO, XTB)";
+      "File type(s), can be a list. If none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, MAC_STRINGSDICT, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, PROPERTIES_JAVA, RESW, RESX, PO, XTB";
 
   public static final String FILTER_OPTIONS_LONG = "--filter-options";
   public static final String FILTER_OPTIONS_SHORT = "-fo";
@@ -182,7 +182,7 @@ public class Param {
 
   public static final String AUTHOR_EMAIL_LONG = "--author-email";
   public static final String AUTHOR_EMAIL_SHORT = "-e";
-  public static final String AUTHOR_EMAIL_DESCRIPTION = "The e-mail of the author of the commit.";;
+  public static final String AUTHOR_EMAIL_DESCRIPTION = "The e-mail of the author of the commit.";
 
   public static final String CREATION_DATE_LONG = "--creation-date";
   public static final String CREATION_DATE_SHORT = "-d";

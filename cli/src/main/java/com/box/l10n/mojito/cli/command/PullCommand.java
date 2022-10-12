@@ -72,11 +72,11 @@ public class PullCommand extends Command {
 
   @Parameter(
       names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT},
-      arity = 1,
+      variableArity = true,
       required = false,
       description = Param.FILE_TYPE_DESCRIPTION,
       converter = FileTypeConverter.class)
-  FileType fileType;
+  List<FileType> fileTypes;
 
   @Parameter(
       names = {Param.FILTER_OPTIONS_LONG, Param.FILTER_OPTIONS_SHORT},
@@ -192,7 +192,7 @@ public class PullCommand extends Command {
 
     for (FileMatch sourceFileMatch :
         commandHelper.getSourceFileMatches(
-            commandDirectories, fileType, sourceLocale, sourcePathFilterRegex)) {
+            commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex)) {
 
       consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
 
