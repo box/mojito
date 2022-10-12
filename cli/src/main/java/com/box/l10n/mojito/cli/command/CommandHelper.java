@@ -15,6 +15,7 @@ import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.RepositoryLocale;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.io.Files;
 import java.io.File;
@@ -99,8 +100,10 @@ public class CommandHelper {
       String sourcePathFilterRegex)
       throws CommandException {
     logger.debug("Search for source asset to be localized");
+    Stopwatch stopwatch = Stopwatch.createStarted();
     FileFinder fileFinder =
         getFileFinder(commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
+    logger.info("Elapsed time scanning in getSourceFileMatches(): {}", stopwatch);
     return fileFinder.getSources();
   }
 
