@@ -86,7 +86,7 @@ public class CommandHelper {
    * Get list of {@link com.box.l10n.mojito.cli.filefinder.FileMatch} from source directory
    *
    * @param commandDirectories
-   * @param fileType
+   * @param fileTypes
    * @param sourceLocale
    * @param sourcePathFilterRegex
    * @return
@@ -94,13 +94,13 @@ public class CommandHelper {
    */
   public ArrayList<FileMatch> getSourceFileMatches(
       CommandDirectories commandDirectories,
-      FileType fileType,
+      List<FileType> fileTypes,
       String sourceLocale,
       String sourcePathFilterRegex)
       throws CommandException {
     logger.debug("Search for source asset to be localized");
     FileFinder fileFinder =
-        getFileFinder(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
+        getFileFinder(commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
     return fileFinder.getSources();
   }
 
@@ -108,20 +108,20 @@ public class CommandHelper {
    * Get list of {@link com.box.l10n.mojito.cli.filefinder.FileMatch} from target directory
    *
    * @param commandDirectories
-   * @param fileType
+   * @param fileTypes
    * @param sourcePathFilterRegex
    * @return
    * @throws CommandException
    */
   public ArrayList<FileMatch> getTargetFileMatches(
       CommandDirectories commandDirectories,
-      FileType fileType,
+      List<FileType> fileTypes,
       String sourceLocale,
       String sourcePathFilterRegex)
       throws CommandException {
     logger.debug("Search for target assets that are already localized");
     FileFinder fileFinder =
-        getFileFinder(commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
+        getFileFinder(commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
     return fileFinder.getTargets();
   }
 
@@ -129,7 +129,7 @@ public class CommandHelper {
    * Get {@link FileFinder} from source directory
    *
    * @param commandDirectories
-   * @param fileType
+   * @param fileTypes
    * @param sourceLocale
    * @param sourcePathFilterRegex
    * @return
@@ -137,7 +137,7 @@ public class CommandHelper {
    */
   protected FileFinder getFileFinder(
       CommandDirectories commandDirectories,
-      FileType fileType,
+      List<FileType> fileTypes,
       String sourceLocale,
       String sourcePathFilterRegex)
       throws CommandException {
@@ -146,8 +146,8 @@ public class CommandHelper {
     fileFinder.setTargetDirectory(commandDirectories.getTargetDirectoryPath());
     fileFinder.setSourcePathFilterRegex(sourcePathFilterRegex);
 
-    if (fileType != null) {
-      fileFinder.setFileTypes(fileType);
+    if (fileTypes != null) {
+      fileFinder.setFileTypes(fileTypes);
     }
 
     if (!Strings.isNullOrEmpty(sourceLocale)) {

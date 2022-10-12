@@ -12,6 +12,7 @@ import com.box.l10n.mojito.rest.client.RepositoryClient;
 import com.box.l10n.mojito.rest.client.exception.ResourceNotCreatedException;
 import com.box.l10n.mojito.rest.entity.Repository;
 import java.nio.file.Path;
+import java.util.Arrays;
 import org.fusesource.jansi.Ansi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,17 +90,19 @@ public class TMImportCommand extends Command {
     repository = commandHelper.findRepositoryByName(repositoryParam);
     commandDirectories = new CommandDirectories(sourceDirectoryParam);
 
-    FileType fileType = new XliffFileType();
+    FileType xliffFileType = new XliffFileType();
 
     if (!skipSourceImportParam) {
       for (FileMatch sourceFileMatch :
-          commandHelper.getSourceFileMatches(commandDirectories, fileType, null, null)) {
+          commandHelper.getSourceFileMatches(
+              commandDirectories, Arrays.asList(xliffFileType), null, null)) {
         doImportFileMatch(sourceFileMatch);
       }
     }
 
     for (FileMatch targetFileMatch :
-        commandHelper.getTargetFileMatches(commandDirectories, fileType, null, null)) {
+        commandHelper.getTargetFileMatches(
+            commandDirectories, Arrays.asList(xliffFileType), null, null)) {
       doImportFileMatch(targetFileMatch);
     }
 

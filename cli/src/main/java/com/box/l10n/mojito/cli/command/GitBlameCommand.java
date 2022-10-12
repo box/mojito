@@ -72,11 +72,11 @@ public class GitBlameCommand extends Command {
 
   @Parameter(
       names = {Param.FILE_TYPE_LONG, Param.FILE_TYPE_SHORT},
-      arity = 1,
+      variableArity = true,
       required = false,
       description = Param.FILE_TYPE_DESCRIPTION,
       converter = FileTypeConverter.class)
-  FileType fileType;
+  List<FileType> fileTypes;
 
   @Parameter(
       names = {Param.SOURCE_LOCALE_LONG, Param.SOURCE_LOCALE_SHORT},
@@ -231,7 +231,7 @@ public class GitBlameCommand extends Command {
 
     ArrayList<FileMatch> sourceFileMatches =
         commandHelper.getSourceFileMatches(
-            commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
+            commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
 
     for (FileMatch sourceFileMatch : sourceFileMatches) {
       if (GitBlameType.TEXT_UNIT_USAGES.equals(sourceFileMatch.getFileType().getGitBlameType())) {

@@ -112,6 +112,10 @@ public class FileFinder {
     this.fileTypes = Arrays.asList(fileTypes);
   }
 
+  public void setFileTypes(List<FileType> fileTypes) {
+    this.fileTypes = fileTypes;
+  }
+
   /**
    * Gets the source files matches.
    *
