@@ -99,7 +99,7 @@ public class Param {
   public static final String FILTER_OPTIONS_LONG = "--filter-options";
   public static final String FILTER_OPTIONS_SHORT = "-fo";
   public static final String FILTER_OPTIONS_DESCRIPTION =
-      "Filter options. Format: option1=value1&option2=value2";
+      "Filter options, can be a list. Format: option1=value1";
 
   public static final String SOURCE_REGEX_LONG = "--source-regex";
   public static final String SOURCE_REGEX_SHORT = "-sr";
