@@ -11,6 +11,7 @@ import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import java.util.ArrayList;
 import java.util.List;
 import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,6 +107,7 @@ public class ExtractionCommand extends Command {
             commandDirectories, fileType, sourceLocale, sourcePathFilterRegex);
 
     for (FileMatch sourceFileMatch : sourceFileMatches) {
+      consoleWriter.a("Extracting: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
       List<String> filterOptions =
           commandHelper.getFilterOptionsOrDefaults(
               sourceFileMatch.getFileType(), filterOptionsParam);
