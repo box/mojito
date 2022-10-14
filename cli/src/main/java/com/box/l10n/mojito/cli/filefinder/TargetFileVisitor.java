@@ -51,30 +51,29 @@ class TargetFileVisitor extends SimpleFileVisitor<Path> {
   @Override
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
-    Path relativePath = targetDirectory.relativize(file);
+    String relativePathStr = targetDirectory.relativize(file).toString();
 
-    Matcher matcher = targetFilePattern.getPattern().matcher(relativePath.toString());
+    if (relativePathStr.endsWith(fileType.getTargetFileExtension())) {
+      Matcher matcher = targetFilePattern.getPattern().matcher(relativePathStr);
 
-    if (matcher.matches()) {
+      if (matcher.matches()) {
 
-      FileMatch fileMatch = new FileMatch();
-      fileMatch.setFileType(fileType);
-      fileMatch.setTarget(true);
-      fileMatch.setPath(file);
+        FileMatch fileMatch = new FileMatch();
+        fileMatch.setFileType(fileType);
+        fileMatch.setTarget(true);
+        fileMatch.setPath(file);
 
-      for (String group : targetFilePattern.getGroups()) {
-        fileMatch.addProperty(group, matcher.group(group));
+        for (String group : targetFilePattern.getGroups()) {
+          fileMatch.addProperty(group, matcher.group(group));
+        }
+
+        if (logger.isDebugEnabled()) {
+          logger.debug(
+              "target name: " + relativePathStr + " with src name: " + fileMatch.getSourcePath());
+        }
+
+        targetMatches.add(fileMatch);
       }
-
-      if (logger.isDebugEnabled()) {
-        logger.debug(
-            "target name: "
-                + relativePath.toString()
-                + " with src name: "
-                + fileMatch.getSourcePath());
-      }
-
-      targetMatches.add(fileMatch);
     }
 
     return CONTINUE;

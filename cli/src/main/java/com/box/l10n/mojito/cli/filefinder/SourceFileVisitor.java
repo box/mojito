@@ -69,27 +69,30 @@ class SourceFileVisitor extends SimpleFileVisitor<Path> {
   @Override
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
-    Path relativePath = sourceDirectory.relativize(file);
+    String relativePathStr = sourceDirectory.relativize(file).toString();
 
-    Matcher matcher = sourceFilePattern.getPattern().matcher(relativePath.toString());
+    if (relativePathStr.endsWith(fileType.getSourceFileExtension())) {
 
-    if (matcher.matches() && matchesSourcePathFilterRegex(relativePath.toString())) {
+      Matcher matcher = sourceFilePattern.getPattern().matcher(relativePathStr);
 
-      FileMatch fileMatch = new FileMatch();
-      fileMatch.setFileType(fileType);
-      fileMatch.setTarget(false);
-      fileMatch.setPath(file);
+      if (matcher.matches() && matchesSourcePathFilterRegex(relativePathStr)) {
 
-      for (String group : sourceFilePattern.getGroups()) {
-        fileMatch.addProperty(group, matcher.group(group));
+        FileMatch fileMatch = new FileMatch();
+        fileMatch.setFileType(fileType);
+        fileMatch.setTarget(false);
+        fileMatch.setPath(file);
+
+        for (String group : sourceFilePattern.getGroups()) {
+          fileMatch.addProperty(group, matcher.group(group));
+        }
+
+        if (!fileMatch.getSourcePath().equals(relativePathStr)) {
+          throw new RuntimeException("this must be equal");
+        }
+
+        logger.debug("src name: " + fileMatch.getSourcePath());
+        sourceMatches.add(fileMatch);
       }
-
-      if (!fileMatch.getSourcePath().equals(relativePath.toString())) {
-        throw new RuntimeException("this must be equal");
-      }
-
-      logger.debug("src name: " + fileMatch.getSourcePath());
-      sourceMatches.add(fileMatch);
     }
 
     return FileVisitResult.CONTINUE;
