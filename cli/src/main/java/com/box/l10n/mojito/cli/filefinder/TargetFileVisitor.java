@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.filefinder;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import java.io.IOException;
@@ -26,16 +27,24 @@ class TargetFileVisitor extends SimpleFileVisitor<Path> {
   private final FilePattern targetFilePattern;
   private final FileType fileType;
   private final Path targetDirectory;
+  private DirectoryScanUtils directoryScanUtils;
 
-  public TargetFileVisitor(FileType fileType, Path targetDirectory) {
+  public TargetFileVisitor(
+      FileType fileType, Path targetDirectory, DirectoryScanUtils directoryScanUtils) {
     this.fileType = fileType;
     this.targetFilePattern = fileType.getTargetFilePattern();
     this.targetDirectory = targetDirectory;
     this.targetMatches = new ArrayList<>();
+    this.directoryScanUtils = directoryScanUtils;
   }
 
   public List<FileMatch> getTargetMatches() {
     return targetMatches;
+  }
+
+  @Override
+  public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+    return directoryScanUtils.shouldScan(dir) ? CONTINUE : SKIP_SUBTREE;
   }
 
   @Override

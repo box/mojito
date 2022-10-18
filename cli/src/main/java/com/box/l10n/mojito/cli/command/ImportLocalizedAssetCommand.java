@@ -100,6 +100,20 @@ public class ImportLocalizedAssetCommand extends Command {
   String sourcePathFilterRegex;
 
   @Parameter(
+      names = {Param.DIR_PATH_INCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_INCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesIncludePatterns = null;
+
+  @Parameter(
+      names = {Param.DIR_PATH_EXCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_EXCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesExcludePatterns = null;
+
+  @Parameter(
       names = {"--status-equal-target"},
       required = false,
       description =
@@ -141,7 +155,12 @@ public class ImportLocalizedAssetCommand extends Command {
 
     for (FileMatch sourceFileMatch :
         commandHelper.getSourceFileMatches(
-            commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex)) {
+            commandDirectories,
+            fileTypes,
+            sourceLocale,
+            sourcePathFilterRegex,
+            directoriesIncludePatterns,
+            directoriesExcludePatterns)) {
       for (Locale locale : getLocalesForImport()) {
         doImportFileMatch(sourceFileMatch, locale);
       }

@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.filefinder;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 
 import com.box.l10n.mojito.cli.filefinder.file.FileType;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +42,18 @@ class SourceFileVisitor extends SimpleFileVisitor<Path> {
   /** Regular expression to match source file path in addition to sourceFilePattern */
   private final String sourcePathFilterRegex;
 
-  public SourceFileVisitor(FileType fileType, Path sourceDirectory, String sourcePathFilterRegex) {
-    this.fileType = fileType;
+  private DirectoryScanUtils directoryScanUtils;
+
+  public SourceFileVisitor(
+      FileType fileType,
+      Path sourceDirectory,
+      String sourcePathFilterRegex,
+      DirectoryScanUtils directoryScanUtils) {
+    this.fileType = Objects.requireNonNull((fileType));
     this.sourceFilePattern = fileType.getSourceFilePattern();
-    this.sourceDirectory = sourceDirectory;
+    this.sourceDirectory = Objects.requireNonNull(sourceDirectory);
     this.sourcePathFilterRegex = sourcePathFilterRegex;
+    this.directoryScanUtils = Objects.requireNonNull(directoryScanUtils);
   }
 
   /**
@@ -54,6 +63,11 @@ class SourceFileVisitor extends SimpleFileVisitor<Path> {
    */
   public List<FileMatch> getSourceMatches() {
     return sourceMatches;
+  }
+
+  @Override
+  public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+    return directoryScanUtils.shouldScan(dir) ? CONTINUE : SKIP_SUBTREE;
   }
 
   @Override

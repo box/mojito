@@ -766,6 +766,57 @@ public class PullCommandTest extends CLITestBase {
   }
 
   @Test
+  public void pullDirectoryIncludeExcludePatterns() throws Exception {
+
+    System.setProperty("overrideExpectedTestFiles", "true");
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "--dir-path-include-patterns",
+            "*/resources",
+            "other",
+            "--dir-path-exclude-patterns",
+            "b/resources");
+
+    Asset asset =
+        assetClient.getAssetByPathAndRepositoryId(
+            "a/resources/demo.properties", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+    asset =
+        assetClient.getAssetByPathAndRepositoryId(
+            "c/resources/demo.properties", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+    asset = assetClient.getAssetByPathAndRepositoryId("other/demo.properties", repository.getId());
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "--dir-path-include-patterns",
+            "*/resources",
+            "other",
+            "--dir-path-exclude-patterns",
+            "b/resources");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
   public void testLatestTMTextUnitVariant() throws Exception {
     Repository repository1 = createTestRepoUsingRepoService("repo1", false);
     Repository repository2 = createTestRepoUsingRepoService("repo2", false);

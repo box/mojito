@@ -48,6 +48,10 @@ public class FileFinder {
   /** Regular expression to filter source paths */
   private String sourcePathFilterRegex;
 
+  List<String> directoriesIncludePatterns = null;
+
+  List<String> directoriesExcludePatterns = null;
+
   /** The result of the search */
   FileFinderResult fileFinderResult;
 
@@ -97,6 +101,22 @@ public class FileFinder {
 
   public void setSourcePathFilterRegex(String sourcePathFilterRegex) {
     this.sourcePathFilterRegex = sourcePathFilterRegex;
+  }
+
+  public List<String> getDirectoriesIncludePattern() {
+    return directoriesIncludePatterns;
+  }
+
+  public void setDirectoriesIncludePattern(List<String> directoriesIncludePatterns) {
+    this.directoriesIncludePatterns = directoriesIncludePatterns;
+  }
+
+  public List<String> getDirectoriesExcludePattern() {
+    return directoriesExcludePatterns;
+  }
+
+  public void setDirectoriesExcludePattern(List<String> directoriesExcludePatterns) {
+    this.directoriesExcludePatterns = directoriesExcludePatterns;
   }
 
   public List<FileType> getFileTypes() {
@@ -197,7 +217,12 @@ public class FileFinder {
     }
 
     SourceFileVisitor sourceFileVisitor =
-        new SourceFileVisitor(fileType, sourceDirectory, sourcePathFilterRegex);
+        new SourceFileVisitor(
+            fileType,
+            sourceDirectory,
+            sourcePathFilterRegex,
+            new DirectoryScanUtils(
+                sourceDirectory, directoriesIncludePatterns, directoriesExcludePatterns));
 
     try {
       Files.walkFileTree(sourceDirectory, sourceFileVisitor);
@@ -214,7 +239,12 @@ public class FileFinder {
       throw new FileFinderException("Invalid target directory: " + targetDirectory.toString());
     }
 
-    TargetFileVisitor targetFileVisitor = new TargetFileVisitor(fileType, targetDirectory);
+    TargetFileVisitor targetFileVisitor =
+        new TargetFileVisitor(
+            fileType,
+            targetDirectory,
+            new DirectoryScanUtils(
+                targetDirectory, directoriesIncludePatterns, directoriesExcludePatterns));
 
     try {
       Files.walkFileTree(targetDirectory, targetFileVisitor);

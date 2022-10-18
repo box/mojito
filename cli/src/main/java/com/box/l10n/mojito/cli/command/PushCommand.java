@@ -74,6 +74,20 @@ public class PushCommand extends Command {
   String sourceLocale;
 
   @Parameter(
+      names = {Param.DIR_PATH_INCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_INCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesIncludePatterns = null;
+
+  @Parameter(
+      names = {Param.DIR_PATH_EXCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_EXCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesExcludePatterns = null;
+
+  @Parameter(
       names = {Param.SOURCE_REGEX_LONG, Param.SOURCE_REGEX_SHORT},
       arity = 1,
       required = false,
@@ -174,7 +188,12 @@ public class PushCommand extends Command {
     String pushRunName = UUID.randomUUID().toString();
     ArrayList<FileMatch> sourceFileMatches =
         commandHelper.getSourceFileMatches(
-            commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
+            commandDirectories,
+            fileTypes,
+            sourceLocale,
+            sourcePathFilterRegex,
+            directoriesIncludePatterns,
+            directoriesExcludePatterns);
 
     Stream<SourceAsset> sourceAssetStream =
         sourceFileMatches.stream()
