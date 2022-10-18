@@ -90,6 +90,8 @@ public class CommandHelper {
    * @param fileTypes
    * @param sourceLocale
    * @param sourcePathFilterRegex
+   * @param directoriesIncludePatterns
+   * @param directoriesExcludePatterns
    * @return
    * @throws CommandException
    */
@@ -97,12 +99,20 @@ public class CommandHelper {
       CommandDirectories commandDirectories,
       List<FileType> fileTypes,
       String sourceLocale,
-      String sourcePathFilterRegex)
+      String sourcePathFilterRegex,
+      List<String> directoriesIncludePatterns,
+      List<String> directoriesExcludePatterns)
       throws CommandException {
     logger.debug("Search for source asset to be localized");
     Stopwatch stopwatch = Stopwatch.createStarted();
     FileFinder fileFinder =
-        getFileFinder(commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
+        getFileFinder(
+            commandDirectories,
+            fileTypes,
+            sourceLocale,
+            sourcePathFilterRegex,
+            directoriesIncludePatterns,
+            directoriesExcludePatterns);
     logger.info("Elapsed time scanning in getSourceFileMatches(): {}", stopwatch);
     return fileFinder.getSources();
   }
@@ -120,11 +130,19 @@ public class CommandHelper {
       CommandDirectories commandDirectories,
       List<FileType> fileTypes,
       String sourceLocale,
-      String sourcePathFilterRegex)
+      String sourcePathFilterRegex,
+      List<String> directoriesIncludePatterns,
+      List<String> directoriesExcludePatterns)
       throws CommandException {
     logger.debug("Search for target assets that are already localized");
     FileFinder fileFinder =
-        getFileFinder(commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
+        getFileFinder(
+            commandDirectories,
+            fileTypes,
+            sourceLocale,
+            sourcePathFilterRegex,
+            directoriesIncludePatterns,
+            directoriesExcludePatterns);
     return fileFinder.getTargets();
   }
 
@@ -135,6 +153,8 @@ public class CommandHelper {
    * @param fileTypes
    * @param sourceLocale
    * @param sourcePathFilterRegex
+   * @param directoriesIncludePatterns
+   * @param directoriesExcludePatterns
    * @return
    * @throws CommandException
    */
@@ -142,11 +162,15 @@ public class CommandHelper {
       CommandDirectories commandDirectories,
       List<FileType> fileTypes,
       String sourceLocale,
-      String sourcePathFilterRegex)
+      String sourcePathFilterRegex,
+      List<String> directoriesIncludePatterns,
+      List<String> directoriesExcludePatterns)
       throws CommandException {
     FileFinder fileFinder = new FileFinder();
     fileFinder.setSourceDirectory(commandDirectories.getSourceDirectoryPath());
     fileFinder.setTargetDirectory(commandDirectories.getTargetDirectoryPath());
+    fileFinder.setDirectoriesIncludePattern(directoriesIncludePatterns);
+    fileFinder.setDirectoriesExcludePattern(directoriesExcludePatterns);
     fileFinder.setSourcePathFilterRegex(sourcePathFilterRegex);
 
     if (fileTypes != null) {

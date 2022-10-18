@@ -100,6 +100,20 @@ public class PullCommand extends Command {
   String sourcePathFilterRegex;
 
   @Parameter(
+      names = {Param.DIR_PATH_INCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_INCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesIncludePatterns = null;
+
+  @Parameter(
+      names = {Param.DIR_PATH_EXCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_EXCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesExcludePatterns = null;
+
+  @Parameter(
       names = {"--inheritance-mode"},
       required = false,
       description =
@@ -192,7 +206,12 @@ public class PullCommand extends Command {
 
     for (FileMatch sourceFileMatch :
         commandHelper.getSourceFileMatches(
-            commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex)) {
+            commandDirectories,
+            fileTypes,
+            sourceLocale,
+            sourcePathFilterRegex,
+            directoriesIncludePatterns,
+            directoriesExcludePatterns)) {
 
       consoleWriter.a("Localizing: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();
 

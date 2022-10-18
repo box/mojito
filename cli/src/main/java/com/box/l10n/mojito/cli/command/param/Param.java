@@ -2,6 +2,7 @@ package com.box.l10n.mojito.cli.command.param;
 
 /** @author wyau */
 public class Param {
+
   public static final String BRANCH_LONG = "--branch";
   public static final String BRANCH_SHORT = "-b";
   public static final String BRANCH_DESCRIPTION = "Name of the branch";
@@ -105,6 +106,18 @@ public class Param {
   public static final String SOURCE_REGEX_SHORT = "-sr";
   public static final String SOURCE_REGEX_DESCRIPTION =
       "Regular expression to match the path of source assets to localize";
+
+  public static final String DIR_PATH_INCLUDE_PATTERNS_LONG = "--dir-path-include-patterns";
+  public static final String DIR_PATH_INCLUDE_PATTERNS_DESCRIPTION =
+      "List of patterns of directories to be included. The wildcard '*' can be used to match any sub "
+          + "path (only one level, no recursion). For example, 'modules/*/src' will scan "
+          + "'modules/1/src/', 'modules/2/src' but not 'modules/1/a/src'";
+
+  public static final String DIR_PATH_EXCLUDE_PATTERNS_LONG = "--dir-path-exclude-patterns";
+  public static final String DIR_PATH_EXCLUDE_PATTERNS_DESCRIPTION =
+      "List of patterns of directories to be excluded. The wildcard '*' can be used to match any sub "
+          + "path (only one level, no recursion). For example, 'modules/*/src' will scan "
+          + "'modules/1/src/', 'modules/2/src' but not 'modules/1/a/src'";
 
   public static final String USERNAME_LONG = "--username";
   public static final String USERNAME_SHORT = "-un";

@@ -93,6 +93,20 @@ public class GitBlameCommand extends Command {
   String sourcePathFilterRegex;
 
   @Parameter(
+      names = {Param.DIR_PATH_INCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_INCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesIncludePatterns = null;
+
+  @Parameter(
+      names = {Param.DIR_PATH_EXCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_EXCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesExcludePatterns = null;
+
+  @Parameter(
       names = {"--extracted-prefix"},
       arity = 1,
       required = false,
@@ -231,7 +245,12 @@ public class GitBlameCommand extends Command {
 
     ArrayList<FileMatch> sourceFileMatches =
         commandHelper.getSourceFileMatches(
-            commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
+            commandDirectories,
+            fileTypes,
+            sourceLocale,
+            sourcePathFilterRegex,
+            directoriesIncludePatterns,
+            directoriesExcludePatterns);
 
     for (FileMatch sourceFileMatch : sourceFileMatches) {
       if (GitBlameType.TEXT_UNIT_USAGES.equals(sourceFileMatch.getFileType().getGitBlameType())) {

@@ -68,6 +68,20 @@ public class ExtractionCommand extends Command {
   String sourcePathFilterRegex;
 
   @Parameter(
+      names = {Param.DIR_PATH_INCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_INCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesIncludePatterns = null;
+
+  @Parameter(
+      names = {Param.DIR_PATH_EXCLUDE_PATTERNS_LONG},
+      variableArity = true,
+      required = false,
+      description = Param.DIR_PATH_EXCLUDE_PATTERNS_DESCRIPTION)
+  List<String> directoriesExcludePatterns = null;
+
+  @Parameter(
       names = {Param.EXTRACTION_NAME_LONG, Param.EXTRACTION_NAME_SHORT},
       arity = 1,
       required = true,
@@ -104,7 +118,12 @@ public class ExtractionCommand extends Command {
 
     ArrayList<FileMatch> sourceFileMatches =
         commandHelper.getSourceFileMatches(
-            commandDirectories, fileTypes, sourceLocale, sourcePathFilterRegex);
+            commandDirectories,
+            fileTypes,
+            sourceLocale,
+            sourcePathFilterRegex,
+            directoriesIncludePatterns,
+            directoriesExcludePatterns);
 
     for (FileMatch sourceFileMatch : sourceFileMatches) {
       consoleWriter.a("Extracting: ").fg(Color.CYAN).a(sourceFileMatch.getSourcePath()).println();

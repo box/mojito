@@ -95,14 +95,14 @@ public class TMImportCommand extends Command {
     if (!skipSourceImportParam) {
       for (FileMatch sourceFileMatch :
           commandHelper.getSourceFileMatches(
-              commandDirectories, Arrays.asList(xliffFileType), null, null)) {
+              commandDirectories, Arrays.asList(xliffFileType), null, null, null, null)) {
         doImportFileMatch(sourceFileMatch);
       }
     }
 
     for (FileMatch targetFileMatch :
         commandHelper.getTargetFileMatches(
-            commandDirectories, Arrays.asList(xliffFileType), null, null)) {
+            commandDirectories, Arrays.asList(xliffFileType), null, null, null, null)) {
       doImportFileMatch(targetFileMatch);
     }
 
