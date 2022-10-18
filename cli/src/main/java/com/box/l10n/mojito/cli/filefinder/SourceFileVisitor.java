@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ class SourceFileVisitor extends SimpleFileVisitor<Path> {
   private final Path sourceDirectory;
 
   /** Regular expression to match source file path in addition to sourceFilePattern */
-  private final String sourcePathFilterRegex;
+  private final Pattern sourcePathFilterPattern;
 
   private DirectoryScanUtils directoryScanUtils;
 
@@ -52,7 +53,9 @@ class SourceFileVisitor extends SimpleFileVisitor<Path> {
     this.fileType = Objects.requireNonNull((fileType));
     this.sourceFilePattern = fileType.getSourceFilePattern();
     this.sourceDirectory = Objects.requireNonNull(sourceDirectory);
-    this.sourcePathFilterRegex = sourcePathFilterRegex;
+    this.sourcePathFilterPattern =
+        sourcePathFilterRegex == null ? null : Pattern.compile(sourcePathFilterRegex);
+    ;
     this.directoryScanUtils = Objects.requireNonNull(directoryScanUtils);
   }
 
@@ -113,6 +116,6 @@ class SourceFileVisitor extends SimpleFileVisitor<Path> {
   }
 
   protected boolean matchesSourcePathFilterRegex(String path) {
-    return sourcePathFilterRegex == null || path.matches(sourcePathFilterRegex);
+    return sourcePathFilterPattern == null || sourcePathFilterPattern.matcher(path).matches();
   }
 }
