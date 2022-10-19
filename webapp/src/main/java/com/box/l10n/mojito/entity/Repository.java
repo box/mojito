@@ -89,7 +89,7 @@ public class Repository extends AuditableEntity {
   @JsonView(View.Repository.class)
   protected User createdByUser;
 
-  @JsonView(View.BranchStatistic.class)
+  @JsonView({View.BranchStatistic.class, View.Repository.class})
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "manual_screenshot_run_id",
