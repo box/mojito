@@ -37,13 +37,18 @@ public class AndroidPlural extends AbstractAndroidString {
 
   private Map<AndroidPluralQuantity, AndroidPluralItem> buildItemMap(
       List<AndroidPluralItem> items) {
-    try {
-      return items.stream()
-          .collect(Collectors.toMap(AndroidPluralItem::getQuantity, Function.identity()));
-    } catch (IllegalStateException e) {
-      throw new AndroidPluralDuplicateKeyException(
-          "A duplicate was found when building an Android Plural", e);
-    }
+    return items.stream()
+        .collect(
+            Collectors.toMap(
+                AndroidPluralItem::getQuantity,
+                Function.identity(),
+                (androidPluralItem, androidPluralItem2) -> {
+                  throw new AndroidPluralDuplicateKeyException(
+                      "A duplicate was found when building an Android Plural. "
+                          + androidPluralItem
+                          + " dupplicates: "
+                          + androidPluralItem2);
+                }));
   }
 
   @Override
