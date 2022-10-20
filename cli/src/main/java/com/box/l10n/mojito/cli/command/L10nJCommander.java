@@ -115,6 +115,7 @@ public class L10nJCommander {
       } else {
         usage(parsedCommand);
       }
+      exitWithError();
     } else {
       logger.debug("Execute commands for parsed command: {}", parsedCommand);
       Command command = getCommand(parsedCommand);
