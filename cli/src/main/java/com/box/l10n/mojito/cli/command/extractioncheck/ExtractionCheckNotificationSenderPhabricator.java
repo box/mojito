@@ -48,12 +48,16 @@ public class ExtractionCheckNotificationSenderPhabricator
       sb.append(
           results.stream()
               .map(
-                  check ->
-                      "**"
-                          + check.getCheckName()
-                          + "**"
-                          + getDoubleNewLines()
-                          + check.getNotificationText())
+                  check -> {
+                    PhabricatorIcon icon =
+                        check.isHardFail() ? PhabricatorIcon.STOP : PhabricatorIcon.WARNING;
+                    return icon
+                        + " **"
+                        + check.getCheckName()
+                        + "**"
+                        + getDoubleNewLines()
+                        + check.getNotificationText();
+                  })
               .collect(Collectors.joining(System.lineSeparator())));
       sb.append(
           getDoubleNewLines() + "**" + "Please correct the above issues in a new commit." + "**");
