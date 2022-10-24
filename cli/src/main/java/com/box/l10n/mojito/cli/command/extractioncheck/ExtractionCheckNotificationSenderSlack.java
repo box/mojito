@@ -72,13 +72,16 @@ public class ExtractionCheckNotificationSenderSlack extends ExtractionCheckNotif
     sb.append(
         failures.stream()
             .map(
-                check ->
-                    "*"
-                        + check.getCheckName()
-                        + "*"
-                        + getDoubleNewLines()
-                        + check.getNotificationText()
-                        + getDoubleNewLines())
+                check -> {
+                  String emoji = check.isHardFail() ? ":stop:" : ":warning:";
+                  return emoji
+                      + " *"
+                      + check.getCheckName()
+                      + "*"
+                      + getDoubleNewLines()
+                      + check.getNotificationText()
+                      + getDoubleNewLines();
+                })
             .collect(Collectors.joining(System.lineSeparator())));
     sb.append(getDoubleNewLines() + "*" + "Please correct the above issues in a new commit." + "*");
     String message =

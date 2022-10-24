@@ -68,6 +68,7 @@ public class ExtractionCheckNotificationSenderPhabricatorTest {
     Assert.assertTrue(messageCaptor.getValue().contains(PhabricatorIcon.WARNING.toString()));
     Assert.assertTrue(messageCaptor.getValue().contains("Test Check"));
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
+    Assert.assertTrue(messageCaptor.getValue().contains(PhabricatorIcon.WARNING.toString()));
   }
 
   @Test
@@ -107,6 +108,7 @@ public class ExtractionCheckNotificationSenderPhabricatorTest {
     Assert.assertTrue(messageCaptor.getValue().contains("Test Check"));
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
     Assert.assertTrue(messageCaptor.getValue().contains("This is a hard failure message"));
+    Assert.assertTrue(messageCaptor.getValue().contains(PhabricatorIcon.STOP.toString()));
   }
 
   @Test

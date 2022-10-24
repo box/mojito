@@ -85,6 +85,7 @@ public class ExtractionCheckNotificationSenderSlackTest {
     Assert.assertTrue(attachment.getText().contains("*i18n source string checks failed*"));
     Assert.assertTrue(attachment.getText().contains("Test Check"));
     Assert.assertTrue(attachment.getText().contains("Some notification text"));
+    Assert.assertTrue(attachment.getText().contains(":warning:"));
   }
 
   @Test
@@ -129,6 +130,7 @@ public class ExtractionCheckNotificationSenderSlackTest {
     Assert.assertTrue(attachment.getText().contains("Test Check"));
     Assert.assertTrue(attachment.getText().contains("Some notification text"));
     Assert.assertTrue(attachment.getText().contains("This is a hard failure message."));
+    Assert.assertTrue(attachment.getText().contains(":stop:"));
   }
 
   @Test
