@@ -9,9 +9,12 @@ jobs:
       - uses: actions/checkout@v2
       - name: test env variable
         env:
-          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+          MOJITO_CURRENT_COMMIT: ${{ github.event.pull_request.head.sha }}
+          MOJITO_BASE_COMMIT: ${{ github.event.pull_request.base.sha }}
         run: |
-          echo $EVENT_CONTEXT
+          echo "Current commit: ${MOJITO_CURRENT_COMMIT} and Base commit: ${MOJITO_BASE_COMMIT} "
+
+#          echo $EVENT_CONTEXT
 #      - name: Set up JDK 1.8
 #        uses: actions/setup-java@v3
 #        with:
