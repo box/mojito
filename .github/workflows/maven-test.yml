@@ -8,7 +8,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: test env variable
-        run: env
+        env:
+          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+        run: |
+          echo $EVENT_CONTEXT
 #      - name: Set up JDK 1.8
 #        uses: actions/setup-java@v3
 #        with:
