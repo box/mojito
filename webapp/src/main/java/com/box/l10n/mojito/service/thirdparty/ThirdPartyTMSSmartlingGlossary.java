@@ -393,7 +393,7 @@ public class ThirdPartyTMSSmartlingGlossary {
     glossaryTargetTerm.setTermText(sourceEntry != null ? sourceEntry.getTerm(0).getText() : null);
 
     LangEntry targetEntry = conceptEntry.getEntries(LocaleId.fromString(locale));
-    if (targetEntry != null) {
+    if (targetEntry != null && targetEntry.hasTerm()) {
       GlossaryTermTranslation glossaryTermTranslation = new GlossaryTermTranslation();
       TermEntry termEntry = targetEntry.getTerm(0);
       glossaryTermTranslation.setTranslatedTerm(termEntry.getText());
