@@ -67,6 +67,20 @@ public class ScreenshotWS {
         limit);
   }
 
+  @RequestMapping(
+      value = "/api/screenshots/{screenShotRunId}/{screenshotName}",
+      method = RequestMethod.GET)
+  public Long getScreenshotIdByScreenshotRunAndName(
+      @PathVariable Long screenShotRunId, @PathVariable String screenshotName) {
+    Screenshot screenshot =
+        screenshotService.getScreenshotByScreenshotRunAndName(screenShotRunId, screenshotName);
+    if (screenshot == null) {
+      throw new ScreenshotWithNameAndScreenshotRunIdNotFoundException(
+          screenshotName, screenShotRunId);
+    }
+    return screenshot.getId();
+  }
+
   @RequestMapping(value = "/api/screenshots/{id}", method = RequestMethod.PUT)
   public void updateScreenshot(@PathVariable Long id, @RequestBody Screenshot screenshot) {
     screenshot.setId(id);

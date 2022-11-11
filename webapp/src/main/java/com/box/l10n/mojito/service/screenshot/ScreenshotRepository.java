@@ -18,6 +18,9 @@ public interface ScreenshotRepository
   Screenshot findByScreenshotRunAndNameAndLocale(
       ScreenshotRun screenshotRun, String name, Locale locale);
 
+  Screenshot findScreenshotByScreenshotRunAndName(
+      ScreenshotRun screenshotRunId, String screenshotName);
+
   @Query(
       value =
           "select s from #{#entityName} s "
