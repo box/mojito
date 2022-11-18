@@ -7,6 +7,7 @@ import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.machinetranslation.BatchMachineTranslationJob;
 import com.box.l10n.mojito.service.machinetranslation.MachineTranslationService;
+import com.box.l10n.mojito.service.machinetranslation.RepositoryMachineTranslation;
 import com.box.l10n.mojito.service.machinetranslation.TranslationDTO;
 import com.box.l10n.mojito.service.machinetranslation.TranslationsResponseDTO;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -18,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class MachineTranslationWS {
+
   static Logger logger = LoggerFactory.getLogger(MachineTranslationWS.class);
 
   public static final String DEFAULT_LOCALE = "en";
@@ -69,5 +72,16 @@ public class MachineTranslationWS {
   @ResponseStatus(HttpStatus.OK)
   public String getMachineTranslationConfiguration() {
     return machineTranslationService.getConfiguredEngineSource().toString();
+  }
+
+  @Autowired RepositoryMachineTranslation repositoryMachineTranslation;
+
+  // TODO(jean) make it a real WS + CLI ...
+  @RequestMapping(method = RequestMethod.GET, value = "/api/machine-translation/myrepository")
+  @ResponseStatus(HttpStatus.OK)
+  public void oneOffMachineTranslation(
+      @RequestParam(value = "repositoryName") String repositoryName,
+      @RequestParam(value = "targetLocale") String targetLocale) {
+    repositoryMachineTranslation.translateRepository(repositoryName, targetLocale);
   }
 }
