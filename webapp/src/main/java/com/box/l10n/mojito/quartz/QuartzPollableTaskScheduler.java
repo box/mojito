@@ -45,6 +45,18 @@ public class QuartzPollableTaskScheduler {
     return scheduleJob(quartzJobInfo);
   }
 
+  public <I, O> PollableFuture<O> scheduleJobWithCustomTimeout(
+      Class<? extends QuartzPollableJob<I, O>> clazz, I input, long timeoutInSeconds) {
+    QuartzJobInfo<I, O> quartzJobInfo =
+        QuartzJobInfo.newBuilder(clazz)
+            .withInput(input)
+            .withTimeout(timeoutInSeconds)
+            .withMessage(clazz.getSimpleName())
+            .build();
+
+    return scheduleJob(quartzJobInfo);
+  }
+
   /**
    * Schedules a job.
    *

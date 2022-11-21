@@ -28,7 +28,8 @@ public class ThirdPartyClient extends BaseClient {
       String skipTextUnitsWithPattern,
       String skipAssetsWithPathPattern,
       String includeTextUnitsWithPattern,
-      List<String> options) {
+      List<String> options,
+      Long timeout) {
 
     ThirdPartySync thirdPartySync = new ThirdPartySync();
 
@@ -40,6 +41,7 @@ public class ThirdPartyClient extends BaseClient {
     thirdPartySync.setSkipTextUnitsWithPattern(skipTextUnitsWithPattern);
     thirdPartySync.setSkipAssetsWithPathPattern(skipAssetsWithPathPattern);
     thirdPartySync.setIncludeTextUnitsWithPattern(includeTextUnitsWithPattern);
+    thirdPartySync.setTimeout(timeout);
     thirdPartySync.setOptions(options);
 
     UriComponentsBuilder uriBuilder =

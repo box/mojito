@@ -99,7 +99,8 @@ public class ThirdPartyService {
         thirdPartySync.getIncludeTextUnitsWithPattern());
     thirdPartySyncJobInput.setOptions(thirdPartySync.getOptions());
 
-    return quartzPollableTaskScheduler.scheduleJob(ThirdPartySyncJob.class, thirdPartySyncJobInput);
+    return quartzPollableTaskScheduler.scheduleJobWithCustomTimeout(
+        ThirdPartySyncJob.class, thirdPartySyncJobInput, thirdPartySync.getTimeout());
   }
 
   void syncMojitoWithThirdPartyTMS(

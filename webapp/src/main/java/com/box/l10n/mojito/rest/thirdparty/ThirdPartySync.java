@@ -14,6 +14,7 @@ public class ThirdPartySync {
   String skipAssetsWithPathPattern;
   String includeTextUnitsWithPattern;
   List<String> options = new ArrayList<>();
+  Long timeout = 3600L;
 
   public Long getRepositoryId() {
     return repositoryId;
@@ -85,5 +86,13 @@ public class ThirdPartySync {
 
   public void setOptions(List<String> options) {
     this.options = options;
+  }
+
+  public Long getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Long timeout) {
+    this.timeout = timeout;
   }
 }
