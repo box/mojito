@@ -101,6 +101,13 @@ public class ThirdPartySyncCommand extends Command {
   String includeTextUnitsWithPattern;
 
   @Parameter(
+      names = {"--timeout", "-t"},
+      arity = 1,
+      required = false,
+      description = "Timeout in seconds")
+  Long timeoutInSeconds = 3600L;
+
+  @Parameter(
       names = {"--options", "-o"},
       variableArity = true,
       required = false,
@@ -151,6 +158,10 @@ public class ThirdPartySyncCommand extends Command {
         .fg(CYAN)
         .a(includeTextUnitsWithPattern)
         .reset()
+        .a(" timeout: ")
+        .fg(CYAN)
+        .a(timeoutInSeconds)
+        .reset()
         .a(" options: ")
         .fg(CYAN)
         .a(Objects.toString(options))
@@ -168,7 +179,8 @@ public class ThirdPartySyncCommand extends Command {
             skipTextUnitsWithPattern,
             skipAssetsWithPathPattern,
             includeTextUnitsWithPattern,
-            options);
+            options,
+            timeoutInSeconds);
 
     commandHelper.waitForPollableTask(pollableTask.getId());
 

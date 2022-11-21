@@ -83,6 +83,8 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
             skipTextUnitPattern,
             "-sa",
             skipAssetPattern,
+            "-t",
+            "10",
             "-o",
             options.get(0),
             options.get(1));
@@ -99,6 +101,7 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
     assertThat(output).contains("skip-text-units-with-pattern: " + skipTextUnitPattern);
     assertThat(output).contains("skip-assets-path-pattern: " + skipAssetPattern);
     assertThat(output).contains("options: " + options.toString());
+    assertThat(output).contains("timeout: 10");
 
     waitForCondition(
         "Ensure ThirdPartySyncJob gets executed",
