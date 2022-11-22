@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import io.micrometer.core.annotation.Timed;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +145,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.uploadImage")
   public ThirdPartyTMSImage uploadImage(String projectId, String name, byte[] content) {
     logger.debug("Upload image to Smartling, project id: {}, name: {}", projectId, name);
     if (!isImageExtensionSupported(name)) {
@@ -188,6 +190,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.getThirdPartyTextUnits")
   public List<ThirdPartyTextUnit> getThirdPartyTextUnits(
       Repository repository, String projectId, List<String> optionList) {
 
@@ -300,6 +303,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.createImageToTextUnitMappings")
   public void createImageToTextUnitMappings(
       String projectId, List<ThirdPartyImageToTextUnit> thirdPartyImageToTextUnits) {
     logger.debug("Upload image to text units mapping for project id: {}", projectId);
@@ -341,6 +345,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.push")
   public void push(
       Repository repository,
       String projectId,
@@ -444,6 +449,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.pull")
   public void pull(
       Repository repository,
       String projectId,
@@ -577,6 +583,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.pushTranslations")
   public void pushTranslations(
       Repository repository,
       String projectId,
@@ -672,6 +679,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.pullSource")
   public void pullSource(
       Repository repository,
       String thirdPartyProjectId,
