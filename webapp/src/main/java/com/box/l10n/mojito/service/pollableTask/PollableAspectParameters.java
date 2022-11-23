@@ -51,6 +51,7 @@ public class PollableAspectParameters {
   public void postContruct() {
     initFromAnnotation();
     setParentIdFromParameter();
+    setTimeoutFromParentTask();
   }
 
   /** Init this instance with information contained in the {@link Pollable} annotation. */
@@ -163,6 +164,19 @@ public class PollableAspectParameters {
       } else if (o != null) {
         throw new IllegalPollableAnnotationException(
             "@ParentTask must be placed on a Long or Pollable param (this should be prevented by Aspectj checks)");
+      }
+    }
+  }
+
+  private void setTimeoutFromParentTask() throws RuntimeException {
+    AnnotatedMethodParam<ParentTask> findAnnotatedMethodParam =
+        aspectJUtils.findAnnotatedMethodParam(pjp, ParentTask.class);
+
+    if (findAnnotatedMethodParam != null) {
+      Object o = findAnnotatedMethodParam.getArg();
+      if (!annotation.overrideParentTimeout() && o instanceof PollableTask) {
+        // Pollable task parent instance, use the parent timeout value
+        timeout = ((PollableTask) o).getTimeout();
       }
     }
   }
