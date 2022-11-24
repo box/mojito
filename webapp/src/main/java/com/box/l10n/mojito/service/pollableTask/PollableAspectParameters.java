@@ -176,7 +176,10 @@ public class PollableAspectParameters {
       Object o = findAnnotatedMethodParam.getArg();
       if (!annotation.overrideParentTimeout() && o instanceof PollableTask) {
         // Pollable task parent instance, use the parent timeout value
-        timeout = ((PollableTask) o).getTimeout();
+        PollableTask parent = (PollableTask) o;
+        if (parent.getTimeout() != null) {
+          timeout = parent.getTimeout();
+        }
       }
     }
   }
