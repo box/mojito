@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
+import static com.box.l10n.mojito.cli.command.utils.DiffInfoUtils.getUsernameForAuthorEmail;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
@@ -94,15 +96,5 @@ public class PhabricatorDiffInfoCommand extends Command {
     } else {
       consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_CHECKS=false").println();
     }
-  }
-
-  String getUsernameForAuthorEmail(String email) {
-    String username = null;
-
-    if (email != null) {
-      username = email.replaceFirst("(.*)@.*$", "$1");
-    }
-
-    return username;
   }
 }
