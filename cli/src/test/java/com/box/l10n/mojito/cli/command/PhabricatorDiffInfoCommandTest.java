@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.cli.command;
 
 import static com.box.l10n.mojito.cli.command.PhabricatorDiffInfoCommand.SKIP_I18N_CHECKS_FLAG;
+import static com.box.l10n.mojito.cli.command.utils.DiffInfoUtils.getUsernameForAuthorEmail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.times;
@@ -19,23 +20,21 @@ public class PhabricatorDiffInfoCommandTest {
   @Test
   public void testGetUsernameForAuthorEmailNull() {
     PhabricatorDiffInfoCommand phabricatorDiffInfoCommand = new PhabricatorDiffInfoCommand();
-    String usernameForAuthorEmail = phabricatorDiffInfoCommand.getUsernameForAuthorEmail(null);
+    String usernameForAuthorEmail = getUsernameForAuthorEmail(null);
     assertEquals(null, usernameForAuthorEmail);
   }
 
   @Test
   public void testGetUsernameForAuthorEmail() {
     PhabricatorDiffInfoCommand phabricatorDiffInfoCommand = new PhabricatorDiffInfoCommand();
-    String usernameForAuthorEmail =
-        phabricatorDiffInfoCommand.getUsernameForAuthorEmail("username@test.com");
+    String usernameForAuthorEmail = getUsernameForAuthorEmail("username@test.com");
     assertEquals("username", usernameForAuthorEmail);
   }
 
   @Test
   public void testGetUsernameForAuthorInvalid() {
     PhabricatorDiffInfoCommand phabricatorDiffInfoCommand = new PhabricatorDiffInfoCommand();
-    String usernameForAuthorEmail =
-        phabricatorDiffInfoCommand.getUsernameForAuthorEmail("notanemail");
+    String usernameForAuthorEmail = getUsernameForAuthorEmail("notanemail");
     assertEquals("notanemail", usernameForAuthorEmail);
   }
 
