@@ -6,6 +6,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.github.GithubClient;
+import com.box.l10n.mojito.github.GithubClientsFactory;
 import com.box.l10n.mojito.github.GithubException;
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +40,7 @@ public class GithubPRInfoCommand extends Command {
   ConsoleWriter consoleWriterAnsiCodeEnabledFalse;
 
   @Autowired(required = false)
-  GithubClient githubClient;
+  GithubClientsFactory githubClientsFactory;
 
   @Parameter(
       names = {"--repository"},
@@ -55,26 +56,38 @@ public class GithubPRInfoCommand extends Command {
       description = "The Github PR number")
   Integer prNumber;
 
+  @Parameter(
+      names = {"--github-repo-owner"},
+      arity = 1,
+      required = true,
+      description = "The Github repository owner")
+  String owner;
+
   @Override
   public void execute() throws CommandException {
 
-    if (githubClient == null) {
+    if (githubClientsFactory == null) {
       throw new CommandException(
-          "Github must be configured with properties: l10n.github.appId, l10n.github.key and l10n.github.owner");
+          "Github must be configured with properties: l10n.githubClients.<client>.appId, l10n.githubClients.<client>.key and l10n.githubClients.<client>.owner");
     }
 
     try {
+      GithubClient github = githubClientsFactory.getClient(owner);
+      if (github == null) {
+        throw new CommandException(
+            String.format("Github client with owner '%s' not found.", owner));
+      }
       consoleWriterAnsiCodeEnabledFalse
           .a("MOJTIO_GITHUB_BASE_COMMIT=")
-          .a(githubClient.getPRBaseCommit(repository, prNumber))
+          .a(github.getPRBaseCommit(repository, prNumber))
           .println();
-      String authorEmail = githubClient.getPRAuthorEmail(repository, prNumber);
+      String authorEmail = github.getPRAuthorEmail(repository, prNumber);
       consoleWriterAnsiCodeEnabledFalse.a("MOJITO_GITHUB_AUTHOR_EMAIL=").a(authorEmail).println();
       consoleWriterAnsiCodeEnabledFalse
           .a("MOJITO_GITHUB_AUTHOR_USERNAME=")
           .a(getUsernameForAuthorEmail(authorEmail))
           .println();
-      List<GHIssueComment> prComments = githubClient.getPRComments(repository, prNumber);
+      List<GHIssueComment> prComments = github.getPRComments(repository, prNumber);
       if (isSkipChecks(prComments)) {
         addReactionToSkipChecksComment(prComments);
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_CHECKS=true").println();

@@ -47,15 +47,15 @@ public class GithubClient {
 
   protected GitHub gitHubClient;
 
-  public GithubClient(String appId, String key, String owner, Long tokenTTL) {
-    this.appId = appId;
-    this.key = key;
-    if (owner == null || owner.isEmpty()) {
+  public GithubClient(GithubClientConfiguration config) {
+    this.appId = config.getAppId();
+    this.key = config.getKey();
+    if (config.getOwner() == null || config.getOwner().isEmpty()) {
       throw new GithubException(
-          "Github integration requires that the 'l10n.github.owner' property is configured.");
+          "Github integration requires that the 'owner' property is configured for each client.");
     }
-    this.owner = owner;
-    this.tokenTTL = tokenTTL;
+    this.owner = config.getOwner();
+    this.tokenTTL = config.getTokenTTL();
   }
 
   private PrivateKey createPrivateKey(String key)
@@ -169,6 +169,14 @@ public class GithubClient {
       logger.error(message, e);
       throw new GithubException(message, e);
     }
+  }
+
+  public String getOwner() {
+    return owner;
+  }
+
+  public String getAppId() {
+    return appId;
   }
 
   protected GHAppInstallationToken getGithubAppInstallationToken(String repository)

@@ -135,42 +135,16 @@ public class GithubClientTest {
   @ConfigurationProperties("l10n.github")
   static class TestConfig {
 
-    String owner = "testOwner";
-
-    String key = "someKey";
-
-    String appId = "testAppId";
-
-    public String getOwner() {
-      return owner;
-    }
-
-    public void setOwner(String owner) {
-      this.owner = owner;
-    }
-
-    public String getKey() {
-      return key;
-    }
-
-    public void setKey(String key) {
-      this.key = key;
-    }
-
-    public String getAppId() {
-      return appId;
-    }
-
-    public void setAppId(String appId) {
-      this.appId = appId;
-    }
-
     @Bean
     public GithubClient getGithubClient() throws NoSuchAlgorithmException, InvalidKeySpecException {
-      GithubClient ghClient = Mockito.spy(new GithubClient(appId, key, owner, 60000L));
+      GithubClientConfiguration githubClientConfiguration = new GithubClientConfiguration();
+      githubClientConfiguration.owner = "testOwner";
+      githubClientConfiguration.key = "someKey";
+      githubClientConfiguration.appId = "testAppId";
+      GithubClient ghClient = Mockito.spy(new GithubClient(githubClientConfiguration));
       PrivateKey privateKeyMock = Mockito.mock(PrivateKey.class);
       doReturn(privateKeyMock).when(ghClient).getSigningKey();
-      return Mockito.spy(new GithubClient(appId, key, owner, 60000L));
+      return ghClient;
     }
   }
 }
