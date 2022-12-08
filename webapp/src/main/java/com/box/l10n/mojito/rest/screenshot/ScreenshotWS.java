@@ -72,4 +72,9 @@ public class ScreenshotWS {
     screenshot.setId(id);
     screenshotService.updateScreenshot(screenshot);
   }
+
+  @RequestMapping(value = "/api/screenshots/{id}", method = RequestMethod.DELETE)
+  public void deleteScreenshot(@PathVariable Long id) {
+    screenshotService.deleteScreenshot(id);
+  }
 }

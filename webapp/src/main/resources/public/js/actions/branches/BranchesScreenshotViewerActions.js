@@ -4,10 +4,13 @@ class BranchesScreenshotViewerActions {
 
     constructor() {
         this.generateActions(
-            "open",
-            "close",
+            "openScreenshotsViewer",
+            "closeScreenshotsViewer",
             "goToPrevious",
-            "goToNext"
+            "goToNext",
+            "delete",
+            "onDeleteScreenshotSuccess",
+            "onDeleteScreenshotFailure"
         );
     }
 }

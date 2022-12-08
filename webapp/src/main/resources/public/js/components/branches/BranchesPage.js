@@ -161,7 +161,8 @@ class BranchesPage extends React.Component {
                         }}
 
                         onShowBranchScreenshotsClick={(branchStatisticId) => {
-                            BranchesScreenshotViewerActions.open(branchStatisticId);
+                            BranchesPageActions.changeOpenBranchStatistic(branchStatisticId);
+                            BranchesScreenshotViewerActions.openScreenshotsViewer(branchStatisticId);
                         }}
 
                         onNeedTranslationClick={(branchStatistic, tmTextUnitId, forTranslation) => {
@@ -227,7 +228,10 @@ class BranchesPage extends React.Component {
                             BranchesScreenshotViewerActions.goToNext();
                         }}
                         onClose={() => {
-                            BranchesScreenshotViewerActions.close();
+                            BranchesScreenshotViewerActions.closeScreenshotsViewer();
+                        }}
+                        onDelete={() => {
+                            BranchesScreenshotViewerActions.delete();
                         }}
                     />
                 </AltContainer>

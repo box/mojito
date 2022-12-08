@@ -3,12 +3,27 @@ import BranchesDataSource from "../../actions/branches/BranchesDataSource";
 import BranchesSearchParamStore from "./BranchesSearchParamStore";
 import BranchesPageActions from "../../actions/branches/BranchesPageActions";
 import BranchStatisticsContent from "../../sdk/entity/BranchStatisticsContent";
+import BranchesScreenshotViewerActions from "../../actions/branches/BranchesScreenshotViewerActions";
+import GitBlameScreenshotViewerStore from "../workbench/GitBlameScreenshotViewerStore";
 
 class BranchesStore {
     constructor() {
         this.setDefaultState();
         this.bindActions(BranchesPageActions);
+        this.bindActions(BranchesScreenshotViewerActions);
+
         this.registerAsync(BranchesDataSource);
+    }
+
+    static getBranchStatisticById(branchStatisticId) {
+        let state = this.getState();
+        let branchStatistics = state.branchStatistics.filter((b) => b.id === branchStatisticId);
+        return branchStatistics.length > 0 ? branchStatistics[0] : null;
+    }
+
+    static getSelectedBranchStatistic() {
+        let state = this.getState();
+        return this.getBranchStatisticById(state.openBranchStatisticId);
     }
 
     setDefaultState() {
@@ -67,15 +82,9 @@ class BranchesStore {
         this.setDefaultState();
     }
 
-    static getBranchStatisticById(branchStatisticId) {
-        let state = this.getState();
-        let branchStatistics = state.branchStatistics.filter((b) => b.id === branchStatisticId);
-        return branchStatistics.length > 0 ? branchStatistics[0] : null;
-    }
-
-    static getSelectedBranchStatistic() {
-        let state = this.getState();
-        return this.getBranchStatisticById(state.openBranchStatisticId);
+    onDeleteScreenshotSuccess() {
+        this.branchStatistics[this.openBranchStatisticId].branch.screenshots = GitBlameScreenshotViewerStore.state.branchStatisticScreenshots
+        this.computeTextUnitsWithScreenshotsByBranchStatisticId();
     }
 }
 
