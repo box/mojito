@@ -9,7 +9,7 @@ class ScreenshotsPageStore {
         this.setDefaultState();
         this.bindActions(ScreenshotsPageActions);
         this.bindActions(ScreenshotActions);
-        this.registerAsync(ScreenshotsDataSource);
+        this.registerAsync(new ScreenshotsDataSource(ScreenshotActions));
     }
     
     setDefaultState() {

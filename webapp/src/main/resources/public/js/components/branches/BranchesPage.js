@@ -25,7 +25,6 @@ import RepositoryStore from "../../stores/RepositoryStore";
 import SearchParamsStore from "../../stores/workbench/SearchParamsStore";
 import SearchConstants from "../../utils/SearchConstants";
 
-
 class BranchesPage extends React.Component {
 
     render() {
@@ -220,15 +219,10 @@ class BranchesPage extends React.Component {
 
                 <AltContainer store={BranchesScreenshotViewerStore}>
                     <BranchesScreenshotViewerModal
-                        onGoToPrevious={() => {
-                            BranchesScreenshotViewerActions.goToPrevious();
-                        }}
-                        onGoToNext={() => {
-                            BranchesScreenshotViewerActions.goToNext();
-                        }}
-                        onClose={() => {
-                            BranchesScreenshotViewerActions.close();
-                        }}
+                        onGoToPrevious={BranchesScreenshotViewerActions.goToPrevious}
+                        onGoToNext={BranchesScreenshotViewerActions.goToNext}
+                        onClose={BranchesScreenshotViewerActions.close}
+                        onDelete={BranchesScreenshotViewerActions.delete}
                     />
                 </AltContainer>
 

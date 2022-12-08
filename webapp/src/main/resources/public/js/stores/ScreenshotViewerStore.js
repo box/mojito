@@ -1,3 +1,5 @@
+import ScreenshotsDataSource from "../actions/screenshots/ScreenshotsDataSource";
+
 class ScreenshotViewerStore {
 
     constructor() {
@@ -11,6 +13,7 @@ class ScreenshotViewerStore {
         this.total = 0;
         this.branchStatisticScreenshots = [];
         this.textUnits = [];
+        this.isDeleting = false
     }
 
     open(branchStatisticsScreenshots) {
@@ -43,6 +46,27 @@ class ScreenshotViewerStore {
         if (this.number < this.total) {
             this.loadScreenshot(this.number + 1);
         }
+    }
+
+    delete() {
+        console.log("delete func is being accessed by both stores simultaneously")
+        this.isDeleting = true;
+        this.getInstance().delete()
+    }
+
+    onDeleteSuccess() {
+        console.log("onDeleteSuccess func would also be accessed by both stores simultaneously on the DataSource callback")
+        // if (this.branchStatisticScreenshots.length - 1) {
+        //     this.branchStatisticScreenshots.splice(this.number - 1, 1)
+        //     this.loadScreenshot(1);
+        // } else {
+        //     this.close()
+        // }
+        this.isDeleting = false
+    }
+
+    onDeleteFailure() {
+        this.isDeleting = false
     }
 }
 
