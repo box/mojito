@@ -86,6 +86,7 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     List<ThirdPartyScreenshot> createdThirdPartyScreenshots =
         thirdPartyScreenshotRepository.findAllByScreenshotId(screenshot.getId());
     Assert.assertEquals(createdThirdPartyScreenshots.get(0).getId(), thirdPartyScreenshot.getId());
+    screenshot.setThirdPartyScreenshots(new HashSet(createdThirdPartyScreenshots));
 
     Repository repository = repositoryService.createRepository("testRepository");
 
@@ -105,7 +106,9 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     ScreenshotTextUnit createdScreenshotTextUnit =
         screenshotTextUnitRepository.findById(screenshotTextUnit.getId()).orElse(null);
     assertEquals(createdScreenshotTextUnit.getScreenshot().getId(), screenshot.getId());
+    screenshot.setScreenshotTextUnits(new HashSet(Arrays.asList(createdScreenshotTextUnit)));
 
+    screenshotRepository.save(screenshot);
     screenshotService.deleteScreenshot(screenshot.getId());
 
     verify(thirdPartyServiceMock, times(1))
