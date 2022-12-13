@@ -79,8 +79,6 @@
                     <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/restclient/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m
                     </argLine>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
                 </configuration>
             </plugin>
         </plugins>
