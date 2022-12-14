@@ -109,6 +109,8 @@ public class ScreenshotServiceTest extends ServiceTestBase {
     screenshot.setScreenshotTextUnits(new HashSet(Arrays.asList(createdScreenshotTextUnit)));
 
     screenshotRepository.save(screenshot);
+    logger.debug("screenshotService: " + screenshotService);
+    logger.debug("screenshot.getId(): " + screenshot.getId());
     screenshotService.deleteScreenshot(screenshot.getId());
 
     verify(thirdPartyServiceMock, times(1))
