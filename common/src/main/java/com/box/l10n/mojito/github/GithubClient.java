@@ -47,15 +47,19 @@ public class GithubClient {
 
   protected GitHub gitHubClient;
 
-  public GithubClient(GithubClientConfiguration config) {
-    this.appId = config.getAppId();
-    this.key = config.getKey();
-    if (config.getOwner() == null || config.getOwner().isEmpty()) {
+  public GithubClient(String appId, String key, String owner, long tokenTTL) {
+    this.appId = appId;
+    this.key = key;
+    if (owner == null || owner.isEmpty()) {
       throw new GithubException(
           "Github integration requires that the 'owner' property is configured for each client.");
     }
-    this.owner = config.getOwner();
-    this.tokenTTL = config.getTokenTTL();
+    this.owner = owner;
+    this.tokenTTL = tokenTTL;
+  }
+
+  public GithubClient(String appId, String key, String owner) {
+    this(appId, key, owner, 60000L);
   }
 
   private PrivateKey createPrivateKey(String key)

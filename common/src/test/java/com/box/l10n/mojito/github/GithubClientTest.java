@@ -137,11 +137,7 @@ public class GithubClientTest {
 
     @Bean
     public GithubClient getGithubClient() throws NoSuchAlgorithmException, InvalidKeySpecException {
-      GithubClientConfiguration githubClientConfiguration = new GithubClientConfiguration();
-      githubClientConfiguration.owner = "testOwner";
-      githubClientConfiguration.key = "someKey";
-      githubClientConfiguration.appId = "testAppId";
-      GithubClient ghClient = Mockito.spy(new GithubClient(githubClientConfiguration));
+      GithubClient ghClient = Mockito.spy(new GithubClient("testAppId", "someKey", "testOwner"));
       PrivateKey privateKeyMock = Mockito.mock(PrivateKey.class);
       doReturn(privateKeyMock).when(ghClient).getSigningKey();
       return ghClient;

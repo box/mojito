@@ -21,7 +21,14 @@ public class GithubClientsFactory {
   private Map<String, GithubClient> createGithubClients() {
     return githubClientsConfiguration.getGithubClients().entrySet().stream()
         .collect(
-            Collectors.toMap(e -> e.getValue().getOwner(), e -> new GithubClient(e.getValue())));
+            Collectors.toMap(
+                e -> e.getValue().getOwner(),
+                e ->
+                    new GithubClient(
+                        e.getValue().getAppId(),
+                        e.getValue().getKey(),
+                        e.getValue().getOwner(),
+                        e.getValue().getTokenTTL())));
   }
 
   public GithubClient getClient(String owner) {
