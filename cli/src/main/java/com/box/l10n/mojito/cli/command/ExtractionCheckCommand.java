@@ -23,6 +23,7 @@ import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificati
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderSlack;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckThirdPartyNotificationService;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.base.Strings;
@@ -254,6 +255,7 @@ public class ExtractionCheckCommand extends Command {
           reportStatistics(cliCheckerResults);
           checkForHardFail(cliCheckerFailures);
           if (!cliCheckerFailures.isEmpty()) {
+            printIfTextUnitInAddedAndRemoved(assetExtractionDiffs);
             outputFailuresToCommandLine(cliCheckerFailures);
             sendFailureNotifications(cliCheckerFailures, false);
           }
@@ -266,6 +268,37 @@ public class ExtractionCheckCommand extends Command {
       }
       consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
     }
+  }
+
+  private void printIfTextUnitInAddedAndRemoved(List<AssetExtractionDiff> assetExtractionDiffs) {
+
+    for (AssetExtractionDiff assetExtractionDiff : assetExtractionDiffs) {
+      List<AssetExtractorTextUnit> added = assetExtractionDiff.getAddedTextunits();
+      List<AssetExtractorTextUnit> removed = assetExtractionDiff.getRemovedTextunits();
+
+      String textUnitIdsStr =
+          added.stream()
+              .filter(addedTU -> containsTextUnitName(removed, addedTU.getName()))
+              .map(addedTU -> String.format("'%s'", addedTU.getName()))
+              .collect(Collectors.joining(", "));
+      if (textUnitIdsStr != null && !textUnitIdsStr.isEmpty()) {
+        consoleWriter
+            .fg(Ansi.Color.YELLOW)
+            .newLine()
+            .a(
+                String.format(
+                    "Text units with the following ids found in both added and removed lists: %s",
+                    textUnitIdsStr))
+            .println();
+      }
+    }
+  }
+
+  private boolean containsTextUnitName(List<AssetExtractorTextUnit> textUnits, String name) {
+    return textUnits.stream()
+        .filter(textUnit -> textUnit.getName().equals(name))
+        .findFirst()
+        .isPresent();
   }
 
   private void initNotificationSenders() {
