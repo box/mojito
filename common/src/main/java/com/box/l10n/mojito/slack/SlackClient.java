@@ -25,7 +25,7 @@ public class SlackClient {
 
   static final String BASE_API_URL = "https://slack.com/api/";
   static final String API_USER_LOOKUP_BY_EMAIL = "users.lookupByEmail";
-  static final String API_IM_OPEN = "im.open";
+  static final String API_IM_OPEN = "conversation.open";
   static final String API_CHAT_POST_MESSAGE = "chat.postMessage";
 
   public static final String COLOR_GOOD = "good";
