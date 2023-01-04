@@ -56,6 +56,9 @@ public class BranchNotification extends BaseEntity {
   @Column(name = "sender_type")
   String senderType;
 
+  @Column(name = "notifierId")
+  String notifierId;
+
   public Branch getBranch() {
     return branch;
   }
@@ -118,5 +121,13 @@ public class BranchNotification extends BaseEntity {
 
   public void setSenderType(String senderType) {
     this.senderType = senderType;
+  }
+
+  public String getNotifierId() {
+    return notifierId;
+  }
+
+  public void setNotifierId(String notifierId) {
+    this.notifierId = notifierId;
   }
 }

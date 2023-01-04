@@ -135,6 +135,7 @@ public class AssetWS {
             sourceAsset.isExtractedContent(),
             sourceAsset.getBranch(),
             sourceAsset.getBranchCreatedByUsername(),
+            sourceAsset.getBranchNotifiers(),
             pushRun != null ? pushRun.getId() : null,
             sourceAsset.getFilterConfigIdOverride(),
             sourceAsset.getFilterOptions());

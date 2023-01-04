@@ -1,44 +1,36 @@
-package com.box.l10n.mojito.service.branch.notification.phabricator;
+package com.box.l10n.mojito.service.branch.notificationlegacy.phabricator;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.phabricator.PhabricatorException;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
-import com.google.common.base.Preconditions;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSender;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSenderException;
 import java.util.List;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
+@ConditionalOnProperty(value = "l10n.branchNotification.phabricator.enabled", havingValue = "true")
+@Component
 public class BranchNotificationMessageSenderPhabricator implements BranchNotificationMessageSender {
 
   /** logger */
   static Logger logger = getLogger(BranchNotificationMessageSenderPhabricator.class);
 
-  String id;
-
-  DifferentialRevision differentialRevision;
+  @Autowired DifferentialRevision differentialRevision;
 
   /** This should be a phid */
+  @Value("${l10n.branchNotification.phabricator.reviewer}")
   String reviewer;
 
+  @Value("${l10n.branchNotification.phabricator.blockingReview:true}")
   Boolean blockingReview;
 
+  @Autowired
   BranchNotificationMessageBuilderPhabricator branchNotificationMessageBuilderPhabricator;
-
-  public BranchNotificationMessageSenderPhabricator(
-      String id,
-      DifferentialRevision differentialRevision,
-      String reviewer,
-      Boolean blockingReview,
-      BranchNotificationMessageBuilderPhabricator branchNotificationMessageBuilderPhabricator) {
-    this.id = id;
-    this.differentialRevision = Preconditions.checkNotNull(differentialRevision);
-    this.reviewer = Preconditions.checkNotNull(reviewer);
-    this.blockingReview = Preconditions.checkNotNull(blockingReview);
-    this.branchNotificationMessageBuilderPhabricator =
-        Preconditions.checkNotNull(branchNotificationMessageBuilderPhabricator);
-  }
 
   @Override
   public String sendNewMessage(String branchName, String username, List<String> sourceStrings)
@@ -98,10 +90,5 @@ public class BranchNotificationMessageSenderPhabricator implements BranchNotific
     } catch (PhabricatorException e) {
       throw new BranchNotificationMessageSenderException(e);
     }
-  }
-
-  @Override
-  public String getId() {
-    return id;
   }
 }

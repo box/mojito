@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification.slack;
+package com.box.l10n.mojito.service.branch.notificationlegacy.slack;
 
 import static org.junit.Assert.assertEquals;
 
@@ -19,11 +19,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(
     classes = {
       BranchNotificationMessageBuilderSlack.class,
-      BranchNotificationMessageBuilderSlackTest.class,
+      MessageBuilderConfigurationPropertiesTest.class,
       BranchUrlBuilder.class,
       ServerConfig.class
     })
-public class BranchNotificationMessageBuilderSlackTest {
+public class MessageBuilderConfigurationPropertiesTest {
 
   ObjectMapper objectMapper = new ObjectMapper();
 

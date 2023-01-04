@@ -82,7 +82,7 @@ public class AssetContentServiceTest extends ServiceTestBase {
     assertEquals("fortest2-content1", assetContents.get(3).getContent());
 
     Branch branch1 =
-        branchService.getUndeletedOrCreateBranch(fortest1.getRepository(), "branch1", null);
+        branchService.getUndeletedOrCreateBranch(fortest1.getRepository(), "branch1", null, null);
     AssetContent forTest2Content1Branch1 =
         assetContentService.createAssetContent(
             fortest1, "fortest2-content1-branch1", false, branch1);

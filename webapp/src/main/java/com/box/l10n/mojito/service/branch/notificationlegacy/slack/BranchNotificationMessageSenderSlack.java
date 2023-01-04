@@ -1,48 +1,39 @@
-package com.box.l10n.mojito.service.branch.notification.slack;
+package com.box.l10n.mojito.service.branch.notificationlegacy.slack;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSender;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSenderException;
 import com.box.l10n.mojito.slack.SlackClient;
 import com.box.l10n.mojito.slack.SlackClientException;
 import com.box.l10n.mojito.slack.request.Message;
 import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import com.box.l10n.mojito.thirdpartynotification.slack.SlackChannels;
-import com.google.common.base.Preconditions;
 import java.util.List;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
+@ConditionalOnProperty(value = "l10n.branchNotification.slack.enabled", havingValue = "true")
+@Component
 public class BranchNotificationMessageSenderSlack implements BranchNotificationMessageSender {
 
   /** logger */
   static Logger logger = getLogger(BranchNotificationMessageSenderSlack.class);
 
-  String id;
+  @Autowired SlackClient slackClient;
 
-  SlackClient slackClient;
+  @Autowired SlackChannels slackChannels;
 
-  SlackChannels slackChannels;
-  BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack;
+  @Autowired BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack;
 
+  @Value("${l10n.branchNotification.slack.userEmailPattern}")
   String userEmailPattern;
-  boolean useDirectMessage;
 
-  public BranchNotificationMessageSenderSlack(
-      String id,
-      SlackClient slackClient,
-      SlackChannels slackChannels,
-      BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack,
-      String userEmailPattern,
-      boolean useDirectMessage) {
-    this.id = id;
-    this.slackClient = Preconditions.checkNotNull(slackClient);
-    this.slackChannels = Preconditions.checkNotNull(slackChannels);
-    this.branchNotificationMessageBuilderSlack =
-        Preconditions.checkNotNull(branchNotificationMessageBuilderSlack);
-    this.userEmailPattern = Preconditions.checkNotNull(userEmailPattern);
-    this.useDirectMessage = useDirectMessage;
-  }
+  @Value("${l10n.branchNotification.slack.useDirectMessage:false}")
+  boolean useDirectMessage = false;
 
   @Override
   public String sendNewMessage(String branchName, String username, List<String> sourceStrings)
@@ -120,10 +111,5 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     } catch (SlackClientException sce) {
       throw new BranchNotificationMessageSenderException(sce);
     }
-  }
-
-  @Override
-  public String getId() {
-    return id;
   }
 }

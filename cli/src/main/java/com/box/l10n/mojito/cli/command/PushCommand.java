@@ -11,9 +11,11 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.ibm.icu.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
@@ -107,6 +109,13 @@ public class PushCommand extends Command {
       required = false,
       description = "username of text unit author")
   String branchCreatedBy;
+
+  @Parameter(
+      names = {"--branch-notifiers", "-bn"},
+      variableArity = true,
+      required = false,
+      description = "Optional list of notifiers when pusing to a repository")
+  Set<String> pushToBranchNotifiers = Collections.emptySet();
 
   @Parameter(
       names = Param.PUSH_TYPE_LONG,
@@ -206,6 +215,7 @@ public class PushCommand extends Command {
                   SourceAsset sourceAsset = new SourceAsset();
                   sourceAsset.setBranch(branchName);
                   sourceAsset.setBranchCreatedByUsername(branchCreatedBy);
+                  sourceAsset.setBranchNotifiers(pushToBranchNotifiers);
                   sourceAsset.setPath(commandHelper.getMappedSourcePath(assetMapping, sourcePath));
                   sourceAsset.setContent(assetContent);
                   sourceAsset.setExtractedContent(false);

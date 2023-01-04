@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification;
+package com.box.l10n.mojito.service.branch.notificationlegacy;
 
 import java.util.List;
 
@@ -15,6 +15,4 @@ public interface BranchNotificationMessageSender {
 
   void sendScreenshotMissingMessage(String branchName, String messageId, String username)
       throws BranchNotificationMessageSenderException;
-
-  String getId();
 }

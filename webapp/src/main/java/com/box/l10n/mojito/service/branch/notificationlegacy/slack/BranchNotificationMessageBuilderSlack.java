@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification.slack;
+package com.box.l10n.mojito.service.branch.notificationlegacy.slack;
 
 import static com.box.l10n.mojito.slack.SlackClient.COLOR_GOOD;
 import static com.box.l10n.mojito.slack.request.Action.ACTION_STYLE_PRIMARY;
@@ -15,39 +15,43 @@ import com.box.l10n.mojito.slack.request.Message;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BranchNotificationMessageBuilderSlack {
 
   static final int STRING_IN_SUMMARY_COUNT = 20;
   static final int STRING_IN_SUMMARY_ABRREVIATE_LENGHT = 40;
 
-  BranchUrlBuilder branchUrlBuilder;
-  String newStringMsg;
-  String updatedStringMsg;
+  @Autowired BranchUrlBuilder branchUrlBuilder;
 
+  @Value(
+      "${l10n.branchNotification.slack.notification.message.new:We received your strings! "
+          + "Please *add screenshots* as soon as possible and *wait for translations* before releasing.}")
+  String newNotificationMsg;
+
+  @Value(
+      "${l10n.branchNotification.slack.notification.message.updated:Your branch was updated with new strings! "
+          + "Please *add screenshots* as soon as possible and *wait for translations* before releasing.}")
+  String updatedNotificationMsg;
+
+  @Value(
+      "${l10n.branchNotification.slack.notification.message.translationsReady:Translations are ready !! :party:}")
   String translationsReadyMsg;
 
+  @Value(
+      "${l10n.branchNotification.slack.notification.message.screenshotsMissing:"
+          + ":warning: Please provide screenshots to help localization team :warning:}")
   String screenshotsMissingMsg;
 
+  @Value(
+      "${l10n.branchNotification.slack.notification.message.noMoreStrings:The branch was updated and there are no more strings to translate.}")
   String noMoreStringsMsg;
 
-  public BranchNotificationMessageBuilderSlack(
-      BranchUrlBuilder branchUrlBuilder,
-      String newStringMsg,
-      String updatedStringMsg,
-      String translationsReadyMsg,
-      String screenshotsMissingMsg,
-      String noMoreStringsMsg) {
-    this.branchUrlBuilder = branchUrlBuilder;
-    this.newStringMsg = newStringMsg;
-    this.updatedStringMsg = updatedStringMsg;
-    this.translationsReadyMsg = translationsReadyMsg;
-    this.screenshotsMissingMsg = screenshotsMissingMsg;
-    this.noMoreStringsMsg = noMoreStringsMsg;
-  }
-
   public Message getNewMessage(String channel, String pr, List<String> sourceStrings) {
-    Message message = getBaseMessage(channel, pr, sourceStrings, newStringMsg);
+    Message message = getBaseMessage(channel, pr, sourceStrings, newNotificationMsg);
     return message;
   }
 
@@ -61,7 +65,7 @@ public class BranchNotificationMessageBuilderSlack {
       message.setChannel(channel);
       message.setText(noMoreStringsMsg);
     } else {
-      message = getBaseMessage(channel, pr, sourceStrings, updatedStringMsg);
+      message = getBaseMessage(channel, pr, sourceStrings, updatedNotificationMsg);
     }
 
     message.setThreadTs(threadTs);

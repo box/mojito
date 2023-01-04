@@ -6,15 +6,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.Set;
 
 /** @author aloison */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SourceAsset {
+
   private Long repositoryId;
   private String path;
   private String content;
   private String branch;
   private String branchCreatedByUsername;
+
+  private Set<String> branchNotifiers;
   private Long addedAssetId;
   private String pushRunName;
   private PollableTask pollableTask;
@@ -78,6 +82,14 @@ public class SourceAsset {
 
   public void setBranchCreatedByUsername(String branchCreatedByUsername) {
     this.branchCreatedByUsername = branchCreatedByUsername;
+  }
+
+  public Set<String> getBranchNotifiers() {
+    return branchNotifiers;
+  }
+
+  public void setBranchNotifiers(Set<String> branchNotifiers) {
+    this.branchNotifiers = branchNotifiers;
   }
 
   public List<String> getFilterOptions() {

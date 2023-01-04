@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification;
+package com.box.l10n.mojito.service.branch.notificationlegacy;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -12,13 +12,14 @@ import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTextUnitStatisticRepository;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationInfo;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
-import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationServiceLegacy;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -30,10 +31,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BranchNotificationService {
+public class BranchNotificationServiceLegacy {
 
   /** logger */
-  static Logger logger = getLogger(BranchNotificationService.class);
+  static Logger logger = getLogger(BranchNotificationServiceLegacy.class);
 
   @Autowired BranchRepository branchRepository;
 
@@ -45,16 +46,20 @@ public class BranchNotificationService {
 
   @Autowired BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
 
-  @Autowired BranchNotificationMessageSenders branchNotificationMessageSenders;
+  /**
+   * 'required = false' needed here to allow a successful Spring Boot startup as if no {@link
+   * BranchNotificationMessageSender} are configured then we will get a {@link
+   * org.springframework.beans.factory.NoSuchBeanDefinitionException} exception on startup
+   */
+  @Autowired(required = false)
+  List<BranchNotificationMessageSender> branchNotificationMessageSenders = new ArrayList<>();
 
   @Autowired DateTimeUtils dateTimeUtils;
 
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
-  @Autowired BranchNotificationServiceLegacy branchNotificationServiceLegacy;
-
   /**
-   * When the state of branch changes, notifications must be sent (new, updated, translated). This
+   * When the state of branch changes, notifications must be send (new, updated, translated). This
    * method sends the required notification based on the current state of the branch.
    *
    * <p>It also schedules a job to check if screenshot are missing and send notification.
@@ -64,12 +69,7 @@ public class BranchNotificationService {
   public void sendNotificationsForBranch(Long branchId) {
     logger.debug("sendNotificationsForBranch, id: {}", branchId);
     Branch branch = branchRepository.findById(branchId).orElse(null);
-
-    if (branch.getNotifiers() == null) {
-      branchNotificationServiceLegacy.sendNotificationsForBranch(branch);
-    } else {
-      sendNotificationsForBranch(branch);
-    }
+    sendNotificationsForBranch(branch);
   }
 
   /**
@@ -79,21 +79,17 @@ public class BranchNotificationService {
    *
    * @param branchId
    */
-  public void sendMissingScreenshotNotificationForBranch(Long branchId, String notifierId) {
+  public void sendMissingScreenshotNotificationForBranch(Long branchId, String senderType) {
     logger.debug("sendMissingScreenshotNotificationForBranch, id: {}", branchId);
-    BranchNotificationMessageSender branchNotificationMessageSender = findByNotifierId(notifierId);
+    BranchNotificationMessageSender branchNotificationMessageSender = findBySenderType(senderType);
     sendMissingScreenshotNotificationForBranchWithSender(branchNotificationMessageSender, branchId);
   }
 
-  BranchNotificationMessageSender findByNotifierId(String notifierId) {
-    final BranchNotificationMessageSender branchNotificationMessageSender =
-        branchNotificationMessageSenders.getById(notifierId);
-
-    if (branchNotificationMessageSender == null) {
-      throw new RuntimeException("Can't find notifier for id: " + notifierId);
-    }
-
-    return branchNotificationMessageSender;
+  BranchNotificationMessageSender findBySenderType(String senderType) {
+    return branchNotificationMessageSenders.stream()
+        .filter(s -> getSenderType(s).equals(senderType))
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("Can't find sender for type: " + senderType));
   }
 
   void sendMissingScreenshotNotificationForBranchWithSender(
@@ -103,57 +99,42 @@ public class BranchNotificationService {
     sendMissingScreenshotNotificationsForBranch(branchNotificationMessageSender, branch);
   }
 
-  void sendNotificationsForBranch(Branch branch) {
-    Preconditions.checkNotNull(branch);
-    Preconditions.checkNotNull(branch.getNotifiers());
-
+  public void sendNotificationsForBranch(Branch branch) {
     logger.debug("sendNotificationsForBranch: {} ({})", branch.getId(), branch.getName());
 
     BranchNotificationInfo branchNotificationInfo = getBranchNotificationInfo(branch);
-
-    branch.getNotifiers().stream()
-        .map(
-            notifierId -> {
-              BranchNotificationMessageSender messageSender =
-                  branchNotificationMessageSenders.getById(notifierId);
-              if (messageSender == null) {
-                throw new RuntimeException(
-                    "Can't get BranchNotificationMessageSender for id: " + notifierId);
-              }
-              return messageSender;
-            })
-        .forEach(
-            branchNotificationMessageSender -> {
-              try {
-                sendNotificationsForBranchWithSender(
-                    branchNotificationMessageSender, branch, branchNotificationInfo);
-              } catch (Exception e) {
-                logger.error("Fail safe, error tracking is up to each sender", e);
-              }
-            });
+    for (BranchNotificationMessageSender branchNotificationMessageSender :
+        branchNotificationMessageSenders) {
+      try {
+        sendNotificationsForBranchWithSender(
+            branchNotificationMessageSender, branch, branchNotificationInfo);
+      } catch (Exception e) {
+        logger.error("Fail safe, error tracking is up to each sender", e);
+      }
+    }
   }
 
   void sendNotificationsForBranchWithSender(
       BranchNotificationMessageSender branchNotificationMessageSender,
       Branch branch,
       BranchNotificationInfo branchNotificationInfo) {
-    String notifierId = branchNotificationMessageSender.getId();
+    String senderType = getSenderType(branchNotificationMessageSender);
 
-    logger.debug(
+    logger.info(
         "sendNotificationsForBranch: {} ({} with sender: {})",
         branch.getId(),
         branch.getName(),
-        notifierId);
-    BranchNotification branchNotification = getOrCreateBranchNotification(branch, notifierId);
+        senderType);
+    BranchNotification branchNotification = getOrCreateBranchNotification(branch, senderType);
 
     if (shouldSendNewMessage(branchNotification, branchNotificationInfo)) {
       sendNewMessage(
           branchNotificationMessageSender, branch, branchNotification, branchNotificationInfo);
-      scheduleMissingScreenshotNotificationsForBranch(branch, notifierId);
+      scheduleMissingScreenshotNotificationsForBranch(branch, senderType);
     } else if (shouldSendUpdatedMessage(branchNotification, branchNotificationInfo)) {
       sendUpdatedMessage(
           branchNotificationMessageSender, branch, branchNotification, branchNotificationInfo);
-      scheduleMissingScreenshotNotificationsForBranch(branch, notifierId);
+      scheduleMissingScreenshotNotificationsForBranch(branch, senderType);
     }
 
     if (shouldSendTranslatedMessage(branch, branchNotification)) {
@@ -165,21 +146,21 @@ public class BranchNotificationService {
    * Schedule to check/send notification for missing screenshot in 30 minutes from now.
    *
    * @param branch
-   * @param notifierId
+   * @param senderType
    */
-  void scheduleMissingScreenshotNotificationsForBranch(Branch branch, String notifierId) {
+  void scheduleMissingScreenshotNotificationsForBranch(Branch branch, String senderType) {
     Date date = DateTime.now().plusMinutes(30).toDate();
 
     BranchNotificationMissingScreenshotsJobInput branchNotificationMissingScreenshotsJobInput =
         new BranchNotificationMissingScreenshotsJobInput();
     branchNotificationMissingScreenshotsJobInput.setBranchId(branch.getId());
-    branchNotificationMissingScreenshotsJobInput.setNotifierId(notifierId);
+    branchNotificationMissingScreenshotsJobInput.setSenderType(senderType);
 
     QuartzJobInfo<BranchNotificationMissingScreenshotsJobInput, Void> quartzJobInfo =
         QuartzJobInfo.newBuilder(BranchNotificationMissingScreenshotsJob.class)
             .withInput(branchNotificationMissingScreenshotsJobInput)
             .withTriggerStartDate(date)
-            .withUniqueId(notifierId + "_" + branch.getId())
+            .withUniqueId(senderType + "_" + branch.getId())
             .build();
     quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }
@@ -189,7 +170,7 @@ public class BranchNotificationService {
     logger.debug(
         "sendMissingScreenshotNotificationForBranch: {} ({})", branch.getId(), branch.getName());
     BranchNotification branchNotification =
-        getOrCreateBranchNotification(branch, branchNotificationMessageSender.getId());
+        getOrCreateBranchNotification(branch, getSenderType(branchNotificationMessageSender));
 
     if (shouldSendScreenshotMissingMessage(branch, branchNotification)) {
       sendScreenshotMissingMessage(branchNotificationMessageSender, branch, branchNotification);
@@ -366,19 +347,23 @@ public class BranchNotificationService {
     return branchNotificationInfo;
   }
 
-  BranchNotification getOrCreateBranchNotification(Branch branch, String notifierId) {
+  BranchNotification getOrCreateBranchNotification(Branch branch, String senderType) {
     logger.debug("getOrCreateBranchNotification for branch: {}", branch.getId());
 
     BranchNotification branchNotification =
-        branchNotificationRepository.findByBranchAndNotifierId(branch, notifierId);
+        branchNotificationRepository.findByBranchAndSenderType(branch, senderType);
 
     if (branchNotification == null) {
       logger.debug("No branchNotification, create one for branch: {}", branch.getId());
       branchNotification = new BranchNotification();
       branchNotification.setBranch(branch);
-      branchNotification.setNotifierId(notifierId);
+      branchNotification.setSenderType(senderType);
       branchNotification = branchNotificationRepository.save(branchNotification);
     }
     return branchNotification;
+  }
+
+  String getSenderType(BranchNotificationMessageSender branchNotificationMessageSender) {
+    return branchNotificationMessageSender.getClass().getSimpleName();
   }
 }

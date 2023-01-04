@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification;
+package com.box.l10n.mojito.service.branch.notificationlegacy;
 
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
@@ -11,6 +11,7 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -24,9 +25,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class BranchNotificationServiceTest extends ServiceTestBase {
+public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
 
-  @Autowired BranchNotificationService branchNotificationService;
+  @Autowired BranchNotificationServiceLegacy branchNotificationService;
 
   @Autowired AssetContentService assetContentService;
 

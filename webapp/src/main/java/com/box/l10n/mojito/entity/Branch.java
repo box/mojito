@@ -63,6 +63,15 @@ public class Branch extends SettableAuditableEntity {
   @OneToOne(mappedBy = "branch", fetch = FetchType.LAZY)
   BranchStatistic branchStatistic;
 
+  // TODO(jean) may want to rename this
+  // this won't be updatable?
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+      name = "branch_notifiers",
+      joinColumns = @JoinColumn(name = "branch_id"),
+      foreignKey = @ForeignKey(name = "FK__BRANCH_NOTIFIERS__BRANCH__ID"))
+  private Set<String> notifiers;
+
   public Repository getRepository() {
     return repository;
   }
@@ -109,5 +118,13 @@ public class Branch extends SettableAuditableEntity {
 
   public void setBranchStatistic(BranchStatistic branchStatistic) {
     this.branchStatistic = branchStatistic;
+  }
+
+  public Set<String> getNotifiers() {
+    return notifiers;
+  }
+
+  public void setNotifiers(Set<String> notifiers) {
+    this.notifiers = notifiers;
   }
 }

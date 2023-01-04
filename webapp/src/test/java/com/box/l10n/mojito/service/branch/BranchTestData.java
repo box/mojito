@@ -108,7 +108,7 @@ public class BranchTestData {
 
     String masterContent = "# string1 description\n" + "string1=content1\n" + "string2=content2\n";
 
-    master = branchService.createBranch(asset.getRepository(), "master", null);
+    master = branchService.createBranch(asset.getRepository(), "master", null, null);
     AssetContent assetContentMaster =
         assetContentService.createAssetContent(asset, masterContent, false, master);
     assetExtractionService
@@ -117,7 +117,7 @@ public class BranchTestData {
 
     String branch1Content = "# string1 description\n" + "string1=content1\n" + "string3=content3\n";
 
-    branch1 = branchService.createBranch(asset.getRepository(), "branch1", null);
+    branch1 = branchService.createBranch(asset.getRepository(), "branch1", null, null);
     AssetContent assetContentBranch1 =
         assetContentService.createAssetContent(asset, branch1Content, false, branch1);
     assetExtractionService
@@ -131,7 +131,7 @@ public class BranchTestData {
             + "string4=content4\n"
             + "string5=content5\n";
 
-    branch2 = branchService.createBranch(asset.getRepository(), "branch2", null);
+    branch2 = branchService.createBranch(asset.getRepository(), "branch2", null, null);
     AssetContent assetContentBranch2 =
         assetContentService.createAssetContent(asset, branch2Content, false, branch2);
     assetExtractionService
