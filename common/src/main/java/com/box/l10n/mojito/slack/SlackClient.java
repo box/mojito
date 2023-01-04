@@ -25,7 +25,7 @@ public class SlackClient {
 
   static final String BASE_API_URL = "https://slack.com/api/";
   static final String API_USER_LOOKUP_BY_EMAIL = "users.lookupByEmail";
-  static final String API_IM_OPEN = "im.open";
+  static final String API_CONVERSATIONS_OPEN = "conversations.open";
   static final String API_CHAT_POST_MESSAGE = "chat.postMessage";
 
   public static final String COLOR_GOOD = "good";
@@ -95,13 +95,14 @@ public class SlackClient {
     Preconditions.checkNotNull(user.getId());
 
     MultiValueMap<String, Object> payload = getBasePayloadMapWithAuthToken();
-    payload.add("user", user.getId());
+    payload.add("users", user.getId());
     payload.add("return_im", "true");
 
     HttpEntity<MultiValueMap<String, Object>> httpEntity = getHttpEntityForPayload(payload);
 
     ImOpenResponse imOpenResponse =
-        restTemplate.postForObject(getUrl(API_IM_OPEN), httpEntity, ImOpenResponse.class);
+        restTemplate.postForObject(
+            getUrl(API_CONVERSATIONS_OPEN), httpEntity, ImOpenResponse.class);
 
     if (!imOpenResponse.getOk()) {
       String msg =
