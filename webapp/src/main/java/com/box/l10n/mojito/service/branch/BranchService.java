@@ -34,7 +34,8 @@ public class BranchService {
 
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
-  public Branch createBranch(Repository repository, String branchName, User createdByUser) {
+  public Branch createBranch(
+      Repository repository, String branchName, User createdByUser, Set<String> branchNotifierIds) {
 
     logger.debug("createBranch, name: {}, repository id: {}", branchName, repository.getId());
 
@@ -42,14 +43,14 @@ public class BranchService {
     branch.setName(branchName);
     branch.setRepository(repository);
     branch.setCreatedByUser(createdByUser);
-
+    branch.setNotifiers(branchNotifierIds);
     branch = branchRepository.save(branch);
 
     return branch;
   }
 
   public Branch getUndeletedOrCreateBranch(
-      Repository repository, String branchName, User createdByUser) {
+      Repository repository, String branchName, User createdByUser, Set<String> branchNotifierIds) {
 
     logger.debug(
         "getUndeletedOrCreateBranch, name: {}, repository id: {}", branchName, repository.getId());
@@ -57,7 +58,7 @@ public class BranchService {
     Branch branch = branchRepository.findByNameAndRepository(branchName, repository);
 
     if (branch == null) {
-      branch = createBranch(repository, branchName, createdByUser);
+      branch = createBranch(repository, branchName, createdByUser, branchNotifierIds);
     } else if (branch.getDeleted()) {
       undeleteBranch(branch);
     }

@@ -82,6 +82,7 @@ public class AssetIntegrityCheckerServiceTest extends ServiceTestBase {
             null,
             null,
             null,
+            null,
             null);
     pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
 

@@ -129,7 +129,7 @@ public class AssetExtractionCleanupServiceTest extends ServiceTestBase {
 
       PollableFuture<Asset> assetPollableFuture =
           assetService.addOrUpdateAssetAndProcessIfNeeded(
-              repository.getId(), assetPath, xliff, false, branch, null, null, null, null);
+              repository.getId(), assetPath, xliff, false, branch, null, null, null, null, null);
       pollableTaskService.waitForPollableTask(assetPollableFuture.getPollableTask().getId());
       return assetPollableFuture.get();
     } catch (Exception e) {
