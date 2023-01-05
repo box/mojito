@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification.slack;
+package com.box.l10n.mojito.service.branch.notificationlegacy.slack;
 
 import static com.box.l10n.mojito.slack.SlackClient.COLOR_GOOD;
 import static com.box.l10n.mojito.slack.request.Action.ACTION_STYLE_PRIMARY;

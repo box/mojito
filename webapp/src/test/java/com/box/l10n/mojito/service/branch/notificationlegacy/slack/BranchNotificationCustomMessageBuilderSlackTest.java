@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification.slack;
+package com.box.l10n.mojito.service.branch.notificationlegacy.slack;
 
 import static org.junit.Assert.assertEquals;
 
@@ -19,11 +19,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(
     classes = {
       BranchNotificationMessageBuilderSlack.class,
-      BranchNotificationMessageBuilderSlackTest.class,
+      BranchNotificationCustomMessageBuilderSlackTest.class,
       BranchUrlBuilder.class,
       ServerConfig.class
+    },
+    properties = {
+      "l10n.branchNotification.slack.notification.message.new=Custom message text for new messages stating the time that screenshots need to be uploaded ",
+      "l10n.branchNotification.slack.notification.message.updated=Test custom message for update messages stating the screenshot upload deadline ",
+      "l10n.branchNotification.slack.notification.message.translationsReady=Custom translations ready text",
+      "l10n.branchNotification.slack.notification.message.screenshotsMissing=Custom screenshots missing text :warning:",
+      "l10n.branchNotification.slack.notification.message.noMoreStrings=Custom no more string message"
     })
-public class BranchNotificationMessageBuilderSlackTest {
+public class BranchNotificationCustomMessageBuilderSlackTest {
 
   ObjectMapper objectMapper = new ObjectMapper();
 
@@ -59,9 +66,8 @@ public class BranchNotificationMessageBuilderSlackTest {
             "channel-test", "pr-test", Arrays.asList("string1", "string2"));
     String json = objectMapper.writeValueAsStringUnchecked(newMessage);
     assertEquals(
-        "{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"W"
-            + "e received your strings! Please *add screenshots* as soon as possible and *wait for translations* befor"
-            + "e releasing.\",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\"text\":\"Screen"
+        "{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"Custom message text for new messages stating the time "
+            + "that screenshots need to be uploaded \",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\"text\":\"Screen"
             + "shots\",\"url\":\"http://localhost:8080/branches?searchText=pr-test&deleted=false&onlyMyBranches=false\",\"style\":\"prim"
             + "ary\"}],\"fields\":[{\"title\":\"PR\",\"value\":\"pr-test\",\"short\":true},{\"title\":\"String number"
             + "\",\"value\":\"2\",\"short\":true},{\"title\":\"Strings\",\"value\":\"string1, string2\",\"short\":null"
@@ -75,7 +81,7 @@ public class BranchNotificationMessageBuilderSlackTest {
         branchNotificationMessageBuilderSlack.getTranslatedMessage("channel-test", "pr-test");
     String json = objectMapper.writeValueAsStringUnchecked(newMessage);
     assertEquals(
-        "{\"channel\":\"channel-test\",\"text\":\"Translations are ready !! :party:\",\"attachments\":[],\"thread_ts\":\"pr-test\"}",
+        "{\"channel\":\"channel-test\",\"text\":\"Custom translations ready text\",\"attachments\":[],\"thread_ts\":\"pr-test\"}",
         json);
   }
 
@@ -86,7 +92,7 @@ public class BranchNotificationMessageBuilderSlackTest {
             "channel-test", "pr-test");
     String json = objectMapper.writeValueAsStringUnchecked(newMessage);
     assertEquals(
-        "{\"channel\":\"channel-test\",\"text\":\":warning: Please provide screenshots to help localization team :warning:\",\"attachments\":[],\"thread_ts\":\"pr-test\"}",
+        "{\"channel\":\"channel-test\",\"text\":\"Custom screenshots missing text :warning:\",\"attachments\":[],\"thread_ts\":\"pr-test\"}",
         json);
   }
 
@@ -97,9 +103,8 @@ public class BranchNotificationMessageBuilderSlackTest {
             "channel-test", "pr-test", "ts-test", Arrays.asList("string1", "string2"));
     String json = objectMapper.writeValueAsStringUnchecked(newMessage);
     assertEquals(
-        "{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"Y"
-            + "our branch was updated with new strings! Please *add screenshots* as soon as possible and *wait for tra"
-            + "nslations* before releasing.\",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\""
+        "{\"channel\":\"channel-test\",\"text\":null,\"attachments\":[{\"title\":null,\"text\":\"Test custom message for update "
+            + "messages stating the screenshot upload deadline \",\"fallback\":null,\"color\":\"good\",\"actions\":[{\"type\":\"button\",\""
             + "text\":\"Screenshots\",\"url\":\"http://localhost:8080/branches?searchText=ts-test&deleted=false&onlyMyBranches=false\",\""
             + "style\":\"primary\"}],\"fields\":[{\"title\":\"PR\",\"value\":\"ts-test\",\"short\":true},{\"title\":\""
             + "String number\",\"value\":\"2\",\"short\":true},{\"title\":\"Strings\",\"value\":\"string1, string2\",\""
@@ -114,7 +119,7 @@ public class BranchNotificationMessageBuilderSlackTest {
             "channel-test", "pr-test", "ts-test", Arrays.asList());
     String json = objectMapper.writeValueAsStringUnchecked(newMessage);
     assertEquals(
-        "{\"channel\":\"channel-test\",\"text\":\"The branch was updated and there are no more strings to translate.\",\"attachments\":[],\"thread_ts\":\"pr-test\"}",
+        "{\"channel\":\"channel-test\",\"text\":\"Custom no more string message\",\"attachments\":[],\"thread_ts\":\"pr-test\"}",
         json);
   }
 }

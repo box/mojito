@@ -1,11 +1,11 @@
-package com.box.l10n.mojito.service.branch.notification.phabricator;
+package com.box.l10n.mojito.service.branch.notificationlegacy.phabricator;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.phabricator.PhabricatorException;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSender;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSenderException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;

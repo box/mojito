@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.service.branch.notification.job;
 
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationService;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationService;
 import org.quartz.DisallowConcurrentExecution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
