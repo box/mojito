@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification.phabricator;
+package com.box.l10n.mojito.service.branch.notificationlegacy.phabricator;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,8 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest(
     classes = {
       BranchNotificationMessageBuilderPhabricator.class,
-      com.box.l10n.mojito.service.branch.notification.phabricator
-          .BranchNotificationCustomMessageBuilderPhabricatorTest.class,
+      BranchNotificationCustomMessageBuilderPhabricatorTest.class,
       BranchUrlBuilder.class,
       ServerConfig.class
     },

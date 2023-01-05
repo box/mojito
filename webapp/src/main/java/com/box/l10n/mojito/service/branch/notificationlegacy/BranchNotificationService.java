@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification;
+package com.box.l10n.mojito.service.branch.notificationlegacy;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -12,6 +12,8 @@ import com.box.l10n.mojito.service.branch.BranchRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticRepository;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTextUnitStatisticRepository;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationInfo;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -97,7 +99,7 @@ public class BranchNotificationService {
     sendMissingScreenshotNotificationsForBranch(branchNotificationMessageSender, branch);
   }
 
-  void sendNotificationsForBranch(Branch branch) {
+  public void sendNotificationsForBranch(Branch branch) {
     logger.debug("sendNotificationsForBranch: {} ({})", branch.getId(), branch.getName());
 
     BranchNotificationInfo branchNotificationInfo = getBranchNotificationInfo(branch);
@@ -118,7 +120,7 @@ public class BranchNotificationService {
       BranchNotificationInfo branchNotificationInfo) {
     String senderType = getSenderType(branchNotificationMessageSender);
 
-    logger.debug(
+    logger.info(
         "sendNotificationsForBranch: {} ({} with sender: {})",
         branch.getId(),
         branch.getName(),

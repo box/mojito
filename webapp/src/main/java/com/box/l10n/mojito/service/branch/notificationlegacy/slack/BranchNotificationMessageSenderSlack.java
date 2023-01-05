@@ -1,9 +1,9 @@
-package com.box.l10n.mojito.service.branch.notification.slack;
+package com.box.l10n.mojito.service.branch.notificationlegacy.slack;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSender;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSenderException;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSender;
+import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationMessageSenderException;
 import com.box.l10n.mojito.slack.SlackClient;
 import com.box.l10n.mojito.slack.SlackClientException;
 import com.box.l10n.mojito.slack.request.Message;

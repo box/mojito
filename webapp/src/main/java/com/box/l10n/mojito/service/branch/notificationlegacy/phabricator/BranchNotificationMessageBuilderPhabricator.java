@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification.phabricator;
+package com.box.l10n.mojito.service.branch.notificationlegacy.phabricator;
 
 import static org.slf4j.LoggerFactory.getLogger;
 

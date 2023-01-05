@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notification;
+package com.box.l10n.mojito.service.branch.notificationlegacy;
 
 public class BranchNotificationMessageSenderException extends Throwable {
   public BranchNotificationMessageSenderException(Exception e) {
