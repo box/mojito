@@ -14,9 +14,11 @@ import com.box.l10n.mojito.rest.entity.Repository;
 import com.box.l10n.mojito.rest.entity.SourceAsset;
 import com.box.l10n.mojito.shell.Shell;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.fusesource.jansi.Ansi;
@@ -146,6 +148,14 @@ public class ExtractionDiffCommand extends Command {
       required = false,
       description = "Optional username who owns the branch when pusing to a repository")
   String pushToBranchCreatedBy;
+
+  @Parameter(
+      names = {"--push-to-branch-notifiers", "-pbn"},
+      variableArity = true,
+      required = false,
+      description =
+          "Optional list of notifiers when pusing to a repository, (notification will be sent eg. when new strings are processed or when translations are ready")
+  Set<String> pushToBranchNotifiers = Collections.emptySet();
 
   @Parameter(
       names = Param.PUSH_TYPE_LONG,
@@ -304,6 +314,7 @@ public class ExtractionDiffCommand extends Command {
                     sourceAsset = new SourceAsset();
                     sourceAsset.setBranch(pushToBranchName);
                     sourceAsset.setBranchCreatedByUsername(pushToBranchCreatedBy);
+                    sourceAsset.setBranchNotifiers(pushToBranchNotifiers);
                     sourceAsset.setPath(sourceFileMatchPath);
                     sourceAsset.setContent(assetContent);
                     sourceAsset.setExtractedContent(true);
