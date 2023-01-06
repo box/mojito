@@ -11,7 +11,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(
-    classes = {GithubClientsConfiguration.class, GithubClientsFactory.class},
+    classes = {GithubClientsConfiguration.class, GithubClients.class},
     properties = {
       "l10n.githubClients.client-1.owner=testOwner1",
       "l10n.githubClients.client-1.appId=testAppId1",
@@ -21,17 +21,17 @@ import org.springframework.test.context.junit4.SpringRunner;
       "l10n.githubClients.client-2.key=testKey2",
     })
 @EnableConfigurationProperties
-public class GithubClientFactoryTest {
+public class GithubClientsTest {
 
-  @Autowired GithubClientsFactory githubClientsFactory;
+  @Autowired GithubClients githubClients;
 
   @Test
   public void testClientCreation() {
-    GithubClient githubClient1 = githubClientsFactory.getClient("testOwner1");
+    GithubClient githubClient1 = githubClients.getClient("testOwner1");
     assertEquals("testOwner1", githubClient1.getOwner());
     assertEquals("testAppId1", githubClient1.getAppId());
 
-    GithubClient githubClient2 = githubClientsFactory.getClient("testOwner2");
+    GithubClient githubClient2 = githubClients.getClient("testOwner2");
     assertEquals("testOwner2", githubClient2.getOwner());
     assertEquals("testAppId2", githubClient2.getAppId());
   }

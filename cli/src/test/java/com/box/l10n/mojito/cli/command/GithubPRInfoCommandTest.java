@@ -7,7 +7,7 @@ import static org.mockito.Mockito.when;
 
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.github.GithubClient;
-import com.box.l10n.mojito.github.GithubClientsFactory;
+import com.box.l10n.mojito.github.GithubClients;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.List;
@@ -19,7 +19,7 @@ import org.mockito.Mockito;
 
 public class GithubPRInfoCommandTest {
 
-  GithubClientsFactory githubClientsFactoryMock;
+  GithubClients githubClientsMock;
 
   GithubClient githubMock;
 
@@ -34,17 +34,17 @@ public class GithubPRInfoCommandTest {
     githubMock = Mockito.mock(GithubClient.class);
     consoleWriterMock = Mockito.mock(ConsoleWriter.class);
     ghIssueCommentMock = Mockito.mock(GHIssueComment.class);
-    githubClientsFactoryMock = Mockito.mock(GithubClientsFactory.class);
+    githubClientsMock = Mockito.mock(GithubClients.class);
     githubPRInfoCommand = new GithubPRInfoCommand();
     githubPRInfoCommand.repository = "testRepo";
     githubPRInfoCommand.owner = "testOwner";
     githubPRInfoCommand.prNumber = 1;
-    githubPRInfoCommand.githubClientsFactory = githubClientsFactoryMock;
+    githubPRInfoCommand.githubClients = githubClientsMock;
     githubPRInfoCommand.consoleWriterAnsiCodeEnabledFalse = consoleWriterMock;
 
     when(githubMock.getPRBaseCommit("testRepo", 1)).thenReturn("baseSha");
     when(githubMock.getPRAuthorEmail("testRepo", 1)).thenReturn("some@email.com");
-    when(githubClientsFactoryMock.getClient(isA(String.class))).thenReturn(githubMock);
+    when(githubClientsMock.getClient(isA(String.class))).thenReturn(githubMock);
     List<GHIssueComment> mockComments = Lists.newArrayList(ghIssueCommentMock);
     when(ghIssueCommentMock.getBody()).thenReturn("some comment");
     when(githubMock.getPRComments("testRepo", 1)).thenReturn(mockComments);
@@ -80,7 +80,7 @@ public class GithubPRInfoCommandTest {
 
   @Test(expected = CommandException.class)
   public void testGithubClientNotAvailable() {
-    when(githubClientsFactoryMock.getClient(isA(String.class))).thenReturn(null);
+    when(githubClientsMock.getClient(isA(String.class))).thenReturn(null);
     githubPRInfoCommand.execute();
   }
 }
