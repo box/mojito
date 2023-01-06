@@ -15,6 +15,8 @@ import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException
 import com.box.l10n.mojito.service.repository.RepositoryService;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.Sets;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
@@ -45,6 +47,7 @@ public class BranchTestData {
   private Branch branch2;
   private TMTextUnit string1Branch1;
   private TMTextUnit string2Branch1;
+  private Set<String> branchNotifierIds;
 
   public RepositoryLocale getRepositoryLocaleFrFr() {
     return repositoryLocaleFrFr;
@@ -91,7 +94,14 @@ public class BranchTestData {
   }
 
   public BranchTestData(TestIdWatcher testIdWatcher) {
+    this(testIdWatcher, false);
+  }
+
+  public BranchTestData(TestIdWatcher testIdWatcher, boolean legacy) {
     this.testIdWatcher = testIdWatcher;
+    if (!legacy) {
+      branchNotifierIds = Sets.newHashSet("noop-1");
+    }
   }
 
   @PostConstruct
@@ -108,7 +118,7 @@ public class BranchTestData {
 
     String masterContent = "# string1 description\n" + "string1=content1\n" + "string2=content2\n";
 
-    master = branchService.createBranch(asset.getRepository(), "master", null, null);
+    master = branchService.createBranch(asset.getRepository(), "master", null, branchNotifierIds);
     AssetContent assetContentMaster =
         assetContentService.createAssetContent(asset, masterContent, false, master);
     assetExtractionService
@@ -117,7 +127,7 @@ public class BranchTestData {
 
     String branch1Content = "# string1 description\n" + "string1=content1\n" + "string3=content3\n";
 
-    branch1 = branchService.createBranch(asset.getRepository(), "branch1", null, null);
+    branch1 = branchService.createBranch(asset.getRepository(), "branch1", null, branchNotifierIds);
     AssetContent assetContentBranch1 =
         assetContentService.createAssetContent(asset, branch1Content, false, branch1);
     assetExtractionService
@@ -131,7 +141,7 @@ public class BranchTestData {
             + "string4=content4\n"
             + "string5=content5\n";
 
-    branch2 = branchService.createBranch(asset.getRepository(), "branch2", null, null);
+    branch2 = branchService.createBranch(asset.getRepository(), "branch2", null, branchNotifierIds);
     AssetContent assetContentBranch2 =
         assetContentService.createAssetContent(asset, branch2Content, false, branch2);
     assetExtractionService
