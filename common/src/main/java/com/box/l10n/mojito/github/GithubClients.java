@@ -2,23 +2,19 @@ package com.box.l10n.mojito.github;
 
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GithubClientsFactory {
-
-  @Autowired GithubClientsConfiguration githubClientsConfiguration;
+public class GithubClients {
 
   private Map<String, GithubClient> githubOwnerToClientsCache;
 
-  @PostConstruct
-  protected void init() {
-    githubOwnerToClientsCache = createGithubClients();
+  public GithubClients(GithubClientsConfiguration githubClientsConfiguration) {
+    githubOwnerToClientsCache = createGithubClients(githubClientsConfiguration);
   }
 
-  private Map<String, GithubClient> createGithubClients() {
+  private Map<String, GithubClient> createGithubClients(
+      GithubClientsConfiguration githubClientsConfiguration) {
     return githubClientsConfiguration.getGithubClients().entrySet().stream()
         .collect(
             Collectors.toMap(

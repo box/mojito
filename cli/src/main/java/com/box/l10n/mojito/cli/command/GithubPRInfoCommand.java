@@ -6,7 +6,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.github.GithubClient;
-import com.box.l10n.mojito.github.GithubClientsFactory;
+import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.github.GithubException;
 import java.io.IOException;
 import java.util.List;
@@ -40,7 +40,7 @@ public class GithubPRInfoCommand extends Command {
   ConsoleWriter consoleWriterAnsiCodeEnabledFalse;
 
   @Autowired(required = false)
-  GithubClientsFactory githubClientsFactory;
+  GithubClients githubClients;
 
   @Parameter(
       names = {"--repository"},
@@ -66,13 +66,13 @@ public class GithubPRInfoCommand extends Command {
   @Override
   public void execute() throws CommandException {
 
-    if (githubClientsFactory == null) {
+    if (githubClients == null) {
       throw new CommandException(
           "Github must be configured with properties: l10n.githubClients.<client>.appId, l10n.githubClients.<client>.key and l10n.githubClients.<client>.owner");
     }
 
     try {
-      GithubClient github = githubClientsFactory.getClient(owner);
+      GithubClient github = githubClients.getClient(owner);
       if (github == null) {
         throw new CommandException(
             String.format("Github client with owner '%s' not found.", owner));
