@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.slack.SlackClient;
 import com.box.l10n.mojito.slack.SlackClients;
 import org.junit.Test;
@@ -123,6 +124,27 @@ public class BranchNotificationMessageSendersTest {
             "l10n.branchNotification.notifiers.phabricator.badid-1.url=false");
     assertThatThrownBy(() -> new BranchNotificationMessageSenders(config, null, null, null))
         .hasMessage("name must start with prefix: phabricator-");
+  }
+
+  @Test
+  public void github() {
+    BranchNotificationMessageSendersConfigurationProperties config =
+        getTestBranchNotificationMessageSendersConfigurationProperties(
+            "l10n.branchNotification.notifiers.github.github-1.owner=owner1");
+    GithubClients githubClients = mock(GithubClients.class);
+    BranchNotificationMessageSenders branchNotificationMessageSenders =
+        new BranchNotificationMessageSenders(config, githubClients, null, null);
+    assertThat(branchNotificationMessageSenders.getById("github-1")).isNotNull();
+    verify(githubClients, times(1)).getClient("owner1");
+  }
+
+  @Test
+  public void githubInvalidId() {
+    BranchNotificationMessageSendersConfigurationProperties config =
+        getTestBranchNotificationMessageSendersConfigurationProperties(
+            "l10n.branchNotification.notifiers.github.badid-1.owner=owner1");
+    assertThatThrownBy(() -> new BranchNotificationMessageSenders(config, null, null, null))
+        .hasMessage("name must start with prefix: github-");
   }
 
   private static BranchNotificationMessageSendersConfigurationProperties

@@ -14,6 +14,8 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
   Map<String, PhabricatorConfigurationProperties> phabricator = new HashMap<>();
 
+  Map<String, GithubConfigurationProperties> github = new HashMap<>();
+
   public Map<String, NoopConfigurationProperties> getNoop() {
     return noop;
   }
@@ -36,6 +38,14 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
   public void setPhabricator(Map<String, PhabricatorConfigurationProperties> phabricator) {
     this.phabricator = phabricator;
+  }
+
+  public Map<String, GithubConfigurationProperties> getGithub() {
+    return github;
+  }
+
+  public void setGithub(Map<String, GithubConfigurationProperties> github) {
+    this.github = github;
   }
 
   static class NoopConfigurationProperties {
@@ -275,6 +285,21 @@ public class BranchNotificationMessageSendersConfigurationProperties {
       public void setNoMoreStrings(String noMoreStrings) {
         this.noMoreStrings = noMoreStrings;
       }
+    }
+  }
+
+  static class GithubConfigurationProperties {
+
+    // TODO(jean) it migth make more to look up by "id" vs "owner" to have all implementation
+    // with the same logic, instead of having logical keys that are implementation specific
+    String owner;
+
+    public String getOwner() {
+      return owner;
+    }
+
+    public void setOwner(String owner) {
+      this.owner = owner;
     }
   }
 }
