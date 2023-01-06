@@ -2,6 +2,7 @@ package com.box.l10n.mojito.service.branch.notification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.GithubConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.NoopConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.PhabricatorConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.SlackConfigurationProperties;
@@ -24,7 +25,8 @@ import org.springframework.test.context.junit4.SpringRunner;
       "l10n.branchNotification.notifiers.phabricator.phabricator-1.url=url1",
       "l10n.branchNotification.notifiers.phabricator.phabricator-1.token=token1",
       "l10n.branchNotification.notifiers.phabricator.phabricator-1.reviewer=reviewer1",
-      "l10n.branchNotification.notifiers.phabricator.phabricator-1.messages.newStrings=Override newStrings Phabricator"
+      "l10n.branchNotification.notifiers.phabricator.phabricator-1.messages.newStrings=Override newStrings Phabricator",
+      "l10n.branchNotification.notifiers.github.github-1.owner=owner1",
     })
 @EnableConfigurationProperties
 public class BranchNotificationMessageSendersConfigurationPropertiesTest {
@@ -63,5 +65,15 @@ public class BranchNotificationMessageSendersConfigurationPropertiesTest {
     assertThat(phabricator1)
         .extracting("url", "token", "reviewer", "messages.newStrings")
         .containsExactly("url1", "token1", "reviewer1", "Override newStrings Phabricator");
+  }
+
+  @Test
+  public void github() {
+    final Map<String, GithubConfigurationProperties> github =
+        branchNotificationMessageSendersConfigurationProperties.getGithub();
+    assertThat(github).containsOnlyKeys("github-1");
+
+    GithubConfigurationProperties github1 = github.get("github-1");
+    assertThat(github1.getOwner()).isEqualTo("owner1");
   }
 }
