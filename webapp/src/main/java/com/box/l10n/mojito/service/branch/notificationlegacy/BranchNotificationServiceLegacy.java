@@ -31,10 +31,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BranchNotificationService {
+public class BranchNotificationServiceLegacy {
 
   /** logger */
-  static Logger logger = getLogger(BranchNotificationService.class);
+  static Logger logger = getLogger(BranchNotificationServiceLegacy.class);
 
   @Autowired BranchRepository branchRepository;
 

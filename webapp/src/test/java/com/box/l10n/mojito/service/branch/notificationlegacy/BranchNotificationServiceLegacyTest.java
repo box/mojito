@@ -25,9 +25,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class BranchNotificationServiceTest extends ServiceTestBase {
+public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
 
-  @Autowired BranchNotificationService branchNotificationService;
+  @Autowired BranchNotificationServiceLegacy branchNotificationServiceLegacy;
 
   @Autowired AssetContentService assetContentService;
 
@@ -117,7 +117,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     branchNotification.setScreenshotMissingMsgSentAt(DateTime.now().minusMinutes(31));
     branchNotificationRepository.save(branchNotification);
 
-    branchNotificationService.scheduleMissingScreenshotNotificationsForBranch(
+    branchNotificationServiceLegacy.scheduleMissingScreenshotNotificationsForBranch(
         branchTestData.getBranch1(), senderType);
 
     waitForCondition(
