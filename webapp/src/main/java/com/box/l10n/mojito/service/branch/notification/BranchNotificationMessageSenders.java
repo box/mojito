@@ -1,10 +1,15 @@
 package com.box.l10n.mojito.service.branch.notification;
 
+import com.box.l10n.mojito.phabricator.DifferentialRevision;
+import com.box.l10n.mojito.phabricator.PhabricatorHttpClient;
 import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.NoopConfigurationProperties;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.PhabricatorConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.SlackConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.SlackConfigurationProperties.MessageBuilderConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.noop.BranchNotificationMessageSenderNoop;
+import com.box.l10n.mojito.service.branch.notification.phabricator.BranchNotificationMessageBuilderPhabricator;
+import com.box.l10n.mojito.service.branch.notification.phabricator.BranchNotificationMessageSenderPhabricator;
 import com.box.l10n.mojito.service.branch.notification.slack.BranchNotificationMessageBuilderSlack;
 import com.box.l10n.mojito.service.branch.notification.slack.BranchNotificationMessageSenderSlack;
 import com.box.l10n.mojito.slack.SlackClient;
@@ -50,6 +55,10 @@ public class BranchNotificationMessageSenders {
     checkIdsStartWithPrefix(
         branchNotificationMessageSendersConfigurationProperties.getSlack().keySet(), "slack");
 
+    checkIdsStartWithPrefix(
+        branchNotificationMessageSendersConfigurationProperties.getPhabricator().keySet(),
+        "phabricator");
+
     Map<String, BranchNotificationMessageSender> mapIdToBranchNotificationMessageSender =
         new HashMap<>();
 
@@ -61,6 +70,10 @@ public class BranchNotificationMessageSenders {
             branchNotificationMessageSendersConfigurationProperties,
             slackClients,
             branchUrlBuilder));
+
+    mapIdToBranchNotificationMessageSender.putAll(
+        createPhabricatorInstances(
+            branchNotificationMessageSendersConfigurationProperties, branchUrlBuilder));
 
     return mapIdToBranchNotificationMessageSender;
   }
@@ -135,5 +148,55 @@ public class BranchNotificationMessageSenders {
                 })
             .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
     return slack;
+  }
+
+  private Map<String, BranchNotificationMessageSenderPhabricator> createPhabricatorInstances(
+      BranchNotificationMessageSendersConfigurationProperties
+          branchNotificationMessageSendersConfigurationProperties,
+      BranchUrlBuilder branchUrlBuilder) {
+    Map<String, BranchNotificationMessageSenderPhabricator> phabricator =
+        branchNotificationMessageSendersConfigurationProperties.getPhabricator().entrySet().stream()
+            .map(
+                e -> {
+                  String id = e.getKey();
+                  PhabricatorConfigurationProperties phabricatorConfigurationProperties =
+                      e.getValue();
+
+                  PhabricatorHttpClient phabricatorHttpClient =
+                      new PhabricatorHttpClient(
+                          phabricatorConfigurationProperties.getUrl(),
+                          phabricatorConfigurationProperties.getToken());
+
+                  DifferentialRevision differentialRevision =
+                      new DifferentialRevision(phabricatorHttpClient);
+
+                  PhabricatorConfigurationProperties.MessageBuilderConfigurationProperties
+                      messages = phabricatorConfigurationProperties.getMessages();
+
+                  BranchNotificationMessageBuilderPhabricator
+                      branchNotificationMessageBuilderPhabricator =
+                          new BranchNotificationMessageBuilderPhabricator(
+                              branchUrlBuilder,
+                              messages.getNewNotificationMsgFormat(),
+                              messages.getUpdatedNotificationMsgFormat(),
+                              messages.getNewStrings(),
+                              messages.getUpdatedStrings(),
+                              messages.getNoMoreStrings(),
+                              messages.getTranslationsReady(),
+                              messages.getScreenshotsMissing());
+
+                  BranchNotificationMessageSenderPhabricator
+                      branchNotificationMessageSenderPhabricator =
+                          new BranchNotificationMessageSenderPhabricator(
+                              id,
+                              differentialRevision,
+                              phabricatorConfigurationProperties.getReviewer(),
+                              phabricatorConfigurationProperties.isBlockingReview(),
+                              branchNotificationMessageBuilderPhabricator);
+                  return new SimpleEntry<String, BranchNotificationMessageSenderPhabricator>(
+                      id, branchNotificationMessageSenderPhabricator);
+                })
+            .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
+    return phabricator;
   }
 }

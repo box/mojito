@@ -91,6 +91,40 @@ public class BranchNotificationMessageSendersTest {
         .hasMessage("name must start with prefix: slack-");
   }
 
+  @Test
+  public void phabricator() {
+    BranchNotificationMessageSendersConfigurationProperties config =
+        getTestBranchNotificationMessageSendersConfigurationProperties(
+            "l10n.branchNotification.notifiers.phabricator.phabricator-1.url=https://phabricator.pinadmin.com",
+            "l10n.branchNotification.notifiers.phabricator.phabricator-1.token=token-value",
+            "l10n.branchNotification.notifiers.phabricator.phabricator-1.reviewer=reviewer-value");
+    BranchNotificationMessageSenders branchNotificationMessageSenders =
+        new BranchNotificationMessageSenders(config, null, null, null);
+    assertThat(branchNotificationMessageSenders.getById("phabricator-1")).isNotNull();
+  }
+
+  @Test
+  public void phabricatorWithMessageOverride() {
+    BranchNotificationMessageSendersConfigurationProperties config =
+        getTestBranchNotificationMessageSendersConfigurationProperties(
+            "l10n.branchNotification.notifiers.phabricator.phabricator-1.url=https://phabricator.pinadmin.com",
+            "l10n.branchNotification.notifiers.phabricator.phabricator-1.token=token-value",
+            "l10n.branchNotification.notifiers.phabricator.phabricator-1.reviewer=reviewer-value",
+            "l10n.branchNotification.notifiers.phabricator.phabricator-1.messages.newStrings=newStrings override");
+    BranchNotificationMessageSenders branchNotificationMessageSenders =
+        new BranchNotificationMessageSenders(config, null, null, null);
+    assertThat(branchNotificationMessageSenders.getById("phabricator-1")).isNotNull();
+  }
+
+  @Test
+  public void phabricatorInvalidId() {
+    BranchNotificationMessageSendersConfigurationProperties config =
+        getTestBranchNotificationMessageSendersConfigurationProperties(
+            "l10n.branchNotification.notifiers.phabricator.badid-1.url=false");
+    assertThatThrownBy(() -> new BranchNotificationMessageSenders(config, null, null, null))
+        .hasMessage("name must start with prefix: phabricator-");
+  }
+
   private static BranchNotificationMessageSendersConfigurationProperties
       getTestBranchNotificationMessageSendersConfigurationProperties(String... pairs) {
     AnnotationConfigApplicationContext annotationConfigApplicationContext =

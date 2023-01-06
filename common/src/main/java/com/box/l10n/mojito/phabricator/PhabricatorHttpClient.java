@@ -11,7 +11,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-class PhabricatorHttpClient {
+public class PhabricatorHttpClient {
 
   static final String API_TOKEN = "api.token";
   static final String CONSTRAINTS_PHIDS_0 = "constraints[phids][0]";
@@ -28,8 +28,8 @@ class PhabricatorHttpClient {
   String baseUrl;
 
   public PhabricatorHttpClient(String baseUrl, String authToken) {
-    this.authToken = authToken;
-    this.baseUrl = baseUrl;
+    this.authToken = Preconditions.checkNotNull(authToken);
+    this.baseUrl = Preconditions.checkNotNull(baseUrl);
   }
 
   public <T extends ResultWithError> T postEntityAndCheckResponse(
