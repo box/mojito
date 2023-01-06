@@ -1,4 +1,4 @@
-package com.box.l10n.mojito.service.branch.notificationlegacy;
+package com.box.l10n.mojito.service.branch.notification;
 
 import com.box.l10n.mojito.entity.AssetContent;
 import com.box.l10n.mojito.entity.Branch;
@@ -11,7 +11,6 @@ import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.assetcontent.AssetContentService;
 import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTestData;
-import com.box.l10n.mojito.service.branch.notification.BranchNotificationRepository;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -25,9 +24,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
+public class BranchNotificationServiceTest extends ServiceTestBase {
 
-  @Autowired BranchNotificationServiceLegacy branchNotificationServiceLegacy;
+  @Autowired BranchNotificationService branchNotificationService;
 
   @Autowired AssetContentService assetContentService;
 
@@ -47,12 +46,12 @@ public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-  String senderType = BranchNotificationMessageSenderNoop.class.getSimpleName();
+  String branchNotifierId = "noop-1";
 
   @Test
   public void allNotfication() throws Exception {
 
-    BranchTestData branchTestData = new BranchTestData(testIdWatcher, true);
+    BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
     String branch2ContentUpdated =
         "# string1 description\n"
@@ -73,7 +72,7 @@ public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
         "Branch1 new notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch1(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
                   .getNewMsgSentAt()
               != null;
         });
@@ -82,7 +81,7 @@ public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
         "Branch2 translated notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch2(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
                   .getNewMsgSentAt()
               != null;
         });
@@ -93,7 +92,7 @@ public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
         "Branch2 translated notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch2(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
                   .getTranslatedMsgSentAt()
               != null;
         });
@@ -101,30 +100,30 @@ public class BranchNotificationServiceLegacyTest extends ServiceTestBase {
 
   @Test
   public void screenshotMissing() throws Exception {
-    BranchTestData branchTestData = new BranchTestData(testIdWatcher, true);
+    BranchTestData branchTestData = new BranchTestData(testIdWatcher);
 
     waitForCondition(
         "Branch notification for branch1 is missing",
         () -> {
-          return branchNotificationRepository.findByBranchAndSenderType(
-                  branchTestData.getBranch1(), senderType)
+          return branchNotificationRepository.findByBranchAndNotifierId(
+                  branchTestData.getBranch1(), branchNotifierId)
               != null;
         });
 
     BranchNotification branchNotification =
-        branchNotificationRepository.findByBranchAndSenderType(
-            branchTestData.getBranch1(), senderType);
+        branchNotificationRepository.findByBranchAndNotifierId(
+            branchTestData.getBranch1(), branchNotifierId);
     branchNotification.setScreenshotMissingMsgSentAt(DateTime.now().minusMinutes(31));
     branchNotificationRepository.save(branchNotification);
 
-    branchNotificationServiceLegacy.scheduleMissingScreenshotNotificationsForBranch(
-        branchTestData.getBranch1(), senderType);
+    branchNotificationService.scheduleMissingScreenshotNotificationsForBranch(
+        branchTestData.getBranch1(), branchNotifierId);
 
     waitForCondition(
         "Branch1 screenshot missing notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch1(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
                   .getScreenshotMissingMsgSentAt()
               != null;
         });

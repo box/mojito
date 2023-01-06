@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.branch.notification.job;
 
 import com.box.l10n.mojito.quartz.QuartzPollableJob;
+import com.box.l10n.mojito.service.branch.notification.BranchNotificationService;
 import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationServiceLegacy;
 import org.quartz.DisallowConcurrentExecution;
 import org.slf4j.Logger;
@@ -23,12 +24,25 @@ public class BranchNotificationMissingScreenshotsJob
 
   @Autowired BranchNotificationServiceLegacy branchNotificationServiceLegacy;
 
+  @Autowired BranchNotificationService branchNotificationService;
+
   @Override
   public Void call(BranchNotificationMissingScreenshotsJobInput input) throws Exception {
-    logger.debug(
-        "execute for branchId: {} and sender type: {}", input.getBranchId(), input.getSenderType());
-    branchNotificationServiceLegacy.sendMissingScreenshotNotificationForBranch(
-        input.getBranchId(), input.getSenderType());
+    if (input.getSenderType() == null) {
+      logger.debug(
+          "execute for branchId: {} and notifier id: {}",
+          input.getBranchId(),
+          input.getNotifierId());
+      branchNotificationService.sendMissingScreenshotNotificationForBranch(
+          input.getBranchId(), input.getNotifierId());
+    } else {
+      logger.debug(
+          "execute for branchId: {} and sender type: {}",
+          input.getBranchId(),
+          input.getSenderType());
+      branchNotificationServiceLegacy.sendMissingScreenshotNotificationForBranch(
+          input.getBranchId(), input.getSenderType());
+    }
     return null;
   }
 }
