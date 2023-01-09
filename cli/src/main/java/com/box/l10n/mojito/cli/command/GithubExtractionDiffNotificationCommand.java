@@ -1,7 +1,5 @@
 package com.box.l10n.mojito.cli.command;
 
-import static com.google.common.base.Strings.nullToEmpty;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.box.l10n.mojito.cli.command.extraction.AbstractExtractionDiffStatistics;
@@ -10,10 +8,11 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
-import com.box.l10n.mojito.phabricator.DifferentialRevision;
-import com.box.l10n.mojito.phabricator.PhabricatorMessageBuilder;
-import com.box.l10n.mojito.thirdpartynotification.phabricator.PhabricatorIcon;
+import com.box.l10n.mojito.github.GithubClient;
+import com.box.l10n.mojito.github.GithubClients;
+import com.box.l10n.mojito.thirdpartynotification.github.GithubIcon;
 import com.google.common.collect.ImmutableMap;
+import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Command to compute extraction diff statistics and optionally notify Phabricator.
+ * Command to compute extraction diff statistics and optionally notify Github.
  *
  * <p>A notification is sent if the Extraction contains any added or removed text units. The level
  * (icon: info, warning, danger) of the notification will depend on the number of removed text
@@ -31,32 +30,42 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 @Parameters(
-    commandNames = {"phab-extraction-diff-notif"},
-    commandDescription = "Compute extraction diff statistics and optionally notify Phabricator")
-public class PhabricatorExtractionDiffNotificationCommand
+    commandNames = {"github-extraction-diff-notif"},
+    commandDescription = "Compute extraction diff statistics and optionally notify Github")
+public class GithubExtractionDiffNotificationCommand
     extends AbstractExtractionDiffNotificationCommand {
+
   /** logger */
-  static Logger logger =
-      LoggerFactory.getLogger(PhabricatorExtractionDiffNotificationCommand.class);
+  static Logger logger = LoggerFactory.getLogger(GithubExtractionDiffNotificationCommand.class);
 
   @Qualifier("ansiCodeEnabledFalse")
   @Autowired
   ConsoleWriter consoleWriterAnsiCodeEnabledFalse;
 
-  @Autowired(required = false)
-  DifferentialRevision differentialRevision;
-
-  @Autowired(required = false)
-  PhabricatorMessageBuilder phabricatorMessageBuilder;
+  @Autowired GithubClients githubClientsFactory;
 
   @Autowired ExtractionDiffService extractionDiffService;
 
   @Parameter(
-      names = {"--object-id", "-oid"},
+      names = {"--pull-request-id", "-pr"},
       arity = 1,
       required = true,
-      description = "the object id of the revision")
-  String objectId;
+      description = "the pull request number")
+  Integer prNumber;
+
+  @Parameter(
+      names = {"--github-owner", "-go"},
+      arity = 1,
+      required = true,
+      description = "the Github repository owner name")
+  String owner;
+
+  @Parameter(
+      names = {"--github-repo", "-gr"},
+      arity = 1,
+      required = true,
+      description = "the Github repository name")
+  String repositoryName;
 
   @Parameter(
       names = {"--message-template", "-mt"},
@@ -102,14 +111,8 @@ public class PhabricatorExtractionDiffNotificationCommand
   String inputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
 
   @Override
-  public boolean shouldShowInCommandList() {
-    return false;
-  }
-
-  @Override
-  public void execute() throws CommandException {
-    PhabricatorPreconditions.checkNotNull(differentialRevision);
-
+  protected void execute() throws CommandException {
+    GithubClient github = githubClientsFactory.getClient(owner);
     ExtractionDiffStatistics extractionDiffStatistics =
         getExtractionDiffStatistics(
             extractionDiffService,
@@ -121,14 +124,18 @@ public class PhabricatorExtractionDiffNotificationCommand
     if (shouldSendNotification(extractionDiffStatistics)) {
       String message = getMessage(extractionDiffStatistics);
       consoleWriterAnsiCodeEnabledFalse.a(message).println();
-      differentialRevision.addComment(objectId, message);
+      github.addCommentToPR(repositoryName, prNumber, message);
     } else {
       consoleWriterAnsiCodeEnabledFalse.a("No need to send notification").println();
     }
   }
 
-  String getMessage(AbstractExtractionDiffStatistics extractionDiffStatistics) {
+  @Override
+  public boolean shouldShowInCommandList() {
+    return false;
+  }
 
+  String getMessage(AbstractExtractionDiffStatistics extractionDiffStatistics) {
     ImmutableMap<String, Object> messageParamMap =
         ImmutableMap.<String, Object>builder()
             .put(
@@ -139,26 +146,33 @@ public class PhabricatorExtractionDiffNotificationCommand
             .put("removedCount", extractionDiffStatistics.getRemoved())
             .put("totalBase", extractionDiffStatistics.getBase())
             .put("totalCurrent", extractionDiffStatistics.getCurrent())
-            .put("objectId", nullToEmpty(objectId))
             .build();
     String msg =
         "{icon} {removedCount, plural, one{# string removed} other{# strings removed}} and {addedCount, plural, one{# string added} other{# strings added}} (from {totalBase} to {totalCurrent})";
-    return phabricatorMessageBuilder.getFormattedPhabricatorMessage(
-        messageTemplate,
-        "baseMessage",
-        phabricatorMessageBuilder.getBaseMessage(messageParamMap, msg));
+    return getFormattedMessage("baseMessage", getBaseMessage(messageParamMap, msg));
   }
 
-  private PhabricatorIcon getIcon(int addedCount, int removedCount) {
-    PhabricatorIcon icon = PhabricatorIcon.INFO;
+  private String getFormattedMessage(String messageKey, String message) {
+    MessageFormat messageFormatForTemplate = new MessageFormat(messageTemplate);
+    return messageFormatForTemplate.format(ImmutableMap.of(messageKey, message));
+  }
+
+  private String getBaseMessage(ImmutableMap<String, Object> arguments, String message) {
+    MessageFormat messageFormat = new MessageFormat(message);
+    return messageFormat.format(arguments);
+  }
+
+  private GithubIcon getIcon(int addedCount, int removedCount) {
+    GithubIcon icon = GithubIcon.INFO;
 
     if (addedCount - removedCount < 0) {
-      icon = PhabricatorIcon.WARNING;
+      icon = GithubIcon.WARNING;
     }
 
     if (removedCount > 20) {
-      icon = PhabricatorIcon.STOP;
+      icon = GithubIcon.STOP;
     }
+
     return icon;
   }
 }
