@@ -78,7 +78,7 @@ public class GithubPRInfoCommand extends Command {
             String.format("Github client with owner '%s' not found.", owner));
       }
       consoleWriterAnsiCodeEnabledFalse
-          .a("MOJTIO_GITHUB_BASE_COMMIT=")
+          .a("MOJITO_GITHUB_BASE_COMMIT=")
           .a(github.getPRBaseCommit(repository, prNumber))
           .println();
       String authorEmail = github.getPRAuthorEmail(repository, prNumber);

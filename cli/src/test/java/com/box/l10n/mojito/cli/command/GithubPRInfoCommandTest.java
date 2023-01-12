@@ -55,7 +55,7 @@ public class GithubPRInfoCommandTest {
   @Test
   public void testExecute() {
     githubPRInfoCommand.execute();
-    verify(consoleWriterMock, times(1)).a("MOJTIO_GITHUB_BASE_COMMIT=");
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_BASE_COMMIT=");
     verify(consoleWriterMock, times(1)).a("baseSha");
     verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_EMAIL=");
     verify(consoleWriterMock, times(1)).a("some@email.com");
@@ -68,7 +68,7 @@ public class GithubPRInfoCommandTest {
   public void testExecuteWithChecksSkipped() throws IOException {
     when(ghIssueCommentMock.getBody()).thenReturn("SKIP_I18N_CHECKS");
     githubPRInfoCommand.execute();
-    verify(consoleWriterMock, times(1)).a("MOJTIO_GITHUB_BASE_COMMIT=");
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_BASE_COMMIT=");
     verify(consoleWriterMock, times(1)).a("baseSha");
     verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_EMAIL=");
     verify(consoleWriterMock, times(1)).a("some@email.com");
