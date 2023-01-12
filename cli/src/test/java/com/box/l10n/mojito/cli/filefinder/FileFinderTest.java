@@ -724,6 +724,30 @@ public class FileFinderTest extends IOTestBase {
     assertFalse(itTargets.hasNext());
   }
 
+  @Test
+  public void findYAML() throws IOException, FileFinderException {
+
+    YamlFileType yamlFileType = new YamlFileType();
+
+    FileFinder fileFinder = initFileFinder(true, yamlFileType);
+    Iterator<FileMatch> itSources = fileFinder.getSources().iterator();
+
+    FileMatch next = itSources.next();
+    assertEquals(getInputResourcesTestDir().toString() + "/demo.yaml", next.getPath().toString());
+    assertEquals("demo_pt-BR.yaml", next.getTargetPath("pt-BR"));
+
+    assertFalse(itSources.hasNext());
+
+    Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+    assertEquals(
+        getInputResourcesTestDir().toString() + "/demo_en-GB.yaml",
+        itTargets.next().getPath().toString());
+    assertEquals(
+        getInputResourcesTestDir().toString() + "/demo_pt-BR.yaml",
+        itTargets.next().getPath().toString());
+    assertFalse(itTargets.hasNext());
+  }
+
   FileFinder initFileFinder(boolean targetSameAsSourceDirectory, FileType... fileTypes)
       throws FileFinderException {
     return initFileFinder(targetSameAsSourceDirectory, null, fileTypes);
