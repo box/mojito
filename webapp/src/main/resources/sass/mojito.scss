@@ -467,6 +467,10 @@ div.textunit label {
     right: 0;
 }
 
+.textunit-comment {
+    white-space: pre-wrap;
+}
+
 div.textunit div.targetstring-container {
     float: left;
     width: 90%;
@@ -483,6 +487,7 @@ div.targetstring-container textarea {
 
 .git-blame-info {
     word-wrap: break-word;
+    white-space: pre-wrap;
 }
 
 .git-blame-unused {
