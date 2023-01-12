@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kohsuke.github.GHAppInstallationToken;
+import org.kohsuke.github.GHCommit;
 import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GHPullRequest;
@@ -52,6 +53,8 @@ public class GithubClientTest {
 
   @Mock GHPullRequest ghPullRequestMock;
 
+  @Mock GHCommit ghCommitMock;
+
   @Mock GHCommitPointer ghCommitPointerMock;
 
   @Mock GHUser ghUserMock;
@@ -64,6 +67,7 @@ public class GithubClientTest {
     when(gitHubMock.isCredentialValid()).thenReturn(true);
     when(gitHubMock.getRepository(isA(String.class))).thenReturn(ghRepoMock);
     when(ghRepoMock.getPullRequest(isA(Integer.class))).thenReturn(ghPullRequestMock);
+    when(ghRepoMock.getCommit(isA(String.class))).thenReturn(ghCommitMock);
     when(ghPullRequestMock.getBase()).thenReturn(ghCommitPointerMock);
     when(ghCommitPointerMock.getSha()).thenReturn("mockSha");
     when(ghPullRequestMock.getUser()).thenReturn(ghUserMock);
@@ -83,6 +87,14 @@ public class GithubClientTest {
     verify(gitHubMock, times(1)).getRepository("testOwner/testRepo");
     verify(ghRepoMock, times(1)).getPullRequest(1);
     verify(ghPullRequestMock, times(1)).comment("Test comment");
+  }
+
+  @Test
+  public void testAddCommentToCommit() throws IOException {
+    githubClient.addCommentToCommit("testRepo", "shatest", "Test comment");
+    verify(gitHubMock, times(1)).getRepository("testOwner/testRepo");
+    verify(ghRepoMock, times(1)).getCommit("shatest");
+    verify(ghCommitMock, times(1)).createComment("Test comment");
   }
 
   @Test
