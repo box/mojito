@@ -44,7 +44,8 @@ public class AssetPathToFilterConfigMapper {
     RESX(RESX_FILTER_CONFIG_ID, "resx", "resw"),
     XTB(XTB_FILTER_CONFIG_ID, "xtb"),
     JS(JS_FILTER_CONFIG_ID, "ts", "js"),
-    JSON(JSONFilter.FILTER_CONFIG_ID, "json");
+    JSON(JSONFilter.FILTER_CONFIG_ID, "json"),
+    YAML(YamlFilter.FILTER_CONFIG_ID, "yaml");
 
     private String configId;
     private Set<String> supportedExtensions = new HashSet<>();

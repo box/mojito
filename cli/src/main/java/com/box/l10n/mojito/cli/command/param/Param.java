@@ -95,7 +95,7 @@ public class Param {
   public static final String FILE_TYPE_LONG = "--file-type";
   public static final String FILE_TYPE_SHORT = "-ft";
   public static final String FILE_TYPE_DESCRIPTION =
-      "File type(s), can be a list. If none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, MAC_STRINGSDICT, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, PROPERTIES_JAVA, RESW, RESX, PO, XTB";
+      "File type(s), can be a list. If none provided it will scan for default formats: XLIFF, XCODE_XLIFF, MAC_STRING, MAC_STRINGSDICT, ANDROID_STRINGS, PROPERTIES, PROPERTIES_NOBASENAME, PROPERTIES_JAVA, RESW, RESX, PO, XTB, YAML";
 
   public static final String FILTER_OPTIONS_LONG = "--filter-options";
   public static final String FILTER_OPTIONS_SHORT = "-fo";
