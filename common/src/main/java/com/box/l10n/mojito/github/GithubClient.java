@@ -86,6 +86,22 @@ public class GithubClient {
     }
   }
 
+  public void addCommentToCommit(String repository, String commitSha1, String comment) {
+    String repoFullPath = getRepositoryPath(repository);
+    try {
+      getGithubClient(repository)
+          .getRepository(getRepositoryPath(repository))
+          .getCommit(commitSha1)
+          .createComment(comment);
+    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+      logger.error(
+          String.format(
+              "Error adding comment to commit %s in repository '%s': %s",
+              commit, repoFullPath, e.getMessage()),
+          e);
+    }
+  }
+
   public String getPRBaseCommit(String repository, int prNumber) {
     String repoFullPath = getRepositoryPath(repository);
 
