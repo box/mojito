@@ -97,7 +97,7 @@ public class GithubClient {
       logger.error(
           String.format(
               "Error adding comment to commit %s in repository '%s': %s",
-              commit, repoFullPath, e.getMessage()),
+              commitSha1, repoFullPath, e.getMessage()),
           e);
     }
   }
