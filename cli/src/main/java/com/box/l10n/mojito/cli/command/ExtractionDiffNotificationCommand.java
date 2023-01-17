@@ -12,13 +12,16 @@ import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNoti
 import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifierMessageBuilder;
 import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifierPhabricator;
 import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifierSlack;
+import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifiers;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.github.GithubClient;
 import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.slack.SlackClient;
 import com.google.common.base.Preconditions;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +63,8 @@ public class ExtractionDiffNotificationCommand extends Command {
 
   @Autowired ExtractionDiffService extractionDiffService;
 
+  @Autowired ExtractionDiffNotifiers extractionDiffNotifiers;
+
   @Parameter(
       names = {"--current", "-c"},
       arity = 1,
@@ -91,6 +96,12 @@ public class ExtractionDiffNotificationCommand extends Command {
       arity = 1,
       description = ExtractionDiffCommand.INPUT_DIRECTORY_DESCRIPTION)
   String inputDirectoryParam = ExtractionPaths.DEFAULT_OUTPUT_DIRECTORY;
+
+  @Parameter(
+      names = "--console-message-template",
+      arity = 1,
+      description = "The template to format the message wrote in the console")
+  String consoleMessageTemplate = "{baseMessage}";
 
   @Parameter(
       names = "--github-owner",
@@ -155,7 +166,13 @@ public class ExtractionDiffNotificationCommand extends Command {
       description = "The template to format the message sent to Phabricator")
   String phabricatorMessageTemplate = "{baseMessage}";
 
-  Set<ExtractionDiffNotifier> extractionDiffNotifiers;
+  @Parameter(
+      names = "--notifier-ids",
+      variableArity = true,
+      description = "List of notifier ids to use (if notifiers are configured externaly)")
+  List<String> notifierIds = new ArrayList<>();
+
+  Set<ExtractionDiffNotifier> extractionDiffNotifierInstances;
 
   @Override
   public boolean shouldShowInCommandList() {
@@ -189,12 +206,14 @@ public class ExtractionDiffNotificationCommand extends Command {
     }
 
     if (shouldSendNotification(extractionDiffStatistics)) {
-      for (ExtractionDiffNotifier extractionDiffNotifier : extractionDiffNotifiers) {
+      consoleWriterAnsiCodeEnabledFalse
+          .a(
+              new ExtractionDiffNotifierMessageBuilder(consoleMessageTemplate)
+                  .getMessage(extractionDiffStatistics))
+          .println();
+
+      for (ExtractionDiffNotifier extractionDiffNotifier : extractionDiffNotifierInstances) {
         String message = extractionDiffNotifier.sendDiffStatistics(extractionDiffStatistics);
-        // TODO(jean) this will be duplicating messages in the output if multiple notifiers are
-        // used.
-        // We could log a generic message but then we may be missing build urls, etc
-        consoleWriterAnsiCodeEnabledFalse.a(message).println();
       }
     } else {
       consoleWriterAnsiCodeEnabledFalse.a("No need to send notification").println();
@@ -206,18 +225,27 @@ public class ExtractionDiffNotificationCommand extends Command {
   }
 
   private void initNotifiers() {
-    extractionDiffNotifiers = new HashSet<>();
+    extractionDiffNotifierInstances = new HashSet<>();
     if (githubOwner != null) {
-      extractionDiffNotifiers.add(createGihubNotifier());
+      extractionDiffNotifierInstances.add(createGihubNotifier());
     }
 
     if (phabricatorObjectIdentifier != null) {
-      extractionDiffNotifiers.add(createPhabricatorNotifier());
+      extractionDiffNotifierInstances.add(createPhabricatorNotifier());
     }
 
     if (slackUsername != null) {
-      extractionDiffNotifiers.add(createSlackNotifier());
+      extractionDiffNotifierInstances.add(createSlackNotifier());
     }
+
+    notifierIds.forEach(
+        notifierId -> {
+          ExtractionDiffNotifier byId = extractionDiffNotifiers.getById(notifierId);
+          if (byId == null) {
+            throw new CommandException("No notifier is configured for id: " + byId);
+          }
+          extractionDiffNotifierInstances.add(byId);
+        });
   }
 
   private ExtractionDiffNotifierSlack createSlackNotifier() {

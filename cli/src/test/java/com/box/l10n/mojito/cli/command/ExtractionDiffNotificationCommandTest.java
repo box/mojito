@@ -12,6 +12,9 @@ import static org.mockito.Mockito.when;
 import com.box.l10n.mojito.cli.CLITestBase;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
+import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifierGithub;
+import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifierSlack;
+import com.box.l10n.mojito.cli.command.extractiondiffnotifier.ExtractionDiffNotifiers;
 import com.box.l10n.mojito.github.GithubClient;
 import com.box.l10n.mojito.github.GithubClients;
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
@@ -102,6 +105,16 @@ public class ExtractionDiffNotificationCommandTest extends CLITestBase {
     GithubClient mockGithubClient = mock(GithubClient.class);
     when(command.githubClients.getClient("testowner1")).thenReturn(mockGithubClient);
 
+    command.extractionDiffNotifiers = mock(ExtractionDiffNotifiers.class);
+    ExtractionDiffNotifierSlack mockExtractionDiffNotifierSlack1 =
+        mock(ExtractionDiffNotifierSlack.class);
+    ExtractionDiffNotifierGithub mockExtractionDiffNotifierGithub1 =
+        mock(ExtractionDiffNotifierGithub.class);
+    when(command.extractionDiffNotifiers.getById("slack-1"))
+        .thenReturn(mockExtractionDiffNotifierSlack1);
+    when(command.extractionDiffNotifiers.getById("github-1"))
+        .thenReturn(mockExtractionDiffNotifierGithub1);
+
     l10nJCommander.run(
         "extraction-diff-notif",
         "-i",
@@ -127,7 +140,12 @@ public class ExtractionDiffNotificationCommandTest extends CLITestBase {
         "--github-pr-number",
         "123",
         "--github-message-template",
-        "Github -- {baseMessage}");
+        "Github -- {baseMessage}",
+        "--notifier-ids",
+        "slack-1",
+        "github-1",
+        "--console-message-template",
+        "Console -- {baseMessage}");
 
     verify(mockDifferentialRevision, times(1))
         .addComment(
@@ -136,8 +154,7 @@ public class ExtractionDiffNotificationCommandTest extends CLITestBase {
     assertTrue(
         outputCapture
             .toString()
-            .contains(
-                "⚠️ 5 strings removed and 2 strings added (from 10 to 7) in diff: ${DIFF_ID}. Check [[https://build.org/${BUILD_NUMBER}|build]] for extraction details."));
+            .contains("Console -- ⚠️ 5 strings removed and 2 strings added (from 10 to 7)"));
     checkExpectedGeneratedResources();
 
     ArgumentCaptor<Message> slackMessageArgumentCaptor = ArgumentCaptor.forClass(Message.class);
@@ -150,6 +167,9 @@ public class ExtractionDiffNotificationCommandTest extends CLITestBase {
             "testrepository",
             123,
             "Github -- ⚠️ 5 strings removed and 2 strings added (from 10 to 7)");
+
+    verify(mockExtractionDiffNotifierSlack1).sendDiffStatistics(any());
+    verify(mockExtractionDiffNotifierGithub1).sendDiffStatistics(any());
   }
 
   @Test
