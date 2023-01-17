@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.cli.command.extractiondiffnotifier;
 
+import static com.box.l10n.mojito.slack.SlackClient.COLOR_DANGER;
 import static com.box.l10n.mojito.slack.SlackClient.COLOR_GOOD;
+import static com.box.l10n.mojito.slack.SlackClient.COLOR_WARNING;
 import static com.box.l10n.mojito.slack.request.Attachment.MRKDWNIN_TEXT;
 
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
@@ -51,7 +53,7 @@ public class ExtractionDiffNotifierSlack implements ExtractionDiffNotifier {
               useDirectMessage, username, userEmailPattern));
       Attachment attachment = new Attachment();
       attachment.setText(message);
-      attachment.setColor(COLOR_GOOD);
+      attachment.setColor(getAttachmentColor(extractionDiffStatistics));
       attachment.getMrkdwnIn().add(MRKDWNIN_TEXT);
       slackMessage.getAttachments().add(attachment);
 
@@ -61,5 +63,21 @@ public class ExtractionDiffNotifierSlack implements ExtractionDiffNotifier {
     } catch (SlackClientException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  String getAttachmentColor(ExtractionDiffStatistics extractionDiffStatistics) {
+    String attachmentColor;
+    switch (extractionDiffNotifierMessageBuilder.getMessageSeverityLevel(
+        extractionDiffStatistics)) {
+      case WARNING:
+        attachmentColor = COLOR_WARNING;
+        break;
+      case ERROR:
+        attachmentColor = COLOR_DANGER;
+        break;
+      default:
+        attachmentColor = COLOR_GOOD;
+    }
+    return attachmentColor;
   }
 }
