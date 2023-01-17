@@ -70,7 +70,7 @@ public class BranchNotificationMessageSendersTest {
         getTestBranchNotificationMessageSendersConfigurationProperties(
             "l10n.branchNotification.notifiers.slack.slack-1.slackClientId=slackClientId1",
             "l10n.branchNotification.notifiers.slack.slack-1.userEmailPattern={0}@mojito.org",
-            "l10n.branchNotification.notifiers.slack.slack-1.messasges.newStrings=newString override");
+            "l10n.branchNotification.notifiers.slack.slack-1.messages.newStrings=newString override");
 
     final SlackClients slackClients = mock(SlackClients.class);
     final SlackClient slackClient = mock(SlackClient.class);
