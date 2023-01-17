@@ -289,9 +289,6 @@ public class BranchNotificationMessageSendersConfigurationProperties {
   }
 
   static class GithubConfigurationProperties {
-
-    // TODO(jean) it migth make more to look up by "id" vs "owner" to have all implementation
-    // with the same logic, instead of having logical keys that are implementation specific
     String owner;
 
     public String getOwner() {
