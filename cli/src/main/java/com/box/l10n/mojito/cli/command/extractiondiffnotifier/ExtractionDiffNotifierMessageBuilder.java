@@ -47,10 +47,7 @@ public class ExtractionDiffNotifierMessageBuilder {
       ExtractionDiffStatistics extractionDiffStatistics) {
     ImmutableMap<String, Object> messageParamMap =
         ImmutableMap.<String, Object>builder()
-            .put(
-                "icon",
-                getIcon(extractionDiffStatistics.getAdded(), extractionDiffStatistics.getRemoved())
-                    .toString())
+            .put("icon", getIcon(extractionDiffStatistics).toString())
             .put("addedCount", extractionDiffStatistics.getAdded())
             .put("removedCount", extractionDiffStatistics.getRemoved())
             .put("totalBase", extractionDiffStatistics.getBase())
@@ -59,16 +56,38 @@ public class ExtractionDiffNotifierMessageBuilder {
     return messageParamMap;
   }
 
-  private Icons getIcon(int addedCount, int removedCount) {
-    Icons icon = Icons.INFO;
+  private Icons getIcon(ExtractionDiffStatistics extractionDiffStatistics) {
+    Icons icons;
+    switch (getMessageSeverityLevel(extractionDiffStatistics)) {
+      case WARNING:
+        icons = Icons.WARNING;
+        break;
+      case ERROR:
+        icons = Icons.STOP;
+        break;
+      default:
+        icons = Icons.INFO;
+    }
+    return icons;
+  }
 
-    if (addedCount - removedCount < 0) {
-      icon = Icons.WARNING;
+  public enum MessageSeverityLevel {
+    INFO,
+    WARNING,
+    ERROR
+  }
+
+  public MessageSeverityLevel getMessageSeverityLevel(
+      ExtractionDiffStatistics extractionDiffStatistics) {
+    MessageSeverityLevel messageSeverityLevel = MessageSeverityLevel.INFO;
+
+    if (extractionDiffStatistics.getAdded() - extractionDiffStatistics.getRemoved() < 0) {
+      messageSeverityLevel = MessageSeverityLevel.WARNING;
     }
 
-    if (removedCount > 20) {
-      icon = Icons.STOP;
+    if (extractionDiffStatistics.getRemoved() > 20) {
+      messageSeverityLevel = MessageSeverityLevel.ERROR;
     }
-    return icon;
+    return messageSeverityLevel;
   }
 }
