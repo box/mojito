@@ -183,6 +183,61 @@ public class DropImportCommandTest extends CLITestBase {
         checkExpectedGeneratedResources();
     }
 
+    @Test
+    public void dropImportSpecifiedId() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+        Asset asset2 = assetClient.getAssetByPathAndRepositoryId("source2-xliff.xliff", repository.getId());
+        importTranslations(asset2.getId(), "source2-xliff_", "fr-FR");
+        importTranslations(asset2.getId(), "source2-xliff_", "ja-JP");
+
+        waitForRepositoryToHaveStringsForTranslations(repository.getId());
+
+        getL10nJCommander().run("drop-export", "-r", repository.getName());
+
+        final Long dropId = getLastDropIdFromOutput(outputCapture);
+
+        logger.debug("Mocking the console input for drop id: {}", dropId);
+        Console mockConsole = mock(Console.class);
+        when(mockConsole.readLine(Long.class)).thenAnswer(new Answer<Long>() {
+            @Override
+            public Long answer(InvocationOnMock invocation) throws Throwable {
+                return getAvailableDropNumberForDropIdFromOutput(dropId);
+            }
+        });
+
+        L10nJCommander l10nJCommander = getL10nJCommander();
+
+        DropImportCommand dropImportCommand = l10nJCommander.getCommand(DropImportCommand.class);
+
+        dropImportCommand.console = mockConsole;
+
+        int numberOfFrenchTranslationsBefore = getNumberOfFrenchTranslations(repository);
+
+        localizeDropFiles(dropRepository.findOne(dropId));
+
+        l10nJCommander.run(new String[]{"drop-import", "-r", repository.getName(), "-i", String.valueOf(dropId)});
+
+        int numberOfFrenchTranslationsAfter = getNumberOfFrenchTranslations(repository);
+
+        assertEquals("2 new french translations must be added", numberOfFrenchTranslationsBefore + 2, numberOfFrenchTranslationsAfter);
+
+        getL10nJCommander().run("tm-export", "-r", repository.getName(),
+                "-t", targetTestDir.getAbsolutePath(),
+                "--target-basename", "fortest");
+
+        modifyFilesInTargetTestDirectory(XliffUtils.replaceCreatedDateFunction());
+        checkExpectedGeneratedResources();
+    }
+
     private int getNumberOfFrenchTranslations(Repository repository) {
         return textUnitCurrentVariantRepository.findByTmTextUnit_Tm_IdAndLocale_Id(repository.getTm().getId(), localeService.findByBcp47Tag("fr-FR").getId()).size();
     }

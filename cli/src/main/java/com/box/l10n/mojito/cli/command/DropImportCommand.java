@@ -17,10 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -58,6 +55,9 @@ public class DropImportCommand extends Command {
     @Parameter(names = {"--import-fetched"}, required = false, description = "Import all fetched drops")
     Boolean importFetchedParam = false;
 
+    @Parameter(names = {"--drop-id", "-i"}, arity = 1, required = false, description = "ID of a drop to import (skip drop fetching and process only given ID)")
+    Long importDropId = null;
+
     @Autowired
     CommandHelper commandHelper;
 
@@ -72,43 +72,50 @@ public class DropImportCommand extends Command {
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        Map<Long, Drop> numberedAvailableDrops = getNumberedAvailableDrops(repository.getId());
+        Collection<Long> dropIds;
 
-        if (numberedAvailableDrops.isEmpty()) {
-            consoleWriter.newLine().a("No drop available").println();
+        if (importDropId != null) {
+            // TODO verify if drop with specified ID exists and can be imported
+            dropIds = Collections.singletonList(importDropId);
         } else {
-            consoleWriter.newLine().a("Drops available").println();
+            Map<Long, Drop> numberedAvailableDrops = getNumberedAvailableDrops(repository.getId());
 
-            logger.debug("Display drops information");
-            for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
+            if (numberedAvailableDrops.isEmpty()) {
+                consoleWriter.newLine().a("No drop available").println();
+                dropIds = Collections.emptyList();
+            } else {
+                consoleWriter.newLine().a("Drops available").println();
 
-                Drop drop = entry.getValue();
+                logger.debug("Display drops information");
+                for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
 
-                consoleWriter.a("  ").fg(Color.CYAN).a(entry.getKey()).reset().
-                        a(" - id: ").fg(Color.MAGENTA).a(drop.getId()).reset().
-                        a(", name: ").fg(Color.MAGENTA).a(drop.getName()).reset();
+                    Drop drop = entry.getValue();
 
-                if (Boolean.TRUE.equals(drop.getCanceled())) {
-                    consoleWriter.fg(Color.GREEN).a(" CANCELED");
-                } else if (drop.getLastImportedDate() == null) {
-                    consoleWriter.fg(Color.GREEN).a(" NEW");
-                } else {
-                    consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
+                    consoleWriter.a("  ").fg(Color.CYAN).a(entry.getKey()).reset().
+                            a(" - id: ").fg(Color.MAGENTA).a(drop.getId()).reset().
+                            a(", name: ").fg(Color.MAGENTA).a(drop.getName()).reset();
+
+                    if (Boolean.TRUE.equals(drop.getCanceled())) {
+                        consoleWriter.fg(Color.GREEN).a(" CANCELED");
+                    } else if (drop.getLastImportedDate() == null) {
+                        consoleWriter.fg(Color.GREEN).a(" NEW");
+                    } else {
+                        consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
+                    }
+
+                    consoleWriter.println();
                 }
-
-                consoleWriter.println();
+                dropIds = getSelectedDropIds(numberedAvailableDrops);
             }
+        }
 
-            List<Long> dropIds = getSelectedDropIds(numberedAvailableDrops);
+        for (Long dropId : dropIds) {
+            consoleWriter.newLine().a("Import drop: ").fg(Color.CYAN).a(dropId).reset().a(" in repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
 
-            for(Long dropId: dropIds) {
-                consoleWriter.newLine().a("Import drop: ").fg(Color.CYAN).a(dropId).reset().a(" in repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
+            ImportDropConfig importDropConfig = dropClient.importDrop(repository, dropId, importStatusParam);
+            PollableTask pollableTask = importDropConfig.getPollableTask();
 
-                ImportDropConfig importDropConfig = dropClient.importDrop(repository, dropId, importStatusParam);
-                PollableTask pollableTask = importDropConfig.getPollableTask();
-
-                commandHelper.waitForPollableTask(pollableTask.getId());
-            }
+            commandHelper.waitForPollableTask(pollableTask.getId());
         }
 
         consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
@@ -141,7 +148,7 @@ public class DropImportCommand extends Command {
      * @return the imported filter to get drops
      */
     private Boolean getImportedFilter() {
-        return alsoShowImportedParam ? null : false;
+        return Boolean.TRUE.equals(alsoShowImportedParam) ? null : false;
     }
 
     /**
@@ -159,7 +166,7 @@ public class DropImportCommand extends Command {
     private List<Long> getSelectedDropIds(Map<Long, Drop> numberedAvailableDrops) throws CommandException {
         List<Long> selectedDropIds;
 
-        if (importFetchedParam) {
+        if (Boolean.TRUE.equals(importFetchedParam)) {
             selectedDropIds = getWithImportFetchedDropIds(numberedAvailableDrops);
         } else {
             selectedDropIds = getFromConsoleDropIds(numberedAvailableDrops);
