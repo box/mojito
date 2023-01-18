@@ -58,6 +58,9 @@ public class DropImportCommand extends Command {
     @Parameter(names = {"--import-fetched"}, required = false, description = "Import all fetched drops")
     Boolean importFetchedParam = false;
 
+    @Parameter(names = {"--import-drop-id", "-i"}, arity = 1, required = false, description = "Give the drop id to import")
+    Long dropId = -1L;
+
     @Autowired
     CommandHelper commandHelper;
 
@@ -72,45 +75,53 @@ public class DropImportCommand extends Command {
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
 
-        Map<Long, Drop> numberedAvailableDrops = getNumberedAvailableDrops(repository.getId());
+        if (dropId == -1L) {
+            Map<Long, Drop> numberedAvailableDrops = getNumberedAvailableDrops(repository.getId());
 
-        if (numberedAvailableDrops.isEmpty()) {
-            consoleWriter.newLine().a("No drop available").println();
-        } else {
-            consoleWriter.newLine().a("Drops available").println();
+            if (numberedAvailableDrops.isEmpty()) {
+                consoleWriter.newLine().a("No drop available").println();
+            } else {
+                consoleWriter.newLine().a("Drops available").println();
 
-            logger.debug("Display drops information");
-            for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
+                logger.debug("Display drops information");
+                for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
 
-                Drop drop = entry.getValue();
+                    Drop drop = entry.getValue();
 
-                consoleWriter.a("  ").fg(Color.CYAN).a(entry.getKey()).reset().
-                        a(" - id: ").fg(Color.MAGENTA).a(drop.getId()).reset().
-                        a(", name: ").fg(Color.MAGENTA).a(drop.getName()).reset();
+                    consoleWriter.a("  ").fg(Color.CYAN).a(entry.getKey()).reset().
+                            a(" - id: ").fg(Color.MAGENTA).a(drop.getId()).reset().
+                            a(", name: ").fg(Color.MAGENTA).a(drop.getName()).reset();
 
-                if (Boolean.TRUE.equals(drop.getCanceled())) {
-                    consoleWriter.fg(Color.GREEN).a(" CANCELED");
-                } else if (drop.getLastImportedDate() == null) {
-                    consoleWriter.fg(Color.GREEN).a(" NEW");
-                } else {
-                    consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
+                    if (Boolean.TRUE.equals(drop.getCanceled())) {
+                        consoleWriter.fg(Color.GREEN).a(" CANCELED");
+                    } else if (drop.getLastImportedDate() == null) {
+                        consoleWriter.fg(Color.GREEN).a(" NEW");
+                    } else {
+                        consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
+                    }
+
+                    consoleWriter.println();
                 }
 
-                consoleWriter.println();
+                List<Long> dropIds = getSelectedDropIds(numberedAvailableDrops);
+
+                for(Long dropId: dropIds) {
+                    consoleWriter.newLine().a("Import drop: ").fg(Color.CYAN).a(dropId).reset().a(" in repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
+
+                    ImportDropConfig importDropConfig = dropClient.importDrop(repository, dropId, importStatusParam);
+                    PollableTask pollableTask = importDropConfig.getPollableTask();
+
+                    commandHelper.waitForPollableTask(pollableTask.getId());
+                }
             }
+        } else {
+            consoleWriter.newLine().a("Import drop: ").fg(Color.CYAN).a(dropId).reset().a(" in repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
 
-            List<Long> dropIds = getSelectedDropIds(numberedAvailableDrops);
+            ImportDropConfig importDropConfig = dropClient.importDrop(repository, dropId, importStatusParam);
+            PollableTask task = importDropConfig.getPollableTask();
 
-            for(Long dropId: dropIds) {
-                consoleWriter.newLine().a("Import drop: ").fg(Color.CYAN).a(dropId).reset().a(" in repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
-
-                ImportDropConfig importDropConfig = dropClient.importDrop(repository, dropId, importStatusParam);
-                PollableTask pollableTask = importDropConfig.getPollableTask();
-
-                commandHelper.waitForPollableTask(pollableTask.getId());
-            }
+            commandHelper.waitForPollableTask(task.getId());
         }
-
         consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
     }
 
