@@ -59,7 +59,8 @@ public class ExtractionDiffNotificationCommand extends Command {
 
   @Autowired GithubClients githubClients;
 
-  @Autowired SlackClient slackClient;
+  @Autowired(required = false)
+  SlackClient slackClient;
 
   @Autowired ExtractionDiffService extractionDiffService;
 
@@ -132,7 +133,7 @@ public class ExtractionDiffNotificationCommand extends Command {
       names = "--slack-username",
       arity = 1,
       description =
-          "To username, recepient of the Slack message (assume SlackClients are configured). If set, it will setup the Slack notifier.")
+          "To username, recepient of the Slack message (assume SlackClient is configured). If set, it will setup the Slack notifier.")
   String slackUsername;
 
   @Parameter(
