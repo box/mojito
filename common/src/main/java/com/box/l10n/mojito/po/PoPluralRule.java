@@ -41,9 +41,6 @@ public enum PoPluralRule {
   THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114(
       "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;",
       PoFormToCLDRForm.THREE_FORMS_ONE_FEW_MANY, CldrFormsToCopyOnImport.FEW_TO_OTHER),
-  THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114_ONLY3(
-      "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;",
-      PoFormToCLDRForm.THREE_FORMS_ONE_FEW_MANY, CldrFormsToCopyOnImport.NONE),
   THREE_FORMS_SPECIAL_FOR_1_2_3_4(
       "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;",
       PoFormToCLDRForm.THREE_FORMS_ONE_FEW_OTHER,
@@ -84,9 +81,9 @@ public enum PoPluralRule {
     mappingForNonDefault.put(
         "be", PoPluralRule.THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114);
     mappingForNonDefault.put(
-        "sr", PoPluralRule.THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114_ONLY3);
+        "sr", PoPluralRule.THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114);
     mappingForNonDefault.put(
-        "hr", PoPluralRule.THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114_ONLY3);
+        "hr", PoPluralRule.THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114);
     mappingForNonDefault.put("cs", PoPluralRule.THREE_FORMS_SPECIAL_FOR_1_2_3_4);
     mappingForNonDefault.put("sk", PoPluralRule.THREE_FORMS_SPECIAL_FOR_1_2_3_4);
     mappingForNonDefault.put("pl", PoPluralRule.THREE_FORMS_SPECIAL_FOR_1_AND_ENDING_234);
