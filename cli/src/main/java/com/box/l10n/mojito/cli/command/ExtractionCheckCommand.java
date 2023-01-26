@@ -19,6 +19,7 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderException;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderGithub;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderPhabricator;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderSlack;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckThirdPartyNotificationService;
@@ -103,6 +104,14 @@ public class ExtractionCheckCommand extends Command {
       description =
           "Optional message template to customize the Slack notification message. eg. '{baseMessage}. Check [[https://build.org/1234|build]].' ")
   String slackMessageTemplate = "{baseMessage}";
+
+  @Parameter(
+      names = {"--github-message-template", "-gmt"},
+      arity = 1,
+      required = false,
+      description =
+          "Optional message template to customize the Github notification message. eg. '{baseMessage}. Check [[https://build.org/1234|build]].' ")
+  String githubMessageTemplate = "{baseMessage}";
 
   @Parameter(
       names = {"--hard-fail-message", "-hfm"},
@@ -209,6 +218,27 @@ public class ExtractionCheckCommand extends Command {
       description =
           "URL template for reporting individual check statistics via HTTP PUT request. Parameterized options are 'check_name' and 'outcome' which can be used to report statistics on an individual check level.")
   String statsUrlTemplate;
+
+  @Parameter(
+      names = {"--github-owner", "-go"},
+      arity = 1,
+      required = false,
+      description = "The owner of the Github repository")
+  String githubOwner;
+
+  @Parameter(
+      names = {"--github-repo", "-gr"},
+      arity = 1,
+      required = false,
+      description = "The name of the Github repository")
+  String githubRepository;
+
+  @Parameter(
+      names = {"--github-pr-number", "-gpr"},
+      arity = 1,
+      required = false,
+      description = "The number of the Github Pull Request")
+  Integer githubPRNumber;
 
   @Autowired AuthenticatedRestTemplate restTemplate;
 
@@ -355,6 +385,16 @@ public class ExtractionCheckCommand extends Command {
                 hardFailureMessage,
                 checksSkippedMessage,
                 slackUseDirectMessage);
+        break;
+      case GITHUB:
+        extractionCheckNotificationSender =
+            new ExtractionCheckNotificationSenderGithub(
+                githubMessageTemplate,
+                hardFailureMessage,
+                checksSkippedMessage,
+                githubOwner,
+                githubRepository,
+                githubPRNumber);
         break;
       default:
         throw new CommandException(
