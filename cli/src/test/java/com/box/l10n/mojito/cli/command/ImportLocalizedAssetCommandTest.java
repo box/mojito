@@ -209,6 +209,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
     Repository repository = createTestRepoUsingRepoService();
     repositoryService.addRepositoryLocale(repository, "ru-RU");
+    repositoryService.addRepositoryLocale(repository, "hr-HR");
 
     getL10nJCommander()
         .run(
@@ -228,7 +229,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-t",
             getInputResourcesTestDir("translations").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU,hr-HR:hr-HR");
 
     getL10nJCommander()
         .run(
@@ -240,7 +241,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir().getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU,hr-HR:hr-HR");
 
     checkExpectedGeneratedResources();
   }

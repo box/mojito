@@ -43,7 +43,7 @@ public enum PoPluralRule {
       PoFormToCLDRForm.THREE_FORMS_ONE_FEW_MANY, CldrFormsToCopyOnImport.FEW_TO_OTHER),
   THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114_ONLY3(
       "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;",
-      PoFormToCLDRForm.THREE_FORMS_ONE_FEW_MANY, CldrFormsToCopyOnImport.NONE),
+      PoFormToCLDRForm.THREE_FORMS_ONE_FEW_OTHER, CldrFormsToCopyOnImport.NONE),
   THREE_FORMS_SPECIAL_FOR_1_2_3_4(
       "nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;",
       PoFormToCLDRForm.THREE_FORMS_ONE_FEW_OTHER,
