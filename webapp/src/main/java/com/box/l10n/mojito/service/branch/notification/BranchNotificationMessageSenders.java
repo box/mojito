@@ -10,6 +10,7 @@ import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessage
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.PhabricatorConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.SlackConfigurationProperties;
 import com.box.l10n.mojito.service.branch.notification.BranchNotificationMessageSendersConfigurationProperties.SlackConfigurationProperties.MessageBuilderConfigurationProperties;
+import com.box.l10n.mojito.service.branch.notification.github.BranchNotificationMessageBuilderGithub;
 import com.box.l10n.mojito.service.branch.notification.github.BranchNotificationMessageSenderGithub;
 import com.box.l10n.mojito.service.branch.notification.noop.BranchNotificationMessageSenderNoop;
 import com.box.l10n.mojito.service.branch.notification.phabricator.BranchNotificationMessageBuilderPhabricator;
@@ -87,7 +88,9 @@ public class BranchNotificationMessageSenders {
 
     mapIdToBranchNotificationMessageSender.putAll(
         createGithubInstances(
-            branchNotificationMessageSendersConfigurationProperties, githubClients));
+            branchNotificationMessageSendersConfigurationProperties,
+            githubClients,
+            branchUrlBuilder));
 
     return mapIdToBranchNotificationMessageSender;
   }
@@ -217,7 +220,8 @@ public class BranchNotificationMessageSenders {
   private Map<String, BranchNotificationMessageSenderGithub> createGithubInstances(
       BranchNotificationMessageSendersConfigurationProperties
           branchNotificationMessageSendersConfigurationProperties,
-      GithubClients githubClients) {
+      GithubClients githubClients,
+      BranchUrlBuilder branchUrlBuilder) {
     Map<String, BranchNotificationMessageSenderGithub> githubMessageSenders =
         branchNotificationMessageSendersConfigurationProperties.getGithub().entrySet().stream()
             .map(
@@ -226,8 +230,22 @@ public class BranchNotificationMessageSenders {
                   GithubConfigurationProperties githubConfigurationProperties = e.getValue();
                   GithubClient githubClient =
                       githubClients.getClient(githubConfigurationProperties.getOwner());
+                  GithubConfigurationProperties.MessageBuilderConfigurationProperties messages =
+                      githubConfigurationProperties.getMessages();
+                  BranchNotificationMessageBuilderGithub branchNotificationMessageBuilderGithub =
+                      new BranchNotificationMessageBuilderGithub(
+                          branchUrlBuilder,
+                          messages.getNewNotificationMsgFormat(),
+                          messages.getUpdatedNotificationMsgFormat(),
+                          messages.getNewStrings(),
+                          messages.getUpdatedStrings(),
+                          messages.getNoMoreStrings(),
+                          messages.getTranslationsReady(),
+                          messages.getScreenshotsMissing());
+
                   BranchNotificationMessageSenderGithub branchNotificationMessageSenderGithub =
-                      new BranchNotificationMessageSenderGithub(id, githubClient);
+                      new BranchNotificationMessageSenderGithub(
+                          id, githubClient, branchNotificationMessageBuilderGithub);
                   return new SimpleEntry<String, BranchNotificationMessageSenderGithub>(
                       id, branchNotificationMessageSenderGithub);
                 })

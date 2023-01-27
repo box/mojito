@@ -291,12 +291,95 @@ public class BranchNotificationMessageSendersConfigurationProperties {
   static class GithubConfigurationProperties {
     String owner;
 
+    MessageBuilderConfigurationProperties messages = new MessageBuilderConfigurationProperties();
+
     public String getOwner() {
       return owner;
     }
 
     public void setOwner(String owner) {
       this.owner = owner;
+    }
+
+    public MessageBuilderConfigurationProperties getMessages() {
+      return messages;
+    }
+
+    public static class MessageBuilderConfigurationProperties {
+
+      String newNotificationMsgFormat = "{message}{link}\\n\\n{strings}";
+
+      String updatedNotificationMsgFormat = "{message}{link}\\n\\n{strings}";
+
+      String newStrings =
+          "We received your strings! "
+              + "Please **add screenshots** as soon as possible and **wait for translations** before releasing. ";
+
+      String updatedStrings =
+          "Your branch was updated with new strings! "
+              + "Please **add screenshots** as soon as possible and **wait for translations** before releasing. ";
+
+      String translationsReady = "Translations are ready!!";
+
+      String screenshotsMissing = "Please provide screenshots to help localization team";
+
+      String noMoreStrings = "The branch was updated and there are no more strings to translate.";
+
+      public String getNewNotificationMsgFormat() {
+        return newNotificationMsgFormat;
+      }
+
+      public void setNewNotificationMsgFormat(String newNotificationMsgFormat) {
+        this.newNotificationMsgFormat = newNotificationMsgFormat;
+      }
+
+      public String getUpdatedNotificationMsgFormat() {
+        return updatedNotificationMsgFormat;
+      }
+
+      public void setUpdatedNotificationMsgFormat(String updatedNotificationMsgFormat) {
+        this.updatedNotificationMsgFormat = updatedNotificationMsgFormat;
+      }
+
+      public String getNewStrings() {
+        return newStrings;
+      }
+
+      public void setNewStrings(String newStrings) {
+        this.newStrings = newStrings;
+      }
+
+      public String getUpdatedStrings() {
+        return updatedStrings;
+      }
+
+      public void setUpdatedStrings(String updatedStrings) {
+        this.updatedStrings = updatedStrings;
+      }
+
+      public String getTranslationsReady() {
+        return translationsReady;
+      }
+
+      public void setTranslationsReady(String translationsReady) {
+        this.translationsReady = translationsReady;
+      }
+
+      public String getScreenshotsMissing() {
+        return screenshotsMissing;
+      }
+
+      public void setScreenshotsMissing(String screenshotsMissing) {
+        this.screenshotsMissing = screenshotsMissing;
+      }
+
+      public String getNoMoreStrings() {
+        return noMoreStrings;
+      }
+
+      public void setNoMoreStrings(String noMoreStrings) {
+        this.noMoreStrings = noMoreStrings;
+      }
     }
   }
 }
