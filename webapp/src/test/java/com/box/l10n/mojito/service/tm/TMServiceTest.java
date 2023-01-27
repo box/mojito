@@ -2359,6 +2359,153 @@ public class TMServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testLocalizeMacStringsdictPluralWithDifferentIdentation()
+      throws RepositoryNameAlreadyUsedException, UnsupportedAssetFilterTypeException,
+          ExecutionException, InterruptedException {
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale;
+    String bcp47Tag = "fr-FR";
+    try {
+      repoLocale = repositoryService.addRepositoryLocale(repo, bcp47Tag);
+    } catch (RepositoryLocaleCreationException e) {
+      throw new RuntimeException(e);
+    }
+
+    String assetContent =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+            + "<plist version=\"1.0\">\n"
+            + "    <dict>\n"
+            + "        <key>%lld follower(s)</key>\n"
+            + "        <dict>\n"
+            + "            <key>NSStringLocalizedFormatKey</key>\n"
+            + "            <string>%#@followers@</string>\n"
+            + "            <key>followers</key>\n"
+            + "            <dict>\n"
+            + "                <key>NSStringFormatSpecTypeKey</key>\n"
+            + "                <string>NSStringPluralRuleType</string>\n"
+            + "                <key>NSStringFormatValueTypeKey</key>\n"
+            + "                <string>lld</string>\n"
+            + "                <key>one</key>\n"
+            + "                <string>%lld follower</string>\n"
+            + "                <key>other</key>\n"
+            + "                <string>%lld followers</string>\n"
+            + "            </dict>\n"
+            + "        </dict>\n"
+            + "        <key>%lld following(s)</key>\n"
+            + "        <dict>\n"
+            + "            <key>NSStringLocalizedFormatKey</key>\n"
+            + "            <string>%#@following@</string>\n"
+            + "            <key>following</key>\n"
+            + "            <dict>\n"
+            + "                <key>NSStringFormatSpecTypeKey</key>\n"
+            + "                <string>NSStringPluralRuleType</string>\n"
+            + "                <key>NSStringFormatValueTypeKey</key>\n"
+            + "                <string>lld</string>\n"
+            + "                <key>one</key>\n"
+            + "                <string>%lld following</string>\n"
+            + "                <key>other</key>\n"
+            + "                <string>%lld following</string>\n"
+            + "            </dict>\n"
+            + "        </dict>\n"
+            + "    </dict>\n"
+            + "</plist>\n";
+
+    // notice the doc type is gone
+    String expectedLocalizedAsset =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<plist version=\"1.0\">\n"
+            + "    <dict>\n"
+            + "        <key>%lld follower(s)</key>\n"
+            + "        <dict>\n"
+            + "            <key>NSStringLocalizedFormatKey</key>\n"
+            + "            <string>%#@followers@</string>\n"
+            + "            <key>followers</key>\n"
+            + "            <dict>\n"
+            + "                <key>NSStringFormatSpecTypeKey</key>\n"
+            + "                <string>NSStringPluralRuleType</string>\n"
+            + "                <key>NSStringFormatValueTypeKey</key>\n"
+            + "                <string>lld</string>\n"
+            + "                <key>one</key>\n"
+            + "                <string>%lld follower</string>\n"
+            + "                <key>other</key>\n"
+            + "                <string>%lld followers</string>\n"
+            + "            </dict>\n"
+            + "        </dict>\n"
+            + "        <key>%lld following(s)</key>\n"
+            + "        <dict>\n"
+            + "            <key>NSStringLocalizedFormatKey</key>\n"
+            + "            <string>%#@following@</string>\n"
+            + "            <key>following</key>\n"
+            + "            <dict>\n"
+            + "                <key>NSStringFormatSpecTypeKey</key>\n"
+            + "                <string>NSStringPluralRuleType</string>\n"
+            + "                <key>NSStringFormatValueTypeKey</key>\n"
+            + "                <string>lld</string>\n"
+            + "                <key>one</key>\n"
+            + "                <string>%lld following</string>\n"
+            + "                <key>other</key>\n"
+            + "                <string>%lld following</string>\n"
+            + "            </dict>\n"
+            + "        </dict>\n"
+            + "    </dict>\n"
+            + "</plist>";
+
+    asset =
+        assetService.createAssetWithContent(repo.getId(), "Localizable.stringsdict", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null, null);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      logger.debug("source [{}]=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
+    }
+
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "fr-FR",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedLocalizedAsset, localizedAsset);
+
+    localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "fr-FR",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedLocalizedAsset, localizedAsset);
+  }
+
+  @Test
   public void testLocalizeMacStringsdictPluralRu() throws Exception {
 
     Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));

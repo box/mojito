@@ -214,7 +214,7 @@ public class MacStringsdictFilterKey extends XMLFilter {
    */
   protected boolean isPluralGroupEnding(IResource resource) {
     String toString = resource.getSkeleton().toString();
-    Pattern p = Pattern.compile("</dict>\n</dict>");
+    Pattern p = Pattern.compile("</dict>\\s*</dict>");
     Matcher matcher = p.matcher(toString);
     return matcher.find();
   }
