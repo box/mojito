@@ -33,4 +33,12 @@ public class ConsoleWriterConfig {
         return consoleWriter;
     }
 
+    @Bean(name = "minimalConsole")
+    public ConsoleWriter consoleWriterMinimal() {
+        ConsoleWriter consoleWriter = new ConsoleWriter(
+                false,
+                ConsoleWriter.OutputType.MINIMAL);
+        return consoleWriter;
+    }
+
 }

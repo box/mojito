@@ -69,6 +69,10 @@ public class CommandHelper {
     @Autowired
     ConsoleWriter consoleWriter;
 
+    @Qualifier("minimalConsole")
+    @Autowired
+    ConsoleWriter consoleWriterMinimal;
+
     /**
      * @param repositoryName Name of repository
      * @return
@@ -224,11 +228,25 @@ public class CommandHelper {
      * @throws com.box.l10n.mojito.cli.command.CommandException
      */
     public void waitForPollableTask(Long pollableId) throws CommandException {
+        waitForPollableTask(pollableId, false);
+    }
 
-        consoleWriter.newLine().a("Running, task id: ").fg(Ansi.Color.MAGENTA).a(pollableId).a(" ").println();
+    /**
+     * Waits for {@link PollableTask} to be all finished (see {@link PollableTask#isAllFinished()
+     * }). Infinite timeout.
+     *
+     * @param pollableId the {@link PollableTask#id}
+     * @param quiet whether to output progress info
+     * @throws com.box.l10n.mojito.cli.command.CommandException
+     */
+    public void waitForPollableTask(Long pollableId, boolean quiet) throws CommandException {
+
+        if (!quiet) {
+            consoleWriter.newLine().a("Running, task id: ").fg(Ansi.Color.MAGENTA).a(pollableId).a(" ").println();
+        }
 
         try {
-            pollableTaskClient.waitForPollableTask(pollableId, PollableTaskClient.NO_TIMEOUT, new CommandWaitForPollableTaskListener());
+            pollableTaskClient.waitForPollableTask(pollableId, PollableTaskClient.NO_TIMEOUT, new CommandWaitForPollableTaskListener(quiet));
         } catch (PollableTaskException e) {
             throw new CommandException(e.getMessage(), e.getCause());
         }

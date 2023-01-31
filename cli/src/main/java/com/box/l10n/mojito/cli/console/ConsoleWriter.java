@@ -23,7 +23,7 @@ public class ConsoleWriter {
     static Logger logger = LoggerFactory.getLogger("com.box.l10n.mojito.cli.application");
 
     /**
-     * Contains the message without ANSI escape codes.
+     * Contains the whole message without ANSI escape codes.
      */
     StringBuilder stringBuilder;
 
@@ -38,7 +38,7 @@ public class ConsoleWriter {
     int numberOfNewLinesInLastPrintedString = 0;
 
     /**
-     * To enable or disable ainsi codes in the ainsi output
+     * To enable or disable ansi codes in the ansi output
      */
     boolean isAnsiCodeEnabled;
 
@@ -233,6 +233,8 @@ public class ConsoleWriter {
             logger.info(trimReturnLine(stringBuilder.toString()));
         } else if (OutputType.ANSI_LOGGER.equals(outputType)) {
             logger.info(trimReturnLine(ansi.toString()));
+        } else if (OutputType.MINIMAL.equals(outputType)) {
+            System.out.print(trimReturnLine(stringBuilder.toString()));
         }
 
         resetOutputBuilders();
@@ -278,14 +280,17 @@ public class ConsoleWriter {
      * Types of output for the ConsoleWritter
      */
     public enum OutputType {
-
         /**
          * Output in ANSI mode only to the logger (console is skipped).
          */
         ANSI_LOGGER,
         /**
-         * Ouput in ANSI mode to the console and in plain mode to the logger.
+         * Output in ANSI mode to the console and in plain mode to the logger.
          */
-        ANSI_CONSOLE_AND_LOGGER
+        ANSI_CONSOLE_AND_LOGGER,
+        /**
+         * Output minimal strings in plain mode to the console only.
+         */
+        MINIMAL
     }
 }

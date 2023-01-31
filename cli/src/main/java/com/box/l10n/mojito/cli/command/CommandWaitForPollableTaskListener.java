@@ -32,6 +32,18 @@ public class CommandWaitForPollableTaskListener implements WaitForPollableTaskLi
      */
     int numberAfterPollCallback = 0;
 
+    /**
+     * When true, do not generate output to the console.
+     */
+    boolean quiet;
+
+    /**
+     * @param quiet whether to send progress output to the console
+     */
+    CommandWaitForPollableTaskListener(boolean quiet) {
+        this.quiet = quiet;
+    }
+
     @Override
     public void afterPoll(PollableTask pollableTask) {
 

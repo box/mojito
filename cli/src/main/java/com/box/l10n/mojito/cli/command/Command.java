@@ -17,8 +17,15 @@ public abstract class Command {
     static final String HELP_SHORT = "-h";
     static final String HELP_DESCRIPTION = "Show help";
 
+    static final String QUIET_LONG = "--quiet";
+    static final String QUIET_SHORT = "-q";
+    static final String QUIET_DESCRIPTION = "Show help";
+
     @Parameter(names = {HELP_LONG, HELP_SHORT}, help = true, description = HELP_DESCRIPTION)
     private boolean help;
+
+    @Parameter(names = {QUIET_LONG, QUIET_SHORT}, description = QUIET_DESCRIPTION)
+    protected boolean quiet;
 
     public List<String> originalArgs;
 

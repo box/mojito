@@ -41,7 +41,11 @@ public class DropExportCommand extends Command {
     
     @Autowired
     ConsoleWriter consoleWriter;
-    
+
+    @Qualifier("minimalConsole")
+    @Autowired
+    ConsoleWriter consoleWriterMinimal;
+
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
     
@@ -63,14 +67,16 @@ public class DropExportCommand extends Command {
     @Override
     public void execute() throws CommandException {
         
-        consoleWriter.newLine().a("Export a Drop from repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
+        if (!quiet) {
+            consoleWriter.newLine().a("Export a Drop from repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
+        }
         
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
         
         if (useInheritance && typeParam != ExportDropConfig.Type.REVIEW) {
             throw new CommandException("--use-inheritance can only be used with --type REVIEW");
         }
-        
+
         if (typeParam == ExportDropConfig.Type.REVIEW || shouldCreateDrop(repository)) {
             ExportDropConfig exportDropConfig = new ExportDropConfig();
             exportDropConfig.setRepositoryId(repository.getId());
@@ -80,14 +86,22 @@ public class DropExportCommand extends Command {
             
             exportDropConfig = dropClient.exportDrop(exportDropConfig);
             
-            consoleWriter.a("Drop id: ").fg(Color.CYAN).a(exportDropConfig.getDropId()).print();
+            if (quiet) {
+                consoleWriter.a(exportDropConfig.getDropId()).print();
+            } else {
+                consoleWriter.a("Drop id: ").fg(Color.CYAN).a(exportDropConfig.getDropId()).print();
+            }
             
             PollableTask pollableTask = exportDropConfig.getPollableTask();
-            commandHelper.waitForPollableTask(pollableTask.getId());
-            
-            consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
+            commandHelper.waitForPollableTask(pollableTask.getId(), quiet);
+
+            if (!quiet) {
+                consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
+            }
         } else {
-            consoleWriter.newLine().fg(Color.GREEN).a("Repository is already fully translated").println(2);
+            if (!quiet) {
+                consoleWriter.newLine().fg(Color.GREEN).a("Repository is already fully translated").println(2);
+            } // for quiet mode, no output means no drop exported
         }
     }
 
