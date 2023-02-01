@@ -6,6 +6,7 @@ import com.box.l10n.mojito.thirdpartynotification.github.GithubIcon;
 import com.google.common.base.Strings;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.kohsuke.github.GHCommitState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 
@@ -20,13 +21,22 @@ public class ExtractionCheckNotificationSenderGithub extends ExtractionCheckNoti
 
   private final Integer prNumber;
 
+  private final boolean isSetCommitStatus;
+
+  private final String commitSha;
+
+  private final String commitStatusTargetUrl;
+
   public ExtractionCheckNotificationSenderGithub(
       String messageTemplate,
       String hardFailureMessage,
       String checksSkippedMessage,
       String githubOwner,
       String githubRepo,
-      Integer prNumber) {
+      Integer prNumber,
+      Boolean isSetCommitStatus,
+      String commitSha,
+      String commitStatusTargetUrl) {
     super(messageTemplate, hardFailureMessage, checksSkippedMessage);
     if (Strings.isNullOrEmpty(githubRepo)) {
       throw new ExtractionCheckNotificationSenderException(
@@ -43,11 +53,16 @@ public class ExtractionCheckNotificationSenderGithub extends ExtractionCheckNoti
           "Github PR number must be provided if using Github notifications.");
     }
     this.prNumber = prNumber;
+    this.isSetCommitStatus = isSetCommitStatus;
+    this.commitSha = commitSha;
+    this.commitStatusTargetUrl = commitStatusTargetUrl;
   }
 
   @Override
   public void sendFailureNotification(List<CliCheckResult> failures, boolean hardFail) {
-    if (!isNullOrEmpty(failures) && failures.stream().anyMatch(result -> !result.isSuccessful())) {
+    if (githubClients.isClientAvailable(githubOwner)
+        && !isNullOrEmpty(failures)
+        && failures.stream().anyMatch(result -> !result.isSuccessful())) {
       StringBuilder sb = new StringBuilder();
       sb.append("**i18n source string checks failed**" + getDoubleNewLines());
       if (hardFail) {
@@ -83,6 +98,17 @@ public class ExtractionCheckNotificationSenderGithub extends ExtractionCheckNoti
       githubClients
           .getClient(githubOwner)
           .addCommentToPR(githubRepo, prNumber, GithubIcon.WARNING + " " + message);
+      if (isSetCommitStatus) {
+        githubClients
+            .getClient(githubOwner)
+            .addStatusToCommit(
+                githubRepo,
+                commitSha,
+                GHCommitState.FAILURE,
+                "Checks failed, please see 'Details' link for information on resolutions.",
+                "I18N String Checks",
+                commitStatusTargetUrl);
+      }
     }
   }
 

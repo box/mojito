@@ -35,4 +35,8 @@ public class GithubClients {
     }
     return githubClient;
   }
+
+  public boolean isClientAvailable(String owner) {
+    return githubOwnerToClientsCache.containsKey(owner);
+  }
 }

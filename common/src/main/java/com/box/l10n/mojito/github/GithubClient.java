@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.List;
 import org.apache.commons.codec.binary.Base64;
 import org.kohsuke.github.GHAppInstallationToken;
+import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHIssueComment;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
@@ -86,6 +87,28 @@ public class GithubClient {
     }
   }
 
+  public void addStatusToCommit(
+      String repository,
+      String commitSha,
+      GHCommitState statusState,
+      String statusDescription,
+      String statusContext,
+      String targetUrl) {
+    String repoFullPath = getRepositoryPath(repository);
+    try {
+      getGithubClient(repository)
+          .getRepository(repoFullPath)
+          .createCommitStatus(commitSha, statusState, targetUrl, statusDescription, statusContext);
+    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+      String message =
+          String.format(
+              "Error adding status to commit %s in repository '%s': %s",
+              commitSha, repoFullPath, e.getMessage());
+      logger.error(message);
+      throw new GithubException(message, e);
+    }
+  }
+
   public void addCommentToCommit(String repository, String commitSha1, String comment) {
     String repoFullPath = getRepositoryPath(repository);
     try {
@@ -94,11 +117,12 @@ public class GithubClient {
           .getCommit(commitSha1)
           .createComment(comment);
     } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-      logger.error(
+      String message =
           String.format(
               "Error adding comment to commit %s in repository '%s': %s",
-              commitSha1, repoFullPath, e.getMessage()),
-          e);
+              commitSha1, repoFullPath, e.getMessage());
+      logger.error(message, e);
+      throw new GithubException(message, e);
     }
   }
 
@@ -170,6 +194,22 @@ public class GithubClient {
               "Error removing label '%s' from PR %d in repository '%s': %s",
               labelName, prNumber, repoFullPath, e.getMessage());
       logger.error(message, e);
+      throw new GithubException(message, e);
+    }
+  }
+
+  public boolean isLabelAppliedToPR(String repository, int prNumber, String labelName) {
+    String repoFullPath = getRepositoryPath(repository);
+    try {
+      return getGithubClient(repository).getRepository(repoFullPath).getPullRequest(prNumber)
+          .getLabels().stream()
+          .anyMatch(ghLabel -> ghLabel.getName().equals(labelName));
+    } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+      String message =
+          String.format(
+              "Error reading labels for PR %d in repository '%s' : '%s'",
+              prNumber, repoFullPath, e.getMessage());
+      logger.error(message);
       throw new GithubException(message, e);
     }
   }

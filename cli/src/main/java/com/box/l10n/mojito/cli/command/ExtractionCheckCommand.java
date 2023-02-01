@@ -24,6 +24,8 @@ import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificati
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderSlack;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckThirdPartyNotificationService;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.github.GithubClients;
+import com.box.l10n.mojito.github.GithubException;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
@@ -37,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.fusesource.jansi.Ansi;
+import org.kohsuke.github.GHCommitState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,9 @@ public class ExtractionCheckCommand extends Command {
   static Logger logger = LoggerFactory.getLogger(ExtractionDiffCommand.class);
 
   @Autowired ExtractionDiffService extractionDiffService;
+
+  @Autowired(required = false)
+  GithubClients githubClients;
 
   @Autowired ConsoleWriter consoleWriter;
 
@@ -240,6 +246,27 @@ public class ExtractionCheckCommand extends Command {
       description = "The number of the Github Pull Request")
   Integer githubPRNumber;
 
+  @Parameter(
+      names = {"--set-github-commit-status", "-sgcs"},
+      arity = 1,
+      required = false,
+      description = "Boolean indicating if a status should be set against the commit in Github.")
+  Boolean setGithubCommitStatus = false;
+
+  @Parameter(
+      names = {"--github-commit-status-target-url", "-gcstu"},
+      arity = 1,
+      required = false,
+      description = "Target url used for the Github commit status.")
+  String githubCommitStatusTargetUrl = "";
+
+  @Parameter(
+      names = {"--commit-sha", "-csha"},
+      arity = 1,
+      required = false,
+      description = "Full git commit sha, used for setting a status on a commit in Github.")
+  String commitSha;
+
   @Autowired AuthenticatedRestTemplate restTemplate;
 
   List<ExtractionCheckNotificationSender> extractionCheckNotificationSenders = new ArrayList<>();
@@ -288,6 +315,8 @@ public class ExtractionCheckCommand extends Command {
             printIfTextUnitInAddedAndRemoved(assetExtractionDiffs);
             outputFailuresToCommandLine(cliCheckerFailures);
             sendFailureNotifications(cliCheckerFailures, false);
+          } else if (isSetGithubStatus()) {
+            createGithubCommitStatus();
           }
         } else {
           consoleWriter.newLine().a("No new strings in diff to be checked.").println();
@@ -298,6 +327,10 @@ public class ExtractionCheckCommand extends Command {
       }
       consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
     }
+  }
+
+  private boolean isSetGithubStatus() {
+    return setGithubCommitStatus && githubClients.isClientAvailable(githubOwner);
   }
 
   private void printIfTextUnitInAddedAndRemoved(List<AssetExtractionDiff> assetExtractionDiffs) {
@@ -394,7 +427,10 @@ public class ExtractionCheckCommand extends Command {
                 checksSkippedMessage,
                 githubOwner,
                 githubRepository,
-                githubPRNumber);
+                githubPRNumber,
+                setGithubCommitStatus,
+                commitSha,
+                githubCommitStatusTargetUrl);
         break;
       default:
         throw new CommandException(
@@ -538,5 +574,27 @@ public class ExtractionCheckCommand extends Command {
     }
 
     return checkers;
+  }
+
+  private void createGithubCommitStatus() {
+    try {
+      githubClients
+          .getClient(githubOwner)
+          .addStatusToCommit(
+              githubRepository,
+              commitSha,
+              GHCommitState.SUCCESS,
+              "All checks passed",
+              "I18N String Checks",
+              githubCommitStatusTargetUrl);
+    } catch (GithubException e) {
+      consoleWriter
+          .fg(Ansi.Color.YELLOW)
+          .newLine()
+          .a(
+              String.format(
+                  "Exception occurred when adding status to commit %s in repository %s: %s",
+                  commitSha, githubRepository, e.getMessage()));
+    }
   }
 }
