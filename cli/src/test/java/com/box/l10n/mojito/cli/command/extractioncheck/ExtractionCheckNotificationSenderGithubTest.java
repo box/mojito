@@ -16,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kohsuke.github.GHCommitState;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -43,6 +44,7 @@ public class ExtractionCheckNotificationSenderGithubTest {
   public void setup() {
     githubClientMock = Mockito.mock(GithubClient.class);
     when(githubClientsMock.getClient(isA(String.class))).thenReturn(githubClientMock);
+    when(githubClientsMock.isClientAvailable(isA(String.class))).thenReturn(true);
     extractionCheckNotificationSenderGithub =
         new ExtractionCheckNotificationSenderGithub(
             "{baseMessage}",
@@ -50,7 +52,10 @@ public class ExtractionCheckNotificationSenderGithubTest {
             "This is a checks skipped message",
             "testOwner",
             "testRepo",
-            100);
+            100,
+            true,
+            "123456789",
+            "https://somewebaddress.com/");
     extractionCheckNotificationSenderGithub.githubClients = githubClientsMock;
   }
 
@@ -69,6 +74,52 @@ public class ExtractionCheckNotificationSenderGithubTest {
     Assert.assertTrue(messageCaptor.getValue().contains(GithubIcon.WARNING.toString()));
     Assert.assertTrue(messageCaptor.getValue().contains("Test Check"));
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
+    verify(githubClientMock, times(1))
+        .addStatusToCommit(
+            "testRepo",
+            "123456789",
+            GHCommitState.FAILURE,
+            "Checks failed, please see 'Details' link for information on resolutions.",
+            "I18N String Checks",
+            "https://somewebaddress.com/");
+  }
+
+  @Test
+  public void testCommitStateNotSetIfDisabled() {
+
+    extractionCheckNotificationSenderGithub =
+        new ExtractionCheckNotificationSenderGithub(
+            "{baseMessage}",
+            "This is a hard failure message",
+            "This is a checks skipped message",
+            "testOwner",
+            "testRepo",
+            100,
+            false,
+            "123456789",
+            "https://somewebaddress.com/");
+    extractionCheckNotificationSenderGithub.githubClients = githubClientsMock;
+    List<CliCheckResult> results = new ArrayList<>();
+    CliCheckResult result = new CliCheckResult(false, false, "Test Check");
+    result.setNotificationText("Some notification text");
+    results.add(result);
+    extractionCheckNotificationSenderGithub.sendFailureNotification(results, false);
+    verify(githubClientMock, times(1))
+        .addCommentToPR(
+            repoNameCaptor.capture(), prNumberCaptor.capture(), messageCaptor.capture());
+    Assert.assertTrue(repoNameCaptor.getValue().equals("testRepo"));
+    Assert.assertTrue(prNumberCaptor.getValue().equals(100));
+    Assert.assertTrue(messageCaptor.getValue().contains(GithubIcon.WARNING.toString()));
+    Assert.assertTrue(messageCaptor.getValue().contains("Test Check"));
+    Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
+    verify(githubClientMock, times(0))
+        .addStatusToCommit(
+            "testRepo",
+            "123456789",
+            GHCommitState.FAILURE,
+            "Checks failed, please see 'Details' link for information on resolutions.",
+            "I18N String Checks",
+            "https://somewebaddress.com/");
   }
 
   @Test
@@ -91,6 +142,14 @@ public class ExtractionCheckNotificationSenderGithubTest {
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
     Assert.assertTrue(messageCaptor.getValue().contains("Other Check"));
     Assert.assertTrue(messageCaptor.getValue().contains("Some other notification text"));
+    verify(githubClientMock, times(1))
+        .addStatusToCommit(
+            "testRepo",
+            "123456789",
+            GHCommitState.FAILURE,
+            "Checks failed, please see 'Details' link for information on resolutions.",
+            "I18N String Checks",
+            "https://somewebaddress.com/");
   }
 
   @Test
@@ -113,6 +172,14 @@ public class ExtractionCheckNotificationSenderGithubTest {
     Assert.assertTrue(messageCaptor.getValue().contains("Some notification text"));
     Assert.assertTrue(messageCaptor.getValue().contains("This is a hard failure message"));
     Assert.assertTrue(messageCaptor.getValue().contains(GithubIcon.STOP.toString()));
+    verify(githubClientMock, times(1))
+        .addStatusToCommit(
+            "testRepo",
+            "123456789",
+            GHCommitState.FAILURE,
+            "Checks failed, please see 'Details' link for information on resolutions.",
+            "I18N String Checks",
+            "https://somewebaddress.com/");
   }
 
   @Test
@@ -136,6 +203,14 @@ public class ExtractionCheckNotificationSenderGithubTest {
     extractionCheckNotificationSenderGithub.sendFailureNotification(results, true);
     verify(githubClientMock, times(0))
         .addCommentToPR(isA(String.class), isA(Integer.class), isA(String.class));
+    verify(githubClientMock, times(0))
+        .addStatusToCommit(
+            isA(String.class),
+            isA(String.class),
+            isA(GHCommitState.class),
+            isA(String.class),
+            isA(String.class),
+            isA(String.class));
   }
 
   @Test
@@ -143,22 +218,32 @@ public class ExtractionCheckNotificationSenderGithubTest {
     extractionCheckNotificationSenderGithub.sendFailureNotification(null, true);
     verify(githubClientMock, times(0))
         .addCommentToPR(isA(String.class), isA(Integer.class), isA(String.class));
+    verify(githubClientMock, times(0))
+        .addStatusToCommit(
+            isA(String.class),
+            isA(String.class),
+            isA(GHCommitState.class),
+            isA(String.class),
+            isA(String.class),
+            isA(String.class));
   }
 
   @Test(expected = ExtractionCheckNotificationSenderException.class)
   public void testExceptionThrownIfNoOwnerSpecified() {
-    new ExtractionCheckNotificationSenderGithub("", "some template", "", "", "testRepo", 100);
+    new ExtractionCheckNotificationSenderGithub(
+        "", "some template", "", "", "testRepo", 100, true, "", "");
   }
 
   @Test(expected = ExtractionCheckNotificationSenderException.class)
   public void testExceptionThrownIfNoRepositorySpecified() {
-    new ExtractionCheckNotificationSenderGithub("", "some template", "", "testOwner", "", 100);
+    new ExtractionCheckNotificationSenderGithub(
+        "", "some template", "", "testOwner", "", 100, true, "", "");
   }
 
   @Test(expected = ExtractionCheckNotificationSenderException.class)
   public void testExceptionThrownIfNoPRNumberProvided() {
     new ExtractionCheckNotificationSenderGithub(
-        "", "some template", "", "testOwner", "testRepo", null);
+        "", "some template", "", "testOwner", "testRepo", null, true, "", "");
   }
 
   @Test
