@@ -39,6 +39,9 @@ public class BranchNotificationMessageSenderGithubTest {
         .thenReturn("Test translated message");
     when(branchNotificationMessageBuilderGithubMock.getScreenshotMissingMessage())
         .thenReturn("Test screenshot missing message");
+    when(githubClientMock.isLabelAppliedToPR(
+            isA(String.class), isA(Integer.class), isA(String.class)))
+        .thenReturn(true);
     branchNotificationMessageSenderGithub =
         new BranchNotificationMessageSenderGithub(
             "testId", githubClientMock, branchNotificationMessageBuilderGithubMock);
@@ -46,9 +49,13 @@ public class BranchNotificationMessageSenderGithubTest {
 
   @Test
   public void testSendNewMessage() throws BranchNotificationMessageSenderException {
+    when(githubClientMock.isLabelAppliedToPR(
+            isA(String.class), isA(Integer.class), isA(String.class)))
+        .thenReturn(false);
     branchNotificationMessageSenderGithub.sendNewMessage(branchName, "testUser", sourceStrings);
     verify(githubClientMock, times(1)).addCommentToPR("testRepo", 1, "Test new message");
-    verify(githubClientMock, times(1)).removeLabelFromPR("testRepo", 1, "translations-ready");
+    verify(githubClientMock, times(0))
+        .removeLabelFromPR(isA(String.class), isA(Integer.class), isA(String.class));
     verify(githubClientMock, times(1)).addLabelToPR("testRepo", 1, "translations-required");
   }
 
