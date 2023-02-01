@@ -107,12 +107,15 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
 
   private void updatePRLabel(
       GithubClient githubClient, GithubBranchDetails branchDetails, PRLabel label) {
-    githubClient.removeLabelFromPR(
-        branchDetails.getRepository(),
-        branchDetails.getPrNumber(),
+    String oppositeLabel =
         label == TRANSLATIONS_READY
             ? TRANSLATIONS_REQUIRED.toString()
-            : TRANSLATIONS_READY.toString());
+            : TRANSLATIONS_READY.toString();
+    if (githubClient.isLabelAppliedToPR(
+        branchDetails.getRepository(), branchDetails.getPrNumber(), oppositeLabel)) {
+      githubClient.removeLabelFromPR(
+          branchDetails.getRepository(), branchDetails.getPrNumber(), oppositeLabel);
+    }
     githubClient.addLabelToPR(
         branchDetails.getRepository(), branchDetails.getPrNumber(), label.toString());
   }

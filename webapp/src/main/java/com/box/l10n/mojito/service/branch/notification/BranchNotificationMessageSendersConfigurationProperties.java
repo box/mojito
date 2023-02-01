@@ -307,19 +307,19 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
     public static class MessageBuilderConfigurationProperties {
 
-      String newNotificationMsgFormat = "{message}{link}\\n\\n{strings}";
+      String newNotificationMsgFormat = "{message}{link}\n\n{strings}";
 
-      String updatedNotificationMsgFormat = "{message}{link}\\n\\n{strings}";
+      String updatedNotificationMsgFormat = "{message}{link}\n\n{strings}";
 
       String newStrings =
-          "We received your strings! "
-              + "Please **add screenshots** as soon as possible and **wait for translations** before releasing. ";
+          ":globe_with_meridians: We received your strings! "
+              + "Please **add screenshots** :camera_flash: as soon as possible and **wait for translations** before releasing. ";
 
       String updatedStrings =
-          "Your branch was updated with new strings! "
-              + "Please **add screenshots** as soon as possible and **wait for translations** before releasing. ";
+          ":new: Your branch was updated with new strings! "
+              + "Please **add screenshots** :camera_flash: as soon as possible and **wait for translations** before releasing. ";
 
-      String translationsReady = "Translations are ready!!";
+      String translationsReady = "Translations are ready!! :tada:";
 
       String screenshotsMissing = "Please provide screenshots to help localization team";
 
