@@ -7,9 +7,10 @@ import com.box.l10n.mojito.cli.console.Console;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.client.DropClient;
 import com.box.l10n.mojito.rest.entity.Drop;
-import com.box.l10n.mojito.rest.entity.ImportDropConfig;
-import com.box.l10n.mojito.rest.entity.PollableTask;
 import com.box.l10n.mojito.rest.entity.Repository;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.fusesource.jansi.Ansi.Color;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +50,14 @@ public class DropViewCommand extends Command {
     @Parameter(names = {"--show-all", "-all"}, required = false, description = "Show all drops (already imported drops are hidden by default)")
     Boolean alsoShowImportedParam = false;
 
-    @Parameter(names = {"--parsable", "-p"}, required = false, description = "When showing drops, output info in csv format so that it is easily parsable by scripts.")
-    Boolean showParsableOutput = false;
+    @Parameter(names = {"--csv"}, required = false, description = "When showing drops, output info in csv format so that it is easily parsable by scripts.")
+    Boolean showCsvOutput = false;
+
+    @Parameter(names = {"--json"}, required = false, description = "When showing drops, output info in json format so that it is easily parsable by scripts.")
+    Boolean showJsonOutput = false;
+
+    @Parameter(names = {"--dropid", "-i"}, required = false, arity = 1, description = "Show information only about the drop with the given id")
+    Long dropid = -1L;
 
     @Autowired
     CommandHelper commandHelper;
@@ -61,6 +67,34 @@ public class DropViewCommand extends Command {
 
     @Autowired
     DropClient dropClient;
+
+    private void outputInfo(Drop drop) {
+        if (dropid != -1 && drop.getId().longValue() != dropid.longValue()) return;
+        if (showCsvOutput) {
+            consoleWriter.a(drop.getId()).a(",").a(drop.getName());
+
+            if (Boolean.TRUE.equals(drop.getCanceled())) {
+                consoleWriter.a(",CANCELED");
+            } else if (drop.getLastImportedDate() == null) {
+                consoleWriter.a(",NEW");
+            } else {
+                consoleWriter.a(",").a(drop.getLastImportedDate());
+            }
+        } else {
+            consoleWriter.
+                    a("id: ").fg(Color.MAGENTA).a(drop.getId()).reset().
+                    a(", name: ").fg(Color.MAGENTA).a(drop.getName()).reset();
+
+            if (Boolean.TRUE.equals(drop.getCanceled())) {
+                consoleWriter.fg(Color.GREEN).a(" CANCELED");
+            } else if (drop.getLastImportedDate() == null) {
+                consoleWriter.fg(Color.GREEN).a(" NEW");
+            } else {
+                consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
+            }
+        }
+        consoleWriter.println();
+    }
 
     @Override
     public void execute() throws CommandException {
@@ -72,58 +106,47 @@ public class DropViewCommand extends Command {
         if (numberedAvailableDrops.isEmpty()) {
             consoleWriter.newLine().a("No drop available").println();
         } else {
-            if (!showParsableOutput) consoleWriter.newLine().a("Drops available").println();
+            if (!showCsvOutput && !showJsonOutput) consoleWriter.newLine().a("Drops available").println();
 
             logger.debug("Display drops information");
-            for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
-
-                Drop drop = entry.getValue();
-
-                if (showParsableOutput) {
-                    consoleWriter.a(entry.getKey()).
-                        a(",").a(drop.getId()).
-                        a(",").a(drop.getName());
-
-                    if (Boolean.TRUE.equals(drop.getCanceled())) {
-                        consoleWriter.a(",CANCELED");
-                    } else if (drop.getLastImportedDate() == null) {
-                        consoleWriter.a(",NEW");
-                    } else {
-                        consoleWriter.a(",").a(drop.getLastImportedDate());
-                    }
-                } else {
-                    consoleWriter.a("  ").fg(Color.CYAN).a(entry.getKey()).reset().
-                            a(" - id: ").fg(Color.MAGENTA).a(drop.getId()).reset().
-                            a(", name: ").fg(Color.MAGENTA).a(drop.getName()).reset();
-    
-                    if (Boolean.TRUE.equals(drop.getCanceled())) {
-                        consoleWriter.fg(Color.GREEN).a(" CANCELED");
-                    } else if (drop.getLastImportedDate() == null) {
-                        consoleWriter.fg(Color.GREEN).a(" NEW");
-                    } else {
-                        consoleWriter.a(", last import: ").fg(Color.MAGENTA).a(drop.getLastImportedDate());
-                    }
+            if (showJsonOutput) {
+                try {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String value = objectMapper.writeValueAsString(
+                        (dropid == -1) ?
+                            numberedAvailableDrops :
+                            numberedAvailableDrops.get(dropid)
+                    );
+                    consoleWriter.a(value).println();
+                } catch (JsonProcessingException e) {
+                    System.out.println(e);
                 }
-                consoleWriter.println();
+            } else {
+                for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
+
+                    Drop drop = entry.getValue();
+
+                    outputInfo(drop);
+                }
             }
         }
     }
 
     /**
-     * Gets available {@link Drop}s and assign them a number (map key) to be
-     * referenced in the console input for selection.
+     * Gets available {@link Drop}s and returns a map where the drop id is
+     * the map key.
      *
      * @return
      */
     private Map<Long, Drop> getNumberedAvailableDrops(Long repositoryId) {
 
-        logger.debug("Build a map of drops keyed by an incremented integer");
+        logger.debug("Build a map of drops keyed by the dropId");
         Map<Long, Drop> dropIds = new HashMap<>();
 
         long i = 1;
 
         for (Drop availableDrop : dropClient.getDrops(repositoryId, getImportedFilter(), 0L, numberOfDropsToFetchParam).getContent()) {
-            dropIds.put(i++, availableDrop);
+            dropIds.put(availableDrop.getId(), availableDrop);
         }
 
         return dropIds;
