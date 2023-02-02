@@ -2,7 +2,11 @@ package com.box.l10n.mojito.cli.command;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.google.common.base.Preconditions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,8 +21,24 @@ public abstract class Command {
     static final String HELP_SHORT = "-h";
     static final String HELP_DESCRIPTION = "Show help";
 
+    static final String QUIET_LONG = "--quiet";
+    static final String QUIET_SHORT = "-q";
+    static final String QUIET_DESCRIPTION = "Write only minimal data to console (used for scripting)";
+
     @Parameter(names = {HELP_LONG, HELP_SHORT}, help = true, description = HELP_DESCRIPTION)
     private boolean help;
+
+    @Parameter(names = {QUIET_LONG, QUIET_SHORT}, description = QUIET_DESCRIPTION)
+    protected boolean quiet;
+
+    /**
+     * Reference to primary console writer bean which allows to
+     * dynamically set its {@link ConsoleWriter.OutputType} to quiet
+     * when such command parameter is passed
+     */
+    @Qualifier("consoleWriter")
+    @Autowired
+    private ConsoleWriter baseCommandConsoleWriter;
 
     public List<String> originalArgs;
 
@@ -40,6 +60,9 @@ public abstract class Command {
         if (shouldShowUsage()) {
             showUsage();
         } else {
+            if (quiet) {
+                baseCommandConsoleWriter.setOutputType(ConsoleWriter.OutputType.MINIMAL);
+            }
             execute();
         }
     }

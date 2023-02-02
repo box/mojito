@@ -62,7 +62,6 @@ public class DropExportCommand extends Command {
     
     @Override
     public void execute() throws CommandException {
-
         consoleWriter.newLine().a("Export a Drop from repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
 
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
@@ -79,6 +78,8 @@ public class DropExportCommand extends Command {
             exportDropConfig.setUseInheritance(useInheritance);
             
             exportDropConfig = dropClient.exportDrop(exportDropConfig);
+
+            consoleWriter.minimal(exportDropConfig.getDropId()).println();
 
             consoleWriter.a("Drop id: ").fg(Color.CYAN).a(exportDropConfig.getDropId()).print();
             

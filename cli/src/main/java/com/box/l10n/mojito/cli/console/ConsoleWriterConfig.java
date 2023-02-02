@@ -32,5 +32,4 @@ public class ConsoleWriterConfig {
                 consoleWriterConfigurationProperties.getOutputType());
         return consoleWriter;
     }
-
 }

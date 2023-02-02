@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties("l10n.consoleWriter")
 public class ConsoleWriterConfigurationProperties {
     /**
-     * To enable or disable printing of ANSI escape codes in the ainsi output.
+     * To enable or disable printing of ANSI escape codes in the ansi output.
      */
     boolean ansiCodeEnabled = true;
 
@@ -28,5 +28,4 @@ public class ConsoleWriterConfigurationProperties {
     public void setOutputType(ConsoleWriter.OutputType outputType) {
         this.outputType = outputType;
     }
-
 }
