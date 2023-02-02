@@ -41,7 +41,7 @@ public class DropExportCommand extends Command {
     
     @Autowired
     ConsoleWriter consoleWriter;
-    
+
     @Parameter(names = {Param.REPOSITORY_LONG, Param.REPOSITORY_SHORT}, arity = 1, required = true, description = Param.REPOSITORY_DESCRIPTION)
     String repositoryParam;
     
@@ -62,15 +62,15 @@ public class DropExportCommand extends Command {
     
     @Override
     public void execute() throws CommandException {
-        
+
         consoleWriter.newLine().a("Export a Drop from repository: ").fg(Color.CYAN).a(repositoryParam).println(2);
-        
+
         Repository repository = commandHelper.findRepositoryByName(repositoryParam);
-        
+
         if (useInheritance && typeParam != ExportDropConfig.Type.REVIEW) {
             throw new CommandException("--use-inheritance can only be used with --type REVIEW");
         }
-        
+
         if (typeParam == ExportDropConfig.Type.REVIEW || shouldCreateDrop(repository)) {
             ExportDropConfig exportDropConfig = new ExportDropConfig();
             exportDropConfig.setRepositoryId(repository.getId());
@@ -79,12 +79,12 @@ public class DropExportCommand extends Command {
             exportDropConfig.setUseInheritance(useInheritance);
             
             exportDropConfig = dropClient.exportDrop(exportDropConfig);
-            
+
             consoleWriter.a("Drop id: ").fg(Color.CYAN).a(exportDropConfig.getDropId()).print();
             
             PollableTask pollableTask = exportDropConfig.getPollableTask();
             commandHelper.waitForPollableTask(pollableTask.getId());
-            
+
             consoleWriter.newLine().fg(Color.GREEN).a("Finished").println(2);
         } else {
             consoleWriter.newLine().fg(Color.GREEN).a("Repository is already fully translated").println(2);
@@ -161,9 +161,9 @@ public class DropExportCommand extends Command {
         return bcp47tags;
     }
     
-    protected boolean shouldCreateDrop(Repository repository) {
+    protected boolean shouldCreateDrop(Repository repository) throws CommandException {
         boolean createDrop = false;
-        Set<String> bcp47TagsForTranslation = Sets.newHashSet(getBcp47TagsForExportFromRepository(repository));
+        Set<String> bcp47TagsForTranslation = Sets.newHashSet(getBcp47TagsForExport(repository));
         RepositoryStatistic repoStat = repository.getRepositoryStatistic();
         if (repoStat != null) {
             for (RepositoryLocaleStatistic repoLocaleStat : repoStat.getRepositoryLocaleStatistics()) {
