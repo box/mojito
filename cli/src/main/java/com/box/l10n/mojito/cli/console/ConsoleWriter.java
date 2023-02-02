@@ -28,6 +28,11 @@ public class ConsoleWriter {
     StringBuilder stringBuilder;
 
     /**
+     * Contains the minimal message without ANSI escape codes.
+     */
+    StringBuilder minimalBuilder;
+
+    /**
      * To generate the message with ANSI escape codes.
      */
     Ansi ansi;
@@ -168,6 +173,39 @@ public class ConsoleWriter {
     }
 
     /**
+     * Write minimal output similar to {@link Ansi#a() }
+     *
+     * @param value
+     * @return this instance
+     */
+    public ConsoleWriter minimal(StringBuilder value) {
+        minimalBuilder.append(value);
+        return this;
+    }
+
+    /**
+     * Write minimal output similar to {@link Ansi#a() }
+     *
+     * @param value
+     * @return this instance
+     */
+    public ConsoleWriter minimal(Long value) {
+        minimalBuilder.append(value);
+        return this;
+    }
+
+    /**
+     * Write minimal output similar to {@link Ansi#a() }
+     *
+     * @param value
+     * @return this instance
+     */
+    public ConsoleWriter minimal(String value) {
+        minimalBuilder.append(value);
+        return this;
+    }
+
+    /**
      * See {@link Ansi#newLine() }
      *
      * @return this instance
@@ -234,7 +272,7 @@ public class ConsoleWriter {
         } else if (OutputType.ANSI_LOGGER.equals(outputType)) {
             logger.info(trimReturnLine(ansi.toString()));
         } else if (OutputType.MINIMAL.equals(outputType)) {
-            System.out.print(trimReturnLine(stringBuilder.toString()));
+            System.out.print(minimalBuilder.toString());
         }
 
         resetOutputBuilders();
@@ -257,6 +295,7 @@ public class ConsoleWriter {
     private void resetOutputBuilders() {
         ansi = Ansi.ansi();
         stringBuilder = new StringBuilder();
+        minimalBuilder = new StringBuilder();
     }
 
     /**
@@ -277,7 +316,17 @@ public class ConsoleWriter {
     }
 
     /**
-     * Types of output for the ConsoleWritter
+     * Dynamically change the output type of this console
+     * writer.
+     *
+     * @param outputType the type to change to
+     */
+    public void setOutputType(OutputType outputType) {
+        this.outputType = outputType;
+    }
+
+    /**
+     * Types of output for the ConsoleWriter
      */
     public enum OutputType {
         /**
