@@ -23,9 +23,14 @@ public class ConsoleWriter {
     static Logger logger = LoggerFactory.getLogger("com.box.l10n.mojito.cli.application");
 
     /**
-     * Contains the message without ANSI escape codes.
+     * Contains the whole message without ANSI escape codes.
      */
     StringBuilder stringBuilder;
+
+    /**
+     * Contains the minimal message without ANSI escape codes.
+     */
+    StringBuilder minimalBuilder;
 
     /**
      * To generate the message with ANSI escape codes.
@@ -38,7 +43,7 @@ public class ConsoleWriter {
     int numberOfNewLinesInLastPrintedString = 0;
 
     /**
-     * To enable or disable ainsi codes in the ainsi output
+     * To enable or disable ansi codes in the ansi output
      */
     boolean isAnsiCodeEnabled;
 
@@ -168,6 +173,39 @@ public class ConsoleWriter {
     }
 
     /**
+     * Write minimal output similar to {@link Ansi#a() }
+     *
+     * @param value
+     * @return this instance
+     */
+    public ConsoleWriter minimal(StringBuilder value) {
+        minimalBuilder.append(value);
+        return this;
+    }
+
+    /**
+     * Write minimal output similar to {@link Ansi#a() }
+     *
+     * @param value
+     * @return this instance
+     */
+    public ConsoleWriter minimal(Long value) {
+        minimalBuilder.append(value);
+        return this;
+    }
+
+    /**
+     * Write minimal output similar to {@link Ansi#a() }
+     *
+     * @param value
+     * @return this instance
+     */
+    public ConsoleWriter minimal(String value) {
+        minimalBuilder.append(value);
+        return this;
+    }
+
+    /**
      * See {@link Ansi#newLine() }
      *
      * @return this instance
@@ -233,6 +271,8 @@ public class ConsoleWriter {
             logger.info(trimReturnLine(stringBuilder.toString()));
         } else if (OutputType.ANSI_LOGGER.equals(outputType)) {
             logger.info(trimReturnLine(ansi.toString()));
+        } else if (OutputType.MINIMAL.equals(outputType)) {
+            System.out.print(minimalBuilder.toString());
         }
 
         resetOutputBuilders();
@@ -255,6 +295,7 @@ public class ConsoleWriter {
     private void resetOutputBuilders() {
         ansi = Ansi.ansi();
         stringBuilder = new StringBuilder();
+        minimalBuilder = new StringBuilder();
     }
 
     /**
@@ -275,17 +316,30 @@ public class ConsoleWriter {
     }
 
     /**
-     * Types of output for the ConsoleWritter
+     * Dynamically change the output type of this console
+     * writer.
+     *
+     * @param outputType the type to change to
+     */
+    public void setOutputType(OutputType outputType) {
+        this.outputType = outputType;
+    }
+
+    /**
+     * Types of output for the ConsoleWriter
      */
     public enum OutputType {
-
         /**
          * Output in ANSI mode only to the logger (console is skipped).
          */
         ANSI_LOGGER,
         /**
-         * Ouput in ANSI mode to the console and in plain mode to the logger.
+         * Output in ANSI mode to the console and in plain mode to the logger.
          */
-        ANSI_CONSOLE_AND_LOGGER
+        ANSI_CONSOLE_AND_LOGGER,
+        /**
+         * Output minimal strings in plain mode to the console only.
+         */
+        MINIMAL
     }
 }
