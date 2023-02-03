@@ -19,7 +19,6 @@ import org.springframework.stereotype.Component;
     commandDescription = "Retrieves a github installation token for the specified installation")
 public class GithubGetInstallationTokenCommand extends Command {
 
-  @Autowired(required = false)
   GithubClients githubClients;
 
   @Qualifier("ansiCodeEnabledFalse")
@@ -48,10 +47,6 @@ public class GithubGetInstallationTokenCommand extends Command {
   @Override
   protected void execute() throws CommandException {
     try {
-      if (githubClients == null) {
-        throw new CommandException(
-            "Github must be configured with properties: l10n.githubClients.<client>.appId, l10n.githubClients.<client>.key and l10n.githubClients.<client>.owner");
-      }
       consoleWriter
           .a(githubClients.getClient(owner).getGithubAppInstallationToken(repository).getToken())
           .print();
