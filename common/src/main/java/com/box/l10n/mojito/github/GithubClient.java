@@ -199,7 +199,7 @@ public class GithubClient {
     return appId;
   }
 
-  protected GHAppInstallationToken getGithubAppInstallationToken(String repository)
+  public GHAppInstallationToken getGithubAppInstallationToken(String repository)
       throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
     if (githubAppInstallationToken == null
         || githubAppInstallationToken.getExpiresAt().getTime()
