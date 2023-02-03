@@ -104,7 +104,13 @@ public class DropViewCommand extends Command {
         Map<Long, Drop> numberedAvailableDrops = getNumberedAvailableDrops(repository.getId());
 
         if (numberedAvailableDrops.isEmpty()) {
-            consoleWriter.newLine().a("No drop available").println();
+            if (showCsvOutput) {
+                consoleWriter.println();
+            } else if (showJsonOutput) {
+                consoleWriter.a("{}").println();
+            } else {
+                consoleWriter.newLine().a("No drop available").println();
+            }
         } else {
             if (!showCsvOutput && !showJsonOutput) consoleWriter.newLine().a("Drops available").println();
 
@@ -120,6 +126,7 @@ public class DropViewCommand extends Command {
                     consoleWriter.a(value).println();
                 } catch (JsonProcessingException e) {
                     System.out.println(e);
+                    throw new CommandException(e);
                 }
             } else {
                 for (Map.Entry<Long, Drop> entry : numberedAvailableDrops.entrySet()) {
