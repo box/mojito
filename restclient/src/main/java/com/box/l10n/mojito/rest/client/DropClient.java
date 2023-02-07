@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.entity.Drop;
+import com.box.l10n.mojito.rest.entity.CancelDropConfig;
 import com.box.l10n.mojito.rest.entity.ExportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportXliffBody;
@@ -165,4 +166,27 @@ public class DropClient extends BaseClient {
                 ImportXliffBody.class).getXliffContent();
     }
 
+    /**
+     * Cancels a drop for a given {@link Repository} and Drop
+     *
+     * @param repository the repository the drop will be cancelled into
+     * @param dropId the drop ID to be cancelled
+     * @return {@link CancelDropConfig} that contains information about the drop
+     * being cancelled
+     */
+    public CancelDropConfig cancelDrop(Long dropId) {
+
+        CancelDropConfig cancelDropConfig = new CancelDropConfig();
+        cancelDropConfig.setDropId(dropId);
+
+        String cancelPath = UriComponentsBuilder
+                .fromPath(getBasePathForEntity())
+                .pathSegment("cancel")
+                .toUriString();
+
+        return authenticatedRestTemplate.postForObject(
+                cancelPath,
+                cancelDropConfig,
+                CancelDropConfig.class);
+    }
 }
