@@ -167,9 +167,8 @@ public class DropClient extends BaseClient {
     }
 
     /**
-     * Cancels a drop for a given {@link Repository} and Drop
+     * Cancels a drop for a given drop ID
      *
-     * @param repository the repository the drop will be cancelled into
      * @param dropId the drop ID to be cancelled
      * @return {@link CancelDropConfig} that contains information about the drop
      * being cancelled
