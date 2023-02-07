@@ -45,7 +45,7 @@
     "kind-of": "^6.0.3",
     "loader-utils": "^1.2.3",
     "minimist": "^0.2.1",
-    "node-sass": "^4.13.1",
+    "node-sass": "^8.0.0",
     "sass-loader": "^6.0.7",
     "style-loader": "^0.18.2",
     "uglify-js": "^2.8.29",
