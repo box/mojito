@@ -1,0 +1,8 @@
+100_character_description_: '100 character description:'
+15_min_duration: "15 min"
+# File lock dialog duration
+1_day_duration: "1日"
+1_hour_duration: 1 hour
+1_month_duration: 1 month
+1_year_duration: |-
+  1年

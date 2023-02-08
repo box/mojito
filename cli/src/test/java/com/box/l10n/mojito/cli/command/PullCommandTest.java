@@ -2211,6 +2211,61 @@ public class PullCommandTest extends CLITestBase {
     checkExpectedGeneratedResources();
   }
 
+  @Test
+  public void pullYamlWithFilterOptions() throws Exception {
+
+    System.setProperty("overrideExpectedTestFiles", "true");
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-fo",
+            "extractAllPairs=false",
+            "exceptions=1_day_duration|1_year_duration");
+
+    Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.yaml", repository.getId());
+
+    importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+    importTranslations(asset.getId(), "source-xliff_", "ja-JP");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target").getAbsolutePath(),
+            "-lm",
+            "fr:fr-FR,ja:ja-JP",
+            "-fo",
+            "extractAllPairs=false",
+            "exceptions=1_day_duration|1_year_duration");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source_modified").getAbsolutePath(),
+            "-t",
+            getTargetTestDir("target_modified").getAbsolutePath(),
+            "-lm",
+            "fr:fr-FR,ja:ja-JP",
+            "-fo",
+            "extractAllPairs=false",
+            "exceptions=1_day_duration|1_year_duration");
+
+    checkExpectedGeneratedResources();
+  }
+
   private void pullRunNamesToNormalizedValueForTests() throws IOException {
     modifyFilesInTargetTestDirectory(
         input -> {
