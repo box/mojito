@@ -4381,4 +4381,77 @@ public class TMServiceTest extends ServiceTestBase {
     logger.debug("localized=\n{}", localizedAsset);
     assertEquals(assetContent, localizedAsset);
   }
+
+  @Test
+  public void testLocalizeYAMLFileWithFilterOptions() throws Exception {
+
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+
+    List<String> filterOptions =
+        Arrays.asList(
+            "extractAllPairs=false", "exceptions=one|activerecord/errors/template/header/other");
+
+    String assetContent =
+        "activerecord:\n"
+            + "  errors:\n"
+            + "    template:\n"
+            + "      header:\n"
+            + "        list: [one, two, three]\n"
+            + "        map: {key: value, key2: value2}\n"
+            + "        one: \"Impossible d'enregistrer {{model}}: 1 erreur\"\n"
+            + "        other: \"Impossible d'enregistrer {{model}}: {{count}} erreurs.\"";
+
+    asset = assetService.createAssetWithContent(repo.getId(), "translations.yaml", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(),
+            asset.getPath(),
+            assetContent,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            filterOptions);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      logger.info(
+          "{}\n{}=[{}]", textUnitDTO.getComment(), textUnitDTO.getName(), textUnitDTO.getSource());
+    }
+
+    assertEquals(2, textUnitDTOs.size());
+    assertEquals("Impossible d'enregistrer {{model}}: 1 erreur", textUnitDTOs.get(0).getSource());
+    assertEquals(
+        "Impossible d'enregistrer {{model}}: {{count}} erreurs.", textUnitDTOs.get(1).getSource());
+
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "en-GB",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(assetContent, localizedAsset);
+  }
 }
