@@ -1,0 +1,68 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Exemple d'API REST
+tags:
+  - name: tag_1
+    description: |-
+      Exemple de balise utilisant une valeur scalaire.
+  
+  
+      Briser les lignes pour tester complètement le scalaire.
+  - name: tag_2
+    description: Balise d'essai 2
+  - name: tag_3
+    description: Balise d'essai 3
+    x-custom-field: test
+
+paths:
+  /v1/user:
+    post:
+      summary: Créer un utilisateur
+      description: |-
+        Cela créera un utilisateur.
+
+        Si l'utilisateur existe déjà, une erreur sera renvoyée.
+      tags:
+        - tag_1
+      requestBody:
+        description: Données saisies par l'utilisateur.
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Données de réponse de l'utilisateur.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      parameters:
+        - $ref: '#/components/parameters/id'
+components:
+  schemas:
+    User:
+      title: Structure de l'échantillon utilisateur
+      description: Décrit le schéma valide pour un utilisateur.
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Identifiant unique pour l'utilisateur"
+        name:
+          type: string
+          description: Nom d'utilisateur.
+      required:
+        - name
+
+  parameters:
+    id:
+      name: id
+      description: Identifiant unique d'un utilisateur.
+      in: query
+      schema:
+        type: string
+        pattern: ^\d+$
+        maxLength: 18
