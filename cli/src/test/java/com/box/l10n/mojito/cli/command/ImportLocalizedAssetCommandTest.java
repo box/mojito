@@ -942,4 +942,94 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
     checkExpectedGeneratedResources();
   }
+
+  @Test
+  public void importYaml() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "YAML");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft",
+            "YAML");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir().getAbsolutePath(),
+            "-ft",
+            "YAML");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
+  public void importYamlWithExtractFields() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "YAML",
+            "-fo",
+            "extractAllPairs=false",
+            "exceptions=title");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft",
+            "YAML",
+            "-fo",
+            "extractAllPairs=false",
+            "exceptions=title");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir().getAbsolutePath(),
+            "-ft",
+            "YAML");
+
+    checkExpectedGeneratedResources();
+  }
 }
