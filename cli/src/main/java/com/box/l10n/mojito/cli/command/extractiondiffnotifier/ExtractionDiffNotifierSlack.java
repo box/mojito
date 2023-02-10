@@ -65,6 +65,11 @@ public class ExtractionDiffNotifierSlack implements ExtractionDiffNotifier {
     }
   }
 
+  @Override
+  public void sendNoChangesNotification() {
+    // no-op
+  }
+
   String getAttachmentColor(ExtractionDiffStatistics extractionDiffStatistics) {
     String attachmentColor;
     switch (extractionDiffNotifierMessageBuilder.getMessageSeverityLevel(

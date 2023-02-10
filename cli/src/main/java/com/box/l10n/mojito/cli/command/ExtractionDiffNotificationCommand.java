@@ -218,6 +218,9 @@ public class ExtractionDiffNotificationCommand extends Command {
       }
     } else {
       consoleWriterAnsiCodeEnabledFalse.a("No need to send notification").println();
+      for (ExtractionDiffNotifier extractionDiffNotifier : extractionDiffNotifierInstances) {
+        extractionDiffNotifier.sendNoChangesNotification();
+      }
     }
   }
 

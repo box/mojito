@@ -28,4 +28,9 @@ public class ExtractionDiffNotifierPhabricator implements ExtractionDiffNotifier
     differentialRevision.addComment(objectIdentifier, message);
     return message;
   }
+
+  @Override
+  public void sendNoChangesNotification() {
+    // no-op
+  }
 }

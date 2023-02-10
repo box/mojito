@@ -6,4 +6,7 @@ public interface ExtractionDiffNotifier {
 
   /** Sends diff statistic notification and return the text body of the message sent */
   String sendDiffStatistics(ExtractionDiffStatistics extractionDiffStatistics);
+
+  /** Handles no changes notifications */
+  void sendNoChangesNotification();
 }

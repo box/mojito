@@ -1,7 +1,8 @@
 package com.box.l10n.mojito.service.branch.notification.github;
 
-import static com.box.l10n.mojito.service.branch.notification.github.PRLabel.TRANSLATIONS_READY;
-import static com.box.l10n.mojito.service.branch.notification.github.PRLabel.TRANSLATIONS_REQUIRED;
+import static com.box.l10n.mojito.github.PRLabel.TRANSLATIONS_READY;
+import static com.box.l10n.mojito.github.PRLabel.TRANSLATIONS_REQUIRED;
+import static com.box.l10n.mojito.github.PRLabel.updatePRLabel;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.github.GithubClient;
@@ -42,7 +43,11 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
           branchDetails.getRepository(),
           branchDetails.getPrNumber(),
           branchNotificationMessageBuilderGithub.getNewMessage(branchName, sourceStrings));
-      updatePRLabel(githubClient, branchDetails, TRANSLATIONS_REQUIRED);
+      updatePRLabel(
+          githubClient,
+          branchDetails.getRepository(),
+          branchDetails.getPrNumber(),
+          TRANSLATIONS_REQUIRED);
       return null;
     } catch (GithubException e) {
       throw new BranchNotificationMessageSenderException(e);
@@ -60,7 +65,11 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
           branchDetails.getRepository(),
           branchDetails.getPrNumber(),
           branchNotificationMessageBuilderGithub.getUpdatedMessage(branchName, sourceStrings));
-      updatePRLabel(githubClient, branchDetails, TRANSLATIONS_REQUIRED);
+      updatePRLabel(
+          githubClient,
+          branchDetails.getRepository(),
+          branchDetails.getPrNumber(),
+          TRANSLATIONS_REQUIRED);
       return null;
     } catch (GithubException e) {
       throw new BranchNotificationMessageSenderException(e);
@@ -78,7 +87,11 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
           branchDetails.getRepository(),
           branchDetails.getPrNumber(),
           branchNotificationMessageBuilderGithub.getTranslatedMessage());
-      updatePRLabel(githubClient, branchDetails, TRANSLATIONS_READY);
+      updatePRLabel(
+          githubClient,
+          branchDetails.getRepository(),
+          branchDetails.getPrNumber(),
+          TRANSLATIONS_READY);
     } catch (GithubException e) {
       throw new BranchNotificationMessageSenderException(e);
     }
@@ -104,20 +117,5 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
   @Override
   public String getId() {
     return id;
-  }
-
-  private void updatePRLabel(
-      GithubClient githubClient, GithubBranchDetails branchDetails, PRLabel label) {
-    String oppositeLabel =
-        label == TRANSLATIONS_READY
-            ? TRANSLATIONS_REQUIRED.toString()
-            : TRANSLATIONS_READY.toString();
-    if (githubClient.isLabelAppliedToPR(
-        branchDetails.getRepository(), branchDetails.getPrNumber(), oppositeLabel)) {
-      githubClient.removeLabelFromPR(
-          branchDetails.getRepository(), branchDetails.getPrNumber(), oppositeLabel);
-    }
-    githubClient.addLabelToPR(
-        branchDetails.getRepository(), branchDetails.getPrNumber(), label.toString());
   }
 }
