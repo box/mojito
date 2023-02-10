@@ -24,7 +24,8 @@ public class GithubClients {
                         e.getValue().getAppId(),
                         e.getValue().getKey(),
                         e.getValue().getOwner(),
-                        e.getValue().getTokenTTL())));
+                        e.getValue().getTokenTTL(),
+                        e.getValue().getEndpoint())));
   }
 
   public GithubClient getClient(String owner) {

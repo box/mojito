@@ -10,6 +10,8 @@ public class GithubClientConfiguration {
 
   Long tokenTTL = 60000L;
 
+  String endpoint = "https://api.github.com";
+
   public String getAppId() {
     return appId;
   }
@@ -40,5 +42,13 @@ public class GithubClientConfiguration {
 
   public void setTokenTTL(Long tokenTTL) {
     this.tokenTTL = tokenTTL;
+  }
+
+  public String getEndpoint() {
+    return endpoint;
+  }
+
+  public void setEndpoint(String endpoint) {
+    this.endpoint = endpoint;
   }
 }
