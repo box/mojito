@@ -44,11 +44,13 @@ public class GithubClient {
 
   private PrivateKey signingKey;
 
+  private final String endpoint;
+
   protected GHAppInstallationToken githubAppInstallationToken;
 
   protected GitHub gitHubClient;
 
-  public GithubClient(String appId, String key, String owner, long tokenTTL) {
+  public GithubClient(String appId, String key, String owner, long tokenTTL, String endpoint) {
     this.appId = appId;
     this.key = key;
     if (owner == null || owner.isEmpty()) {
@@ -57,10 +59,12 @@ public class GithubClient {
     }
     this.owner = owner;
     this.tokenTTL = tokenTTL;
+    this.endpoint =
+        endpoint.endsWith("/") ? endpoint.substring(0, endpoint.length() - 1) : endpoint;
   }
 
   public GithubClient(String appId, String key, String owner) {
-    this(appId, key, owner, 60000L);
+    this(appId, key, owner, 60000L, "https://api.github.com");
   }
 
   private PrivateKey createPrivateKey(String key)
@@ -239,13 +243,21 @@ public class GithubClient {
     return appId;
   }
 
+  public String getEndpoint() {
+    return endpoint;
+  }
+
   public GHAppInstallationToken getGithubAppInstallationToken(String repository)
       throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
     if (githubAppInstallationToken == null
         || githubAppInstallationToken.getExpiresAt().getTime()
             <= System.currentTimeMillis() - 30000) {
       // Existing installation token has less than 30 seconds before expiry, get new token
-      GitHub gitHub = new GitHubBuilder().withJwtToken(getGithubJWT(tokenTTL).getToken()).build();
+      GitHub gitHub =
+          new GitHubBuilder()
+              .withEndpoint(getEndpoint())
+              .withJwtToken(getGithubJWT(tokenTTL).getToken())
+              .build();
       githubAppInstallationToken =
           gitHub.getApp().getInstallationByRepository(owner, repository).createToken().create();
     }
@@ -256,6 +268,7 @@ public class GithubClient {
   protected GitHub createGithubClient(String repository)
       throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
     return new GitHubBuilder()
+        .withEndpoint(getEndpoint())
         .withAppInstallationToken(getGithubAppInstallationToken(repository).getToken())
         .build();
   }

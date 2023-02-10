@@ -34,7 +34,7 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
   @Override
   public String sendNewMessage(String branchName, String username, List<String> sourceStrings)
       throws BranchNotificationMessageSenderException {
-    logger.debug("sendNewMessage to: {}", "https://github.com/" + branchName);
+    logger.debug("sendNewMessage to: {}", githubClient.getEndpoint() + "/" + branchName);
 
     try {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
@@ -53,7 +53,7 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
   public String sendUpdatedMessage(
       String branchName, String username, String messageId, List<String> sourceStrings)
       throws BranchNotificationMessageSenderException {
-    logger.debug("sendNewMessage to: {}", "https://github.com/" + branchName);
+    logger.debug("sendNewMessage to: {}", githubClient.getEndpoint() + "/" + branchName);
     try {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
       githubClient.addCommentToPR(
@@ -70,7 +70,7 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
   @Override
   public void sendTranslatedMessage(String branchName, String username, String messageId)
       throws BranchNotificationMessageSenderException {
-    logger.debug("sendTranslatedMessage to: {}", "https://github.com/" + branchName);
+    logger.debug("sendTranslatedMessage to: {}", githubClient.getEndpoint() + "/" + branchName);
 
     try {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
@@ -87,7 +87,8 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
   @Override
   public void sendScreenshotMissingMessage(String branchName, String messageId, String username)
       throws BranchNotificationMessageSenderException {
-    logger.debug("sendScreenshotMissingMessage to: {}", "https://github.com/" + branchName);
+    logger.debug(
+        "sendScreenshotMissingMessage to: {}", githubClient.getEndpoint() + "/" + branchName);
 
     try {
       GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
