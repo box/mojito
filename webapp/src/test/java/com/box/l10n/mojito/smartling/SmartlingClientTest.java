@@ -160,6 +160,7 @@ public class SmartlingClientTest {
             + "    <string name=\"bye\">Bye</string>\n"
             + "</resources>\n",
         null,
+        null,
         null);
   }
 

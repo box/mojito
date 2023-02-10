@@ -86,7 +86,7 @@ public class ThirdPartyTMSSmartlingITest extends ServiceTestBase {
 
     String smartlingFileUri = repository.getName() + "/0000_singular_source.xml";
     smartlingClient.uploadFile(
-        testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null);
+        testConfig.projectId, smartlingFileUri, "android", smartlingContent, null, null, null);
 
     String pollableTaskName = "testThirdPartyPollableTask";
     PollableTask parentTask =
