@@ -443,7 +443,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                       "android",
                       file.getFileContent(),
                       options.getPlaceholderFormat(),
-                      options.getCustomPlaceholderFormat()))
+                      options.getCustomPlaceholderFormat(),
+                      options.getStringFormat()))
           .retryWhen(
               smartlingClient
                   .getRetryConfiguration()

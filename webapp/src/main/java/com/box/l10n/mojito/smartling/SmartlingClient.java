@@ -225,7 +225,8 @@ public class SmartlingClient {
       String fileType,
       String fileContent,
       String placeholderFormat,
-      String placeholderFormatCustom) {
+      String placeholderFormatCustom,
+      String stringFormat) {
 
     NamedByteArrayResource fileContentAsResource =
         new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
@@ -235,6 +236,7 @@ public class SmartlingClient {
     body.add("fileType", fileType);
     body.add("smartling.placeholder_format", placeholderFormat);
     body.add("smartling.placeholder_format_custom", placeholderFormatCustom);
+    body.add("smartling.string_format", stringFormat);
     body.add("smartling.instruction_comments_enabled", "on");
     body.add("file", fileContentAsResource);
 

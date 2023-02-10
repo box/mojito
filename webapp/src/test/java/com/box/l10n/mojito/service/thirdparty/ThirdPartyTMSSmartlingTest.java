@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.atLeastOnce;
@@ -147,7 +148,14 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     MockitoAnnotations.initMocks(this);
     doReturn(null)
         .when(smartlingClient)
-        .uploadFile(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        .uploadFile(
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString(),
+            anyString());
     doReturn(null)
         .when(smartlingClient)
         .uploadLocalizedFile(
@@ -275,7 +283,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             assetTextUnitToTMTextUnitRepository,
             batchSize);
     // throw timeout exception for first request, following request should be successful
-    when(smartlingClient.uploadFile(any(), any(), any(), any(), any(), any()))
+    when(smartlingClient.uploadFile(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(
             new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT)))
         .thenReturn(null);
@@ -315,14 +323,14 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
     // Verify Smartling client called 7 times, total batch size is 6 but first request fails and
     // then successful retry.
-    verify(smartlingClient, times(7)).uploadFile(any(), any(), any(), any(), any(), any());
+    verify(smartlingClient, times(7)).uploadFile(any(), any(), any(), any(), any(), any(), any());
   }
 
   @Test
   public void testRetriesExhaustedDuringPush() throws RepositoryNameAlreadyUsedException {
     doThrow(new SmartlingClientException(new HttpServerErrorException(HttpStatus.GATEWAY_TIMEOUT)))
         .when(smartlingClient)
-        .uploadFile(any(), any(), any(), any(), any(), any());
+        .uploadFile(any(), any(), any(), any(), any(), any(), any());
     int batchSize = 3;
     List<SmartlingFile> result;
     Repository repository =
@@ -366,7 +374,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 tmsSmartling.push(
                     repository, "projectId", pluralSep, null, null, Collections.emptyList()));
     assertTrue(exception.getMessage().contains("Retries exhausted: 10/10"));
-    verify(smartlingClient, times(11)).uploadFile(any(), any(), any(), any(), any(), any());
+    verify(smartlingClient, times(11)).uploadFile(any(), any(), any(), any(), any(), any(), any());
   }
 
   @Test
@@ -560,7 +568,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             eq("android"),
             matches("(?s).*string name=.*"),
             eq("NONE"),
-            eq("^some(.*)pattern$"));
+            eq("^some(.*)pattern$"),
+            isNull());
 
     verify(smartlingClient, times(1))
         .uploadFile(
@@ -569,7 +578,47 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             eq("android"),
             matches("(?s).*plurals name=.*"),
             eq("NONE"),
-            eq("^some(.*)pattern$"));
+            eq("^some(.*)pattern$"),
+            isNull());
+  }
+
+  @Test
+  public void testPushWithStringFormatICU() {
+
+    List<SmartlingFile> result;
+    ThirdPartyServiceTestData testData = new ThirdPartyServiceTestData(testIdWatcher);
+    Repository repository = testData.repository;
+    List<String> optionList = Arrays.asList("smartling-string-format=ICU");
+    tmsSmartling.push(repository, "projectId", "_", null, null, optionList);
+    result = resultProcessor.pushFiles;
+
+    assertThat(result).hasSize(2);
+    assertThat(result.stream().map(SmartlingFile::getFileName))
+        .containsOnly(
+            repository.getName() + "/00000_singular_source.xml",
+            repository.getName() + "/00000_plural_source.xml");
+    assertThat(result.stream().map(SmartlingFile::getFileContent))
+        .containsOnly(singularContent(testData), pluralsContent(testData));
+
+    verify(smartlingClient, times(1))
+        .uploadFile(
+            eq("projectId"),
+            eq(repository.getName() + "/00000_singular_source.xml"),
+            eq("android"),
+            matches("(?s).*string name=.*"),
+            isNull(),
+            isNull(),
+            eq("ICU"));
+
+    verify(smartlingClient, times(1))
+        .uploadFile(
+            eq("projectId"),
+            eq(repository.getName() + "/00000_plural_source.xml"),
+            eq("android"),
+            matches("(?s).*plurals name=.*"),
+            isNull(),
+            isNull(),
+            eq("ICU"));
   }
 
   @Test
