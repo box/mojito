@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.client;
 
 import com.box.l10n.mojito.rest.entity.Drop;
+import com.box.l10n.mojito.rest.entity.CancelDropConfig;
 import com.box.l10n.mojito.rest.entity.ExportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportDropConfig;
 import com.box.l10n.mojito.rest.entity.ImportXliffBody;
@@ -165,4 +166,53 @@ public class DropClient extends BaseClient {
                 ImportXliffBody.class).getXliffContent();
     }
 
+    /**
+     * Cancels a drop for a given drop ID
+     *
+     * @param dropId the drop ID to be cancelled
+     * @return {@link CancelDropConfig} that contains information about the drop
+     * being cancelled
+     */
+    public CancelDropConfig cancelDrop(Long dropId) {
+
+        CancelDropConfig cancelDropConfig = new CancelDropConfig();
+        cancelDropConfig.setDropId(dropId);
+
+        String cancelPath = UriComponentsBuilder
+                .fromPath(getBasePathForEntity())
+                .pathSegment("cancel")
+                .toUriString();
+
+        return authenticatedRestTemplate.postForObject(
+                cancelPath,
+                cancelDropConfig,
+                CancelDropConfig.class);
+    }
+
+    /**
+     * Force completes a drop for a given drop ID
+     *
+     * @param dropId the drop ID to be cancelled
+     */
+    public void completeDrop(Long dropId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("dropId", dropId.toString());
+        
+        String completePath = UriComponentsBuilder
+                .fromPath(getBasePathForEntity())
+                .pathSegment("complete", "{dropId}")
+                .buildAndExpand(params)
+                .toUriString();
+
+        authenticatedRestTemplate.postForObject(
+                completePath,
+                null,
+                Void.class);
+        
+        // NOTE: currently there is no response from "complete" endpoint
+        // so there is no way to tell if the drop has actually been marked as completed;
+        // in particular, if given drop has NOT ever been partially imported yet,
+        // the call succeeds but the drop does not seem get marked as completed according to webapp UI
+        // SEE: webapp/src/main/java/com/box/l10n/mojito/service/drop/DropService.java#completeDrop
+    }
 }
