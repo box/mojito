@@ -10,6 +10,8 @@ public class RepositoryMachineTranslationBody {
   String repositoryName;
   List<String> targetBcp47tags;
 
+  int sourceTextMaxCountPerLocale;
+
   PollableTask pollableTask;
 
   public String getRepositoryName() {
@@ -26,6 +28,14 @@ public class RepositoryMachineTranslationBody {
 
   public void setTargetBcp47tags(List<String> targetBcp47tags) {
     this.targetBcp47tags = targetBcp47tags;
+  }
+
+  public int getSourceTextMaxCountPerLocale() {
+    return sourceTextMaxCountPerLocale;
+  }
+
+  public void setSourceTextMaxCountPerLocale(int sourceTextMaxCountPerLocale) {
+    this.sourceTextMaxCountPerLocale = sourceTextMaxCountPerLocale;
   }
 
   @JsonProperty
