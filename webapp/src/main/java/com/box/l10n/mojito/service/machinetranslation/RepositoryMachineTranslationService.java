@@ -11,6 +11,7 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.google.common.collect.Iterables;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -42,11 +43,12 @@ public class RepositoryMachineTranslationService {
    *
    * @param repositoryName
    * @param targetBcp47Tags
+   * @param sourceTextMaxCountPerLocale
    * @return
    */
   @Pollable(async = true, message = "Start machine translating repository")
   public PollableFuture<Void> translateRepository(
-      String repositoryName, List<String> targetBcp47Tags) {
+      String repositoryName, List<String> targetBcp47Tags, int sourceTextMaxCountPerLocale) {
 
     logger.info(
         "Start Machine Translating repository: {} and target locales: {}",
@@ -68,58 +70,64 @@ public class RepositoryMachineTranslationService {
       final List<TextUnitDTO> textUnitDTOS = textUnitSearcher.search(searchParameters);
 
       final List<String> sourceTexts =
-          textUnitDTOS.stream().map(TextUnitDTO::getSource).collect(Collectors.toList());
+          textUnitDTOS.stream().map(TextUnitDTO::getSource).distinct().collect(Collectors.toList());
 
-      final TranslationsResponseDTO translationsResponseDTO =
-          machineTranslationService.getTranslations(
-              sourceTexts,
-              repository.getSourceLocale().getBcp47Tag(),
-              Arrays.asList(targetBcp47Tag),
-              false,
-              true,
-              null,
-              null);
+      logger.info("Number of text unit to machine translate: {}", sourceTexts.size());
 
-      final Map<String, List<TextUnitDTO>> sourceToTextUnitDTOs =
-          textUnitDTOS.stream().collect(Collectors.groupingBy(TextUnitDTO::getSource));
-
-      logger.info("Number of text unit to machine translate: {}", sourceToTextUnitDTOs.size());
-
-      if (sourceToTextUnitDTOs.size() > 300) {
-        throw new RuntimeException("Too many text unit, fail safe for now");
+      if (sourceTexts.size() > sourceTextMaxCountPerLocale) {
+        throw new RuntimeException("Too many source text to MT, do not proceed");
       }
 
-      final List<TextUnitDTO> machineTranslatedTextUnitDTOs =
-          translationsResponseDTO.getTextUnitTranslations().stream()
-              .flatMap(
-                  textUnitTranslationGroupDTO -> {
-                    final String sourceText = textUnitTranslationGroupDTO.getSourceText();
+      Iterables.partition(sourceTexts, 1000)
+          .forEach(
+              sourceTextBatch -> {
+                final TranslationsResponseDTO translationsResponseDTO =
+                    machineTranslationService.getTranslations(
+                        sourceTexts,
+                        repository.getSourceLocale().getBcp47Tag(),
+                        Arrays.asList(targetBcp47Tag),
+                        false,
+                        true,
+                        null,
+                        null);
 
-                    final Stream<TextUnitDTO> textUnitDTOStreamFor1Translation;
+                final Map<String, List<TextUnitDTO>> sourceToTextUnitDTOs =
+                    textUnitDTOS.stream().collect(Collectors.groupingBy(TextUnitDTO::getSource));
 
-                    if (!textUnitTranslationGroupDTO.getTranslations().isEmpty()) {
-                      // since we're doing 1 locale we just read the first entry
-                      final TranslationDTO translationDTO =
-                          textUnitTranslationGroupDTO.getTranslations().get(0);
+                final List<TextUnitDTO> machineTranslatedTextUnitDTOs =
+                    translationsResponseDTO.getTextUnitTranslations().stream()
+                        .flatMap(
+                            textUnitTranslationGroupDTO -> {
+                              final String sourceText = textUnitTranslationGroupDTO.getSourceText();
 
-                      textUnitDTOStreamFor1Translation =
-                          sourceToTextUnitDTOs.getOrDefault(sourceText, Collections.emptyList())
-                              .stream()
-                              .map(
-                                  textUnitDTO -> {
-                                    textUnitDTO.setTarget(translationDTO.getText());
-                                    return textUnitDTO;
-                                  });
-                    } else {
-                      logger.error("There must be a translation available but if not, just skip");
-                      textUnitDTOStreamFor1Translation = Stream.empty();
-                    }
+                              final Stream<TextUnitDTO> textUnitDTOStreamFor1Translation;
 
-                    return textUnitDTOStreamFor1Translation;
-                  })
-              .collect(Collectors.toList());
+                              if (!textUnitTranslationGroupDTO.getTranslations().isEmpty()) {
+                                // since we're doing 1 locale we just read the first entry
+                                final TranslationDTO translationDTO =
+                                    textUnitTranslationGroupDTO.getTranslations().get(0);
 
-      textUnitBatchImporterService.importTextUnits(machineTranslatedTextUnitDTOs, false, true);
+                                textUnitDTOStreamFor1Translation =
+                                    sourceToTextUnitDTOs
+                                        .getOrDefault(sourceText, Collections.emptyList()).stream()
+                                        .map(
+                                            textUnitDTO -> {
+                                              textUnitDTO.setTarget(translationDTO.getText());
+                                              return textUnitDTO;
+                                            });
+                              } else {
+                                logger.error(
+                                    "There must be a translation available but if not, just skip");
+                                textUnitDTOStreamFor1Translation = Stream.empty();
+                              }
+
+                              return textUnitDTOStreamFor1Translation;
+                            })
+                        .collect(Collectors.toList());
+
+                textUnitBatchImporterService.importTextUnits(
+                    machineTranslatedTextUnitDTOs, false, true);
+              });
     }
 
     return new PollableFutureTaskResult<>();

@@ -47,6 +47,14 @@ public class RepositoryMachineTranslationCommand extends Command {
       description = "List of locales (bcp47 tags) to machine translate")
   List<String> locales;
 
+  @Parameter(
+      names = {"--source-text-max-count"},
+      arity = 1,
+      description =
+          "Source text max count per locale sent to MT (this param is used to avoid "
+              + "sending too many strings to MT)")
+  int sourceTextMaxCount = 100;
+
   @Autowired CommandHelper commandHelper;
 
   @Autowired RepositoryMachineTranslationClient repositoryMachineTranslationClient;
@@ -74,6 +82,7 @@ public class RepositoryMachineTranslationCommand extends Command {
         new RepositoryMachineTranslationBody();
     repositoryMachineTranslationBody.setRepositoryName(repositoryParam);
     repositoryMachineTranslationBody.setTargetBcp47tags(locales);
+    repositoryMachineTranslationBody.setSourceTextMaxCountPerLocale(sourceTextMaxCount);
 
     repositoryMachineTranslationBody =
         repositoryMachineTranslationClient.translateRepository(repositoryMachineTranslationBody);

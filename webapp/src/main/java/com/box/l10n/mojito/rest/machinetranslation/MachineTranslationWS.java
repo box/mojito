@@ -82,7 +82,8 @@ public class MachineTranslationWS {
     PollableFuture<Void> pollableFuture =
         repositoryMachineTranslationService.translateRepository(
             repositoryMachineTranslationBody.getRepositoryName(),
-            repositoryMachineTranslationBody.getTargetBcp47tags());
+            repositoryMachineTranslationBody.getTargetBcp47tags(),
+            repositoryMachineTranslationBody.getSourceTextMaxCountPerLocale());
     repositoryMachineTranslationBody.setPollableTask(pollableFuture.getPollableTask());
     return repositoryMachineTranslationBody;
   }
