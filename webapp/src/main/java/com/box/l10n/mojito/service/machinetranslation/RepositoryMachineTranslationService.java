@@ -78,7 +78,7 @@ public class RepositoryMachineTranslationService {
         throw new RuntimeException("Too many source text to MT, do not proceed");
       }
 
-      Iterables.partition(sourceTexts, 1000)
+      Iterables.partition(sourceTexts, 100)
           .forEach(
               sourceTextBatch -> {
                 final TranslationsResponseDTO translationsResponseDTO =
