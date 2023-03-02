@@ -83,7 +83,7 @@ public class RepositoryMachineTranslationService {
               sourceTextBatch -> {
                 final TranslationsResponseDTO translationsResponseDTO =
                     machineTranslationService.getTranslations(
-                        sourceTexts,
+                        sourceTextBatch,
                         repository.getSourceLocale().getBcp47Tag(),
                         Arrays.asList(targetBcp47Tag),
                         false,
