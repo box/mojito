@@ -2213,8 +2213,6 @@ public class PullCommandTest extends CLITestBase {
 
   @Test
   public void pullYamlWithFilterOptions() throws Exception {
-
-    System.setProperty("overrideExpectedTestFiles", "true");
     Repository repository = createTestRepoUsingRepoService();
 
     getL10nJCommander()
