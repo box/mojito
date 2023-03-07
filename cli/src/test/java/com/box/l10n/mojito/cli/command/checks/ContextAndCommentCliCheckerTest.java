@@ -158,6 +158,24 @@ public class ContextAndCommentCliCheckerTest {
   }
 
   @Test
+  public void testUnidenticalContextAndCommentStrings() {
+    List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+    AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+    assetExtractorTextUnit.setName("Some id --- Public Beta tab page title");
+    assetExtractorTextUnit.setSource("Beta Program on X");
+    assetExtractorTextUnit.setComments(null);
+    // OR assetExtractorTextUnit.setComments(null);
+    addedTUs.add(assetExtractorTextUnit);
+    List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+    AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+    assetExtractionDiff.setAddedTextunits(addedTUs);
+    assetExtractionDiffs.add(assetExtractionDiff);
+
+    CliCheckResult result = contextAndCommentCliChecker.run(assetExtractionDiffs);
+    System.out.println("result.getNotificationText(): " + result.getNotificationText());
+  }
+
+  @Test
   public void testHardFailure() {
     List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
     AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
