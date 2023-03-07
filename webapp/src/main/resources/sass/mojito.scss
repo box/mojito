@@ -467,6 +467,10 @@ div.textunit label {
     right: 0;
 }
 
+.textunit-comment {
+    white-space: pre-wrap;
+}
+
 div.textunit div.targetstring-container {
     float: left;
     width: 90%;
@@ -483,6 +487,7 @@ div.targetstring-container textarea {
 
 .git-blame-info {
     word-wrap: break-word;
+    white-space: pre-wrap;
 }
 
 .git-blame-unused {
@@ -883,17 +888,37 @@ label.current-pageNumber {
 
 .branches-screenshotviewer-modal-textunits-container {
     display: flex;
+    flex-direction: column;
+    justify-content: center;
     height: 100%;
 }
 
 .branches-screenshotviewer-modal-textunits {
     display: block;
-    margin-top: auto;
-    margin-bottom: auto;
     height: auto;
     max-width: 100%;
     max-height: 100%;
     font-size: 11px;
+}
+
+.branches-screenshotviewer-modal-delete-container {
+    display: block;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    justify-content: center;
+    display: flex;
+}
+
+#remove-screenshot-popover>.popover-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#remove-screenshot-confirm-btn {
+  font-size: 11px;
+  margin: auto;
 }
 
 .branches-screenshotviewer-modal-image-container {

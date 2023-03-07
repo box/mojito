@@ -2,11 +2,7 @@ package com.box.l10n.mojito.okapi.asset;
 
 import static org.junit.Assert.assertEquals;
 
-import com.box.l10n.mojito.okapi.filters.AndroidFilter;
-import com.box.l10n.mojito.okapi.filters.CSVFilter;
-import com.box.l10n.mojito.okapi.filters.JSONFilter;
-import com.box.l10n.mojito.okapi.filters.MacStringsdictFilter;
-import com.box.l10n.mojito.okapi.filters.POFilter;
+import com.box.l10n.mojito.okapi.filters.*;
 import net.sf.okapi.filters.xliff.XLIFFFilter;
 import org.junit.Test;
 
@@ -165,5 +161,15 @@ public class AssetPathToFilterConfigMapperTest {
     String filterConfigId =
         assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/strings.json");
     assertEquals(JSONFilter.FILTER_CONFIG_ID, filterConfigId);
+  }
+
+  @Test
+  public void testGetFilterConfigIdFromTypeWithYAML() throws Exception {
+
+    AssetPathToFilterConfigMapper assetPathToFilterConfigMapper =
+        new AssetPathToFilterConfigMapper();
+    String filterConfigId =
+        assetPathToFilterConfigMapper.getFilterConfigIdFromPath("/path/to/File.yaml");
+    assertEquals(YamlFilter.FILTER_CONFIG_ID, filterConfigId);
   }
 }

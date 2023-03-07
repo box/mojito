@@ -1,9 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.MANY;
-import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.getOutputSourceFile;
-import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.getOutputTargetFile;
-import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.isPluralFile;
+import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.*;
 import static com.google.common.collect.Streams.mapWithIndex;
 
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
@@ -12,18 +10,9 @@ import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.RepositoryLocale;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFile;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingPluralFix;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingResultProcessor;
+import com.box.l10n.mojito.service.thirdparty.smartling.*;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
-import com.box.l10n.mojito.service.tm.search.SearchType;
-import com.box.l10n.mojito.service.tm.search.StatusFilter;
-import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
-import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
-import com.box.l10n.mojito.service.tm.search.UsedFilter;
+import com.box.l10n.mojito.service.tm.search.*;
 import com.box.l10n.mojito.smartling.AssetPathAndTextUnitNameKeys;
 import com.box.l10n.mojito.smartling.SmartlingClient;
 import com.box.l10n.mojito.smartling.SmartlingClientException;
@@ -36,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import io.micrometer.core.annotation.Timed;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -144,6 +134,37 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  public void removeImage(String projectId, String imageId) {
+    logger.debug(
+        "remove image (screenshot) from Smartling, project id: {}, imageId: {}",
+        projectId,
+        imageId);
+
+    Mono.fromRunnable(() -> smartlingClient.deleteContext(projectId, imageId))
+        .retryWhen(
+            smartlingClient
+                .getRetryConfiguration()
+                .doBeforeRetry(
+                    e ->
+                        logger.info(
+                            String.format(
+                                "Retrying remove image (screenshot) from Smartling; projectId %s, imageId %s",
+                                projectId, imageId),
+                            e.failure())))
+        .doOnError(
+            e -> {
+              String msg =
+                  String.format(
+                      "Error removing image (screenshot) from Smartling; projectId %s, imageId %s",
+                      projectId, imageId);
+              logger.error(msg, e);
+              throw new SmartlingClientException(msg, e);
+            })
+        .block();
+  }
+
+  @Override
+  @Timed("SmartlingSync.uploadImage")
   public ThirdPartyTMSImage uploadImage(String projectId, String name, byte[] content) {
     logger.debug("Upload image to Smartling, project id: {}, name: {}", projectId, name);
     if (!isImageExtensionSupported(name)) {
@@ -188,6 +209,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.getThirdPartyTextUnits")
   public List<ThirdPartyTextUnit> getThirdPartyTextUnits(
       Repository repository, String projectId, List<String> optionList) {
 
@@ -300,6 +322,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.createImageToTextUnitMappings")
   public void createImageToTextUnitMappings(
       String projectId, List<ThirdPartyImageToTextUnit> thirdPartyImageToTextUnits) {
     logger.debug("Upload image to text units mapping for project id: {}", projectId);
@@ -341,6 +364,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.push")
   public void push(
       Repository repository,
       String projectId,
@@ -419,7 +443,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                       "android",
                       file.getFileContent(),
                       options.getPlaceholderFormat(),
-                      options.getCustomPlaceholderFormat()))
+                      options.getCustomPlaceholderFormat(),
+                      options.getStringFormat()))
           .retryWhen(
               smartlingClient
                   .getRetryConfiguration()
@@ -444,6 +469,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.pull")
   public void pull(
       Repository repository,
       String projectId,
@@ -577,6 +603,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.pushTranslations")
   public void pushTranslations(
       Repository repository,
       String projectId,
@@ -672,6 +699,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
+  @Timed("SmartlingSync.pullSource")
   public void pullSource(
       Repository repository,
       String thirdPartyProjectId,

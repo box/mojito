@@ -1,38 +1,22 @@
 package com.box.l10n.mojito.service.screenshot;
 
+import com.box.l10n.mojito.entity.*;
 import com.box.l10n.mojito.entity.Locale;
-import com.box.l10n.mojito.entity.Locale_;
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.Repository_;
-import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.ScreenshotRun;
-import com.box.l10n.mojito.entity.ScreenshotRun_;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit;
-import com.box.l10n.mojito.entity.ScreenshotTextUnit_;
-import com.box.l10n.mojito.entity.Screenshot_;
-import com.box.l10n.mojito.entity.TMTextUnit;
 import com.box.l10n.mojito.service.NormalizationUtils;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartyScreenshotRepository;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartyService;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobConfig;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobsConfig;
 import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcherParameters;
 import com.google.common.base.Strings;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +43,15 @@ public class ScreenshotService {
 
   @Autowired TextUnitSearcher textUnitSearcher;
 
+  @Autowired ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
+
   @Autowired TMTextUnitRepository tmTextUnitRepository;
 
   @Autowired EntityManager em;
+
+  @Autowired ThirdPartyService thirdPartyService;
+
+  @Autowired ThirdPartySyncJobsConfig thirdPartySyncJobsConfig;
 
   /**
    * Creates or add to a screenshot run including the creation of related screenshots. If the
@@ -389,5 +379,38 @@ public class ScreenshotService {
    */
   public void updateScreenshot(Screenshot screenshot) {
     screenshotRepository.save(screenshot);
+  }
+
+  /**
+   * Deletes a screenshot
+   *
+   * @param id screenshotId
+   */
+  @Transactional
+  public void deleteScreenshot(Long id) {
+    List<ThirdPartyScreenshot> thirdPartyScreenshots =
+        thirdPartyScreenshotRepository.findAllByScreenshotId(id);
+
+    final Map<String, ThirdPartySyncJobConfig> thirdPartySyncJobs =
+        thirdPartySyncJobsConfig.getThirdPartySyncJobs();
+
+    for (ThirdPartyScreenshot thirdPartyScreenshot : thirdPartyScreenshots) {
+      String repository =
+          thirdPartyScreenshot.getScreenshot().getScreenshotTextUnits().stream()
+              .findFirst()
+              .get()
+              .getTmTextUnit()
+              .getAsset()
+              .getRepository()
+              .getName();
+
+      String projectId = thirdPartySyncJobs.get(repository).getThirdPartyProjectId();
+
+      thirdPartyService.removeImage(projectId, thirdPartyScreenshot.getThirdPartyId());
+      thirdPartyScreenshotRepository.deleteById(thirdPartyScreenshot.getId());
+    }
+
+    screenshotTextUnitRepository.deleteAllByScreenshot_Id(id);
+    screenshotRepository.deleteById(id);
   }
 }

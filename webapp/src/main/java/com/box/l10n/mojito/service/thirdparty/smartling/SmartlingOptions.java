@@ -13,7 +13,9 @@ public final class SmartlingOptions {
 
   public static final String PLURAL_FIX = "smartling-plural-fix";
   public static final String PLACEHOLDER_FORMAT = "smartling-placeholder-format";
+
   public static final String PLACEHOLDER_FORMAT_CUSTOM = "smartling-placeholder-format-custom";
+  public static final String STRING_FORMAT = "smartling-string-format";
   public static final String DRY_RUN = "dry-run";
   public static final String REQUEST_ID = "request-id";
   public static final String JSON_SYNC = "json-sync";
@@ -23,6 +25,7 @@ public final class SmartlingOptions {
   private final Set<String> pluralFixForLocales;
   private final String placeholderFormat;
   private final String customPlaceholderFormat;
+  private final String stringFormat;
   private final boolean dryRun;
   private final String requestId;
   private final boolean isJsonSync;
@@ -33,6 +36,7 @@ public final class SmartlingOptions {
       Set<String> pluralFixForLocales,
       String placeholderFormat,
       String customPlaceholderFormat,
+      String stringFormat,
       boolean dryRun,
       String requestId,
       boolean isJsonSync,
@@ -41,6 +45,7 @@ public final class SmartlingOptions {
     this.pluralFixForLocales = pluralFixForLocales;
     this.placeholderFormat = placeholderFormat;
     this.customPlaceholderFormat = customPlaceholderFormat;
+    this.stringFormat = stringFormat;
     this.dryRun = dryRun;
     this.requestId = requestId;
     this.isJsonSync = isJsonSync;
@@ -60,6 +65,7 @@ public final class SmartlingOptions {
     String dryRunStr = map.get(DRY_RUN);
     String placeholderFormat = map.get(PLACEHOLDER_FORMAT);
     String customPlaceholderFormat = map.get(PLACEHOLDER_FORMAT_CUSTOM);
+    String stringFormat = map.get(STRING_FORMAT);
     String requestId = map.get(REQUEST_ID);
     String isJsonSync = map.get(JSON_SYNC);
     String isGlossarySync = map.get(GLOSSARY_SYNC);
@@ -71,6 +77,7 @@ public final class SmartlingOptions {
             : ImmutableSet.copyOf(pluralFixStr.split(",")),
         placeholderFormat,
         customPlaceholderFormat,
+        stringFormat,
         parseBoolean(dryRunStr),
         requestId,
         parseBoolean(isJsonSync),
@@ -88,6 +95,10 @@ public final class SmartlingOptions {
 
   public String getCustomPlaceholderFormat() {
     return customPlaceholderFormat;
+  }
+
+  public String getStringFormat() {
+    return stringFormat;
   }
 
   public boolean isDryRun() {

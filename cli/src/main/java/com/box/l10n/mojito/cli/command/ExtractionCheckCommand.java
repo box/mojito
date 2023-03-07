@@ -19,10 +19,14 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
 import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderException;
+import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderGithub;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderPhabricator;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSenderSlack;
 import com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckThirdPartyNotificationService;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
+import com.box.l10n.mojito.github.GithubClients;
+import com.box.l10n.mojito.github.GithubException;
+import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.box.l10n.mojito.regex.PlaceholderRegularExpressions;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.base.Strings;
@@ -35,6 +39,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.fusesource.jansi.Ansi;
+import org.kohsuke.github.GHCommitState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +58,9 @@ public class ExtractionCheckCommand extends Command {
   static Logger logger = LoggerFactory.getLogger(ExtractionDiffCommand.class);
 
   @Autowired ExtractionDiffService extractionDiffService;
+
+  @Autowired(required = false)
+  GithubClients githubClients;
 
   @Autowired ConsoleWriter consoleWriter;
 
@@ -102,6 +110,14 @@ public class ExtractionCheckCommand extends Command {
       description =
           "Optional message template to customize the Slack notification message. eg. '{baseMessage}. Check [[https://build.org/1234|build]].' ")
   String slackMessageTemplate = "{baseMessage}";
+
+  @Parameter(
+      names = {"--github-message-template", "-gmt"},
+      arity = 1,
+      required = false,
+      description =
+          "Optional message template to customize the Github notification message. eg. '{baseMessage}. Check [[https://build.org/1234|build]].' ")
+  String githubMessageTemplate = "{baseMessage}";
 
   @Parameter(
       names = {"--hard-fail-message", "-hfm"},
@@ -209,6 +225,48 @@ public class ExtractionCheckCommand extends Command {
           "URL template for reporting individual check statistics via HTTP PUT request. Parameterized options are 'check_name' and 'outcome' which can be used to report statistics on an individual check level.")
   String statsUrlTemplate;
 
+  @Parameter(
+      names = {"--github-owner", "-go"},
+      arity = 1,
+      required = false,
+      description = "The owner of the Github repository")
+  String githubOwner;
+
+  @Parameter(
+      names = {"--github-repo", "-gr"},
+      arity = 1,
+      required = false,
+      description = "The name of the Github repository")
+  String githubRepository;
+
+  @Parameter(
+      names = {"--github-pr-number", "-gpr"},
+      arity = 1,
+      required = false,
+      description = "The number of the Github Pull Request")
+  Integer githubPRNumber;
+
+  @Parameter(
+      names = {"--set-github-commit-status", "-sgcs"},
+      arity = 1,
+      required = false,
+      description = "Boolean indicating if a status should be set against the commit in Github.")
+  Boolean setGithubCommitStatus = false;
+
+  @Parameter(
+      names = {"--github-commit-status-target-url", "-gcstu"},
+      arity = 1,
+      required = false,
+      description = "Target url used for the Github commit status.")
+  String githubCommitStatusTargetUrl = "";
+
+  @Parameter(
+      names = {"--commit-sha", "-csha"},
+      arity = 1,
+      required = false,
+      description = "Full git commit sha, used for setting a status on a commit in Github.")
+  String commitSha;
+
   @Autowired AuthenticatedRestTemplate restTemplate;
 
   List<ExtractionCheckNotificationSender> extractionCheckNotificationSenders = new ArrayList<>();
@@ -254,8 +312,11 @@ public class ExtractionCheckCommand extends Command {
           reportStatistics(cliCheckerResults);
           checkForHardFail(cliCheckerFailures);
           if (!cliCheckerFailures.isEmpty()) {
+            printIfTextUnitInAddedAndRemoved(assetExtractionDiffs);
             outputFailuresToCommandLine(cliCheckerFailures);
             sendFailureNotifications(cliCheckerFailures, false);
+          } else if (isSetGithubStatus()) {
+            createGithubCommitStatus();
           }
         } else {
           consoleWriter.newLine().a("No new strings in diff to be checked.").println();
@@ -266,6 +327,41 @@ public class ExtractionCheckCommand extends Command {
       }
       consoleWriter.fg(Ansi.Color.GREEN).newLine().a("Checks completed").println(2);
     }
+  }
+
+  private boolean isSetGithubStatus() {
+    return setGithubCommitStatus && githubClients.isClientAvailable(githubOwner);
+  }
+
+  private void printIfTextUnitInAddedAndRemoved(List<AssetExtractionDiff> assetExtractionDiffs) {
+
+    for (AssetExtractionDiff assetExtractionDiff : assetExtractionDiffs) {
+      List<AssetExtractorTextUnit> added = assetExtractionDiff.getAddedTextunits();
+      List<AssetExtractorTextUnit> removed = assetExtractionDiff.getRemovedTextunits();
+
+      String textUnitIdsStr =
+          added.stream()
+              .filter(addedTU -> containsTextUnitName(removed, addedTU.getName()))
+              .map(addedTU -> String.format("'%s'", addedTU.getName()))
+              .collect(Collectors.joining(", "));
+      if (textUnitIdsStr != null && !textUnitIdsStr.isEmpty()) {
+        consoleWriter
+            .fg(Ansi.Color.YELLOW)
+            .newLine()
+            .a(
+                String.format(
+                    "Text units with the following ids found in both added and removed lists: %s",
+                    textUnitIdsStr))
+            .println();
+      }
+    }
+  }
+
+  private boolean containsTextUnitName(List<AssetExtractorTextUnit> textUnits, String name) {
+    return textUnits.stream()
+        .filter(textUnit -> textUnit.getName().equals(name))
+        .findFirst()
+        .isPresent();
   }
 
   private void initNotificationSenders() {
@@ -322,6 +418,19 @@ public class ExtractionCheckCommand extends Command {
                 hardFailureMessage,
                 checksSkippedMessage,
                 slackUseDirectMessage);
+        break;
+      case GITHUB:
+        extractionCheckNotificationSender =
+            new ExtractionCheckNotificationSenderGithub(
+                githubMessageTemplate,
+                hardFailureMessage,
+                checksSkippedMessage,
+                githubOwner,
+                githubRepository,
+                githubPRNumber,
+                setGithubCommitStatus,
+                commitSha,
+                githubCommitStatusTargetUrl);
         break;
       default:
         throw new CommandException(
@@ -465,5 +574,27 @@ public class ExtractionCheckCommand extends Command {
     }
 
     return checkers;
+  }
+
+  private void createGithubCommitStatus() {
+    try {
+      githubClients
+          .getClient(githubOwner)
+          .addStatusToCommit(
+              githubRepository,
+              commitSha,
+              GHCommitState.SUCCESS,
+              "All checks passed",
+              "I18N String Checks",
+              githubCommitStatusTargetUrl);
+    } catch (GithubException e) {
+      consoleWriter
+          .fg(Ansi.Color.YELLOW)
+          .newLine()
+          .a(
+              String.format(
+                  "Exception occurred when adding status to commit %s in repository %s: %s",
+                  commitSha, githubRepository, e.getMessage()));
+    }
   }
 }

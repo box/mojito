@@ -135,6 +135,13 @@ public class PoPluralRuleTest {
   }
 
   @Test
+  public void testCroatian() {
+    PoPluralRule rulesForBcp47Tag = PoPluralRule.fromBcp47Tag("hr");
+    Assert.assertEquals(
+        PoPluralRule.THREE_FORMS_SPECIAL_FOR_ENDING_1_AND_234_EXCEPT_114_ONLY3, rulesForBcp47Tag);
+  }
+
+  @Test
   public void testHebrew() {
     PoPluralRule rulesForBcp47Tag = PoPluralRule.fromBcp47Tag("he");
     Assert.assertEquals(PoPluralRule.FOUR_FORMS_FRACTIONAL_DIGITS_OTHER, rulesForBcp47Tag);

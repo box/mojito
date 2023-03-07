@@ -209,6 +209,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
 
     Repository repository = createTestRepoUsingRepoService();
     repositoryService.addRepositoryLocale(repository, "ru-RU");
+    repositoryService.addRepositoryLocale(repository, "hr-HR");
 
     getL10nJCommander()
         .run(
@@ -228,7 +229,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-t",
             getInputResourcesTestDir("translations").getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU,hr-HR:hr-HR");
 
     getL10nJCommander()
         .run(
@@ -240,7 +241,7 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             "-t",
             getTargetTestDir().getAbsolutePath(),
             "-lm",
-            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU");
+            "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP,ru-RU:ru-RU,hr-HR:hr-HR");
 
     checkExpectedGeneratedResources();
   }
@@ -938,6 +939,96 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
             getTargetTestDir("withMapping").getAbsolutePath(),
             "-lm",
             "en-US:en-US,en:en,fr-FR:fr-FR");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
+  public void importYaml() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "YAML");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft",
+            "YAML");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir().getAbsolutePath(),
+            "-ft",
+            "YAML");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
+  public void importYamlWithExtractFields() throws Exception {
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "YAML",
+            "-fo",
+            "extractAllPairs=false",
+            "exceptions=title");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft",
+            "YAML",
+            "-fo",
+            "extractAllPairs=false",
+            "exceptions=title");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir().getAbsolutePath(),
+            "-ft",
+            "YAML");
 
     checkExpectedGeneratedResources();
   }

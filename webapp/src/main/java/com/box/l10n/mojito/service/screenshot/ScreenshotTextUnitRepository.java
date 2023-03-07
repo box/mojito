@@ -13,4 +13,6 @@ public interface ScreenshotTextUnitRepository
     extends JpaRepository<ScreenshotTextUnit, Long>, JpaSpecificationExecutor<ScreenshotTextUnit> {
 
   List<ScreenshotTextUnit> findByTmTextUnitIdIn(Set<Long> tmTextUnitId);
+
+  void deleteAllByScreenshot_Id(Long id);
 }

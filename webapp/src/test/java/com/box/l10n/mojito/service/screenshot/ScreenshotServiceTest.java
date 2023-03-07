@@ -3,25 +3,29 @@ package com.box.l10n.mojito.service.screenshot;
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.Screenshot;
-import com.box.l10n.mojito.entity.ScreenshotRun;
+import com.box.l10n.mojito.entity.*;
+import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.repository.RepositoryNameAlreadyUsedException;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartyScreenshotRepository;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartyService;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobConfig;
+import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobsConfig;
 import com.box.l10n.mojito.service.tm.TMTestData;
+import com.box.l10n.mojito.service.tm.TMTextUnitRepository;
 import com.box.l10n.mojito.test.TestIdWatcher;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,6 +48,76 @@ public class ScreenshotServiceTest extends ServiceTestBase {
   @Autowired RepositoryRepository repositoryRepository;
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
+
+  @Mock ThirdPartyService thirdPartyServiceMock;
+
+  @Autowired ThirdPartyService thirdPartyService;
+
+  @Autowired ThirdPartyScreenshotRepository thirdPartyScreenshotRepository;
+
+  @Autowired ScreenshotTextUnitRepository screenshotTextUnitRepository;
+
+  @Autowired TMTextUnitRepository tmTextUnitRepository;
+
+  @Autowired AssetService assetService;
+
+  @Autowired ThirdPartySyncJobsConfig thirdPartySyncJobsConfig;
+
+  @Test
+  public void testDeleteScreenshot() throws Exception {
+    final Map<String, ThirdPartySyncJobConfig> thirdPartySyncJobs =
+        thirdPartySyncJobsConfig.getThirdPartySyncJobs();
+
+    screenshotService.thirdPartyService = thirdPartyServiceMock;
+
+    Screenshot screenshot = new Screenshot();
+    screenshot.setId(1L);
+    screenshot.setName("screenshot");
+    screenshotRepository.save(screenshot);
+
+    Assert.assertNotNull(screenshotRepository.findById(screenshot.getId()).orElse(null));
+
+    ThirdPartyScreenshot thirdPartyScreenshot = new ThirdPartyScreenshot();
+    thirdPartyScreenshot.setScreenshot(screenshot);
+    thirdPartyScreenshot.setId(1L);
+    thirdPartyScreenshot.setThirdPartyId("smartlingScreenshotId");
+    thirdPartyScreenshotRepository.save(thirdPartyScreenshot);
+
+    List<ThirdPartyScreenshot> createdThirdPartyScreenshots =
+        thirdPartyScreenshotRepository.findAllByScreenshotId(screenshot.getId());
+    Assert.assertEquals(createdThirdPartyScreenshots.get(0).getId(), thirdPartyScreenshot.getId());
+
+    Repository repository = repositoryService.createRepository("testRepository");
+
+    Asset asset =
+        assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
+
+    TMTextUnit tmTextUnit = new TMTextUnit();
+    tmTextUnit.setAsset(asset);
+    tmTextUnitRepository.save(tmTextUnit);
+
+    ScreenshotTextUnit screenshotTextUnit = new ScreenshotTextUnit();
+    screenshotTextUnit.setId(1L);
+    screenshotTextUnit.setScreenshot(screenshot);
+    screenshotTextUnit.setTmTextUnit(tmTextUnit);
+    screenshotTextUnitRepository.save(screenshotTextUnit);
+
+    ScreenshotTextUnit createdScreenshotTextUnit =
+        screenshotTextUnitRepository.findById(screenshotTextUnit.getId()).orElse(null);
+    assertEquals(createdScreenshotTextUnit.getScreenshot().getId(), screenshot.getId());
+
+    screenshotService.deleteScreenshot(screenshot.getId());
+
+    verify(thirdPartyServiceMock, times(1))
+        .removeImage(
+            thirdPartySyncJobs.get(repository.getName()).getThirdPartyProjectId(),
+            thirdPartyScreenshot.getThirdPartyId());
+    Assert.assertNull(screenshotRepository.findById(screenshot.getId()).orElse(null));
+    Assert.assertEquals(
+        0, thirdPartyScreenshotRepository.findAllByScreenshotId(screenshot.getId()).size());
+    Assert.assertNull(
+        screenshotTextUnitRepository.findById(screenshotTextUnit.getId()).orElse(null));
+  }
 
   @Test
   public void testCreateScreenshotRun() throws Exception {

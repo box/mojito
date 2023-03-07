@@ -8,53 +8,52 @@ import com.ibm.icu.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
-@Component
 public class BranchNotificationMessageBuilderPhabricator {
 
   /** logger */
   static Logger logger = getLogger(BranchNotificationMessageBuilderPhabricator.class);
 
-  @Autowired BranchUrlBuilder branchUrlBuilder;
+  BranchUrlBuilder branchUrlBuilder;
 
-  @Value(
-      "${l10n.branchNotification.phabricator.notification.message.new.format:{message}{link}\n\n{strings}}")
-  String getNewNotificationMsgFormat;
+  String newNotificationMsgFormat;
 
-  @Value(
-      "${l10n.branchNotification.phabricator.notification.message.updated.format:{message}{link}\n\n{strings}}")
-  String getUpdatedNotificationMsgFormat;
+  String updatedNotificationMsgFormat;
 
-  @Value(
-      "${l10n.branchNotification.phabricator.notification.message.new:We received your strings! "
-          + "Please **add screenshots** as soon as possible and **wait for translations** before releasing. }")
-  String newNotificationMsg;
+  String newStringMsg;
 
-  @Value(
-      "${l10n.branchNotification.phabricator.notification.message.updated:Your branch was updated with new strings! "
-          + "Please **add screenshots** as soon as possible and **wait for translations** before releasing. }")
-  String updatedNotificationMsg;
+  String updatedStringMsg;
 
-  @Value(
-      "${l10n.branchNotification.phabricator.notification.message.noMoreStrings:The branch was updated and there are no more strings to translate.}")
   String noMoreStringsMsg;
 
-  @Value(
-      "${l10n.branchNotification.phabricator.notification.message.translationsReady:Translations are ready!!}")
   String translationsReadyMsg;
 
-  @Value(
-      "${l10n.branchNotification.phabricator.notification.message.screenshotsMissing:Please provide screenshots to help localization team}")
   String screenshotsMissingMsg;
 
+  public BranchNotificationMessageBuilderPhabricator(
+      BranchUrlBuilder branchUrlBuilder,
+      String newNotificationMsgFormat,
+      String updatedNotificationMsgFormat,
+      String newStringMsg,
+      String updatedStringMsg,
+      String noMoreStringsMsg,
+      String translationsReadyMsg,
+      String screenshotsMissingMsg) {
+    this.branchUrlBuilder = branchUrlBuilder;
+    this.newNotificationMsgFormat = newNotificationMsgFormat;
+    this.updatedNotificationMsgFormat = updatedNotificationMsgFormat;
+    this.newStringMsg = newStringMsg;
+    this.updatedStringMsg = updatedStringMsg;
+    this.noMoreStringsMsg = noMoreStringsMsg;
+    this.translationsReadyMsg = translationsReadyMsg;
+    this.screenshotsMissingMsg = screenshotsMissingMsg;
+  }
+
   public String getNewMessage(String branchName, List<String> sourceStrings) {
-    MessageFormat messageFormat = new MessageFormat(getNewNotificationMsgFormat);
+    MessageFormat messageFormat = new MessageFormat(newNotificationMsgFormat);
     ImmutableMap<String, Object> messageParamMap =
         ImmutableMap.<String, Object>builder()
-            .put("message", newNotificationMsg)
+            .put("message", newStringMsg)
             .put("link", getLinkGoToMojito(branchName))
             .put("strings", getFormattedSourceStrings(sourceStrings))
             .build();
@@ -65,7 +64,7 @@ public class BranchNotificationMessageBuilderPhabricator {
 
     String msg = null;
 
-    MessageFormat messageFormat = new MessageFormat(getUpdatedNotificationMsgFormat);
+    MessageFormat messageFormat = new MessageFormat(updatedNotificationMsgFormat);
     ImmutableMap<String, Object> messageParamMap;
     if (sourceStrings.isEmpty()) {
       messageParamMap =
@@ -73,7 +72,7 @@ public class BranchNotificationMessageBuilderPhabricator {
     } else {
       messageParamMap =
           ImmutableMap.<String, Object>builder()
-              .put("message", updatedNotificationMsg)
+              .put("message", updatedStringMsg)
               .put("link", getLinkGoToMojito(branchName))
               .put("strings", getFormattedSourceStrings(sourceStrings))
               .build();

@@ -1,0 +1,67 @@
+﻿openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: REST API の例
+tags:
+  - name: tag_1
+    description: |-
+      スカラー値を使用したタグの例。
+      
+      スカラーを完全にテストするために改行します。
+  - name: tag_2
+    description: テストタグ 2
+  - name: tag_3
+    description: テストタグ 3
+    x-custom-field: test
+
+paths:
+  /v1/user:
+    post:
+      summary: ユーザーを作成
+      description: |-
+        これでユーザーが作成されます。
+
+        ユーザーが既に存在する場合は、エラーがスローされます。
+      tags:
+        - tag_1
+      requestBody:
+        description: ユーザー入力データ。
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: ユーザー応答データ。
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      parameters:
+        - $ref: '#/components/parameters/id'
+components:
+  schemas:
+    User:
+      title: ユーザーサンプル構造
+      description: ユーザーの有効なスキーマを記述します。
+      type: object
+      properties:
+        id:
+          type: string
+          description: "ユーザーの一意の識別子"
+        name:
+          type: string
+          description: ユーザーの名前。
+      required:
+        - name
+
+  parameters:
+    id:
+      name: id
+      description: ユーザーの一意の識別子。
+      in: query
+      schema:
+        type: string
+        pattern: ^\d+$
+        maxLength: 18

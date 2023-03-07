@@ -1,0 +1,67 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Example REST API
+tags:
+  - name: tag_1
+    description: |-
+      Sample tag using scalar value.
+      
+      Breaking lines to fully test scalar.
+  - name: tag_2
+    description: Test tag 2
+  - name: tag_3
+    description: Test tag 3
+    x-custom-field: test
+
+paths:
+  /v1/user:
+    post:
+      summary: Create user
+      description: |-
+        This will create a user.
+
+        If the user already exists, an error will be thrown.
+      tags:
+        - tag_1
+      requestBody:
+        description: User input data.
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: User response data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+      parameters:
+        - $ref: '#/components/parameters/id'
+components:
+  schemas:
+    User:
+      title: User sample structure
+      description: Describes the valid schema for a user.
+      type: object
+      properties:
+        id:
+          type: string
+          description: "Unique identifier for the user"
+        name:
+          type: string
+          description: User's name.
+      required:
+        - name
+
+  parameters:
+    id:
+      name: id
+      description: Unique identifier of a user.
+      in: query
+      schema:
+        type: string
+        pattern: ^\d+$
+        maxLength: 18

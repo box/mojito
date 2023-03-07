@@ -144,7 +144,16 @@ public class AssetServiceTest extends ServiceTestBase {
 
     PollableFuture<Asset> assetResult =
         assetService.addOrUpdateAssetAndProcessIfNeeded(
-            repositoryId, assetPath, assetContent, false, branchName, null, pushRunId, null, null);
+            repositoryId,
+            assetPath,
+            assetContent,
+            false,
+            branchName,
+            null,
+            null,
+            pushRunId,
+            null,
+            null);
 
     try {
       pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());

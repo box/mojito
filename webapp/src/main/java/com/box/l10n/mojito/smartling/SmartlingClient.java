@@ -3,17 +3,7 @@ package com.box.l10n.mojito.smartling;
 import com.box.l10n.mojito.iterators.PageFetcherOffsetAndLimitSplitIterator;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.smartling.request.Bindings;
-import com.box.l10n.mojito.smartling.response.ContextUpload;
-import com.box.l10n.mojito.smartling.response.ContextUploadResponse;
-import com.box.l10n.mojito.smartling.response.File;
-import com.box.l10n.mojito.smartling.response.FileUploadResponse;
-import com.box.l10n.mojito.smartling.response.FilesResponse;
-import com.box.l10n.mojito.smartling.response.GetGlossaryDetailsResponse;
-import com.box.l10n.mojito.smartling.response.GlossaryDetails;
-import com.box.l10n.mojito.smartling.response.Items;
-import com.box.l10n.mojito.smartling.response.Response;
-import com.box.l10n.mojito.smartling.response.SourceStringsResponse;
-import com.box.l10n.mojito.smartling.response.StringInfo;
+import com.box.l10n.mojito.smartling.response.*;
 import com.google.common.base.Charsets;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -61,6 +51,8 @@ public class SmartlingClient {
       "files-api/v2/projects/{projectId}/locales/{locale_id}/file?fileUri={fileUri}&includeOriginalStrings={includeOriginalStrings}&retrievalType={retrievalType}";
   static final String API_FILES_DELETE = "files-api/v2/projects/{projectId}/file/delete";
   static final String API_CONTEXTS = "context-api/v2/projects/{projectId}/contexts";
+  static final String API_CONTEXTS_DETAILS =
+      "context-api/v2/projects/{projectId}/contexts/{contextId}";
   static final String API_BINDINGS = "context-api/v2/projects/{projectId}/bindings";
   static final String API_GLOSSARY_DETAILS =
       "glossary-api/v2/accounts/{accountId}/glossaries/{glossaryId}";
@@ -78,6 +70,8 @@ public class SmartlingClient {
   static final String ERROR_CANT_UPLOAD_FILE = "Can't upload file: %s";
   static final String ERROR_CANT_DELETE_FILE = "Can't delete file: %s";
   static final String ERROR_CANT_UPLOAD_CONTEXT = "Can't upload context: %s";
+  static final String ERROR_CANT_DELETE_CONTEXT = "Can't delete context: %s";
+  static final String ERROR_CANT_GET_CONTEXT = "Can't get context: %s";
   static final String ERROR_CANT_CREATE_BINDINGS = "Can't create bindings: %s";
   static final String ERROR_CANT_GET_GLOSSARY_DETAILS =
       "Can't retrieve glossary details accountId: %s, glossaryId: %s";
@@ -231,7 +225,8 @@ public class SmartlingClient {
       String fileType,
       String fileContent,
       String placeholderFormat,
-      String placeholderFormatCustom) {
+      String placeholderFormatCustom,
+      String stringFormat) {
 
     NamedByteArrayResource fileContentAsResource =
         new NamedByteArrayResource(fileContent.getBytes(Charsets.UTF_8), fileUri);
@@ -241,6 +236,7 @@ public class SmartlingClient {
     body.add("fileType", fileType);
     body.add("smartling.placeholder_format", placeholderFormat);
     body.add("smartling.placeholder_format_custom", placeholderFormatCustom);
+    body.add("smartling.string_format", stringFormat);
     body.add("smartling.instruction_comments_enabled", "on");
     body.add("file", fileContentAsResource);
 
@@ -313,7 +309,7 @@ public class SmartlingClient {
     }
   }
 
-  public ContextUpload uploadContext(String projectId, String name, byte[] content) {
+  public Context uploadContext(String projectId, String name, byte[] content) {
 
     ByteArrayResource contentAsResource = new NamedByteArrayResource(content, name);
 
@@ -326,11 +322,11 @@ public class SmartlingClient {
     HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
     try {
-      ContextUploadResponse contextUploadResponse =
+      ContextResponse contextResponse =
           oAuth2RestTemplate.postForObject(
-              API_CONTEXTS, requestEntity, ContextUploadResponse.class, projectId);
-      throwExceptionOnError(contextUploadResponse, ERROR_CANT_UPLOAD_CONTEXT, name);
-      return contextUploadResponse.getData();
+              API_CONTEXTS, requestEntity, ContextResponse.class, projectId);
+      throwExceptionOnError(contextResponse, ERROR_CANT_UPLOAD_CONTEXT, name);
+      return contextResponse.getData();
     } catch (HttpClientErrorException e) {
       throw wrapIntoSmartlingException(e, ERROR_CANT_UPLOAD_CONTEXT, name);
     }
@@ -424,6 +420,28 @@ public class SmartlingClient {
     @Override
     public String getFilename() {
       return filename;
+    }
+  }
+
+  public void deleteContext(String projectId, String contextId) {
+    try {
+      oAuth2RestTemplate.delete(
+          API_CONTEXTS_DETAILS.replace("{projectId}", projectId).replace("{contextId}", contextId));
+    } catch (HttpClientErrorException e) {
+      throw wrapIntoSmartlingException(e, ERROR_CANT_DELETE_CONTEXT, contextId);
+    }
+  }
+
+  public Context getContext(String projectId, String contextId) {
+    try {
+      ContextResponse contextResponse =
+          oAuth2RestTemplate.getForObject(
+              API_CONTEXTS_DETAILS, ContextResponse.class, projectId, contextId);
+
+      throwExceptionOnError(contextResponse, ERROR_CANT_GET_CONTEXT, contextId);
+      return contextResponse.getData();
+    } catch (HttpClientErrorException e) {
+      throw wrapIntoSmartlingException(e, ERROR_CANT_GET_CONTEXT, contextId);
     }
   }
 }

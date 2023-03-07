@@ -57,7 +57,19 @@ public @interface Pollable {
    * Period after which a pollable task should be considered as stuck. By default, the timeout is 1
    * hour.
    *
+   * <p>If the pollable task has a parent task, it will use the parent's timeout unless {@link
+   * #overrideParentTimeout()} is to true
+   *
    * @return the delay in seconds
    */
   long timeout() default 3600;
+
+  /**
+   * Indicates if the timeout value set in the annotation should take precedence over the parent's
+   * timeout value.
+   *
+   * @return {@code true} if a parent tasks timeout value should be overridden in the child else
+   *     {@code false} (default)
+   */
+  boolean overrideParentTimeout() default false;
 }

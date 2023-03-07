@@ -9,7 +9,6 @@ import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffPaths;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffService;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionDiffStatistics;
 import com.box.l10n.mojito.cli.command.extraction.ExtractionPaths;
-import com.box.l10n.mojito.cli.command.extraction.MissingExtractionDirectoryExcpetion;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.phabricator.DifferentialRevision;
 import com.box.l10n.mojito.phabricator.PhabricatorMessageBuilder;
@@ -34,7 +33,8 @@ import org.springframework.stereotype.Component;
 @Parameters(
     commandNames = {"phab-extraction-diff-notif"},
     commandDescription = "Compute extraction diff statistics and optionally notify Phabricator")
-public class PhabricatorExtractionDiffNotificationCommand extends Command {
+public class PhabricatorExtractionDiffNotificationCommand
+    extends AbstractExtractionDiffNotificationCommand {
   /** logger */
   static Logger logger =
       LoggerFactory.getLogger(PhabricatorExtractionDiffNotificationCommand.class);
@@ -110,27 +110,14 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
   public void execute() throws CommandException {
     PhabricatorPreconditions.checkNotNull(differentialRevision);
 
-    ExtractionPaths baseExtractionPaths =
-        new ExtractionPaths(inputDirectoryParam, baseExtractionName);
-    ExtractionPaths currentExtractionPaths =
-        new ExtractionPaths(inputDirectoryParam, currentExtractionName);
-    ExtractionDiffPaths extractionDiffPaths =
-        ExtractionDiffPaths.builder()
-            .outputDirectory(outputDirectoryParam)
-            .diffExtractionName(extractionDiffName)
-            .baseExtractorPaths(baseExtractionPaths)
-            .currentExtractorPaths(currentExtractionPaths)
-            .build();
-
-    ExtractionDiffStatistics extractionDiffStatistics = null;
-    try {
-      extractionDiffStatistics =
-          extractionDiffService.computeExtractionDiffStatistics(extractionDiffPaths);
-    } catch (MissingExtractionDirectoryExcpetion missingExtractionDirectoryExcpetion) {
-      throw new CommandException(
-          "Can't compute extraction diff statistics", missingExtractionDirectoryExcpetion);
-    }
-
+    ExtractionDiffStatistics extractionDiffStatistics =
+        getExtractionDiffStatistics(
+            extractionDiffService,
+            inputDirectoryParam,
+            currentExtractionName,
+            baseExtractionName,
+            outputDirectoryParam,
+            extractionDiffName);
     if (shouldSendNotification(extractionDiffStatistics)) {
       String message = getMessage(extractionDiffStatistics);
       consoleWriterAnsiCodeEnabledFalse.a(message).println();
@@ -138,10 +125,6 @@ public class PhabricatorExtractionDiffNotificationCommand extends Command {
     } else {
       consoleWriterAnsiCodeEnabledFalse.a("No need to send notification").println();
     }
-  }
-
-  boolean shouldSendNotification(ExtractionDiffStatistics extractionDiffStatistics) {
-    return extractionDiffStatistics.getRemoved() > 0 || extractionDiffStatistics.getAdded() > 0;
   }
 
   String getMessage(AbstractExtractionDiffStatistics extractionDiffStatistics) {

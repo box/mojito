@@ -3,7 +3,6 @@ package com.box.l10n.mojito.thirdpartynotification.slack;
 import com.box.l10n.mojito.slack.SlackClient;
 import com.box.l10n.mojito.slack.SlackClientException;
 import com.ibm.icu.text.MessageFormat;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +10,11 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty("l10n.slack.token")
 public class SlackChannels {
 
-  @Autowired SlackClient slackClient;
+  SlackClient slackClient;
+
+  public SlackChannels(SlackClient slackClient) {
+    this.slackClient = slackClient;
+  }
 
   public String getSlackChannelForDirectOrBotMessage(
       boolean useDirectMessage, String username, String userEmailPattern)

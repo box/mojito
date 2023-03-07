@@ -1,11 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import com.box.l10n.mojito.entity.Repository;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,6 +18,14 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
 
   HashMap<String, byte[]> images = new HashMap<>();
   HashMap<String, HashMap<String, String>> imageToTextUnitMappings = new HashMap<>();
+
+  @Override
+  public void removeImage(String projectId, String imageId) {
+    logger.debug(
+        "remove image (screenshot) from Smartling, project id: {}, imageId: {}",
+        projectId,
+        imageId);
+  }
 
   /**
    * Storing the uploaded images, that could be useful for testing but at the moment is useless...

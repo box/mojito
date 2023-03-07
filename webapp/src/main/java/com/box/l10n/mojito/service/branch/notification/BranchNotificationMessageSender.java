@@ -15,4 +15,6 @@ public interface BranchNotificationMessageSender {
 
   void sendScreenshotMissingMessage(String branchName, String messageId, String username)
       throws BranchNotificationMessageSenderException;
+
+  String getId();
 }

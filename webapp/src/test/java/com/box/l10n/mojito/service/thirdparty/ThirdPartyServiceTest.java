@@ -131,6 +131,16 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testRemoveImage() {
+    String projectId = "projectId";
+    String contextId = "contextId";
+
+    thirdPartyService.removeImage(projectId, contextId);
+
+    verify(thirdPartyTMSMock, times(1)).removeImage(projectId, contextId);
+  }
+
+  @Test
   public void mapMojitoAndThirdPartyTextUnits() throws InterruptedException, ExecutionException {
 
     ThirdPartyServiceTestData thirdPartyServiceTestData =

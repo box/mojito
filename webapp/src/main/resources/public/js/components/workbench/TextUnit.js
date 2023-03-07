@@ -930,7 +930,7 @@ let TextUnit = createReactClass({
                             <Col md={6}>
                                 <Row>
                                     {this.renderSource()}
-                                    <div className="plx em color-gray-light2">{this.props.textUnit.getComment()}</div>
+                                    <div className="plx em color-gray-light2 textunit-comment">{this.props.textUnit.getComment()}</div>
                                 </Row>
                             </Col>
                             <Col md={6}>

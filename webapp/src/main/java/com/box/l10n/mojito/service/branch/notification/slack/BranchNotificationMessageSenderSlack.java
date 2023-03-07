@@ -9,31 +9,40 @@ import com.box.l10n.mojito.slack.SlackClientException;
 import com.box.l10n.mojito.slack.request.Message;
 import com.box.l10n.mojito.slack.response.ChatPostMessageResponse;
 import com.box.l10n.mojito.thirdpartynotification.slack.SlackChannels;
+import com.google.common.base.Preconditions;
 import java.util.List;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 
-@ConditionalOnProperty(value = "l10n.branchNotification.slack.enabled", havingValue = "true")
-@Component
 public class BranchNotificationMessageSenderSlack implements BranchNotificationMessageSender {
 
   /** logger */
   static Logger logger = getLogger(BranchNotificationMessageSenderSlack.class);
 
-  @Autowired SlackClient slackClient;
+  String id;
 
-  @Autowired SlackChannels slackChannels;
+  SlackClient slackClient;
 
-  @Autowired BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack;
+  SlackChannels slackChannels;
+  BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack;
 
-  @Value("${l10n.branchNotification.slack.userEmailPattern}")
   String userEmailPattern;
+  boolean useDirectMessage;
 
-  @Value("${l10n.branchNotification.slack.useDirectMessage:false}")
-  boolean useDirectMessage = false;
+  public BranchNotificationMessageSenderSlack(
+      String id,
+      SlackClient slackClient,
+      SlackChannels slackChannels,
+      BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack,
+      String userEmailPattern,
+      boolean useDirectMessage) {
+    this.id = id;
+    this.slackClient = Preconditions.checkNotNull(slackClient);
+    this.slackChannels = Preconditions.checkNotNull(slackChannels);
+    this.branchNotificationMessageBuilderSlack =
+        Preconditions.checkNotNull(branchNotificationMessageBuilderSlack);
+    this.userEmailPattern = Preconditions.checkNotNull(userEmailPattern);
+    this.useDirectMessage = useDirectMessage;
+  }
 
   @Override
   public String sendNewMessage(String branchName, String username, List<String> sourceStrings)
@@ -111,5 +120,10 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
     } catch (SlackClientException sce) {
       throw new BranchNotificationMessageSenderException(sce);
     }
+  }
+
+  @Override
+  public String getId() {
+    return id;
   }
 }

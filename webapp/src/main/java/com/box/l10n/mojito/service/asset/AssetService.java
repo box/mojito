@@ -102,6 +102,7 @@ public class AssetService {
    * @param branch
    * @param filterConfigIdOverride Optional, can be null. Allows to specify a specific Okapi filter
    *     to use to process the asset
+   * @param branchNotifierIds
    * @return The created asset
    * @throws ExecutionException
    * @throws InterruptedException
@@ -113,6 +114,7 @@ public class AssetService {
       boolean extractedContent,
       String branch,
       String branchCreatedByUsername,
+      Set<String> branchNotifierIds,
       Long pushRunId,
       FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions)
@@ -124,6 +126,7 @@ public class AssetService {
         extractedContent,
         branch,
         branchCreatedByUsername,
+        branchNotifierIds,
         pushRunId,
         filterConfigIdOverride,
         filterOptions,
@@ -151,6 +154,7 @@ public class AssetService {
       boolean extractedContent,
       String branchName,
       String branchCreatedByUsername,
+      Set<String> branchNotifierIds,
       Long pushRunId,
       FilterConfigIdOverride filterConfigIdOverride,
       List<String> filterOptions,
@@ -187,7 +191,7 @@ public class AssetService {
 
     Branch branch =
         branchService.getUndeletedOrCreateBranch(
-            asset.getRepository(), branchName, branchCreatedByUser);
+            asset.getRepository(), branchName, branchCreatedByUser, branchNotifierIds);
 
     AssetExtractionByBranch assetExtractionByBranch =
         assetExtractionByBranchRepository.findByAssetAndBranch(asset, branch).orElse(null);

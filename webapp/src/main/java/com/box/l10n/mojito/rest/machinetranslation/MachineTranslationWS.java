@@ -7,6 +7,7 @@ import com.box.l10n.mojito.quartz.QuartzJobInfo;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.machinetranslation.BatchMachineTranslationJob;
 import com.box.l10n.mojito.service.machinetranslation.MachineTranslationService;
+import com.box.l10n.mojito.service.machinetranslation.RepositoryMachineTranslationService;
 import com.box.l10n.mojito.service.machinetranslation.TranslationDTO;
 import com.box.l10n.mojito.service.machinetranslation.TranslationsResponseDTO;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class MachineTranslationWS {
+
   static Logger logger = LoggerFactory.getLogger(MachineTranslationWS.class);
 
   public static final String DEFAULT_LOCALE = "en";
@@ -35,6 +37,8 @@ public class MachineTranslationWS {
   @Autowired MachineTranslationService machineTranslationService;
 
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
+  @Autowired RepositoryMachineTranslationService repositoryMachineTranslationService;
 
   @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation-batch")
   @ResponseStatus(HttpStatus.OK)
@@ -69,5 +73,18 @@ public class MachineTranslationWS {
   @ResponseStatus(HttpStatus.OK)
   public String getMachineTranslationConfiguration() {
     return machineTranslationService.getConfiguredEngineSource().toString();
+  }
+
+  @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation/repository")
+  public RepositoryMachineTranslationBody translateRepository(
+      @RequestBody RepositoryMachineTranslationBody repositoryMachineTranslationBody) {
+
+    PollableFuture<Void> pollableFuture =
+        repositoryMachineTranslationService.translateRepository(
+            repositoryMachineTranslationBody.getRepositoryName(),
+            repositoryMachineTranslationBody.getTargetBcp47tags(),
+            repositoryMachineTranslationBody.getSourceTextMaxCountPerLocale());
+    repositoryMachineTranslationBody.setPollableTask(pollableFuture.getPollableTask());
+    return repositoryMachineTranslationBody;
   }
 }

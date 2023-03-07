@@ -46,7 +46,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
 
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
-  String senderType = BranchNotificationMessageSenderNoop.class.getSimpleName();
+  String branchNotifierId = "noop-1";
 
   @Test
   public void allNotfication() throws Exception {
@@ -72,7 +72,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
         "Branch1 new notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch1(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
                   .getNewMsgSentAt()
               != null;
         });
@@ -81,7 +81,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
         "Branch2 translated notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch2(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
                   .getNewMsgSentAt()
               != null;
         });
@@ -92,7 +92,7 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
         "Branch2 translated notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch2(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch2(), branchNotifierId)
                   .getTranslatedMsgSentAt()
               != null;
         });
@@ -105,25 +105,25 @@ public class BranchNotificationServiceTest extends ServiceTestBase {
     waitForCondition(
         "Branch notification for branch1 is missing",
         () -> {
-          return branchNotificationRepository.findByBranchAndSenderType(
-                  branchTestData.getBranch1(), senderType)
+          return branchNotificationRepository.findByBranchAndNotifierId(
+                  branchTestData.getBranch1(), branchNotifierId)
               != null;
         });
 
     BranchNotification branchNotification =
-        branchNotificationRepository.findByBranchAndSenderType(
-            branchTestData.getBranch1(), senderType);
+        branchNotificationRepository.findByBranchAndNotifierId(
+            branchTestData.getBranch1(), branchNotifierId);
     branchNotification.setScreenshotMissingMsgSentAt(DateTime.now().minusMinutes(31));
     branchNotificationRepository.save(branchNotification);
 
     branchNotificationService.scheduleMissingScreenshotNotificationsForBranch(
-        branchTestData.getBranch1(), senderType);
+        branchTestData.getBranch1(), branchNotifierId);
 
     waitForCondition(
         "Branch1 screenshot missing notification must be sent",
         () -> {
           return branchNotificationRepository
-                  .findByBranchAndSenderType(branchTestData.getBranch1(), senderType)
+                  .findByBranchAndNotifierId(branchTestData.getBranch1(), branchNotifierId)
                   .getScreenshotMissingMsgSentAt()
               != null;
         });

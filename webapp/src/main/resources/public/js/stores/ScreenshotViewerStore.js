@@ -11,9 +11,11 @@ class ScreenshotViewerStore {
         this.total = 0;
         this.branchStatisticScreenshots = [];
         this.textUnits = [];
+        this.isDeleting = false;
+        this.error = false;
     }
 
-    open(branchStatisticsScreenshots) {
+    openScreenshotsViewer(branchStatisticsScreenshots) {
         this.branchStatisticScreenshots = branchStatisticsScreenshots;
         this.loadScreenshot(1);
         this.show = true;
@@ -29,7 +31,7 @@ class ScreenshotViewerStore {
         }
     }
 
-    close() {
+    closeScreenshotsViewer() {
         this.setDefaultState();
     }
 
@@ -43,6 +45,30 @@ class ScreenshotViewerStore {
         if (this.number < this.total) {
             this.loadScreenshot(this.number + 1);
         }
+    }
+
+    delete() {
+        this.isDeleting = true;
+        this.error = false;
+        this.getInstance().delete()
+    }
+
+    onDeleteScreenshotSuccess() {
+        this.branchStatisticScreenshots.splice(this.number - 1, 1)
+
+        if (this.branchStatisticScreenshots.length) {
+            this.loadScreenshot(1)
+        } else {
+            this.closeScreenshotsViewer()
+        }
+        this.isDeleting = false
+        console.log("ScreenshotViewerStore::onDeleteScreenshotSuccess");
+    }
+
+    onDeleteScreenshotFailure({response}) {
+        this.isDeleting = false
+        this.error = true
+        console.log("ScreenshotViewerStore::onDeleteScreenshotFailure", response);
     }
 }
 

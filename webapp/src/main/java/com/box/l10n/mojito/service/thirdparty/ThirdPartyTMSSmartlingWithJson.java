@@ -100,7 +100,8 @@ public class ThirdPartyTMSSmartlingWithJson {
                                   "json",
                                   fileContent,
                                   smartlingOptions.getPlaceholderFormat(),
-                                  smartlingOptions.getCustomPlaceholderFormat()))
+                                  smartlingOptions.getCustomPlaceholderFormat(),
+                                  smartlingOptions.getStringFormat()))
                       .retryWhen(
                           smartlingClient
                               .getRetryConfiguration()

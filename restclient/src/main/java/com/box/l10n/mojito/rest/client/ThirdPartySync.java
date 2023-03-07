@@ -16,6 +16,8 @@ public class ThirdPartySync {
   String includeTextUnitsWithPattern;
   List<String> options = new ArrayList<>();
 
+  Long timeout = 3600L;
+
   public Long getRepositoryId() {
     return repositoryId;
   }
@@ -86,5 +88,13 @@ public class ThirdPartySync {
 
   public void setIncludeTextUnitsWithPattern(String includeTextUnitsWithPattern) {
     this.includeTextUnitsWithPattern = includeTextUnitsWithPattern;
+  }
+
+  public Long getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Long timeout) {
+    this.timeout = timeout;
   }
 }

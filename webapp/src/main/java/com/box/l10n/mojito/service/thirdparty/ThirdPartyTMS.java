@@ -11,6 +11,14 @@ import java.util.Map;
 interface ThirdPartyTMS {
 
   /**
+   * Removes an image from the third party TMS
+   *
+   * @param projectId the third party project id
+   * @param imageId the image id
+   */
+  void removeImage(String projectId, String imageId);
+
+  /**
    * Uploads an image into the third party TMS
    *
    * @param projectId the third party project id

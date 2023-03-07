@@ -29,4 +29,6 @@ public interface ScreenshotRepository
               + "left join  s.thirdPartyScreenshots tps "
               + "where r = ?1 and r.manualScreenshotRun = sr and tps is null")
   List<Screenshot> findUnmappedScreenshots(Repository repository);
+
+  void deleteById(Long screenshotId);
 }
