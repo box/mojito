@@ -768,7 +768,6 @@ public class PullCommandTest extends CLITestBase {
   @Test
   public void pullDirectoryIncludeExcludePatterns() throws Exception {
 
-    System.setProperty("overrideExpectedTestFiles", "true");
     Repository repository = createTestRepoUsingRepoService();
 
     getL10nJCommander()
