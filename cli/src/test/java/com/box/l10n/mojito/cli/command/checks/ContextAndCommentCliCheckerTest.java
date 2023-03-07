@@ -164,7 +164,7 @@ public class ContextAndCommentCliCheckerTest {
     assetExtractorTextUnit.setName("Some id --- Public Beta tab page title");
     assetExtractorTextUnit.setSource("Beta Program on X");
     assetExtractorTextUnit.setComments(null);
-    // OR assetExtractorTextUnit.setComments(null);
+    // OR assetExtractorTextUnit.setComments("");
     addedTUs.add(assetExtractorTextUnit);
     List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
     AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
