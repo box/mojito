@@ -145,23 +145,39 @@ public class SmartlingClientTest {
   }
 
   @Test
+  public void testUploadFileWithWhitespace() {
+    Assume.assumeNotNull(smartlingTestConfig.projectId);
+    uploadFile(
+        smartlingTestConfig.projectId,
+        "strings.xml",
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?><resources>"
+            + "<!--smartling.whitespace_trim=off-->"
+            + "<string name=\"bundle.yaml#@#info/description\" tmTextUnitId=\"3511\" xml:space=\"preserve\">Example's REST API</string>"
+            + "<string name=\"bundle.yaml#@#tags/description\" tmTextUnitId=\"3512\" xml:space=\"preserve\">       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n      - Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n      - Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \n      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>"
+            + "<string name=\"bundle.yaml#@#tags/description\" tmTextUnitId=\"3513\" xml:space=\"preserve\">1    \n    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n    - Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n    - Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \n    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</string>"
+            + "<!--smartling.whitespace_trim=off-->"
+            + "<string name=\"bundle.yaml#@#info/title\" tmTextUnitId=\"3514\" xml:space=\"preserve\">       Example      REST           API\n    - Example2      REST           API\n    - Example2      REST           API</string>"
+            + "</resources>");
+  }
+
+  @Test
   public void testUploadFile() {
     Assume.assumeNotNull(smartlingTestConfig.projectId);
     uploadFile(smartlingTestConfig.projectId, "strings.xml");
   }
 
+  private void uploadFile(String projectId, String fileName, String fileContent) {
+    smartlingClient.uploadFile(projectId, fileName, "android", fileContent, null, null, null);
+  }
+
   private void uploadFile(String projectId, String fileName) {
-    smartlingClient.uploadFile(
+    uploadFile(
         projectId,
         fileName,
-        "android",
         "<resources>\n"
             + "    <string name=\"hello\">Hello</string>\n"
             + "    <string name=\"bye\">Bye</string>\n"
-            + "</resources>\n",
-        null,
-        null,
-        null);
+            + "</resources>\n");
   }
 
   @Test
