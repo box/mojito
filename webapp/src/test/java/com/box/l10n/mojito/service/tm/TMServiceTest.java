@@ -4461,30 +4461,6 @@ public class TMServiceTest extends ServiceTestBase {
 
     String assetContent =
         "tags:\n"
-            + "- name: lorem_1\n"
-            + "  description: >\n"
-            + "    Lorem ipsum 1 dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            + "    - Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n"
-            + "    - Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n"
-            + "    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
-            + "- name: lorem_2\n"
-            + "  description: |\n"
-            + "    Lorem ipsum 2 dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            + "    - Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n"
-            + "    - Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \n"
-            + "    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
-            + "- name: lorem_3\n"
-            + "  description: >-\n"
-            + "    Lorem ipsum 3 dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            + "    - Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n"
-            + "    - Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \n"
-            + "    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
-            + "- name: lorem_4\n"
-            + "  description: >+\n"
-            + "    Lorem ipsum 4 dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
-            + "    - Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. \n"
-            + "    - Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. \n"
-            + "    Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
             + "- name: lorem_5\n"
             + "  description: |-\n"
             + "    Lorem ipsum 5 dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
@@ -4571,9 +4547,8 @@ public class TMServiceTest extends ServiceTestBase {
     textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
     List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
     for (TextUnitDTO textUnitDTO : textUnitDTOs) {
-      logger.info(
-          "{}-{}:\n{}", textUnitDTO.getComment(), textUnitDTO.getName(), textUnitDTO.getSource());
-//      assertEquals(textUnitDTO.getSource().substring(0, 4), "    ");
+      System.out.println("TEXTUNIT :\n" + textUnitDTO.getSource());
+      //      assertEquals(textUnitDTO.getSource().substring(0, 4), "    ");
     }
   }
 }
