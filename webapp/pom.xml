@@ -436,8 +436,7 @@
                     <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m -Duser.timezone=UTC
                     </argLine>
-                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <reportsDirectory>${project.build.directory}/test-reports</reportsDirectory>
+
                     <rerunFailingTestsCount>1</rerunFailingTestsCount>
 
                     <!--<excludedGroups>com.box.l10n.mojito.test.category.BoxSDKTest</excludedGroups>-->
