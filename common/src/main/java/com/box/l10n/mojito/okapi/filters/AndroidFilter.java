@@ -42,6 +42,9 @@ public class AndroidFilter extends XMLFilter {
   private static final Pattern PATTERN_UPDATE_FORM =
       Pattern.compile("(\\s*<.*?item.+?quantity.+?\".+?\">)");
 
+  public static final Pattern FIND_LAST_TRANSLATABLE_FALSE =
+      Pattern.compile("(?s).*translatable.*=.*\"false\"");
+
   private static final String XML_COMMENT_GROUP_NAME = "comment";
 
   @Autowired TextUnitUtils textUnitUtils;
@@ -212,6 +215,11 @@ public class AndroidFilter extends XMLFilter {
   protected String getNoteFromXMLCommentsInSkeleton(String skeleton) {
 
     String note = null;
+
+    final Matcher matcherForLastTranslatableFalse = FIND_LAST_TRANSLATABLE_FALSE.matcher(skeleton);
+    if (matcherForLastTranslatableFalse.find()) {
+      skeleton = skeleton.substring(matcherForLastTranslatableFalse.group(0).length());
+    }
 
     StringBuilder commentBuilder = new StringBuilder();
 

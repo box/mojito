@@ -34,9 +34,22 @@ public class AndroidFilterTest {
 
   @Test
   public void testGetNoteFromXMLCommentsInSkeletonMultiline() {
-    String skeleton = "blalbala <!-- line 1 --> <!-- line 2 -->  <!-- line 3 --> blalba";
+    String skeleton = "blalbala <!-- line 1 -->\n<!-- line 2 -->\n<!-- line 3 --> blalba";
     AndroidFilter instance = new AndroidFilter();
     String expResult = "line 1 line 2 line 3";
+    String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
+    assertEquals(expResult, result);
+  }
+
+  @Test
+  public void testGetNoteFromXMLCommentsInSkeletonWithSkipTranslatable() {
+    String skeleton =
+        "<!-- comment for untranslatable -->\n"
+            + "<string name=\"to_skip\" translatable=\"false\">To skip</string>\n"
+            + "<!-- comment to extract -->\n"
+            + "<string name=\"to_extract\">To extract</string>\n";
+    AndroidFilter instance = new AndroidFilter();
+    String expResult = "comment to extract";
     String result = instance.getNoteFromXMLCommentsInSkeleton(skeleton);
     assertEquals(expResult, result);
   }

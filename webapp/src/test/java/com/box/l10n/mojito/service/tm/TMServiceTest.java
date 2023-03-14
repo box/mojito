@@ -1643,6 +1643,63 @@ public class TMServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testLocalizeAndroidCommentWithTranslatableFalse() throws Exception {
+
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+
+    String assetContent =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<resources>\n"
+            + "    <!-- Comment that should be skipped -->\n"
+            + "    <string name=\"to_skip\" translatable=\"false\">Some string to skip</string>\n"
+            + "    <!-- Comment for hello string -->\n"
+            + "    <string name=\"hello\">Hello</string>\n"
+            + "</resources>";
+
+    asset =
+        assetService.createAssetWithContent(repo.getId(), "res/values/strings.xml", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(), asset.getPath(), assetContent, false, null, null, null, null, null, null);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      logger.debug("comment=[{}]", textUnitDTO.getComment());
+    }
+    assertEquals(1, textUnitDTOs.size());
+    assertEquals("Hello", textUnitDTOs.get(0).getSource());
+    assertEquals("Comment for hello string", textUnitDTOs.get(0).getComment());
+
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "en-GB",
+            null,
+            null,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(localizedAsset, localizedAsset);
+  }
+
+  @Test
   public void testLocalizeAndroidStringsPlural() throws Exception {
 
     Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
