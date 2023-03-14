@@ -1,6 +1,5 @@
 package com.box.l10n.mojito.service.delta;
 
-import com.box.l10n.mojito.service.assetExtraction.AssetExtractionCleanupJob;
 import java.time.Duration;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
@@ -29,14 +28,14 @@ import org.springframework.stereotype.Component;
 public class PushPullRunCleanupJob implements Job {
 
   /** logger */
-  static Logger logger = LoggerFactory.getLogger(AssetExtractionCleanupJob.class);
+  static Logger logger = LoggerFactory.getLogger(PushPullRunCleanupJob.class);
 
   /** Runs once a day by default. */
-  @Value("${l10n.PushPullRun.cleanup-job.cron:}")
-  String pushPullCleanupCron = "0 0 0 ? * * ";
+  @Value("${l10n.PushPullRun.cleanup-job.cron:0 0 0 * * ?}")
+  String pushPullCleanupCron;
 
-  @Value("${l10n.PushPullRun.cleanup-job.retentionDuration:}")
-  Duration retentionDuration = Duration.ofDays(30);
+  @Value("${l10n.PushPullRun.cleanup-job.retentionDuration:P30D}")
+  Duration retentionDuration;
 
   @Autowired PushPullRunCleanupService pushPullRunCleanupService;
 
