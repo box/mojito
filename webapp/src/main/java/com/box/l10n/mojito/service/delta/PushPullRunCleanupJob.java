@@ -33,7 +33,7 @@ public class PushPullRunCleanupJob implements Job {
 
   /** Runs once a day by default. */
   @Value("${l10n.PushPullRun.cleanup-job.cron:}")
-  String pushPullCleanupCron = "0 1 * * *";
+  String pushPullCleanupCron = "0 0 0 ? * * ";
 
   @Value("${l10n.PushPullRun.cleanup-job.retentionDuration:}")
   Duration retentionDuration = Duration.ofDays(30);
