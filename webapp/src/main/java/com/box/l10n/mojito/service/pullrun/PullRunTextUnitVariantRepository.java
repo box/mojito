@@ -38,10 +38,15 @@ public interface PullRunTextUnitVariantRepository
   @Query(
       nativeQuery = true,
       value =
-          "delete prtuv "
-              + "from pull_run pr "
-              + "join pull_run_asset pra on pra.pull_run_id = pr.id "
-              + "join pull_run_text_unit_variant prtuv on prtuv.pull_run_asset_id = pra.id "
-              + "where pr.created_date < :beforeDate ")
-  void deleteAllByPullRunWithCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
+          "delete pull_run_text_unit_variant "
+              + "from pull_run_text_unit_variant "
+              + "join (select prtuv.id as id "
+              + "  from pull_run pr "
+              + "  join pull_run_asset pra on pra.pull_run_id = pr.id "
+              + "  join pull_run_text_unit_variant prtuv on prtuv.pull_run_asset_id = pra.id "
+              + "  where pr.created_date < :beforeDate "
+              + "  limit :batchSize "
+              + ") todelete on todelete.id = pull_run_text_unit_variant.id")
+  int deleteAllByPullRunWithCreatedDateBefore(
+      @Param("beforeDate") Timestamp beforeDate, @Param("batchSize") int batchSize);
 }

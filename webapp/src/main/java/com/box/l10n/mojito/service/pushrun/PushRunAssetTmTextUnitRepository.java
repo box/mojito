@@ -35,10 +35,15 @@ public interface PushRunAssetTmTextUnitRepository
   @Query(
       nativeQuery = true,
       value =
-          "delete prattu "
-              + "from push_run pr "
-              + "join push_run_asset pra on pra.push_run_id = pr.id "
-              + "join push_run_asset_tm_text_unit prattu on prattu.push_run_asset_id = pra.id "
-              + "where pr.created_date < :beforeDate ")
-  void deleteAllByPushRunWithCreatedDateBefore(@Param("beforeDate") Timestamp beforeDate);
+          "delete push_run_asset_tm_text_unit "
+              + "from push_run_asset_tm_text_unit "
+              + "join (select prattu.id as id "
+              + "  from push_run pr "
+              + "  join push_run_asset pra on pra.push_run_id = pr.id "
+              + "  join push_run_asset_tm_text_unit prattu on prattu.push_run_asset_id = pra.id "
+              + "  where pr.created_date < :beforeDate "
+              + "  limit :batchSize "
+              + ") todelete on todelete.id = push_run_asset_tm_text_unit.id")
+  int deleteAllByPushRunWithCreatedDateBefore(
+      @Param("beforeDate") Timestamp beforeDate, @Param("batchSize") int batchSize);
 }

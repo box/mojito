@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class PushRunService {
 
-  private static final int BATCH_SIZE = 1000;
+  /** Logger */
+  static Logger logger = LoggerFactory.getLogger(PushRunService.class);
+
+  public static final int BATCH_SIZE = 1000;
+
+  static final int DELETE_BATCH_SIZE = 100000;
 
   final EntityManager entityManager;
 
@@ -143,7 +150,16 @@ public class PushRunService {
     DateTime beforeDate = DateTime.now().minusSeconds((int) retentionDuration.getSeconds());
     Timestamp sqlBeforeDate = new Timestamp(beforeDate.toDate().getTime());
 
-    pushRunAssetTmTextUnitRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
+    int batchNumber = 1;
+    int deleteCount;
+    do {
+      deleteCount =
+          pushRunAssetTmTextUnitRepository.deleteAllByPushRunWithCreatedDateBefore(
+              sqlBeforeDate, DELETE_BATCH_SIZE);
+      logger.debug(
+          "Deleted {} pushRunAssetTmTextUnit rows in batch: {}", deleteCount, batchNumber++);
+    } while (deleteCount == DELETE_BATCH_SIZE);
+
     pushRunAssetRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
     commitToPushRunRepository.deleteAllByPushRunWithCreatedDateBefore(sqlBeforeDate);
     pushRunRepository.deleteAllByCreatedDateBefore(sqlBeforeDate);
