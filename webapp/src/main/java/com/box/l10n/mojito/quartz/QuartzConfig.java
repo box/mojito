@@ -32,6 +32,9 @@ public class QuartzConfig {
   @Autowired(required = false)
   List<JobDetail> jobDetails = new ArrayList<>();
 
+  // TODO(jean) Add config to the most appropriate place
+  boolean startScheduler = true;
+
   /**
    * Starts the scheduler after having removed outdated trigger/jobs
    *
@@ -40,7 +43,12 @@ public class QuartzConfig {
   @PostConstruct
   void startScheduler() throws SchedulerException {
     removeOutdatedJobs();
-    scheduler.startDelayed(2);
+
+    // TODO(jean) this could be a new option to start the scheduler only on certain hosts. There
+    // might be a better place to do this, but this the idea
+    if (startScheduler) {
+      scheduler.startDelayed(2);
+    }
   }
 
   void removeOutdatedJobs() throws SchedulerException {
