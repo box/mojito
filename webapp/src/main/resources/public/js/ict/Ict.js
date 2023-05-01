@@ -101,6 +101,12 @@ class Ict {
             } catch (e) {
             }
 
+            try {
+                var textUnitLKs = textUnits.map(tu => `${tu['repositoryName']}:${tu['assetName']}:${tu['textUnitName']}`).join(";");
+                node.setAttribute("data-mojito-textunit-lks", textUnitNames);
+            } catch(e) {
+            }
+
             node.addEventListener("mouseenter", (e) => {
                 e.target.classList.add(eventListenerClassName);
             });
