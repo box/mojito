@@ -40,7 +40,7 @@ import javax.persistence.*;
             @NamedAttributeNode(value = "repository"),
           })
     })
-public class BranchStatistic extends BaseEntity {
+public class BranchStatistic extends AuditableEntity {
 
   @JsonView(View.BranchStatistic.class)
   @OneToOne(optional = false)
