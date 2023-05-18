@@ -16,7 +16,7 @@ class CheckerUtilsTest {
   }
 
   @Test
-  void weShouldBeAbleTo_getWordsInString_providingMultipleStringsAsInput() {
+  void weShouldBeAbleTo_getWordsInString_providingMultipleWordsAsInput() {
     List<String> result = CheckerUtils.getWordsInString("Hello, how can I help you today?");
     assertEquals(7, result.size());
     assertTrue(result.contains("Hello"));
