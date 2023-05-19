@@ -1,51 +1,44 @@
 package com.box.l10n.mojito.cli.command.checks;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class CheckerUtilsTest {
 
   @Test
   void weShouldBeAbleTo_getWordsInString_providingASingleWordAsInput() {
     List<String> result = CheckerUtils.getWordsInString("Hello");
-    assertEquals(1, result.size());
-    assertTrue(result.contains("Hello"));
+    List<String> expectedResult = Collections.singletonList("Hello");
+    assertEquals(expectedResult, result);
   }
 
   @Test
   void weShouldBeAbleTo_getWordsInString_providingMultipleWordsAsInput() {
     List<String> result = CheckerUtils.getWordsInString("Hello, how can I help you today?");
-    assertEquals(7, result.size());
-    assertTrue(result.contains("Hello"));
-    assertTrue(result.contains("how"));
-    assertTrue(result.contains("can"));
-    assertTrue(result.contains("I"));
-    assertTrue(result.contains("help"));
-    assertTrue(result.contains("you"));
-    assertTrue(result.contains("today"));
+    List<String> expectedResult = Arrays.asList("Hello", "how", "can", "I", "help", "you", "today");
+    assertEquals(expectedResult, result);
   }
 
   @Test
   void weShouldBeAbleTo_getWordsInString_ignoringHtmlTag() {
     List<String> result =
         CheckerUtils.getWordsInString("This is a string containing html tag <br>");
-    assertEquals(7, result.size());
-    assertFalse(result.contains("<br>"));
-    assertFalse(result.contains("br"));
+    List<String> expectedResult =
+        Arrays.asList("This", "is", "a", "string", "containing", "html", "tag");
+    assertEquals(expectedResult, result);
   }
 
   @Test
   void weShouldBeAbleTo_getWordsInString_withoutIgnoringTextBetweenHtmlTags() {
     List<String> result =
         CheckerUtils.getWordsInString("This string has a bold html tag <b>Text</b>");
-    assertEquals(8, result.size());
-    assertFalse(result.contains("<b>"));
-    assertFalse(result.contains("</b>"));
-    assertFalse(result.contains("b"));
-    assertTrue(result.contains("Text"));
+    List<String> expectedResult =
+        Arrays.asList("This", "string", "has", "a", "bold", "html", "tag", "Text");
+    assertEquals(expectedResult, result);
   }
 
   @Test
@@ -54,15 +47,9 @@ class CheckerUtilsTest {
         CheckerUtils.getWordsInString(
             "<br>This text </br> have <html> elements <p> for testing </p> purposes<b>.");
 
-    assertEquals(7, result.size());
-
-    assertTrue(result.contains("This"));
-    assertTrue(result.contains("text"));
-    assertTrue(result.contains("have"));
-    assertTrue(result.contains("elements"));
-    assertTrue(result.contains("for"));
-    assertTrue(result.contains("testing"));
-    assertTrue(result.contains("purposes"));
+    List<String> expectedResult =
+        Arrays.asList("This", "text", "have", "elements", "for", "testing", "purposes");
+    assertEquals(expectedResult, result);
   }
 
   @Test
@@ -70,16 +57,9 @@ class CheckerUtilsTest {
     List<String> result =
         CheckerUtils.getWordsInString(
             "Text inside html tags should be ignored <img src=\"example.jpg\">.");
-
-    assertEquals(7, result.size());
-
-    assertTrue(result.contains("Text"));
-    assertTrue(result.contains("inside"));
-    assertTrue(result.contains("html"));
-    assertTrue(result.contains("tags"));
-    assertTrue(result.contains("should"));
-    assertTrue(result.contains("be"));
-    assertTrue(result.contains("ignored"));
+    List<String> expectedResult =
+        Arrays.asList("Text", "inside", "html", "tags", "should", "be", "ignored");
+    assertEquals(expectedResult, result);
   }
 
   @Test
