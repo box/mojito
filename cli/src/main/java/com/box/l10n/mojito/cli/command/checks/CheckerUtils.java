@@ -1,12 +1,10 @@
 package com.box.l10n.mojito.cli.command.checks;
 
 import com.ibm.icu.text.BreakIterator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 
 public class CheckerUtils {
