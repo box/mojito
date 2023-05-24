@@ -51,6 +51,85 @@ class CheckerUtilsTest {
   }
 
   @Test
+  void weShouldBeAbleTo_getWordsInString_andNotIgnoreTitleAttValue() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "Text inside html tags should be ignored  <comp src=\"some.jpg\" alt=\"TitleAtt Content\">, but title");
+    assertThat(result)
+        .containsExactly(
+            "Text",
+            "inside",
+            "html",
+            "tags",
+            "should",
+            "be",
+            "ignored",
+            "but",
+            "title",
+            "TitleAtt",
+            "Content");
+  }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andNotIgnoreAltAttValue() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "Text inside html tags should be ignored  <comp src=\"some.jpg\" alt=\"AltAtt Content\">, but alt");
+    assertThat(result)
+        .containsExactly(
+            "Text", "inside", "html", "tags", "should", "be", "ignored", "but", "alt", "AltAtt",
+            "Content");
+  }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andNotIgnoreValueAttValue() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "Text inside html tags should be ignored  <comp src=\"some.jpg\" value=\"ValueAtt Content\">, but value");
+    assertThat(result)
+        .containsExactly(
+            "Text",
+            "inside",
+            "html",
+            "tags",
+            "should",
+            "be",
+            "ignored",
+            "but",
+            "value",
+            "ValueAtt",
+            "Content");
+  }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andNotIgnorePlaceholderAttValue() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "Text inside html tags should be ignored  <comp src=\"some.jpg\" placeholder=\"PlaceholderAtt Content\">, but placeholder");
+    assertThat(result)
+        .containsExactly(
+            "Text",
+            "inside",
+            "html",
+            "tags",
+            "should",
+            "be",
+            "ignored",
+            "but",
+            "placeholder",
+            "PlaceholderAtt",
+            "Content");
+  }
+
+  @Test
+  void weShouldBeAbleTo_getWordsInString_andIgnoreUnwantedHtmlAttributes() {
+    List<String> result =
+        CheckerUtils.getWordsInString(
+            "Text inside html tags should be ignored <comp src=\"some.jpg\" att=\"AnyAtt Content\" another=\"Another Content\">");
+    assertThat(result).containsExactly("Text", "inside", "html", "tags", "should", "be", "ignored");
+  }
+
+  @Test
   void weShouldNotThrowExceptionWhen_getWordsInString_providingEmptyStringAsInput() {
     List<String> result = CheckerUtils.getWordsInString("");
     assertThat(result).isEmpty();
