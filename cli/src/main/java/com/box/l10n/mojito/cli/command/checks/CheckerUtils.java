@@ -29,14 +29,10 @@ public class CheckerUtils {
    * tags which contains one of the attributes from the WISHED_HTML_ATTRIBUTES_FOR_SPELL_CHECK list.
    */
   static {
-    StringBuilder pattern = new StringBuilder("<[^>]+(?:");
-    for (String att : WISHED_HTML_ATTRIBUTES_FOR_SPELL_CHECK) {
-      pattern.append(att).append("|");
-    }
-    pattern.deleteCharAt(pattern.length() - 1);
-    pattern.append(")\"(.*?)\".*?>");
+    String pattern =
+        "<[^>]+(?:" + String.join("|", WISHED_HTML_ATTRIBUTES_FOR_SPELL_CHECK) + ")\"(.*?)\".*?>";
 
-    WISHED_HTML_ATTRIBUTES_VALUE_PATTERN = Pattern.compile(pattern.toString());
+    WISHED_HTML_ATTRIBUTES_VALUE_PATTERN = Pattern.compile(pattern);
   }
 
   public static List<String> getWordsInString(String str) {
@@ -45,7 +41,7 @@ public class CheckerUtils {
     }
     List<String> words = new ArrayList<>();
     BreakIterator wordBreakIterator = BreakIterator.getWordInstance(Locale.ENGLISH);
-    str = removeHtmlTagsFromStringButKeepingWishedHtmlAttValues(str);
+    str = removeHtmlTagsAndKeepWishedAttribute(str);
     wordBreakIterator.setText(str);
     int start = wordBreakIterator.first();
     for (int end = wordBreakIterator.next();
@@ -68,7 +64,7 @@ public class CheckerUtils {
    *     the value of the attribute (at the end) if matches any of the attributes from the
    *     WISHED_HTML_ATTRIBUTES_FOR_SPELL_CHECK list.
    */
-  protected static String removeHtmlTagsFromStringButKeepingWishedHtmlAttValues(String str) {
+  protected static String removeHtmlTagsAndKeepWishedAttribute(String str) {
     if (StringUtils.isEmpty(str)) {
       return str;
     }
