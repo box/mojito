@@ -52,7 +52,7 @@ public class ContextCommentRejectPatternChecker extends AbstractCliChecker {
   }
 
   private String getFailureText(List<AssetExtractionDiff> assetExtractionDiffs, Pattern pattern) {
-    return getAddedTextUnits(assetExtractionDiffs).stream()
+    return getAddedTextUnitsExcludingInconsistentComments(assetExtractionDiffs).stream()
         .filter(textUnit -> isInvalidContextOrComment(pattern, textUnit))
         .map(textUnit -> buildFailureText(textUnit))
         .collect(Collectors.joining(System.lineSeparator()));

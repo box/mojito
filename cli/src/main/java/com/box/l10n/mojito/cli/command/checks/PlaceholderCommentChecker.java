@@ -43,7 +43,7 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
     List<AbstractPlaceholderDescriptionCheck> placeholderDescriptionChecks =
         getPlaceholderCommentChecks();
 
-    return getAddedTextUnits(assetExtractionDiffs).stream()
+    return getAddedTextUnitsExcludingInconsistentComments(assetExtractionDiffs).stream()
         .map(
             assetExtractorTextUnit ->
                 getPlaceholderCommentCheckResult(

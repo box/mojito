@@ -76,7 +76,7 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
 
   private List<ContextAndCommentCliCheckerResult> runChecks(
       List<AssetExtractionDiff> assetExtractionDiffs) {
-    return getAddedTextUnits(assetExtractionDiffs).stream()
+    return getAddedTextUnitsExcludingInconsistentComments(assetExtractionDiffs).stream()
         .map(
             assetExtractorTextUnit ->
                 getContextAndCommentCliCheckerResult(
