@@ -44,7 +44,7 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
         .filter(regex -> isEmptyPlaceholderRegex(regex))
         .flatMap(
             placeholderRegularExpressions ->
-                getAddedTextUnits(assetExtractionDiffs).stream()
+                getAddedTextUnitsExcludingInconsistentComments(assetExtractionDiffs).stream()
                     .map(assetExtractorTextUnit -> assetExtractorTextUnit.getSource())
                     .filter(
                         source ->

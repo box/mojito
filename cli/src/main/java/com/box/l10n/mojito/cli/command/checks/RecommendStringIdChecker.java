@@ -49,7 +49,7 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
 
   private List<String> getRecommendedIdPrefixUpdates(
       List<AssetExtractionDiff> assetExtractionDiffs) {
-    return getAddedTextUnits(assetExtractionDiffs).stream()
+    return getAddedTextUnitsExcludingInconsistentComments(assetExtractionDiffs).stream()
         .map(textUnit -> getRecommendStringIdCheckResult(textUnit))
         .filter(recommendation -> recommendation.isRecommendedUpdate())
         .map(

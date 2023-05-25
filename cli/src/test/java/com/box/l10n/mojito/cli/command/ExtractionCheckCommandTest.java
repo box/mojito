@@ -11,6 +11,7 @@ import com.box.l10n.mojito.cli.command.checks.CliCheckResult;
 import com.box.l10n.mojito.cli.console.ConsoleWriter;
 import com.box.l10n.mojito.rest.resttemplate.AuthenticatedRestTemplate;
 import com.google.common.collect.Lists;
+import java.util.List;
 import org.fusesource.jansi.Ansi;
 import org.junit.Assert;
 import org.junit.Test;
@@ -301,6 +302,201 @@ public class ExtractionCheckCommandTest extends CLITestBase {
         outputCapture.toString().contains("Unknown check name in hard fail list 'INVALID_NAME'"));
   }
 
+  /**
+   * this is a functional test for the {@link
+   * com.box.l10n.mojito.cli.command.checks.AbstractCliChecker#getAddedTextUnitsExcludingInconsistentComments(List)}
+   *
+   * <p>If combination source+context is added again with a different comment we run the check and
+   * eventually reject it if it is not valid
+   */
+  @Test
+  public void runCheckWithInconsistentCommentsInGettextAdd() throws Exception {
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source1").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source2").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source2");
+
+    getL10nJCommander()
+        .run(
+            "extract-diff",
+            "-i",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extraction-diffs").getAbsolutePath(),
+            "-c",
+            "source2",
+            "-b",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extraction-check",
+            "-i",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extraction-diffs").getAbsolutePath(),
+            "-c",
+            "source2",
+            "-b",
+            "source1",
+            "-cl",
+            "CONTEXT_COMMENT_CHECKER",
+            "-hf",
+            "CONTEXT_COMMENT_CHECKER");
+
+    Assert.assertTrue(
+        outputCapture
+            .toString()
+            .contains("Source string `source1` failed check with error: Context string is empty."));
+  }
+
+  /**
+   * this is a functional test for the {@link
+   * com.box.l10n.mojito.cli.command.checks.AbstractCliChecker#getAddedTextUnitsExcludingInconsistentComments(List)}
+   *
+   * <p>Before adding the logic to exclude inconsistent comment, we'd have run the check on the text
+   * unit, and if it was invalid we would have got an error. This was missleading because only the
+   * order of the comments had changed - due to maybe order of the extraction, line, or file moving
+   * around.
+   */
+  @Test
+  public void runCheckWithInconsistentCommentsInGettextChange() throws Exception {
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source1").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source2").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source2");
+
+    getL10nJCommander()
+        .run(
+            "extract-diff",
+            "-i",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extraction-diffs").getAbsolutePath(),
+            "-c",
+            "source2",
+            "-b",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extraction-check",
+            "-i",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extraction-diffs").getAbsolutePath(),
+            "-c",
+            "source2",
+            "-b",
+            "source1",
+            "-cl",
+            "CONTEXT_COMMENT_CHECKER",
+            "-hf",
+            "CONTEXT_COMMENT_CHECKER");
+
+    Assert.assertTrue(outputCapture.toString().contains("Running checks against new strings"));
+    Assert.assertTrue(outputCapture.toString().contains("Checks completed"));
+    Assert.assertFalse(
+        outputCapture.toString().contains("failed") || outputCapture.toString().contains("Failed"));
+  }
+
+  /**
+   * this is a functional test for the {@link
+   * com.box.l10n.mojito.cli.command.checks.AbstractCliChecker#getAddedTextUnitsExcludingInconsistentComments(List)}
+   *
+   * <p>Before adding the logic to exclude inconsistent comment, we'd have run the check on the text
+   * unit, and if it was invalid we would have got an error. This was missleading because the old
+   * usage was just removed
+   */
+  @Test
+  public void runCheckWithInconsistentCommentsInGettextRemove() throws Exception {
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source1").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extract",
+            "-s",
+            getInputResourcesTestDir("source2").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-n",
+            "source2");
+
+    getL10nJCommander()
+        .run(
+            "extract-diff",
+            "-i",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extraction-diffs").getAbsolutePath(),
+            "-c",
+            "source2",
+            "-b",
+            "source1");
+
+    getL10nJCommander()
+        .run(
+            "extraction-check",
+            "-i",
+            getTargetTestDir("extractions").getAbsolutePath(),
+            "-o",
+            getTargetTestDir("extraction-diffs").getAbsolutePath(),
+            "-c",
+            "source2",
+            "-b",
+            "source1",
+            "-cl",
+            "CONTEXT_COMMENT_CHECKER",
+            "-hf",
+            "CONTEXT_COMMENT_CHECKER");
+
+    Assert.assertTrue(outputCapture.toString().contains("Running checks against new strings"));
+    Assert.assertTrue(outputCapture.toString().contains("Checks completed"));
+    Assert.assertFalse(
+        outputCapture.toString().contains("failed") || outputCapture.toString().contains("Failed"));
+  }
+
   @Test
   public void testChecksSkippedIfSkipChecksEnabled() {
     ConsoleWriter consoleWriter = Mockito.mock(ConsoleWriter.class);
@@ -378,5 +574,10 @@ public class ExtractionCheckCommandTest extends CLITestBase {
     extractionCheckCommand.reportStatistics(Lists.newArrayList(success, failure));
     verify(consoleWriter, times(1))
         .a("Error reporting statistics to http endpoint: test exception");
+  }
+
+  public void testPOMultiCommentForSameSourceAndTarget() {
+    // we test that removing usage of a string does not re-trigger checking
+
   }
 }

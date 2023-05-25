@@ -40,7 +40,7 @@ public class GlossaryCaseChecker extends AbstractCliChecker {
       GlossaryTermCaseCheckerTrie glossaryTermCaseCheckerTrie,
       List<AssetExtractionDiff> assetExtractionDiffs) {
     List<GlossaryCaseCheckerSearchResult> failures =
-        getAddedTextUnits(assetExtractionDiffs).stream()
+        getAddedTextUnitsExcludingInconsistentComments(assetExtractionDiffs).stream()
             .map(
                 assetExtractorTextUnit ->
                     glossaryTermCaseCheckerTrie.runGlossaryCaseCheck(
