@@ -241,7 +241,7 @@ public class SpellCliChecker extends AbstractCliChecker {
         failureMap.keySet().stream()
             .map(sourceString -> buildFailureText(failureMap, sourceString))
             .collect(Collectors.joining(System.lineSeparator())));
-    notificationText.append(System.lineSeparator() + System.lineSeparator());
+    notificationText.append(System.lineSeparator());
     addDictionaryUpdateInformation(notificationText);
 
     return notificationText.toString();
@@ -259,19 +259,21 @@ public class SpellCliChecker extends AbstractCliChecker {
 
   private String buildFailureText(
       Map<String, Map<String, List<String>>> failureMap, String sourceString) {
-    return failureMap.get(sourceString).keySet().stream()
-        .map(
+    StringBuilder builder = new StringBuilder();
+    builder
+        .append("The string ")
+        .append(QUOTE_MARKER)
+        .append(sourceString)
+        .append(QUOTE_MARKER)
+        .append(" contains misspelled words:")
+        .append(System.lineSeparator());
+    failureMap
+        .get(sourceString)
+        .keySet()
+        .forEach(
             misspelling -> {
-              StringBuilder builder = new StringBuilder();
-              builder.append(
-                  "The string "
-                      + QUOTE_MARKER
-                      + sourceString
-                      + QUOTE_MARKER
-                      + " contains misspelled words:"
-                      + System.lineSeparator());
               List<String> suggestions = failureMap.get(sourceString).get(misspelling);
-              builder.append(" * '" + misspelling + "' ");
+              builder.append("  ● '").append(misspelling).append("' ");
               if (!suggestions.isEmpty()) {
                 builder.append("- Did you mean ");
                 builder.append(
@@ -281,9 +283,9 @@ public class SpellCliChecker extends AbstractCliChecker {
                                 Collectors.toList(), joinCommaSeparated(", ", " or "))));
                 builder.append("?");
               }
-              return builder.toString();
-            })
-        .collect(Collectors.joining(System.lineSeparator()));
+              builder.append(System.lineSeparator());
+            });
+    return builder.toString();
   }
 
   private static Function<List<String>, String> joinCommaSeparated(
