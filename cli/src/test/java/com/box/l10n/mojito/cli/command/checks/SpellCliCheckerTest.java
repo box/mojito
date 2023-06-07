@@ -115,9 +115,9 @@ public class SpellCliCheckerTest {
     when(hunspellMock.spell("erors")).thenReturn(false);
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
-    assertFalse(result.getNotificationText().isEmpty());
-    assertTrue(result.getNotificationText().contains("* 'erors'"));
-    assertTrue(result.getNotificationText().contains("* 'strng'"));
+    String expectedResult =
+        "The string `A source strng with some erors.` contains misspelled words:\n  ● 'strng' \n  ● 'erors' \n\n";
+    assertEquals(expectedResult, result.getNotificationText());
     assertFalse(result.isHardFail());
   }
 
@@ -234,16 +234,10 @@ public class SpellCliCheckerTest {
                     "target/tests/resources/dictAddition.txt")
                 .build()));
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
+    String expectedResult =
+        "The string `A source strng with some erors.` contains misspelled words:\n  ● 'strng' \n  ● 'erors' \n\nIf a word is correctly spelt please add your spelling to target/tests/resources/dictAddition.txt to avoid future false negatives.";
     assertFalse(result.isSuccessful());
-    assertFalse(result.getNotificationText().isEmpty());
-    assertTrue(result.getNotificationText().contains("* 'erors'"));
-    assertTrue(result.getNotificationText().contains("* 'strng'"));
-    assertTrue(
-        result
-            .getNotificationText()
-            .contains(
-                "If a word is correctly spelt please add your spelling to target/tests/resources/dictAddition.txt to avoid future false negatives."));
-    assertFalse(result.isHardFail());
+    assertEquals(expectedResult, result.getNotificationText());
   }
 
   @Test
@@ -262,10 +256,10 @@ public class SpellCliCheckerTest {
 
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
-    assertFalse(result.getNotificationText().isEmpty());
-    assertTrue(result.getNotificationText().contains("* 'erors'"));
-    assertTrue(result.getNotificationText().contains("* 'strng'"));
-    assertTrue(result.getNotificationText().contains("* 'falures'"));
+    String expectedResult =
+        "The string `Another string with falures` contains misspelled words:\n  ● 'falures' \n\nThe string "
+            + "`A source strng with some erors.` contains misspelled words:\n  ● 'strng' \n  ● 'erors' \n\n";
+    assertEquals(expectedResult, result.getNotificationText());
   }
 
   @Test
@@ -333,12 +327,13 @@ public class SpellCliCheckerTest {
 
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
-    assertTrue(result.getNotificationText().contains("* 'identicl'"));
-    assertEquals(1, result.getNotificationText().chars().filter(c -> c == '*').count());
+    String expectedResult =
+        "The string `A source string with identicl identicl identicl errors.` contains misspelled words:\n  ● 'identicl' \n\n";
+    assertEquals(expectedResult, result.getNotificationText());
   }
 
   @Test
-  public void testMultipleIdenticalErrorsInMultipleIdenticalStrings() throws Exception {
+  public void testMultipleIdenticalErrorsInMultipleIdenticalStrings() {
     List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
     AssetExtractorTextUnit assetExtractorTextUnit1 = new AssetExtractorTextUnit();
     assetExtractorTextUnit1.setSource("A source string with identicl identicl identicl errors.");
@@ -354,8 +349,9 @@ public class SpellCliCheckerTest {
 
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
-    assertTrue(result.getNotificationText().contains("* 'identicl'"));
-    assertEquals(1, result.getNotificationText().chars().filter(c -> c == '*').count());
+    String expectedResult =
+        "The string `A source string with identicl identicl identicl errors.` contains misspelled words:\n  ● 'identicl' \n\n";
+    assertEquals(expectedResult, result.getNotificationText());
   }
 
   @Test
@@ -492,12 +488,10 @@ public class SpellCliCheckerTest {
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
     assertFalse(result.getNotificationText().isEmpty());
-    assertTrue(result.getNotificationText().contains("* 'erors'"));
-    assertTrue(result.getNotificationText().contains("* 'strng'"));
-    assertTrue(result.getNotificationText().contains("* 'sorce'"));
-    assertTrue(result.getNotificationText().contains("Did you mean errors?"));
-    assertTrue(result.getNotificationText().contains("Did you mean string or strong?"));
-    assertTrue(result.getNotificationText().contains("Did you mean source, sorcerer or sorcery?"));
+    String expectedResult =
+        "The string `A sorce strng with some erors.` contains misspelled words:\n  ● 'sorce' - Did you mean source, "
+            + "sorcerer or sorcery?\n  ● 'strng' - Did you mean string or strong?\n  ● 'erors' - Did you mean errors?\n\n";
+    assertEquals(expectedResult, result.getNotificationText());
     assertFalse(result.isHardFail());
   }
 
