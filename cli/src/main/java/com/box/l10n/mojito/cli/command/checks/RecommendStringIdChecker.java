@@ -41,7 +41,7 @@ public class RecommendStringIdChecker extends AbstractCliChecker {
     sb.append(System.lineSeparator());
     sb.append(
         recommendations.stream()
-            .map(recommendation -> "* " + recommendation)
+            .map(recommendation -> BULLET_POINT + recommendation)
             .collect(Collectors.joining(System.lineSeparator())));
     sb.append(System.lineSeparator());
     return sb.toString();

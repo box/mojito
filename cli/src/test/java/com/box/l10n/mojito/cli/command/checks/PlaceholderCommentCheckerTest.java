@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.DOUBLE_BRACE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
@@ -140,7 +141,8 @@ public class PlaceholderCommentCheckerTest {
             + QUOTE_MARKER
             + " failed check:"
             + System.lineSeparator()
-            + "* Missing description for placeholder with name "
+            + BULLET_POINT
+            + "Missing description for placeholder with name "
             + QUOTE_MARKER
             + "another"
             + QUOTE_MARKER
@@ -202,7 +204,8 @@ public class PlaceholderCommentCheckerTest {
         result
             .getNotificationText()
             .contains(
-                "* Missing description for placeholder with name "
+                BULLET_POINT
+                    + "Missing description for placeholder with name "
                     + QUOTE_MARKER
                     + "placeholder2"
                     + QUOTE_MARKER
@@ -211,7 +214,8 @@ public class PlaceholderCommentCheckerTest {
         result
             .getNotificationText()
             .contains(
-                "* Missing description for placeholder with name "
+                BULLET_POINT
+                    + "Missing description for placeholder with name "
                     + QUOTE_MARKER
                     + "%d"
                     + QUOTE_MARKER

@@ -19,6 +19,8 @@ public abstract class AbstractCliChecker {
 
   protected CliCheckerOptions cliCheckerOptions;
 
+  public static final String BULLET_POINT = "\t• ";
+
   public static AbstractCliChecker createInstanceForClassName(String className)
       throws CliCheckerInstantiationException {
     try {

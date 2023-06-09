@@ -74,9 +74,9 @@ public class ContextCommentRejectPatternChecker extends AbstractCliChecker {
 
   private String buildFailureText(AssetExtractorTextUnit textUnit) {
     StringBuilder sb = new StringBuilder();
-    sb.append("* Source string " + QUOTE_MARKER);
+    sb.append(BULLET_POINT).append("Source string ").append(QUOTE_MARKER);
     sb.append(textUnit.getSource());
-    sb.append(QUOTE_MARKER + " has an invalid context or comment string.");
+    sb.append(QUOTE_MARKER).append(" has an invalid context or comment string.");
     return sb.toString();
   }
 
