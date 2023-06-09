@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
@@ -138,7 +139,8 @@ public class ExtractionCheckCommandTest extends CLITestBase {
         outputCapture
             .toString()
             .contains(
-                "* Source string `This is a new source string missing a context` failed check with error: Context string is empty."));
+                BULLET_POINT
+                    + "Source string `This is a new source string missing a context` failed check with error: Context string is empty."));
   }
 
   @Test
