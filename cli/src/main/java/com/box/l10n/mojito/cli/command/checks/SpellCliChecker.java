@@ -273,9 +273,13 @@ public class SpellCliChecker extends AbstractCliChecker {
         .forEach(
             misspelling -> {
               List<String> suggestions = failureMap.get(sourceString).get(misspelling);
-              builder.append("  ● '").append(misspelling).append("' ");
+              builder
+                  .append(BULLET_POINT)
+                  .append(QUOTE_MARKER)
+                  .append(misspelling)
+                  .append(QUOTE_MARKER);
               if (!suggestions.isEmpty()) {
-                builder.append("- Did you mean ");
+                builder.append(" - Did you mean ");
                 builder.append(
                     suggestions.stream()
                         .collect(

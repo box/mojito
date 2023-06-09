@@ -40,6 +40,7 @@ public abstract class ExtractionCheckNotificationSender {
 
   protected String getFormattedNotificationMessage(
       String messageTemplate, String messageKey, String message) {
+    message += getDoubleNewLines();
     MessageFormat messageFormatForTemplate = new MessageFormat(messageTemplate);
     return messageFormatForTemplate.format(ImmutableMap.of(messageKey, message));
   }

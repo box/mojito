@@ -117,7 +117,7 @@ public class PlaceholderCommentChecker extends AbstractCliChecker {
                   sb.append(System.lineSeparator());
                   return sb.append(
                           failureMap.get(source).stream()
-                              .map(failure -> "* " + failure)
+                              .map(failure -> BULLET_POINT + failure)
                               .collect(Collectors.joining(System.lineSeparator())))
                       .toString();
                 })

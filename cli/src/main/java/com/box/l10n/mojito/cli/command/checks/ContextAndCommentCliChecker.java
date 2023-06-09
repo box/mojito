@@ -62,7 +62,8 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
                   .filter(ContextAndCommentCliCheckerResult::isFailed)
                   .map(
                       result ->
-                          "* Source string "
+                          BULLET_POINT
+                              + "Source string "
                               + QUOTE_MARKER
                               + result.getSourceString()
                               + QUOTE_MARKER
