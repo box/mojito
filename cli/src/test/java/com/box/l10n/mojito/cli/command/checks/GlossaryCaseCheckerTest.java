@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.GLOSSARY_FILE_PATH_KEY;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 
@@ -94,13 +95,15 @@ public class GlossaryCaseCheckerTest {
     Assert.assertEquals(
         "Glossary check failures:"
             + System.lineSeparator()
-            + "* MAJOR: String "
+            + BULLET_POINT
+            + "MAJOR: String "
             + QUOTE_MARKER
             + "A source string with company and ads Manager in it."
             + QUOTE_MARKER
             + " contains glossary term 'Company' which must match exactly."
             + System.lineSeparator()
-            + "* WARN: String "
+            + BULLET_POINT
+            + "WARN: String "
             + QUOTE_MARKER
             + "A source string with company and ads Manager in it."
             + QUOTE_MARKER
@@ -125,7 +128,8 @@ public class GlossaryCaseCheckerTest {
     Assert.assertEquals(
         "Glossary check failures:"
             + System.lineSeparator()
-            + "* WARN: String "
+            + BULLET_POINT
+            + "WARN: String "
             + QUOTE_MARKER
             + "A source string with ads                Manager in it."
             + QUOTE_MARKER
@@ -166,7 +170,8 @@ public class GlossaryCaseCheckerTest {
     Assert.assertEquals(
         "Glossary check failures:"
             + System.lineSeparator()
-            + "* WARN: String "
+            + BULLET_POINT
+            + "WARN: String "
             + QUOTE_MARKER
             + "A source string with ads Manager in it."
             + QUOTE_MARKER
@@ -192,7 +197,8 @@ public class GlossaryCaseCheckerTest {
     Assert.assertEquals(
         "Glossary check failures:"
             + System.lineSeparator()
-            + "* WARN: String "
+            + BULLET_POINT
+            + "WARN: String "
             + QUOTE_MARKER
             + "A source string with Ads-Manager in it."
             + QUOTE_MARKER
@@ -232,7 +238,8 @@ public class GlossaryCaseCheckerTest {
     Assert.assertEquals(
         "Glossary check failures:"
             + System.lineSeparator()
-            + "* WARN: String "
+            + BULLET_POINT
+            + "WARN: String "
             + QUOTE_MARKER
             + "A source string with event Manager in it."
             + QUOTE_MARKER
