@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_REJECT_PATTERN_KEY;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
@@ -73,7 +74,8 @@ public class ContextCommentRejectPatternCheckerTest {
         result
             .getNotificationText()
             .contains(
-                "* Source string "
+                BULLET_POINT
+                    + "Source string "
                     + QUOTE_MARKER
                     + "A source string with no errors."
                     + QUOTE_MARKER

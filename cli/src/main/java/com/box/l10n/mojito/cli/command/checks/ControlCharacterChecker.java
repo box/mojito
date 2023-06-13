@@ -47,13 +47,14 @@ public class ControlCharacterChecker extends AbstractCliChecker {
 
     if (!result.isSuccessful) {
       StringBuilder sb = new StringBuilder();
-      sb.append(
-          "* Control character found in source string "
-              + QUOTE_MARKER
-              + source
-              + QUOTE_MARKER
-              + " at index "
-              + indexMatches.stream()
+      sb.append(BULLET_POINT)
+          .append("Control character found in source string ")
+          .append(QUOTE_MARKER)
+          .append(source)
+          .append(QUOTE_MARKER)
+          .append(" at index ")
+          .append(
+              indexMatches.stream()
                   .map(index -> Integer.toString(index))
                   .collect(Collectors.joining(", ")));
       sb.append(".");

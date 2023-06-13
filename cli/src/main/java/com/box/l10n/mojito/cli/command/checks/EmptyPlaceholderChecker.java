@@ -79,7 +79,7 @@ public class EmptyPlaceholderChecker extends AbstractCliChecker {
     notificationText.append(System.lineSeparator());
     notificationText.append(
         failures.stream()
-            .map(source -> "* " + QUOTE_MARKER + source + QUOTE_MARKER)
+            .map(source -> BULLET_POINT + QUOTE_MARKER + source + QUOTE_MARKER)
             .collect(Collectors.joining(System.lineSeparator())));
     notificationText.append(System.lineSeparator());
     return notificationText;

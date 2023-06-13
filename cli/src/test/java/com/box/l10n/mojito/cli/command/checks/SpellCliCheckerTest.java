@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_ADDITIONS_PATH_KEY;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_AFFIX_FILE_PATH_KEY;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_FILE_PATH_KEY;
+import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PLACEHOLDER_NO_SPECIFIER_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.PRINTF_LIKE_VARIABLE_TYPE_REGEX;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
@@ -75,7 +77,7 @@ public class SpellCliCheckerTest {
   }
 
   @Test
-  public void testHardFailureIsSet() throws Exception {
+  public void testHardFailureIsSet() {
     Set<CliCheckerType> hardFailureSet = new HashSet<>();
     hardFailureSet.add(CliCheckerType.SPELL_CHECKER);
     spellCliChecker.setCliCheckerOptions(
@@ -94,7 +96,7 @@ public class SpellCliCheckerTest {
   }
 
   @Test
-  public void testStringWithNoErrors() throws Exception {
+  public void testStringWithNoErrors() {
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertTrue(result.isSuccessful());
     assertTrue(result.getNotificationText().isEmpty());
@@ -102,7 +104,7 @@ public class SpellCliCheckerTest {
   }
 
   @Test
-  public void testStringWithErrors() throws Exception {
+  public void testStringWithErrors() {
     List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
     AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
     assetExtractorTextUnit.setSource("A source strng with some erors.");
@@ -116,7 +118,16 @@ public class SpellCliCheckerTest {
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
     String expectedResult =
-        "The string `A source strng with some erors.` contains misspelled words:\n  ● 'strng' \n  ● 'erors' \n\n";
+        String.format(
+            "The string %sA source strng with some erors.%s contains misspelled words:\n%s%sstrng%s\n%s%serors%s\n\n",
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER);
     assertEquals(expectedResult, result.getNotificationText());
     assertFalse(result.isHardFail());
   }
@@ -157,7 +168,7 @@ public class SpellCliCheckerTest {
   }
 
   @Test
-  public void testParametersAreNotSpellChecked() throws Exception {
+  public void testParametersAreNotSpellChecked() {
     List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
     AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
     assetExtractorTextUnit.setSource("A source string with {image_name} errors.");
@@ -235,13 +246,24 @@ public class SpellCliCheckerTest {
                 .build()));
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     String expectedResult =
-        "The string `A source strng with some erors.` contains misspelled words:\n  ● 'strng' \n  ● 'erors' \n\nIf a word is correctly spelt please add your spelling to target/tests/resources/dictAddition.txt to avoid future false negatives.";
+        String.format(
+            "The string %sA source strng with some erors.%s contains misspelled words:\n%s%sstrng%s\n%s%serors%s\n\nIf a "
+                + "word is correctly spelt please add your spelling to target/tests/resources/dictAddition.txt to "
+                + "avoid future false negatives.",
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER);
     assertFalse(result.isSuccessful());
     assertEquals(expectedResult, result.getNotificationText());
   }
 
   @Test
-  public void testMultipleStringsWithMisspellings() throws Exception {
+  public void testMultipleStringsWithMisspellings() {
     List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
     AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
     assetExtractorTextUnit.setSource("A source strng with some erors.");
@@ -257,13 +279,27 @@ public class SpellCliCheckerTest {
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
     String expectedResult =
-        "The string `Another string with falures` contains misspelled words:\n  ● 'falures' \n\nThe string "
-            + "`A source strng with some erors.` contains misspelled words:\n  ● 'strng' \n  ● 'erors' \n\n";
+        String.format(
+            "The string %sAnother string with falures%s contains misspelled words:\n%s%sfalures%s\n\nThe string "
+                + "%sA source strng with some erors.%s contains misspelled words:\n%s%sstrng%s\n%s%serors%s\n\n",
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER);
     assertEquals(expectedResult, result.getNotificationText());
   }
 
   @Test
-  public void testNestedICUPlaceholderIsExcludedFromSpellcheck() throws Exception {
+  public void testNestedICUPlaceholderIsExcludedFromSpellcheck() {
     List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
     AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
     assetExtractorTextUnit.setSource(
@@ -328,7 +364,9 @@ public class SpellCliCheckerTest {
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
     String expectedResult =
-        "The string `A source string with identicl identicl identicl errors.` contains misspelled words:\n  ● 'identicl' \n\n";
+        String.format(
+            "The string %sA source string with identicl identicl identicl errors.%s contains misspelled words:\n%s%sidenticl%s\n\n",
+            QUOTE_MARKER, QUOTE_MARKER, BULLET_POINT, QUOTE_MARKER, QUOTE_MARKER);
     assertEquals(expectedResult, result.getNotificationText());
   }
 
@@ -350,7 +388,9 @@ public class SpellCliCheckerTest {
     CliCheckResult result = spellCliChecker.run(assetExtractionDiffs);
     assertFalse(result.isSuccessful());
     String expectedResult =
-        "The string `A source string with identicl identicl identicl errors.` contains misspelled words:\n  ● 'identicl' \n\n";
+        String.format(
+            "The string %sA source string with identicl identicl identicl errors.%s contains misspelled words:\n%s%sidenticl%s\n\n",
+            QUOTE_MARKER, QUOTE_MARKER, BULLET_POINT, QUOTE_MARKER, QUOTE_MARKER);
     assertEquals(expectedResult, result.getNotificationText());
   }
 
@@ -489,8 +529,20 @@ public class SpellCliCheckerTest {
     assertFalse(result.isSuccessful());
     assertFalse(result.getNotificationText().isEmpty());
     String expectedResult =
-        "The string `A sorce strng with some erors.` contains misspelled words:\n  ● 'sorce' - Did you mean source, "
-            + "sorcerer or sorcery?\n  ● 'strng' - Did you mean string or strong?\n  ● 'erors' - Did you mean errors?\n\n";
+        String.format(
+            "The string %sA sorce strng with some erors.%s contains misspelled words:\n%s%ssorce%s - Did you mean source, "
+                + "sorcerer or sorcery?\n%s%sstrng%s - Did you mean string or strong?\n%s%serors%s - Did you mean errors?\n\n",
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER,
+            BULLET_POINT,
+            QUOTE_MARKER,
+            QUOTE_MARKER);
     assertEquals(expectedResult, result.getNotificationText());
     assertFalse(result.isHardFail());
   }

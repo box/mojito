@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.RECOMMEND_STRING_ID_LABEL_IGNORE_PATTERN_KEY;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
@@ -62,7 +63,8 @@ public class RecommendStringIdCheckerTest {
     Assert.assertEquals(
         "Recommended id updates for the following strings:"
             + System.lineSeparator()
-            + "* Please update id "
+            + BULLET_POINT
+            + "Please update id "
             + QUOTE_MARKER
             + "incorrect.prefix.someStringId"
             + QUOTE_MARKER
@@ -204,7 +206,8 @@ public class RecommendStringIdCheckerTest {
     Assert.assertEquals(
         "Recommended id updates for the following strings:"
             + System.lineSeparator()
-            + "* Please update id "
+            + BULLET_POINT
+            + "Please update id "
             + QUOTE_MARKER
             + "someStringId"
             + QUOTE_MARKER
@@ -235,7 +238,8 @@ public class RecommendStringIdCheckerTest {
     Assert.assertEquals(
         "Recommended id updates for the following strings:"
             + System.lineSeparator()
-            + "* Please update id "
+            + BULLET_POINT
+            + "Please update id "
             + QUOTE_MARKER
             + "someStringId"
             + QUOTE_MARKER
@@ -291,7 +295,8 @@ public class RecommendStringIdCheckerTest {
     Assert.assertEquals(
         "Recommended id updates for the following strings:"
             + System.lineSeparator()
-            + "* Please update id "
+            + BULLET_POINT
+            + "Please update id "
             + QUOTE_MARKER
             + "someStringId"
             + QUOTE_MARKER
@@ -301,7 +306,8 @@ public class RecommendStringIdCheckerTest {
             + QUOTE_MARKER
             + " to be prefixed with 'root.'"
             + System.lineSeparator()
-            + "* Please update id "
+            + BULLET_POINT
+            + "Please update id "
             + QUOTE_MARKER
             + "someOtherStringId"
             + QUOTE_MARKER
@@ -348,7 +354,8 @@ public class RecommendStringIdCheckerTest {
     Assert.assertEquals(
         "Recommended id updates for the following strings:"
             + System.lineSeparator()
-            + "* Please update id "
+            + BULLET_POINT
+            + "Please update id "
             + QUOTE_MARKER
             + "someStringId"
             + QUOTE_MARKER
@@ -358,7 +365,8 @@ public class RecommendStringIdCheckerTest {
             + QUOTE_MARKER
             + " to be prefixed with 'root.'"
             + System.lineSeparator()
-            + "* Please update id "
+            + BULLET_POINT
+            + "Please update id "
             + QUOTE_MARKER
             + "someOtherStringId"
             + QUOTE_MARKER
