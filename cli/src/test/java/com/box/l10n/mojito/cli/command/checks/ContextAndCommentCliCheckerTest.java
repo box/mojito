@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
 
@@ -64,7 +65,8 @@ public class ContextAndCommentCliCheckerTest {
     Assert.assertEquals(
         "Context and comment check found failures:"
             + System.lineSeparator()
-            + "* Source string "
+            + BULLET_POINT
+            + "Source string "
             + QUOTE_MARKER
             + "A source string with no errors."
             + QUOTE_MARKER
@@ -92,7 +94,8 @@ public class ContextAndCommentCliCheckerTest {
     Assert.assertEquals(
         "Context and comment check found failures:"
             + System.lineSeparator()
-            + "* Source string "
+            + BULLET_POINT
+            + "Source string "
             + QUOTE_MARKER
             + "A source string with no errors."
             + QUOTE_MARKER
@@ -120,7 +123,8 @@ public class ContextAndCommentCliCheckerTest {
     Assert.assertEquals(
         "Context and comment check found failures:"
             + System.lineSeparator()
-            + "* Source string "
+            + BULLET_POINT
+            + "Source string "
             + QUOTE_MARKER
             + "A source string with no errors."
             + QUOTE_MARKER
@@ -148,7 +152,8 @@ public class ContextAndCommentCliCheckerTest {
     Assert.assertEquals(
         "Context and comment check found failures:"
             + System.lineSeparator()
-            + "* Source string "
+            + BULLET_POINT
+            + "Source string "
             + QUOTE_MARKER
             + "A source string with no errors."
             + QUOTE_MARKER
@@ -199,7 +204,8 @@ public class ContextAndCommentCliCheckerTest {
     Assert.assertEquals(
         "Context and comment check found failures:"
             + System.lineSeparator()
-            + "* Source string "
+            + BULLET_POINT
+            + "Source string "
             + QUOTE_MARKER
             + "A source string with no errors."
             + QUOTE_MARKER

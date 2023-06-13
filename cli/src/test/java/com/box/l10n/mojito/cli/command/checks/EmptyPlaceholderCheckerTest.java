@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.AbstractCliChecker.BULLET_POINT;
 import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNotificationSender.QUOTE_MARKER;
 import static com.box.l10n.mojito.regex.PlaceholderRegularExpressions.SINGLE_BRACE_REGEX;
 
@@ -65,7 +66,7 @@ public class EmptyPlaceholderCheckerTest {
     Assert.assertEquals(
         "Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:"
             + System.lineSeparator()
-            + "* "
+            + BULLET_POINT
             + QUOTE_MARKER
             + "A source string with a empty placeholder {}."
             + QUOTE_MARKER
@@ -92,7 +93,7 @@ public class EmptyPlaceholderCheckerTest {
     Assert.assertEquals(
         "Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:"
             + System.lineSeparator()
-            + "* "
+            + BULLET_POINT
             + QUOTE_MARKER
             + "A source string with two {} empty placeholders {}."
             + QUOTE_MARKER
@@ -125,7 +126,7 @@ public class EmptyPlaceholderCheckerTest {
     Assert.assertEquals(
         "Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:"
             + System.lineSeparator()
-            + "* "
+            + BULLET_POINT
             + QUOTE_MARKER
             + "A source string with two {} empty placeholders {}."
             + QUOTE_MARKER
@@ -152,7 +153,7 @@ public class EmptyPlaceholderCheckerTest {
     Assert.assertEquals(
         "Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:"
             + System.lineSeparator()
-            + "* "
+            + BULLET_POINT
             + QUOTE_MARKER
             + "A source string with two {} placeholders {name}."
             + QUOTE_MARKER
@@ -184,12 +185,12 @@ public class EmptyPlaceholderCheckerTest {
     Assert.assertEquals(
         "Found empty placeholders in the following source strings, please remove or update placeholders to contain a descriptive name:"
             + System.lineSeparator()
-            + "* "
+            + BULLET_POINT
             + QUOTE_MARKER
             + "A source string with two {} empty placeholders {}."
             + QUOTE_MARKER
             + System.lineSeparator()
-            + "* "
+            + BULLET_POINT
             + QUOTE_MARKER
             + "Another source string with two {} empty placeholders {}."
             + QUOTE_MARKER

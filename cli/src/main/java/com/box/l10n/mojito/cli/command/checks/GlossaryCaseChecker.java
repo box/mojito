@@ -75,7 +75,7 @@ public class GlossaryCaseChecker extends AbstractCliChecker {
     StringBuilder sb = new StringBuilder();
     sb.append(System.lineSeparator());
     for (String failureText : failure.getFailures()) {
-      builder.append(String.format("* %s", failureText));
+      builder.append(BULLET_POINT).append(failureText);
       builder.append(System.lineSeparator());
     }
     return sb.toString();
