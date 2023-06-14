@@ -9,6 +9,7 @@ import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -162,7 +163,11 @@ public abstract class AbstractCliChecker {
   }
 
   Set<String> getCommentsAsSet(AssetExtractorTextUnit removedTextUnit) {
-    return Arrays.stream(removedTextUnit.getComments().split("\n")).collect(Collectors.toSet());
+    Set<String> comments = Collections.emptySet();
+    if (removedTextUnit.getComments() != null) {
+      Arrays.stream(removedTextUnit.getComments().split("\n")).collect(Collectors.toSet());
+    }
+    return comments;
   }
 
   protected CliCheckResult createCliCheckerResult() {
