@@ -165,7 +165,8 @@ public abstract class AbstractCliChecker {
   Set<String> getCommentsAsSet(AssetExtractorTextUnit removedTextUnit) {
     Set<String> comments = Collections.emptySet();
     if (removedTextUnit.getComments() != null) {
-      Arrays.stream(removedTextUnit.getComments().split("\n")).collect(Collectors.toSet());
+      comments =
+          Arrays.stream(removedTextUnit.getComments().split("\n")).collect(Collectors.toSet());
     }
     return comments;
   }
