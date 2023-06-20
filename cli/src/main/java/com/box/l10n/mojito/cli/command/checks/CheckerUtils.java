@@ -74,7 +74,7 @@ public class CheckerUtils {
     if (matcher.find()) {
       wishedHtmlAttValue = matcher.group(1);
     }
-    str = str.replaceAll(HTML_TAGS_PATTERN.pattern(), "");
+    str = str.replaceAll(HTML_TAGS_PATTERN.pattern(), " ");
 
     return wishedHtmlAttValue != null ? str + " " + wishedHtmlAttValue : str;
   }
