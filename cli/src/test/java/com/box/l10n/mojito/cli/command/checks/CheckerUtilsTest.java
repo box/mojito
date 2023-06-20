@@ -130,6 +130,12 @@ class CheckerUtilsTest {
   }
 
   @Test
+  void weShouldBeAbleTo_getWordsInString_whenThereAreNoSpacesAmongHtmlTags() {
+    List<String> result = CheckerUtils.getWordsInString("<b>These are different</b><br>Words");
+    assertThat(result).containsExactly("These", "are", "different", "Words");
+  }
+
+  @Test
   void weShouldNotThrowExceptionWhen_getWordsInString_providingEmptyStringAsInput() {
     List<String> result = CheckerUtils.getWordsInString("");
     assertThat(result).isEmpty();
