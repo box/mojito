@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.branch.notification.github;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.github.GithubException;
+import java.util.Objects;
 import org.slf4j.Logger;
 
 public class GithubBranchDetails {
@@ -38,5 +39,20 @@ public class GithubBranchDetails {
 
   public Integer getPrNumber() {
     return prNumber;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    GithubBranchDetails that = (GithubBranchDetails) o;
+    return Objects.equals(owner, that.owner)
+        && Objects.equals(repository, that.repository)
+        && Objects.equals(prNumber, that.prNumber);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(owner, repository, prNumber);
   }
 }

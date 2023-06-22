@@ -27,6 +27,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
 
   String userEmailPattern;
   boolean useDirectMessage;
+  boolean githubPR;
 
   public BranchNotificationMessageSenderSlack(
       String id,
@@ -34,7 +35,8 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
       SlackChannels slackChannels,
       BranchNotificationMessageBuilderSlack branchNotificationMessageBuilderSlack,
       String userEmailPattern,
-      boolean useDirectMessage) {
+      boolean useDirectMessage,
+      boolean isGithubPR) {
     this.id = id;
     this.slackClient = Preconditions.checkNotNull(slackClient);
     this.slackChannels = Preconditions.checkNotNull(slackChannels);
@@ -42,6 +44,7 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
         Preconditions.checkNotNull(branchNotificationMessageBuilderSlack);
     this.userEmailPattern = Preconditions.checkNotNull(userEmailPattern);
     this.useDirectMessage = useDirectMessage;
+    this.githubPR = isGithubPR;
   }
 
   @Override
@@ -96,7 +99,8 @@ public class BranchNotificationMessageSenderSlack implements BranchNotificationM
           branchNotificationMessageBuilderSlack.getTranslatedMessage(
               slackChannels.getSlackChannelForDirectOrBotMessage(
                   useDirectMessage, username, userEmailPattern),
-              messageId);
+              messageId,
+              branchName);
 
       ChatPostMessageResponse chatPostMessageResponse = slackClient.sendInstantMessage(message);
     } catch (SlackClientException sce) {

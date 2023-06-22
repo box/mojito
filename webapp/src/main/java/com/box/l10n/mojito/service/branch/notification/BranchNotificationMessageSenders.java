@@ -149,7 +149,8 @@ public class BranchNotificationMessageSenders {
                           messages.getUpdatedStrings(),
                           messages.getTranslationsReady(),
                           messages.getScreenshotsMissing(),
-                          messages.getNoMoreStrings());
+                          messages.getNoMoreStrings(),
+                          slackConfigurationProperties.isGithubPR());
 
                   BranchNotificationMessageSenderSlack branchNotificationMessageSenderSlack =
                       new BranchNotificationMessageSenderSlack(
@@ -158,7 +159,8 @@ public class BranchNotificationMessageSenders {
                           slackChannels,
                           branchNotificationMessageBuilderSlack,
                           slackConfigurationProperties.getUserEmailPattern(),
-                          slackConfigurationProperties.isUseDirectMessage());
+                          slackConfigurationProperties.isUseDirectMessage(),
+                          slackConfigurationProperties.isGithubPR());
 
                   return new SimpleEntry<String, BranchNotificationMessageSenderSlack>(
                       id, branchNotificationMessageSenderSlack);

@@ -86,7 +86,7 @@ public class BranchNotificationMessageSenderGithub implements BranchNotification
       githubClient.addCommentToPR(
           branchDetails.getRepository(),
           branchDetails.getPrNumber(),
-          branchNotificationMessageBuilderGithub.getTranslatedMessage());
+          branchNotificationMessageBuilderGithub.getTranslatedMessage(branchName, branchDetails));
       updatePRLabel(
           githubClient,
           branchDetails.getRepository(),
