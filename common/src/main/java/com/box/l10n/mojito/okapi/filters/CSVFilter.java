@@ -10,6 +10,9 @@ public class CSVFilter extends CommaSeparatedValuesFilter {
 
   public static final String FILTER_NAME = "okf_table_csv@mojito";
   public static final String FILTER_CONFIG_ID = "okf_table_csv@mojito";
+  public static final String FILTER_CONFIG_ID_ADOBE_MAGENTO = "okf_table_csv@mojito_adobe_magento";
+
+  net.sf.okapi.filters.table.csv.Parameters parameters;
 
   public CSVFilter() {
     super();
@@ -21,6 +24,13 @@ public class CSVFilter extends CommaSeparatedValuesFilter {
         "Table (Comma-Separated Values)",
         "Comma-separated values, optional header with field names.",
         "okf_table_csv_mojito.fprm");
+
+    addConfiguration(
+        false,
+        FILTER_CONFIG_ID_ADOBE_MAGENTO,
+        "Adobe magento CSV",
+        "Comma-separated values, 2 columns: source, target",
+        "okf_table_csv_mojito_adobe_magento.fprm");
   }
 
   /**

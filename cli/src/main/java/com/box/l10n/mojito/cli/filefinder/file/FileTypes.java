@@ -19,6 +19,7 @@ public enum FileTypes {
   PO(POFileType.class),
   XTB(XtbFileType.class),
   CSV(CSVFileType.class),
+  CSV_ADOBE_MAGENTO(CSVAdobeMagentoFileType.class),
   JS(JSFileType.class),
   JSON(JSONFileType.class),
   JSON_NOBASENAME(JSONNoBasenameFileType.class),

@@ -845,6 +845,56 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
   }
 
   @Test
+  public void importCsvAdobeMagento() throws Exception {
+
+    System.setProperty("overrideExpectedTestFiles", "true");
+
+    Repository repository = createTestRepoUsingRepoService();
+
+    getL10nJCommander()
+        .run(
+            "push",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-ft",
+            "CSV_ADOBE_MAGENTO",
+            "-sl",
+            "en_US");
+
+    getL10nJCommander()
+        .run(
+            "import",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getInputResourcesTestDir("translations").getAbsolutePath(),
+            "-ft",
+            "CSV_ADOBE_MAGENTO",
+            "-sl",
+            "en_US");
+
+    getL10nJCommander()
+        .run(
+            "pull",
+            "-r",
+            repository.getName(),
+            "-s",
+            getInputResourcesTestDir("source").getAbsolutePath(),
+            "-t",
+            getTargetTestDir().getAbsolutePath(),
+            "-ft",
+            "CSV_ADOBE_MAGENTO",
+            "-sl",
+            "en_US");
+
+    checkExpectedGeneratedResources();
+  }
+
+  @Test
   public void importUnused() throws Exception {
     Repository repository = createTestRepoUsingRepoService();
 
