@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import com.box.l10n.mojito.github.GithubClient;
 import com.box.l10n.mojito.service.branch.notification.github.BranchNotificationMessageBuilderGithub;
 import com.box.l10n.mojito.service.branch.notification.github.BranchNotificationMessageSenderGithub;
+import com.box.l10n.mojito.service.branch.notification.github.GithubBranchDetails;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -27,6 +28,8 @@ public class BranchNotificationMessageSenderGithubTest {
 
   String branchName = "testOwner/testRepo/pulls/1";
 
+  GithubBranchDetails githubBranchDetails = new GithubBranchDetails(branchName);
+
   @Before
   public void setup() {
     sourceStrings = new ArrayList<>();
@@ -35,7 +38,8 @@ public class BranchNotificationMessageSenderGithubTest {
         .thenReturn("Test new message");
     when(branchNotificationMessageBuilderGithubMock.getUpdatedMessage(branchName, sourceStrings))
         .thenReturn("Test updated message");
-    when(branchNotificationMessageBuilderGithubMock.getTranslatedMessage())
+    when(branchNotificationMessageBuilderGithubMock.getTranslatedMessage(
+            branchName, githubBranchDetails))
         .thenReturn("Test translated message");
     when(branchNotificationMessageBuilderGithubMock.getScreenshotMissingMessage())
         .thenReturn("Test screenshot missing message");

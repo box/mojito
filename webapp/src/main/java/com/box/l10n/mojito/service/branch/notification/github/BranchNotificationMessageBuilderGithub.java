@@ -84,8 +84,14 @@ public class BranchNotificationMessageBuilderGithub {
     return noMoreStringsMsg;
   }
 
-  public String getTranslatedMessage() {
-    return translationsReadyMsg;
+  public String getTranslatedMessage(String branchName, GithubBranchDetails branchDetails) {
+    MessageFormat messageFormat = new MessageFormat(translationsReadyMsg);
+    ImmutableMap<String, Object> messageParamMap =
+        ImmutableMap.<String, Object>builder()
+            .put("branchName", branchName)
+            .put("githubRepository", branchDetails.getRepository())
+            .build();
+    return messageFormat.format(messageParamMap);
   }
 
   public String getScreenshotMissingMessage() {

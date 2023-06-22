@@ -8,10 +8,13 @@ import static com.box.l10n.mojito.slack.request.Attachment.MRKDOWNIN_PRETEXT;
 import static com.box.l10n.mojito.slack.request.Attachment.MRKDWNIN_TEXT;
 
 import com.box.l10n.mojito.service.branch.BranchUrlBuilder;
+import com.box.l10n.mojito.service.branch.notification.github.GithubBranchDetails;
 import com.box.l10n.mojito.slack.request.Action;
 import com.box.l10n.mojito.slack.request.Attachment;
 import com.box.l10n.mojito.slack.request.Field;
 import com.box.l10n.mojito.slack.request.Message;
+import com.google.common.collect.ImmutableMap;
+import com.ibm.icu.text.MessageFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -31,19 +34,23 @@ public class BranchNotificationMessageBuilderSlack {
 
   String noMoreStringsMsg;
 
+  boolean isGithubPR;
+
   public BranchNotificationMessageBuilderSlack(
       BranchUrlBuilder branchUrlBuilder,
       String newStringMsg,
       String updatedStringMsg,
       String translationsReadyMsg,
       String screenshotsMissingMsg,
-      String noMoreStringsMsg) {
+      String noMoreStringsMsg,
+      boolean isGithubPR) {
     this.branchUrlBuilder = branchUrlBuilder;
     this.newStringMsg = newStringMsg;
     this.updatedStringMsg = updatedStringMsg;
     this.translationsReadyMsg = translationsReadyMsg;
     this.screenshotsMissingMsg = screenshotsMissingMsg;
     this.noMoreStringsMsg = noMoreStringsMsg;
+    this.isGithubPR = isGithubPR;
   }
 
   public Message getNewMessage(String channel, String pr, List<String> sourceStrings) {
@@ -68,11 +75,11 @@ public class BranchNotificationMessageBuilderSlack {
     return message;
   }
 
-  public Message getTranslatedMessage(String channel, String threadTs) {
+  public Message getTranslatedMessage(String channel, String threadTs, String branchName) {
     Message message = new Message();
     message.setChannel(channel);
     message.setThreadTs(threadTs);
-    message.setText(translationsReadyMsg);
+    message.setText(getTranslationsReadyMsg(branchName));
     return message;
   }
 
@@ -131,5 +138,16 @@ public class BranchNotificationMessageBuilderSlack {
         .limit(STRING_IN_SUMMARY_COUNT)
         .map(s -> StringUtils.abbreviate(s, STRING_IN_SUMMARY_ABRREVIATE_LENGHT))
         .collect(Collectors.joining(", "));
+  }
+
+  protected String getTranslationsReadyMsg(String branchName) {
+    final ImmutableMap.Builder<String, Object> messageParamMap = ImmutableMap.builder();
+    messageParamMap.put("branchName", branchName);
+    if (isGithubPR) {
+      GithubBranchDetails branchDetails = new GithubBranchDetails(branchName);
+      messageParamMap.put("githubRepository", branchDetails.getRepository());
+    }
+    MessageFormat messageFormat = new MessageFormat(translationsReadyMsg);
+    return messageFormat.format(messageParamMap.build());
   }
 }

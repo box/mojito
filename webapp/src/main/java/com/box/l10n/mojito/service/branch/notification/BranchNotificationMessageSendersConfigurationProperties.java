@@ -71,6 +71,8 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
     boolean useDirectMessage = false;
 
+    boolean githubPR = false;
+
     public String getSlackClientId() {
       return slackClientId;
     }
@@ -101,6 +103,14 @@ public class BranchNotificationMessageSendersConfigurationProperties {
 
     public void setUseDirectMessage(boolean useDirectMessage) {
       this.useDirectMessage = useDirectMessage;
+    }
+
+    public boolean isGithubPR() {
+      return githubPR;
+    }
+
+    public void setGithubPR(boolean githubPR) {
+      this.githubPR = githubPR;
     }
 
     public static class MessageBuilderConfigurationProperties {

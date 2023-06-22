@@ -27,6 +27,7 @@ import org.springframework.test.context.junit4.SpringRunner;
       "l10n.branchNotification.notifiers.phabricator.phabricator-1.reviewer=reviewer1",
       "l10n.branchNotification.notifiers.phabricator.phabricator-1.messages.newStrings=Override newStrings Phabricator",
       "l10n.branchNotification.notifiers.github.github-1.owner=owner1",
+      "l10n.branchNotification.notifiers.slack.slack-1.githubPR=true",
     })
 @EnableConfigurationProperties
 public class BranchNotificationMessageSendersConfigurationPropertiesTest {
@@ -53,6 +54,7 @@ public class BranchNotificationMessageSendersConfigurationPropertiesTest {
     assertThat(slack1)
         .extracting("slackClientId", "userEmailPattern", "messages.newStrings")
         .containsExactly("slackClientId1", "{0}@test.com", "Override newStrings");
+    assertThat(slack1).extracting("githubPR").isEqualTo(true);
   }
 
   @Test
