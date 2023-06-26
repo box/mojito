@@ -59,8 +59,7 @@ public class ExtractionCheckCommand extends Command {
 
   @Autowired ExtractionDiffService extractionDiffService;
 
-  @Autowired(required = false)
-  GithubClients githubClients;
+  @Autowired GithubClients githubClients;
 
   @Autowired ConsoleWriter consoleWriter;
 
@@ -282,9 +281,7 @@ public class ExtractionCheckCommand extends Command {
           .newLine()
           .a("Checks disabled as --skip-checks is set to true.")
           .println();
-      if (!Strings.isNullOrEmpty(checksSkippedMessage)) {
-        sendChecksSkippedNotifications();
-      }
+      sendChecksSkippedNotifications();
     } else {
       ExtractionPaths baseExtractionPaths =
           new ExtractionPaths(inputDirectoryParam, baseExtractionName);

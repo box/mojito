@@ -114,6 +114,17 @@ public class ExtractionCheckNotificationSenderGithub extends ExtractionCheckNoti
 
   @Override
   public void sendChecksSkippedNotification() {
+    if (isSetCommitStatus) {
+      githubClients
+          .getClient(githubOwner)
+          .addStatusToCommit(
+              githubRepo,
+              commitSha,
+              GHCommitState.SUCCESS,
+              "Checks disabled as SKIP_I18N_CHECKS was applied in comments.",
+              "I18N String Checks",
+              commitStatusTargetUrl);
+    }
     if (!Strings.isNullOrEmpty(checksSkippedMessage)) {
       githubClients
           .getClient(githubOwner)
