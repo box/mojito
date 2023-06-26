@@ -192,6 +192,14 @@ public class ExtractionCheckNotificationSenderGithubTest {
     Assert.assertTrue(prNumberCaptor.getValue().equals(100));
     Assert.assertTrue(
         messageCaptor.getValue().equals(GithubIcon.WARNING + " This is a checks skipped message"));
+    verify(githubClientMock, times(1))
+        .addStatusToCommit(
+            "testRepo",
+            "123456789",
+            GHCommitState.SUCCESS,
+            "Checks disabled as SKIP_I18N_CHECKS was applied in comments.",
+            "I18N String Checks",
+            "https://somewebaddress.com/");
   }
 
   @Test
