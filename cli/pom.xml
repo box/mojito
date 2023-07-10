@@ -144,7 +144,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/cli/
+                    <argLine>-Dspring.config.additional-location=optional:file://${user.home}/.l10n/config/webapp/
                         -Dspring.profiles.active=${user.name},test -Xmx1024m
                     </argLine>
                 </configuration>
