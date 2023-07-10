@@ -8,7 +8,7 @@ create table asset_text_unit_to_tm_text_unit (id bigint not null auto_increment,
 create table authority (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, authority varchar(255), created_by_user_id bigint, user_id bigint not null, primary key (id));
 create table group_authorities (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, authority varchar(255) not null, created_by_user_id bigint, group_id bigint not null, primary key (id));
 create table group_members (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, created_by_user_id bigint, group_id bigint not null, username bigint not null, primary key (id));
-create table groups (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, group_name varchar(255) not null, created_by_user_id bigint, primary key (id));
+create table `groups` (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, group_name varchar(255) not null, created_by_user_id bigint, primary key (id));
 create table locale (id bigint not null auto_increment, bcp47_tag varchar(255) not null, primary key (id));
 create table pollable_task (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, error_message longtext, error_stacks longtext, expected_sub_task_number integer not null, finished_date datetime, message longtext, name varchar(255) not null, timeout bigint, created_by_user_id bigint, parent_task_id bigint, primary key (id));
 create table repository (id bigint not null auto_increment, created_date datetime, last_modified_date datetime, description varchar(255), drop_exporter_type varchar(255), name varchar(255) not null, created_by_user_id bigint, repository_statistic_id bigint, tm_id bigint, primary key (id));
@@ -66,11 +66,11 @@ alter table asset_text_unit_to_tm_text_unit add constraint FK__ASSET_TEXT_UNIT_T
 alter table authority add constraint FK__AUTHORITY__USER__ID foreign key (created_by_user_id) references user (id);
 alter table authority add constraint FK__AUTHORITY__USER__USER_ID foreign key (user_id) references user (id);
 alter table group_authorities add constraint FK__GROUP_AUTHORITY__USER__ID foreign key (created_by_user_id) references user (id);
-alter table group_authorities add constraint FK__GROUP_AUTHORITY__GROUP__ID foreign key (group_id) references groups (id);
+alter table group_authorities add constraint FK__GROUP_AUTHORITY__GROUP__ID foreign key (group_id) references `groups` (id);
 alter table group_members add constraint FK__GROUP_MEMBER__USER__ID foreign key (created_by_user_id) references user (id);
-alter table group_members add constraint FK__GROUP_MEMBER__GROUP__ID foreign key (group_id) references groups (id);
+alter table group_members add constraint FK__GROUP_MEMBER__GROUP__ID foreign key (group_id) references `groups` (id);
 alter table group_members add constraint FK__GROUP_MEMBER__USER__USERNAME foreign key (username) references user (id);
-alter table groups add constraint FK__GROUP__USER__ID foreign key (created_by_user_id) references user (id);
+alter table `groups` add constraint FK__GROUP__USER__ID foreign key (created_by_user_id) references user (id);
 alter table pollable_task add constraint FK__POLLABLE_TASK__USER__ID foreign key (created_by_user_id) references user (id);
 alter table pollable_task add constraint FK__POLLABLE_TASK__POLLABLE_TASK__ID foreign key (parent_task_id) references pollable_task (id);
 alter table repository add constraint FK__REPOSITORY__USER__ID foreign key (created_by_user_id) references user (id);
