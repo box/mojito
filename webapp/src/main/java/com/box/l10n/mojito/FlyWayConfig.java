@@ -1,6 +1,7 @@
 package com.box.l10n.mojito;
 
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
@@ -44,7 +45,16 @@ public class FlyWayConfig {
                     logger.info("Don't clean DB with Flyway");
                 }
 
-                flyway.migrate();
+                try {
+                    logger.info("Flyway migrate() start");
+                    flyway.migrate();
+                    logger.info("Flyway migrate() finished");
+                } catch (FlywayException fe) {
+                    if (flyway.info().current().getVersion().getVersion().equals("50")) {
+                        tryToMigrateIfMysql8Migration(flyway, fe);
+                    } else
+                        throw fe;
+                }
             }
         };
 
@@ -59,4 +69,28 @@ public class FlyWayConfig {
         this.clean = clean;
     }
 
+    /**
+     * To migrate to Mysql 8, we need to escape new reserved keyword "groups" in
+     * V1__Initial_Setup.sql, which in turns changes the Flyway MD5. If the Flyway
+     * migrate() fails for
+     * that specific reason we just repair the schema, i.e. just change the MD5 for
+     * version 1. *
+     *
+     * @param flyway
+     * @param fe
+     */
+    void tryToMigrateIfMysql8Migration(Flyway flyway, FlywayException fe) {
+        if (fe.getMessage()
+                .contains(
+                        "Migration checksum mismatch for migration version 1\n"
+                                + "-> Applied to database : 1443976515\n"
+                                + "-> Resolved locally    : -998267617")) {
+
+            logger.info("Flyway repair()");
+            flyway.repair();
+            logger.info("Flyway repair() finished");
+        } else {
+            throw fe;
+        }
+    }
 }
