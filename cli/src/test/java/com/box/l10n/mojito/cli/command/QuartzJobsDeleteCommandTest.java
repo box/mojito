@@ -45,19 +45,19 @@ public class QuartzJobsDeleteCommandTest extends CLITestBase {
     String testJobName2 = testIdWatcher.getEntityName("2");
 
     quartzPollableTaskScheduler.scheduleJob(
-        QuartzJobInfo.newBuilder(TestJob.class)
+        QuartzJobInfo.newBuilder(AJob.class)
             .withTriggerStartDate(DateTime.now().plus(100000).toDate())
             .withUniqueId(testJobName1)
             .build());
     quartzPollableTaskScheduler.scheduleJob(
-        QuartzJobInfo.newBuilder(TestJob.class)
+        QuartzJobInfo.newBuilder(AJob.class)
             .withTriggerStartDate(DateTime.now().plus(100000).toDate())
             .withUniqueId(testJobName2)
             .build());
 
     getL10nJCommander().run("quartz-jobs-view");
-    assertTrue("Should show 1 job", outputCapture.toString().contains("TestJob_" + testJobName1));
-    assertTrue("Should show 1 job", outputCapture.toString().contains("TestJob_" + testJobName2));
+    assertTrue("Should show 1 job", outputCapture.toString().contains("AJob_" + testJobName1));
+    assertTrue("Should show 1 job", outputCapture.toString().contains("AJob_" + testJobName2));
     assertEquals(2L, quartzService.getDynamicJobs().size());
 
     getL10nJCommander().run("quartz-jobs-delete");
@@ -65,7 +65,7 @@ public class QuartzJobsDeleteCommandTest extends CLITestBase {
     assertEquals(0L, quartzService.getDynamicJobs().size());
   }
 
-  public static class TestJob extends QuartzPollableJob<Void, Void> {
+  public static class AJob extends QuartzPollableJob<Void, Void> {
 
     @Override
     public Void call(Void input) throws Exception {
