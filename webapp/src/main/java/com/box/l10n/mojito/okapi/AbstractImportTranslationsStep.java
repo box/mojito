@@ -445,7 +445,7 @@ public abstract class AbstractImportTranslationsStep extends AbstractMd5Computat
               tmTextUnitId,
               targetLocaleId,
               targetString,
-              null,
+              targetComment,
               status,
               includedInLocalizedFile,
               createdDate,
