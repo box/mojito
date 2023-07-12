@@ -8,6 +8,8 @@ import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitCurrentVariant;
 import com.box.l10n.mojito.entity.TMTextUnitVariant.Status;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment.Severity;
 import com.box.l10n.mojito.entity.security.user.User;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.security.AuditorAwareImpl;
@@ -22,8 +24,10 @@ import com.box.l10n.mojito.service.locale.LocaleService;
 import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.pollableTask.PollableFutureTaskResult;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
+import com.box.l10n.mojito.service.tm.AddTMTextUnitCurrentVariantResult;
 import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
+import com.box.l10n.mojito.service.tm.TMTextUnitVariantCommentService;
 import com.box.l10n.mojito.service.tm.TextUnitBatchMatcher;
 import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
@@ -76,6 +80,8 @@ public class TextUnitBatchImporterService {
   @Autowired AuditorAwareImpl auditorAwareImpl;
 
   @Autowired TextUnitDTOsCacheService textUnitDTOsCacheService;
+
+  @Autowired TMTextUnitVariantCommentService tmMTextUnitVariantCommentService;
 
   /**
    * Imports a batch of text units.
@@ -210,18 +216,37 @@ public class TextUnitBatchImporterService {
               }
 
               User importedBy = auditorAwareImpl.getCurrentAuditor().orElse(null);
-              tmService.addTMTextUnitCurrentVariantWithResult(
-                  tmTextUnitCurrentVariant,
-                  asset.getRepository().getTm().getId(),
-                  asset.getId(),
-                  currentTextUnit.getTmTextUnitId(),
-                  locale.getId(),
-                  textUnitForBatchImport.getContent(),
-                  textUnitForBatchImport.getComment(),
-                  textUnitForBatchImport.getStatus(),
-                  textUnitForBatchImport.isIncludedInLocalizedFile(),
-                  importTime,
-                  importedBy);
+              AddTMTextUnitCurrentVariantResult addTMTextUnitCurrentVariantResult =
+                  tmService.addTMTextUnitCurrentVariantWithResult(
+                      tmTextUnitCurrentVariant,
+                      asset.getRepository().getTm().getId(),
+                      asset.getId(),
+                      currentTextUnit.getTmTextUnitId(),
+                      locale.getId(),
+                      textUnitForBatchImport.getContent(),
+                      textUnitForBatchImport.getComment(),
+                      textUnitForBatchImport.getStatus(),
+                      textUnitForBatchImport.isIncludedInLocalizedFile(),
+                      importTime,
+                      importedBy);
+
+              if (addTMTextUnitCurrentVariantResult.isTmTextUnitCurrentVariantUpdated()) {
+
+                Long tmTextUnitVariantId =
+                    addTMTextUnitCurrentVariantResult
+                        .getTmTextUnitCurrentVariant()
+                        .getTmTextUnitVariant()
+                        .getId();
+
+                for (TMTextUnitVariantComment tmTextUnitVariantComment :
+                    textUnitForBatchImport.getTmTextUnitVariantComments()) {
+                  tmMTextUnitVariantCommentService.addComment(
+                      tmTextUnitVariantId,
+                      tmTextUnitVariantComment.getType(),
+                      tmTextUnitVariantComment.getSeverity(),
+                      tmTextUnitVariantComment.getContent());
+                }
+              }
             });
   }
 
@@ -285,6 +310,11 @@ public class TextUnitBatchImporterService {
                 ice);
             textUnitForBatchImport.setIncludedInLocalizedFile(false);
             textUnitForBatchImport.setStatus(Status.TRANSLATION_NEEDED);
+
+            TMTextUnitVariantComment tmTextUnitVariantComment = new TMTextUnitVariantComment();
+            tmTextUnitVariantComment.setSeverity(Severity.ERROR);
+            tmTextUnitVariantComment.setContent(ice.getMessage());
+            textUnitForBatchImport.getTmTextUnitVariantComments().add(tmTextUnitVariantComment);
           }
 
           break;
@@ -362,7 +392,6 @@ public class TextUnitBatchImporterService {
               textUnitForBatchImport.setComment(t.getComment());
               textUnitForBatchImport.setIncludedInLocalizedFile(t.isIncludedInLocalizedFile());
               textUnitForBatchImport.setStatus(t.getStatus() == null ? APPROVED : t.getStatus());
-
               return textUnitForBatchImport;
             })
         .filter(
