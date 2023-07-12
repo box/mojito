@@ -405,7 +405,7 @@ public class TextUnitWS {
       result.setCheckResult(true);
     } catch (IntegrityCheckException e) {
       logger.info(
-          "Integrity check failed for text unit id {}, content {}: {}",
+          "Integrity check failed for string with tmTextUnitId: {}, content:\n{}",
           textUnitCheckBody.getTmTextUnitId(),
           textUnitCheckBody.getContent(),
           e);
