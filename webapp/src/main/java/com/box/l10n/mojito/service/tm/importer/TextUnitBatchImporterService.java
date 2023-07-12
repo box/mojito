@@ -234,7 +234,7 @@ public class TextUnitBatchImporterService {
             currentTextUnit.getStatus(),
             DigestUtils.md5Hex(currentTextUnit.getTarget()),
             currentTextUnit.isIncludedInLocalizedFile(),
-            currentTextUnit.getComment(),
+            currentTextUnit.getTargetComment(),
             textUnitForBatchImport.getStatus(),
             DigestUtils.md5Hex(textUnitForBatchImport.getContent()),
             textUnitForBatchImport.isIncludedInLocalizedFile(),
@@ -359,7 +359,7 @@ public class TextUnitBatchImporterService {
 
               textUnitForBatchImport.setLocale(localeService.findByBcp47Tag(t.getTargetLocale()));
               textUnitForBatchImport.setContent(NormalizationUtils.normalize(t.getTarget()));
-              textUnitForBatchImport.setComment(t.getComment());
+              textUnitForBatchImport.setComment(t.getTargetComment());
               textUnitForBatchImport.setIncludedInLocalizedFile(t.isIncludedInLocalizedFile());
               textUnitForBatchImport.setStatus(t.getStatus() == null ? APPROVED : t.getStatus());
 
