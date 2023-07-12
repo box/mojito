@@ -304,7 +304,7 @@ public class TextUnitBatchImporterService {
             textUnitForBatchImport.setStatus(currentTextUnit.getStatus());
           } else {
             logger.info(
-                "Integrity check failed for string with source {}, content {}: {}",
+                "Integrity check failed for string with source:\n{}\n\nand content:\n{}",
                 currentTextUnit.getSource(),
                 textUnitForBatchImport.getContent(),
                 ice);
