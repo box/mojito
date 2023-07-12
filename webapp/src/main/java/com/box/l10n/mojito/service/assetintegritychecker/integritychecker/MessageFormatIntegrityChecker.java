@@ -36,7 +36,8 @@ public class MessageFormatIntegrityChecker extends AbstractTextUnitIntegrityChec
     try {
       targetMessageFormat = new MessageFormat(targetContent);
     } catch (IllegalArgumentException iae) {
-      throw new MessageFormatIntegrityCheckerException("Invalid pattern", iae);
+      throw new MessageFormatIntegrityCheckerException(
+          String.format("Invalid pattern - %s", iae.getMessage()), iae);
     }
 
     logger.debug(
@@ -44,7 +45,8 @@ public class MessageFormatIntegrityChecker extends AbstractTextUnitIntegrityChec
     try {
       sourceMessageFormat = new MessageFormat(sourceContent);
     } catch (IllegalArgumentException iae) {
-      throw new MessageFormatIntegrityCheckerException("Invalid source pattern", iae);
+      throw new MessageFormatIntegrityCheckerException(
+          String.format("Invalid source pattern - %s", iae.getMessage()), iae);
     }
 
     logger.debug(

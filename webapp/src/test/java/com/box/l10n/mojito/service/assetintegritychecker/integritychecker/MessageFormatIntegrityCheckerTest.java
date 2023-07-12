@@ -39,7 +39,9 @@ public class MessageFormatIntegrityCheckerTest {
       checker.check(source, target);
       fail("MessageFormatIntegrityCheckerException must be thrown");
     } catch (MessageFormatIntegrityCheckerException e) {
-      assertEquals("Invalid pattern", e.getMessage());
+      assertEquals(
+          "Invalid pattern - Bad plural pattern syntax: [at pattern index 18] \" one{Il y a un fichi ...\"",
+          e.getMessage());
     }
   }
 
@@ -55,7 +57,9 @@ public class MessageFormatIntegrityCheckerTest {
       checker.check(source, target);
       fail("Exception must be thrown");
     } catch (MessageFormatIntegrityCheckerException e) {
-      assertEquals("Invalid pattern", e.getMessage());
+      assertEquals(
+          "Invalid pattern - Missing 'other' keyword in plural pattern in \"{numFiles, plural, u ...\"",
+          e.getMessage());
     }
   }
 
