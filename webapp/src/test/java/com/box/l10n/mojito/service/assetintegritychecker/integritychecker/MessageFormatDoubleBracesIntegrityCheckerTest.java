@@ -78,7 +78,9 @@ public class MessageFormatDoubleBracesIntegrityCheckerTest {
       checker.check(source, target);
       fail("Exception must be thrown");
     } catch (MessageFormatIntegrityCheckerException e) {
-      assertEquals("Invalid pattern", e.getMessage());
+      assertEquals(
+          "Invalid pattern - Missing 'other' keyword in plural pattern in \"{numFiles, plural, u ...\"",
+          e.getMessage());
     }
   }
 
