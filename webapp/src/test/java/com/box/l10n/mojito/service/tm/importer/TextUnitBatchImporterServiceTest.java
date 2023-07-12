@@ -123,7 +123,6 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     i++;
     assertEquals("TEST2", textUnitDTOsFromSearch.get(i).getName());
     assertEquals("TEST2 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
-    assertNull(textUnitDTOsFromSearch.get(i).getTarget());
     assertNull(textUnitDTOsFromSearch.get(i).getTargetComment());
     i++;
     assertEquals("TEST3", textUnitDTOsFromSearch.get(i).getName());
