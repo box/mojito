@@ -4,8 +4,11 @@ import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.TMTextUnitVariant;
+import com.box.l10n.mojito.entity.TMTextUnitVariantComment;
 import com.box.l10n.mojito.service.tm.TextUnitForBatchMatcher;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
+import java.util.ArrayList;
+import java.util.List;
 
 /** @author jeanaurambault */
 public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
@@ -20,6 +23,9 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
   TextUnitDTO currentTextUnit;
   boolean includedInLocalizedFile;
   TMTextUnitVariant.Status status;
+
+  List<TMTextUnitVariantComment> tmTextUnitVariantComments = new ArrayList<>();
+
   boolean namePluralPrefix;
 
   public Repository getRepository() {
@@ -101,6 +107,15 @@ public class TextUnitForBatchMatcherImport implements TextUnitForBatchMatcher {
 
   public void setStatus(TMTextUnitVariant.Status status) {
     this.status = status;
+  }
+
+  public List<TMTextUnitVariantComment> getTmTextUnitVariantComments() {
+    return tmTextUnitVariantComments;
+  }
+
+  public void setTmTextUnitVariantComments(
+      List<TMTextUnitVariantComment> tmTextUnitVariantComments) {
+    this.tmTextUnitVariantComments = tmTextUnitVariantComments;
   }
 
   @Override
