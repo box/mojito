@@ -1,8 +1,10 @@
 package com.box.l10n.mojito.entity;
 
 import com.box.l10n.mojito.entity.security.user.User;
+import com.box.l10n.mojito.rest.View;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -56,13 +58,16 @@ public class TMTextUnitVariantComment extends AuditableEntity {
 
   @Column(name = "severity")
   @Enumerated(EnumType.STRING)
+  @JsonView(View.TranslationHistorySummary.class)
   private Severity severity;
 
   @Column(name = "type")
   @Enumerated(EnumType.STRING)
+  @JsonView(View.TranslationHistorySummary.class)
   private Type type;
 
   @Column(name = "content", length = Integer.MAX_VALUE)
+  @JsonView(View.TranslationHistorySummary.class)
   private String content;
 
   @CreatedBy

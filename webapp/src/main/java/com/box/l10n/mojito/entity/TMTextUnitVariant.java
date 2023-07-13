@@ -129,6 +129,7 @@ public class TMTextUnitVariant extends SettableAuditableEntity {
 
   @JsonManagedReference
   @OneToMany(mappedBy = "tmTextUnitVariant", fetch = FetchType.EAGER)
+  @JsonView(View.TranslationHistorySummary.class)
   private Set<TMTextUnitVariantComment> tmTextUnitVariantComments = new HashSet<>();
 
   public String getContent() {
