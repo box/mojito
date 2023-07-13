@@ -7,7 +7,8 @@ class TranslationHistoryActions {
             "openWithTextUnit",
             "getTranslationHistorySuccess",
             "getTranslationHistoryError",
-            "close"
+            "close",
+            "changeOpenTmTextUnitVariant"
         );
     }
 }

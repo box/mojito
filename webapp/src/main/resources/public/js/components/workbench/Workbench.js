@@ -121,7 +121,8 @@ let Workbench = createReactClass({
                     />
                 </AltContainer>
                 <AltContainer store={TranslationHistoryStore}>
-                    <TranslationHistoryModal onCloseModal={TranslationHistoryActions.close}/>
+                    <TranslationHistoryModal onCloseModal={TranslationHistoryActions.close}
+                                             onChangeOpenTmTextUnitVariant={TranslationHistoryActions.changeOpenTmTextUnitVariant}/>
                 </AltContainer>
             </div>
         );
