@@ -47,6 +47,9 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
       if (comments != null && comments.contains(COMMENT_TO_IGNORE)) {
         comments = null;
       }
+      // In the case of an import, for monolingual document, "source" contains the target and this
+      // md5 won't be the md5 that can identify the tm text unit. Only for multilingual document it
+      // would be the case.
       md5 = textUnitUtils.computeTextUnitMD5(name, source, comments);
     }
 
