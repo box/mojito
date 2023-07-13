@@ -15,7 +15,8 @@ class StatusGlyph extends React.Component {
             TextUnitSDK.STATUS.REVIEW_NEEDED,
             TextUnitSDK.STATUS.TRANSLATION_NEEDED,
             TextUnitSDK.STATUS.REJECTED]).isRequired,
-        "onClick": PropTypes.func.isRequired
+        "onClick": PropTypes.func.isRequired,
+        "noButton" : PropTypes.bool,
     };
 
     getGlyphTypeAndTitle = (type) => {
@@ -49,7 +50,7 @@ class StatusGlyph extends React.Component {
                     glyph={glyph.type}
                     title={glyph.title}
                     onClick={this.props.onClick}
-                    className="btn"
+                    className={this.props.noButton ? "" : "btn"}
                />);
     }
 }

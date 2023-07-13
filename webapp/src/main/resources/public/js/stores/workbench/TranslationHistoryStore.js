@@ -20,6 +20,7 @@ class TranslationHistoryStore {
         this.textUnit = null;
         this.translationHistory = null;
         this.loading = false;
+        this.openTmTextUnitVariantId = null;
     }
 
     close() {
@@ -41,6 +42,10 @@ class TranslationHistoryStore {
 
     onGetTranslationHistoryError(errorResponse) {
         this.loading = false;
+    }
+
+    changeOpenTmTextUnitVariant(tmTextUnitVariantId) {
+        this.openTmTextUnitVariantId = tmTextUnitVariantId;
     }
 }
 
