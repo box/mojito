@@ -80,7 +80,6 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     textUnitDTO.setAssetPath(tmTestData.asset.getPath());
     textUnitDTO.setName("TEST2");
     textUnitDTO.setTarget("TEST2 translation for fr");
-    textUnitDTO.setComment("Comment2");
 
     TextUnitDTO textUnitDTO2 = new TextUnitDTO();
     textUnitDTO2.setRepositoryName(tmTestData.repository.getName());
@@ -88,7 +87,6 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     textUnitDTO2.setAssetPath(tmTestData.asset.getPath());
     textUnitDTO2.setName("TEST3");
     textUnitDTO2.setTarget("TEST3 translation for fr");
-    textUnitDTO2.setTargetComment("TEST3 target comment");
 
     TextUnitDTO textUnitDTO3 = new TextUnitDTO();
     textUnitDTO3.setRepositoryName(tmTestData.repository.getName());
@@ -123,11 +121,9 @@ public class TextUnitBatchImporterServiceTest extends ServiceTestBase {
     i++;
     assertEquals("TEST2", textUnitDTOsFromSearch.get(i).getName());
     assertEquals("TEST2 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
-    assertNull(textUnitDTOsFromSearch.get(i).getTargetComment());
     i++;
     assertEquals("TEST3", textUnitDTOsFromSearch.get(i).getName());
     assertEquals("TEST3 translation for fr", textUnitDTOsFromSearch.get(i).getTarget());
-    assertEquals("TEST3 target comment", textUnitDTOsFromSearch.get(i).getTargetComment());
     i++;
   }
 
