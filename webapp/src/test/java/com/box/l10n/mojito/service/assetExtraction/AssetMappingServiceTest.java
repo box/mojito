@@ -574,7 +574,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(0);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by name and content for source leveraging leveraging from: "
+        "by name and content for source leveraging - leveraging from tmTextUnitId: "
+            + translationfrFR.getTmTextUnit().getId()
+            + ", tmTextUnitVariantId: "
             + translationfrFR.getId()
             + ", unique match: true",
         comment.getContent());
@@ -593,7 +595,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(0);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by name and content for source leveraging leveraging from: "
+        "by name and content for source leveraging - leveraging from tmTextUnitId: "
+            + translationjaJP.getTmTextUnit().getId()
+            + ", tmTextUnitVariantId: "
             + translationjaJP.getId()
             + ", unique match: true",
         comment.getContent());
@@ -641,7 +645,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(1);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by name for source leveraging leveraging from: "
+        "by name for source leveraging - leveraging from tmTextUnitId: "
+            + translation2frFR.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation2frFR.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -667,7 +673,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(1);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by name for source leveraging leveraging from: "
+        "by name for source leveraging - leveraging from tmTextUnitId: "
+            + translation2jaJP.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation2jaJP.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -720,7 +728,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(2);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation3frFR.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation3frFR.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -742,7 +752,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(2);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation3jaJP.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation3jaJP.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -805,7 +817,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(3);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by name for source leveraging leveraging from: "
+        "by name for source leveraging - leveraging from tmTextUnitId: "
+            + translation4frFR.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation4frFR.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -827,7 +841,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(3);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by name for source leveraging leveraging from: "
+        "by name for source leveraging - leveraging from tmTextUnitId: "
+            + translation4jaJP.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation4jaJP.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -856,7 +872,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(3);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation4frFR.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation4frFR.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -875,7 +893,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(3);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation4jaJP.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation4jaJP.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -904,7 +924,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(3);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation4frFR.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation4frFR.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -923,7 +945,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(3);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation4jaJP.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation4jaJP.getTmTextUnitVariantId()
             + ", unique match: true",
         comment.getContent());
@@ -973,7 +997,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(4);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation5frFRb.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation5frFRb.getTmTextUnitVariantId()
             + ", unique match: false",
         comment.getContent());
@@ -992,7 +1018,9 @@ public class AssetMappingServiceTest extends ServiceTestBase {
             .get(4);
     assertEquals(TMTextUnitVariantComment.Type.LEVERAGING, comment.getType());
     assertEquals(
-        "by content for source leveraging leveraging from: "
+        "by content for source leveraging - leveraging from tmTextUnitId: "
+            + translation5jaJPb.getTmTextUnitId()
+            + ", tmTextUnitVariantId: "
             + translation5jaJPb.getTmTextUnitVariantId()
             + ", unique match: false",
         comment.getContent());
