@@ -176,7 +176,9 @@ public abstract class AbstractLeverager {
 
   private String getLeverageComment(TextUnitDTO translation, boolean uniqueTMTextUnitMatched) {
     return getType()
-        + " leveraging from: "
+        + " - leveraging from tmTextUnitId: "
+        + translation.getTmTextUnitId()
+        + ", tmTextUnitVariantId: "
         + translation.getTmTextUnitVariantId()
         + ", unique match: "
         + uniqueTMTextUnitMatched;
