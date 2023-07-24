@@ -26,6 +26,7 @@ import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.test.TestIdWatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -57,6 +58,8 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
   ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson;
 
   @Mock ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJsonMock;
+
+  @Mock MeterRegistry meterRegistryMock;
 
   @Autowired(required = false)
   ThirdPartyService thirdPartyService;
@@ -247,7 +250,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
         ImmutableList.of(translatedTextUnitDto, untranslatedTextUnitDtoWithOriginalString);
 
     ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson =
-        new ThirdPartyTMSSmartlingWithJson(null, null, null, null, null);
+        new ThirdPartyTMSSmartlingWithJson(null, null, null, null, null, meterRegistryMock);
 
     ImmutableList<TextUnitDTO> result =
         thirdPartyTMSSmartlingWithJson.getTranslatedUnits(

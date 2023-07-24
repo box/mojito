@@ -34,9 +34,11 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
+import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +85,8 @@ public class TextUnitBatchImporterService {
 
   @Autowired TMTextUnitVariantCommentService tmMTextUnitVariantCommentService;
 
+  @Autowired MeterRegistry meterRegistry;
+
   /**
    * Imports a batch of text units.
    *
@@ -120,6 +124,8 @@ public class TextUnitBatchImporterService {
       boolean integrityCheckSkipped,
       boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 
+    Stopwatch stopwatchTotal = Stopwatch.createStarted();
+
     logger.debug("Import {} text units", textUnitDTOs.size());
     List<TextUnitForBatchMatcherImport> textUnitForBatchImports =
         skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOs);
@@ -138,14 +144,29 @@ public class TextUnitBatchImporterService {
               (asset, textUnitsForBatchImport) -> {
                 mapTextUnitsToImportWithExistingTextUnits(locale, asset, textUnitsForBatchImport);
                 if (!integrityCheckSkipped) {
+                  Stopwatch integrityCheckStopwatch = Stopwatch.createStarted();
                   applyIntegrityChecks(
                       asset,
                       textUnitsForBatchImport,
                       integrityCheckKeepStatusIfFailedAndSameTarget);
+                  meterRegistry
+                      .timer(
+                          "TextUnitBatchImporterService.importTextUnits.integrityChecks",
+                          "repository",
+                          asset.getRepository().getName(),
+                          "asset",
+                          asset.getPath(),
+                          "locale",
+                          locale.getBcp47Tag())
+                      .record(integrityCheckStopwatch.stop().elapsed());
                 }
                 importTextUnitsOfLocaleAndAsset(locale, asset, textUnitsForBatchImport);
               });
         });
+
+    meterRegistry
+        .timer("TextUnitBatchImporterService.importTextUnits")
+        .record(stopwatchTotal.stop().elapsed());
 
     return new PollableFutureTaskResult<>();
   }
