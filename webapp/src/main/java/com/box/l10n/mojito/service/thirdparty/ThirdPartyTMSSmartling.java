@@ -20,12 +20,14 @@ import com.box.l10n.mojito.smartling.request.Binding;
 import com.box.l10n.mojito.smartling.request.Bindings;
 import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.StringInfo;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +85,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   private final ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary;
   private final AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository;
 
+  private final MeterRegistry meterRegistry;
+
   private final Set<String> supportedImageExtensions =
       Sets.newHashSet("png", "jpg", "jpeg", "gif", "tiff");
 
@@ -99,7 +103,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       SmartlingResultProcessor resultProcessor,
       ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson,
       ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary,
-      AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository) {
+      AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository,
+      MeterRegistry meterRegistry) {
     this(
         smartlingClient,
         textUnitSearcher,
@@ -109,7 +114,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         thirdPartyTMSSmartlingWithJson,
         thirdPartyTMSSmartlingGlossary,
         assetTextUnitToTMTextUnitRepository,
-        DEFAULT_BATCH_SIZE);
+        DEFAULT_BATCH_SIZE,
+        meterRegistry);
   }
 
   public ThirdPartyTMSSmartling(
@@ -121,7 +127,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson,
       ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary,
       AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository,
-      int batchSize) {
+      int batchSize,
+      MeterRegistry meterRegistry) {
     this.smartlingClient = smartlingClient;
     this.assetPathAndTextUnitNameKeys = assetPathAndTextUnitNameKeys;
     this.textUnitBatchImporterService = textUnitBatchImporterService;
@@ -131,6 +138,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     this.thirdPartyTMSSmartlingWithJson = thirdPartyTMSSmartlingWithJson;
     this.thirdPartyTMSSmartlingGlossary = thirdPartyTMSSmartlingGlossary;
     this.assetTextUnitToTMTextUnitRepository = assetTextUnitToTMTextUnitRepository;
+    this.meterRegistry = meterRegistry;
   }
 
   @Override
@@ -386,6 +394,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       return;
     }
 
+    Stopwatch totalStopwatch = Stopwatch.createStarted();
+
     AndroidStringDocumentMapper mapper = new AndroidStringDocumentMapper(pluralSeparator, null);
 
     Stream<SmartlingFile> singularFiles =
@@ -407,6 +417,9 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     List<SmartlingFile> result =
         Stream.concat(singularFiles, pluralFiles).collect(Collectors.toList());
     resultProcessor.processPush(result, options);
+    meterRegistry
+        .timer("ThirdPartyTMSSmartling.push", "repository", repository.getName())
+        .record(totalStopwatch.stop().elapsed());
   }
 
   private SmartlingFile processPushBatch(
@@ -418,6 +431,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       SmartlingOptions options,
       Prefix filePrefix) {
 
+    Stopwatch stopwatch = Stopwatch.createStarted();
     logger.debug("Convert text units to AndroidString for asset number: {}", batchNumber);
     SmartlingFile file = new SmartlingFile();
     file.setFileName(getOutputSourceFile(batchNumber, repository.getName(), filePrefix.getType()));
@@ -464,7 +478,9 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
               })
           .block();
     }
-
+    meterRegistry
+        .timer("ThirdPartyTMSSmartling.processPushBatch", "repository", repository.getName())
+        .record(stopwatch.stop().elapsed());
     return file;
   }
 
@@ -479,6 +495,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipAssetsWithPathPattern,
       List<String> optionList) {
 
+    Stopwatch stopwatch = Stopwatch.createStarted();
     SmartlingOptions options = SmartlingOptions.parseList(optionList);
 
     if (options.isJsonSync()) {
@@ -520,6 +537,9 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
                     options,
                     localeMapping,
                     Prefix.PLURAL));
+    meterRegistry
+        .timer("ThirdPartyTMSSmartling.pull", "repository", repository.getName())
+        .record(stopwatch.stop().elapsed());
   }
 
   private void processPullBatch(
@@ -534,6 +554,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     AndroidStringDocumentMapper mapper;
 
     for (RepositoryLocale locale : repository.getRepositoryLocales()) {
+
+      Stopwatch stopwatch = Stopwatch.createStarted();
 
       if (locale.getParentLocale() == null) {
         continue;
@@ -599,6 +621,15 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         logger.debug("Importing text units for locale: {}", smartlingLocale);
         textUnitBatchImporterService.importTextUnits(textUnits, false, true);
       }
+
+      meterRegistry
+          .timer(
+              "ThirdPartyTMSSmartling.processPullBatch",
+              "repository",
+              repository.getName(),
+              "locale",
+              localeTag)
+          .record(stopwatch.stop().elapsed());
     }
   }
 
@@ -613,6 +644,8 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       String skipAssetsWithPathPattern,
       String includeTextUnitsWithPattern,
       List<String> optionList) {
+
+    Stopwatch stopwatch = Stopwatch.createStarted();
 
     SmartlingOptions options = SmartlingOptions.parseList(optionList);
     if (options.isJsonSync()) {
@@ -685,6 +718,9 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
             .collect(Collectors.toList());
 
     resultProcessor.processPushTranslations(result, options);
+    meterRegistry
+        .timer("ThirdPartyTMSSmartling.pushTranslations", "repository", repository.getName())
+        .record(stopwatch.stop().elapsed());
   }
 
   private Set<Long> getFilterTmTextUnitIdsForPushTranslation(SmartlingOptions options) {
@@ -707,8 +743,12 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       Map<String, String> localeMapping) {
     SmartlingOptions options = SmartlingOptions.parseList(optionList);
     if (options.isGlossarySync()) {
+      Stopwatch stopwatch = Stopwatch.createStarted();
       thirdPartyTMSSmartlingGlossary.pullSourceTextUnits(
           repository, thirdPartyProjectId, localeMapping);
+      meterRegistry
+          .timer("ThirdPartyTMSSmartling.pullSource", "repository", repository.getName())
+          .record(stopwatch.stop().elapsed());
     } else {
       throw new UnsupportedOperationException(
           "Pull source is only supported with glossary sync enabled.");
@@ -729,6 +769,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
     logger.debug("Process {} batch: {}", localeTag, batchNumber);
     logger.debug("Convert text units to AndroidString for asset number: {}", batchNumber);
+    Stopwatch stopwatch = Stopwatch.createStarted();
     String sourceFilename =
         getOutputSourceFile(batchNumber, repository.getName(), filePrefix.getType());
     String targetFilename =
@@ -791,6 +832,14 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
           .block();
     }
 
+    meterRegistry
+        .timer(
+            "ThirdPartyTMSSmartlingWithJson.processTranslationBatch",
+            "repository",
+            repository.getName(),
+            "locale",
+            localeTag)
+        .record(stopwatch.stop().elapsed());
     return file;
   }
 

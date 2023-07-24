@@ -9,6 +9,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -59,6 +60,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -98,6 +101,10 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
   @Rule public TestIdWatcher testIdWatcher = new TestIdWatcher();
 
   @Mock SmartlingClient smartlingClient;
+
+  @Mock MeterRegistry meterRegistryMock;
+
+  @Mock Timer timerMock;
 
   @Mock ThirdPartyTMSSmartlingWithJson mockThirdPartyTMSSmartlingWithJson;
 
@@ -169,6 +176,11 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     doReturn(null)
         .when(mockTextUnitBatchImporterService)
         .importTextUnits(any(), eq(false), eq(true));
+    doReturn(timerMock)
+        .when(meterRegistryMock)
+        .timer(anyString(), anyString(), anyString(), anyString(), anyString());
+    doReturn(timerMock).when(meterRegistryMock).timer(anyString(), anyString(), anyString());
+
     resultProcessor = new StubSmartlingResultProcessor();
     tmsSmartling =
         new ThirdPartyTMSSmartling(
@@ -179,7 +191,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             resultProcessor,
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
-            assetTextUnitToTMTextUnitRepository);
+            assetTextUnitToTMTextUnitRepository,
+            meterRegistryMock);
 
     mapper = new AndroidStringDocumentMapper(pluralSep, null);
     RetryBackoffSpec retryConfiguration =
@@ -229,7 +242,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            batchSize);
+            batchSize,
+            meterRegistryMock);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -263,6 +277,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         .satisfies(
             file ->
                 assertThat(readTextUnits(file, pluralSep)).hasSize(singularTextUnits % batchSize));
+    verify(timerMock, atLeastOnce()).record(isA((Duration.class)));
   }
 
   @Test
@@ -281,7 +296,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            batchSize);
+            batchSize,
+            meterRegistryMock);
     // throw timeout exception for first request, following request should be successful
     when(smartlingClient.uploadFile(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(
@@ -345,7 +361,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            batchSize);
+            batchSize,
+            meterRegistryMock);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -394,7 +411,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            batchSize);
+            batchSize,
+            meterRegistryMock);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -432,6 +450,7 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         .satisfies(
             file ->
                 assertThat(readTextUnits(file, pluralSep)).hasSize(pluralTextUnits % batchSize));
+    verify(timerMock, atLeastOnce()).record(isA((Duration.class)));
   }
 
   @Test
@@ -451,7 +470,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            batchSize);
+            batchSize,
+            meterRegistryMock);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -518,6 +538,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         .satisfies(
             file ->
                 assertThat(readTextUnits(file, pluralSep)).hasSize(pluralTextUnits % batchSize));
+
+    verify(timerMock, atLeastOnce()).record(isA((Duration.class)));
   }
 
   @Test
@@ -580,6 +602,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             eq("NONE"),
             eq("^some(.*)pattern$"),
             isNull());
+
+    verify(timerMock, atLeastOnce()).record(isA((Duration.class)));
   }
 
   @Test
@@ -664,7 +688,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             resultProcessor,
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
-            assetTextUnitToTMTextUnitRepository);
+            assetTextUnitToTMTextUnitRepository,
+            meterRegistryMock);
     tmsSmartling.pull(
         repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
@@ -777,7 +802,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             resultProcessor,
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
-            assetTextUnitToTMTextUnitRepository);
+            assetTextUnitToTMTextUnitRepository,
+            meterRegistryMock);
     tmsSmartling.pull(
         repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
@@ -870,7 +896,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             resultProcessor,
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
-            assetTextUnitToTMTextUnitRepository);
+            assetTextUnitToTMTextUnitRepository,
+            meterRegistryMock);
     RuntimeException exception =
         assertThrows(
             SmartlingClientException.class,
@@ -929,7 +956,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             resultProcessor,
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
-            assetTextUnitToTMTextUnitRepository);
+            assetTextUnitToTMTextUnitRepository,
+            meterRegistryMock);
     tmsSmartling.pull(
         repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
@@ -992,6 +1020,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                 assetPath,
                 "fr-CA",
                 repository.getName()));
+
+    verify(timerMock, atLeastOnce()).record(isA((Duration.class)));
   }
 
   @Test
@@ -1037,7 +1067,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             resultProcessor,
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
-            assetTextUnitToTMTextUnitRepository);
+            assetTextUnitToTMTextUnitRepository,
+            meterRegistryMock);
     tmsSmartling.pull(
         repository,
         "projectId",
@@ -1169,7 +1200,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             resultProcessor,
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
-            assetTextUnitToTMTextUnitRepository);
+            assetTextUnitToTMTextUnitRepository,
+            meterRegistryMock);
     tmsSmartling.pull(
         repository,
         "projectId",
@@ -1201,7 +1233,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            batchSize);
+            batchSize,
+            meterRegistryMock);
     Repository repository =
         repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
     Locale frCA = localeService.findByBcp47Tag("fr-CA");
@@ -1296,6 +1329,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
     assertThat(captured.subList(10, 14)).allSatisfy(list -> assertThat(list).hasSize(batchSize));
     assertThat(captured.subList(14, 16))
         .allSatisfy(list -> assertThat(list).hasSize(pluralTextUnits % batchSize));
+
+    verify(timerMock, atLeastOnce()).record(isA((Duration.class)));
   }
 
   @Test
@@ -1377,6 +1412,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
                       eq(null),
                       eq(null));
             });
+
+    verify(timerMock, atLeastOnce()).record(isA((Duration.class)));
   }
 
   @Test
@@ -1868,7 +1905,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            batchSize);
+            batchSize,
+            meterRegistryMock);
     Repository repository =
         repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
     Locale frCA = localeService.findByBcp47Tag("fr-CA");
@@ -2020,7 +2058,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            3);
+            3,
+            meterRegistryMock);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -2041,7 +2080,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            35);
+            35,
+            meterRegistryMock);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -2060,7 +2100,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            4231);
+            4231,
+            meterRegistryMock);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);

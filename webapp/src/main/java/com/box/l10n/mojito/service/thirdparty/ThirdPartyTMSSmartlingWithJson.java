@@ -21,7 +21,9 @@ import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.Items;
 import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -54,6 +56,8 @@ public class ThirdPartyTMSSmartlingWithJson {
   TextUnitBatchImporterService textUnitBatchImporterService;
   SmartlingJsonKeys smartlingJsonKeys;
 
+  MeterRegistry meterRegistry;
+
   int batchSize = 5000;
 
   public ThirdPartyTMSSmartlingWithJson(
@@ -61,12 +65,14 @@ public class ThirdPartyTMSSmartlingWithJson {
       SmartlingJsonConverter smartlingJsonConverter,
       TextUnitSearcher textUnitSearcher,
       TextUnitBatchImporterService textUnitBatchImporterService,
-      SmartlingJsonKeys smartlingJsonKeys) {
+      SmartlingJsonKeys smartlingJsonKeys,
+      MeterRegistry meterRegistry) {
     this.smartlingClient = smartlingClient;
     this.smartlingJsonConverter = smartlingJsonConverter;
     this.textUnitSearcher = textUnitSearcher;
     this.textUnitBatchImporterService = textUnitBatchImporterService;
     this.smartlingJsonKeys = smartlingJsonKeys;
+    this.meterRegistry = meterRegistry;
   }
 
   void push(
@@ -82,12 +88,15 @@ public class ThirdPartyTMSSmartlingWithJson {
         repository.getName(),
         projectId);
 
+    Stopwatch totalStopwatch = Stopwatch.createStarted();
+
     long partitionCount =
         Spliterators.partitionStreamWithIndex(
                 getSourceTextUnitIterator(
                     repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern),
                 batchSize,
                 (textUnitDTOS, index) -> {
+                  Stopwatch batchStopWatch = Stopwatch.createStarted();
                   String fileName = getSourceFileName(repository.getName(), index);
                   String fileContent =
                       smartlingJsonConverter.textUnitDTOsToJsonString(
@@ -122,11 +131,20 @@ public class ThirdPartyTMSSmartlingWithJson {
                             throw new SmartlingClientException(msg, e);
                           })
                       .block();
+                  meterRegistry
+                      .timer(
+                          "ThirdPartyTMSSmartlingWithJson.push.batch",
+                          "repository",
+                          repository.getName())
+                      .record(batchStopWatch.stop().elapsed());
                   return index;
                 })
             .count();
 
     removeFileForBatchNumberGreaterOrEquals(repository.getName(), projectId, partitionCount);
+    meterRegistry
+        .timer("ThirdPartyTMSSmartlingWithJson.push")
+        .record(totalStopwatch.stop().elapsed());
   }
 
   void removeFileForBatchNumberGreaterOrEquals(
@@ -226,6 +244,8 @@ public class ThirdPartyTMSSmartlingWithJson {
     logger.info(
         "Push translation from repository: {} into project: {}", repository.getName(), projectId);
 
+    Stopwatch stopwatch = Stopwatch.createStarted();
+
     getRepositoryLocaleWithoutRootStream(repository)
         .forEach(
             repositoryLocale -> {
@@ -239,6 +259,7 @@ public class ThirdPartyTMSSmartlingWithJson {
                               includeTextUnitsWithPattern),
                           batchSize,
                           (textUnitDTOS, index) -> {
+                            Stopwatch batchStopwatch = Stopwatch.createStarted();
                             String fileName = getSourceFileName(repository.getName(), index);
                             String fileContent =
                                 smartlingJsonConverter.textUnitDTOsToJsonString(
@@ -275,11 +296,21 @@ public class ThirdPartyTMSSmartlingWithJson {
                                       throw new SmartlingClientException(msg, e);
                                     })
                                 .block();
+                            meterRegistry
+                                .timer(
+                                    "ThirdPartyTMSSmartlingWithJson.pushTranslations.batch",
+                                    "repository",
+                                    repository.getName())
+                                .record(batchStopwatch.stop().elapsed());
                             return index;
                           })
                       .count();
               logger.debug("Processed {} partitions", partitionCount);
             });
+    meterRegistry
+        .timer(
+            "ThirdPartyTMSSmartlingWithJson.pushTranslations", "repository", repository.getName())
+        .record(stopwatch.stop().elapsed());
   }
 
   PageFetcherOffsetAndLimitSplitIterator<TextUnitDTO> getSourceTextUnitIterator(
