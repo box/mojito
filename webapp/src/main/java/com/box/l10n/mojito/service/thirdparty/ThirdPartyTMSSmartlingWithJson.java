@@ -21,9 +21,9 @@ import com.box.l10n.mojito.smartling.response.File;
 import com.box.l10n.mojito.smartling.response.Items;
 import com.box.l10n.mojito.smartling.response.StringInfo;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -88,63 +88,66 @@ public class ThirdPartyTMSSmartlingWithJson {
         repository.getName(),
         projectId);
 
-    Stopwatch totalStopwatch = Stopwatch.createStarted();
-
-    long partitionCount =
-        Spliterators.partitionStreamWithIndex(
-                getSourceTextUnitIterator(
-                    repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern),
-                batchSize,
-                (textUnitDTOS, index) -> {
-                  Stopwatch batchStopWatch = Stopwatch.createStarted();
-                  String fileName = getSourceFileName(repository.getName(), index);
-                  String fileContent =
-                      smartlingJsonConverter.textUnitDTOsToJsonString(
-                          textUnitDTOS, TextUnitDTO::getSource);
-                  Mono.fromCallable(
-                          () ->
-                              smartlingClient.uploadFile(
-                                  projectId,
-                                  fileName,
-                                  "json",
-                                  fileContent,
-                                  smartlingOptions.getPlaceholderFormat(),
-                                  smartlingOptions.getCustomPlaceholderFormat(),
-                                  smartlingOptions.getStringFormat()))
-                      .retryWhen(
-                          smartlingClient
-                              .getRetryConfiguration()
-                              .doBeforeRetry(
-                                  e ->
-                                      logger.info(
-                                          String.format(
-                                              "Retrying failed upload file request for file %s in project %s",
-                                              fileName, projectId),
-                                          e.failure())))
-                      .doOnError(
-                          e -> {
-                            String msg =
-                                String.format(
-                                    "Upload file request failed for file %s in project %s",
-                                    fileName, projectId);
-                            logger.error(msg, e);
-                            throw new SmartlingClientException(msg, e);
-                          })
-                      .block();
-                  meterRegistry
-                      .timer(
-                          "ThirdPartyTMSSmartlingWithJson.push.batch",
-                          "repository",
-                          repository.getName())
-                      .record(batchStopWatch.stop().elapsed());
-                  return index;
-                })
-            .count();
-
-    removeFileForBatchNumberGreaterOrEquals(repository.getName(), projectId, partitionCount);
     meterRegistry
-        .timer("ThirdPartyTMSSmartlingWithJson.push")
-        .record(totalStopwatch.stop().elapsed());
+        .timer("ThirdPartyTMSSmartlingWithJson.push", Tags.of("repository", repository.getName()))
+        .record(
+            () -> {
+              long partitionCount =
+                  Spliterators.partitionStreamWithIndex(
+                          getSourceTextUnitIterator(
+                              repository, skipTextUnitsWithPattern, skipAssetsWithPathPattern),
+                          batchSize,
+                          (textUnitDTOS, index) ->
+                              meterRegistry
+                                  .timer(
+                                      "ThirdPartyTMSSmartlingWithJson.push.batch",
+                                      Tags.of("repository", repository.getName()))
+                                  .record(
+                                      () -> {
+                                        String fileName =
+                                            getSourceFileName(repository.getName(), index);
+                                        String fileContent =
+                                            smartlingJsonConverter.textUnitDTOsToJsonString(
+                                                textUnitDTOS, TextUnitDTO::getSource);
+                                        Mono.fromCallable(
+                                                () ->
+                                                    smartlingClient.uploadFile(
+                                                        projectId,
+                                                        fileName,
+                                                        "json",
+                                                        fileContent,
+                                                        smartlingOptions.getPlaceholderFormat(),
+                                                        smartlingOptions
+                                                            .getCustomPlaceholderFormat(),
+                                                        smartlingOptions.getStringFormat()))
+                                            .retryWhen(
+                                                smartlingClient
+                                                    .getRetryConfiguration()
+                                                    .doBeforeRetry(
+                                                        e ->
+                                                            logger.info(
+                                                                String.format(
+                                                                    "Retrying failed upload file request for file %s in project %s",
+                                                                    fileName, projectId),
+                                                                e.failure())))
+                                            .doOnError(
+                                                e -> {
+                                                  String msg =
+                                                      String.format(
+                                                          "Upload file request failed for file %s in project %s",
+                                                          fileName, projectId);
+                                                  logger.error(msg, e);
+                                                  throw new SmartlingClientException(msg, e);
+                                                })
+                                            .block();
+
+                                        return index;
+                                      }))
+                      .count();
+
+              removeFileForBatchNumberGreaterOrEquals(
+                  repository.getName(), projectId, partitionCount);
+            });
   }
 
   void removeFileForBatchNumberGreaterOrEquals(
@@ -244,73 +247,79 @@ public class ThirdPartyTMSSmartlingWithJson {
     logger.info(
         "Push translation from repository: {} into project: {}", repository.getName(), projectId);
 
-    Stopwatch stopwatch = Stopwatch.createStarted();
-
-    getRepositoryLocaleWithoutRootStream(repository)
-        .forEach(
-            repositoryLocale -> {
-              long partitionCount =
-                  Spliterators.partitionStreamWithIndex(
-                          getTargetTextUnitIterator(
-                              repository,
-                              repositoryLocale.getLocale().getId(),
-                              skipTextUnitsWithPattern,
-                              skipAssetsWithPathPattern,
-                              includeTextUnitsWithPattern),
-                          batchSize,
-                          (textUnitDTOS, index) -> {
-                            Stopwatch batchStopwatch = Stopwatch.createStarted();
-                            String fileName = getSourceFileName(repository.getName(), index);
-                            String fileContent =
-                                smartlingJsonConverter.textUnitDTOsToJsonString(
-                                    textUnitDTOS, TextUnitDTO::getTarget);
-                            String smartlingLocale =
-                                getSmartlingLocale(localeMapping, repositoryLocale);
-                            Mono.fromCallable(
-                                    () ->
-                                        smartlingClient.uploadLocalizedFile(
-                                            projectId,
-                                            fileName,
-                                            "json",
-                                            smartlingLocale,
-                                            fileContent,
-                                            null,
-                                            null))
-                                .retryWhen(
-                                    smartlingClient
-                                        .getRetryConfiguration()
-                                        .doBeforeRetry(
-                                            e ->
-                                                logger.info(
-                                                    String.format(
-                                                        "Retrying after failure to upload localized file %s in project %s",
-                                                        fileName, projectId),
-                                                    e.failure())))
-                                .doOnError(
-                                    e -> {
-                                      String msg =
-                                          String.format(
-                                              "Error uploading localized file %s in project %s",
-                                              fileName, projectId);
-                                      logger.error(msg, e);
-                                      throw new SmartlingClientException(msg, e);
-                                    })
-                                .block();
-                            meterRegistry
-                                .timer(
-                                    "ThirdPartyTMSSmartlingWithJson.pushTranslations.batch",
-                                    "repository",
-                                    repository.getName())
-                                .record(batchStopwatch.stop().elapsed());
-                            return index;
-                          })
-                      .count();
-              logger.debug("Processed {} partitions", partitionCount);
-            });
     meterRegistry
         .timer(
-            "ThirdPartyTMSSmartlingWithJson.pushTranslations", "repository", repository.getName())
-        .record(stopwatch.stop().elapsed());
+            "ThirdPartyTMSSmartlingWithJson.pushTranslations",
+            Tags.of("repository", repository.getName()))
+        .record(
+            () -> {
+              getRepositoryLocaleWithoutRootStream(repository)
+                  .forEach(
+                      repositoryLocale -> {
+                        long partitionCount =
+                            Spliterators.partitionStreamWithIndex(
+                                    getTargetTextUnitIterator(
+                                        repository,
+                                        repositoryLocale.getLocale().getId(),
+                                        skipTextUnitsWithPattern,
+                                        skipAssetsWithPathPattern,
+                                        includeTextUnitsWithPattern),
+                                    batchSize,
+                                    (textUnitDTOS, index) ->
+                                        meterRegistry
+                                            .timer(
+                                                "ThirdPartyTMSSmartlingWithJson.pushTranslations.batch",
+                                                "repository",
+                                                repository.getName())
+                                            .record(
+                                                () -> {
+                                                  String fileName =
+                                                      getSourceFileName(
+                                                          repository.getName(), index);
+                                                  String fileContent =
+                                                      smartlingJsonConverter
+                                                          .textUnitDTOsToJsonString(
+                                                              textUnitDTOS, TextUnitDTO::getTarget);
+                                                  String smartlingLocale =
+                                                      getSmartlingLocale(
+                                                          localeMapping, repositoryLocale);
+                                                  Mono.fromCallable(
+                                                          () ->
+                                                              smartlingClient.uploadLocalizedFile(
+                                                                  projectId,
+                                                                  fileName,
+                                                                  "json",
+                                                                  smartlingLocale,
+                                                                  fileContent,
+                                                                  null,
+                                                                  null))
+                                                      .retryWhen(
+                                                          smartlingClient
+                                                              .getRetryConfiguration()
+                                                              .doBeforeRetry(
+                                                                  e ->
+                                                                      logger.info(
+                                                                          String.format(
+                                                                              "Retrying after failure to upload localized file %s in project %s",
+                                                                              fileName, projectId),
+                                                                          e.failure())))
+                                                      .doOnError(
+                                                          e -> {
+                                                            String msg =
+                                                                String.format(
+                                                                    "Error uploading localized file %s in project %s",
+                                                                    fileName, projectId);
+                                                            logger.error(msg, e);
+                                                            throw new SmartlingClientException(
+                                                                msg, e);
+                                                          })
+                                                      .block();
+                                                  return index;
+                                                }))
+                                .count();
+                        logger.debug("Processed {} partitions", partitionCount);
+                      });
+            });
   }
 
   PageFetcherOffsetAndLimitSplitIterator<TextUnitDTO> getSourceTextUnitIterator(
