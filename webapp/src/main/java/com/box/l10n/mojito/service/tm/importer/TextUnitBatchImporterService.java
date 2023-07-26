@@ -34,11 +34,11 @@ import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.service.tm.search.TextUnitSearcher;
 import com.box.l10n.mojito.service.tm.textunitdtocache.TextUnitDTOsCacheService;
 import com.box.l10n.mojito.service.tm.textunitdtocache.UpdateType;
-import com.google.common.base.Stopwatch;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
 import java.util.Map;
@@ -124,51 +124,66 @@ public class TextUnitBatchImporterService {
       boolean integrityCheckSkipped,
       boolean integrityCheckKeepStatusIfFailedAndSameTarget) {
 
-    Stopwatch stopwatchTotal = Stopwatch.createStarted();
-
-    logger.debug("Import {} text units", textUnitDTOs.size());
-    List<TextUnitForBatchMatcherImport> textUnitForBatchImports =
-        skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOs);
-
-    logger.debug("Batch by locale and asset to optimize the import");
-    Map<Locale, Map<Asset, List<TextUnitForBatchMatcherImport>>> groupedByLocaleAndAsset =
-        textUnitForBatchImports.stream()
-            .collect(
-                Collectors.groupingBy(
-                    TextUnitForBatchMatcherImport::getLocale,
-                    Collectors.groupingBy(TextUnitForBatchMatcherImport::getAsset)));
-
-    groupedByLocaleAndAsset.forEach(
-        (locale, assetMap) -> {
-          assetMap.forEach(
-              (asset, textUnitsForBatchImport) -> {
-                mapTextUnitsToImportWithExistingTextUnits(locale, asset, textUnitsForBatchImport);
-                if (!integrityCheckSkipped) {
-                  Stopwatch integrityCheckStopwatch = Stopwatch.createStarted();
-                  applyIntegrityChecks(
-                      asset,
-                      textUnitsForBatchImport,
-                      integrityCheckKeepStatusIfFailedAndSameTarget);
-                  meterRegistry
-                      .timer(
-                          "TextUnitBatchImporterService.importTextUnits.integrityChecks",
-                          "repository",
-                          asset.getRepository().getName(),
-                          "asset",
-                          asset.getPath(),
-                          "locale",
-                          locale.getBcp47Tag())
-                      .record(integrityCheckStopwatch.stop().elapsed());
-                }
-                importTextUnitsOfLocaleAndAsset(locale, asset, textUnitsForBatchImport);
-              });
-        });
-
-    meterRegistry
+    return meterRegistry
         .timer("TextUnitBatchImporterService.importTextUnits")
-        .record(stopwatchTotal.stop().elapsed());
+        .record(
+            () -> {
+              logger.debug("Import {} text units", textUnitDTOs.size());
+              List<TextUnitForBatchMatcherImport> textUnitForBatchImports =
+                  skipInvalidAndConvertToTextUnitForBatchImport(textUnitDTOs);
 
-    return new PollableFutureTaskResult<>();
+              logger.debug("Batch by locale and asset to optimize the import");
+              Map<Locale, Map<Asset, List<TextUnitForBatchMatcherImport>>> groupedByLocaleAndAsset =
+                  textUnitForBatchImports.stream()
+                      .collect(
+                          Collectors.groupingBy(
+                              TextUnitForBatchMatcherImport::getLocale,
+                              Collectors.groupingBy(TextUnitForBatchMatcherImport::getAsset)));
+
+              groupedByLocaleAndAsset.forEach(
+                  (locale, assetMap) -> {
+                    assetMap.forEach(
+                        (asset, textUnitsForBatchImport) -> {
+                          meterRegistry
+                              .timer(
+                                  "TextUnitBatchImporterService.importTextUnits.batch",
+                                  Tags.of(
+                                      "repository",
+                                      asset.getRepository().getName(),
+                                      "asset",
+                                      asset.getPath(),
+                                      "locale",
+                                      locale.getBcp47Tag()))
+                              .record(
+                                  () -> {
+                                    mapTextUnitsToImportWithExistingTextUnits(
+                                        locale, asset, textUnitsForBatchImport);
+                                    if (!integrityCheckSkipped) {
+                                      meterRegistry
+                                          .timer(
+                                              "TextUnitBatchImporterService.importTextUnits.integrityChecks",
+                                              "repository",
+                                              asset.getRepository().getName(),
+                                              "asset",
+                                              asset.getPath(),
+                                              "locale",
+                                              locale.getBcp47Tag())
+                                          .record(
+                                              () -> {
+                                                applyIntegrityChecks(
+                                                    asset,
+                                                    textUnitsForBatchImport,
+                                                    integrityCheckKeepStatusIfFailedAndSameTarget);
+                                              });
+                                    }
+                                    importTextUnitsOfLocaleAndAsset(
+                                        locale, asset, textUnitsForBatchImport);
+                                  });
+                        });
+                  });
+
+              return new PollableFutureTaskResult<>();
+            });
   }
 
   /**

@@ -21,7 +21,6 @@ import com.box.l10n.mojito.smartling.response.GlossarySourceTerm;
 import com.box.l10n.mojito.smartling.response.GlossaryTargetTerm;
 import com.box.l10n.mojito.smartling.response.GlossaryTermTranslation;
 import com.google.common.base.Strings;
-import io.micrometer.core.instrument.MeterRegistry;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -58,8 +57,6 @@ public class ThirdPartyTMSSmartlingGlossary {
   @Autowired AssetRepository assetRepository;
 
   @Autowired AssetTextUnitRepository assetTextUnitRepository;
-
-  @Autowired MeterRegistry meterRegistry;
 
   @Value("${l10n.smartling.accountId:}")
   String accountId;
