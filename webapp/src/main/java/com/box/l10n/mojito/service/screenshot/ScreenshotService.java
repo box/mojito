@@ -343,6 +343,13 @@ public class ScreenshotService {
     return screenshotsByTextUnit;
   }
 
+  public Screenshot getScreenshotByScreenshotRunAndName(
+      Long screenshotRunId, String screenshotName) {
+    ScreenshotRun screenshotRun = new ScreenshotRun();
+    screenshotRun.setId(screenshotRunId);
+    return screenshotRepository.findScreenshotByScreenshotRunAndName(screenshotRun, screenshotName);
+  }
+
   private Predicate getPredicateForSearchType(
       SearchType searchType, CriteriaBuilder builder, Path<String> searchPath, String searchValue) {
 
