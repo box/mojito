@@ -1,16 +1,22 @@
 package com.box.l10n.mojito.boxsdk;
 
-import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.box.l10n.mojito.service.boxsdk.BoxSDKServiceConfigEntityRepository;
 import org.springframework.stereotype.Component;
 
 /** @author wyau */
 @Component
 public class BoxSDKServiceConfigProvider {
 
-  @Autowired BoxSDKServiceConfigFromProperties boxSDKServiceConfigFromProperties;
+  private final BoxSDKServiceConfigFromProperties boxSDKServiceConfigFromProperties;
 
-  @Autowired BoxSDKServiceConfigEntityService boxSDKServiceConfigEntityService;
+  private final BoxSDKServiceConfigEntityRepository boxSDKServiceConfigEntityRepository;
+
+  public BoxSDKServiceConfigProvider(
+      BoxSDKServiceConfigFromProperties boxSDKServiceConfigFromProperties,
+      BoxSDKServiceConfigEntityRepository boxSDKServiceConfigEntityRepository) {
+    this.boxSDKServiceConfigFromProperties = boxSDKServiceConfigFromProperties;
+    this.boxSDKServiceConfigEntityRepository = boxSDKServiceConfigEntityRepository;
+  }
 
   /**
    * @return The config to be used
@@ -22,7 +28,7 @@ public class BoxSDKServiceConfigProvider {
     if (boxSDKServiceConfigFromProperties.isUseConfigsFromProperties()) {
       result = boxSDKServiceConfigFromProperties;
     } else {
-      result = boxSDKServiceConfigEntityService.getBoxSDKServiceConfigEntity();
+      result = boxSDKServiceConfigEntityRepository.findFirstByOrderByIdAsc();
 
       if (result == null) {
         throw new BoxSDKServiceException(
