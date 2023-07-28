@@ -3,8 +3,8 @@ package com.box.l10n.mojito.phabricator;
 import static com.box.l10n.mojito.phabricator.PhabricatorHttpClient.API_TOKEN;
 import static com.box.l10n.mojito.phabricator.PhabricatorHttpClient.CONSTRAINTS_PHIDS_0;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 import com.box.l10n.mojito.phabricator.payload.ResultWithError;
 import org.junit.Before;
