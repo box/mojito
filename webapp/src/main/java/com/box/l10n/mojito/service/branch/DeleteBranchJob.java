@@ -13,12 +13,12 @@ public class DeleteBranchJob extends QuartzPollableJob<DeleteBranchJobInput, Voi
   /** logger */
   static Logger logger = LoggerFactory.getLogger(DeleteBranchJob.class);
 
-  @Autowired BranchService branchService;
+  @Autowired private DeleteBranchService deleteBranchService;
 
   @Override
   public Void call(DeleteBranchJobInput input) throws Exception {
     logger.debug("DeleteAssetsOfBranchJob");
-    branchService.deleteBranch(input.getRepositoryId(), input.getBranchId());
+    deleteBranchService.deleteBranch(input.getRepositoryId(), input.getBranchId());
     return null;
   }
 }
