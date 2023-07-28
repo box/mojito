@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.quartz;
 
 import java.util.Date;
+import org.quartz.JobBuilder;
 
 public class QuartzJobInfo<I, O> {
   Class<? extends QuartzPollableJob<I, O>> clazz;
@@ -12,6 +13,7 @@ public class QuartzJobInfo<I, O> {
   String uniqueId;
   boolean inlineInput;
   long timeout;
+  boolean requestRecovery;
 
   private QuartzJobInfo(Builder<I, O> builder) {
     clazz = builder.clazz;
@@ -23,6 +25,7 @@ public class QuartzJobInfo<I, O> {
     uniqueId = builder.uniqueId;
     inlineInput = builder.inlineInput;
     timeout = builder.timeout;
+    requestRecovery = builder.requestRecovery;
   }
 
   public Class<? extends QuartzPollableJob<I, O>> getClazz() {
@@ -61,6 +64,10 @@ public class QuartzJobInfo<I, O> {
     return timeout;
   }
 
+  public boolean getRequestRecovery() {
+    return requestRecovery;
+  }
+
   public static <I, O> Builder<I, O> newBuilder(Class<? extends QuartzPollableJob<I, O>> clazz) {
     Builder<I, O> builder = new Builder<I, O>();
     builder.clazz = clazz;
@@ -77,6 +84,7 @@ public class QuartzJobInfo<I, O> {
     private String uniqueId;
     private boolean inlineInput = true;
     private long timeout = 3600;
+    private boolean requestRecovery = false;
 
     private Builder() {}
 
@@ -117,6 +125,12 @@ public class QuartzJobInfo<I, O> {
 
     public Builder<I, O> withTimeout(long val) {
       timeout = val;
+      return this;
+    }
+
+    /** As defined in {@link JobBuilder#requestRecovery(boolean)} */
+    public Builder<I, O> withRequestRecovery(boolean requestRecovery) {
+      this.requestRecovery = requestRecovery;
       return this;
     }
 
