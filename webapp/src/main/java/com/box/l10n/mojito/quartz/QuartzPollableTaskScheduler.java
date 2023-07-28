@@ -104,7 +104,11 @@ public class QuartzPollableTaskScheduler {
       if (jobDetail == null) {
         logger.debug("Job doesn't exist, create for key: {}", keyName);
         jobDetail =
-            JobBuilder.newJob().ofType(quartzJobInfo.getClazz()).withIdentity(jobKey).build();
+            JobBuilder.newJob()
+                .ofType(quartzJobInfo.getClazz())
+                .withIdentity(jobKey)
+                .requestRecovery(quartzJobInfo.getRequestRecovery())
+                .build();
       }
 
       logger.debug("Schedule a job for key: {}", keyName);
