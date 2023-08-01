@@ -11,9 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.AdviceMode;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
@@ -63,6 +61,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired UserService userService;
 
+  @Autowired UserDetailsServiceImpl userDetailsService;
+
   @Autowired
   public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
     for (SecurityConfig.AuthenticationType authenticationType :
@@ -99,7 +99,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   void configureDatabase(AuthenticationManagerBuilder auth) throws Exception {
     logger.debug("Configuring in database authentication");
-    auth.userDetailsService(getUserDetailsService()).passwordEncoder(new BCryptPasswordEncoder());
+    auth.userDetailsService(userDetailsService).passwordEncoder(new BCryptPasswordEncoder());
   }
 
   void configureLdap(AuthenticationManagerBuilder auth) throws Exception {
@@ -247,11 +247,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       patterns.add("/health");
     }
     return patterns.toArray(new String[patterns.size()]);
-  }
-
-  @Primary
-  @Bean
-  protected UserDetailsServiceImpl getUserDetailsService() {
-    return new UserDetailsServiceImpl();
   }
 }
