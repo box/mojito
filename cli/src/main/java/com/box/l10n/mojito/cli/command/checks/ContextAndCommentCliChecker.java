@@ -4,6 +4,7 @@ import static com.box.l10n.mojito.cli.command.extractioncheck.ExtractionCheckNot
 
 import com.box.l10n.mojito.cli.command.extraction.AssetExtractionDiff;
 import com.box.l10n.mojito.okapi.extractor.AssetExtractorTextUnit;
+import com.google.common.base.Strings;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -106,6 +107,9 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
     String failureText = null;
     String[] splitNameArray = assetExtractorTextUnit.getName().split("---");
     String context = null;
+    if (isPlural(assetExtractorTextUnit) && cliCheckerOptions.getPluralsSkipped()) {
+      return failureText;
+    }
     if (splitNameArray.length > 1) {
       context = splitNameArray[1];
     }
@@ -124,6 +128,10 @@ public class ContextAndCommentCliChecker extends AbstractCliChecker {
     }
 
     return failureText;
+  }
+
+  private boolean isPlural(AssetExtractorTextUnit assetExtractorTextUnit) {
+    return !Strings.isNullOrEmpty(assetExtractorTextUnit.getPluralForm());
   }
 
   private boolean isBlank(String string) {
