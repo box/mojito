@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.cli.command.checks;
 
+import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_PLURAL_SKIP;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.CONTEXT_COMMENT_REJECT_PATTERN_KEY;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_ADDITIONS_PATH_KEY;
 import static com.box.l10n.mojito.cli.command.checks.CliCheckerParameters.DICTIONARY_AFFIX_FILE_PATH_KEY;
@@ -56,6 +57,10 @@ public class CliCheckerOptions {
 
   public String getRecommendStringIdLabelIgnorePattern() {
     return optionsMap.get(RECOMMEND_STRING_ID_LABEL_IGNORE_PATTERN_KEY.getKey());
+  }
+
+  public Boolean getPluralsSkipped() {
+    return Boolean.valueOf(optionsMap.get(CONTEXT_COMMENT_PLURAL_SKIP.getKey()));
   }
 
   public ImmutableMap<String, String> getOptionsMap() {

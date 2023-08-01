@@ -213,4 +213,25 @@ public class ContextAndCommentCliCheckerTest {
             + System.lineSeparator(),
         result.getNotificationText());
   }
+
+  @Test
+  public void testPluralStringsSkippedIfOptionEnabled() {
+    List<AssetExtractorTextUnit> addedTUs = new ArrayList<>();
+    AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+    assetExtractorTextUnit.setName("Some string id --- ");
+    assetExtractorTextUnit.setSource("A source string with no errors.");
+    assetExtractorTextUnit.setComments(null);
+    assetExtractorTextUnit.setPluralForm("one");
+    addedTUs.add(assetExtractorTextUnit);
+    List<AssetExtractionDiff> assetExtractionDiffs = new ArrayList<>();
+    AssetExtractionDiff assetExtractionDiff = new AssetExtractionDiff();
+    assetExtractionDiff.setAddedTextunits(addedTUs);
+    assetExtractionDiffs.add(assetExtractionDiff);
+    ImmutableMap<String, String> optionsMap =
+        ImmutableMap.of(CliCheckerParameters.CONTEXT_COMMENT_PLURAL_SKIP.getKey(), "true");
+    contextAndCommentCliChecker.setCliCheckerOptions(
+        new CliCheckerOptions(Sets.newHashSet(SINGLE_BRACE_REGEX), Sets.newHashSet(), optionsMap));
+    CliCheckResult result = contextAndCommentCliChecker.run(assetExtractionDiffs);
+    Assert.assertTrue(result.isSuccessful());
+  }
 }
