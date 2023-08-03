@@ -238,6 +238,7 @@ public class SmartlingClient {
     body.add("smartling.placeholder_format_custom", placeholderFormatCustom);
     body.add("smartling.string_format", stringFormat);
     body.add("smartling.instruction_comments_enabled", "on");
+    body.add("smartling.whitespace_trim", "off");
     body.add("file", fileContentAsResource);
 
     HttpHeaders headers = new HttpHeaders();
