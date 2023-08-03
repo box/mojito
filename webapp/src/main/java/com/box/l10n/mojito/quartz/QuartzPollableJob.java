@@ -46,33 +46,40 @@ public abstract class QuartzPollableJob<I, O> implements Job {
     Long pollableTaskId = context.getMergedJobDataMap().getLong(POLLABLE_TASK_ID);
     currentPollableTask = pollableTaskService.getPollableTask(pollableTaskId);
 
-    ExceptionHolder exceptionHolder = new ExceptionHolder(currentPollableTask);
+    if (currentPollableTask.getFinishedDate() != null) {
+      logger.error(
+          "PollableTask is already finished. Suspected invalid retry (potential scheduler shutdown "
+              + "after pollable was marked finished but befre Quartz job was recorded as finished)");
+    } else {
+      ExceptionHolder exceptionHolder = new ExceptionHolder(currentPollableTask);
 
-    try {
-      I callInput;
+      try {
+        I callInput;
 
-      String inputStringFromJob = context.getMergedJobDataMap().getString(INPUT);
+        String inputStringFromJob = context.getMergedJobDataMap().getString(INPUT);
 
-      if (inputStringFromJob != null) {
-        logger.debug("Inlined data, read from job data");
-        callInput =
-            (I) objectMapper.readValueUnchecked(inputStringFromJob, typeTokenInput.getRawType());
-      } else {
-        logger.debug("No inlined data, read from blob storage");
-        callInput =
-            (I) pollableTaskBlobStorage.getInput(pollableTaskId, typeTokenInput.getRawType());
+        if (inputStringFromJob != null) {
+          logger.debug("Inlined data, read from job data");
+          callInput =
+              (I) objectMapper.readValueUnchecked(inputStringFromJob, typeTokenInput.getRawType());
+        } else {
+          logger.debug("No inlined data, read from blob storage");
+          callInput =
+              (I) pollableTaskBlobStorage.getInput(pollableTaskId, typeTokenInput.getRawType());
+        }
+
+        O callOutput = call(callInput);
+
+        if (!typeTokenOutput.getRawType().equals(Void.class)) {
+          pollableTaskBlobStorage.saveOutput(pollableTaskId, callOutput);
+        }
+      } catch (Throwable t) {
+        pollableTaskExceptionUtils.processException(t, exceptionHolder);
+      } finally {
+        currentPollableTask =
+            pollableTaskService.finishTask(
+                currentPollableTask.getId(), null, exceptionHolder, null);
       }
-
-      O callOutput = call(callInput);
-
-      if (!typeTokenOutput.getRawType().equals(Void.class)) {
-        pollableTaskBlobStorage.saveOutput(pollableTaskId, callOutput);
-      }
-    } catch (Throwable t) {
-      pollableTaskExceptionUtils.processException(t, exceptionHolder);
-    } finally {
-      currentPollableTask =
-          pollableTaskService.finishTask(currentPollableTask.getId(), null, exceptionHolder, null);
     }
   }
 
