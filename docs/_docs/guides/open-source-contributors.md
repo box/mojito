@@ -43,24 +43,13 @@ Install `maven` (latest version should be fine):
 brew install maven
 ```
           
-Optionally, install `Mysql 5.7`
+Optionally, install `Mysql 8.0`
 
 ```sh
-brew install mysql@5.7
-```
- 
-And follow the instructions since it is key-only, you most likely want to update your `PATH`:
-
-```sh
-mysql@5.7 is keg-only, which means it was not symlinked into /usr/local,
-because this is an alternate version of another formula.
-
-If you need to have mysql@5.7 first in your PATH run:
-  echo 'export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"' >> ~/.zshrc
+brew install mysql@8.0
 ```
 
 Note, to install the exact same `maven` version as the wrapper: `brew install maven@3.8` (check the instructions since it is key-only) .
-
       
 ### Install on Unbutu 18.4 LTS
 
@@ -84,8 +73,9 @@ Install `git`
 sudo apt-get install git
 ```
     
-Optionally, install `Mysql 5.7`
- 
+Optionally, install `Mysql 5.8`
+
+TODO(mysql) update this 
 ```sh
 sudo apt-get install mysql-server-5.7
 ```       
@@ -145,8 +135,8 @@ Run the following commands to create the databases. Change the user name, databa
 CREATE USER 'mojito'@'localhost' IDENTIFIED BY 'mojito';
 CREATE DATABASE IF NOT EXISTS mojito CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_bin';
 CREATE DATABASE IF NOT EXISTS mojito_dev CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_bin';
-GRANT ALL ON mojito.* TO 'mojito'@'localhost' IDENTIFIED BY 'mojito';
-GRANT ALL ON mojito_dev.* TO 'mojito'@'localhost' IDENTIFIED BY 'mojito';
+GRANT ALL ON mojito.* TO 'mojito'@'localhost';
+GRANT ALL ON mojito_dev.* TO 'mojito'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
