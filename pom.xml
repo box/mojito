@@ -35,6 +35,7 @@
         <plugin.version.google-java-format>1.7</plugin.version.google-java-format>
         <jjwt.version>0.10.5</jjwt.version>
         <github.api.version>1.313</github.api.version>
+        <icu4j.version>64.2</icu4j.version>
     </properties>
 
     <dependencies>
@@ -71,6 +72,11 @@
             <scope>runtime</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>${icu4j.version}</version>
+        </dependency>
     </dependencies>
 
     <!-- SCM setup to push changes to the Github repo on release -->
