@@ -3,6 +3,7 @@ package com.box.l10n.mojito.quartz;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.quartz.JobDetail;
@@ -32,6 +33,8 @@ public class QuartzConfig {
   @Autowired(required = false)
   List<JobDetail> jobDetails = new ArrayList<>();
 
+  @Autowired QuartzPropertiesConfig quartzPropertiesConfig;
+
   /**
    * Starts the scheduler after having removed outdated trigger/jobs
    *
@@ -39,8 +42,12 @@ public class QuartzConfig {
    */
   @PostConstruct
   void startScheduler() throws SchedulerException {
+    Properties quartzProps = quartzPropertiesConfig.getQuartzProperties();
     removeOutdatedJobs();
-    scheduler.startDelayed(2);
+    if (Boolean.parseBoolean(quartzProps.getProperty("org.quartz.scheduler.enabled", "true"))) {
+      logger.info("Starting scheduler");
+      scheduler.startDelayed(2);
+    }
   }
 
   void removeOutdatedJobs() throws SchedulerException {
