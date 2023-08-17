@@ -30,6 +30,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.junit.Assert;
@@ -79,6 +80,8 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
   @Mock TextUnitBatchImporterService textUnitBatchImporterServiceMock;
 
   @Autowired TextUnitSearcher textUnitSearcher;
+
+  @Mock ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepositoryMock;
 
   SmartlingJsonConverter smartlingJsonConverter =
       new SmartlingJsonConverter(ObjectMapper.withIndentedOutput(), new SmartlingJsonKeys());
@@ -173,7 +176,8 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
         "eventually we should be able to pull",
         () -> {
           logger.debug("Pulling...");
-          thirdPartyTMSSmartlingWithJson.pull(repository, testConfig.projectId, ImmutableMap.of());
+          thirdPartyTMSSmartlingWithJson.pull(
+              repository, testConfig.projectId, ImmutableMap.of(), false);
           return true;
         },
         3,
@@ -250,7 +254,8 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
         ImmutableList.of(translatedTextUnitDto, untranslatedTextUnitDtoWithOriginalString);
 
     ThirdPartyTMSSmartlingWithJson thirdPartyTMSSmartlingWithJson =
-        new ThirdPartyTMSSmartlingWithJson(null, null, null, null, null, meterRegistryMock);
+        new ThirdPartyTMSSmartlingWithJson(
+            null, null, null, null, null, meterRegistryMock, thirdPartyFileChecksumRepositoryMock);
 
     ImmutableList<TextUnitDTO> result =
         thirdPartyTMSSmartlingWithJson.getTranslatedUnits(
@@ -342,7 +347,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
 
     Mockito.doCallRealMethod()
         .when(thirdPartyTMSSmartlingWithJsonMock)
-        .pull(repository, projectId, localeMapping);
+        .pull(repository, projectId, localeMapping, false);
     Mockito.when(thirdPartyTMSSmartlingWithJsonMock.hasEmptyTranslations(any()))
         .thenCallRealMethod();
     Mockito.when(thirdPartyTMSSmartlingWithJsonMock.getTranslatedUnits(any(), any()))
@@ -362,14 +367,21 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
     thirdPartyTMSSmartlingWithJsonMock.smartlingJsonConverter = smartlingJsonConverter;
     thirdPartyTMSSmartlingWithJsonMock.textUnitBatchImporterService =
         textUnitBatchImporterServiceMock;
+    thirdPartyTMSSmartlingWithJsonMock.thirdPartyFileChecksumRepository =
+        thirdPartyFileChecksumRepositoryMock;
 
     Mockito.when(
             thirdPartyTMSSmartlingWithJsonMock.getLocalizedFileContent(
                 projectId, smartlingFile, smartlingLocale, false))
         .thenReturn(smartlingJsonResponseWithOriginalString);
 
+    Mockito.when(
+            thirdPartyFileChecksumRepositoryMock.findByRepositoryAndFileNameAndLocale(
+                isA(Repository.class), isA(String.class), isA(Locale.class)))
+        .thenReturn(Optional.empty());
+
     // For the first pass, mock a fully translated response
-    thirdPartyTMSSmartlingWithJsonMock.pull(repository, projectId, localeMapping);
+    thirdPartyTMSSmartlingWithJsonMock.pull(repository, projectId, localeMapping, false);
 
     ArgumentCaptor<ImmutableList<TextUnitDTO>> dtoListCaptor =
         ArgumentCaptor.forClass(ImmutableList.class);
@@ -393,7 +405,7 @@ public class ThirdPartyTMSSmartlingWithJsonTest extends ServiceTestBase {
                 projectId, smartlingFile, smartlingLocale, true))
         .thenReturn(smartlingJsonResponseWithOriginalString);
 
-    thirdPartyTMSSmartlingWithJsonMock.pull(repository, projectId, localeMapping);
+    thirdPartyTMSSmartlingWithJsonMock.pull(repository, projectId, localeMapping, false);
 
     dtoListCaptor = ArgumentCaptor.forClass(ImmutableList.class);
     Mockito.verify(textUnitBatchImporterServiceMock, times(2))

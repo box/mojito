@@ -22,6 +22,8 @@ public final class SmartlingOptions {
   public static final String GLOSSARY_SYNC = "glossary-sync";
   public static final String PUSH_TRANSALTION_BRANCH_NAME = "push-translation-branch-name";
 
+  public static final String DELTA_PULL = "delta-pull";
+
   private final Set<String> pluralFixForLocales;
   private final String placeholderFormat;
   private final String customPlaceholderFormat;
@@ -32,6 +34,8 @@ public final class SmartlingOptions {
   private final boolean isGlossarySync;
   private final String pushTranslationBranchName;
 
+  private final boolean isDeltaPull;
+
   public SmartlingOptions(
       Set<String> pluralFixForLocales,
       String placeholderFormat,
@@ -41,7 +45,8 @@ public final class SmartlingOptions {
       String requestId,
       boolean isJsonSync,
       boolean isGlossarySync,
-      String pushTranslationBranchName) {
+      String pushTranslationBranchName,
+      boolean isDeltaPull) {
     this.pluralFixForLocales = pluralFixForLocales;
     this.placeholderFormat = placeholderFormat;
     this.customPlaceholderFormat = customPlaceholderFormat;
@@ -51,6 +56,7 @@ public final class SmartlingOptions {
     this.isJsonSync = isJsonSync;
     this.isGlossarySync = isGlossarySync;
     this.pushTranslationBranchName = pushTranslationBranchName;
+    this.isDeltaPull = isDeltaPull;
   }
 
   public static SmartlingOptions parseList(List<String> options) {
@@ -70,6 +76,7 @@ public final class SmartlingOptions {
     String isJsonSync = map.get(JSON_SYNC);
     String isGlossarySync = map.get(GLOSSARY_SYNC);
     String pushTranslationBranchName = map.get(PUSH_TRANSALTION_BRANCH_NAME);
+    String deltaSync = map.get(DELTA_PULL);
 
     return new SmartlingOptions(
         pluralFixStr.isEmpty()
@@ -82,7 +89,8 @@ public final class SmartlingOptions {
         requestId,
         parseBoolean(isJsonSync),
         parseBoolean(isGlossarySync),
-        pushTranslationBranchName);
+        pushTranslationBranchName,
+        parseBoolean(deltaSync));
   }
 
   public Set<String> getPluralFixForLocales() {
@@ -119,5 +127,9 @@ public final class SmartlingOptions {
 
   public String getPushTranslationBranchName() {
     return pushTranslationBranchName;
+  }
+
+  public boolean isDeltaPull() {
+    return isDeltaPull;
   }
 }

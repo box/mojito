@@ -134,6 +134,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
 
   @Autowired MeterRegistry meterRegistry;
 
+  @Autowired ThirdPartyFileChecksumRepository mockThirdPartyFileChecksumRepository;
+
   StubSmartlingResultProcessor resultProcessor;
 
   @Mock TextUnitBatchImporterService mockTextUnitBatchImporterService;
@@ -184,7 +186,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     mapper = new AndroidStringDocumentMapper(pluralSep, null);
     RetryBackoffSpec retryConfiguration =
@@ -235,7 +238,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             batchSize,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -288,7 +292,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             batchSize,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     // throw timeout exception for first request, following request should be successful
     when(smartlingClient.uploadFile(any(), any(), any(), any(), any(), any(), any()))
         .thenThrow(
@@ -353,7 +358,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             batchSize,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -403,7 +409,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             batchSize,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -461,7 +468,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             batchSize,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     TM tm = repository.getTm();
     Asset asset =
@@ -675,7 +683,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     tmsSmartling.pull(
         repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
@@ -789,7 +798,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     tmsSmartling.pull(
         repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
@@ -883,7 +893,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     RuntimeException exception =
         assertThrows(
             SmartlingClientException.class,
@@ -943,7 +954,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     tmsSmartling.pull(
         repository, "projectId", pluralSep, localeMapping, null, null, Collections.emptyList());
 
@@ -1052,7 +1064,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     tmsSmartling.pull(
         repository,
         "projectId",
@@ -1185,7 +1198,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingWithJson,
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     tmsSmartling.pull(
         repository,
         "projectId",
@@ -1196,6 +1210,271 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
         ImmutableList.of("dry-run=true"));
 
     verify(mockTextUnitBatchImporterService, never())
+        .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
+  }
+
+  @Test
+  public void testPullShortCircuitIfNoChangesInTranslatedFiles()
+      throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException {
+
+    int batchSize = 3;
+    List<TextUnitDTO> tus;
+    List<Locale> locales = new ArrayList<>();
+    Map<String, String> localeMapping = Collections.emptyMap();
+    tmsSmartling =
+        new ThirdPartyTMSSmartling(
+            smartlingClient,
+            textUnitSearcher,
+            assetPathAndTextUnitNameKeys,
+            mockTextUnitBatchImporterService,
+            resultProcessor,
+            mockThirdPartyTMSSmartlingWithJson,
+            mockThirdPartyTMSSmartlingGlossary,
+            assetTextUnitToTMTextUnitRepository,
+            batchSize,
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
+    Locale frCA = localeService.findByBcp47Tag("fr-CA");
+    Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+    repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
+    repositoryService.addRepositoryLocale(repository, jaJP.getBcp47Tag());
+    locales.add(frCA);
+    locales.add(jaJP);
+
+    TM tm = repository.getTm();
+    Asset asset =
+        assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
+    AssetExtraction assetExtraction = new AssetExtraction();
+    assetExtraction.setAsset(asset);
+    assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+    PluralForm one = pluralFormService.findByPluralFormString("one");
+
+    List<Long> singularIds = new ArrayList<>();
+    int singularTextUnits = 14;
+    int singularBatches = 5;
+
+    for (int i = 0; i < singularTextUnits; i++) {
+      String name = "singular_message_test" + i;
+      String content = "Singular Message Test #" + i;
+      String comment = "Singular Comment" + i;
+      TMTextUnit textUnit =
+          tmService.addTMTextUnit(tm.getId(), asset.getId(), name, content, comment);
+      singularIds.add(textUnit.getId());
+      assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+    }
+
+    List<Long> pluralIds = new ArrayList<>();
+    int pluralTextUnits = 8;
+    int pluralBatches = 3;
+
+    for (int i = 0; i < pluralTextUnits; i++) {
+      String name = "plural_message" + i + "_one";
+      String content = "Plural Message Test #" + i;
+      String comment = "Plural Comment" + i;
+      String pluralFormOther = "plural_form_other" + i;
+
+      TMTextUnit textUnit =
+          tmService.addTMTextUnit(tm, asset, name, content, comment, null, one, pluralFormOther);
+      pluralIds.add(textUnit.getId());
+      assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+    }
+
+    prepareAssetAndTextUnits(assetExtraction, asset, tm);
+
+    tus = searchTextUnits(singularIds);
+    Iterable<List<TextUnitDTO>> singularIt = Iterables.partition(tus, batchSize);
+    int i = 0;
+    for (List<TextUnitDTO> textUnits : singularIt) {
+      for (Locale l : locales) {
+        doReturn(localizedContent(textUnits, l))
+            .when(smartlingClient)
+            .downloadPublishedFile(
+                eq("projectId"),
+                eq(l.getBcp47Tag()),
+                eq(singularFileName(repository, i)),
+                eq(false));
+      }
+      i++;
+    }
+
+    tus = searchTextUnits(pluralIds);
+    Iterable<List<TextUnitDTO>> pluralIt = Iterables.partition(tus, batchSize);
+    i = 0;
+    for (List<TextUnitDTO> textUnits : pluralIt) {
+      for (Locale l : locales) {
+        doReturn(localizedContent(textUnits, l))
+            .when(smartlingClient)
+            .downloadPublishedFile(
+                eq("projectId"), eq(l.getBcp47Tag()), eq(pluralFileName(repository, i)), eq(false));
+      }
+      i++;
+    }
+
+    // Execute an initial pull that will record translated files checksums and verify text units are
+    // imported
+    List<String> options = new ArrayList<>();
+    options.add("delta-pull=true");
+    tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, options);
+
+    verify(mockTextUnitBatchImporterService, atLeastOnce())
+        .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
+
+    Mockito.clearInvocations(mockTextUnitBatchImporterService);
+
+    // Now run the same pull again, text unit imports should be skipped as file checksums from
+    // previous run exist and match.
+    tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, options);
+
+    verify(mockTextUnitBatchImporterService, times(0))
+        .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
+  }
+
+  @Test
+  public void testPullShortCircuitIfChangesInTranslatedFiles()
+      throws RepositoryNameAlreadyUsedException, RepositoryLocaleCreationException {
+
+    int batchSize = 3;
+    List<TextUnitDTO> tus;
+    List<Locale> locales = new ArrayList<>();
+    Map<String, String> localeMapping = Collections.emptyMap();
+    tmsSmartling =
+        new ThirdPartyTMSSmartling(
+            smartlingClient,
+            textUnitSearcher,
+            assetPathAndTextUnitNameKeys,
+            mockTextUnitBatchImporterService,
+            resultProcessor,
+            mockThirdPartyTMSSmartlingWithJson,
+            mockThirdPartyTMSSmartlingGlossary,
+            assetTextUnitToTMTextUnitRepository,
+            batchSize,
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
+    Repository repository =
+        repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
+    Locale frCA = localeService.findByBcp47Tag("fr-CA");
+    Locale jaJP = localeService.findByBcp47Tag("ja-JP");
+    repositoryService.addRepositoryLocale(repository, frCA.getBcp47Tag());
+    repositoryService.addRepositoryLocale(repository, jaJP.getBcp47Tag());
+    locales.add(frCA);
+    locales.add(jaJP);
+
+    TM tm = repository.getTm();
+    Asset asset =
+        assetService.createAssetWithContent(repository.getId(), "fake_for_test", "fake for test");
+    AssetExtraction assetExtraction = new AssetExtraction();
+    assetExtraction.setAsset(asset);
+    assetExtraction = assetExtractionRepository.save(assetExtraction);
+
+    PluralForm one = pluralFormService.findByPluralFormString("one");
+
+    List<Long> singularIds = new ArrayList<>();
+    int singularTextUnits = 14;
+    int singularBatches = 5;
+
+    for (int i = 0; i < singularTextUnits; i++) {
+      String name = "singular_message_test" + i;
+      String content = "Singular Message Test #" + i;
+      String comment = "Singular Comment" + i;
+      TMTextUnit textUnit =
+          tmService.addTMTextUnit(tm.getId(), asset.getId(), name, content, comment);
+      singularIds.add(textUnit.getId());
+      assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+    }
+
+    List<Long> pluralIds = new ArrayList<>();
+    int pluralTextUnits = 8;
+    int pluralBatches = 3;
+
+    for (int i = 0; i < pluralTextUnits; i++) {
+      String name = "plural_message" + i + "_one";
+      String content = "Plural Message Test #" + i;
+      String comment = "Plural Comment" + i;
+      String pluralFormOther = "plural_form_other" + i;
+
+      TMTextUnit textUnit =
+          tmService.addTMTextUnit(tm, asset, name, content, comment, null, one, pluralFormOther);
+      pluralIds.add(textUnit.getId());
+      assetExtractionService.createAssetTextUnit(assetExtraction, name, content, comment);
+    }
+
+    prepareAssetAndTextUnits(assetExtraction, asset, tm);
+
+    tus = searchTextUnits(singularIds);
+    Iterable<List<TextUnitDTO>> singularIt = Iterables.partition(tus, batchSize);
+    int i = 0;
+    for (List<TextUnitDTO> textUnits : singularIt) {
+      for (Locale l : locales) {
+        doReturn(localizedContent(textUnits, l))
+            .when(smartlingClient)
+            .downloadPublishedFile(
+                eq("projectId"),
+                eq(l.getBcp47Tag()),
+                eq(singularFileName(repository, i)),
+                eq(false));
+      }
+      i++;
+    }
+
+    tus = searchTextUnits(pluralIds);
+    Iterable<List<TextUnitDTO>> pluralIt = Iterables.partition(tus, batchSize);
+    i = 0;
+    for (List<TextUnitDTO> textUnits : pluralIt) {
+      for (Locale l : locales) {
+        doReturn(localizedContent(textUnits, l))
+            .when(smartlingClient)
+            .downloadPublishedFile(
+                eq("projectId"), eq(l.getBcp47Tag()), eq(pluralFileName(repository, i)), eq(false));
+      }
+      i++;
+    }
+
+    // Execute an initial pull that will record translated files checksums and verify text units are
+    // imported
+    List<String> options = new ArrayList<>();
+    options.add("delta-pull=true");
+    tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, options);
+
+    verify(mockTextUnitBatchImporterService, atLeastOnce())
+        .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
+
+    Mockito.clearInvocations(mockTextUnitBatchImporterService);
+
+    i = 0;
+    for (List<TextUnitDTO> textUnits : singularIt) {
+      for (Locale l : locales) {
+        // add a new line to translated file to trigger checksum change
+        doReturn(localizedContent(textUnits, l) + "\n")
+            .when(smartlingClient)
+            .downloadPublishedFile(
+                eq("projectId"),
+                eq(l.getBcp47Tag()),
+                eq(singularFileName(repository, i)),
+                eq(false));
+      }
+      i++;
+    }
+
+    i = 0;
+    for (List<TextUnitDTO> textUnits : pluralIt) {
+      for (Locale l : locales) {
+        // add a new line to translated file to trigger checksum change
+        doReturn(localizedContent(textUnits, l) + "\n")
+            .when(smartlingClient)
+            .downloadPublishedFile(
+                eq("projectId"), eq(l.getBcp47Tag()), eq(pluralFileName(repository, i)), eq(false));
+      }
+      i++;
+    }
+
+    // Run the same pull again, text unit imports should occur as file checksums have changed since
+    // previous run
+    tmsSmartling.pull(repository, "projectId", pluralSep, localeMapping, null, null, options);
+
+    verify(mockTextUnitBatchImporterService, atLeastOnce())
         .importTextUnits(textUnitListCaptor.capture(), eq(false), eq(true));
   }
 
@@ -1218,7 +1497,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             batchSize,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     Repository repository =
         repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
     Locale frCA = localeService.findByBcp47Tag("fr-CA");
@@ -1886,7 +2166,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             batchSize,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
     Repository repository =
         repositoryService.createRepository(testIdWatcher.getEntityName("batchRepo"));
     Locale frCA = localeService.findByBcp47Tag("fr-CA");
@@ -2039,7 +2320,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             3,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -2061,7 +2343,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             35,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);
@@ -2081,7 +2364,8 @@ public class ThirdPartyTMSSmartlingTest extends ServiceTestBase {
             mockThirdPartyTMSSmartlingGlossary,
             assetTextUnitToTMTextUnitRepository,
             4231,
-            meterRegistry);
+            meterRegistry,
+            mockThirdPartyFileChecksumRepository);
 
     assertThat(tmsSmartling.batchesFor(0)).isEqualTo(0);
     assertThat(tmsSmartling.batchesFor(1)).isEqualTo(1);

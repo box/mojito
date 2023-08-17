@@ -441,6 +441,10 @@ public class TextUnitSearcher {
       c.setOffset(searchParameters.getOffset());
     }
 
+    if (searchParameters.isOrderedByTextUnitID()) {
+      c.setOrder(NativeExps.order().add("tu.id", NativeOrderExp.OrderType.ASC));
+    }
+
     if (searchParameters instanceof TextUnitSearcherParametersForTesting) {
       TextUnitSearcherParametersForTesting textUnitSearcherParametersForTesting =
           (TextUnitSearcherParametersForTesting) searchParameters;
