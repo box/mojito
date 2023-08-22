@@ -62,6 +62,7 @@ public class GithubPRInfoCommandTest {
     verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_USERNAME=");
     verify(consoleWriterMock, times(1)).a("some");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=false");
+    verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=false");
   }
 
   @Test
@@ -76,6 +77,48 @@ public class GithubPRInfoCommandTest {
     verify(consoleWriterMock, times(1)).a("some");
     verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=true");
     verify(ghIssueCommentMock, times(1)).createReaction(ReactionContent.PLUS_ONE);
+    verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=false");
+  }
+
+  @Test
+  public void testExecuteWithPushSkipped() {
+    when(githubMock.isLabelAppliedToPR("testRepo", 1, "skip-i18n-push")).thenReturn(true);
+    githubPRInfoCommand.execute();
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_BASE_COMMIT=");
+    verify(consoleWriterMock, times(1)).a("baseSha");
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_EMAIL=");
+    verify(consoleWriterMock, times(1)).a("some@email.com");
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_USERNAME=");
+    verify(consoleWriterMock, times(1)).a("some");
+    verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=false");
+    verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=true");
+    verify(githubMock, times(1))
+        .addCommentToPR(
+            "testRepo",
+            1,
+            ":warning: I18N strings will not be pushed to Mojito as 'skip-i18n-push' label is applied to this PR.");
+  }
+
+  @Test
+  public void testExecuteWithPushSkippedOnlyCommentsOnce() {
+    when(githubMock.isLabelAppliedToPR("testRepo", 1, "skip-i18n-push")).thenReturn(true);
+    when(ghIssueCommentMock.getBody())
+        .thenReturn(
+            ":warning: I18N strings will not be pushed to Mojito as 'skip-i18n-push' label is applied to this PR.");
+    githubPRInfoCommand.execute();
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_BASE_COMMIT=");
+    verify(consoleWriterMock, times(1)).a("baseSha");
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_EMAIL=");
+    verify(consoleWriterMock, times(1)).a("some@email.com");
+    verify(consoleWriterMock, times(1)).a("MOJITO_GITHUB_AUTHOR_USERNAME=");
+    verify(consoleWriterMock, times(1)).a("some");
+    verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_CHECKS=false");
+    verify(consoleWriterMock, times(1)).a("MOJITO_SKIP_I18N_PUSH=true");
+    verify(githubMock, times(0))
+        .addCommentToPR(
+            "testRepo",
+            1,
+            ":warning: I18N strings will not be pushed to Mojito as 'skip-i18n-push' label is applied to this PR.");
   }
 
   @Test(expected = CommandException.class)

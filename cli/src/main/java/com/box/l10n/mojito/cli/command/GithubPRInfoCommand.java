@@ -63,8 +63,26 @@ public class GithubPRInfoCommand extends Command {
       description = "The Github repository owner")
   String owner;
 
+  @Parameter(
+      names = {"--skip-i18n-push-label"},
+      arity = 1,
+      required = false,
+      description = "Github label name that is used to trigger skipping i18n push")
+  String skipI18NPushLabel = "skip-i18n-push";
+
+  @Parameter(
+      names = {"--skip-i18n-push-comment"},
+      arity = 1,
+      required = false,
+      description =
+          "Comment added to PR to indicate that the push to the Mojito backend will be skipped")
+  String skipI18NPushComment =
+      ":warning: I18N strings will not be pushed to Mojito as '%s' label is applied to this PR.";
+
   @Override
   public void execute() throws CommandException {
+
+    skipI18NPushComment = String.format(skipI18NPushComment, skipI18NPushLabel);
 
     if (githubClients == null) {
       throw new CommandException(
@@ -94,8 +112,23 @@ public class GithubPRInfoCommand extends Command {
       } else {
         consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_CHECKS=false").println();
       }
+
+      if (github.isLabelAppliedToPR(repository, prNumber, skipI18NPushLabel)) {
+        addPushSkippedComment(prComments, github);
+        consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_PUSH=true").println();
+      } else {
+        consoleWriterAnsiCodeEnabledFalse.a("MOJITO_SKIP_I18N_PUSH=false").println();
+      }
+
     } catch (GithubException e) {
       throw new CommandException(e);
+    }
+  }
+
+  private void addPushSkippedComment(List<GHIssueComment> prComments, GithubClient github) {
+    if (!prComments.stream()
+        .anyMatch(ghIssueComment -> ghIssueComment.getBody().contains(skipI18NPushComment))) {
+      github.addCommentToPR(repository, prNumber, skipI18NPushComment);
     }
   }
 
