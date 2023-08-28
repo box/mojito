@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.service.tm;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
+
 import com.box.l10n.mojito.common.StreamUtil;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
@@ -80,6 +82,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -140,6 +143,9 @@ public class TMService {
   @Autowired PullRunService pullRunService;
 
   @Autowired PullRunAssetService pullRunAssetService;
+
+  @Value("${l10n.tmService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   /**
    * Adds a {@link TMTextUnit} in a {@link TM}.
@@ -1194,6 +1200,7 @@ public class TMService {
         QuartzJobInfo.newBuilder(ImportLocalizedAssetJob.class)
             .withInlineInput(false)
             .withInput(importLocalizedAssetJobInput)
+            .withScheduler(schedulerName)
             .build();
 
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);

@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.branch.notification;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Branch;
@@ -27,6 +28,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -52,6 +54,9 @@ public class BranchNotificationService {
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
   @Autowired BranchNotificationServiceLegacy branchNotificationServiceLegacy;
+
+  @Value("${l10n.branchNotification.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   /**
    * When the state of branch changes, notifications must be sent (new, updated, translated). This
@@ -180,6 +185,7 @@ public class BranchNotificationService {
             .withInput(branchNotificationMissingScreenshotsJobInput)
             .withTriggerStartDate(date)
             .withUniqueId(notifierId + "_" + branch.getId())
+            .withScheduler(schedulerName)
             .build();
     quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }

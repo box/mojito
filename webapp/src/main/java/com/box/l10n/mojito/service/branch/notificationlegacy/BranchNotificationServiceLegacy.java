@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.branch.notificationlegacy;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Branch;
@@ -28,6 +29,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,6 +47,9 @@ public class BranchNotificationServiceLegacy {
   @Autowired BranchStatisticRepository branchStatisticRepository;
 
   @Autowired BranchTextUnitStatisticRepository branchTextUnitStatisticRepository;
+
+  @Value("${l10n.branchNotificationsLegacy.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   /**
    * 'required = false' needed here to allow a successful Spring Boot startup as if no {@link
@@ -161,6 +166,7 @@ public class BranchNotificationServiceLegacy {
             .withInput(branchNotificationMissingScreenshotsJobInput)
             .withTriggerStartDate(date)
             .withUniqueId(senderType + "_" + branch.getId())
+            .withScheduler(schedulerName)
             .build();
     quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }

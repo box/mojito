@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.assetExtraction;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static com.box.l10n.mojito.service.assetExtraction.LocalBranchToEntityBranchConverter.NULL_BRANCH_TEXT_PLACEHOLDER;
 import static java.util.function.Function.identity;
 
@@ -83,6 +84,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.annotation.Retryable;
@@ -161,6 +163,9 @@ public class AssetExtractionService {
   @Autowired EntityManager entityManager;
 
   @Autowired LocalBranchToEntityBranchConverter localBranchToEntityBranchConverter;
+
+  @Value("${l10n.assetExtraction.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String quartzSchedulerName;
 
   /**
    * If the asset type is supported, starts the text units extraction for the given asset.
@@ -1156,6 +1161,7 @@ public class AssetExtractionService {
             .withMessage(pollableMessage)
             .withParentId(parentTaskId)
             .withExpectedSubTaskNumber(5)
+            .withScheduler(quartzSchedulerName)
             .build();
 
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);

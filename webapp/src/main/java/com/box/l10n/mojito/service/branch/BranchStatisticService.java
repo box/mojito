@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.branch;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static com.box.l10n.mojito.service.assetExtraction.AssetExtractionService.PRIMARY_BRANCH;
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.FOR_TRANSLATION;
 import static com.box.l10n.mojito.utils.Predicates.not;
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,6 +78,9 @@ public class BranchStatisticService {
   @Autowired TextUnitDTOsCacheService textUnitDTOsCacheService;
 
   @Autowired EntityManager entityManager;
+
+  @Value("${l10n.branchStatistic.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   /**
    * Compute statistics for all branches that are not deleted in a given repository.
@@ -411,6 +416,7 @@ public class BranchStatisticService {
         QuartzJobInfo.newBuilder(BranchNotificationJob.class)
             .withUniqueId(String.valueOf(branch.getId()))
             .withInput(branchNotificationJobInput)
+            .withScheduler(schedulerName)
             .build();
     quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }

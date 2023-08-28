@@ -36,6 +36,8 @@
         <jjwt.version>0.10.5</jjwt.version>
         <github.api.version>1.313</github.api.version>
         <icu4j.version>64.2</icu4j.version>
+        <docker.compose.detached.mode>true</docker.compose.detached.mode>
+        <docker.compose.remove.volumes>true</docker.compose.remove.volumes>
     </properties>
 
     <dependencies>
@@ -149,6 +151,34 @@
                         <version>${plugin.version.google-java-format}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>com.dkanejs.maven.plugins</groupId>
+                <artifactId>docker-compose-maven-plugin</artifactId>
+                <version>4.0.0</version>
+                <configuration>
+                    <composeFiles>
+                        <composeFile>./docker/docker-compose-api-worker.yml</composeFile>
+                    </composeFiles>
+                    <ignorePullFailures>true</ignorePullFailures>
+                    <detachedMode>${docker.compose.detached.mode}</detachedMode>
+                    <removeVolumes>${docker.compose.remove.volumes}</removeVolumes>
+                    <build>true</build>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>api-worker-cluster-up</id>
+                        <goals>
+                            <goal>up</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>api-worker-cluster-down</id>
+                        <goals>
+                            <goal>down</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

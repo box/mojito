@@ -21,14 +21,20 @@ public class QuartzService {
   /** logger */
   static Logger logger = getLogger(QuartzService.class);
 
-  @Autowired Scheduler scheduler;
+  @Autowired QuartzSchedulerManager schedulerManager;
 
+  // TODO(mallen): Handle for other schedulers other than 'default'???
   public List<String> getDynamicJobs() throws SchedulerException {
-    Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(DYNAMIC_GROUP_NAME));
+    Set<JobKey> jobKeys =
+        schedulerManager
+            .getScheduler(QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME)
+            .getJobKeys(GroupMatcher.jobGroupEquals(DYNAMIC_GROUP_NAME));
     return jobKeys.stream().map(jobKey -> jobKey.getName()).collect(Collectors.toList());
   }
 
   public void deleteAllDynamicJobs() throws SchedulerException {
+    Scheduler scheduler =
+        schedulerManager.getScheduler(QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME);
     Set<JobKey> jobKeys = scheduler.getJobKeys(GroupMatcher.jobGroupEquals(DYNAMIC_GROUP_NAME));
     scheduler.deleteJobs(new ArrayList<>(jobKeys));
   }

@@ -29,7 +29,7 @@ public class QuartzPollableTaskScheduler {
   /** logger */
   static Logger logger = LoggerFactory.getLogger(QuartzPollableTaskScheduler.class);
 
-  @Autowired Scheduler scheduler;
+  @Autowired QuartzSchedulerManager schedulerManager;
 
   @Autowired PollableTaskService pollableTaskService;
 
@@ -41,7 +41,6 @@ public class QuartzPollableTaskScheduler {
       Class<? extends QuartzPollableJob<I, O>> clazz, I input) {
     QuartzJobInfo<I, O> quartzJobInfo =
         QuartzJobInfo.newBuilder(clazz).withInput(input).withMessage(clazz.getSimpleName()).build();
-
     return scheduleJob(quartzJobInfo);
   }
 
@@ -76,6 +75,10 @@ public class QuartzPollableTaskScheduler {
    * @return
    */
   public <I, O> PollableFuture<O> scheduleJob(QuartzJobInfo<I, O> quartzJobInfo) {
+
+    logger.debug("Scheduling job on queue: {}", quartzJobInfo.getScheduler());
+
+    Scheduler scheduler = schedulerManager.getScheduler(quartzJobInfo.getScheduler());
 
     String pollableTaskName = getPollableTaskName(quartzJobInfo.getClazz());
 

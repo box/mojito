@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.branch;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Branch;
@@ -12,6 +13,7 @@ import java.text.MessageFormat;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,6 +32,9 @@ public class BranchService {
   @Autowired BranchRepository branchRepository;
 
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
+  @Value("${l10n.branchService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   public Branch createBranch(
       Repository repository, String branchName, User createdByUser, Set<String> branchNotifierIds) {
@@ -78,6 +83,7 @@ public class BranchService {
         QuartzJobInfo.newBuilder(DeleteBranchJob.class)
             .withInput(deleteBranchJobInput)
             .withMessage(pollableMessage)
+            .withScheduler(schedulerName)
             .build();
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }

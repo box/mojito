@@ -9,6 +9,7 @@ import com.box.l10n.mojito.cli.utils.PollableTaskJobMatcher;
 import com.box.l10n.mojito.cli.utils.TestingJobListener;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.json.ObjectMapper;
+import com.box.l10n.mojito.quartz.QuartzSchedulerManager;
 import com.box.l10n.mojito.rest.thirdparty.ThirdPartySyncAction;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJob;
 import com.box.l10n.mojito.service.thirdparty.ThirdPartySyncJobInput;
@@ -19,7 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.quartz.JobKey;
 import org.quartz.Matcher;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,7 +30,7 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
   @Qualifier("fail_on_unknown_properties_false")
   ObjectMapper objectMapper;
 
-  @Autowired Scheduler scheduler;
+  @Autowired QuartzSchedulerManager schedulerManager;
 
   Matcher<JobKey> jobMatcher;
   TestingJobListener testingJobListener;
@@ -39,13 +39,20 @@ public class ThirdPartySyncCommandTest extends CLITestBase {
   public void setUp() throws SchedulerException {
     testingJobListener = new TestingJobListener(objectMapper);
     jobMatcher = new PollableTaskJobMatcher<>(ThirdPartySyncJob.class);
-    scheduler.getListenerManager().addJobListener(testingJobListener, jobMatcher);
+    schedulerManager
+        .getScheduler(QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME)
+        .getListenerManager()
+        .addJobListener(testingJobListener, jobMatcher);
   }
 
   @After
   public void tearDown() throws SchedulerException {
-    scheduler.getListenerManager().removeJobListener(testingJobListener.getName());
-    scheduler
+    schedulerManager
+        .getScheduler(QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME)
+        .getListenerManager()
+        .removeJobListener(testingJobListener.getName());
+    schedulerManager
+        .getScheduler(QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME)
         .getListenerManager()
         .removeJobListenerMatcher(testingJobListener.getName(), jobMatcher);
   }

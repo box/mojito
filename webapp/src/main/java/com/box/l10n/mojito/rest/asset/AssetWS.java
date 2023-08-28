@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.rest.asset;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
+
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.Locale;
 import com.box.l10n.mojito.entity.PollableTask;
@@ -35,6 +37,7 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -70,6 +73,9 @@ public class AssetWS {
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
   @Autowired MeterRegistry meterRegistry;
+
+  @Value("${l10n.assetWS.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   /**
    * Gets the list of {@link Asset} for a given {@link Repository} and other optional filters
@@ -230,6 +236,7 @@ public class AssetWS {
         QuartzJobInfo.newBuilder(GenerateLocalizedAssetJob.class)
             .withInlineInput(false)
             .withInput(localizedAssetBody)
+            .withScheduler(schedulerName)
             .build();
     PollableFuture<LocalizedAssetBody> localizedAssetBodyPollableFuture =
         quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);

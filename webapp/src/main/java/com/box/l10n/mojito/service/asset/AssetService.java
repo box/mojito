@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.asset;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.branchId;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.deletedEquals;
 import static com.box.l10n.mojito.rest.asset.AssetSpecification.pathEquals;
@@ -47,6 +48,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,6 +90,9 @@ public class AssetService {
   @Autowired FilterOptionsMd5Builder filterOptionsMd5Builder;
 
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
+
+  @Value("${l10n.assetService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   /**
    * Adds an {@link Asset} to a {@link Repository}.
@@ -386,6 +391,7 @@ public class AssetService {
         QuartzJobInfo.newBuilder(DeleteAssetsOfBranchJob.class)
             .withInput(deleteAssetsOfBranchJobInput)
             .withMessage(pollableMessage)
+            .withScheduler(schedulerName)
             .build();
     return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }

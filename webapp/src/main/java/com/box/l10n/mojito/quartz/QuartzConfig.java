@@ -1,9 +1,10 @@
 package com.box.l10n.mojito.quartz;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import org.quartz.JobDetail;
@@ -16,6 +17,7 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,7 +27,7 @@ public class QuartzConfig {
 
   public static final String DYNAMIC_GROUP_NAME = "DYNAMIC";
 
-  @Autowired Scheduler scheduler;
+  @Autowired QuartzSchedulerManager schedulerManager;
 
   @Autowired(required = false)
   List<Trigger> triggers = new ArrayList<>();
@@ -33,7 +35,8 @@ public class QuartzConfig {
   @Autowired(required = false)
   List<JobDetail> jobDetails = new ArrayList<>();
 
-  @Autowired QuartzPropertiesConfig quartzPropertiesConfig;
+  @Value("${l10n.org.quartz.scheduler.enabled:true}")
+  Boolean schedulerEnabled;
 
   /**
    * Starts the scheduler after having removed outdated trigger/jobs
@@ -41,21 +44,30 @@ public class QuartzConfig {
    * @throws SchedulerException
    */
   @PostConstruct
-  void startScheduler() throws SchedulerException {
-    Properties quartzProps = quartzPropertiesConfig.getQuartzProperties();
+  void startSchedulers() throws SchedulerException {
     removeOutdatedJobs();
-    if (Boolean.parseBoolean(quartzProps.getProperty("org.quartz.scheduler.enabled", "true"))) {
-      logger.info("Starting scheduler");
-      scheduler.startDelayed(2);
+    int delay = 2;
+    if (schedulerEnabled) {
+      for (Scheduler scheduler : schedulerManager.getSchedulers()) {
+        logger.info("Starting scheduler: {}", scheduler.getSchedulerName());
+        scheduler.startDelayed(delay);
+        // Increment the delay to avoid lock exceptions being thrown as both schedulers try to start
+        // concurrently
+        delay++;
+      }
     }
   }
 
   void removeOutdatedJobs() throws SchedulerException {
-    scheduler.unscheduleJobs(new ArrayList<TriggerKey>(getOutdatedTriggerKeys()));
-    scheduler.deleteJobs(new ArrayList<JobKey>(getOutdatedJobKeys()));
+    for (Scheduler scheduler : schedulerManager.getSchedulers()) {
+      if (scheduler.getSchedulerName().equals(DEFAULT_SCHEDULER_NAME)) {
+        scheduler.unscheduleJobs(new ArrayList<TriggerKey>(getOutdatedTriggerKeys(scheduler)));
+      }
+      scheduler.deleteJobs(new ArrayList<JobKey>(getOutdatedJobKeys(scheduler)));
+    }
   }
 
-  Set<JobKey> getOutdatedJobKeys() throws SchedulerException {
+  Set<JobKey> getOutdatedJobKeys(Scheduler scheduler) throws SchedulerException {
 
     Set<JobKey> jobKeys =
         scheduler.getJobKeys(GroupMatcher.jobGroupEquals(Scheduler.DEFAULT_GROUP));
@@ -72,7 +84,7 @@ public class QuartzConfig {
     return jobKeys;
   }
 
-  Set<TriggerKey> getOutdatedTriggerKeys() throws SchedulerException {
+  Set<TriggerKey> getOutdatedTriggerKeys(Scheduler scheduler) throws SchedulerException {
 
     Set<TriggerKey> triggerKeys =
         scheduler.getTriggerKeys(GroupMatcher.triggerGroupEquals(Scheduler.DEFAULT_GROUP));

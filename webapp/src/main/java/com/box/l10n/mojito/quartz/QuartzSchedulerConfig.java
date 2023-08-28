@@ -10,6 +10,7 @@ import org.quartz.Trigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,10 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
+@ConditionalOnProperty(
+    name = "l10n.org.multi-quartz.enabled",
+    havingValue = "false",
+    matchIfMissing = true)
 public class QuartzSchedulerConfig {
 
   /** logger */
@@ -67,6 +72,7 @@ public class QuartzSchedulerConfig {
     schedulerFactory.setOverwriteExistingJobs(true);
     schedulerFactory.setTriggers(triggers.toArray(new Trigger[] {}));
     schedulerFactory.setAutoStartup(false);
+    schedulerFactory.setBeanName(QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME);
 
     if (quartzMetricsReportingJobListener != null) {
       schedulerFactory.setGlobalJobListeners(quartzMetricsReportingJobListener);

@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.rest.machinetranslation;
 
 import static com.box.l10n.mojito.CacheType.Names.MACHINE_TRANSLATION;
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 
 import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.quartz.QuartzJobInfo;
@@ -14,6 +15,7 @@ import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,6 +42,9 @@ public class MachineTranslationWS {
 
   @Autowired RepositoryMachineTranslationService repositoryMachineTranslationService;
 
+  @Value("${l10n.machineTranslation.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
+
   @RequestMapping(method = RequestMethod.POST, value = "/api/machine-translation-batch")
   @ResponseStatus(HttpStatus.OK)
   @Cacheable(MACHINE_TRANSLATION)
@@ -48,6 +53,7 @@ public class MachineTranslationWS {
         QuartzJobInfo.newBuilder(BatchMachineTranslationJob.class)
             .withInlineInput(false)
             .withInput(translationRequest)
+            .withScheduler(schedulerName)
             .build();
     PollableFuture<TranslationsResponseDTO> localizedAssetBodyPollableFuture =
         quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);

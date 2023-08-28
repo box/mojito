@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.quartz.JobBuilder.newJob;
 
+import com.box.l10n.mojito.quartz.QuartzSchedulerManager;
 import com.box.l10n.mojito.service.DBUtils;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.test.TestIdWatcher;
@@ -40,7 +41,7 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
 
   @Autowired DataSource dataSource;
 
-  @Autowired Scheduler scheduler;
+  @Autowired QuartzSchedulerManager schedulerManager;
 
   @Autowired DBUtils dbUtils;
 
@@ -48,6 +49,8 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
   Boolean monitoringEnabled;
 
   QuartzPendingJobsReportingTask task;
+
+  Scheduler scheduler;
 
   /*
    * This sets up the condition we'll use for await() later on. Given jobs can take some time
@@ -66,6 +69,7 @@ public class QuartzPendingJobsReportingTaskTest extends ServiceTestBase {
 
     Assume.assumeTrue(dbUtils.isMysql() && monitoringEnabled);
     task = new QuartzPendingJobsReportingTask(dataSource, meterRegistry);
+    scheduler = schedulerManager.getScheduler(QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME);
 
     scheduler.clear();
   }

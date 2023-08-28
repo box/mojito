@@ -1,5 +1,7 @@
 package com.box.l10n.mojito.quartz;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
+
 import java.util.Date;
 import org.quartz.JobBuilder;
 
@@ -14,6 +16,7 @@ public class QuartzJobInfo<I, O> {
   boolean inlineInput;
   long timeout;
   boolean requestRecovery;
+  String scheduler;
 
   private QuartzJobInfo(Builder<I, O> builder) {
     clazz = builder.clazz;
@@ -26,6 +29,7 @@ public class QuartzJobInfo<I, O> {
     inlineInput = builder.inlineInput;
     timeout = builder.timeout;
     requestRecovery = builder.requestRecovery;
+    scheduler = builder.scheduler;
   }
 
   public Class<? extends QuartzPollableJob<I, O>> getClazz() {
@@ -68,6 +72,10 @@ public class QuartzJobInfo<I, O> {
     return requestRecovery;
   }
 
+  public String getScheduler() {
+    return scheduler;
+  }
+
   public static <I, O> Builder<I, O> newBuilder(Class<? extends QuartzPollableJob<I, O>> clazz) {
     Builder<I, O> builder = new Builder<I, O>();
     builder.clazz = clazz;
@@ -85,6 +93,7 @@ public class QuartzJobInfo<I, O> {
     private boolean inlineInput = true;
     private long timeout = 3600;
     private boolean requestRecovery = false;
+    private String scheduler = DEFAULT_SCHEDULER_NAME;
 
     private Builder() {}
 
@@ -125,6 +134,11 @@ public class QuartzJobInfo<I, O> {
 
     public Builder<I, O> withTimeout(long val) {
       timeout = val;
+      return this;
+    }
+
+    public Builder<I, O> withScheduler(String val) {
+      scheduler = val;
       return this;
     }
 
