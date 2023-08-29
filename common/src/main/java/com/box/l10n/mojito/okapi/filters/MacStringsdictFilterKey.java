@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.okapi.common.*;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.*;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
@@ -121,7 +122,7 @@ public class MacStringsdictFilterKey extends XMLFilter {
 
     String skeleton = textUnit.getSkeleton().toString();
 
-    if (textUnit.getProperty(Property.NOTE) == null) {
+    if (textUnit.getProperty(NoteAnnotation.LOC_NOTE) == null) {
       String note = getNoteFromXMLCommentsInSkeleton(skeleton);
       if (note != null) {
         comment = note;

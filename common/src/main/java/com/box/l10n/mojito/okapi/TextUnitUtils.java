@@ -1,7 +1,7 @@
 package com.box.l10n.mojito.okapi;
 
 import java.util.Objects;
-import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.TextContainer;
@@ -30,12 +30,12 @@ public class TextUnitUtils {
 
     if (textUnit != null) {
 
-      XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
-
-      if (xliffNoteAnnotation == null) {
-        note = Objects.toString(textUnit.getProperty(Property.NOTE), null);
+      NoteAnnotation noteAnnotation = textUnit.getAnnotation(NoteAnnotation.class);
+      Property noteProp = textUnit.getProperty(NoteAnnotation.LOC_NOTE);
+      if (noteAnnotation == null || noteProp != null) {
+        note = Objects.toString(noteProp, null);
       } else {
-        note = xliffNoteAnnotation.getNote(0).getNoteText();
+        note = noteAnnotation.getNote(0).getNoteText();
       }
     }
 
@@ -51,7 +51,7 @@ public class TextUnitUtils {
   public void setNote(ITextUnit textUnit, String note) {
 
     if (textUnit != null) {
-      textUnit.setProperty(new Property(Property.NOTE, note));
+      textUnit.setProperty(new Property(NoteAnnotation.LOC_NOTE, note));
     }
   }
 

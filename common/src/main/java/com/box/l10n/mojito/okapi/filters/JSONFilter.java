@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.okapi.common.Event;
-import net.sf.okapi.common.annotation.XLIFFNote;
-import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
+import net.sf.okapi.common.annotation.Note;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.RawDocument;
@@ -44,7 +44,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
    */
   boolean noteKeepOrReplace = false;
 
-  XLIFFNoteAnnotation xliffNoteAnnotation;
+  NoteAnnotation noteAnnotation;
   UsagesAnnotation usagesAnnotation;
   String currentKeyName;
   String comment = null;
@@ -144,17 +144,17 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     }
   }
 
-  void addXliffNote(String value) {
-    XLIFFNote xliffNote = new XLIFFNote(value);
-    xliffNote.setFrom(currentKeyName);
-    xliffNote.setAnnotates(XLIFFNote.Annotates.SOURCE);
+  void addNote(String value) {
+    Note note = new Note(value);
+    note.setFrom(currentKeyName);
+    note.setAnnotates(Note.Annotates.SOURCE);
 
-    if (xliffNoteAnnotation == null || noteKeepOrReplace) {
-      logger.debug("create the xliff note annotation");
-      xliffNoteAnnotation = new XLIFFNoteAnnotation();
+    if (noteAnnotation == null || noteKeepOrReplace) {
+      logger.debug("create the note annotation");
+      noteAnnotation = new NoteAnnotation();
     }
 
-    xliffNoteAnnotation.add(xliffNote);
+    noteAnnotation.add(note);
   }
 
   void extractNoteIfMatch(String value) {
@@ -163,7 +163,7 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
 
       if (m.matches()) {
         logger.debug("key matches noteKeyPattern, add the value as note");
-        addXliffNote(value);
+        addNote(value);
       }
     }
   }
@@ -172,10 +172,10 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
     if (comment != null) {
       ITextUnit textUnit = getEventTextUnit();
       if (textUnit != null) {
-        String xliffNote = comment.replace("//", "").trim();
-        addXliffNote(xliffNote);
-        textUnit.setAnnotation(xliffNoteAnnotation);
-        xliffNoteAnnotation = null;
+        String note = comment.replace("//", "").trim();
+        addNote(note);
+        textUnit.setAnnotation(noteAnnotation);
+        noteAnnotation = null;
       }
       comment = null;
     }
@@ -184,14 +184,14 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
   @Override
   public void handleObjectEnd() {
 
-    if (xliffNoteAnnotation != null || usagesAnnotation != null) {
+    if (noteAnnotation != null || usagesAnnotation != null) {
 
       ITextUnit textUnit = getEventTextUnit();
 
       if (textUnit != null) {
-        if (xliffNoteAnnotation != null) {
+        if (noteAnnotation != null) {
           logger.debug("Set note on text unit with name: {}", textUnit.getName());
-          textUnit.setAnnotation(xliffNoteAnnotation);
+          textUnit.setAnnotation(noteAnnotation);
         }
 
         if (usagesAnnotation != null) {
@@ -203,10 +203,9 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
       }
     }
 
-    logger.debug(
-        "Reset the xliffNoteAnnotation and Usage Annotation if not using keepOrReplace option");
+    logger.debug("Reset the noteAnnotation and Usage Annotation if not using keepOrReplace option");
     if (!noteKeepOrReplace) {
-      xliffNoteAnnotation = null;
+      noteAnnotation = null;
     }
 
     if (!usagesKeepOrReplace) {

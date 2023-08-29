@@ -4,6 +4,7 @@ import com.box.l10n.mojito.okapi.XliffState;
 import java.util.List;
 import java.util.Objects;
 import net.sf.okapi.common.LocaleId;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextUnit;
@@ -51,7 +52,7 @@ public class XliffDataFactory {
     textUnit.setName(name);
 
     if (note != null) {
-      textUnit.setSourceProperty(new Property(Property.NOTE, note));
+      textUnit.setSourceProperty(new Property(NoteAnnotation.LOC_NOTE, note));
     }
 
     if (target != null && targetBcp47Tag != null) {
@@ -130,7 +131,7 @@ public class XliffDataFactory {
             ">" + textUnit.getTarget(LocaleId.fromBCP47(targetBcp47Tag)).toString() + "</target>\n";
       }
 
-      String note = Objects.toString(textUnit.getSourceProperty(Property.NOTE), null);
+      String note = Objects.toString(textUnit.getSourceProperty(NoteAnnotation.LOC_NOTE), null);
       if (note != null) {
         if (!isTargetXliff) {
           // Okapi does not indent code properly...

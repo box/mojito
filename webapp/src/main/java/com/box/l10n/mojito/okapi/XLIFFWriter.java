@@ -18,9 +18,9 @@ import net.sf.okapi.common.annotation.GenericAnnotationType;
 import net.sf.okapi.common.annotation.GenericAnnotations;
 import net.sf.okapi.common.annotation.ITSLQIAnnotations;
 import net.sf.okapi.common.annotation.ITSProvenanceAnnotations;
+import net.sf.okapi.common.annotation.Note;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.annotation.TermsAnnotation;
-import net.sf.okapi.common.annotation.XLIFFNote;
-import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
 import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.filterwriter.IFilterWriter;
 import net.sf.okapi.common.filterwriter.ITSContent;
@@ -602,23 +602,23 @@ public class XLIFFWriter implements IFilterWriter {
     }
 
     // Notes
-    if (tu.hasProperty(Property.NOTE)) {
+    if (tu.hasProperty(NoteAnnotation.LOC_NOTE)) {
       writer.writeStartElement("note");
-      writer.writeString(tu.getProperty(Property.NOTE).getValue());
+      writer.writeString(tu.getProperty(NoteAnnotation.LOC_NOTE).getValue());
       writer.writeEndElementLineBreak(); // note
     }
-    if (tu.hasProperty(Property.TRANSNOTE)) {
+    if (tu.hasProperty(NoteAnnotation.TRANS_NOTE)) {
       writer.writeStartElement("note");
       writer.writeAttributeString("from", "translator");
-      writer.writeString(tu.getProperty(Property.TRANSNOTE).getValue());
+      writer.writeString(tu.getProperty(NoteAnnotation.TRANS_NOTE).getValue());
       writer.writeEndElementLineBreak(); // note
     }
 
     // CHANGES FOR MOJITO
-    XLIFFNoteAnnotation annotation = tu.getAnnotation(XLIFFNoteAnnotation.class);
+    NoteAnnotation annotation = tu.getAnnotation(NoteAnnotation.class);
 
     if (annotation != null) {
-      XLIFFNote note = annotation.getNote(0);
+      Note note = annotation.getNote(0);
       writer.writeStartElement("note");
       writer.writeString(note.getNoteText());
       writer.writeEndElementLineBreak();

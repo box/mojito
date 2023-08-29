@@ -19,7 +19,6 @@ public class Parameters extends net.sf.okapi.lib.verification.Parameters {
     setCheckXliffSchema(false);
     setCheckPatterns(false);
     setCheckWithLT(false);
-    setTranslateLTMsg(false);
     setLtBilingualMode(false);
     setDoubledWord(false);
     setCorruptedCharacters(false);

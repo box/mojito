@@ -19,8 +19,8 @@ import net.sf.okapi.common.Event;
 import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.IParameters;
 import net.sf.okapi.common.LocaleId;
-import net.sf.okapi.common.annotation.XLIFFNote;
-import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
+import net.sf.okapi.common.annotation.Note;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.filters.IFilter;
@@ -235,10 +235,10 @@ public class TranslationKitFilter implements IFilter {
     if (textUnitDTO.getComment() != null) {
       importExportTextUnitUtils.setNote(textUnit, textUnitDTO.getComment());
 
-      XLIFFNoteAnnotation xliffNoteAnnotation = new XLIFFNoteAnnotation();
-      XLIFFNote xliffNote = new XLIFFNote(textUnitDTO.getComment());
-      xliffNoteAnnotation.add(xliffNote);
-      textUnit.getSource().setAnnotation(xliffNoteAnnotation);
+      NoteAnnotation noteAnnotation = new NoteAnnotation();
+      Note xliffNote = new Note(textUnitDTO.getComment());
+      noteAnnotation.add(xliffNote);
+      textUnit.getSource().setAnnotation(noteAnnotation);
     }
 
     return textUnit;

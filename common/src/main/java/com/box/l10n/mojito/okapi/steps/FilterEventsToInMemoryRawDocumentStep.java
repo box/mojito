@@ -80,7 +80,7 @@ public class FilterEventsToInMemoryRawDocumentStep extends BasePipelineStep {
     switch (event.getEventType()) {
       case START_DOCUMENT:
         handleStartDocument(event);
-        return Event.NOOP_EVENT;
+        return Event.createNoopEvent();
 
       case END_DOCUMENT:
         return processEndDocument(event);
@@ -95,7 +95,7 @@ public class FilterEventsToInMemoryRawDocumentStep extends BasePipelineStep {
       case TEXT_UNIT:
         // handle all the events between START_DOCUMENT and END_DOCUMENT
         filterWriter.handleEvent(event);
-        return Event.NOOP_EVENT;
+        return Event.createNoopEvent();
     }
 
     // Else, just return the event

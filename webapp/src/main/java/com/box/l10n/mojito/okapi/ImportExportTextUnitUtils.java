@@ -3,8 +3,8 @@ package com.box.l10n.mojito.okapi;
 import com.box.l10n.mojito.json.ObjectMapper;
 import com.box.l10n.mojito.service.tm.ImportExportNote;
 import java.io.IOException;
-import net.sf.okapi.common.annotation.XLIFFNote;
-import net.sf.okapi.common.annotation.XLIFFNoteAnnotation;
+import net.sf.okapi.common.annotation.Note;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.TextUnit;
@@ -33,7 +33,7 @@ public class ImportExportTextUnitUtils {
   public void setNote(ITextUnit textUnit, String note) {
 
     if (textUnit != null) {
-      textUnit.setProperty(new Property(Property.NOTE, note));
+      textUnit.setProperty(new Property(NoteAnnotation.LOC_NOTE, note));
     }
   }
 
@@ -76,15 +76,15 @@ public class ImportExportTextUnitUtils {
 
     String importExportNoteStr = objectMapper.writeValueAsStringUnchecked(importExportNote);
 
-    XLIFFNoteAnnotation xliffNoteAnnotation = textUnit.getAnnotation(XLIFFNoteAnnotation.class);
+    NoteAnnotation noteAnnotation = textUnit.getAnnotation(NoteAnnotation.class);
 
-    if (xliffNoteAnnotation == null) {
-      xliffNoteAnnotation = new XLIFFNoteAnnotation();
-      textUnit.setAnnotation(xliffNoteAnnotation);
+    if (noteAnnotation == null) {
+      noteAnnotation = new NoteAnnotation();
+      textUnit.setAnnotation(noteAnnotation);
     } else {
       setNote(textUnit, importExportNoteStr);
     }
 
-    xliffNoteAnnotation.add(new XLIFFNote(importExportNoteStr));
+    noteAnnotation.add(new Note(importExportNoteStr));
   }
 }

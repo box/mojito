@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.okapi.filters;
 
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.filters.table.csv.CommaSeparatedValuesFilter;
@@ -45,7 +46,7 @@ public class CSVFilter extends CommaSeparatedValuesFilter {
   @Override
   protected boolean processTU(ITextUnit textUnit) {
 
-    Property note = textUnit.getProperty(Property.NOTE);
+    Property note = textUnit.getProperty(NoteAnnotation.LOC_NOTE);
     if (note != null) {
       String comments = note.toString();
       char quote = "\"".charAt(0);

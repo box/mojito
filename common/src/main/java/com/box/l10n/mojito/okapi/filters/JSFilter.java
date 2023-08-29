@@ -14,6 +14,7 @@ import net.sf.okapi.common.EventType;
 import net.sf.okapi.common.IParameters;
 import net.sf.okapi.common.MimeTypeMapper;
 import net.sf.okapi.common.Util;
+import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.encoder.EncoderManager;
 import net.sf.okapi.common.exceptions.OkapiIOException;
 import net.sf.okapi.common.exceptions.OkapiUnsupportedEncodingException;
@@ -268,7 +269,7 @@ public class JSFilter extends AbstractFilter {
           skel.append(data.toString());
           textUnit = processKeyValueLine();
           if (textUnit != null && comment != null) {
-            textUnit.setProperty(new Property(Property.NOTE, comment, true));
+            textUnit.setProperty(new Property(NoteAnnotation.LOC_NOTE, comment, true));
           }
           break;
         } else {

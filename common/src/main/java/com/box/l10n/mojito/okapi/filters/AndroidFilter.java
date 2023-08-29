@@ -10,7 +10,6 @@ import net.sf.okapi.common.IResource;
 import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.filters.FilterConfiguration;
 import net.sf.okapi.common.resource.ITextUnit;
-import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextUnit;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
@@ -198,7 +197,7 @@ public class AndroidFilter extends XMLFilter {
 
     String skeleton = textUnit.getSkeleton().toString();
 
-    if (textUnit.getProperty(Property.NOTE) == null) {
+    if (textUnitUtils.getNote(textUnit) == null) {
       String note = getNoteFromXMLCommentsInSkeleton(skeleton);
       if (note != null) {
         textUnitUtils.setNote(textUnit, note);

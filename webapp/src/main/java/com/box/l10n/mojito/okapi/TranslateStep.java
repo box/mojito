@@ -138,7 +138,7 @@ public class TranslateStep extends AbstractMd5ComputationStep {
         if (androidEvent == null) {
           switch (getRemoveUntranslatedStrategyFromAnnotation()) {
             case NOOP_EVENT:
-              event = Event.NOOP_EVENT;
+              event = Event.createNoopEvent();
               break;
             case PLACEHOLDER_AND_POST_PROCESSING:
               logger.debug("Set untranslated placeholder for text unit with name: {}", name);
