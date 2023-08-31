@@ -847,8 +847,6 @@ public class ImportLocalizedAssetCommandTest extends CLITestBase {
   @Test
   public void importCsvAdobeMagento() throws Exception {
 
-    System.setProperty("overrideExpectedTestFiles", "true");
-
     Repository repository = createTestRepoUsingRepoService();
 
     getL10nJCommander()
