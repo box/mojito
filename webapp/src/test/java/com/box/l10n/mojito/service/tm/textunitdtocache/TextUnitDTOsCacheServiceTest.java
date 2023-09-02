@@ -6,8 +6,14 @@ import static com.box.l10n.mojito.service.tm.search.StatusFilter.APPROVED_AND_NO
 import static com.box.l10n.mojito.service.tm.search.StatusFilter.FOR_TRANSLATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 import com.box.l10n.mojito.entity.TMTextUnit;
+import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.service.asset.AssetService;
 import com.box.l10n.mojito.service.assetExtraction.ServiceTestBase;
 import com.box.l10n.mojito.service.blobstorage.StructuredBlobStorage;
@@ -16,11 +22,15 @@ import com.box.l10n.mojito.service.tm.TMService;
 import com.box.l10n.mojito.service.tm.TMTestData;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantRepository;
 import com.box.l10n.mojito.service.tm.TMTextUnitCurrentVariantService;
+import com.box.l10n.mojito.service.tm.search.StatusFilter;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.test.TestIdWatcher;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -220,5 +230,33 @@ public class TextUnitDTOsCacheServiceTest extends ServiceTestBase {
         .extracting(
             TextUnitDTO::getTargetLocale, TextUnitDTO::isAssetDeleted, TextUnitDTO::getAssetId)
         .containsOnly(tuple("en", true, tmTestData.asset.getId()));
+  }
+
+  @Test
+  public void fetchFromDatabaseIfduplicatedMd5InCache() {
+    TextUnitDTOsCacheService textUnitDTOsCacheService = spy(new TextUnitDTOsCacheService());
+    textUnitDTOsCacheService.textUnitUtils = new TextUnitUtils();
+    TextUnitDTOsCacheBlobStorage textUnitDTOsCacheBlobStorageMock =
+        mock(TextUnitDTOsCacheBlobStorage.class);
+    textUnitDTOsCacheService.textUnitDTOsCacheBlobStorage = textUnitDTOsCacheBlobStorageMock;
+
+    when(textUnitDTOsCacheBlobStorageMock.getTextUnitDTOs(any(), any()))
+        .thenReturn(Optional.of(ImmutableList.of(new TextUnitDTO(), new TextUnitDTO())));
+
+    TextUnitDTO textUnitDTO1 = new TextUnitDTO();
+    textUnitDTO1.setName("name1");
+
+    TextUnitDTO textUnitDTO2 = new TextUnitDTO();
+    textUnitDTO2.setName("name2");
+
+    Mockito.doReturn(ImmutableList.of(textUnitDTO1, textUnitDTO2))
+        .when(textUnitDTOsCacheService)
+        .updateTextUnitDTOsWithDeltaFromDatabase(any(), any(), any(), anyBoolean());
+
+    final ImmutableMap<String, TextUnitDTO> byMd5 =
+        textUnitDTOsCacheService.getTextUnitDTOsForAssetAndLocaleByMD5(
+            1L, 1L, StatusFilter.ALL, false, UpdateType.NEVER);
+
+    assertThat(byMd5).containsValues(textUnitDTO1, textUnitDTO2);
   }
 }

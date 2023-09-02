@@ -67,10 +67,21 @@ public class TextUnitDTOsCacheService {
       StatusFilter statusFilter,
       boolean isRootLocale,
       UpdateType updateType) {
+
+    ImmutableMap<String, TextUnitDTO> filteredWithStatus;
     ImmutableList<TextUnitDTO> textUnitDTOsForAssetAndLocale =
         getTextUnitDTOsForAssetAndLocale(assetId, localeId, isRootLocale, updateType);
-    ImmutableMap<String, TextUnitDTO> filteredWithStatus =
-        filterWithStatusAndMap(statusFilter, textUnitDTOsForAssetAndLocale);
+    try {
+      filteredWithStatus = filterWithStatusAndMap(statusFilter, textUnitDTOsForAssetAndLocale);
+    } catch (IllegalArgumentException illegalArgumentException) {
+      logger.warn(
+          "Can't filterWithStatusAndMap, consider the cache corrupted and refetch text unit from the database");
+      final ImmutableList<TextUnitDTO> textUnitDTOS =
+          updateTextUnitDTOsWithDeltaFromDatabase(
+              ImmutableList.of(), assetId, localeId, isRootLocale);
+      filteredWithStatus = filterWithStatusAndMap(statusFilter, textUnitDTOS);
+    }
+
     return filteredWithStatus;
   }
 
