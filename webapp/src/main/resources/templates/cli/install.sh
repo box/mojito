@@ -35,6 +35,4 @@ chmod +x {{installDirectory}}/mojito
 export PATH={{installDirectory}}:${PATH}
 
 # Download/Upgrade the jar file if needed to match server version
-#
-# Upgrade disabled for now, server not deployed:
 mojito --check-server-version 2>/dev/null || curl -L -s -o {{installDirectory}}/mojito-cli.jar {{scheme}}://{{host}}:{{port}}/cli/mojito-cli.jar
