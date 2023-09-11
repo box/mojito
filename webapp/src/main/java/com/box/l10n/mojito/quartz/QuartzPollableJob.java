@@ -7,6 +7,11 @@ import com.box.l10n.mojito.service.pollableTask.PollableTaskBlobStorage;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskExceptionUtils;
 import com.box.l10n.mojito.service.pollableTask.PollableTaskService;
 import com.google.common.reflect.TypeToken;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.Timer.Sample;
+import java.util.concurrent.TimeUnit;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -33,6 +38,8 @@ public abstract class QuartzPollableJob<I, O> implements Job {
 
   @Autowired PollableTaskBlobStorage pollableTaskBlobStorage;
 
+  @Autowired MeterRegistry meterRegistry;
+
   @Autowired
   @Qualifier("fail_on_unknown_properties_false")
   ObjectMapper objectMapper;
@@ -43,10 +50,26 @@ public abstract class QuartzPollableJob<I, O> implements Job {
 
   @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
+
     Long pollableTaskId = context.getMergedJobDataMap().getLong(POLLABLE_TASK_ID);
     currentPollableTask = pollableTaskService.getPollableTask(pollableTaskId);
 
+    Tags metricTags =
+        Tags.of(
+            "currentPollableTaskName",
+            currentPollableTask.getName(),
+            "class",
+            getClass().getName());
+
+    meterRegistry
+        .timer("QuartzPollableJob.currentPollableTask.timeFromScheduledToExecution", metricTags)
+        .record(
+            System.currentTimeMillis() - currentPollableTask.getCreatedDate().getMillis(),
+            TimeUnit.MILLISECONDS);
+
     ExceptionHolder exceptionHolder = new ExceptionHolder(currentPollableTask);
+
+    Sample executeSample = Timer.start(meterRegistry);
 
     try {
       I callInput;
@@ -68,11 +91,24 @@ public abstract class QuartzPollableJob<I, O> implements Job {
       if (!typeTokenOutput.getRawType().equals(Void.class)) {
         pollableTaskBlobStorage.saveOutput(pollableTaskId, callOutput);
       }
+
+      metricTags = metricTags.and("success", "true");
     } catch (Throwable t) {
+      metricTags = metricTags.and("success", "false");
       pollableTaskExceptionUtils.processException(t, exceptionHolder);
     } finally {
       currentPollableTask =
           pollableTaskService.finishTask(currentPollableTask.getId(), null, exceptionHolder, null);
+
+      meterRegistry
+          .timer("QuartzPollableJob.currentPollableTask.timeFromScheduledToFinish", metricTags)
+          .record(
+              currentPollableTask.getFinishedDate().getMillis()
+                  - currentPollableTask.getCreatedDate().getMillis(),
+              TimeUnit.MILLISECONDS);
+
+      executeSample.stop(
+          meterRegistry.timer("QuartzPollableJob.timeFromExecutionToFinish", metricTags));
     }
   }
 
