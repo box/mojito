@@ -3,6 +3,7 @@ package com.box.l10n.mojito.service.pollableTask;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.PollableTask;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,8 @@ public class PollableTaskCleanupService {
   @Autowired PollableTaskRepository pollableTaskRepository;
 
   @Autowired PollableTaskService pollableTaskService;
+
+  @Autowired MeterRegistry meterRegistry;
 
   /**
    * Marks zombie tasks as finished with error. A zombie task can be defined as a task that did not
@@ -56,5 +59,7 @@ public class PollableTaskCleanupService {
         new PollableTaskTimeoutException("Zombie task detected: Maximum execution time exceeded."));
 
     pollableTaskService.finishTask(pollableTask.getId(), null, exceptionHolder, null);
+    meterRegistry.counter(
+        "PollableTaskCleanupService.markAsZombieTask", "name", pollableTask.getName());
   }
 }
