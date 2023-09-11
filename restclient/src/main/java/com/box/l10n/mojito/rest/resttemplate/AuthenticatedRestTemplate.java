@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -57,6 +56,8 @@ public class AuthenticatedRestTemplate {
   /** Used to intercept requests and inject CSRF token */
   @Autowired
   FormLoginAuthenticationCsrfTokenInterceptor formLoginAuthenticationCsrfTokenInterceptor;
+
+  @Autowired RestTemplateUtil restTemplateUtil;
 
   /** Initialize the internal restTemplate instance */
   @PostConstruct
@@ -150,25 +151,7 @@ public class AuthenticatedRestTemplate {
    */
   public String getURIForResource(String resourcePath) {
 
-    StringBuilder uri = new StringBuilder();
-
-    if (resourcePath.startsWith(resttemplateConfig.getScheme())) {
-      uri.append(resourcePath);
-    } else {
-      uri.append(resttemplateConfig.getScheme()).append("://").append(resttemplateConfig.getHost());
-
-      if (resttemplateConfig.getPort() != 80) {
-        uri.append(":").append(resttemplateConfig.getPort());
-      }
-
-      if (!Strings.isNullOrEmpty(resttemplateConfig.getContextPath())) {
-        uri.append(resttemplateConfig.getContextPath());
-      }
-
-      uri.append("/").append(resourcePath);
-    }
-
-    return uri.toString();
+    return restTemplateUtil.getURIForResource(resourcePath);
   }
 
   /**

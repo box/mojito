@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * An interceptor that will check to see if there's a valid request csrf.
@@ -46,10 +47,9 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
   @Autowired FormLoginConfig formLoginConfig;
 
-  /** The {@link AuthenticatedRestTemplate} to which this interceptor is being used. */
-  @Autowired AuthenticatedRestTemplate authRestTemplate;
-
   @Autowired ResttemplateConfig resttemplateConfig;
+
+  @Autowired RestTemplateUtil restTemplateUtil;
 
   /**
    * This is used for the authentication flow to keep things separate from the restTemplate that
@@ -74,6 +74,9 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
   @Autowired CredentialProvider credentialProvider;
 
+  /** Will delegate calls to the {@link RestTemplate} instance that was configured */
+  @Autowired CookieStoreRestTemplate restTemplate;
+
   /** Init */
   @PostConstruct
   protected void init() {
@@ -82,11 +85,11 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
     cookieStore = restTemplateForAuthenticationFlow.getCookieStore();
 
     logger.debug(
-        "Inject cookie store used in the rest template for authentication flow into the authRestTemplate so that they will match");
-    authRestTemplate.restTemplate.setCookieStoreAndUpdateRequestFactory(cookieStore);
+        "Inject cookie store used in the rest template for authentication flow into the restTemplate so that they will match");
+    restTemplate.setCookieStoreAndUpdateRequestFactory(cookieStore);
 
     List<ClientHttpRequestInterceptor> interceptors =
-        Collections.<ClientHttpRequestInterceptor>singletonList(
+        Collections.singletonList(
             new ClientHttpRequestInterceptor() {
               @Override
               public ClientHttpResponse intercept(
@@ -260,7 +263,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
         "Start by loading up the login form to get a valid unauthenticated session and CSRF token");
     ResponseEntity<String> loginResponseEntity =
         restTemplateForAuthenticationFlow.getForEntity(
-            authRestTemplate.getURIForResource(formLoginConfig.getLoginFormPath()), String.class);
+            restTemplateUtil.getURIForResource(formLoginConfig.getLoginFormPath()), String.class);
 
     latestCsrfToken = getCsrfTokenFromLoginHtml(loginResponseEntity.getBody());
     latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
@@ -277,7 +280,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
         credentialProvider.getPassword());
     ResponseEntity<String> postLoginResponseEntity =
         restTemplateForAuthenticationFlow.postForEntity(
-            authRestTemplate.getURIForResource(formLoginConfig.getLoginFormPath()),
+            restTemplateUtil.getURIForResource(formLoginConfig.getLoginFormPath()),
             loginPostParams,
             String.class);
 
@@ -293,7 +296,7 @@ public class FormLoginAuthenticationCsrfTokenInterceptor implements ClientHttpRe
 
       latestCsrfToken =
           getCsrfTokenFromEndpoint(
-              authRestTemplate.getURIForResource(formLoginConfig.getCsrfTokenPath()));
+              restTemplateUtil.getURIForResource(formLoginConfig.getCsrfTokenPath()));
       latestSessionIdForLatestCsrfToken = getAuthenticationSessionIdFromCookieStore();
 
       logger.debug(
