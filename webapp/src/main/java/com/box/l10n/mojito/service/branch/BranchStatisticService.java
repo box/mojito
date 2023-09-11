@@ -30,6 +30,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +80,8 @@ public class BranchStatisticService {
   @Autowired TextUnitDTOsCacheService textUnitDTOsCacheService;
 
   @Autowired EntityManager entityManager;
+
+  @Autowired MeterRegistry meterRegistry;
 
   @Value("${l10n.branchStatistic.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
@@ -444,21 +448,63 @@ public class BranchStatisticService {
    */
   public List<TextUnitDTO> getTextUnitDTOsForBranch(Branch branch) {
     logger.debug("Get text units for branch: {} ({})", branch.getId(), branch.getName());
-    List<Long> branchTmTextUnitIds = assetTextUnitToTMTextUnitRepository.findByBranch(branch);
+
+    List<Long> branchTmTextUnitIds = getBranchTextUnitIds(branch);
+
+    if (branchTmTextUnitIds.size() > 100) {
+      logger.info(
+          "getTextUnitDTOsForBranch() will pass {} tm text unit ids to the text unit searcher, repositoryId: {}, branch: {} ({})",
+          branchTmTextUnitIds.size(),
+          branch.getRepository().getId(),
+          branch.getId(),
+          branch.getName());
+    }
 
     List<TextUnitDTO> textUnitDTOS;
 
     if (branchTmTextUnitIds.isEmpty()) {
       textUnitDTOS = Collections.emptyList();
     } else {
-      TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
-      textUnitSearcherParameters.setRepositoryIds(branch.getRepository().getId());
-      textUnitSearcherParameters.setTmTextUnitIds(branchTmTextUnitIds);
-      textUnitSearcherParameters.setForRootLocale(true);
-
-      textUnitDTOS = textUnitSearcher.search(textUnitSearcherParameters);
+      textUnitDTOS = getTextUnitDTOSForTmTextUnitIds(branch, branchTmTextUnitIds);
     }
 
     return textUnitDTOS;
+  }
+
+  private List<TextUnitDTO> getTextUnitDTOSForTmTextUnitIds(
+      Branch branch, List<Long> tmTextUnitIds) {
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(branch.getRepository().getId());
+    textUnitSearcherParameters.setTmTextUnitIds(tmTextUnitIds);
+    textUnitSearcherParameters.setForRootLocale(true);
+
+    return meterRegistry
+        .timer(
+            "BranchStatisticService.getTextUnitDTOSForTmTextUnitIds",
+            Tags.of(
+                "repositoryId",
+                Objects.toString(branch.getRepository().getId()),
+                "branchId",
+                Objects.toString(branch.getId())))
+        .record(
+            () -> {
+              return textUnitSearcher.search(textUnitSearcherParameters);
+            });
+  }
+
+  private List<Long> getBranchTextUnitIds(Branch branch) {
+    return meterRegistry
+        .timer(
+            "BranchStatisticService.getBranchTextUnitIds",
+            Tags.of(
+                "repositoryId",
+                Objects.toString(branch.getRepository().getId()),
+                "branchId",
+                Objects.toString(branch.getId())))
+        .record(
+            () -> {
+              return assetTextUnitToTMTextUnitRepository.findByBranch(branch);
+            });
   }
 }
