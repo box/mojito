@@ -56,6 +56,7 @@ public class AndroidStringDocumentWriter {
     transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     transformer.setOutputProperty(OutputKeys.METHOD, "xml");
     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "0");
     transformer.transform(domSource, new StreamResult(writer));
 
     return writer;

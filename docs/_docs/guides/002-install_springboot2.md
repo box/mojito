@@ -9,13 +9,13 @@ permalink: /docs/guides/install-springboot2/
 
 No binaries are available for the `Spring Boot 2` at the moment. It should be built from the `master` branch.
 
-Assuming `Java 8` is installed, `./mvnw install -DskipTests` should be enough to build the `jar` files.
+Assuming `Java 11` is installed, `./mvnw install -DskipTests` should be enough to build the `jar` files.
 
 For detail instructions on development environement setup, [see here]({{ site.url }}/docs/guides/open-source-contributors/). 
 
 ### Using Executable Jars
 
-`Java 1.8` is required.
+`Java 11` is required.
 
 Run the Webapp with:
 
