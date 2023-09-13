@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.tm.importer;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static com.box.l10n.mojito.utils.Predicates.logIfFalse;
 
 import com.box.l10n.mojito.entity.Asset;
@@ -51,6 +52,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +89,9 @@ public class TextUnitBatchImporterService {
 
   @Autowired MeterRegistry meterRegistry;
 
+  @Value("${l10n.textUnitBatchImporterService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
+
   /**
    * Imports a batch of text units.
    *
@@ -116,7 +121,8 @@ public class TextUnitBatchImporterService {
     importTextUnitJobInput.setIntegrityCheckKeepStatusIfFailedAndSameTarget(
         integrityCheckKeepStatusIfFailedAndSameTarget);
 
-    return quartzPollableTaskScheduler.scheduleJob(ImportTextUnitJob.class, importTextUnitJobInput);
+    return quartzPollableTaskScheduler.scheduleJob(
+        ImportTextUnitJob.class, importTextUnitJobInput, schedulerName);
   }
 
   public PollableFuture<Void> importTextUnits(

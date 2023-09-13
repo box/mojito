@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -34,6 +35,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /** @author jeanaurambault */
@@ -70,6 +72,9 @@ public class ThirdPartyService {
 
   @Autowired ThirdPartyTMS thirdPartyTMS;
 
+  @Value("${l10n.thirdPartyService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
+
   public void removeImage(String projectId, String imageId) {
     logger.debug(
         "remove image (screenshot) from Smartling, project id: {}, imageId: {}",
@@ -95,7 +100,10 @@ public class ThirdPartyService {
     thirdPartySyncJobInput.setOptions(thirdPartySync.getOptions());
 
     return quartzPollableTaskScheduler.scheduleJobWithCustomTimeout(
-        ThirdPartySyncJob.class, thirdPartySyncJobInput, thirdPartySync.getTimeout());
+        ThirdPartySyncJob.class,
+        thirdPartySyncJobInput,
+        schedulerName,
+        thirdPartySync.getTimeout());
   }
 
   void syncMojitoWithThirdPartyTMS(

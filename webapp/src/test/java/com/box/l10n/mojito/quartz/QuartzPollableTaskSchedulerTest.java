@@ -1,5 +1,6 @@
 package com.box.l10n.mojito.quartz;
 
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -20,12 +21,14 @@ public class QuartzPollableTaskSchedulerTest extends ServiceTestBase {
   @Test
   public void test() throws ExecutionException, InterruptedException {
     PollableFuture<AQuartzPollableJobOutput> pollableFuture =
-        quartzPollableTaskScheduler.scheduleJob(AQuartzPollableJob.class, 10L);
+        quartzPollableTaskScheduler.scheduleJob(
+            AQuartzPollableJob.class, 10L, DEFAULT_SCHEDULER_NAME);
     AQuartzPollableJobOutput s = pollableFuture.get();
     assertEquals("output: 10", s.getOutput());
 
     PollableFuture<AQuartzPollableJobOutput> stringPollableFuture2 =
-        quartzPollableTaskScheduler.scheduleJob(AQuartzPollableJob.class, 10L);
+        quartzPollableTaskScheduler.scheduleJob(
+            AQuartzPollableJob.class, 10L, DEFAULT_SCHEDULER_NAME);
     AQuartzPollableJobOutput s2 = stringPollableFuture2.get();
     assertEquals("output: 10", s2.getOutput());
   }
@@ -33,7 +36,8 @@ public class QuartzPollableTaskSchedulerTest extends ServiceTestBase {
   @Test
   public void testVoid() throws ExecutionException, InterruptedException {
     PollableFuture<Void> pollableFuture =
-        quartzPollableTaskScheduler.scheduleJob(VoidQuartzPollableJob.class, 10L);
+        quartzPollableTaskScheduler.scheduleJob(
+            VoidQuartzPollableJob.class, 10L, DEFAULT_SCHEDULER_NAME);
     Void aVoid = pollableFuture.get();
     assertEquals(null, aVoid);
     try {

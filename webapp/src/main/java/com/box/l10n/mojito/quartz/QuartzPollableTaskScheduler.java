@@ -38,14 +38,17 @@ public class QuartzPollableTaskScheduler {
   @Autowired ObjectMapper objectMapper;
 
   public <I, O> PollableFuture<O> scheduleJob(
-      Class<? extends QuartzPollableJob<I, O>> clazz, I input) {
+      Class<? extends QuartzPollableJob<I, O>> clazz, I input, String schedulerName) {
     QuartzJobInfo<I, O> quartzJobInfo =
         QuartzJobInfo.newBuilder(clazz).withInput(input).withMessage(clazz.getSimpleName()).build();
     return scheduleJob(quartzJobInfo);
   }
 
   public <I, O> PollableFuture<O> scheduleJobWithCustomTimeout(
-      Class<? extends QuartzPollableJob<I, O>> clazz, I input, long timeoutInSeconds) {
+      Class<? extends QuartzPollableJob<I, O>> clazz,
+      I input,
+      String schedulerName,
+      long timeoutInSeconds) {
     QuartzJobInfo<I, O> quartzJobInfo =
         QuartzJobInfo.newBuilder(clazz)
             .withInput(input)

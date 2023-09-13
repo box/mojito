@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.asset;
 
 import static com.box.l10n.mojito.entity.TMTextUnitVariant.Status.APPROVED;
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import com.box.l10n.mojito.entity.Asset;
@@ -52,6 +53,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,6 +103,9 @@ public class VirtualAssetService {
   @Autowired EntityManager em;
 
   @Autowired PluralFormService pluralFormService;
+
+  @Value("${l10n.virtualAssetService.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
+  String schedulerName;
 
   @Transactional
   public VirtualAsset createOrUpdateVirtualAsset(VirtualAsset virtualAsset)
@@ -308,7 +313,7 @@ public class VirtualAssetService {
     importVirtualAssetJobInput.setVirtualAssetTextUnits(virtualAssetTextUnits);
     importVirtualAssetJobInput.setReplace(b);
     return quartzPollableTaskScheduler.scheduleJob(
-        VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput);
+        VirtualTextUnitBatchUpdateJob.class, importVirtualAssetJobInput, schedulerName);
   }
 
   public PollableFuture<Void> importLocalizedTextUnits(
