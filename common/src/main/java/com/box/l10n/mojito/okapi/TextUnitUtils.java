@@ -5,7 +5,9 @@ import net.sf.okapi.common.annotation.NoteAnnotation;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.TextContainer;
+import net.sf.okapi.common.resource.TextFragment;
 import net.sf.okapi.common.resource.TextUnit;
+import net.sf.okapi.lib.translation.QueryUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,5 +88,40 @@ public class TextUnitUtils {
    */
   public String computeTextUnitMD5(String name, String content, String comment) {
     return DigestUtils.md5Hex(name + content + comment);
+  }
+
+  /**
+   * Gets the source as a string with HTML coded placeholders.
+   *
+   * <p>Segmentation is not supported, read only the first content
+   *
+   * @param textUnit
+   * @return
+   */
+  public String getSourceAsCodedHtml(ITextUnit textUnit) {
+    assert textUnit.getSource().getSegments().count() <= 1;
+    QueryUtil queryUtil = new QueryUtil();
+    return queryUtil.toCodedHTML(textUnit.getSource().getFirstContent());
+  }
+
+  /**
+   * Re-create a text fragment with proper codes from a translation that contains HTML placeholders
+   * and the text unit from which it reads the original source and codes.
+   *
+   * <p>Segmentation is not supported, read only the first content
+   *
+   * @param textUnit text unit from which it reads the original source and codes
+   * @param translation the translation with HTML coded placeholders
+   * @return a text fragment for the translation with source codes applied.
+   */
+  public TextFragment fromCodedHTML(ITextUnit textUnit, String translation) {
+    assert textUnit.getSource().getSegments().count() <= 1;
+    QueryUtil queryUtil = new QueryUtil();
+    TextFragment tf =
+        new TextFragment(
+            queryUtil.fromCodedHTML(translation, textUnit.getSource().getFirstContent(), true),
+            textUnit.getSource().getFirstContent().getClonedCodes());
+
+    return tf;
   }
 }
