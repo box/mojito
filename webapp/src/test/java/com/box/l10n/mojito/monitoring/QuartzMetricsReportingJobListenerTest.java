@@ -51,16 +51,30 @@ public class QuartzMetricsReportingJobListenerTest {
 
     await().until(() -> scheduler.isStarted());
 
-    RequiredSearch timerSearch =
+    RequiredSearch timerSearchExecution =
         meterRegistry
             .get("quartz.jobs.execution")
             .tag("jobClass", "TestJob")
-            .tag("jobGroup", "DEFAULT");
+            .tag("jobGroup", "DEFAULT")
+            .tag("schedulerName", "DefaultQuartzScheduler");
 
-    await().untilAsserted(() -> assertThat(timerSearch.timers()).isNotEmpty());
+    RequiredSearch timerSearchWaiting =
+        meterRegistry
+            .get("quartz.jobs.waiting")
+            .tag("jobClass", "TestJob")
+            .tag("jobGroup", "DEFAULT")
+            .tag("schedulerName", "DefaultQuartzScheduler");
 
-    assertThat(timerSearch.timer().takeSnapshot().count()).isGreaterThanOrEqualTo(5);
-    assertThat(timerSearch.timer().takeSnapshot().mean()).isGreaterThanOrEqualTo(JOB_SLEEP_TIME);
+    await().untilAsserted(() -> assertThat(timerSearchExecution.timers()).isNotEmpty());
+
+    assertThat(timerSearchExecution.timer().takeSnapshot().count()).isGreaterThanOrEqualTo(5);
+    assertThat(timerSearchExecution.timer().takeSnapshot().mean())
+        .isGreaterThanOrEqualTo(JOB_SLEEP_TIME);
+
+    await().untilAsserted(() -> assertThat(timerSearchWaiting.timers()).isNotEmpty());
+
+    assertThat(timerSearchWaiting.timer().takeSnapshot().count()).isGreaterThanOrEqualTo(5);
+    assertThat(timerSearchWaiting.timer().takeSnapshot().mean()).isGreaterThan(0);
   }
 
   public static class TestJob implements Job {
