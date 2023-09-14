@@ -40,7 +40,11 @@ public class QuartzPollableTaskScheduler {
   public <I, O> PollableFuture<O> scheduleJob(
       Class<? extends QuartzPollableJob<I, O>> clazz, I input, String schedulerName) {
     QuartzJobInfo<I, O> quartzJobInfo =
-        QuartzJobInfo.newBuilder(clazz).withInput(input).withMessage(clazz.getSimpleName()).build();
+        QuartzJobInfo.newBuilder(clazz)
+            .withInput(input)
+            .withMessage(clazz.getSimpleName())
+            .withScheduler(schedulerName)
+            .build();
     return scheduleJob(quartzJobInfo);
   }
 
@@ -53,6 +57,7 @@ public class QuartzPollableTaskScheduler {
         QuartzJobInfo.newBuilder(clazz)
             .withInput(input)
             .withTimeout(timeoutInSeconds)
+            .withScheduler(schedulerName)
             .withMessage(clazz.getSimpleName())
             .build();
 
