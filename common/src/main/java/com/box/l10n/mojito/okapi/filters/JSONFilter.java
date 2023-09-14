@@ -99,12 +99,21 @@ public class JSONFilter extends net.sf.okapi.filters.json.JSONFilter {
       filterOptions.getBoolean("useFullKeyPath", b -> parameters.setUseFullKeyPath(b));
       filterOptions.getBoolean("extractAllPairs", b -> parameters.setExtractAllPairs(b));
       filterOptions.getString("exceptions", s -> parameters.setExceptions(s));
+      filterOptions.getString("codeFinderData", s -> parameters.setCodeFinderData(s));
 
       // mojito options
       filterOptions.getString("noteKeyPattern", s -> noteKeyPattern = Pattern.compile(s));
       filterOptions.getString("usagesKeyPattern", s -> usagesKeyPattern = Pattern.compile(s));
       filterOptions.getBoolean("noteKeepOrReplace", b -> noteKeepOrReplace = b);
       filterOptions.getBoolean("usagesKeepOrReplace", b -> usagesKeepOrReplace = b);
+      filterOptions.getBoolean(
+          "convertToHtmlCodes",
+          b -> {
+            if (b) {
+              input.setAnnotation(new ConvertToHtmlCodesAnnotation());
+              parameters.setUseCodeFinder(true);
+            }
+          });
     }
   }
 

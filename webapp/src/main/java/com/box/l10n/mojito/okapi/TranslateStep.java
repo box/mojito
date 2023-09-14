@@ -19,6 +19,7 @@ import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextContainer;
+import net.sf.okapi.common.resource.TextFragment;
 import net.sf.okapi.common.skeleton.GenericSkeleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -150,9 +151,32 @@ public class TranslateStep extends AbstractMd5ComputationStep {
           }
         }
       } else {
-        logger.debug(
-            "Set translation for text unit with name: {}, translation: {}", name, translation);
-        textUnit.setTarget(targetLocale, new TextContainer(translation));
+
+        if (!shouldConvertToHtmlCodes) {
+          // This is Mojito's original behavior, just write a raw string as target
+          //
+          // Nested document part are not properly handled as the placeholder is written in raw
+          // string format (eg. [#$dp1]).
+          logger.debug(
+              "Set translation for text unit with name: {}, translation: {}", name, translation);
+          textUnit.setTarget(targetLocale, new TextContainer(translation));
+        } else {
+          // Newest behavior: the codes are transformed into HTML markup and are passed to
+          // downstream
+          // systems.
+          //
+          // Nested document parts can be process properly restored as long as markup is decoded and
+          // text fragments recreated with the code information.
+          //
+          // This is only applied to new filter for now (e.g. HTML), since it would break backward
+          // compatibility if applied to existing filters
+          TextFragment tf = textUnitUtils.fromCodedHTML(textUnit, translation);
+          textUnit.setTarget(targetLocale, new TextContainer(tf));
+          logger.debug(
+              "Set translation for text unit with name: {}, translation from fragment: {}",
+              name,
+              tf.toText());
+        }
       }
     }
 

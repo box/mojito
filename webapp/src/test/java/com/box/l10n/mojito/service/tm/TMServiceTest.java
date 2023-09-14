@@ -3841,6 +3841,74 @@ public class TMServiceTest extends ServiceTestBase {
   }
 
   @Test
+  public void testLocalizeJsonHTMLCode() throws Exception {
+    Repository repo = repositoryService.createRepository(testIdWatcher.getEntityName("repository"));
+    RepositoryLocale repoLocale = repositoryService.addRepositoryLocale(repo, "en-GB");
+
+    List<String> jsonFilterOptions =
+        Arrays.asList(
+            "convertToHtmlCodes=true",
+            "codeFinderData=#v1\n"
+                + "count.i=3\n"
+                + "rule0=%(([-0+#]?)[-0+#]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn]\n"
+                + "rule1=(\\\\r\\\\n)|\\\\a|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v\n"
+                + "rule2=\\{\\d.*?\\}\n"
+                + "sample=%s, %d, {1}, \\n, \\r, \\t, etc.\n"
+                + "useAllRulesWhenTesting.b=false");
+
+    String assetContent = "{\"hello\" : \"Hello %s!\" }\n";
+
+    String expectedContent = assetContent;
+    asset = assetService.createAssetWithContent(repo.getId(), "strings.json", assetContent);
+    asset = assetRepository.findById(asset.getId()).orElse(null);
+    assetId = asset.getId();
+    tmId = repo.getTm().getId();
+
+    PollableFuture<Asset> assetResult =
+        assetService.addOrUpdateAssetAndProcessIfNeeded(
+            repo.getId(),
+            asset.getPath(),
+            assetContent,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            jsonFilterOptions);
+    try {
+      pollableTaskService.waitForPollableTask(assetResult.getPollableTask().getId());
+    } catch (PollableTaskException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    assetResult.get();
+
+    TextUnitSearcherParameters textUnitSearcherParameters = new TextUnitSearcherParameters();
+    textUnitSearcherParameters.setRepositoryIds(repo.getId());
+    textUnitSearcherParameters.setStatusFilter(StatusFilter.FOR_TRANSLATION);
+    List<TextUnitDTO> textUnitDTOs = textUnitSearcher.search(textUnitSearcherParameters);
+    assertEquals(1, textUnitDTOs.size());
+    assertEquals("Hello <br id='p1'/>!", textUnitDTOs.get(0).getSource());
+    for (TextUnitDTO textUnitDTO : textUnitDTOs) {
+      logger.info("name=[{}], source=[{}]", textUnitDTO.getName(), textUnitDTO.getSource());
+    }
+
+    String localizedAsset =
+        tmService.generateLocalized(
+            asset,
+            assetContent,
+            repoLocale,
+            "en-GB",
+            null,
+            jsonFilterOptions,
+            Status.ALL,
+            InheritanceMode.USE_PARENT,
+            null);
+    logger.debug("localized=\n{}", localizedAsset);
+    assertEquals(expectedContent, localizedAsset);
+  }
+
+  @Test
   public void testImportLocalizedAssetApproved()
       throws RepositoryNameAlreadyUsedException, ExecutionException, InterruptedException,
           AssetUpdateException, AssetUpdateException {

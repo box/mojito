@@ -1,10 +1,14 @@
 package com.box.l10n.mojito.okapi.steps;
 
 import com.box.l10n.mojito.okapi.TextUnitUtils;
+import com.box.l10n.mojito.okapi.filters.ConvertToHtmlCodesAnnotation;
 import com.google.common.base.Strings;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
+import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
+import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
+import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +32,7 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
    */
   private static final String COMMENT_TO_IGNORE = "No comment provided by engineer";
 
-  @Autowired TextUnitUtils textUnitUtils;
+  @Autowired protected TextUnitUtils textUnitUtils;
 
   protected String name;
   protected String source;
@@ -36,13 +40,50 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
   protected String md5;
   protected ITextUnit textUnit;
 
+  protected boolean shouldConvertToHtmlCodes = false;
+  protected RawDocument rawDocument;
+
+  @StepParameterMapping(parameterType = StepParameterType.INPUT_RAWDOC)
+  public void setInput(RawDocument rawDocument) {
+    this.rawDocument = rawDocument;
+  }
+
+  @Override
+  protected Event handleStartDocument(Event event) {
+    shouldConvertToHtmlCodes =
+        rawDocument.getAnnotation(ConvertToHtmlCodesAnnotation.class) != null;
+
+    return super.handleStartDocument(event);
+  }
+
   @Override
   protected Event handleTextUnit(Event event) {
     textUnit = event.getTextUnit();
 
     if (textUnit.isTranslatable()) {
       name = Strings.isNullOrEmpty(textUnit.getName()) ? textUnit.getId() : textUnit.getName();
-      source = textUnitUtils.getSourceAsString(textUnit);
+
+      if (!shouldConvertToHtmlCodes) {
+        // This is Mojito's original behavior, just get a raw string a let other part of the system
+        // deal with codes.
+        //
+        // Nested document part are not properly handled as the placeholder is written in raw
+        // string format (eg. [#$dp1]).
+        //
+        // It won't be restored later on in the process
+        source = textUnitUtils.getSourceAsString(textUnit);
+      } else {
+        // Newest option: the codes are transformed into HTML markup and are passed to downstream
+        // systems.
+        //
+        // Nested document parts can be process properly restored as long as markup is decoded and
+        // text fragments recreated with the code information.
+        //
+        // This is only applied to new filter for now (e.g. HTML), since it would break backward
+        // compatibility if applied to existing filters
+        source = textUnitUtils.getSourceAsCodedHtml(textUnit);
+      }
+
       comments = textUnitUtils.getNote(textUnit);
       if (comments != null && comments.contains(COMMENT_TO_IGNORE)) {
         comments = null;
