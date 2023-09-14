@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:okp="okapi-framework:xliff-extensions" version="1.2">
+    <file original="" source-language="en" target-language="ja-JP" datatype="x-undefined">
+        <body>
+            <trans-unit id="" resname="c567033d6600a8627d595a45a8713ac9-d41d8cd98f00b204e9800998ecf8427e-1"
+                        datatype="php">
+                <source>100 character description:</source>
+                <target>100文字の説明:</target>
+            </trans-unit>
+            <trans-unit id="" resname="17ddc0b964b763e4bab07f917de55e13-c567033d6600a8627d595a45a8713ac9-1"
+                        datatype="x-javascript+php">
+                <source>15 min</source>
+                <target>15分</target>
+            </trans-unit>
+            <trans-unit id="" resname="e3b481d5297f475abc283227bedbd9b9-17ddc0b964b763e4bab07f917de55e13-1"
+                        datatype="x-javascript+php">
+                <source>1 day</source>
+                <target>1日</target>
+            </trans-unit>
+            <trans-unit id="" resname="72ab9d0304d3e84c6aa2dd15eda282f2-e3b481d5297f475abc283227bedbd9b9-1"
+                        datatype="x-javascript+php">
+                <source>1 hour</source>
+                <target>1時間</target>
+            </trans-unit>
+            <trans-unit id="" resname="1634e66b522edaa910370cc5581a47f1-72ab9d0304d3e84c6aa2dd15eda282f2-1"
+                        datatype="x-javascript+php">
+                <source>1 month</source>
+                <target>1か月</target>
+            </trans-unit>
+            <trans-unit id="" resname="8f1bdae06589d55b62184a76e0e70d0e-1634e66b522edaa910370cc5581a47f1-1"
+                        datatype="x-javascript+php">
+                <source>Alt image</source>
+                <target>Alt image JP</target>
+            </trans-unit>
+            <trans-unit id="" resname="88a3a4caac9d7f100871689d2c18212a-8f1bdae06589d55b62184a76e0e70d0e-1"
+                        datatype="x-javascript+php">
+                <source>Image in text &lt;br id='p1'/>.</source>
+                <target>Image in text JP &lt;br id='p1'/>.</target>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

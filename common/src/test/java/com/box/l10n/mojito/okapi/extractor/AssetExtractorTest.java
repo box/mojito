@@ -69,4 +69,93 @@ public class AssetExtractorTest {
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
         .containsExactly(tuple("hello", "Hello <br id='p1'/>!"));
   }
+
+  @Test
+  public void extractHtmlAlpha() throws UnsupportedAssetFilterTypeException {
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset(
+            "test.html",
+            "<!DOCTYPE html>\n"
+                + "<html>\n"
+                + "<head>\n"
+                + "    <title>My Title</title>\n"
+                + "    <meta name=\"description\" content=\"My description\"/>\n"
+                + "    <meta name=\"author\" content=\"My author\"/>\n"
+                + "    <meta name=\"keywords\" content=\"My keywords\"/>\n"
+                + "    <link rel=\"stylesheet\" href=\"./stylesheet.css\" type=\"text/css\"/>\n"
+                + "    <style>.body {\n"
+                + "        width: auto;\n"
+                + "    }</style>\n"
+                + "</head>\n"
+                + "<body>\n"
+                + "<p>thi is the first paragraph</p>\n"
+                + "<p>this is the second paragraph. With an <img src=\"someimage.jpg\"> inside text</p>\n"
+                + "<ul>\n"
+                + "    <li>item1</li>\n"
+                + "    <li>item2</li>\n"
+                + "</ul>\n"
+                + "</body>\n"
+                + "</html>",
+            FilterConfigIdOverride.HTML_ALPHA,
+            null,
+            null);
+
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(
+            tuple(
+                "5badc643b79fdda9775c45b46540afc0-d41d8cd98f00b204e9800998ecf8427e-1", "My Title"),
+            tuple(
+                "5c23e253f3b4fe9534c63e11d30dc63d-5badc643b79fdda9775c45b46540afc0-1",
+                "My description"),
+            tuple(
+                "16d3282564595ba5c7c6a10836184c53-5c23e253f3b4fe9534c63e11d30dc63d-1",
+                "My keywords"),
+            tuple(
+                "2d8882d892e7be7918918e95daf588eb-16d3282564595ba5c7c6a10836184c53-1",
+                "thi is the first paragraph"),
+            tuple(
+                "267d84d477728ad18c388c58b223957a-2d8882d892e7be7918918e95daf588eb-1",
+                "this is the second paragraph. With an <br id='p1'/> inside text"),
+            tuple("cabf67b0be34694cd96a9ec1c0ef766e-267d84d477728ad18c388c58b223957a-1", "item1"),
+            tuple("235bacd9fe81ea549903a51e673bdbb9-cabf67b0be34694cd96a9ec1c0ef766e-1", "item2"));
+  }
+
+  @Test
+  public void genIdForTest() throws UnsupportedAssetFilterTypeException {
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset(
+            "test.html",
+            "<html>\n"
+                + "  <p>100 character description:</p>\n"
+                + "  <ul>\n"
+                + "    <li>15 min</li>\n"
+                + "    <li>1 day</li>\n"
+                + "    <li>1 hour</li>\n"
+                + "    <li>1 month</li>\n"
+                + "  </ul>\n"
+                + "  <p>\n"
+                + "    Image in text <img src=\"image.jpg\" alt=\"Alt image\">.\n"
+                + "  </p>\n"
+                + "</html>",
+            FilterConfigIdOverride.HTML_ALPHA,
+            null,
+            null);
+
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(
+            tuple(
+                "c567033d6600a8627d595a45a8713ac9-d41d8cd98f00b204e9800998ecf8427e-1",
+                "100 character description:"),
+            tuple("17ddc0b964b763e4bab07f917de55e13-c567033d6600a8627d595a45a8713ac9-1", "15 min"),
+            tuple("e3b481d5297f475abc283227bedbd9b9-17ddc0b964b763e4bab07f917de55e13-1", "1 day"),
+            tuple("72ab9d0304d3e84c6aa2dd15eda282f2-e3b481d5297f475abc283227bedbd9b9-1", "1 hour"),
+            tuple("1634e66b522edaa910370cc5581a47f1-72ab9d0304d3e84c6aa2dd15eda282f2-1", "1 month"),
+            tuple(
+                "8f1bdae06589d55b62184a76e0e70d0e-1634e66b522edaa910370cc5581a47f1-1", "Alt image"),
+            tuple(
+                "88a3a4caac9d7f100871689d2c18212a-8f1bdae06589d55b62184a76e0e70d0e-1",
+                "Image in text <br id='p1'/>."));
+  }
 }

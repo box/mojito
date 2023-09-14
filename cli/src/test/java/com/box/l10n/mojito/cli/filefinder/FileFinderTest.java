@@ -153,6 +153,46 @@ public class FileFinderTest extends IOTestBase {
   }
 
   @Test
+  public void findHtmlAlpha() throws IOException, FileFinderException {
+    FileFinder fileFinder = initFileFinder(false, new HtmlAlphaFileType());
+
+    ArrayList<FileMatch> sources = fileFinder.getSources();
+    Collections.sort(sources);
+
+    ArrayList<FileMatch> targets = fileFinder.getTargets();
+    Collections.sort(targets);
+
+    Iterator<FileMatch> itSources = sources.iterator();
+
+    FileMatch next = itSources.next();
+    assertEquals(HtmlAlphaFileType.class, next.fileType.getClass());
+    assertEquals(
+        getInputResourcesTestDir("source").toString() + "/filefinder.html",
+        next.getPath().toString());
+    assertEquals("filefinder_fr-FR.html", next.getTargetPath("fr-FR"));
+
+    next = itSources.next();
+    assertEquals(
+        getInputResourcesTestDir("source").toString() + "/sub/filefinder2.html",
+        next.getPath().toString());
+    assertEquals("sub/filefinder2_fr-FR.html", next.getTargetPath("fr-FR"));
+
+    assertFalse(itSources.hasNext());
+
+    Iterator<FileMatch> itTargets = fileFinder.getTargets().iterator();
+    assertEquals(
+        getInputResourcesTestDir("target").toString() + "/filefinder_fr-FR.html",
+        itTargets.next().getPath().toString());
+    assertEquals(
+        getInputResourcesTestDir("target").toString() + "/filefinder_fr.html",
+        itTargets.next().getPath().toString());
+    assertEquals(
+        getInputResourcesTestDir("target").toString() + "/sub/filefinder2_fr.html",
+        itTargets.next().getPath().toString());
+    assertFalse(itTargets.hasNext());
+  }
+
+  @Test
   public void findXcodeXliff() throws IOException, FileFinderException {
     FileFinder fileFinder = initFileFinder(false, new XcodeXliffFileType());
 

@@ -26,7 +26,8 @@ public enum FileTypes {
   CHROME_EXT_JSON(ChromeExtensionJSONFileType.class),
   I18NEXT_PARSER_JSON(I18NextFileType.class),
   TS(TSFileType.class),
-  YAML(YamlFileType.class);
+  YAML(YamlFileType.class),
+  HTML_ALPHA(HtmlAlphaFileType.class);
 
   Class<? extends FileType> clazz;
 
