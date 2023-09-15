@@ -2,11 +2,13 @@ package com.box.l10n.mojito.okapi.steps;
 
 import com.box.l10n.mojito.okapi.TextUnitUtils;
 import com.box.l10n.mojito.okapi.filters.ConvertToHtmlCodesAnnotation;
+import com.box.l10n.mojito.okapi.filters.DocumentPartPropertyAnnotation;
 import com.google.common.base.Strings;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.pipeline.BasePipelineStep;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
+import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
 import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextUnit;
@@ -39,6 +41,15 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
   protected String comments;
   protected String md5;
   protected ITextUnit textUnit;
+
+  protected DocumentPart documentPart;
+  /**
+   * if not null, indicates a document part property that can be localized in child steps.
+   *
+   * <p>It is meant to be processed in {@link #handleDocumentPart(Event)}. The related {@link
+   * #documentPart} can be accessed directly in child steps.
+   */
+  protected DocumentPartPropertyAnnotation documentPartPropertyAnnotation;
 
   protected boolean shouldConvertToHtmlCodes = false;
   protected RawDocument rawDocument;
@@ -103,6 +114,32 @@ public abstract class AbstractMd5ComputationStep extends BasePipelineStep {
           md5);
     }
 
+    return event;
+  }
+
+  /**
+   * {@link DocumentPartPropertyAnnotation} is set on {@link DocumentPart}s that have a property to
+   * be localized. The annotation contains information that cannot be inferred directly from the
+   * DocumentPart, and that are instead provided by the {@link net.sf.okapi.common.filters.IFilter}
+   *
+   * <p>Similarly to text units, we compute: name, source, comment and md5 to be used by child
+   * steps.
+   *
+   * @param event event to handle.
+   * @return
+   */
+  @Override
+  protected Event handleDocumentPart(Event event) {
+    event = super.handleDocumentPart(event);
+    documentPart = event.getDocumentPart();
+    documentPartPropertyAnnotation =
+        documentPart.getAnnotation(DocumentPartPropertyAnnotation.class);
+    if (documentPartPropertyAnnotation != null) {
+      name = documentPartPropertyAnnotation.getName();
+      source = documentPartPropertyAnnotation.getSource();
+      comments = documentPartPropertyAnnotation.getComment();
+      md5 = textUnitUtils.computeTextUnitMD5(name, source, comments);
+    }
     return event;
   }
 }

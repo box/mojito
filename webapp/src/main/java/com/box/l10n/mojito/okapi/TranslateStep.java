@@ -17,6 +17,7 @@ import net.sf.okapi.common.LocaleId;
 import net.sf.okapi.common.pipeline.annotations.StepParameterMapping;
 import net.sf.okapi.common.pipeline.annotations.StepParameterType;
 import net.sf.okapi.common.resource.ITextUnit;
+import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.RawDocument;
 import net.sf.okapi.common.resource.TextContainer;
 import net.sf.okapi.common.resource.TextFragment;
@@ -180,6 +181,17 @@ public class TranslateStep extends AbstractMd5ComputationStep {
       }
     }
 
+    return event;
+  }
+
+  @Override
+  protected Event handleDocumentPart(Event event) {
+    event = super.handleDocumentPart(event);
+    if (documentPartPropertyAnnotation != null) {
+      String translation = translatorWithInheritance.getTranslation(source, md5);
+      documentPart.setSourceProperty(
+          new Property(documentPartPropertyAnnotation.getPropertyKey(), translation));
+    }
     return event;
   }
 

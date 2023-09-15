@@ -24,6 +24,8 @@ class AssetExtractionStep extends AbstractMd5ComputationStep {
   List<AssetExtractorTextUnit> assetExtractorTextUnits;
 
   public AssetExtractionStep(List<String> md5sToSkip) {
+    assert md5sToSkip == null
+        || md5sToSkip.isEmpty(); // TODO(jean) this looks like it is not used anymore
     this.md5sToSkip = MoreObjects.firstNonNull(md5sToSkip, Collections.emptyList());
     assetExtractorTextUnits = new ArrayList<>();
   }
@@ -78,6 +80,22 @@ class AssetExtractionStep extends AbstractMd5ComputationStep {
     }
 
     return eventToReturn;
+  }
+
+  @Override
+  protected Event handleDocumentPart(Event event) {
+    event = super.handleDocumentPart(event);
+
+    if (documentPartPropertyAnnotation != null && !assetTextUnitMD5s.contains(md5)) {
+      assetTextUnitMD5s.add(md5);
+      AssetExtractorTextUnit assetExtractorTextUnit = new AssetExtractorTextUnit();
+      assetExtractorTextUnit.setName(name);
+      assetExtractorTextUnit.setSource(source);
+      assetExtractorTextUnit.setComments(comments);
+      assetExtractorTextUnits.add(assetExtractorTextUnit);
+    }
+
+    return event;
   }
 
   Set<String> getUsages() {

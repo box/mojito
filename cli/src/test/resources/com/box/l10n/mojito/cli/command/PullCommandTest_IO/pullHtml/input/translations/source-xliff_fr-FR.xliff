@@ -32,10 +32,16 @@
                 <source>Alt image</source>
                 <target>Alt image FR</target>
             </trans-unit>
-            <trans-unit id="" resname="88a3a4caac9d7f100871689d2c18212a-8f1bdae06589d55b62184a76e0e70d0e-1"
+            <trans-unit id="" resname="88a3a4caac9d7f100871689d2c18212a-0d5b1c4c7f720f698946c7f6ab08f687-1"
                         datatype="x-javascript+php">
                 <source>Image in text &lt;br id='p1'/>.</source>
                 <target>Image dans le text &lt;br id='p1'/>.</target>
+            </trans-unit>
+            <trans-unit id="" resname="0d5b1c4c7f720f698946c7f6ab08f687-8f1bdae06589d55b62184a76e0e70d0e-1"
+                        datatype="x-javascript+php">
+                <source>image.jpg</source>
+                <target>fr/image.jpg</target>
+                <note>Do not translate: extracted image URL, adapt if needed</note>
             </trans-unit>
         </body>
     </file>

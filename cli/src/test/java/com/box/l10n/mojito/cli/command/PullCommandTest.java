@@ -967,7 +967,9 @@ public class PullCommandTest extends CLITestBase {
             "-s",
             getInputResourcesTestDir("source").getAbsolutePath(),
             "-ft",
-            "HTML_ALPHA");
+            "HTML_ALPHA",
+            "-fo",
+            "processImageUrls=true");
 
     Asset asset = assetClient.getAssetByPathAndRepositoryId("demo.html", repository.getId());
     importTranslations(asset.getId(), "source-xliff_", "fr-FR");
@@ -985,7 +987,9 @@ public class PullCommandTest extends CLITestBase {
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
             "-ft",
-            "HTML_ALPHA");
+            "HTML_ALPHA",
+            "-fo",
+            "processImageUrls=true");
 
     getL10nJCommander()
         .run(
@@ -999,7 +1003,9 @@ public class PullCommandTest extends CLITestBase {
             "-lm",
             "fr:fr-FR,fr-CA:fr-CA,ja:ja-JP",
             "-ft",
-            "HTML_ALPHA");
+            "HTML_ALPHA",
+            "-fo",
+            "processImageUrls=true");
 
     checkExpectedGeneratedResources();
   }

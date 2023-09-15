@@ -1,7 +1,6 @@
 package com.box.l10n.mojito.okapi.extractor;
 
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.*;
 
 import com.box.l10n.mojito.okapi.FilterConfigIdOverride;
 import com.box.l10n.mojito.okapi.TextUnitUtils;
@@ -139,7 +138,7 @@ public class AssetExtractorTest {
                 + "  </p>\n"
                 + "</html>",
             FilterConfigIdOverride.HTML_ALPHA,
-            null,
+            Arrays.asList("processImageUrls=true"),
             null);
 
     Assertions.assertThat(assetExtractorTextUnitsForAsset)
@@ -155,7 +154,59 @@ public class AssetExtractorTest {
             tuple(
                 "8f1bdae06589d55b62184a76e0e70d0e-1634e66b522edaa910370cc5581a47f1-1", "Alt image"),
             tuple(
-                "88a3a4caac9d7f100871689d2c18212a-8f1bdae06589d55b62184a76e0e70d0e-1",
+                "0d5b1c4c7f720f698946c7f6ab08f687-8f1bdae06589d55b62184a76e0e70d0e-1", "image.jpg"),
+            tuple(
+                "88a3a4caac9d7f100871689d2c18212a-0d5b1c4c7f720f698946c7f6ab08f687-1",
+                "Image in text <br id='p1'/>."));
+  }
+
+  @Test
+  public void documentPartExtraction() throws UnsupportedAssetFilterTypeException {
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset(
+            "test.html",
+            "<html>\n"
+                + "  <p>\n"
+                + "    Image in text <img src=\"image.jpg\" alt=\"Alt image\">.\n"
+                + "  </p>\n"
+                + "</html>",
+            FilterConfigIdOverride.HTML_ALPHA,
+            Arrays.asList("processImageUrls=true"),
+            null);
+
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(
+            tuple(
+                "8f1bdae06589d55b62184a76e0e70d0e-d41d8cd98f00b204e9800998ecf8427e-1", "Alt image"),
+            tuple(
+                "0d5b1c4c7f720f698946c7f6ab08f687-8f1bdae06589d55b62184a76e0e70d0e-1", "image.jpg"),
+            tuple(
+                "34a6a48789dd1ff7dff813a8fb627b91-0d5b1c4c7f720f698946c7f6ab08f687-1",
+                "Image in text <br id='p1'/>."));
+  }
+
+  @Test
+  public void documentNoPartExtraction() throws UnsupportedAssetFilterTypeException {
+    List<AssetExtractorTextUnit> assetExtractorTextUnitsForAsset =
+        assetExtractor.getAssetExtractorTextUnitsForAsset(
+            "test.html",
+            "<html>\n"
+                + "  <p>\n"
+                + "    Image in text <img src=\"image.jpg\" alt=\"Alt image\">.\n"
+                + "  </p>\n"
+                + "</html>",
+            FilterConfigIdOverride.HTML_ALPHA,
+            null,
+            null);
+
+    Assertions.assertThat(assetExtractorTextUnitsForAsset)
+        .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
+        .containsExactly(
+            tuple(
+                "8f1bdae06589d55b62184a76e0e70d0e-d41d8cd98f00b204e9800998ecf8427e-1", "Alt image"),
+            tuple(
+                "34a6a48789dd1ff7dff813a8fb627b91-8f1bdae06589d55b62184a76e0e70d0e-1",
                 "Image in text <br id='p1'/>."));
   }
 }

@@ -6,8 +6,13 @@ import java.util.List;
 import net.sf.okapi.common.Event;
 import net.sf.okapi.common.MimeTypeMapper;
 import net.sf.okapi.common.filters.FilterConfiguration;
+import net.sf.okapi.common.resource.DocumentPart;
 import net.sf.okapi.common.resource.ITextUnit;
+import net.sf.okapi.common.resource.Property;
 import net.sf.okapi.common.resource.RawDocument;
+import net.sf.okapi.filters.html.Parameters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Extends Okapi filter to support text unit name generation using near stable ids.
@@ -17,10 +22,14 @@ import net.sf.okapi.common.resource.RawDocument;
  */
 public class HtmlFilter extends net.sf.okapi.filters.html.HtmlFilter {
 
+  static Logger logger = LoggerFactory.getLogger(HtmlFilter.class);
+
   public static final String FILTER_CONFIG_ID = "okf_html@mojito";
   public static final String FILTER_CONFIG_ID_ALPHA = FILTER_CONFIG_ID + "-alpha";
 
   ContextAwareCountedMd5IdGenerator contextAwareCountedMd5IdGenerator;
+
+  boolean processImageUrls;
 
   @Override
   public String getName() {
@@ -52,15 +61,35 @@ public class HtmlFilter extends net.sf.okapi.filters.html.HtmlFilter {
     super.open(input);
     input.setAnnotation(new ConvertToHtmlCodesAnnotation());
     contextAwareCountedMd5IdGenerator = new ContextAwareCountedMd5IdGenerator();
+    applyFilterOptions(input);
   }
 
   @Override
   public Event next() {
     Event next = super.next();
+
     if (next.isTextUnit()) {
       setTextUnitName(next.getTextUnit());
+    } else if (next.isDocumentPart()) {
+      processDocumentPart(next.getDocumentPart());
     }
+
     return next;
+  }
+
+  void processDocumentPart(DocumentPart documentPart) {
+    Property srcProperty = documentPart.getSourceProperty("src");
+    if (processImageUrls && srcProperty != null) {
+      DocumentPartPropertyAnnotation documentPartPropertyAnnotation =
+          new DocumentPartPropertyAnnotation();
+      documentPartPropertyAnnotation.setPropertyKey(srcProperty.getName());
+      documentPartPropertyAnnotation.setName(
+          contextAwareCountedMd5IdGenerator.nextId(srcProperty.getValue()));
+      documentPartPropertyAnnotation.setSource(srcProperty.getValue());
+      documentPartPropertyAnnotation.setComment(
+          "Do not translate: extracted image URL, adapt if needed");
+      documentPart.setAnnotation(documentPartPropertyAnnotation);
+    }
   }
 
   /**
@@ -75,5 +104,15 @@ public class HtmlFilter extends net.sf.okapi.filters.html.HtmlFilter {
     assert textUnit.getSource().getSegments().count() == 1;
     String sourceAsText = textUnit.getSource().getFirstContent().toText();
     textUnit.setName(contextAwareCountedMd5IdGenerator.nextId(sourceAsText));
+  }
+
+  void applyFilterOptions(RawDocument input) {
+    FilterOptions filterOptions = input.getAnnotation(FilterOptions.class);
+    Parameters parameters = this.getParameters();
+    logger.debug("Override with filter options");
+    if (filterOptions != null) {
+      // mojito options
+      filterOptions.getBoolean("processImageUrls", b -> processImageUrls = b);
+    }
   }
 }
