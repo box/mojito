@@ -3,9 +3,7 @@ package com.box.l10n.mojito.okapi.extractor;
 import com.box.l10n.mojito.okapi.filters.PluralFormAnnotation;
 import com.box.l10n.mojito.okapi.filters.UsagesAnnotation;
 import com.box.l10n.mojito.okapi.steps.AbstractMd5ComputationStep;
-import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,14 +17,9 @@ class AssetExtractionStep extends AbstractMd5ComputationStep {
 
   Set<String> assetTextUnitMD5s;
 
-  List<String> md5sToSkip;
-
   List<AssetExtractorTextUnit> assetExtractorTextUnits;
 
-  public AssetExtractionStep(List<String> md5sToSkip) {
-    assert md5sToSkip == null
-        || md5sToSkip.isEmpty(); // TODO(jean) this looks like it is not used anymore
-    this.md5sToSkip = MoreObjects.firstNonNull(md5sToSkip, Collections.emptyList());
+  public AssetExtractionStep() {
     assetExtractorTextUnits = new ArrayList<>();
   }
 
@@ -51,9 +44,7 @@ class AssetExtractionStep extends AbstractMd5ComputationStep {
     Event eventToReturn = super.handleTextUnit(event);
 
     if (textUnit.isTranslatable()) {
-      if (md5sToSkip.contains(md5)) {
-        logger.debug("{} in list of md5s to be skipped", md5);
-      } else if (!assetTextUnitMD5s.contains(md5)) {
+      if (!assetTextUnitMD5s.contains(md5)) {
         assetTextUnitMD5s.add(md5);
 
         PluralFormAnnotation annotation = textUnit.getAnnotation(PluralFormAnnotation.class);

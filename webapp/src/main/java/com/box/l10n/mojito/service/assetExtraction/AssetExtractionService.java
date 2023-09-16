@@ -981,8 +981,7 @@ public class AssetExtractionService {
   List<AssetExtractorTextUnit> getExtractorTextUnitsForAssetContent(
       AssetContent assetContent,
       List<String> filterOptions,
-      FilterConfigIdOverride filterConfigIdOverride,
-      List<String> md5sToSkip)
+      FilterConfigIdOverride filterConfigIdOverride)
       throws UnsupportedAssetFilterTypeException {
     List<AssetExtractorTextUnit> assetExtractorTextUnits;
 
@@ -990,18 +989,7 @@ public class AssetExtractionService {
       assetExtractorTextUnits =
           objectMapper.readValueUnchecked(
               assetContent.getContent(), new TypeReference<List<AssetExtractorTextUnit>>() {});
-      assetExtractorTextUnits =
-          assetExtractorTextUnits.stream()
-              .filter(
-                  assetExtractorTextUnit -> {
-                    String md5 =
-                        textUnitUtils.computeTextUnitMD5(
-                            assetExtractorTextUnit.getName(),
-                            assetExtractorTextUnit.getSource(),
-                            assetExtractorTextUnit.getComments());
-                    return !md5sToSkip.contains(md5);
-                  })
-              .collect(Collectors.toList());
+      assetExtractorTextUnits = assetExtractorTextUnits.stream().collect(Collectors.toList());
 
     } else {
       assetExtractorTextUnits =
@@ -1009,8 +997,7 @@ public class AssetExtractionService {
               assetContent.getAsset().getPath(),
               assetContent.getContent(),
               filterConfigIdOverride,
-              filterOptions,
-              md5sToSkip);
+              filterOptions);
     }
     return assetExtractorTextUnits;
   }
@@ -1025,8 +1012,7 @@ public class AssetExtractionService {
 
     Asset asset = assetContent.getAsset();
     List<AssetExtractorTextUnit> assetExtractorTextUnits =
-        getExtractorTextUnitsForAssetContent(
-            assetContent, filterOptions, filterConfigIdOverride, ImmutableList.of());
+        getExtractorTextUnitsForAssetContent(assetContent, filterOptions, filterConfigIdOverride);
     com.box.l10n.mojito.localtm.merger.Branch branch = convertBranchToLocalTmBranch(assetContent);
     MultiBranchState multiBranchState =
         assetExtractorTextUnitsToMultiBranchStateConverter.convert(assetExtractorTextUnits, branch);

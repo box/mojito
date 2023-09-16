@@ -30,8 +30,7 @@ public class AssetExtractor {
       String assetPath,
       String assetContent,
       FilterConfigIdOverride filterConfigIdOverride,
-      List<String> filterOptions,
-      List<String> md5sToSkip)
+      List<String> filterOptions)
       throws UnsupportedAssetFilterTypeException {
 
     logger.debug("Configuring pipeline");
@@ -39,7 +38,7 @@ public class AssetExtractor {
 
     driver.addStep(new RawDocumentToFilterEventsStep());
     driver.addStep(new CheckForDoNotTranslateStep());
-    AssetExtractionStep assetExtractionStep = new AssetExtractionStep(md5sToSkip);
+    AssetExtractionStep assetExtractionStep = new AssetExtractionStep();
     driver.addStep(assetExtractionStep);
 
     logger.debug("Adding all supported filters to the pipeline driver");

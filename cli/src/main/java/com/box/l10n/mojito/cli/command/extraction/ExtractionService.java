@@ -83,7 +83,7 @@ public class ExtractionService {
 
     try {
       return assetExtractor.getAssetExtractorTextUnitsForAsset(
-          sourcePath, assetContent, filterConfigIdOverride, filterOptions, null);
+          sourcePath, assetContent, filterConfigIdOverride, filterOptions);
     } catch (UnsupportedAssetFilterTypeException uasft) {
       throw new RuntimeException("Source file match must be for a supported file type", uasft);
     }

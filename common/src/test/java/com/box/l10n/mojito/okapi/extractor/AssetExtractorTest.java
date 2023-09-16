@@ -38,7 +38,6 @@ public class AssetExtractorTest {
             "test.properties",
             "key1=value1\n" + "key2=value2",
             FilterConfigIdOverride.PROPERTIES_JAVA,
-            null,
             null);
 
     Assertions.assertThat(assetExtractorTextUnitsForAsset)
@@ -61,8 +60,7 @@ public class AssetExtractorTest {
                     + "rule1=(\\\\r\\\\n)|\\\\a|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v\n"
                     + "rule2=\\{\\d.*?\\}\n"
                     + "sample=%s, %d, {1}, \\n, \\r, \\t, etc.\n"
-                    + "useAllRulesWhenTesting.b=false"),
-            null);
+                    + "useAllRulesWhenTesting.b=false"));
 
     Assertions.assertThat(assetExtractorTextUnitsForAsset)
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
@@ -96,7 +94,6 @@ public class AssetExtractorTest {
                 + "</body>\n"
                 + "</html>",
             FilterConfigIdOverride.HTML_ALPHA,
-            null,
             null);
 
     Assertions.assertThat(assetExtractorTextUnitsForAsset)
@@ -138,8 +135,7 @@ public class AssetExtractorTest {
                 + "  </p>\n"
                 + "</html>",
             FilterConfigIdOverride.HTML_ALPHA,
-            Arrays.asList("processImageUrls=true"),
-            null);
+            Arrays.asList("processImageUrls=true"));
 
     Assertions.assertThat(assetExtractorTextUnitsForAsset)
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
@@ -171,8 +167,7 @@ public class AssetExtractorTest {
                 + "  </p>\n"
                 + "</html>",
             FilterConfigIdOverride.HTML_ALPHA,
-            Arrays.asList("processImageUrls=true"),
-            null);
+            Arrays.asList("processImageUrls=true"));
 
     Assertions.assertThat(assetExtractorTextUnitsForAsset)
         .extracting(AssetExtractorTextUnit::getName, AssetExtractorTextUnit::getSource)
@@ -197,7 +192,6 @@ public class AssetExtractorTest {
                 + "  </p>\n"
                 + "</html>",
             FilterConfigIdOverride.HTML_ALPHA,
-            null,
             null);
 
     Assertions.assertThat(assetExtractorTextUnitsForAsset)
