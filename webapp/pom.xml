@@ -16,7 +16,7 @@
 
     <properties>
         <start-class>com.box.l10n.mojito.Application</start-class>
-        <frontend.maven.plugin.version>1.10.0</frontend.maven.plugin.version>
+        <frontend.maven.plugin.version>1.14.0</frontend.maven.plugin.version>
         <node.version>v8.8.1</node.version>
         <npm.version>6.11.3</npm.version>
     </properties>
