@@ -418,6 +418,7 @@
                 <artifactId>git-commit-id-plugin</artifactId>
                 <configuration>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <useNativeGit>true</useNativeGit>
                 </configuration>
             </plugin>
 
