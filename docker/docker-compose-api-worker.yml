@@ -2,7 +2,7 @@ version: '2.4'
 name: mojito
 services:
   db:
-    image: mysql:5.7
+    image: mysql:8.0.34
     restart: always
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
@@ -35,7 +35,7 @@ services:
       test: [ "CMD", "curl", "localhost:8080/" ]
       interval: 5s
       timeout: 10s
-      retries: 20
+      retries: 50
     depends_on:
       db:
         condition: service_healthy
@@ -48,8 +48,10 @@ services:
       - db
     ports:
       - "8080:8080"
+      - "5005:5005" # debug port
     restart: always
     environment:
+      JAVA_OPTS: '-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005'
       SPRING_APPLICATION_JSON: '{
       "spring.flyway.enabled": "true",
       "l10n.flyway.clean" : "false",
@@ -92,7 +94,8 @@ services:
       "l10n.org.multi-quartz.schedulers.lowPriority.quartz.dataSource.myDS.validationQuery" : "select 1",
       "l10n.assetExtraction.quartz.schedulerName" : "lowPriority",
       "logging.level.com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler" : "DEBUG",
-      "logging.level.com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob" : "DEBUG"
+      "logging.level.com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob" : "DEBUG",
+      "logging.level.com.box.l10n.mojito.service.thirdparty.smartling.quartz" : "DEBUG"
       }'
   worker:
     deploy:
@@ -110,7 +113,7 @@ services:
       test: [ "CMD", "curl", "localhost:8080/" ]
       interval: 5s
       timeout: 10s
-      retries: 20
+      retries: 50
     depends_on:
       db:
         condition: service_healthy
@@ -121,7 +124,10 @@ services:
     links:
       - db
     restart: always
+    ports:
+      - "5005" # debug port (docker will provide a host port, retrieve it for a specific worker via `docker ps`)
     environment:
+      JAVA_OPTS: '-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005'
       SPRING_APPLICATION_JSON: '{
         "spring.flyway.enabled": "true",
         "l10n.flyway.clean" : "false",
@@ -164,5 +170,6 @@ services:
         "l10n.org.multi-quartz.schedulers.lowPriority.quartz.dataSource.myDS.validationQuery" : "select 1",
         "l10n.assetExtraction.quartz.schedulerName" : "lowPriority",
         "logging.level.com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler" : "DEBUG",
-        "logging.level.com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob" : "DEBUG"
+        "logging.level.com.box.l10n.mojito.service.repository.statistics.RepositoryStatisticsJob" : "DEBUG",
+        "logging.level.com.box.l10n.mojito.service.thirdparty.smartling.quartz" : "DEBUG"
         }'
