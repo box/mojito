@@ -1,6 +1,8 @@
 package com.box.l10n.mojito.service.thirdparty;
 
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,14 +87,18 @@ public class ThirdPartyTMSInMemory implements ThirdPartyTMS {
       List<String> options) {}
 
   @Override
-  public void pull(
+  public PollableFuture<Void> pull(
       Repository repository,
       String projectId,
       String pluralSeparator,
       Map<String, String> localeMapping,
       String skipTextUnitsWithPattern,
       String skipAssetsWithPathPattern,
-      List<String> optionList) {}
+      List<String> optionList,
+      String schedulerName,
+      PollableTask currentTask) {
+    return null;
+  }
 
   @Override
   public void pushTranslations(

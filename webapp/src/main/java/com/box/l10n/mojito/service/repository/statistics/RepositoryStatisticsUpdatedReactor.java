@@ -53,7 +53,7 @@ public class RepositoryStatisticsUpdatedReactor {
    *
    * @param repositoryId
    */
-  public void generateEvent(Long repositoryId) {
+  public synchronized void generateEvent(Long repositoryId) {
     replayProcessor.onNext(repositoryId);
   }
 }

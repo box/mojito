@@ -1,6 +1,7 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import static com.box.l10n.mojito.entity.Screenshot.Status.ACCEPTED;
+import static com.box.l10n.mojito.quartz.QuartzSchedulerManager.DEFAULT_SCHEDULER_NAME;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import com.box.l10n.mojito.LocaleMappingHelper;
 import com.box.l10n.mojito.entity.Asset;
 import com.box.l10n.mojito.entity.AssetContent;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
 import com.box.l10n.mojito.entity.Screenshot;
 import com.box.l10n.mojito.entity.ScreenshotRun;
@@ -651,6 +653,8 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
     thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
     ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    ArgumentCaptor<PollableTask> pollableTaskArgumentCaptor =
+        ArgumentCaptor.forClass(PollableTask.class);
 
     thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
@@ -662,11 +666,14 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
             localeMappingArgumentCaptor.capture(),
             eq("text_unit_pattern"),
             eq("asset_path_pattern"),
-            optionsArgumentCaptor.capture());
+            optionsArgumentCaptor.capture(),
+            eq(DEFAULT_SCHEDULER_NAME),
+            pollableTaskArgumentCaptor.capture());
 
     assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
     assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
     assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    assertThat(pollableTaskArgumentCaptor.getValue()).isNotNull();
   }
 
   @Test
@@ -686,6 +693,8 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
     thirdPartySync.setSkipAssetsWithPathPattern("asset_path_pattern");
     thirdPartySync.setOptions(Arrays.asList("option1=value1", "option2=value2"));
     ArgumentCaptor<Repository> repoCaptor = ArgumentCaptor.forClass(Repository.class);
+    ArgumentCaptor<PollableTask> pollableTaskArgumentCaptor =
+        ArgumentCaptor.forClass(PollableTask.class);
 
     thirdPartyService.asyncSyncMojitoWithThirdPartyTMS(thirdPartySync).get();
 
@@ -697,11 +706,14 @@ public class ThirdPartyServiceTest extends ServiceTestBase {
             localeMappingArgumentCaptor.capture(),
             eq("text_unit_pattern"),
             eq("asset_path_pattern"),
-            optionsArgumentCaptor.capture());
+            optionsArgumentCaptor.capture(),
+            eq(DEFAULT_SCHEDULER_NAME),
+            pollableTaskArgumentCaptor.capture());
 
     assertThat(repoCaptor.getValue().getId()).isEqualTo(repository.getId());
     assertThat(localeMappingArgumentCaptor.getValue()).contains(entry("ja-JP", "ja"));
     assertThat(optionsArgumentCaptor.getValue()).contains("option1=value1", "option2=value2");
+    assertThat(pollableTaskArgumentCaptor.getValue()).isNotNull();
   }
 
   @Test

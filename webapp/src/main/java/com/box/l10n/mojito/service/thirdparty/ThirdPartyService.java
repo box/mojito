@@ -168,6 +168,7 @@ public class ThirdPartyService {
           skipAssetsWithPathPattern,
           options,
           repository,
+          schedulerName,
           currentTask);
     }
     if (actions.contains(ThirdPartySyncAction.MAP_TEXTUNIT)) {
@@ -219,7 +220,7 @@ public class ThirdPartyService {
         options);
   }
 
-  @Pollable(message = "Pull translations from third party service.")
+  @Pollable(message = "Trigger translations pull from third party service.")
   private void pull(
       String thirdPartyProjectId,
       String pluralSeparator,
@@ -228,6 +229,7 @@ public class ThirdPartyService {
       String skipAssetsWithPathPattern,
       List<String> options,
       Repository repository,
+      String schedulerName,
       @ParentTask PollableTask currentTask) {
     thirdPartyTMS.pull(
         repository,
@@ -236,7 +238,9 @@ public class ThirdPartyService {
         parseLocaleMapping(localeMapping),
         skipTextUnitsWithPattern,
         skipAssetsWithPathPattern,
-        options);
+        options,
+        schedulerName,
+        currentTask);
   }
 
   @Pollable(message = "Pull source text units from third party service.")

@@ -1,23 +1,25 @@
 package com.box.l10n.mojito.service.thirdparty;
 
 import static com.box.l10n.mojito.android.strings.AndroidPluralQuantity.MANY;
-import static com.box.l10n.mojito.service.thirdparty.ThirdPartyTMSUtils.isFileEqualToPreviousRun;
 import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.getOutputSourceFile;
 import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.getOutputTargetFile;
 import static com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils.isPluralFile;
 import static com.google.common.collect.Streams.mapWithIndex;
 
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentMapper;
-import com.box.l10n.mojito.android.strings.AndroidStringDocumentReader;
 import com.box.l10n.mojito.android.strings.AndroidStringDocumentWriter;
+import com.box.l10n.mojito.entity.PollableTask;
 import com.box.l10n.mojito.entity.Repository;
-import com.box.l10n.mojito.entity.RepositoryLocale;
+import com.box.l10n.mojito.quartz.QuartzJobInfo;
+import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.assetExtraction.AssetTextUnitToTMTextUnitRepository;
+import com.box.l10n.mojito.service.pollableTask.PollableFuture;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFile;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingFileUtils;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingOptions;
-import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingPluralFix;
 import com.box.l10n.mojito.service.thirdparty.smartling.SmartlingResultProcessor;
+import com.box.l10n.mojito.service.thirdparty.smartling.quartz.SmartlingPullTranslationsJob;
+import com.box.l10n.mojito.service.thirdparty.smartling.quartz.SmartlingPullTranslationsJobInput;
 import com.box.l10n.mojito.service.tm.importer.TextUnitBatchImporterService;
 import com.box.l10n.mojito.service.tm.search.SearchType;
 import com.box.l10n.mojito.service.tm.search.StatusFilter;
@@ -40,14 +42,12 @@ import com.google.common.io.Files;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.xml.parsers.ParserConfigurationException;
@@ -57,7 +57,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
-import org.xml.sax.SAXException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -99,7 +98,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
 
   private final MeterRegistry meterRegistry;
 
-  private final ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepository;
+  private final QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
   private final Set<String> supportedImageExtensions =
       Sets.newHashSet("png", "jpg", "jpeg", "gif", "tiff");
@@ -119,7 +118,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       ThirdPartyTMSSmartlingGlossary thirdPartyTMSSmartlingGlossary,
       AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository,
       MeterRegistry meterRegistry,
-      ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepository) {
+      QuartzPollableTaskScheduler quartzPollableTaskScheduler) {
     this(
         smartlingClient,
         textUnitSearcher,
@@ -131,7 +130,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
         assetTextUnitToTMTextUnitRepository,
         DEFAULT_BATCH_SIZE,
         meterRegistry,
-        thirdPartyFileChecksumRepository);
+        quartzPollableTaskScheduler);
   }
 
   public ThirdPartyTMSSmartling(
@@ -145,7 +144,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
       AssetTextUnitToTMTextUnitRepository assetTextUnitToTMTextUnitRepository,
       int batchSize,
       MeterRegistry meterRegistry,
-      ThirdPartyFileChecksumRepository thirdPartyFileChecksumRepository) {
+      QuartzPollableTaskScheduler quartzPollableTaskScheduler) {
     this.smartlingClient = smartlingClient;
     this.assetPathAndTextUnitNameKeys = assetPathAndTextUnitNameKeys;
     this.textUnitBatchImporterService = textUnitBatchImporterService;
@@ -156,7 +155,7 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
     this.thirdPartyTMSSmartlingGlossary = thirdPartyTMSSmartlingGlossary;
     this.assetTextUnitToTMTextUnitRepository = assetTextUnitToTMTextUnitRepository;
     this.meterRegistry = meterRegistry;
-    this.thirdPartyFileChecksumRepository = thirdPartyFileChecksumRepository;
+    this.quartzPollableTaskScheduler = quartzPollableTaskScheduler;
   }
 
   @Override
@@ -527,186 +526,99 @@ public class ThirdPartyTMSSmartling implements ThirdPartyTMS {
   }
 
   @Override
-  public void pull(
+  public PollableFuture<Void> pull(
       Repository repository,
       String projectId,
       String pluralSeparator,
       Map<String, String> localeMapping,
       String skipTextUnitsWithPattern,
       String skipAssetsWithPathPattern,
-      List<String> optionList) {
+      List<String> optionList,
+      String schedulerName,
+      PollableTask currentTask) {
 
     SmartlingOptions options = SmartlingOptions.parseList(optionList);
 
-    meterRegistry
-        .timer(
-            "SmartlingSync.pull",
-            Tags.of(
-                "repository",
-                repository.getName(),
-                "deltaPull",
-                Boolean.toString(options.isDeltaPull())))
-        .record(
-            () -> {
-              if (options.isJsonSync()) {
-                thirdPartyTMSSmartlingWithJson.pull(
-                    repository, projectId, localeMapping, options.isDeltaPull());
-                return;
-              }
+    PollableFuture<Void> pollableFuture =
+        meterRegistry
+            .timer(
+                "SmartlingSync.pull",
+                Tags.of(
+                    "repository",
+                    repository.getName(),
+                    "deltaPull",
+                    Boolean.toString(options.isDeltaPull())))
+            .record(
+                () -> {
+                  if (options.isJsonSync()) {
+                    thirdPartyTMSSmartlingWithJson.pull(
+                        repository, projectId, localeMapping, options.isDeltaPull());
+                    return null;
+                  }
 
-              if (options.isGlossarySync()) {
-                thirdPartyTMSSmartlingGlossary.pull(repository, projectId, localeMapping);
-                return;
-              }
+                  if (options.isGlossarySync()) {
+                    thirdPartyTMSSmartlingGlossary.pull(repository, projectId, localeMapping);
+                    return null;
+                  }
 
-              Long singulars =
-                  singularCount(
-                      repository.getId(),
-                      LOCALE_EN,
+                  return schedulePullTranslationsJob(
+                      repository,
+                      projectId,
+                      pluralSeparator,
+                      localeMapping,
                       skipTextUnitsWithPattern,
-                      skipAssetsWithPathPattern);
-              LongStream.range(0, batchesFor(singulars))
-                  .forEach(
-                      num ->
-                          processPullBatch(
-                              num,
-                              pluralSeparator,
-                              repository,
-                              projectId,
-                              options,
-                              localeMapping,
-                              Prefix.SINGULAR));
+                      skipAssetsWithPathPattern,
+                      schedulerName,
+                      currentTask,
+                      options);
+                });
 
-              Long plurals =
-                  pluralCount(
-                      repository.getId(),
-                      LOCALE_EN,
-                      skipTextUnitsWithPattern,
-                      skipAssetsWithPathPattern);
-              LongStream.range(0, batchesFor(plurals))
-                  .forEach(
-                      num ->
-                          processPullBatch(
-                              num,
-                              pluralSeparator,
-                              repository,
-                              projectId,
-                              options,
-                              localeMapping,
-                              Prefix.PLURAL));
-            });
+    return pollableFuture;
   }
 
-  private void processPullBatch(
-      Long batchNumber,
-      String pluralSeparator,
+  private PollableFuture<Void> schedulePullTranslationsJob(
       Repository repository,
       String projectId,
-      SmartlingOptions options,
+      String pluralSeparator,
       Map<String, String> localeMapping,
-      Prefix filePrefix) {
+      String skipTextUnitsWithPattern,
+      String skipAssetsWithPathPattern,
+      String schedulerName,
+      PollableTask currentTask,
+      SmartlingOptions options) {
+    Long singulars =
+        singularCount(
+            repository.getId(), LOCALE_EN, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
 
-    for (RepositoryLocale locale : repository.getRepositoryLocales()) {
+    Long plurals =
+        pluralCount(
+            repository.getId(), LOCALE_EN, skipTextUnitsWithPattern, skipAssetsWithPathPattern);
 
-      if (locale.getParentLocale() == null) {
-        continue;
-      }
+    SmartlingPullTranslationsJobInput input = new SmartlingPullTranslationsJobInput();
+    input.setBatchSize(batchSize);
+    input.setRepositoryName(repository.getName());
+    input.setPluralSeparator(pluralSeparator);
+    input.setDeltaPull(options.isDeltaPull());
+    input.setDryRun(options.isDryRun());
+    input.setProjectId(projectId);
+    input.setPluralCount(plurals);
+    input.setPluralFixForLocale(
+        options.getPluralFixForLocales().stream().collect(Collectors.joining(",")));
+    input.setLocaleMapping(
+        localeMapping.keySet().stream()
+            .map(key -> key + ":" + localeMapping.get(key))
+            .collect(Collectors.joining(",")));
+    input.setSchedulerName(schedulerName);
+    input.setSingularCount(singulars);
+    QuartzJobInfo<SmartlingPullTranslationsJobInput, Void> quartzJobInfo =
+        QuartzJobInfo.newBuilder(SmartlingPullTranslationsJob.class)
+            .withInput(input)
+            .withScheduler(schedulerName)
+            .withParentId(currentTask.getId())
+            .withInlineInput(false)
+            .build();
 
-      meterRegistry
-          .timer(
-              "SmartlingSync.processPullBatch",
-              Tags.of(
-                  "repository",
-                  repository.getName(),
-                  "locale",
-                  locale.getLocale().getBcp47Tag(),
-                  "deltaPull",
-                  Boolean.toString(options.isDeltaPull())))
-          .record(
-              () -> {
-                String localeTag = locale.getLocale().getBcp47Tag();
-                String smartlingLocale = getSmartlingLocale(localeMapping, localeTag);
-                String fileName =
-                    getOutputSourceFile(batchNumber, repository.getName(), filePrefix.getType());
-                AndroidStringDocumentMapper mapper =
-                    new AndroidStringDocumentMapper(
-                        pluralSeparator, null, localeTag, repository.getName());
-
-                logger.debug(
-                    "Download localized file from Smartling for file: {}, Mojito locale: {} and Smartling locale: {}",
-                    fileName,
-                    localeTag,
-                    smartlingLocale);
-
-                String fileContent =
-                    Mono.fromCallable(
-                            () ->
-                                smartlingClient.downloadPublishedFile(
-                                    projectId, smartlingLocale, fileName, false))
-                        .retryWhen(
-                            smartlingClient
-                                .getRetryConfiguration()
-                                .doBeforeRetry(
-                                    e ->
-                                        logger.info(
-                                            String.format(
-                                                "Retrying after failure to download file %s",
-                                                fileName),
-                                            e.failure())))
-                        .doOnError(
-                            e -> {
-                              String msg =
-                                  String.format(
-                                      "Error downloading file %s: %s", fileName, e.getMessage());
-                              logger.error(msg, e);
-                              throw new SmartlingClientException(msg, e);
-                            })
-                        .blockOptional()
-                        .orElseThrow(
-                            () ->
-                                new SmartlingClientException(
-                                    "Error with download from Smartling, file content string is not present."));
-
-                if (options.isDeltaPull()
-                    && isFileEqualToPreviousRun(
-                        thirdPartyFileChecksumRepository,
-                        repository,
-                        locale.getLocale(),
-                        fileName,
-                        fileContent,
-                        meterRegistry)) {
-                  logger.info(
-                      "Checksum match for "
-                          + fileName
-                          + " in locale "
-                          + localeTag
-                          + ", skipping text unit import.");
-                  return;
-                }
-
-                List<TextUnitDTO> textUnits;
-
-                try {
-                  textUnits =
-                      mapper.mapToTextUnits(AndroidStringDocumentReader.fromText(fileContent));
-                } catch (ParserConfigurationException | IOException | SAXException e) {
-                  String msg = "An error ocurred when processing a pull batch";
-                  logger.error(msg, e);
-                  throw new RuntimeException(msg, e);
-                }
-
-                if (!textUnits.isEmpty()
-                    && filePrefix.isPlural()
-                    && options.getPluralFixForLocales().contains(localeTag)) {
-                  textUnits = SmartlingPluralFix.fixTextUnits(textUnits);
-                }
-
-                if (!options.isDryRun()) {
-                  logger.debug("Importing text units for locale: {}", smartlingLocale);
-                  textUnitBatchImporterService.importTextUnits(textUnits, false, true);
-                }
-              });
-    }
+    return quartzPollableTaskScheduler.scheduleJob(quartzJobInfo);
   }
 
   @Override

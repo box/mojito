@@ -8,4 +8,7 @@ import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 /** @author jaurambault */
 @RepositoryRestResource(exported = false)
 public interface LocaleRepository
-    extends JpaRepository<Locale, Long>, JpaSpecificationExecutor<Locale> {}
+    extends JpaRepository<Locale, Long>, JpaSpecificationExecutor<Locale> {
+
+  Locale findByBcp47Tag(String bcp47Tag);
+}
