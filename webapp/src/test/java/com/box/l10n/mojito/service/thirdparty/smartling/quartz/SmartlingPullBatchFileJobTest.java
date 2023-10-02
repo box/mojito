@@ -184,4 +184,24 @@ public class SmartlingPullBatchFileJobTest {
         .extracting("smartlingLocale")
         .containsExactlyInAnyOrder("ga", "fr-CA");
   }
+
+  @Test
+  public void testLocaleMappingEmptyString() throws Exception {
+    SmartlingPullBatchFileJobInput jobInput = new SmartlingPullBatchFileJobInput();
+    jobInput.setBatchNumber(1L);
+    jobInput.setDeltaPull(false);
+    jobInput.setFilePrefix("singular");
+    jobInput.setDryRun(false);
+    jobInput.setRepositoryName("testRepo");
+    jobInput.setProjectId("testProjectId");
+    jobInput.setLocaleMapping("");
+
+    smartlingPullBatchFileJob.call(jobInput);
+
+    verify(quartzPollableTaskSchedulerMock, times(2)).scheduleJob(quartzJobInfoCaptor.capture());
+
+    List<QuartzJobInfo<SmartlingPullLocaleFileJobInput, Void>> quartzJobInfos =
+        quartzJobInfoCaptor.getAllValues();
+    assertThat(quartzJobInfos.stream().filter(q -> q.getParentId() == 1L).count()).isEqualTo(2);
+  }
 }

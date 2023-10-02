@@ -10,6 +10,7 @@ import com.box.l10n.mojito.quartz.QuartzPollableJob;
 import com.box.l10n.mojito.quartz.QuartzPollableTaskScheduler;
 import com.box.l10n.mojito.service.repository.RepositoryRepository;
 import com.box.l10n.mojito.service.repository.RepositoryService;
+import com.google.common.base.Strings;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Collections;
 import java.util.Map;
@@ -84,7 +85,7 @@ public class SmartlingPullBatchFileJob
   }
 
   private Map<String, String> parseLocaleMapping(String input) {
-    return Optional.ofNullable(localeMappingHelper.getLocaleMapping(input))
+    return Optional.ofNullable(localeMappingHelper.getLocaleMapping(Strings.emptyToNull(input)))
         .orElseGet(Collections::emptyMap);
   }
 
