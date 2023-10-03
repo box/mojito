@@ -15,6 +15,7 @@ import com.box.sdk.BoxAPIException;
 import com.box.sdk.BoxFolder;
 import com.box.sdk.BoxSharedLink;
 import com.box.sdk.BoxUser;
+import com.box.sdk.sharedlink.BoxSharedLinkRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -215,7 +216,7 @@ public class BoxSDKServiceConfigEntityService {
         try {
             BoxAPIConnection apiConnection = boxAPIConnectionProvider.getConnection();
             BoxFolder mojitoFolder = new BoxFolder(apiConnection, boxSDKServiceConfig.getRootFolderId());
-            BoxSharedLink sharedLink = mojitoFolder.createSharedLink(BoxSharedLink.Access.COLLABORATORS, null, null);
+            BoxSharedLink sharedLink = mojitoFolder.createSharedLink(new BoxSharedLinkRequest().access(BoxSharedLink.Access.COLLABORATORS));
 
             boxSDKServiceConfig.setRootFolderUrl(sharedLink.getURL());
             boxSDKServiceConfig.setValidated(true);
