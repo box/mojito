@@ -1,8 +1,6 @@
 package com.box.l10n.mojito.service.drop;
 
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_IMPORTED_FILES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_LOCALIZED_FILES_NAME;
-import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.DROP_FOLDER_SOURCE_FILES_NAME;
+import static com.box.l10n.mojito.service.drop.exporter.DropExporterDirectories.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -48,12 +46,13 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -446,20 +445,45 @@ public class DropServiceTest extends ServiceTestBase {
     Drop drop = startExportProcess.get();
 
     // Make sure no French xliff was generated
+    assertFalse(
+        getDropFiles(drop, DROP_FOLDER_SOURCE_FILES_NAME).stream()
+            .anyMatch(dropFile -> dropFile.getName().equals("fr-FR.xliff")));
+  }
+
+  public List<DropFile> getDropFiles(Drop drop, String dropFolder)
+      throws DropExporterException, BoxSDKServiceException {
     FileSystemDropExporter fileSystemDropExporter =
         (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
     FileSystemDropExporterConfig fileSystemDropExporterConfig =
         fileSystemDropExporter.getFileSystemDropExporterConfig();
 
-    File frFR =
-        new File(
-            Paths.get(
-                    fileSystemDropExporterConfig.getDropFolderPath(),
-                    DROP_FOLDER_SOURCE_FILES_NAME,
-                    "fr-FR.xliff")
-                .toString());
+    File folder = Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), dropFolder).toFile();
+    File[] files = folder.listFiles();
+    assertNotNull(files);
+    return Arrays.stream(files)
+        .map(
+            file ->
+                new DropFile() {
+                  public String getName() {
+                    return file.getName();
+                  }
 
-    assertFalse(frFR.exists());
+                  public String getContent() throws IOException {
+                    return Files.toString(file, StandardCharsets.UTF_8);
+                  }
+                })
+        .collect(Collectors.toList());
+  }
+
+  public void writeDropFile(Drop drop, String dropFolder, String fileName, String content)
+      throws BoxSDKServiceException, IOException, DropExporterException {
+    FileSystemDropExporter fileSystemDropExporter =
+        (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
+    FileSystemDropExporterConfig fileSystemDropExporterConfig =
+        fileSystemDropExporter.getFileSystemDropExporterConfig();
+    File file =
+        Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), dropFolder, fileName).toFile();
+    Files.write(content, file, StandardCharsets.UTF_8);
   }
 
   public void checkNumberOfUntranslatedTextUnit(
@@ -497,19 +521,9 @@ public class DropServiceTest extends ServiceTestBase {
 
     logger.debug("Localize files in a drop for testing");
 
-    FileSystemDropExporter fileSystemDropExporter =
-        (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
-    FileSystemDropExporterConfig fileSystemDropExporterConfig =
-        fileSystemDropExporter.getFileSystemDropExporterConfig();
+    for (DropFile sourceFile : getDropFiles(drop, DROP_FOLDER_SOURCE_FILES_NAME)) {
 
-    File[] sourceFiles =
-        Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME)
-            .toFile()
-            .listFiles();
-
-    for (File sourceFile : sourceFiles) {
-
-      String localizedContent = Files.toString(sourceFile, StandardCharsets.UTF_8);
+      String localizedContent = sourceFile.getContent();
 
       if (sourceFile.getName().startsWith("ko-KR")) {
         logger.debug(
@@ -537,12 +551,7 @@ public class DropServiceTest extends ServiceTestBase {
 
       // TODO(P1) this logic is being duplicated everywhere maybe it should go back into the config
       // or service.
-      Path localizedFolderPath =
-          Paths.get(
-              fileSystemDropExporterConfig.getDropFolderPath(),
-              DROP_FOLDER_LOCALIZED_FILES_NAME,
-              sourceFile.getName());
-      Files.write(localizedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
+      writeDropFile(drop, DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName(), localizedContent);
     }
   }
 
@@ -551,30 +560,15 @@ public class DropServiceTest extends ServiceTestBase {
 
     logger.debug("Review files in a drop for testing");
 
-    FileSystemDropExporter fileSystemDropExporter =
-        (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
-    FileSystemDropExporterConfig fileSystemDropExporterConfig =
-        fileSystemDropExporter.getFileSystemDropExporterConfig();
+    for (DropFile sourceFile : getDropFiles(drop, DROP_FOLDER_SOURCE_FILES_NAME)) {
 
-    File[] sourceFiles =
-        Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_SOURCE_FILES_NAME)
-            .toFile()
-            .listFiles();
-
-    for (File sourceFile : sourceFiles) {
-
-      String reviewedContent = Files.toString(sourceFile, StandardCharsets.UTF_8);
+      String reviewedContent = sourceFile.getContent();
       reviewedContent =
           XliffUtils.replaceTargetState(reviewedContent, XliffState.SIGNED_OFF.toString());
 
       // TODO(P1) this logic is being duplicated everywhere maybe it should go back into the config
       // or service.
-      Path localizedFolderPath =
-          Paths.get(
-              fileSystemDropExporterConfig.getDropFolderPath(),
-              DROP_FOLDER_LOCALIZED_FILES_NAME,
-              sourceFile.getName());
-      Files.write(reviewedContent, localizedFolderPath.toFile(), StandardCharsets.UTF_8);
+      writeDropFile(drop, DROP_FOLDER_LOCALIZED_FILES_NAME, sourceFile.getName(), reviewedContent);
     }
   }
 
@@ -583,24 +577,13 @@ public class DropServiceTest extends ServiceTestBase {
 
     logger.debug("Check imported files contains text unit variant ids");
 
-    FileSystemDropExporter fileSystemDropExporter =
-        (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
-    FileSystemDropExporterConfig fileSystemDropExporterConfig =
-        fileSystemDropExporter.getFileSystemDropExporterConfig();
-
-    File[] importedFiles =
-        Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_IMPORTED_FILES_NAME)
-            .toFile()
-            .listFiles();
-
-    for (File importedFile : importedFiles) {
+    for (DropFile importedFile : getDropFiles(drop, DROP_FOLDER_IMPORTED_FILES_NAME)) {
 
       if (!importedFile.getName().endsWith("xliff")) {
         continue;
       }
 
-      String importedContent = Files.toString(importedFile, StandardCharsets.UTF_8);
-      checkImportedFilesContent(importedFile.getName(), importedContent, round);
+      checkImportedFilesContent(importedFile.getName(), importedFile.getContent(), round);
     }
   }
 
@@ -732,23 +715,13 @@ public class DropServiceTest extends ServiceTestBase {
       throws DropExporterException, BoxSDKServiceException, IOException {
     logger.debug("Check imported files contains text unit variant ids");
 
-    FileSystemDropExporter fileSystemDropExporter =
-        (FileSystemDropExporter) dropExporterService.recreateDropExporter(drop);
-    FileSystemDropExporterConfig fileSystemDropExporterConfig =
-        fileSystemDropExporter.getFileSystemDropExporterConfig();
-
-    File[] importedFiles =
-        Paths.get(fileSystemDropExporterConfig.getDropFolderPath(), DROP_FOLDER_IMPORTED_FILES_NAME)
-            .toFile()
-            .listFiles();
-
-    for (File importedFile : importedFiles) {
+    for (DropFile importedFile : getDropFiles(drop, DROP_FOLDER_IMPORTED_FILES_NAME)) {
 
       if (!importedFile.getName().endsWith("xliff")) {
         continue;
       }
 
-      String importedContent = Files.toString(importedFile, StandardCharsets.UTF_8);
+      String importedContent = importedFile.getContent();
 
       if (importedFile.getName().startsWith("fr-FR")) {
 
