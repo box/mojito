@@ -221,7 +221,7 @@ public class ThirdPartyService {
   }
 
   @Pollable(message = "Trigger translations pull from third party service.")
-  private void pull(
+  private PollableFuture<Void> pull(
       String thirdPartyProjectId,
       String pluralSeparator,
       String localeMapping,
@@ -231,7 +231,7 @@ public class ThirdPartyService {
       Repository repository,
       String schedulerName,
       @ParentTask PollableTask currentTask) {
-    thirdPartyTMS.pull(
+    return thirdPartyTMS.pull(
         repository,
         thirdPartyProjectId,
         pluralSeparator,
