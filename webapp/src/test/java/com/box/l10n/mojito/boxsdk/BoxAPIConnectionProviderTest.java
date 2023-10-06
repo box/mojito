@@ -42,6 +42,10 @@ public class BoxAPIConnectionProviderTest {
         Mockito.when(config.getAppUserId()).thenReturn("6");
         Mockito.when(config.getRootFolderId()).thenReturn("7");
         Mockito.when(config.getDropsFolderId()).thenReturn("8");
+        Mockito.when(config.getProxyHost()).thenReturn(null);
+        Mockito.when(config.getProxyPort()).thenReturn(null);
+        Mockito.when(config.getProxyUser()).thenReturn(null);
+        Mockito.when(config.getProxyPassword()).thenReturn(null);
 
         return config;
     }
@@ -57,6 +61,10 @@ public class BoxAPIConnectionProviderTest {
         Mockito.when(config.getAppUserId()).thenReturn("g");
         Mockito.when(config.getRootFolderId()).thenReturn("h");
         Mockito.when(config.getDropsFolderId()).thenReturn("i");
+        Mockito.when(config.getProxyHost()).thenReturn(null);
+        Mockito.when(config.getProxyPort()).thenReturn(null);
+        Mockito.when(config.getProxyUser()).thenReturn(null);
+        Mockito.when(config.getProxyPassword()).thenReturn(null);
 
         return config;
     }
@@ -135,4 +143,7 @@ public class BoxAPIConnectionProviderTest {
         Mockito.verify(providerSpy, Mockito.times(2)).createBoxAPIConnection();
 
     }
+
+    // TODO testGetConnectionWillCreateProxiedConnection()
+    // TODO testGetConnectionWillCreateAuthenticatedProxiedConnection()
 }

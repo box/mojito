@@ -8,6 +8,8 @@ import com.box.sdk.JWTEncryptionPreferences;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.Objects;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -61,11 +63,23 @@ public class BoxAPIConnectionProvider {
         BoxSDKServiceConfig boxSDKServiceConfig = boxSDKServiceConfigProvider.getConfig();
         JWTEncryptionPreferences encryptionPref = boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
 
-        return BoxDeveloperEditionAPIConnection.getUserConnection(
+        BoxAPIConnection connection = BoxDeveloperEditionAPIConnection.getUserConnection(
                 boxSDKServiceConfig.getAppUserId(),
                 boxSDKServiceConfig.getClientId(),
                 boxSDKServiceConfig.getClientSecret(),
                 encryptionPref, getAccessTokenCache());
+
+        if (boxSDKServiceConfig.getProxyHost() != null && boxSDKServiceConfig.getProxyPort() != null) {
+            logger.debug("Setting proxy for Box API connection");
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(boxSDKServiceConfig.getProxyHost(), boxSDKServiceConfig.getProxyPort()));
+            connection.setProxy(proxy);
+
+            if (boxSDKServiceConfig.getProxyUser() != null) {
+                connection.setProxyBasicAuthentication(boxSDKServiceConfig.getProxyUser(), boxSDKServiceConfig.getProxyPassword());
+            }
+        }
+
+        return connection;
     }
 
     /**

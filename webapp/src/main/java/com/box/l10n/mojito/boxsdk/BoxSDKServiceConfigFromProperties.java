@@ -25,6 +25,10 @@ public class BoxSDKServiceConfigFromProperties implements BoxSDKServiceConfig {
     String privateKeyPassword;
     String enterpriseId;
     String appUserId;
+    String proxyHost;
+    Integer proxyPort;
+    String proxyUser;
+    String proxyPassword;
 
     /**
      * The folder ID of the Box root folder, for the active profile. It is
@@ -82,6 +86,22 @@ public class BoxSDKServiceConfigFromProperties implements BoxSDKServiceConfig {
         return dropsFolderId;
     }
 
+    public String getProxyHost() {
+        return proxyHost;
+    }
+
+    public Integer getProxyPort() {
+        return proxyPort;
+    }
+
+    public String getProxyUser() {
+        return proxyUser;
+    }
+
+    public String getProxyPassword() {
+        return proxyPassword;
+    }
+
     public void setClientId(String clientId) {
         this.clientId = clientId;
     }
@@ -118,6 +138,22 @@ public class BoxSDKServiceConfigFromProperties implements BoxSDKServiceConfig {
         this.dropsFolderId = dropsFolderId;
     }
 
+    public void setProxyHost(String proxyHost) {
+        this.proxyHost = proxyHost;
+    }
+
+    public void setProxyPort(Integer proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    public void setProxyUser(String proxyUser) {
+        this.proxyUser = proxyUser;
+    }
+
+    public void setProxyPassword(String proxyPassword) {
+        this.proxyPassword = proxyPassword;
+    }
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -131,6 +167,10 @@ public class BoxSDKServiceConfigFromProperties implements BoxSDKServiceConfig {
         hash = 41 * hash + Objects.hashCode(this.appUserId);
         hash = 41 * hash + Objects.hashCode(this.rootFolderId);
         hash = 41 * hash + Objects.hashCode(this.dropsFolderId);
+        hash = 41 * hash + Objects.hashCode(this.proxyHost);
+        hash = 41 * hash + Objects.hashCode(this.proxyPort);
+        hash = 41 * hash + Objects.hashCode(this.proxyUser);
+        hash = 41 * hash + Objects.hashCode(this.proxyPassword);
         return hash;
     }
 
@@ -174,6 +214,18 @@ public class BoxSDKServiceConfigFromProperties implements BoxSDKServiceConfig {
             return false;
         }
         if (!Objects.equals(this.dropsFolderId, other.dropsFolderId)) {
+            return false;
+        }
+        if (!Objects.equals(this.proxyHost, other.proxyHost)) {
+            return false;
+        }
+        if (!Objects.equals(this.proxyPort, other.proxyPort)) {
+            return false;
+        }
+        if (!Objects.equals(this.proxyUser, other.proxyUser)) {
+            return false;
+        }
+        if (!Objects.equals(this.proxyPassword, other.proxyPassword)) {
             return false;
         }
         return true;

@@ -12,6 +12,10 @@ import com.ibm.icu.text.MessageFormat;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -38,7 +42,8 @@ public class BoxSDKAppUserService {
      * @throws BoxSDKServiceException
      */
     public BoxUser.Info createAppUser(String clientId, String clientSecret, String publicKeyId,
-                String privateKey, String privateKeyPassword, String enterpriseId) throws BoxSDKServiceException {
+                String privateKey, String privateKeyPassword, String enterpriseId,
+              String proxyHost, Integer proxyPort, String proxyUser, String proxyPassword) throws BoxSDKServiceException {
 
         try {
             logger.debug("Creating Box App User: {}", MOJITO_APP_USER_NAME);
@@ -49,6 +54,16 @@ public class BoxSDKAppUserService {
                     clientSecret,
                     jwtEncryptionPreferences,
                     new InMemoryLRUAccessTokenCache(5));
+
+            if (proxyHost != null && proxyPort != null) {
+                logger.debug("Setting proxy for Box API connection");
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+                appEnterpriseConnection.setProxy(proxy);
+
+                if (proxyUser != null) {
+                    appEnterpriseConnection.setProxyBasicAuthentication(proxyUser, proxyPassword);
+                }
+            }
 
             CreateUserParams createUserParams = new CreateUserParams();
             createUserParams.setSpaceAmount(UNLIMITED_SPACE);
