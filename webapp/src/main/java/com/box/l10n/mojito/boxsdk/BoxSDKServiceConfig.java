@@ -56,4 +56,24 @@ public interface BoxSDKServiceConfig {
      */
     String getDropsFolderId();
 
+    /**
+     * @return Host of an HTTP proxy to use when connecting to API
+     */
+    String getProxyHost();
+
+    /**
+     * @return Port of an HTTP proxy to use when connecting to API
+     */
+    Integer getProxyPort();
+
+    /**
+     * @return Username to use for an HTTP proxy that requires basic auth
+     */
+    String getProxyUser();
+
+    /**
+     * @return Password to use for an HTTP proxy that requires basic auth
+     */
+    String getProxyPassword();
+
 }

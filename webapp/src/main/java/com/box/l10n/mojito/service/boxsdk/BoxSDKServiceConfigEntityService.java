@@ -93,7 +93,11 @@ public class BoxSDKServiceConfigEntityService {
                 boxSDKServiceConfig.getPublicKeyId(),
                 boxSDKServiceConfig.getPrivateKey(),
                 boxSDKServiceConfig.getPrivateKeyPassword(),
-                boxSDKServiceConfig.getEnterpriseId()
+                boxSDKServiceConfig.getEnterpriseId(),
+                boxSDKServiceConfig.getProxyHost(),
+                boxSDKServiceConfig.getProxyPort(),
+                boxSDKServiceConfig.getProxyUser(),
+                boxSDKServiceConfig.getProxyPassword()
         );
 
         boxSDKServiceConfig.setAppUserId(appUser.getID());
