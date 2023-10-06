@@ -1,10 +1,6 @@
 package com.box.l10n.mojito.boxsdk;
 
-import com.box.sdk.BoxAPIConnection;
-import com.box.sdk.BoxDeveloperEditionAPIConnection;
-import com.box.sdk.IAccessTokenCache;
-import com.box.sdk.InMemoryLRUAccessTokenCache;
-import com.box.sdk.JWTEncryptionPreferences;
+import com.box.sdk.*;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -63,11 +59,14 @@ public class BoxAPIConnectionProvider {
         BoxSDKServiceConfig boxSDKServiceConfig = boxSDKServiceConfigProvider.getConfig();
         JWTEncryptionPreferences encryptionPref = boxSDKJWTProvider.getJWTEncryptionPreferences(boxSDKServiceConfig);
 
-        BoxAPIConnection connection = BoxDeveloperEditionAPIConnection.getUserConnection(
-                boxSDKServiceConfig.getAppUserId(),
-                boxSDKServiceConfig.getClientId(),
-                boxSDKServiceConfig.getClientSecret(),
-                encryptionPref, getAccessTokenCache());
+        BoxDeveloperEditionAPIConnection connection = new BoxDeveloperEditionAPIConnection(
+            boxSDKServiceConfig.getAppUserId(),
+            DeveloperEditionEntityType.USER,
+            boxSDKServiceConfig.getClientId(),
+            boxSDKServiceConfig.getClientSecret(),
+            encryptionPref,
+            getAccessTokenCache()
+        );
 
         if (boxSDKServiceConfig.getProxyHost() != null && boxSDKServiceConfig.getProxyPort() != null) {
             logger.debug("Setting proxy for Box API connection");
@@ -78,6 +77,8 @@ public class BoxAPIConnectionProvider {
                 connection.setProxyBasicAuthentication(boxSDKServiceConfig.getProxyUser(), boxSDKServiceConfig.getProxyPassword());
             }
         }
+
+        connection.authenticate();
 
         return connection;
     }
