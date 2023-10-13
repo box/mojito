@@ -31,6 +31,8 @@ public class HtmlFilter extends net.sf.okapi.filters.html.HtmlFilter {
 
   boolean processImageUrls;
 
+  boolean markEmptyAndNbspAsNotTranslatable = true;
+
   @Override
   public String getName() {
     return FILTER_CONFIG_ID;
@@ -69,12 +71,24 @@ public class HtmlFilter extends net.sf.okapi.filters.html.HtmlFilter {
     Event next = super.next();
 
     if (next.isTextUnit()) {
+      setEmptyAndNbspAsNotTranslatable(next.getTextUnit());
       setTextUnitName(next.getTextUnit());
     } else if (next.isDocumentPart()) {
       processDocumentPart(next.getDocumentPart());
     }
 
     return next;
+  }
+
+  void setEmptyAndNbspAsNotTranslatable(ITextUnit textUnit) {
+    if (markEmptyAndNbspAsNotTranslatable) {
+      String source = textUnit.getSource().toString();
+      // whitespaces are collapsed by the filter so just checking for empty string & for the usage
+      // of &nbsp;
+      if (source.isEmpty() || "\u00A0".equals(source)) {
+        textUnit.setIsTranslatable(false);
+      }
+    }
   }
 
   void processDocumentPart(DocumentPart documentPart) {
@@ -113,6 +127,8 @@ public class HtmlFilter extends net.sf.okapi.filters.html.HtmlFilter {
     if (filterOptions != null) {
       // mojito options
       filterOptions.getBoolean("processImageUrls", b -> processImageUrls = b);
+      filterOptions.getBoolean(
+          "emptyAndNbspNotTranslatable", b -> markEmptyAndNbspAsNotTranslatable = b);
     }
   }
 }

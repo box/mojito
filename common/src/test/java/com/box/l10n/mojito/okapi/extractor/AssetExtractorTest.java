@@ -91,6 +91,9 @@ public class AssetExtractorTest {
                 + "    <li>item1</li>\n"
                 + "    <li>item2</li>\n"
                 + "</ul>\n"
+                + "<table><tr><td style=\"font-size:0px\" class=\"nomob\">&nbsp;</td></tr></table>\n"
+                + "<table><tr><td></td></tr></table>\n"
+                + "<table><tr><td></td>  </tr></table>\n"
                 + "</body>\n"
                 + "</html>",
             FilterConfigIdOverride.HTML_ALPHA,
