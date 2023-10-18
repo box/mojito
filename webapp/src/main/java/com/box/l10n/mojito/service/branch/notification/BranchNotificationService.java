@@ -15,7 +15,6 @@ import com.box.l10n.mojito.service.branch.BranchStatisticService;
 import com.box.l10n.mojito.service.branch.BranchTextUnitStatisticRepository;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJob;
 import com.box.l10n.mojito.service.branch.notification.job.BranchNotificationMissingScreenshotsJobInput;
-import com.box.l10n.mojito.service.branch.notificationlegacy.BranchNotificationServiceLegacy;
 import com.box.l10n.mojito.service.tm.search.TextUnitDTO;
 import com.box.l10n.mojito.utils.DateTimeUtils;
 import com.google.common.base.Joiner;
@@ -53,8 +52,6 @@ public class BranchNotificationService {
 
   @Autowired QuartzPollableTaskScheduler quartzPollableTaskScheduler;
 
-  @Autowired BranchNotificationServiceLegacy branchNotificationServiceLegacy;
-
   @Value("${l10n.branchNotification.quartz.schedulerName:" + DEFAULT_SCHEDULER_NAME + "}")
   String schedulerName;
 
@@ -69,12 +66,7 @@ public class BranchNotificationService {
   public void sendNotificationsForBranch(Long branchId) {
     logger.debug("sendNotificationsForBranch, id: {}", branchId);
     Branch branch = branchRepository.findById(branchId).orElse(null);
-
-    if (branch.getNotifiers().isEmpty()) {
-      branchNotificationServiceLegacy.sendNotificationsForBranch(branch);
-    } else {
-      sendNotificationsForBranch(branch);
-    }
+    sendNotificationsForBranch(branch);
   }
 
   /**

@@ -6,6 +6,8 @@ import com.ibm.icu.text.MessageFormat;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+// DI version is still used in the CLI: ExtractionCheckNotificationSenderSlack
+// server usage create instance with "new"
 @Component
 @ConditionalOnProperty("l10n.slack.token")
 public class SlackChannels {
