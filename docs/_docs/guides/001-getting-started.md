@@ -16,7 +16,7 @@ For this guide, we use [Brew](http://brew.sh/) to install {{ site.mojito_green }
 ### Start the Webapp
 
     mojito-webapp
-
+    test
 This starts the server on [http://localhost:8080](http://localhost:8080).  You can log in with `admin/ChangeMe`.
 
 ![start webapp](./images/start-webapp.gif)
