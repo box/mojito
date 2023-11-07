@@ -40,4 +40,10 @@ public class PollableTaskWS {
     String outputJson = pollableTaskBlobStorage.getOutputJson(pollableTaskId);
     return outputJson;
   }
+
+  @RequestMapping(method = RequestMethod.GET, value = "/api/pollableTasks/{pollableTaskId}/input")
+  public String getPollableTaskInput(@PathVariable Long pollableTaskId) {
+    String inputJson = pollableTaskBlobStorage.getInputJson(pollableTaskId);
+    return inputJson;
+  }
 }

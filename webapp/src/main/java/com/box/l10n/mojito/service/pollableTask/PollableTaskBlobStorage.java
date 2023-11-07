@@ -51,6 +51,16 @@ public class PollableTaskBlobStorage {
     return outputJson;
   }
 
+  public String getInputJson(Long pollableTaskId) {
+    String inputName = getInputName(pollableTaskId);
+    String inputJson =
+        structuredBlobStorage
+            .getString(POLLABLE_TASK, inputName)
+            .orElseThrow(
+                () -> new RuntimeException("Can't get the input json for: " + pollableTaskId));
+    return inputJson;
+  }
+
   public <T> T getOutput(Long pollableTaskId, Class<T> clazz) {
     String outputJson = getOutputJson(pollableTaskId);
     T t = objectMapper.readValueUnchecked(outputJson, clazz);
