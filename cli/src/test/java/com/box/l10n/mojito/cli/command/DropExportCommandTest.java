@@ -82,6 +82,38 @@ public class DropExportCommandTest extends CLITestBase {
     }
 
     @Test
+    public void exportSelectFullyTranslatedLocales() throws Exception {
+
+        Repository repository = createTestRepoUsingRepoService();
+
+        getL10nJCommander().run("push", "-r", repository.getName(),
+                "-s", getInputResourcesTestDir("source").getAbsolutePath());
+
+        Asset asset = assetClient.getAssetByPathAndRepositoryId("source-xliff.xliff", repository.getId());
+        importTranslations(asset.getId(), "source-xliff_", "fr-FR");
+        // do NOT import translations for ja-JP
+
+        waitForCondition("Must have text units that are fully translated", () -> {
+            RepositoryStatistic repositoryStatistic = repositoryRepository.findOne(repository.getId()).getRepositoryStatistic();
+            return repositoryStatistic.getUsedTextUnitCount() > 0
+                    && repositoryStatistic.getRepositoryLocaleStatistics().stream()
+                    .filter(rls -> Sets.newHashSet("fr-FR").contains(rls.getLocale().getBcp47Tag()))
+                    .allMatch(rls -> rls.getForTranslationCount() == 0);
+        });
+
+        Page<Drop> findAllBefore = dropClient.getDrops(repository.getId(), null, null, null);
+
+        // export only fr-FR which is fully translated
+        getL10nJCommander().run("drop-export", "-r", repository.getName(), "-l", "fr-FR");
+
+        Page<Drop> findAllAfter = dropClient.getDrops(repository.getId(), null, null, null);
+
+        // drop should not be created because it consists only of fully translated locales,
+        // even though repository as a whole is not fully translated (ja-JP is not translated)
+        assertEquals("A Drop should not have been added", findAllBefore.getTotalElements(), findAllAfter.getTotalElements());
+    }
+
+    @Test
     public void exportReviewWithInheritance() throws Exception {
 
         Repository repository = createTestRepoUsingRepoService();
